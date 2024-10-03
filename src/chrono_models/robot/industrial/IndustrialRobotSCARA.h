@@ -19,17 +19,17 @@
 #ifndef CH_INDUSTRIAL_ROBOT_SCARA_H
 #define CH_INDUSTRIAL_ROBOT_SCARA_H
 
-#include "ChRobot.h"
+#include "IndustrialRobot.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotSCARA : public ChRobot {
+class CH_MODELS_API IndustrialRobotSCARA : public IndustrialRobot {
   public:
     /// Default constructor.
-    ChRobotSCARA(){};
+    IndustrialRobotSCARA(){};
 
     /// Build SCARA R-R-R-P robot model from given arm lengths (as in scheme below) and add it to sys.
     ///    L1  L2
@@ -38,7 +38,7 @@ class CH_MODELS_API ChRobotSCARA : public ChRobot {
     /// H |       I--<
     ///   |        L3
     ///  ---
-    ChRobotSCARA(
+    IndustrialRobotSCARA(
         ChSystem* sys,                           ///< containing sys
         const std::array<double, 5>& lengths,    ///< robot arm lengths: base height (H), biceps length (L1), forearm
                                                  ///< length (L2), screw height (D), end-effector length (L3)

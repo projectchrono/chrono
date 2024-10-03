@@ -71,15 +71,15 @@
 #include "chrono_models/robot/copters/Copter.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
-#include "chrono_models/robot/industrial/ChRobot.h"
-#include "chrono_models/robot/industrial/ChRobotSCARA.h"
-#include "chrono_models/robot/industrial/ChRobotSCARA_CAD.h"
-#include "chrono_models/robot/industrial/ChRobot6dof.h"
-#include "chrono_models/robot/industrial/ChRobot6dofCAD.h"
-#include "chrono_models/robot/industrial/ChRobotKinematics.h"
-#include "chrono_models/robot/industrial/ChRobotKinematicsSCARA.h"
-#include "chrono_models/robot/industrial/ChRobotKinematics6dofSpherical.h"
-#include "chrono_models/robot/industrial/ChRobotKinematicsNdofNumerical.h"
+#include "chrono_models/robot/industrial/IndustrialRobot.h"
+#include "chrono_models/robot/industrial/IndustrialRobotSCARA.h"
+#include "chrono_models/robot/industrial/IndustrialRobotSCARA_CAD.h"
+#include "chrono_models/robot/industrial/IndustrialRobot6dof.h"
+#include "chrono_models/robot/industrial/IndustrialRobot6dofCAD.h"
+#include "chrono_models/robot/industrial/IndustrialKinematics.h"
+#include "chrono_models/robot/industrial/IndustrialKinematicsSCARA.h"
+#include "chrono_models/robot/industrial/IndustrialKinematics6dofSpherical.h"
+#include "chrono_models/robot/industrial/IndustrialKinematicsNdofNumerical.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
@@ -119,6 +119,10 @@ using namespace chrono::industrial;
 %template(vector_int) std::vector< int >;
 %template(limb_data) std::array<double, 8>;
 %template(Actuation) std::array<std::array<double, 8>, 4>;
+%template(array_2) std::array<double, 2>;
+%template(array_3) std::array<double, 3>;
+%template(array_4) std::array<double, 4>;
+%template(array_5) std::array<double, 5>;
 
 %template(vector_ChFunction) std::vector< std::shared_ptr<chrono::ChFunction> >;
 %template(vector_ChFunctionSetpoint) std::vector< std::shared_ptr<chrono::ChFunctionSetpoint> >;
@@ -191,15 +195,15 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::turtlebot::Turtlebot_TopPlate)
 %shared_ptr(chrono::turtlebot::Turtlebot_Rod_Long)
 
-%shared_ptr(chrono::industrial::ChRobot)
-%shared_ptr(chrono::industrial::ChRobotSCARA)
-%shared_ptr(chrono::industrial::ChRobotSCARA_CAD)
-%shared_ptr(chrono::industrial::ChRobot6dof)
-%shared_ptr(chrono::industrial::ChRobot6dofCAD)
-%shared_ptr(chrono::industrial::ChRobotKinematics)
-%shared_ptr(chrono::industrial::ChRobotKinematicsSCARA)
-%shared_ptr(chrono::industrial::ChRobotKinematics6dofSpherical)
-%shared_ptr(chrono::industrial::ChRobotKinematicsNdofNumerical)
+%shared_ptr(chrono::industrial::IndustrialRobot)
+%shared_ptr(chrono::industrial::IndustrialRobotSCARA)
+%shared_ptr(chrono::industrial::IndustrialRobotSCARA_CAD)
+%shared_ptr(chrono::industrial::IndustrialRobot6dof)
+%shared_ptr(chrono::industrial::IndustrialRobot6dofCAD)
+%shared_ptr(chrono::industrial::IndustrialKinematics)
+%shared_ptr(chrono::industrial::IndustrialKinematicsSCARA)
+%shared_ptr(chrono::industrial::IndustrialKinematics6dofSpherical)
+%shared_ptr(chrono::industrial::IndustrialKinematicsNdofNumerical)
 
 //
 // B- INCLUDE HEADERS
@@ -267,15 +271,15 @@ using namespace chrono::industrial;
 %template(ChCopter4) chrono::copter::Copter<4>;
 %include "../../../chrono_models/robot/copters/Little_Hexy.h"
 
-%include "../../../chrono_models/robot/industrial/ChRobot.h"
-%include "../../../chrono_models/robot/industrial/ChRobotSCARA.h"
-%include "../../../chrono_models/robot/industrial/ChRobotSCARA_CAD.h"
-%include "../../../chrono_models/robot/industrial/ChRobot6dof.h"
-%include "../../../chrono_models/robot/industrial/ChRobot6dofCAD.h"
-%include "../../../chrono_models/robot/industrial/ChRobotKinematics.h"
-%include "../../../chrono_models/robot/industrial/ChRobotKinematicsSCARA.h"
-%include "../../../chrono_models/robot/industrial/ChRobotKinematics6dofSpherical.h"
-%include "../../../chrono_models/robot/industrial/ChRobotKinematicsNdofNumerical.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobot.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobotSCARA.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobotSCARA_CAD.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobot6dof.h"
+%include "../../../chrono_models/robot/industrial/IndustrialRobot6dofCAD.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematics.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematicsSCARA.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematics6dofSpherical.h"
+%include "../../../chrono_models/robot/industrial/IndustrialKinematicsNdofNumerical.h"
 
 
 

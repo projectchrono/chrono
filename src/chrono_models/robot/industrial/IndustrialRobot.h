@@ -29,13 +29,13 @@
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobot {
+class CH_MODELS_API IndustrialRobot {
   public:
     /// Default constructor.
-    ChRobot(){};
+    IndustrialRobot(){};
 
     /// Default destructor.
-    virtual ~ChRobot() = default;
+    virtual ~IndustrialRobot() = default;
 
     /// Get the containing sys.
     ChSystem* GetSystem() { return m_sys; }

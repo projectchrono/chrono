@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "ChRobotSCARA.h"
+#include "IndustrialRobotSCARA.h"
 
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -26,7 +26,9 @@
 namespace chrono {
 namespace industrial {
 
-ChRobotSCARA::ChRobotSCARA(ChSystem* sys, const std::array<double, 5>& lengths, const ChFramed& base_frame) {
+IndustrialRobotSCARA::IndustrialRobotSCARA(ChSystem* sys,
+                                           const std::array<double, 5>& lengths,
+                                           const ChFramed& base_frame) {
     m_sys = sys;
     m_lengths = lengths;  // H, L1, L2, D, L3
     m_base_frame = Q_ROTATE_Z_TO_Y * base_frame;
@@ -59,7 +61,7 @@ ChRobotSCARA::ChRobotSCARA(ChSystem* sys, const std::array<double, 5>& lengths, 
     SetupLinks();
 }
 
-void ChRobotSCARA::SetupBodies() {
+void IndustrialRobotSCARA::SetupBodies() {
     // Base
     m_base = chrono_types::make_shared<ChBodyAuxRef>();
     m_base->SetFixed(true);
@@ -90,7 +92,7 @@ void ChRobotSCARA::SetupBodies() {
     m_bodylist = {m_base, m_biceps, m_forearm, m_screw, m_end_effector};
 }
 
-void ChRobotSCARA::SetupMarkers() {
+void IndustrialRobotSCARA::SetupMarkers() {
     // Marker ground-base
     m_marker_ground_base = chrono_types::make_shared<ChMarker>();
     m_base->AddMarker(m_marker_ground_base);
@@ -120,7 +122,7 @@ void ChRobotSCARA::SetupMarkers() {
                     m_marker_TCP};
 }
 
-void ChRobotSCARA::SetupLinks() {
+void IndustrialRobotSCARA::SetupLinks() {
     m_motfunlist = {chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>(),
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>()};
 
@@ -155,9 +157,11 @@ void ChRobotSCARA::SetupLinks() {
     m_sys->Add(fix);
 
     m_motorlist = {m_link_base_biceps, m_link_biceps_forearm, m_link_forearm_screw_rot, m_link_forearm_screw_transl};
+
+    CreatePassiveLinks();
 }
 
-ChVectorDynamic<> ChRobotSCARA::GetMotorsPos(bool wrap_angles) const {
+ChVectorDynamic<> IndustrialRobotSCARA::GetMotorsPos(bool wrap_angles) const {
     ChVectorDynamic<> anglepos(4);
     if (wrap_angles) {
         anglepos << std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[0])->GetMotorAngleWrapped(),  // R
@@ -173,7 +177,7 @@ ChVectorDynamic<> ChRobotSCARA::GetMotorsPos(bool wrap_angles) const {
     return anglepos;
 }
 
-ChVectorDynamic<> ChRobotSCARA::GetMotorsPosDt() const {
+ChVectorDynamic<> IndustrialRobotSCARA::GetMotorsPosDt() const {
     ChVectorDynamic<> vels(4);
     vels << std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[0])->GetMotorAngleDt(),  // R
         std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[1])->GetMotorAngleDt(),      // R
@@ -182,7 +186,7 @@ ChVectorDynamic<> ChRobotSCARA::GetMotorsPosDt() const {
     return vels;
 }
 
-ChVectorDynamic<> ChRobotSCARA::GetMotorsPosDt2() const {
+ChVectorDynamic<> IndustrialRobotSCARA::GetMotorsPosDt2() const {
     ChVectorDynamic<> accels(4);
     accels << std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[0])->GetMotorAngleDt2(),  // R
         std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[1])->GetMotorAngleDt2(),        // R
@@ -191,7 +195,7 @@ ChVectorDynamic<> ChRobotSCARA::GetMotorsPosDt2() const {
     return accels;
 }
 
-ChVectorDynamic<> ChRobotSCARA::GetMotorsForce() const {
+ChVectorDynamic<> IndustrialRobotSCARA::GetMotorsForce() const {
     ChVectorDynamic<> torques(4);
     torques << std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[0])->GetMotorTorque(),  // R
         std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(m_motorlist[1])->GetMotorTorque(),         // R
@@ -200,7 +204,7 @@ ChVectorDynamic<> ChRobotSCARA::GetMotorsForce() const {
     return torques;
 }
 
-void ChRobotSCARA::Add1dShapes(const ChColor& col) {
+void IndustrialRobotSCARA::Add1dShapes(const ChColor& col) {
     // Link 1 (base)
     auto shape1 = chrono_types::make_shared<ChVisualShapeLine>();
     auto line1 = chrono_types::make_shared<ChLineSegment>();
@@ -247,7 +251,7 @@ void ChRobotSCARA::Add1dShapes(const ChColor& col) {
     m_end_effector->AddVisualShape(shape5);
 }
 
-void ChRobotSCARA::Add3dShapes(double rad, const ChColor& col) {
+void IndustrialRobotSCARA::Add3dShapes(double rad, const ChColor& col) {
     ChLineSegment help_segm;
 
     // Link 1 (base)

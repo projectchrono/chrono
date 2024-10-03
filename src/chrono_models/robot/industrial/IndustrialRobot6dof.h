@@ -19,15 +19,15 @@
 #ifndef CH_INDUSTRIAL_ROBOT_6DOF_H
 #define CH_INDUSTRIAL_ROBOT_6DOF_H
 
-#include "ChRobot.h"
+#include "IndustrialRobot.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobot6dof : public ChRobot {
+class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
   public:
     /// Default constructor.
-    ChRobot6dof(){};
+    IndustrialRobot6dof(){};
 
     /// Build 6dof articulated robot model from given arm lengths (as in scheme below) and add it to sys.
     ///     L1   L2  L3
@@ -35,10 +35,11 @@ class CH_MODELS_API ChRobot6dof : public ChRobot {
     /// H |
     ///   |
     ///  ---
-    ChRobot6dof(ChSystem* sys,                           ///< containing sys
-                const std::array<double, 4>& lengths,    ///< arm lengths: shoulder height (H), biceps length (L1),
-                                                         ///< forearm length (L2), wrist length up to TCP (L3)
-                const ChFramed& base_frame = ChFramed()  ///< place robot base in these coordinates
+    IndustrialRobot6dof(
+        ChSystem* sys,                           ///< containing sys
+        const std::array<double, 4>& lengths,    ///< arm lengths: shoulder height (H), biceps length (L1),
+                                                 ///< forearm length (L2), wrist length up to TCP (L3)
+        const ChFramed& base_frame = ChFramed()  ///< place robot base in these coordinates
     );
 
     /// Get specific robot body.

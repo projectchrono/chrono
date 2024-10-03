@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
-#include "ChRobotKinematics6dofSpherical.h"
+#include "IndustrialKinematics6dofSpherical.h"
 
 namespace chrono {
 namespace industrial {
 
-ChRobotKinematics6dofSpherical::ChRobotKinematics6dofSpherical(const std::array<ChCoordsysd, 7>& joints_abs_coord,
+IndustrialKinematics6dofSpherical::IndustrialKinematics6dofSpherical(const std::array<ChCoordsysd, 7>& joints_abs_coord,
                                                                const std::array<double, 2>& vert_angs,
                                                                const std::array<double, 4>& lengths)
     : m_vert_angs(vert_angs), m_lengths(lengths) {
@@ -30,7 +30,7 @@ ChRobotKinematics6dofSpherical::ChRobotKinematics6dofSpherical(const std::array<
     SetupCoords(joints_abs_coord);
 }
 
-ChRobotKinematics6dofSpherical::ChRobotKinematics6dofSpherical(const std::array<ChCoordsysd, 7>& joints_abs_coord,
+IndustrialKinematics6dofSpherical::IndustrialKinematics6dofSpherical(const std::array<ChCoordsysd, 7>& joints_abs_coord,
                                                                const std::array<double, 2>& vert_angs)
     : m_vert_angs(vert_angs) {
     m_num_joints = 6;
@@ -42,7 +42,7 @@ ChRobotKinematics6dofSpherical::ChRobotKinematics6dofSpherical(const std::array<
                  (m_joints_abs_coord[6].pos - m_joints_abs_coord[4].pos).Length()};  // L3
 }
 
-ChRobotKinematics6dofSpherical::ChRobotKinematics6dofSpherical(const ChRobotKinematics6dofSpherical& other)
+IndustrialKinematics6dofSpherical::IndustrialKinematics6dofSpherical(const IndustrialKinematics6dofSpherical& other)
     : m_joints_abs_coord(other.m_joints_abs_coord),
       m_joints_rel_coord(other.m_joints_rel_coord),
       m_vert_angs(other.m_vert_angs),
@@ -50,31 +50,31 @@ ChRobotKinematics6dofSpherical::ChRobotKinematics6dofSpherical(const ChRobotKine
     m_num_joints = other.m_num_joints;
 }
 
-void ChRobotKinematics6dofSpherical::SetupCoords(const std::array<ChCoordsysd, 7>& joints_abs_coord) {
+void IndustrialKinematics6dofSpherical::SetupCoords(const std::array<ChCoordsysd, 7>& joints_abs_coord) {
     m_joints_abs_coord = joints_abs_coord;
     m_joints_rel_coord = m_joints_abs_coord;  // m_joints_rel_coord[0] = m_joints_abs_coord[0]
     for (int i = 1; i < m_joints_rel_coord.size(); ++i)
         m_joints_rel_coord[i] = m_joints_abs_coord[i - 1].TransformParentToLocal(m_joints_abs_coord[i]);
 }
 
-void ChRobotKinematics6dofSpherical::SetupGeomData(const std::array<double, 2>& vert_angs,
+void IndustrialKinematics6dofSpherical::SetupGeomData(const std::array<double, 2>& vert_angs,
                                                    const std::array<double, 4>& lengths) {
     m_vert_angs = vert_angs;
     m_lengths = lengths;
 }
 
-ChCoordsysd ChRobotKinematics6dofSpherical::GetFK(const ChVectorDynamic<>& u, int Nth) const {
+ChCoordsysd IndustrialKinematics6dofSpherical::GetFK(const ChVectorDynamic<>& u, int Nth) const {
     ChCoordsysd coord = m_joints_rel_coord[0];  // Fw0
     for (auto i = 1; i < Nth + 1; ++i)
         coord = coord * (QuatFromAngleZ(u[i - 1]) * m_joints_rel_coord[i]);  // up to FwN
     return coord;
 }
 
-ChCoordsysd ChRobotKinematics6dofSpherical::GetFK(const ChVectorDynamic<>& u) const {
+ChCoordsysd IndustrialKinematics6dofSpherical::GetFK(const ChVectorDynamic<>& u) const {
     return GetFK(u, m_num_joints);
 }
 
-ChVectorDynamic<> ChRobotKinematics6dofSpherical::GetIK(const ChCoordsysd& targetcoord) const {
+ChVectorDynamic<> IndustrialKinematics6dofSpherical::GetIK(const ChCoordsysd& targetcoord) const {
     // Inverse kinematics computation for 6dof articulated robot with spherical wrist
     // NB: works only for the following wrist joints starting rotation matrices ->
     // R34 = [1 0 0; 0 0 1; 0 -1 0], R45 = [0 0 -1; 1 0 0; 0 -1 0], R56 = eye(3).

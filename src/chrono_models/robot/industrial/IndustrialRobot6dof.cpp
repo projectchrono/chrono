@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "ChRobot6dof.h"
+#include "IndustrialRobot6dof.h"
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -24,7 +24,9 @@
 namespace chrono {
 namespace industrial {
 
-ChRobot6dof::ChRobot6dof(ChSystem* sys, const std::array<double, 4>& lengths, const ChFramed& base_frame) {
+IndustrialRobot6dof::IndustrialRobot6dof(ChSystem* sys,
+                                         const std::array<double, 4>& lengths,
+                                         const ChFramed& base_frame) {
     m_sys = sys;
     m_lengths = lengths;  // H, L1, L2, L3
     m_base_frame = base_frame;
@@ -55,7 +57,7 @@ ChRobot6dof::ChRobot6dof(ChSystem* sys, const std::array<double, 4>& lengths, co
     SetupLinks();
 }
 
-void ChRobot6dof::SetupBodies() {
+void IndustrialRobot6dof::SetupBodies() {
     // Base
     m_base = chrono_types::make_shared<ChBodyAuxRef>();
     m_base->SetFixed(true);
@@ -95,7 +97,7 @@ void ChRobot6dof::SetupBodies() {
     m_bodylist = {m_base, m_shoulder, m_biceps, m_elbow, m_forearm, m_wrist, m_end_effector};
 }
 
-void ChRobot6dof::SetupMarkers() {
+void IndustrialRobot6dof::SetupMarkers() {
     // Marker base-shoulder
     m_marker_base_shoulder = chrono_types::make_shared<ChMarker>();
     m_base->AddMarker(m_marker_base_shoulder);
@@ -135,52 +137,31 @@ void ChRobot6dof::SetupMarkers() {
                     m_marker_forearm_wrist, m_marker_wrist_end_effector, m_marker_TCP};
 }
 
-void ChRobot6dof::SetupLinks() {
+void IndustrialRobot6dof::SetupLinks() {
     m_motfunlist = {chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>(),
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>(),
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>()};
 
-    // Link base-shoulder
-    m_link_base_shoulder = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_link_base_shoulder->Initialize(m_shoulder, m_base, ChFrame<>(m_joint_frames[0]));
-    m_link_base_shoulder->SetMotorFunction(m_motfunlist[0]);
-    m_sys->Add(m_link_base_shoulder);
-
-    // Link shoulder-biceps
-    m_link_shoulder_biceps = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_link_shoulder_biceps->Initialize(m_biceps, m_shoulder, ChFrame<>(m_joint_frames[1]));
-    m_link_shoulder_biceps->SetMotorFunction(m_motfunlist[1]);
-    m_sys->Add(m_link_shoulder_biceps);
-
-    // Link biceps-elbow
-    m_link_biceps_elbow = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_link_biceps_elbow->Initialize(m_elbow, m_biceps, ChFrame<>(m_joint_frames[2]));
-    m_link_biceps_elbow->SetMotorFunction(m_motfunlist[2]);
-    m_sys->Add(m_link_biceps_elbow);
-
-    // Link elbow-forearm
-    m_link_elbow_forearm = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_link_elbow_forearm->Initialize(m_forearm, m_elbow, ChFrame<>(m_joint_frames[3]));
-    m_link_elbow_forearm->SetMotorFunction(m_motfunlist[3]);
-    m_sys->Add(m_link_elbow_forearm);
-
-    // Link forearm-wrist
-    m_link_forearm_wrist = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_link_forearm_wrist->Initialize(m_wrist, m_forearm, ChFrame<>(m_joint_frames[4]));
-    m_link_forearm_wrist->SetMotorFunction(m_motfunlist[4]);
-    m_sys->Add(m_link_forearm_wrist);
-
-    // Link wrist-end effector
-    m_link_wrist_end_effector = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_link_wrist_end_effector->Initialize(m_end_effector, m_wrist, ChFrame<>(m_joint_frames[5]));
-    m_link_wrist_end_effector->SetMotorFunction(m_motfunlist[5]);
-    m_sys->Add(m_link_wrist_end_effector);
+    m_link_base_shoulder =
+        CreateMotorRotationAngle(m_sys, m_shoulder, m_base, ChFrame<>(m_joint_frames[0]), m_motfunlist[0]);
+    m_link_shoulder_biceps =
+        CreateMotorRotationAngle(m_sys, m_biceps, m_shoulder, ChFrame<>(m_joint_frames[1]), m_motfunlist[1]);
+    m_link_biceps_elbow =
+        CreateMotorRotationAngle(m_sys, m_elbow, m_biceps, ChFrame<>(m_joint_frames[2]), m_motfunlist[2]);
+    m_link_elbow_forearm =
+        CreateMotorRotationAngle(m_sys, m_forearm, m_elbow, ChFrame<>(m_joint_frames[3]), m_motfunlist[3]);
+    m_link_forearm_wrist =
+        CreateMotorRotationAngle(m_sys, m_wrist, m_forearm, ChFrame<>(m_joint_frames[4]), m_motfunlist[4]);
+    m_link_wrist_end_effector =
+        CreateMotorRotationAngle(m_sys, m_end_effector, m_wrist, ChFrame<>(m_joint_frames[5]), m_motfunlist[5]);
 
     m_motorlist = {m_link_base_shoulder, m_link_shoulder_biceps, m_link_biceps_elbow,
                    m_link_elbow_forearm, m_link_forearm_wrist,   m_link_wrist_end_effector};
+
+    CreatePassiveLinks();
 }
 
-ChVectorDynamic<> ChRobot6dof::GetMotorsPos(bool wrap_angles) const {
+ChVectorDynamic<> IndustrialRobot6dof::GetMotorsPos(bool wrap_angles) const {
     ChVectorDynamic<> angles(6);
     if (wrap_angles) {
         angles << m_link_base_shoulder->GetMotorAngleWrapped(), m_link_shoulder_biceps->GetMotorAngleWrapped(),
@@ -194,7 +175,7 @@ ChVectorDynamic<> ChRobot6dof::GetMotorsPos(bool wrap_angles) const {
     return angles;
 }
 
-ChVectorDynamic<> ChRobot6dof::GetMotorsPosDt() const {
+ChVectorDynamic<> IndustrialRobot6dof::GetMotorsPosDt() const {
     ChVectorDynamic<> vels(6);
     vels << m_link_base_shoulder->GetMotorAngleDt(), m_link_shoulder_biceps->GetMotorAngleDt(),
         m_link_biceps_elbow->GetMotorAngleDt(), m_link_elbow_forearm->GetMotorAngleDt(),
@@ -202,7 +183,7 @@ ChVectorDynamic<> ChRobot6dof::GetMotorsPosDt() const {
     return vels;
 }
 
-ChVectorDynamic<> ChRobot6dof::GetMotorsPosDt2() const {
+ChVectorDynamic<> IndustrialRobot6dof::GetMotorsPosDt2() const {
     ChVectorDynamic<> accels(6);
     accels << m_link_base_shoulder->GetMotorAngleDt2(), m_link_shoulder_biceps->GetMotorAngleDt2(),
         m_link_biceps_elbow->GetMotorAngleDt2(), m_link_elbow_forearm->GetMotorAngleDt2(),
@@ -210,7 +191,7 @@ ChVectorDynamic<> ChRobot6dof::GetMotorsPosDt2() const {
     return accels;
 }
 
-ChVectorDynamic<> ChRobot6dof::GetMotorsForce() const {
+ChVectorDynamic<> IndustrialRobot6dof::GetMotorsForce() const {
     ChVectorDynamic<> torques(6);
     torques << m_link_base_shoulder->GetMotorTorque(), m_link_shoulder_biceps->GetMotorTorque(),
         m_link_biceps_elbow->GetMotorTorque(), m_link_elbow_forearm->GetMotorTorque(),
@@ -218,7 +199,7 @@ ChVectorDynamic<> ChRobot6dof::GetMotorsForce() const {
     return torques;
 }
 
-void ChRobot6dof::Add1dShapes(const ChColor& col) {
+void IndustrialRobot6dof::Add1dShapes(const ChColor& col) {
     // Link 1
     auto shape1 = chrono_types::make_shared<ChVisualShapeLine>();
     auto line1 = chrono_types::make_shared<ChLineSegment>();
@@ -256,7 +237,7 @@ void ChRobot6dof::Add1dShapes(const ChColor& col) {
     m_wrist->AddVisualShape(shape4);
 }
 
-void ChRobot6dof::Add3dShapes(double rad, const ChColor& col) {
+void IndustrialRobot6dof::Add3dShapes(double rad, const ChColor& col) {
     ChLineSegment segm;
 
     // Link 1

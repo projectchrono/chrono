@@ -28,13 +28,13 @@
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotKinematics {
+class CH_MODELS_API IndustrialKinematics {
   public:
     /// Default constructor.
-    ChRobotKinematics();
+    IndustrialKinematics();
 
     /// Virtual destructor.
-    virtual ~ChRobotKinematics() {}
+    virtual ~IndustrialKinematics() {}
 
     /// Get number of robot joints.
     int GetNumJoints() const { return m_num_joints; }

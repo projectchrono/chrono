@@ -16,13 +16,13 @@
 //
 // =============================================================================
 
-#include "ChRobotKinematicsSCARA.h"
+#include "IndustrialKinematicsSCARA.h"
 
 namespace chrono {
 namespace industrial {
 
 
-ChRobotKinematicsSCARA::ChRobotKinematicsSCARA(const std::array<ChCoordsysd, 5>& joints_abs_coord, const std::array<double, 5>& lengths, bool right_elbow)
+IndustrialKinematicsSCARA::IndustrialKinematicsSCARA(const std::array<ChCoordsysd, 5>& joints_abs_coord, const std::array<double, 5>& lengths, bool right_elbow)
 	: m_lengths(lengths), m_right_elbow(right_elbow)
 {
 	m_num_joints = 4;
@@ -33,7 +33,7 @@ ChRobotKinematicsSCARA::ChRobotKinematicsSCARA(const std::array<ChCoordsysd, 5>&
 }
 
 //// Infer lengths from given m_Xabs positions (?)
-//ChRobotKinematicsSCARA::ChRobotKinematicsSCARA(const std::vector<ChCoordsysd>& Xabs, bool right_elbow)
+//IndustrialKinematicsSCARA::IndustrialKinematicsSCARA(const std::vector<ChCoordsysd>& Xabs, bool right_elbow)
 //: m_right_elbow{ right_elbow }
 //{
 //	m_Nj = 4;
@@ -47,25 +47,25 @@ ChRobotKinematicsSCARA::ChRobotKinematicsSCARA(const std::array<ChCoordsysd, 5>&
 //		(m_Xabs[4].pos - m_Xabs[3].pos).Length() }; // L3
 //}
 
-ChRobotKinematicsSCARA::ChRobotKinematicsSCARA(const ChRobotKinematicsSCARA& other)
+IndustrialKinematicsSCARA::IndustrialKinematicsSCARA(const IndustrialKinematicsSCARA& other)
 	: m_joints_abs_coord(other.m_joints_abs_coord), m_joints_rel_coord(other.m_joints_rel_coord), m_lengths(other.m_lengths), m_right_elbow(other.m_right_elbow), m_TCP_rot0(other.m_TCP_rot0), m_TCP_offset0(other.m_TCP_offset0)
 {
 	m_num_joints = other.m_num_joints;
 }
 
-void ChRobotKinematicsSCARA::SetupCoords(const std::array<ChCoordsysd, 5>& joints_abs_coord) {
+void IndustrialKinematicsSCARA::SetupCoords(const std::array<ChCoordsysd, 5>& joints_abs_coord) {
 	m_joints_abs_coord = joints_abs_coord;
 	m_joints_rel_coord = joints_abs_coord; // m_joints_rel_coord[0] = m_joints_abs_coord[0]
 	for (int i = 1; i < m_joints_rel_coord.size(); ++i)
 		m_joints_rel_coord[i] = m_joints_abs_coord[i - 1].TransformParentToLocal(m_joints_abs_coord[i]);
 }
 
-void ChRobotKinematicsSCARA::SetupGeomData(const std::array<double, 5>& lengths, bool right_elbow) {
+void IndustrialKinematicsSCARA::SetupGeomData(const std::array<double, 5>& lengths, bool right_elbow) {
 	m_lengths = lengths;
 	m_right_elbow = right_elbow;
 }
 
-ChCoordsysd ChRobotKinematicsSCARA::GetFK(const ChVectorDynamic<>& u) const {
+ChCoordsysd IndustrialKinematicsSCARA::GetFK(const ChVectorDynamic<>& u) const {
 	// u = RRRP
 	ChCoordsysd coord = m_joints_rel_coord[0] 
 		* (QuatFromAngleZ(u[0]) * m_joints_rel_coord[1]) 
@@ -76,7 +76,7 @@ ChCoordsysd ChRobotKinematicsSCARA::GetFK(const ChVectorDynamic<>& u) const {
 	return coord;
 }
 
-ChVectorDynamic<> ChRobotKinematicsSCARA::GetIK(const ChCoordsysd& targetcoord) const {
+ChVectorDynamic<> IndustrialKinematicsSCARA::GetIK(const ChCoordsysd& targetcoord) const {
 	ChVector3d T_0 = m_joints_rel_coord[0].TransformPointParentToLocal(targetcoord.pos); // demanded EE position in robot base frame (0)
 	double phi = (m_TCP_rot0.GetConjugate() * targetcoord.rot).GetRotVec().Length(); // demanded EE rotation
 	double Wx = T_0.x() - m_lengths[4] * cos(phi); // wrist (screw) center x

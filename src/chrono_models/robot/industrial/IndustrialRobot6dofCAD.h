@@ -19,18 +19,18 @@
 #ifndef CH_INDUSTRIAL_ROBOT_6DOF_CAD_H
 #define CH_INDUSTRIAL_ROBOT_6DOF_CAD_H
 
-#include "ChRobot6dof.h"
+#include "IndustrialRobot6dof.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobot6dofCAD : public ChRobot6dof {
+class CH_MODELS_API IndustrialRobot6dofCAD : public IndustrialRobot6dof {
   public:
     /// Default constructor.
-    ChRobot6dofCAD(){};
+    IndustrialRobot6dofCAD(){};
 
     /// Build 6dof articulated robot model from CAD bodies already imported in sys.
-    ChRobot6dofCAD(
+    IndustrialRobot6dofCAD(
         ChSystem* sys,                            ///< containing sys
         const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinates
         unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of same CAD robot

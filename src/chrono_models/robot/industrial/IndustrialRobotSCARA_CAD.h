@@ -19,18 +19,18 @@
 #ifndef CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
 #define CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
 
-#include "ChRobotSCARA.h"
+#include "IndustrialRobotSCARA.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotSCARA_CAD : public ChRobotSCARA {
+class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
   public:
     /// Default constructor.
-    ChRobotSCARA_CAD(){};
+    IndustrialRobotSCARA_CAD(){};
 
     /// Build SCARA R-R-R-P robot model from CAD bodies already imported in sys.
-    ChRobotSCARA_CAD(ChSystem* sys,                            ///< containing sys
+    IndustrialRobotSCARA_CAD(ChSystem* sys,                            ///< containing sys
                      const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinatesv
                      unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of
                                            ///< same CAD robot without name clashes)

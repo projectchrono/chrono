@@ -19,18 +19,18 @@
 #ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
 #define CH_INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
 
-#include "ChRobotKinematics.h"
+#include "IndustrialKinematics.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotKinematics6dofSpherical : public ChRobotKinematics {
+class CH_MODELS_API IndustrialKinematics6dofSpherical : public IndustrialKinematics {
   public:
     /// Default constructor.
-    ChRobotKinematics6dofSpherical(){};
+    IndustrialKinematics6dofSpherical(){};
 
     /// Build model from joints absolute coordinates, vertical angles and link lengths.
-    ChRobotKinematics6dofSpherical(
+    IndustrialKinematics6dofSpherical(
         const std::array<ChCoordsysd, 7>&
             joints_abs_coord,  ///< joints starting absolute coordinates (assume rotation about local Z axes)
         const std::array<double, 2>& vert_angs,  ///< adjust th2/th3 values: angles needed to start sub-robot 3dof from
@@ -40,14 +40,14 @@ class CH_MODELS_API ChRobotKinematics6dofSpherical : public ChRobotKinematics {
 
     /// Build model from joints absolute coordinates and vertical angles. Infer link lengths from given joint
     /// coordinates.
-    ChRobotKinematics6dofSpherical(const std::array<ChCoordsysd, 7>& joints_abs_coord,
+    IndustrialKinematics6dofSpherical(const std::array<ChCoordsysd, 7>& joints_abs_coord,
                                    const std::array<double, 2>& vert_angs);
 
     /// Copy constructor.
-    ChRobotKinematics6dofSpherical(const ChRobotKinematics6dofSpherical& other);
+    IndustrialKinematics6dofSpherical(const IndustrialKinematics6dofSpherical& other);
 
     /// Virtual destructor.
-    virtual ~ChRobotKinematics6dofSpherical(){};
+    virtual ~IndustrialKinematics6dofSpherical(){};
 
     /// Set absolute and relative robot joints coordinates.
     void SetupCoords(const std::array<ChCoordsysd, 7>& m_joints_abs_coord);
