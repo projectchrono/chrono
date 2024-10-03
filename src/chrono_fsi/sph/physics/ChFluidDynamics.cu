@@ -68,8 +68,9 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, 
         return;  // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1)
-        return;  // no need to do anything if it is a boundary particle
+    // no need to do anything if it is a BCE marker
+    if (IsBceMarker(rhoPresMu.w))
+        return;
 
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
@@ -77,15 +78,13 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, 
     if (posRad.x > paramsD.cMax.x) {
         posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1)
-            rhoPresMuD[index].y += paramsD.deltaPress.x;
+        rhoPresMuD[index].y += paramsD.deltaPress.x;
         return;
     }
     if (posRad.x < paramsD.cMin.x) {
         posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1)
-            rhoPresMuD[index].y -= paramsD.deltaPress.x;
+        rhoPresMuD[index].y -= paramsD.deltaPress.x;
         return;
     }
 }
@@ -98,8 +97,9 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
         return;
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (rhoPresMu.w > 0.0)
-        return;  // no need to do anything if it is a boundary particle
+    // no need to do anything if it is a BCE marker
+    if (IsBceMarker(rhoPresMu.w))
+        return;
 
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
@@ -107,19 +107,15 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
     if (posRad.x > paramsD.cMax.x) {
         posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w <= 0.0) {
-            rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.x;
-            rhoPresMuD[index] = rhoPresMu;
-        }
+        rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.x;
+        rhoPresMuD[index] = rhoPresMu;
     }
     if (posRad.x < paramsD.cMin.x) {
         posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
         VelMassD[index] = mR3(paramsD.V_in.x, 0, 0);
-        if (rhoPresMu.w <= -.1) {
-            rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.x;
-            rhoPresMuD[index] = rhoPresMu;
-        }
+        rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.x;
+        rhoPresMuD[index] = rhoPresMu;
     }
 
     if (posRad.x > -paramsD.x_in)
@@ -141,8 +137,9 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
         return;  // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1)
-        return;  // no need to do anything if it is a boundary particle
+    // no need to do anything if it is a BCE marker
+    if (IsBceMarker(rhoPresMu.w))
+        return;
 
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
@@ -150,19 +147,15 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
     if (posRad.y > paramsD.cMax.y) {
         posRad.y -= (paramsD.cMax.y - paramsD.cMin.y);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1) {
-            rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.y;
-            rhoPresMuD[index] = rhoPresMu;
-        }
+        rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.y;
+        rhoPresMuD[index] = rhoPresMu;
         return;
     }
     if (posRad.y < paramsD.cMin.y) {
         posRad.y += (paramsD.cMax.y - paramsD.cMin.y);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1) {
-            rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.y;
-            rhoPresMuD[index] = rhoPresMu;
-        }
+        rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.y;
+        rhoPresMuD[index] = rhoPresMu;
         return;
     }
 }
@@ -179,8 +172,9 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, 
         return;  // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1)
-        return;  // no need to do anything if it is a boundary particle
+    // no need to do anything if it is a BCE marker
+    if (IsBceMarker(rhoPresMu.w))
+        return;
 
     Real3 posRad = mR3(posRadD[index]);
     Real h = posRadD[index].w;
@@ -188,54 +182,17 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, 
     if (posRad.z > paramsD.cMax.z) {
         posRad.z -= (paramsD.cMax.z - paramsD.cMin.z);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1) {
-            rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.z;
-            rhoPresMuD[index] = rhoPresMu;
-        }
+        rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.z;
+        rhoPresMuD[index] = rhoPresMu;
         return;
     }
     if (posRad.z < paramsD.cMin.z) {
         posRad.z += (paramsD.cMax.z - paramsD.cMin.z);
         posRadD[index] = mR4(posRad, h);
-        if (rhoPresMu.w < -.1) {
-            rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.z;
-            rhoPresMuD[index] = rhoPresMu;
-        }
+        rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.z;
+        rhoPresMuD[index] = rhoPresMu;
         return;
     }
-}
-
-// -----------------------------------------------------------------------------
-// Kernel to keep particle inside the simulation domain
-__global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real3* velMasD) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
-        return;
-
-    Real4 rhoPresMu = rhoPresMuD[index];
-    if (fabs(rhoPresMu.w) < .1)
-        return;  // no need to do anything if it is a boundary particle
-
-    Real3 posRad = mR3(posRadD[index]);
-    Real3 vel = mR3(velMasD[index]);
-    Real h = posRadD[index].w;
-
-    if (posRad.x > 0.5 * paramsD.boxDimX)
-        posRad.x = 0.5 * paramsD.boxDimX;
-    if (posRad.x < -0.5 * paramsD.boxDimX)
-        posRad.x = -0.5 * paramsD.boxDimX;
-    if (posRad.y > 0.5 * paramsD.boxDimY)
-        posRad.y = 0.5 * paramsD.boxDimY;
-    if (posRad.y < -0.5 * paramsD.boxDimY)
-        posRad.y = -0.5 * paramsD.boxDimY;
-    if (posRad.z > 1.0 * paramsD.boxDimZ)
-        posRad.z = 1.0 * paramsD.boxDimZ;
-    if (posRad.z < -0.0 * paramsD.boxDimZ)
-        posRad.z = -0.0 * paramsD.boxDimZ;
-
-    posRadD[index] = mR4(posRad, h);
-    velMasD[index] = mR3(vel);
-    return;
 }
 
 // -----------------------------------------------------------------------------
@@ -536,7 +493,6 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     return;
 }
 
-
 // -----------------------------------------------------------------------------
 __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
                                        const Real3* sortedVelMas,
@@ -640,9 +596,10 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMa
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
 
     UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.extendedActivityIdD), updatePortion, error_flagD);
+        mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D), U1CAST(m_data_mgr.activityIdentifierD),
+        U1CAST(m_data_mgr.extendedActivityIdD), updatePortion, error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
 
     cudaFreeErrorFlag(error_flagD);
@@ -694,7 +651,7 @@ void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sorte
         mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
         U1CAST(m_data_mgr.activityIdentifierD), error_flagD);
     cudaCheckErrorFlag(error_flagD, "CopySortedToOriginal_D");
- 
+
     cudaFreeErrorFlag(error_flagD);
 }
 
@@ -721,15 +678,9 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
                                                             U1CAST(m_data_mgr.activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
-
-    // ApplyOutOfBoundaryKernel<<<numBlocks, numThreads>>>
-    //     (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->velMasD));
-    // cudaDeviceSynchronize();
-    // cudaCheckError();
 }
 
 // -----------------------------------------------------------------------------
-// TODO (Huzaifa): Can this function be deprecated? Does not seem to be used anywhere
 // Apply periodic boundary conditions in y, and z.
 // The inlet/outlet BC is applied in the x direction.
 // This functions needs to be tested.
