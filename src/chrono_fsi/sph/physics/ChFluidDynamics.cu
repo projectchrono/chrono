@@ -328,13 +328,6 @@ __global__ void UpdateFluidD(Real4* posRadD,
             p_tr = 0.0;
         }
 
-        if (paramsD.output_length == 2) {
-            Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                          2.0 * (square(updatedTauXyXzYz.x) + square(updatedTauXyXzYz.y) + square(updatedTauXyXzYz.z));
-            tau_tr = sqrt(0.5 * tau_tr);
-            sr_tau_I_mu_iD[index].y = tau_tr;
-        }
-
         tauXxYyZzD[index] = updatedTauXxYyZz - mR3(p_tr);
         tauXyXzYzD[index] = updatedTauXyXzYz;
     }

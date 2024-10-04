@@ -1143,10 +1143,17 @@ void ChFluidSystemSPH::WriteParticleFile(const std::string& outfilename) const {
 }
 
 void ChFluidSystemSPH::PrintParticleToFile(const std::string& dir) const {
-    sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                             m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sr_tau_I_mu_i_Original,
-                             m_data_mgr->derivVelRhoOriginalD, m_data_mgr->referenceArray,
-                             m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+    if (m_paramsH->elastic_SPH) {
+        sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sphMarkers_D->tauXxYyZzD,
+                                 m_data_mgr->sphMarkers_D->tauXyXzYzD, m_data_mgr->derivVelRhoOriginalD,
+                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+    } else {
+        sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sr_tau_I_mu_i_Original,
+                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->referenceArray,
+                                 m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+    }
 }
 
 void ChFluidSystemSPH::PrintFsiInfoToFile(const std::string& dir, double time) const {
