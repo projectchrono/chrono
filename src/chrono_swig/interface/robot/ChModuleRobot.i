@@ -124,6 +124,7 @@ using namespace chrono::industrial;
 %template(array_4) std::array<double, 4>;
 %template(array_5) std::array<double, 5>;
 
+%template(array_ChCoordsysd_7) std::array< chrono::ChCoordsys<double>, 7 >;
 %template(vector_ChFunction) std::vector< std::shared_ptr<chrono::ChFunction> >;
 %template(vector_ChFunctionSetpoint) std::vector< std::shared_ptr<chrono::ChFunctionSetpoint> >;
 %template(vector_ChLinkMotor) std::vector< std::shared_ptr<chrono::ChLinkMotor> >;
