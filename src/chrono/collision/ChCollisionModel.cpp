@@ -68,13 +68,21 @@ ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return contactable->GetPhysicsItem();
 }
 
-ChAABB ChCollisionModel::GetBoundingBox() const {
+ChAABB ChCollisionModel::GetBoundingBox(bool local) const {
+    if (local) {
+        ChAABB aabb;
+        for (const auto& shape : m_shape_instances) {
+            auto shape_aabb = shape.first->GetBoundingBox();
+            aabb += shape_aabb.Transform(shape.second);
+        }
+        return aabb;
+    }
+
     // Return an updated bounding box only if this collision model was processed by the current collision system
     // (through BindAll or BindItem)
-
-    if (impl)
+    if (impl) {
         return impl->GetBoundingBox();
-
+    }
     return ChAABB();
 }
 

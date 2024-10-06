@@ -98,12 +98,17 @@ int main(int argc, char* argv[]) {
     }
 
     // Robot bounding box (visualizatino models)
-    auto aabb = parser.GetVisualizationBoundingBox();
-    auto aabb_size = aabb.Size();
-    auto aabb_center = aabb.Center();
+    auto aabb_coll = parser.GetCollisionBoundingBox();
+    auto aabb_vis = parser.GetVisualizationBoundingBox();
+    std::cout << "Collision AABB" << std::endl;
+    std::cout << "   min: " << aabb_coll.min << std::endl;
+    std::cout << "   max: " << aabb_coll.max << std::endl;
     std::cout << "Visualization AABB" << std::endl;
-    std::cout << "   min: " << aabb.min << std::endl;
-    std::cout << "   max:"  << aabb.max << std::endl;
+    std::cout << "   min: " << aabb_vis.min << std::endl;
+    std::cout << "   max: " << aabb_vis.max << std::endl;
+
+    auto aabb_size = aabb_vis.Size();
+    auto aabb_center = aabb_vis.Center();
 
     // Get location of the root body
     ////auto root_loc = parser.GetRootChBody()->GetPos();
@@ -117,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetPos(ChVector3d(aabb_center.x(), aabb_center.y(), aabb.min.z() - 0.05));
+    floor->SetPos(ChVector3d(aabb_center.x(), aabb_center.y(), aabb_vis.min.z() - 0.05));
     floor->SetFixed(true);
     auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(aabb_size.x(), aabb_size.y(), 0.1);
     floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"), 1, 1);
@@ -135,7 +140,7 @@ int main(int argc, char* argv[]) {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
-    double cam_offset = 3 * std::max(std::abs(aabb.max.x()), std::abs(aabb.min.y()));
+    double cam_offset = 3 * std::max(std::abs(aabb_vis.max.x()), std::abs(aabb_vis.min.y()));
 
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {

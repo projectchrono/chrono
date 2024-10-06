@@ -154,9 +154,10 @@ class ChApi ChCollisionModel {
     static double GetDefaultSuggestedEnvelope();
     static double GetDefaultSuggestedMargin();
 
-    /// Return the current axis aligned bounding box (AABB) of the collision model.
-    /// Note that SyncPosition() should be invoked before calling this.
-    ChAABB GetBoundingBox() const;
+    /// Return the axis aligned bounding box (AABB) of the collision model.
+    /// If local=true, return the AABB expressed in the local frame of the owner contactable. Otherwise, return the
+    /// AABB expressed in the absolute coordinate frame (in this case, SyncPosition() should be invoked first).
+    ChAABB GetBoundingBox(bool local = false) const;
 
     /// Method to allow serialization of transient data to archives.
     void ArchiveOut(ChArchiveOut& archive_out);

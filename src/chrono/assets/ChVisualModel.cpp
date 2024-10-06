@@ -52,7 +52,7 @@ void ChVisualModel::Update(ChPhysicsItem* owner, const ChFrame<>& frame) {
 
 ChAABB ChVisualModel::GetBoundingBox() const {
     ChAABB aabb;
-    for (auto& shape : m_shapes) {
+    for (const auto& shape : m_shapes) {
         auto shape_aabb = shape.first->GetBoundingBox();
         aabb += shape_aabb.Transform(shape.second);
     }

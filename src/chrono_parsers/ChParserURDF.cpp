@@ -267,7 +267,7 @@ void ChParserURDF::PopulateSystem(ChSystem& sys) {
         }
 
         if (body->GetCollisionModel()) {
-            ChAABB body_aabb = body->GetCollisionModel()->GetBoundingBox();
+            ChAABB body_aabb = body->GetCollisionModel()->GetBoundingBox(true);
             m_aabb_coll += body_aabb.Transform(*body);
         }
     }
