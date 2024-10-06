@@ -258,6 +258,19 @@ void ChParserURDF::PopulateSystem(ChSystem& sys) {
         m_sys->AddBody(m_root_body);
     }
     createChildren(root_link, frame);
+
+    // Calculate visualization and collision bounding boxes
+    for (const auto& body : m_bodies) {
+        if (body->GetVisualModel()) {
+            ChAABB body_aabb = body->GetVisualModel()->GetBoundingBox();
+            m_aabb_vis += body_aabb.Transform(*body);
+        }
+
+        if (body->GetCollisionModel()) {
+            ChAABB body_aabb = body->GetCollisionModel()->GetBoundingBox();
+            m_aabb_coll += body_aabb.Transform(*body);
+        }
+    }
 }
 
 void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame<>& parent_frame) {
@@ -515,6 +528,8 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     // Create and attach visualization and collision assets
     attachVisualization(body, link, ChFrame<>());
     attachCollision(body, link, ChFrame<>());
+
+    m_bodies.push_back(body);
 
     return body;
 }

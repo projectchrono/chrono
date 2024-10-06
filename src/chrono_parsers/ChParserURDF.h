@@ -129,6 +129,13 @@ class ChApiParsers ChParserURDF {
     /// This function must be called after PopulateSystem.
     std::shared_ptr<ChLinkMotor> GetChMotor(const std::string& name) const;
 
+    /// Get the axis aligned bounding box (AABB) of all robot visualization models.
+    ChAABB GetVisualizationBoundingBox() const { return m_aabb_vis; }
+
+    /// Get the axis aligned bounding box (AABB) of all robot collision models.
+    /// Note that an updated collision AABB is available only after system initialization.
+    ChAABB GetCollisionBoundingBox() const { return m_aabb_coll; }
+
     /// Set the actuation function for the specified Chrono motor.
     /// The return value of this function has different meaning, depending on the type of motor, and can represent a
     /// position, angle, linear speed, angular speed, force, or torque.
@@ -174,19 +181,24 @@ class ChApiParsers ChParserURDF {
     /// if present, as this is not supported in Chrono.
     std::string resolveFilename(const std::string& filename);
 
-    std::string m_filename;                                   ///< URDF file name
-    std::string m_filepath;                                   ///< path of URDF file
-    std::string m_xml_string;                                 ///< raw model XML string
-    urdf::ModelInterfaceSharedPtr m_model;                    ///< parsed URDF model
-    ChSystem* m_sys;                                          ///< containing Chrono system
-    ChFrame<> m_init_pose;                                    ///< root body initial pose
-    bool m_vis_collision;                                     ///< visualize collision shapes
+    std::string m_filename;                 ///< URDF file name
+    std::string m_filepath;                 ///< path of URDF file
+    std::string m_xml_string;               ///< raw model XML string
+    urdf::ModelInterfaceSharedPtr m_model;  ///< parsed URDF model
+    ChSystem* m_sys;                        ///< containing Chrono system
+    ChFrame<> m_init_pose;                  ///< root body initial pose
+    bool m_vis_collision;                   ///< visualize collision shapes
+
     std::shared_ptr<ChBodyAuxRef> m_root_body;                ///< model root body
     std::map<std::string, std::string> m_discarded;           ///< discarded bodies
     std::map<std::string, ChContactMaterialData> m_mat_data;  ///< body contact material data
     std::map<std::string, MeshCollisionType> m_coll_type;     ///< mesh collision type
     std::map<std::string, ActuationType> m_actuated_joints;   ///< actuated joints
     ChContactMaterialData m_default_mat_data;                 ///< default contact material data
+
+    std::vector<std::shared_ptr<ChBodyAuxRef>> m_bodies;  ///< list of Chrono bodies created from URDF
+    ChAABB m_aabb_vis;                                    ///< bounding box of all visualization models
+    ChAABB m_aabb_coll;                                   ///< bounding box of all collision models
 };
 
 /// @} parsers_module
