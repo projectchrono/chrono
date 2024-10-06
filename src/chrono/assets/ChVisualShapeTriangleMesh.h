@@ -58,6 +58,9 @@ class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
     void SetModifiedVertices(std::vector<int> vertices) { modified_vertices = vertices; }
     const std::vector<int>& GetModifiedVertices() const { return modified_vertices; }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return trimesh->GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
