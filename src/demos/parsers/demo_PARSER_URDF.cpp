@@ -85,27 +85,27 @@ int main(int argc, char* argv[]) {
         virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
             if (element.FirstChildElement()) {
-                std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
+                std::cout << "  First child name: " << element.FirstChildElement()->Name() << std::endl;
             }
         }
     };
     parser.CustomProcess("link", chrono_types::make_shared<MyCustomProcessor>());
     std::cout << std::endl;
 
-
-    for (const auto& b : sys.GetBodies()) {
-        std::cout << b->GetName() << "  " << b->GetPos() << std::endl;
-    }
+    // Report generated elements
+    parser.PrintChronoBodies();
+    parser.PrintChronoJoints();
 
     // Robot bounding box (visualizatino models)
     auto aabb_coll = parser.GetCollisionBoundingBox();
     auto aabb_vis = parser.GetVisualizationBoundingBox();
     std::cout << "Collision AABB" << std::endl;
-    std::cout << "   min: " << aabb_coll.min << std::endl;
-    std::cout << "   max: " << aabb_coll.max << std::endl;
+    std::cout << "  min: " << aabb_coll.min << std::endl;
+    std::cout << "  max: " << aabb_coll.max << std::endl;
     std::cout << "Visualization AABB" << std::endl;
-    std::cout << "   min: " << aabb_vis.min << std::endl;
-    std::cout << "   max: " << aabb_vis.max << std::endl;
+    std::cout << "  min: " << aabb_vis.min << std::endl;
+    std::cout << "  max: " << aabb_vis.max << std::endl;
+    std::cout << std::endl;
 
     auto aabb_size = aabb_vis.Size();
     auto aabb_center = aabb_vis.Center();

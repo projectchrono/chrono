@@ -69,13 +69,13 @@ class ChApiParsers ChParserURDF {
     /// Get the URDF model tree.
     const urdf::ModelInterfaceSharedPtr& GetModelTree() const { return m_model; }
 
-    /// Print the body tree from parsed URDF file.
+    /// Print the body tree in parsed URDF file.
     void PrintModelBodyTree();
 
-    /// Print the list of bodies from parsed URDF file.
+    /// Print the list of bodies in parsed URDF file.
     void PrintModelBodies();
 
-    /// Print the list of joints from parsed URDF file.
+    /// Print the list of joints in parsed URDF file.
     void PrintModelJoints();
 
     /// Set the initial pose of the model (root link).
@@ -112,6 +112,14 @@ class ChApiParsers ChParserURDF {
 
     /// Create the Chrono model in the given system from the parsed URDF model.
     void PopulateSystem(ChSystem& sys);
+
+    /// Print the list of Chrono bodies generated fropm parsed URDF file.
+    /// This list is populated only after a call to PopulateSystem().
+    void PrintChronoBodies();
+
+    /// Print the list of Chrono joints generated from parsed URDF file.
+    /// This list is populated only after a call to PopulateSystem().
+    void PrintChronoJoints();
 
     /// Get the root body of the Chrono model.
     /// This function must be called after PopulateSystem.
@@ -197,6 +205,7 @@ class ChApiParsers ChParserURDF {
     ChContactMaterialData m_default_mat_data;                 ///< default contact material data
 
     std::vector<std::shared_ptr<ChBodyAuxRef>> m_bodies;  ///< list of Chrono bodies created from URDF
+    std::vector<std::shared_ptr<ChLink>> m_joints;        ///< list of Chrono joints created from URDF
     ChAABB m_aabb_vis;                                    ///< bounding box of all visualization models
     ChAABB m_aabb_coll;                                   ///< bounding box of all collision models
 };
