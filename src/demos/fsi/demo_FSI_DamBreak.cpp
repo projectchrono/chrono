@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Chrono::FSI dam break");
-        visFSI->AddCamera(ChVector3d(0, -6 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visFSI->AddCamera(ChVector3d(0, -12 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);

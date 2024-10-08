@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.use_artificial_viscosity = true;
     sph_params.artificial_viscosity = 0.02;
-
+    sph_params.eos_type = EosType::TAIT;
     sysSPH.SetSPHParameters(sph_params);
     sysFSI.SetStepSizeCFD(step_size);
     sysFSI.SetStepsizeMBD(step_size);

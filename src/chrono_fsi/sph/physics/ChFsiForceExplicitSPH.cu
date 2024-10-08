@@ -325,6 +325,8 @@ __global__ void calIndexOfIndex(uint* indexOfIndex, uint* identityOfIndex, uint*
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+// Only happens for density reinitialization? 
+//////////////////////////////////////////////////
 __global__ void calcRho_kernel(Real4* sortedPosRad,
                                Real4* sortedRhoPreMu,
                                Real4* sortedRhoPreMu_old,
@@ -339,7 +341,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
         return;
 
-    sortedRhoPreMu_old[index].y = Eos(sortedRhoPreMu_old[index].x);
+    sortedRhoPreMu_old[index].y = Eos(sortedRhoPreMu_old[index].x, paramsD.eos_type);
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
@@ -1047,7 +1049,7 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
 
     if (sum_w > EPSILON) {
         sortedRhoPresMuD[index].y = (sum_pw + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
-        sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y);
+        sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y, paramsD.eos_type);
 
         // Applies ADAMI only to Rigid/Flexible markers
         Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);

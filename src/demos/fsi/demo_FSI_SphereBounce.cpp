@@ -176,10 +176,13 @@ int main(int argc, char* argv[]) {
     sph_params.num_bce_layers = 4;
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.max_velocity = 1.0;
+    sph_params.max_velocity = 8.0;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    sph_params.density_reinit_steps = 1000;
+    sph_params.artificial_viscosity = 0.03;
+    sph_params.use_artificial_viscosity = true;
+    sph_params.eos_type = EosType::TAIT;
+    //sph_params.density_reinit_steps = 1000;   // not needed if using delta SPH
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;

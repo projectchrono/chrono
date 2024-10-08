@@ -243,6 +243,20 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
 
+        if (doc["SPH Parameters"].HasMember("EOS Type")) {
+            std::string type = doc["SPH Parameters"]["EOS Type"].GetString();
+            if (m_verbose)
+                cout << "Eos type is : " << type << endl;
+            if (type == "Tait")
+                m_paramsH->eos_type = EosType::TAIT;
+            else if (type == "Isothermal")
+                m_paramsH->eos_type = EosType::ISOTHERMAL;
+            else {
+                cerr << "Incorrect eos type in the JSON file: " << type << endl;
+                cerr << "Falling back to Tait Equation of State " << endl;
+                m_paramsH->eos_type = EosType::TAIT;
+            }
+        }
 
         if (doc["SPH Parameters"].HasMember("Viscous damping"))
             m_paramsH->Vis_Dam = doc["SPH Parameters"]["Viscous damping"].GetDouble();
@@ -612,9 +626,11 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
       use_artificial_viscosity(true),
+      use_delta_SPH(true),
       artificial_viscosity(0.02),
       kernel_threshold(0.8),
-      num_proximity_search_steps(4) {}
+      num_proximity_search_steps(4),
+      eos_type(EosType::TAIT) {}
 
 void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
@@ -639,6 +655,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
     m_paramsH->USE_Artificial_viscosity = sph_params.use_artificial_viscosity;
     m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
+    m_paramsH->eos_type = sph_params.eos_type;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 

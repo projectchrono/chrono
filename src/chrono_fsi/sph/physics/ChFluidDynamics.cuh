@@ -104,7 +104,7 @@ class ChFluidDynamics {
     /// Apply periodic boundary to the normal SPH particles.
     void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 
-    /// Mpodify the velocity of BCE particles.
+    /// Modify the velocity of BCE particles.
     /// TODO (Huzaifa) - Might need to deprecated this function.
     void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 };
