@@ -16,6 +16,8 @@ set(DEMOS ${DEMOS}
    demo_FSI_BaffleFlow
    demo_FSI_CouetteFlow
    demo_FSI_Flap
+   demo_FSI_AngleRepose_granular
+   demo_FSI_SphereDrop_granular
 )
 
 if(ENABLE_MODULE_PARDISO_MKL)
