@@ -68,8 +68,20 @@ public:
     /// - send/receive serialization calling DoDomainSendReceive()
     /// - deserialize incoming items and delete outgoing, via DoUpdateSharedLeaving()
     /// NOTE: This function is expected to be called in parallel by all domains.
-    /// NOTE: it contains two OpenMP synchronization barriers.
+    /// NOTE: it contains two MPI synchronization barriers.
     virtual bool DoDomainPartitionUpdate(int mrank);
+
+
+    // FOR MATH 
+
+    /// Reduction (combines values from all processes and distributes the result back 
+    /// to all processes)
+    /// NOTE: This function is expected to be called in parallel by all domains.
+    /// NOTE: it contains a MPI synchronization barrier.
+    virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum);
+
+
+    // OTHER
 
     int GetMPIrank();
     int GetMPItotranks();

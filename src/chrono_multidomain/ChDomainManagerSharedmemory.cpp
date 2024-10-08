@@ -74,6 +74,55 @@ bool ChDomainManagerSharedmemory::DoDomainPartitionUpdate(int mrank) {
 }
 
 
+int ChDomainManagerSharedmemory::ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation) {
+	// Inefficient, implies 2 barriers and other optimizable things, but here for tests against MPI
+	if (mrank == 0) {
+		this->domain_sends.resize(this->domains.size());
+		
+		switch (operation) {
+		case eCh_domainsReduceOperation::max:
+			this->domains_reduced = -1e37;
+			break;
+		case eCh_domainsReduceOperation::min:
+			this->domains_reduced = 1e37;
+			break;
+		case eCh_domainsReduceOperation::sum:
+			this->domains_reduced = 0;
+			break;
+		case eCh_domainsReduceOperation::prod:
+			this->domains_reduced = 1.0;
+			break;
+		}
+	}
+#pragma omp barrier
+
+	this->domain_sends[mrank] = send;
+
+	if (mrank == 0) {
+		for (int i = 0; i < this->domains.size(); ++i) {
+			switch (operation) {
+			case eCh_domainsReduceOperation::max:
+				this->domains_reduced = std::max(this->domain_sends[i], this->domains_reduced);
+				break;
+			case eCh_domainsReduceOperation::min:
+				this->domains_reduced = std::min(this->domain_sends[i], this->domains_reduced);
+				break;
+			case eCh_domainsReduceOperation::sum:
+				this->domains_reduced = this->domain_sends[i] + this->domains_reduced;
+				break;
+			case eCh_domainsReduceOperation::prod:
+				this->domains_reduced = this->domain_sends[i] * this->domains_reduced;
+				break;
+			}
+		}
+	}
+#pragma omp barrier
+
+	received_result = this->domains_reduced;
+
+	return true;
+}
+
 
 
 

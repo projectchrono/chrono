@@ -142,7 +142,20 @@ bool ChDomainManagerMPI::DoDomainPartitionUpdate(int mrank) {
 	return true;
 }
 
-
+int ChDomainManagerMPI::ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation) {
+	ChMPI::eCh_mpiReduceOperation mpi_operation = ChMPI::eCh_mpiReduceOperation::MPI_sum;
+	switch (operation) {
+	case eCh_domainsReduceOperation::max:
+		mpi_operation = ChMPI::eCh_mpiReduceOperation::MPI_max; break;
+	case eCh_domainsReduceOperation::min:
+		mpi_operation = ChMPI::eCh_mpiReduceOperation::MPI_min; break;
+	case eCh_domainsReduceOperation::sum:
+		mpi_operation = ChMPI::eCh_mpiReduceOperation::MPI_sum; break;
+	case eCh_domainsReduceOperation::prod:
+		mpi_operation = ChMPI::eCh_mpiReduceOperation::MPI_prod; break;
+	}
+	return this->mpi_engine.ReduceAll(send, received_result, mpi_operation);
+}
 
 int ChDomainManagerMPI::GetMPIrank() {
 	return mpi_engine.CommRank();

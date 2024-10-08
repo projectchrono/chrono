@@ -49,6 +49,29 @@ void ChSystemDescriptorMultidomain::UpdateCountsAndOffsets() {
     }
 }
 
+double ChSystemDescriptorMultidomain::Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector) {
+    double domaindot= avector.dot(bvector);
+    double result = 0;
+    this->domain_manager->ReduceAll(this->domain->GetRank(), domaindot, result);
+    return result;
+}
+
+double ChSystemDescriptorMultidomain::Vnorm(const ChVectorDynamic<>& avector) {
+    double domainsqnorm = avector.squaredNorm();
+    double result = 0;
+    this->domain_manager->ReduceAll(this->domain->GetRank(), domainsqnorm, result);
+    return sqrt(result);
+}
+
+
+
+
+
+
+
+
+
+
 void ChSystemDescriptorMultidomain::SharedStatesToZero() {
     for (auto& interf : this->domain->GetInterfaces()) {
         shared_states[interf.second.side_OUT->GetRank()].setZero();

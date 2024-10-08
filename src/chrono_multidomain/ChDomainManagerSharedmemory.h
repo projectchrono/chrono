@@ -62,6 +62,14 @@ public:
     /// NOTE: it contains two OpenMP synchronization barriers.
     virtual bool DoDomainPartitionUpdate(int mrank);
 
+    // FOR MATH 
+
+    /// Reduction (combines values from all processes and distributes the result back 
+    /// to all processes)
+    /// NOTE: This function is expected to be called in parallel by all domains.
+    /// NOTE: it contains an OpenMP synchronization barrier.
+    virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum);
+
     // GLOBAL FUNCTIONS
     // 
     // These are utility functions to invoke functions at once on all domains
@@ -86,6 +94,11 @@ public:
 
 
     std::unordered_map<int, std::shared_ptr<ChDomain>> domains;
+
+private:
+    // buffers for reduce operations to mimic MPI functions
+    std::vector<double> domain_sends;
+    double domains_reduced;
 };
 
 

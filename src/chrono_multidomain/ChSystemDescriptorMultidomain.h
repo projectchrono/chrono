@@ -76,7 +76,7 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
     */
     /// Update counts of scalar variables and scalar constraints.
-    virtual void UpdateCountsAndOffsets();
+    virtual void UpdateCountsAndOffsets() override;
     
     /*
     /// Set the c_a coefficient (default=1) used for scaling the M masses of the m_variables.
@@ -235,6 +235,17 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
         double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
         double& resulting_feasability    ///< gets the max feasability as max |l*c| , for unilateral only
     );
+
+   */
+    /// Compute the dot product of a vector (in multidomain mode, using MPI_AllReduce)
+    /// Here we assume that avector and bvector are the domain-sliced parts of the entire vectors.
+    virtual double Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector);
+
+    /// Compute the norm of a vector (in multidomain mode, using MPI_AllReduce)
+    /// Here we assume that avector is the domain-sliced part of the entire vectors.
+    virtual double Vnorm(const ChVectorDynamic<>& avector);
+
+    /*
 
     // LOGGING/OUTPUT/ETC.
 

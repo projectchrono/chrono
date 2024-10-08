@@ -388,7 +388,21 @@ int ChMPI::Barrier() {
 }
 
 
+int ChMPI::ReduceAll(double send, double& received_result, eCh_mpiReduceOperation operation ) {
+	int mpi_operation = MPI_NO_OP;
+	switch (operation) {
+	case eCh_mpiReduceOperation::MPI_max:
+		mpi_operation = MPI_MAX; break;
+	case eCh_mpiReduceOperation::MPI_min:
+		mpi_operation = MPI_MIN; break;
+	case eCh_mpiReduceOperation::MPI_sum:
+		mpi_operation = MPI_SUM; break;
+	case eCh_mpiReduceOperation::MPI_prod:
+		mpi_operation = MPI_PROD; break;
+	}
 
+	return MPI_Allreduce(&send, &received_result, 1, MPI_DOUBLE, mpi_operation, MPI_COMM_WORLD);
+}
 
 ////////////////////////////////////////////////////
 

@@ -79,6 +79,22 @@ public:
     /// format is the fastest, whereas XML or JSON are slow and large but useful for debugging.
     DomainSerializerFormat serializer_type = DomainSerializerFormat::XML;
 
+
+    // FOR MATH 
+    
+    enum class eCh_domainsReduceOperation {
+        max = 0,
+        min,
+        sum,
+        prod
+    };
+    /// Reduction (combines values from all processes and distributes the result back 
+    /// to all processes)
+    /// NOTE: This function is expected to be called in parallel by all domains.
+    /// NOTE: Depending on the implementation (MPI, OpenMP, etc.) it can contain some barrier.
+    virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum) = 0;
+
+
     // FOR DEBUGGING 
 
     bool verbose_partition = false;

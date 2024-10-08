@@ -157,6 +157,17 @@ public:
 	/// Global barrier. Calling MPI_Barrier(MPI_COMM_WORLD);
 	static int Barrier();
 
+
+	/// Reduction (combines values from all processes and distributes the result back 
+	/// to all processes)
+	/// This cause a global synchronization. 
+	enum class eCh_mpiReduceOperation {
+		MPI_max = 0,
+		MPI_min,
+		MPI_sum,
+		MPI_prod
+	};
+	static int ReduceAll(double send, double& received_result, eCh_mpiReduceOperation operation = eCh_mpiReduceOperation::MPI_sum);
 };
 
 class Ch_test_mpi
