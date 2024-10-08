@@ -48,7 +48,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Flap_Monaghan_2e-2_wave_Freq_new_eos";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach";
 
 // Output frequency
 bool output = true;
@@ -75,14 +75,15 @@ bool show_particles_sph = true;
 
 // Size of initial volume of SPH fluid
 // wec location
-ChVector3d wec_pos(0.0125, -0.0125, -0.1);
+ChVector3d wec_pos(-2.9875, -0.0125, -0.1);
 // Size of the baffles
 ChVector3d wec_size(0.225, 0.975, 1.2);
 
-ChVector3d fsize(6, 1.25, 1.3);  // fluid slightly higher than the flap.
+ChVector3d fsize(12, 1.25, 1.3);  // fluid slightly higher than the flap.
 
 // Container dimensions
-ChVector3d csize(6, 1.25, 1.8);
+ChVector3d csize(12, 1.25, 1.8);
+
 
 // -----------------------------------------------------------------------------
 
@@ -192,7 +193,7 @@ void CreateFlap(ChFsiProblemSPH& fsi) {
 
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
-    double step_size = 1e-4;
+    double step_size = 5e-5;
     bool verbose = true;
 
     // Create the Chrono system and associated collision system
@@ -245,9 +246,7 @@ int main(int argc, char* argv[]) {
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,         // length x width x depth
-                  ChVector3d(0, 0, 0),  // position of bottom origin
-                  false,                // no bottom wall
-                  false                 // no side walls
+                  ChVector3d(0, 0, 0)  // position of bottom origin
     );
 
     // Create a piston wavemaker mechanism
@@ -258,9 +257,10 @@ int main(int argc, char* argv[]) {
 
     // Create a wave tank
     double stroke = 0.1;
-    double period = 1.4;
+    double period = 2;
     auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
-    auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+    auto body =
+        fsi.AddWaveMakerWithBeach(ChFsiProblemSPH::WavemakerType::PISTON, csize, fsize, ChVector3d(0, 0, 0), fun);
 
 
 
