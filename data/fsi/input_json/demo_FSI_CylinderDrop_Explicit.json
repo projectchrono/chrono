@@ -17,8 +17,12 @@
     "Shifting Coefficient": 0.0,
     // "Density Reinitialization": 1000,
     "Time steps per proximity search": 1,
+    "Viscosity Treatment Type": "Artificial",
     "Use Artificial Viscosity": true,
-    "Artificial viscosity alpha": 0.02
+    "Artificial viscosity alpha": 0.02,
+    "Use Delta SPH": true,
+    "density diffusion delta" : 0.1,
+    "EOS Type": "Tait"
   },
   "Time Stepping": {
     "Time step": 1e-4

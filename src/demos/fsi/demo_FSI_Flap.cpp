@@ -48,7 +48,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach_new";
 
 // Output frequency
 bool output = true;
@@ -228,9 +228,11 @@ int main(int argc, char* argv[]) {
     //sph_params.density_reinit_steps = 800;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.use_artificial_viscosity = true;
+    sph_params.viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
     sph_params.artificial_viscosity = 0.02;
     sph_params.eos_type = EosType::TAIT;
+    sph_params.use_delta_sph = true;
+    sph_params.delta_sph_coefficient = 0.1;
     sysSPH.SetSPHParameters(sph_params);
     sysFSI.SetStepSizeCFD(step_size);
     sysFSI.SetStepsizeMBD(step_size);

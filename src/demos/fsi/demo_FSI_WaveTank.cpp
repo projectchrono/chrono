@@ -52,17 +52,11 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Container dimensions
-//ChVector3d csize(4.0, 0.4, 1.5);
-//
-//// Size of initial volume of SPH material
-//ChVector3d fsize(4.0, 0.4, 0.8);
-
- //Container dimensions
- ChVector3d csize(8.0, 1.0, 1);
+//Container dimensions
+ChVector3d csize(4.0, 0.4, 0.8);
 
 // Size of initial volume of SPH material
- ChVector3d fsize(8.0, 1.0, 0.6);
+ChVector3d fsize(4.0, 0.4, 0.4);
 
 
 // Visibility flags
@@ -179,7 +173,7 @@ int main(int argc, char* argv[]) {
     double step_size = 1e-4;
 
     // Parse command line arguments
-    double t_end = 20.0;
+    double t_end = 10.0;
     bool verbose = true;
     bool output = true;
     double output_fps = 20;
@@ -229,18 +223,27 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
+    sph_params.viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
     sph_params.artificial_viscosity = 0.02;
+    sph_params.use_delta_sph = true;
+    sph_params.delta_sph_coefficient = 0.1;
+    sph_params.eos_type = EosType::TAIT;
 
-    sysSPH.SetNumBCELayers(5);
+    //sysSPH.SetNumBCELayers(5);
     sysSPH.SetSPHParameters(sph_params);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
         chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fsize.z()));
 
-    // Create SPH material (with a slope)
+    // Create SPH material (with a slope like a beach)
+    //fsi.Construct(fsize,                // length x width x depth
+    //              ChVector3d(0, 0, 0)  // position of bottom origin
+    //);
     fsi.Construct(fsize,                // length x width x depth
-                  ChVector3d(0, 0, 0)  // position of bottom origin
+                  ChVector3d(0, 0, 0),  // position of bottom origin
+                  false,                // no bottom wall
+                  false                 // no side walls
     );
 
     // Create a wave tank
@@ -248,12 +251,12 @@ int main(int argc, char* argv[]) {
     double period = 1.4;
     auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
 
-    auto body = fsi.AddWaveMakerWithBeach(ChFsiProblemSPH::WavemakerType::PISTON, csize, fsize, ChVector3d(0, 0, 0), fun);
-
+    //auto body = fsi.AddWaveMakerWithBeach(ChFsiProblemSPH::WavemakerType::PISTON, csize, fsize, ChVector3d(0, 0, 0), fun);
+    auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank_debug_longer" + std::to_string(ps_freq) + "_Tait";
+    std::string out_dir = GetChronoOutputPath() + "FSI_Wave_Tank_" + std::to_string(ps_freq);
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;

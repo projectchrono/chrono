@@ -116,7 +116,7 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Granular.json");
+    std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Cable_Explicit.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;

@@ -175,6 +175,11 @@ int main(int argc, char* argv[]) {
     sph_params.xsph_coefficient = 0.0;
     sph_params.shifting_coefficient = 0.0;
     sph_params.density_reinit_steps = 10000;
+    sph_params.viscosity_type = ViscosityTreatmentType::LAMINAR;
+    sph_params.use_delta_sph = false;
+    sph_params.eos_type = EosType::ISOTHERMAL;
+    sph_params.consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity
+    sph_params.consistent_laplacian_discretization = true;
     sysSPH.SetSPHParameters(sph_params);
 
     sysFSI.SetStepSizeCFD(dt);
