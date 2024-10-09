@@ -205,6 +205,8 @@ set(CV_CHASSIS_FILES
     chassis/ChChassisConnectorArticulated.cpp
     chassis/ChChassisConnectorHitch.h
     chassis/ChChassisConnectorHitch.cpp
+    chassis/ChChassisConnectorFifthWheel.h
+    chassis/ChChassisConnectorFifthWheel.cpp
     chassis/ChChassisConnectorTorsion.h
     chassis/ChChassisConnectorTorsion.cpp
 
@@ -213,6 +215,8 @@ set(CV_CHASSIS_FILES
 
     chassis/ChassisConnectorHitch.h
     chassis/ChassisConnectorHitch.cpp
+    chassis/ChassisConnectorFifthWheel.h
+    chassis/ChassisConnectorFifthWheel.cpp
     chassis/ChassisConnectorArticulated.h
     chassis/ChassisConnectorArticulated.cpp
     chassis/ChassisConnectorTorsion.h
