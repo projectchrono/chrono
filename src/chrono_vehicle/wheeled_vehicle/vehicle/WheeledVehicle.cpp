@@ -29,19 +29,27 @@ namespace vehicle {
 WheeledVehicle::WheeledVehicle(const std::string& filename,
                                ChContactMethod contact_method,
                                bool create_powertrain,
-                               bool create_tires)
+                               bool create_tires,
+                               CustomConstructorsWV custom_constructors)
     : ChWheeledVehicle("", contact_method) {
-    Create(filename, create_powertrain, create_tires);
+    Create(filename, create_powertrain, create_tires, custom_constructors);
 }
 
-WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename, bool create_powertrain, bool create_tires)
+WheeledVehicle::WheeledVehicle(ChSystem* system,
+                               const std::string& filename,
+                               bool create_powertrain,
+                               bool create_tires,
+                               CustomConstructorsWV custom_constructors)
     : ChWheeledVehicle("", system) {
-    Create(filename, create_powertrain, create_tires);
+    Create(filename, create_powertrain, create_tires, custom_constructors);
 }
 
 // -----------------------------------------------------------------------------
 
-void WheeledVehicle::Create(const std::string& filename, bool create_powertrain, bool create_tires) {
+void WheeledVehicle::Create(const std::string& filename,
+                            bool create_powertrain,
+                            bool create_tires,
+                            CustomConstructorsWV custom_constructors) {
     // Open and parse the input file
     Document d;
     ReadFileJSON(filename, d);
@@ -131,7 +139,10 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        m_chassis = ReadChassisJSON(vehicle::GetDataFile(file_name));
+        m_chassis = ReadChassisJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.chassis_constructor
+        );
         if (d["Chassis"].HasMember("Output")) {
             m_chassis->SetOutput(d["Chassis"]["Output"].GetBool());
         }
@@ -143,12 +154,18 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
     for (int i = 0; i < m_num_rear_chassis; i++) {
         std::string file_name = d["Rear Chassis"][i]["Input File"].GetString();
-        m_chassis_rear[i] = ReadChassisRearJSON(vehicle::GetDataFile(file_name));
+        m_chassis_rear[i] = ReadChassisRearJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.chassis_rear_constructor
+        );
         if (d["Rear Chassis"][i].HasMember("Output")) {
             m_chassis->SetOutput(d["Rear Chassis"][i]["Output"].GetBool());
         }
         file_name = d["Rear Chassis"][i]["Connector Input File"].GetString();
-        m_chassis_connectors[i] = ReadChassisConnectorJSON(vehicle::GetDataFile(file_name));
+        m_chassis_connectors[i] = ReadChassisConnectorJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.chassis_connector_constructor
+        );
         m_rearch_chassis_index[i] = d["Rear Chassis"][i]["Chassis Index"].GetInt();
     }
 
@@ -158,7 +175,10 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
     for (int i = 0; i < m_num_subch; i++) {
         std::string file_name = d["Subchassis"][i]["Input File"].GetString();
-        m_subchassis[i] = ReadSubchassisJSON(vehicle::GetDataFile(file_name));
+        m_subchassis[i] = ReadSubchassisJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.subchassis_constructor
+        );
         m_subch_locations[i] = ReadVectorJSON(d["Subchassis"][i]["Subchassis Location"]);
         m_subch_chassis_index[i] = d["Subchassis"][i]["Chassis Index"].GetInt();
     }
@@ -169,7 +189,10 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
     for (int i = 0; i < m_num_strs; i++) {
         std::string file_name = d["Steering Subsystems"][i]["Input File"].GetString();
-        m_steerings[i] = ReadSteeringJSON(vehicle::GetDataFile(file_name));
+        m_steerings[i] = ReadSteeringJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.steering_constructor
+        );
         if (d["Steering Subsystems"][i].HasMember("Output")) {
             m_steerings[i]->SetOutput(d["Steering Subsystems"][i]["Output"].GetBool());
         }
@@ -192,8 +215,14 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
         std::string file_name_e = d["Powertrain"]["Engine Input File"].GetString();
         std::string file_name_t = d["Powertrain"]["Transmission Input File"].GetString();
-        auto engine = ReadEngineJSON(vehicle::GetDataFile(file_name_e));
-        auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(file_name_t));
+        auto engine = ReadEngineJSON(
+            vehicle::GetDataFile(file_name_e),
+            custom_constructors.engine_constructor
+        );
+        auto transmission = ReadTransmissionJSON(
+            vehicle::GetDataFile(file_name_t),
+            custom_constructors.transmission_constructor
+        );
         m_powertrain_assembly = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     }
 
@@ -203,7 +232,10 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
     if (d.HasMember("Driveline")) {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        m_driveline = ReadDrivelineWVJSON(vehicle::GetDataFile(file_name));
+        m_driveline = ReadDrivelineWVJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.driveline_constructor
+        );
         if (d["Driveline"].HasMember("Output")) {
             m_driveline->SetOutput(d["Driveline"]["Output"].GetBool());
         }
@@ -224,7 +256,10 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
         // Suspension
         std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-        m_axles[i]->m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
+        m_axles[i]->m_suspension = ReadSuspensionJSON(
+            vehicle::GetDataFile(file_name),
+            custom_constructors.suspension_constructor
+        );
         m_susp_locations[i] = ReadVectorJSON(d["Axles"][i]["Suspension Location"]);
 
         // Index of steering subsystem (if applicable)
@@ -247,7 +282,10 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
             assert(m_axles[i]->m_suspension->IsIndependent());
             assert(d["Axles"][i].HasMember("Antirollbar Location"));
             file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
-            m_axles[i]->m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_antirollbar = ReadAntirollbarJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.antirollbar_constructor
+            );
             m_arb_locations[i] = ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]);
         }
 
@@ -259,40 +297,67 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
             int num_wheels = 4;
             m_axles[i]->m_wheels.resize(num_wheels);
             file_name = d["Axles"][i]["Left Inside Wheel Input File"].GetString();
-            m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_wheels[0] = ReadWheelJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.wheel_constructor
+            );
 
             file_name = d["Axles"][i]["Right Inside Wheel Input File"].GetString();
-            m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_wheels[1] = ReadWheelJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.wheel_constructor
+            );
 
             file_name = d["Axles"][i]["Left Outside Wheel Input File"].GetString();
-            m_axles[i]->m_wheels[2] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_wheels[2] = ReadWheelJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.wheel_constructor
+            );
 
             file_name = d["Axles"][i]["Right Outside Wheel Input File"].GetString();
-            m_axles[i]->m_wheels[3] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_wheels[3] = ReadWheelJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.wheel_constructor
+            );
         } else {
             int num_wheels = 2;
             m_axles[i]->m_wheels.resize(num_wheels);
             file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-            m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_wheels[0] = ReadWheelJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.wheel_constructor
+            );
 
             file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-            m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_wheels[1] = ReadWheelJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.wheel_constructor
+            );
         }
 
         // Left and right brakes (if specified)
         if (d["Axles"][i].HasMember("Left Brake Input File")) {
             file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-            m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_brake_left = ReadBrakeJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.brake_constructor
+            );
 
             file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-            m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            m_axles[i]->m_brake_right = ReadBrakeJSON(
+                vehicle::GetDataFile(file_name),
+                custom_constructors.brake_constructor
+            );
         }
 
         // Create tires (if specified)
         if (create_tires && d["Axles"][i].HasMember("Tire Input File")) {
             file_name = d["Axles"][i]["Tire Input File"].GetString();
             for (auto& wheel : m_axles[i]->GetWheels()) {
-                wheel->SetTire(ReadTireJSON(vehicle::GetDataFile(file_name)));
+                wheel->SetTire(ReadTireJSON(
+                    vehicle::GetDataFile(file_name),
+                    custom_constructors.tire_constructor
+                ));
             }
         }
 

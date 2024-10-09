@@ -51,6 +51,15 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
+/// A constructor for creating a vehicle subsystem from a JSON document.
+template<typename T>
+using JSONConstructorFn = std::function<std::shared_ptr<T>(
+        const std::string&,         /// The name of the template to create an instance of
+        const rapidjson::Document&  /// The JSON document
+    )>;
+
+// -----------------------------------------------------------------------------
+
 /// Load and return a RapidJSON document from the specified file.
 /// A Null document is returned if the file cannot be opened.
 CH_VEHICLE_API void ReadFileJSON(const std::string& filename, rapidjson::Document& d);
@@ -98,67 +107,68 @@ CH_VEHICLE_API std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(co
 // -----------------------------------------------------------------------------
 
 /// Load and return a chassis subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename, JSONConstructorFn<ChChassis> = {});
 
 /// Load and return a rear chassis subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename, JSONConstructorFn<ChChassisRear> = {});
 
 /// Load and return a chassis connector subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename, JSONConstructorFn<ChChassisConnector> = {});
 
 /// Load and return an engine subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename, JSONConstructorFn<ChEngine> = {});
 
 /// Load and return a transmission subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename, JSONConstructorFn<ChTransmission> = {});
 
 // -----------------------------------------------------------------------------
 
 ///  Load and return a suspension subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename, JSONConstructorFn<ChSuspension> = {});
 
 ///  Load and return a steering subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename, JSONConstructorFn<ChSteering> = {});
 
 ///  Load and return a driveline subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename, JSONConstructorFn<ChDrivelineWV> = {});
 
 ///  Load and return a steering subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename, JSONConstructorFn<ChAntirollBar> = {});
 
 ///  Load and return a steering subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename, JSONConstructorFn<ChWheel> = {});
 
 /// Load and return a subchassis subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename, JSONConstructorFn<ChSubchassis> = {});
 
 ///  Load and return a steering subsystem from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename, JSONConstructorFn<ChBrake> = {});
 
 /// Load and return a tire from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename, JSONConstructorFn<ChTire> = {});
 
 // -----------------------------------------------------------------------------
 
 /// Load and return a track assembly from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename, JSONConstructorFn<ChTrackAssembly> = {});
 
 /// Load and return a track driveline from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename, JSONConstructorFn<ChDrivelineTV> = {});
 
 /// Load and return a track brake from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename, JSONConstructorFn<ChTrackBrake> = {});
 
 /// Load and return an idler from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename, JSONConstructorFn<ChIdler> = {});
 
 /// Load and return a track suspension from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename,
                                                                           bool has_shock,
-                                                                          bool lock_arm);
+                                                                          bool lock_arm,
+                                                                          JSONConstructorFn<ChTrackSuspension> = {});
 
 /// Load and return a road-wheel from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename, JSONConstructorFn<ChTrackWheel> = {});
 
 // -----------------------------------------------------------------------------
 

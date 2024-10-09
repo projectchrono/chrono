@@ -646,7 +646,7 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
+std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename, JSONConstructorFn<ChChassis> custom_constructor) {
     std::shared_ptr<ChChassis> chassis;
 
     Document d;
@@ -666,14 +666,17 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     // Create the chassis using the appropriate template.
     if (subtype.compare("RigidChassis") == 0) {
         chassis = chrono_types::make_shared<RigidChassis>(d);
-    } else {
-        throw std::invalid_argument("Chassis type not supported in ReadChassisJSON.");
+    } else if (custom_constructor) {
+        chassis = custom_constructor(subtype, d);
     }
+
+    if (!chassis)
+        throw std::invalid_argument("Chassis type not supported in ReadChassisJSON.");
 
     return chassis;
 }
 
-std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) {
+std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename, JSONConstructorFn<ChChassisRear> custom_constructor) {
     std::shared_ptr<ChChassisRear> chassis;
 
     Document d;
@@ -693,14 +696,17 @@ std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) 
     // Create the chassis using the appropriate template.
     if (subtype.compare("RigidChassisRear") == 0) {
         chassis = chrono_types::make_shared<RigidChassisRear>(d);
-    } else {
-        throw std::invalid_argument("Chassis type not supported in ReadChassisRearJSON.");
+    } else if (custom_constructor){
+        chassis = custom_constructor(subtype, d);
     }
+
+    if (!chassis)
+        throw std::invalid_argument("Chassis type not supported in ReadChassisRearJSON.");
 
     return chassis;
 }
 
-std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename) {
+std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename, JSONConstructorFn<ChChassisConnector> custom_constructor) {
     std::shared_ptr<ChChassisConnector> connector;
 
     Document d;
@@ -724,14 +730,17 @@ std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& 
         connector = chrono_types::make_shared<ChassisConnectorArticulated>(d);
     } else if (subtype.compare("ChassisConnectorTorsion") == 0) {
         connector = chrono_types::make_shared<ChassisConnectorTorsion>(d);
-    } else {
-        throw std::invalid_argument("Chassis type not supported in ReadChassisConnectorJSON.");
+    } else if (custom_constructor) {
+        connector = custom_constructor(subtype, d);
     }
+
+    if (!connector)
+        throw std::invalid_argument("Chassis type not supported in ReadChassisConnectorJSON.");
 
     return connector;
 }
 
-std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename) {
+std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename, JSONConstructorFn<ChEngine> custom_constructor) {
     std::shared_ptr<ChEngine> engine;
 
     Document d;
@@ -755,14 +764,17 @@ std::shared_ptr<ChEngine> ReadEngineJSON(const std::string& filename) {
         engine = chrono_types::make_shared<EngineSimpleMap>(d);
     } else if (subtype.compare("EngineShafts") == 0) {
         engine = chrono_types::make_shared<EngineShafts>(d);
-    } else {
-        throw std::invalid_argument("Engine type not supported in ReadEngineJSON.");
+    } else if (custom_constructor) {
+        engine = custom_constructor(subtype, d);
     }
+
+    if (!engine)
+        throw std::invalid_argument("Engine type not supported in ReadEngineJSON.");
 
     return engine;
 }
 
-std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename) {
+std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename, JSONConstructorFn<ChTransmission> custom_constructor) {
     std::shared_ptr<ChTransmission> transmission;
 
     Document d;
@@ -788,16 +800,19 @@ std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename
         transmission = chrono_types::make_shared<AutomaticTransmissionShafts>(d);
     } else if (subtype.compare("ManualTransmissionShafts") == 0) {
         transmission = chrono_types::make_shared<ManualTransmissionShafts>(d);
-    } else {
-        throw std::invalid_argument("Transmission type not supported in ReadTransmissionJSON.");
+    } else if (custom_constructor) {
+        transmission = custom_constructor(subtype, d);
     }
+
+    if (!transmission)
+        throw std::invalid_argument("Transmission type not supported in ReadTransmissionJSON.");
 
     return transmission;
 }
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
+std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename, JSONConstructorFn<ChSuspension> custom_constructor) {
     std::shared_ptr<ChSuspension> suspension;
 
     Document d;
@@ -863,14 +878,17 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
         suspension = chrono_types::make_shared<HendricksonPRIMAXX>(d);
     } else if (subtype.compare("GenericWheeledSuspension") == 0) {
         suspension = chrono_types::make_shared<GenericWheeledSuspension>(d);
-    } else {
-        throw std::invalid_argument("Suspension type not supported in ReadSuspensionJSON.");
+    } else if (custom_constructor) {
+        suspension = custom_constructor(subtype, d);
     }
+
+    if (!suspension)
+        throw std::invalid_argument("Suspension type not supported in ReadSuspensionJSON.");
 
     return suspension;
 }
 
-std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
+std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename, JSONConstructorFn<ChSteering> custom_constructor) {
     std::shared_ptr<ChSteering> steering;
 
     Document d;
@@ -894,14 +912,17 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
         steering = chrono_types::make_shared<RackPinion>(d);
     } else if (subtype.compare("RotaryArm") == 0) {
         steering = chrono_types::make_shared<RotaryArm>(d);
-    } else {
-        throw std::invalid_argument("Steering type not supported in ReadSteeringJSON.");
+    } else if (custom_constructor) {
+        steering = custom_constructor(subtype, d);
     }
+
+    if (!steering)
+        throw std::invalid_argument("Steering type not supported in ReadSteeringJSON.");
 
     return steering;
 }
 
-std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) {
+std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename, JSONConstructorFn<ChDrivelineWV> custom_constructor) {
     std::shared_ptr<ChDrivelineWV> driveline;
 
     Document d;
@@ -927,14 +948,17 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) 
         driveline = chrono_types::make_shared<SimpleDriveline>(d);
     } else if (subtype.compare("SimpleDrivelineXWD") == 0) {
         driveline = chrono_types::make_shared<SimpleDrivelineXWD>(d);
-    } else {
-        throw std::invalid_argument("Driveline type not supported in ReadDrivelineWVJSON.");
+    } else if (custom_constructor) {
+        driveline = custom_constructor(subtype, d);
     }
+
+    if (!driveline)
+        throw std::invalid_argument("Driveline type not supported in ReadDrivelineWVJSON.");
 
     return driveline;
 }
 
-std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) {
+std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename, JSONConstructorFn<ChAntirollBar> custom_constructor) {
     std::shared_ptr<ChAntirollBar> antirollbar;
 
     Document d;
@@ -954,14 +978,17 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) 
     // Create the antirollbar using the appropriate template.
     if (subtype.compare("AntirollBarRSD") == 0) {
         antirollbar = chrono_types::make_shared<AntirollBarRSD>(d);
-    } else {
-        throw std::invalid_argument("AntirollBar type not supported in ReadAntirollbarJSON.");
+    } else if (antirollbar) {
+        antirollbar = custom_constructor(subtype, d);
     }
+
+    if (!antirollbar)
+        throw std::invalid_argument("AntirollBar type not supported in ReadAntirollbarJSON.");
 
     return antirollbar;
 }
 
-std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
+std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename, JSONConstructorFn<ChWheel> custom_constructor) {
     std::shared_ptr<ChWheel> wheel;
 
     Document d;
@@ -981,14 +1008,17 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     // Create the wheel using the appropriate template.
     if (subtype.compare("Wheel") == 0) {
         wheel = chrono_types::make_shared<Wheel>(d);
-    } else {
-        throw std::invalid_argument("Wheel type not supported in ReadWheelJSON.");
+    } else if (custom_constructor) {
+        wheel = custom_constructor(subtype, d);
     }
+
+    if (!wheel)
+        throw std::invalid_argument("Wheel type not supported in ReadWheelJSON.");
 
     return wheel;
 }
 
-std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename) {
+std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename, JSONConstructorFn<ChSubchassis> custom_constructor) {
     std::shared_ptr<ChSubchassis> chassis;
 
     Document d;
@@ -1008,14 +1038,17 @@ std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename) {
     // Create the wheel using the appropriate template.
     if (subtype.compare("Balancer") == 0) {
         chassis = chrono_types::make_shared<Balancer>(d);
-    } else {
-        throw std::invalid_argument("Subchassis type not supported in ReadSubchassisJSON.");
+    } else if (custom_constructor) {
+        chassis = custom_constructor(subtype, d);
     }
+
+    if (!chassis)
+        throw std::invalid_argument("Subchassis type not supported in ReadSubchassisJSON.");
 
     return chassis;
 }
 
-std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
+std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename, JSONConstructorFn<ChBrake> custom_constructor) {
     std::shared_ptr<ChBrake> brake;
 
     Document d;
@@ -1037,14 +1070,17 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
         brake = chrono_types::make_shared<BrakeSimple>(d);
     } else if (subtype.compare("BrakeShafts") == 0) {
         brake = chrono_types::make_shared<BrakeShafts>(d);
-    } else {
-        throw std::invalid_argument("Brake type not supported in ReadBrakeJSON.");
+    } else if (custom_constructor) {
+        brake = custom_constructor(subtype, d);
     }
+
+    if (!brake)
+        throw std::invalid_argument("Brake type not supported in ReadBrakeJSON.");
 
     return brake;
 }
 
-std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
+std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename, JSONConstructorFn<ChTire> custom_constructor) {
     std::shared_ptr<ChTire> tire;
 
     Document d;
@@ -1080,16 +1116,19 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
         tire = chrono_types::make_shared<ReissnerTire>(d);
     } else if (subtype.compare("FEATire") == 0) {
         tire = chrono_types::make_shared<FEATire>(d);
-    } else {
-        throw std::invalid_argument("Tire type not supported in ReadTireJSON.");
+    } else if (custom_constructor) {
+        tire = custom_constructor(subtype, d);
     }
+
+    if (!tire)
+        throw std::invalid_argument("Tire type not supported in ReadTireJSON.");
 
     return tire;
 }
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename) {
+std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename, JSONConstructorFn<ChTrackAssembly> custom_constructor) {
     std::shared_ptr<ChTrackAssembly> track;
 
     Document d;
@@ -1115,14 +1154,17 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filena
         track = chrono_types::make_shared<TrackAssemblyBandBushing>(d);
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
-    } else {
-        throw std::invalid_argument("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
+    } else if (custom_constructor) {
+        track = custom_constructor(subtype, d);
     }
+
+    if (!track)
+        throw std::invalid_argument("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
 
     return track;
 }
 
-std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) {
+std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename, JSONConstructorFn<ChDrivelineTV> custom_constructor) {
     std::shared_ptr<ChDrivelineTV> driveline;
 
     Document d;
@@ -1144,14 +1186,17 @@ std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) 
         driveline = chrono_types::make_shared<SimpleTrackDriveline>(d);
     } else if (subtype.compare("TrackDrivelineBDS") == 0) {
         driveline = chrono_types::make_shared<TrackDrivelineBDS>(d);
-    } else {
-        throw std::invalid_argument("Driveline type not supported in ReadTrackDrivelineJSON.");
+    } else if (custom_constructor) {
+        driveline = custom_constructor(subtype, d);
     }
+
+    if (!driveline)
+        throw std::invalid_argument("Driveline type not supported in ReadTrackDrivelineJSON.");
 
     return driveline;
 }
 
-std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
+std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename, JSONConstructorFn<ChTrackBrake> custom_constructor) {
     std::shared_ptr<ChTrackBrake> brake;
 
     Document d;
@@ -1173,14 +1218,17 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
         brake = chrono_types::make_shared<TrackBrakeSimple>(d);
     } else if (subtype.compare("TrackBrakeShafts") == 0) {
         brake = chrono_types::make_shared<TrackBrakeShafts>(d);
-    } else {
-        throw std::invalid_argument("Brake type not supported in ReadTrackBrakeJSON.");
+    } else if (custom_constructor) {
+        brake = custom_constructor(subtype, d);
     }
+
+    if (!brake)
+        throw std::invalid_argument("Brake type not supported in ReadTrackBrakeJSON.");
 
     return brake;
 }
 
-std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
+std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename, JSONConstructorFn<ChIdler> custom_constructor) {
     std::shared_ptr<ChIdler> idler;
 
     Document d;
@@ -1202,14 +1250,17 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
         idler = chrono_types::make_shared<TranslationalIdler>(d);
     } else if (subtype.compare("DistanceIdler") == 0) {
         idler = chrono_types::make_shared<DistanceIdler>(d);
-    } else {
-        throw std::invalid_argument("Idler type not supported in ReadIdlerJSON.");
+    } else if (custom_constructor) {
+        idler = custom_constructor(subtype, d);
     }
+
+    if (!idler)
+        throw std::invalid_argument("Idler type not supported in ReadIdlerJSON.");
 
     return idler;
 }
 
-std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename, bool has_shock, bool lock_arm) {
+std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& filename, bool has_shock, bool lock_arm, JSONConstructorFn<ChTrackSuspension> custom_constructor) {
     std::shared_ptr<ChTrackSuspension> suspension;
 
     Document d;
@@ -1231,14 +1282,17 @@ std::shared_ptr<ChTrackSuspension> ReadTrackSuspensionJSON(const std::string& fi
         suspension = chrono_types::make_shared<TranslationalDamperSuspension>(d, has_shock, lock_arm);
     } else if (subtype.compare("RotationalDamperSuspension") == 0) {
         suspension = chrono_types::make_shared<RotationalDamperSuspension>(d, has_shock, lock_arm);
-    } else {
-        throw std::invalid_argument("Suspension type not supported in ReadTrackSuspensionJSON.");
+    } else if (custom_constructor) {
+        suspension = custom_constructor(subtype, d);
     }
+
+    if (!suspension)
+        throw std::invalid_argument("Suspension type not supported in ReadTrackSuspensionJSON.");
 
     return suspension;
 }
 
-std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
+std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename, JSONConstructorFn<ChTrackWheel> custom_constructor) {
     std::shared_ptr<ChTrackWheel> wheel;
 
     Document d;
@@ -1260,9 +1314,12 @@ std::shared_ptr<ChTrackWheel> ReadTrackWheelJSON(const std::string& filename) {
         wheel = chrono_types::make_shared<SingleTrackWheel>(d);
     } else if (subtype.compare("DoubleTrackWheel") == 0) {
         wheel = chrono_types::make_shared<DoubleTrackWheel>(d);
-    } else {
-        throw std::invalid_argument("Road-wheel type not supported in ReadTrackWheelJSON.");
+    } else if (custom_constructor) {
+        wheel = custom_constructor(subtype, d);
     }
+
+    if (!wheel)
+        throw std::invalid_argument("Road-wheel type not supported in ReadTrackWheelJSON.");
 
     return wheel;
 }
