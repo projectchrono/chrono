@@ -88,12 +88,13 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         bool use_density_based_projection;         ///< (ISPH only, default: false)
         bool consistent_gradient_discretization;   ///< use G matrix in SPH gradient approximation (default: false)
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
-        bool use_artificial_viscosity;             ///< use artificial viscosity (default: true)
         double artificial_viscosity;               ///< artificial viscosity coefficient (default: 0.02)
+        bool use_delta_sph;                        ///< use delta SPH (default: true)
+        double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)    
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
         EosType eos_type;                               ///< equation of state (default: Tait's eos)
-
+        ViscosityTreatmentType viscosity_type;     ///< viscosity treatment (default: artificial viscosity)
         SPHParameters();
     };
 

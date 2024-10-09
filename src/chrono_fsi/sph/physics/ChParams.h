@@ -132,8 +132,10 @@ struct SimParams {
 
     bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
     bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
-    bool USE_Artificial_viscosity;  ///< Use artificial viscosity
+    bool USE_Delta_SPH;             ///< Use delta SPH
+    Real density_delta;             /// parameter for delta SPH
     EosType eos_type;               ///< Equation of state type 
+    ViscosityTreatmentType viscosity_type;  ///< Viscosity treatment type, physics-base laminar flow or artificial viscosity for water
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 

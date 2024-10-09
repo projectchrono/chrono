@@ -102,6 +102,12 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
+    // Luning todo: what default values to use here? I'm using old version for easy testing 
+    m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+    m_paramsH->eos_type = EosType::ISOTHERMAL;
+    m_paramsH->density_delta = Real(0.1);
+    m_paramsH->USE_Delta_SPH = false;
+
     m_paramsH->epsMinMarkersDis = Real(0.01);
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
@@ -141,6 +147,8 @@ void ChFluidSystemSPH::InitParams() {
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
     m_paramsH->elastic_SPH = false;  // default: fluid dynamics
+    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM? 
+
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
@@ -237,11 +245,32 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
 
-        if (doc["SPH Parameters"].HasMember("Use Artificial Viscosity"))
-			m_paramsH->USE_Artificial_viscosity = doc["SPH Parameters"]["Use Artificial Viscosity"].GetBool();
+        if (doc["SPH Parameters"].HasMember("Viscosity Treatment Type")) {
+            std::string type = doc["SPH Parameters"]["Viscosity Treatment Type"].GetString();
+            if (m_verbose)
+                cout << "viscosity treatment is : " << type << endl;
+            if (type == "Laminar")
+                m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+            else if (type == "Artificial") {
+                    m_paramsH->viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
+                    m_paramsH->Ar_vis_alpha = 0.02;  // default 0.02 in case user forgot to set in json file
+                }
+            else {
+                cerr << "Incorrect viscosity type in the JSON file: " << type << endl;
+                cerr << "Falling back to laminar " << endl;
+                m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+            }
+        }
+
 
         if (doc["SPH Parameters"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Use Delta SPH"))
+            m_paramsH->USE_Delta_SPH = doc["SPH Parameters"]["Use Delta SPH"].GetBool();
+
+        if (doc["SPH Parameters"].HasMember("density diffusion delta"))
+            m_paramsH->density_delta = doc["SPH Parameters"]["density diffusion delta"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("EOS Type")) {
             std::string type = doc["SPH Parameters"]["EOS Type"].GetString();
@@ -625,8 +654,9 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      use_artificial_viscosity(true),
-      use_delta_SPH(true),
+      viscosity_type(ViscosityTreatmentType::ARTIFICIAL),
+      use_delta_sph(true),
+      delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
       kernel_threshold(0.8),
       num_proximity_search_steps(4),
@@ -653,9 +683,11 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
 
     m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
-    m_paramsH->USE_Artificial_viscosity = sph_params.use_artificial_viscosity;
+    m_paramsH->viscosity_type = sph_params.viscosity_type;
     m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
     m_paramsH->eos_type = sph_params.eos_type;
+    m_paramsH->USE_Delta_SPH = sph_params.use_delta_sph;
+    m_paramsH->density_delta = sph_params.delta_sph_coefficient;
 
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 

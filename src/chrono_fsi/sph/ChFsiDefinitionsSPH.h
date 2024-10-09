@@ -83,9 +83,11 @@ enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 /// Linear solver type.
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 
+enum class ViscosityTreatmentType { LAMINAR, ARTIFICIAL };
+
 /// Equation of State type, Tait or Isothermal.
 /// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
-enum class EosType {TAIT, ISOTHERMAL};
+enum class EosType { TAIT, ISOTHERMAL };
  
 
 /// @} fsi_physics

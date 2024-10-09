@@ -595,48 +595,64 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
                                        Real3 velMasA,
                                        Real3 velMasB,
                                        Real4 rhoPresMuA,
-                                       Real4 rhoPresMuB,
-                                       Real artificial_viscosity,
-                                       bool use_artificial_viscosity) {
+                                       Real4 rhoPresMuB) {
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0.0);
 
     Real3 gradW = GradWh(dist3);
 
     // Continuty equation
-    //Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW);  // without diffusion term 
+    Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW); 
 
-    // diffusion term in continuity equation, note that this helps smoothing out the large oscillation in pressure field  
-    // see S. Marrone et al., "delta-SPH model for simulating violent impact flows", Computer Methods in Applied Mechanics and Engineering, 200(2011), pp 1526 --1542.
-    Real delta = 0.1;
-    Real Psi = delta * paramsD.HSML * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. *
-               (rhoPresMuA.x - rhoPresMuB.x) / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
-    Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW) + Psi * dot(dist3, gradW); 
 
+    if (paramsD.USE_Delta_SPH) {
+        // diffusion term in continuity equation, this helps smoothing out the large oscillation in pressure
+        // field see S. Marrone et al., "delta-SPH model for simulating violent impact flows", Computer Methods in
+        // Applied Mechanics and Engineering, 200(2011), pp 1526 --1542.    
+        Real Psi = paramsD.density_delta * paramsD.HSML * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. *
+                   (rhoPresMuA.x - rhoPresMuB.x) / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+        derivRho += Psi * dot(dist3, gradW);     
+
+    } 
 
     Real3 derivV;
-    if (use_artificial_viscosity) {
-        // pressure component
-        derivV = -paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW;  // Monaghan 1997 uses this
+    switch (paramsD.viscosity_type) {
 
-        // artificial viscosity part, see Monaghan 1997, mainly for water
-        Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
-        if (vAB_dot_rAB < 0) {
-            Real mu_ab = paramsD.HSML * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
-            Real Pi_ab = -artificial_viscosity * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) * paramsD.markerMass * mu_ab;
-            derivV.x -= Pi_ab * gradW.x;
-            derivV.y -= Pi_ab * gradW.y;
-            derivV.z -= Pi_ab * gradW.z;
+
+        case ViscosityTreatmentType::ARTIFICIAL: {
+
+        //  pressure component
+            derivV = -paramsD.markerMass *
+                     (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
+                     gradW;
+
+            // artificial viscosity part, see Monaghan 1997, mainly for water
+            Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
+            if (vAB_dot_rAB < 0) {
+                Real mu_ab =
+                    paramsD.HSML * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+                Real Pi_ab = -paramsD.Ar_vis_alpha * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
+                             paramsD.markerMass * mu_ab;
+                derivV.x -= Pi_ab * gradW.x;
+                derivV.y -= Pi_ab * gradW.y;
+                derivV.z -= Pi_ab * gradW.z;
+            }
+            break;
         }
-    }
-
-    else {   
-         // laminar physics-based viscosity, directly from the Momentum equation, see Arman's PhD thesis, eq.(2.12) and Morris et al.,"Modeling Low Reynolds Number Incompressible Flows Using SPH, 1997"
-         // suitable for Poiseulle flow, or oil, honey, etc
-         Real rAB_Dot_GradWh = dot(dist3, gradW);
-         Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML); 
-         derivV = - paramsD.markerMass * (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW 
-                  + paramsD.markerMass * 8.0f * paramsD.mu0 * rAB_Dot_GradWh_OverDist * (velMasA - velMasB) / square(rhoPresMuA.x + rhoPresMuB.x);
+        case ViscosityTreatmentType::LAMINAR: {
+            // laminar physics-based viscosity, directly from the Momentum equation, see Arman's PhD thesis, eq.(2.12) and
+            // Morris et al.,"Modeling Low Reynolds Number Incompressible Flows Using SPH, 1997" suitable for Poiseulle
+            // flow, or oil, honey, etc
+            Real rAB_Dot_GradWh = dot(dist3, gradW);
+            Real rAB_Dot_GradWh_OverDist =
+                rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+            derivV = -paramsD.markerMass *
+                         (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
+                         gradW +
+                     paramsD.markerMass * 8.0f * paramsD.mu0 * rAB_Dot_GradWh_OverDist * (velMasA - velMasB) /
+                         square(rhoPresMuA.x + rhoPresMuB.x);
+            break;
+        }
     }
     return mR4(derivV, derivRho);
 }
@@ -919,8 +935,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
         // }
         Real3 velMasB = sortedVelMas[j];
 
-        derivVelRho += DifVelocityRho(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA,
-                                      rhoPresMuB, paramsD.Ar_vis_alpha, paramsD.USE_Artificial_viscosity);
+        derivVelRho += DifVelocityRho(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB);
 
 
         if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
