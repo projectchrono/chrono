@@ -222,8 +222,6 @@ int main(int argc, char* argv[]) {
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
     mat_props.stress = 0;  // default
-    mat_props.viscosity_alpha = 0.05;
-    mat_props.viscosity_beta = 0.0;
     mat_props.mu_I0 = 0.03;
     mat_props.mu_fric_s = 0.7;
     mat_props.mu_fric_2 = 0.7;
@@ -239,7 +237,8 @@ int main(int argc, char* argv[]) {
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.kernel_h = 0.012;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.xsph_coefficient = 0.5;
+    sph_params.artificial_viscosity = 0.1;
+    sph_params.xsph_coefficient = 0.25;
     sph_params.shifting_coefficient = 1.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;

@@ -61,8 +61,6 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double Young_modulus;    ///< Young's modulus (default: 1e6)
         double Poisson_ratio;    ///< Poisson's ratio (default: 0.3)
         double stress;           ///< artifical stress (default: 0)
-        double viscosity_alpha;  ///< artifical viscosity coefficient (default: 0.5)
-        double viscosity_beta;   ///< artifical viscosity coefficient (default: 0)
         double mu_I0;            ///< reference inertia number (default: 0.03)
         double mu_fric_s;        ///< friction mu_s (default: 0.7)
         double mu_fric_2;        ///< mu_2 constant in mu=mu(I) (default: 0.7)

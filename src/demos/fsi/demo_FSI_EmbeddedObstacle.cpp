@@ -117,8 +117,6 @@ int main(int argc, char* argv[]) {
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
     mat_props.stress = 0;  // default
-    mat_props.viscosity_alpha = 0.5;
-    mat_props.viscosity_beta = 0.0;
     mat_props.mu_I0 = 0.04;
     mat_props.mu_fric_s = 0.8;
     mat_props.mu_fric_2 = 0.8;
@@ -135,6 +133,7 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
     sph_params.kernel_threshold = 0.8;
+    sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
 

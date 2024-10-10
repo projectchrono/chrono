@@ -22,7 +22,6 @@
     "Poisson ratio": 0.3,
     "Young modulus": 1.0e6,
     "Artificial viscosity alpha": 0.5,
-    "Artificial viscosity beta": 0.0,
     "I0": 0.03,
     "mu_s": 0.5,
     "mu_2": 0.5,

@@ -387,9 +387,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
 
-        if (doc["Elastic SPH"].HasMember("Artificial viscosity beta"))
-            m_paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
-
         if (doc["Elastic SPH"].HasMember("I0"))
             m_paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
 
@@ -597,8 +594,6 @@ ChFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       Young_modulus(1e6),
       Poisson_ratio(0.3),
       stress(0),
-      viscosity_alpha(0.5),
-      viscosity_beta(0),
       mu_I0(0.03),
       mu_fric_s(0.7),
       mu_fric_2(0.7),
@@ -615,8 +610,6 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
     m_paramsH->Ar_stress = Real(mat_props.stress);
-    m_paramsH->Ar_vis_alpha = Real(mat_props.viscosity_alpha);
-    m_paramsH->Ar_vis_beta = Real(mat_props.viscosity_beta);
     m_paramsH->mu_I0 = Real(mat_props.mu_I0);
     m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
     m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);

@@ -182,7 +182,6 @@ struct SimParams {
     Real Nu_poisson;    ///< Poisson’s ratio
     Real Ar_stress;     ///< Artifical stress
     Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
-    Real Ar_vis_beta;   ///< Artifical viscosity coefficient
     Real Fri_angle;     ///< Frictional angle of granular material
     Real Dil_angle;     ///< Dilate angle of granular material
     Real Coh_coeff;     ///< Cohesion coefficient
