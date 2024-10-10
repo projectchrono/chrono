@@ -24,7 +24,7 @@ public:
     // Get the results from the simulation
     std::tuple<std::vector<std::string>, std::vector<std::vector<double>>, std::vector<std::string>, std::vector<std::vector<double>>> extractResults();
 
-    void runTransientAnalysis(std::vector<std::string> netlist, double t_step, double dt_mbs);
+    void runTransientAnalysis(std::vector<std::string> netlist, double t_step, double dt_mbs, bool initial);
 
 private:
     // NGSpice callback functions

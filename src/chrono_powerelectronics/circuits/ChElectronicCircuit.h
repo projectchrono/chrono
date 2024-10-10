@@ -64,7 +64,8 @@ public:
         t_sim_electronics += dt_mbs;
 
         auto runSpiceStart = std::chrono::high_resolution_clock::now();
-        this->result = cosim.RunSpice(this->netlist, this->t_step, dt_mbs);
+
+        this->result = cosim.RunSpice(this->netlist, this->t_step, dt_mbs, initial);
         auto runSpiceEnd = std::chrono::high_resolution_clock::now();
         auto runSpiceTime = std::chrono::duration_cast<std::chrono::microseconds>(runSpiceEnd - runSpiceStart).count();
         
@@ -76,6 +77,8 @@ public:
         this->netlist = cosim.GetNetlist().netlist_file;
 
         this->PostAdvance();
+
+        initial = false;
 
         // std::cout << "RunSpice time: " << runSpiceTime << " microseconds" << std::endl;
         // std::cout << "Cosimulate time: " << cosimTime << " microseconds" << std::endl;
@@ -112,7 +115,7 @@ private:
     ChElectronicsCosimulation cosim;
 
     double t_step;
-
+    bool initial = true;
 
     double t_sim_electronics = 0;
     std::map<std::string,std::vector<double>> result;

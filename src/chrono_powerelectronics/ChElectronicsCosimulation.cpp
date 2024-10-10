@@ -23,7 +23,7 @@ namespace powerelectronics {
 
 // ======== Method: allows to run a Spice Netlist simulation and solve the circuit ========
 // CosimResults
-std::map<std::string,std::vector<double>> ChElectronicsCosimulation::RunSpice(Netlist_V netlist, double t_step, double t_end)
+std::map<std::string,std::vector<double>> ChElectronicsCosimulation::RunSpice(Netlist_V netlist, double t_step, double t_end, bool initial)
 {
     std::map<std::string, std::vector<double>> circuit_map;
 
@@ -31,7 +31,7 @@ std::map<std::string,std::vector<double>> ChElectronicsCosimulation::RunSpice(Ne
         // Create an instance of the ChNgSpice class
         ChNgSpice ngspice;
 
-        ngspice.runTransientAnalysis(netlist,t_step,t_end);
+        ngspice.runTransientAnalysis(netlist,t_step,t_end,initial);
 
         // Extract and display the simulation results
         auto [nodeNames, nodeValues, branchNames, branchValues] = ngspice.extractResults();

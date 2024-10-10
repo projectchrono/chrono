@@ -251,7 +251,6 @@ int main(int argc, char* argv[]) {
     // ==============================================
     // ======== MECHANICAL DOMAIN PARAMETERS ========
     // ==============================================
-    double kt_motor = 0.1105; //[Nm/A] 150
 
         // ============================================
         // ======== CREATE A NSC CHRONO SYSTEM ========
@@ -1037,7 +1036,12 @@ int main(int argc, char* argv[]) {
     // ==================================================
 
     ChElectronicMotor motor(Rotor_body, t_step_electronic);
+    // double kt_motor = 0.1105;//*1e3*1e3;  // Motor torque constant [Nm/A]
+    // double ke_motor = -0.0953*1.0;  // Motor back EMF constant [V/(rad/s)]
+
+    // motor.InitParams(kt_motor,ke_motor);
     motor.Initialize();
+
 
     // ==================================================
     // ======== MULTI-PHYSICS CO-SYMULATION LOOP ========
@@ -1090,6 +1094,7 @@ int main(int argc, char* argv[]) {
             // ======== COSIMULATE -> the SPICE circuit ========
             motor.Advance(t_step_mechanic);
             auto res = motor.GetResult();
+            std::cout << "IVprobe1 " << res["vprobe1"].back() << std::endl;
             assert(!res.empty());
             t_sampling_electronic_counter = 0;      // The variable is nulled to re-start with the counter for the next call of the electronic domain
         }

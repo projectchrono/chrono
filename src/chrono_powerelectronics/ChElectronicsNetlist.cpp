@@ -63,7 +63,7 @@ void ChElectronicsNetlist::UpdateNetlist(CosimResults results, FlowInMap flowin_
     auto branch_states = GetBranchConds(results);
     this->netlist_file = this->UpdateBranchCurrents(this->netlist_file, branch_states);
        
-    std::cout << this->AsString() << std::endl;
+    // std::cout << this->AsString() << std::endl;
 
 }
 

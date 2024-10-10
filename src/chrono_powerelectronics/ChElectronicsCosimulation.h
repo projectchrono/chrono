@@ -55,7 +55,7 @@ public:
 
     typedef std::map<std::string,std::vector<double>> CircStateMap;
 
-    CircStateMap RunSpice(Netlist_V netlist, double t_step, double t_end);
+    CircStateMap RunSpice(Netlist_V netlist, double t_step, double t_end, bool initial);
 
     void Cosimulate(CosimResults results, FlowInMap flow_in, PWLInMap pwl_in, double t_step, double t_end);
     

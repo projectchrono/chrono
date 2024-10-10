@@ -27,18 +27,13 @@ ChElectronicMotor::ChElectronicMotor(double t_step)
 }
 
 void ChElectronicMotor::PreInitialize() {
-    // this->SetInitialPWLIn({
-    //     {"VgenVAR", 15.},
-    //     {"VbackemfCVAR", 0.0},
-    //     {"VSW1VAR", 1.},
-    //     {"VgenPWMVAR", 5.200000e+00}
-    // });
     this->SetInitialPWLIn({
-        {"VgenVAR", 0.},
+        {"VgenVAR", 15.},
         {"VbackemfCVAR", 0.0},
-        {"VSW1VAR", 0.},
-        {"VgenPWMVAR", 0.}
+        {"VSW1VAR", 1.},
+        {"VgenPWMVAR", 5.200000e+00}
     });
+
     this->SetInitialFlowInICs({
         {"LaC", 45e-6},
         {"RaC", 25.},
@@ -70,14 +65,10 @@ void ChElectronicMotor::PreAdvance() {
     this->flow_in["LaC"] = 45e-6;
     this->flow_in["RaC"] = 25.;
 
-    // this->pwl_in["VgenVAR"] = 15.;
-    // this->pwl_in["VbackemfCVAR"] = this->VbackemfCVAR;
-    // this->pwl_in["VSW1VAR"] = 1.;
-    // this->pwl_in["VgenPWMVAR"] = this->VgenPWMVAR;
-    this->pwl_in["VgenVAR"] = 5.;
-    this->pwl_in["VbackemfCVAR"] = 0.;
+    this->pwl_in["VgenVAR"] = 15.;
+    this->pwl_in["VbackemfCVAR"] = this->VbackemfCVAR;
     this->pwl_in["VSW1VAR"] = 1.;
-    this->pwl_in["VgenPWMVAR"] = 5.;
+    this->pwl_in["VgenPWMVAR"] = this->VgenPWMVAR;
 
 }
 
@@ -85,12 +76,12 @@ void ChElectronicMotor::PostAdvance() {
 
 
     auto res = this->GetResult();
-    double IVprobe1 = res["vprobe1"][res["vprobe1"].size() - 1];
+    double IVprobe1 = res["vprobe1"].back();
 
     // std::cout << IVprobe1 << std::endl;
 
     ChVector3d torque_vec_norm(0, 0, 1); // Normalized direction vector
-    double spindle_torque_mag = this->kt_motor * IVprobe1* 1e3 * 1e3; // Convert to [kg]-[mm]-[s]
+    double spindle_torque_mag = this->kt_motor * IVprobe1; //* 1e3 * 1e3; // Convert to [kg]-[mm]-[s]
 
     // std::cout << this->kt_motor << " " << IVprobe1 << " " << spindle_torque_mag << std::endl;
 

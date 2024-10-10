@@ -3,7 +3,7 @@
 
 // Static callback implementations
 int ChNgSpice::ngGetChar(char* output, int id, void* userdata) {
-    std::cout << output << std::endl;
+    // std::cout << output << std::endl;
     return 0;
 }
 
@@ -51,7 +51,7 @@ bool ChNgSpice::loadCircuitFromFile(const std::string& filename, double dt_mbs) 
     return true;
 }
 
-void ChNgSpice::runTransientAnalysis(std::vector<std::string> netlist, double t_step, double dt_mbs) {
+void ChNgSpice::runTransientAnalysis(std::vector<std::string> netlist, double t_step, double dt_mbs, bool initial) {
     std::string optCommand = ".options reltol=1e-6 abstol=1e-12";
 
 
@@ -60,8 +60,12 @@ void ChNgSpice::runTransientAnalysis(std::vector<std::string> netlist, double t_
     double t_step_rand = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);;
     double t_step_new = (t_step_mantissa + t_step_rand) * std::pow(10, t_step_exponent);
 
+
     std::string tranCommand = ".tran " + std::to_string(t_step_new)  + " " + std::to_string(dt_mbs) + " uic";
-    std::string uicCommand = ".uic";
+    // if(initial) {
+    //     tranCommand += " uic";
+    // }
+    // std::string uicCommand = ".uic";
 
     std::vector<char*> ngspiceCircuit;
 
