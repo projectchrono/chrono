@@ -82,6 +82,8 @@
 // If module FMI was enabled, define CHRONO_FMI
 @CHRONO_FMI@
 
+// If module PowerElectronics was enabled, define CHRONO_PowerElectronics
+@CHRONO_POWERELECTRONICS@
 // -----------------------------------------------------------------------------
 // OpenMP settings
 // -----------------------------------------------------------------------------
