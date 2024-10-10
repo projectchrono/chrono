@@ -199,8 +199,8 @@ __global__ void Viscosity_correction(Real4* sortedPosRad,  // input: sorted posi
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
         Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
-        Real W3 = 0.5 * (W3h(d) + W3h(d));
-        Real3 grad_i_wij = 0.5 * (GradWh(rij) + GradWh(rij));
+        Real W3 = W3h(d, paramsD.INVHSML);
+        Real3 grad_i_wij = GradWh(rij, paramsD.INVHSML);
 
         if (sortedRhoPreMu_old[i_idx].w != -1)
             continue;
@@ -343,8 +343,8 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
         Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
-        Real W3 = 0.5 * (W3h(d) + W3h(d));
-        Real3 grad_i_wij = 0.5 * (GradWh(rij) + GradWh(rij));
+        Real W3 = W3h(d, paramsD.INVHSML);
+        Real3 grad_i_wij = GradWh(rij, paramsD.INVHSML);
 
         Real3 coeff = -m_j / sortedRhoPreMu[j].x * grad_i_wij;
         grad_ux += coeff * (sortedVelMas[i_idx].x - sortedVelMas[j].x);
@@ -404,7 +404,7 @@ __global__ void V_star_Predictor(Real4* sortedPosRad,  // input: sorted position
                 continue;
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real W3 = W3h(length(rij));
+            Real W3 = W3h(length(rij), paramsD.INVHSML);
             A_Matrix[count] = W3;
             // A_Matrix[count] = A_f[count];
             den += W3;
@@ -567,7 +567,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                 continue;
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real W3 = W3h(length(rij));
+            Real W3 = W3h(length(rij), paramsD.INVHSML);
             // fluid pressures are actually p*TIME_SCALE, so divide by TIME_SCALE to get the actual formula
             A_Matrix[count] = -W3;
             // pressure of the boundary marker should be calculated as p*TIME_SCALE
@@ -674,7 +674,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
         Real m_j = paramsD.markerMass;
         Real rho_j = sortedRhoPreMu_old[j].x;
         Real3 rij = Distance(posA, mR3(sortedPosRad_old[j]));
-        Real3 gradW = GradWh(rij);
+        Real3 gradW = GradWh(rij, paramsD.INVHSML);
         bool fluid_j = sortedRhoPreMu_old[j].w == -1;
         bool fluid_i = sortedRhoPreMu_old[i_idx].w == -1;
 
@@ -807,7 +807,7 @@ __global__ void Shifting(Real4* sortedPosRad,
         Real m_j = paramsD.markerMass;
 
         if (sortedRhoPreMu_old[j].w == -1.0) {
-            Real Wd = W3h(d);
+            Real Wd = W3h(d, paramsD.INVHSML);
             Real rho_bar = 0.5 * (sortedRhoPreMu_old[i_idx].x + sortedRhoPreMu_old[j].x);
             xSPH_Sum += (sortedVelMas_old[j] - sortedVelMas_old[i_idx]) * Wd * m_j / rho_bar;
         }

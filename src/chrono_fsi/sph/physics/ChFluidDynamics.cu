@@ -50,8 +50,9 @@ __device__ void collideCellDensityReInit(Real& numerator,
             Real d = length(dist3);
             if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
                 continue;
-            numerator += paramsD.markerMass * W3h(d);
-            denominator += paramsD.markerMass / rhoPreMuB.x * W3h(d);
+            Real w = W3h(d, paramsD.INVHSML);
+            numerator += paramsD.markerMass * w;
+            denominator += paramsD.markerMass / rhoPreMuB.x * w;
         }
     }
 }

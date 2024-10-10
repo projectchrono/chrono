@@ -30,6 +30,7 @@
 #include "chrono_fsi/sph/ChFluidSystemSPH.h"
 
 #include "chrono_fsi/sph/physics/ChParams.h"
+#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
@@ -883,15 +884,6 @@ void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-Real W3h_CubicSpline(Real d, Real invh) {
-    Real q = std::abs(d) * invh;
-    if (q < 1)
-        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
-    if (q < 2)
-        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
-    return 0;
-}
-
 void ChFluidSystemSPH::Initialize() {
     Initialize(0, 0, 0, 0, 0, std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>());
 }
@@ -926,7 +918,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             for (int j = -IDX; j <= IDX; j++) {
                 for (int k = -IDX; k <= IDX; k++) {
                     Real3 pos = mR3(i, j, k) * m_paramsH->INITSPACE;
-                    Real W = W3h_CubicSpline(length(pos), m_paramsH->INVHSML);
+                    Real W = W3h(length(pos), m_paramsH->INVHSML);
                     sum += W;
                     if (W > 0)
                         count++;
