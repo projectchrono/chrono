@@ -20,14 +20,14 @@
 #ifndef CH_FSI_DATA_MANAGER_H
 #define CH_FSI_DATA_MANAGER_H
 
-#include "chrono/ChConfig.h"
-
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <thrust/iterator/detail/normal_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
+
+#include "chrono_fsi/ChConfigFsi.h"
 
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/physics/ChMarkerType.cuh"

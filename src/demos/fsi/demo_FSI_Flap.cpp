@@ -61,11 +61,11 @@ double wec_density = 500;
 double t_end = 20.0;
 
 // Enable/disable run-time visualization
-bool render = false;
-float render_fps = 25;
+bool render = true;
+float render_fps = 200;
 
 // Enable saving snapshots
-bool snapshots = true;
+bool snapshots = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -192,7 +192,7 @@ void CreateFlap(ChFsiProblemSPH& fsi) {
 }
 
 int main(int argc, char* argv[]) {
-    double initial_spacing = 0.025;
+    double initial_spacing = 0.05;
     double step_size = 5e-5;
     bool verbose = true;
 
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     //sph_params.density_reinit_steps = 800;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
     sph_params.artificial_viscosity = 0.02;
     sph_params.eos_type = EosType::TAIT;
     sph_params.use_delta_sph = true;

@@ -16,7 +16,8 @@
 
 #include <string>
 
-#include "chrono/ChConfig.h"
+#include "chrono_fsi/ChConfigFsi.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChVisualSystem.h"

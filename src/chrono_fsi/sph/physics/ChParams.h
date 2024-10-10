@@ -130,12 +130,12 @@ struct SimParams {
     int gradient_type;       ///< Type of the gradient operator.
     int laplacian_type;      ///< Type of the laplacian operator.
 
-    bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
-    bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
-    bool USE_Delta_SPH;             ///< Use delta SPH
-    Real density_delta;             /// parameter for delta SPH
-    EosType eos_type;               ///< Equation of state type 
-    ViscosityTreatmentType viscosity_type;  ///< Viscosity treatment type, physics-base laminar flow or artificial viscosity for water
+    bool USE_Consistent_G;         ///< Use consistent discretization for gradient operator
+    bool USE_Consistent_L;         ///< Use consistent discretization for laplacian operator
+    bool USE_Delta_SPH;            ///< Use delta SPH
+    Real density_delta;            ///< Parameter for delta SPH
+    EosType eos_type;              ///< Equation of state type
+    ViscosityType viscosity_type;  ///< Viscosity treatment type, physics-based laminar flow or artificial viscosity
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 
@@ -155,8 +155,8 @@ struct SimParams {
     Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
     Real Cs;                       ///< Speed of sound
 
-    bool Apply_BC_U;              ///< This option lets you apply a velocity BC on the BCE markers
-    Real L_Characteristic;        ///< Some length characteristic for Re number computation
+    bool Apply_BC_U;        ///< This option lets you apply a velocity BC on the BCE markers
+    Real L_Characteristic;  ///< Characteristic for Re number computation
 
     bool non_newtonian;       ///< Set true to model non-newtonian fluid.
     Rheology rheology_model;  ///< Model of the rheology

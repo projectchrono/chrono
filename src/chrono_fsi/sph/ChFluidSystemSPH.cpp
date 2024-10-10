@@ -102,8 +102,8 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    // Luning todo: what default values to use here? I'm using old version for easy testing 
-    m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+    // Luning todo: what default values to use here? I'm using old version for easy testing
+    m_paramsH->viscosity_type = ViscosityType::LAMINAR;
     m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->density_delta = Real(0.1);
     m_paramsH->USE_Delta_SPH = false;
@@ -146,9 +146,8 @@ void ChFluidSystemSPH::InitParams() {
     // Elastic SPH
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;  // default: fluid dynamics
-    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM? 
-
+    m_paramsH->elastic_SPH = false;        // default: fluid dynamics
+    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
@@ -250,18 +249,15 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             if (m_verbose)
                 cout << "viscosity treatment is : " << type << endl;
             if (type == "Laminar")
-                m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+                m_paramsH->viscosity_type = ViscosityType::LAMINAR;
             else if (type == "Artificial") {
-                    m_paramsH->viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
-                    m_paramsH->Ar_vis_alpha = 0.02;  // default 0.02 in case user forgot to set in json file
-                }
-            else {
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
+            } else {
                 cerr << "Incorrect viscosity type in the JSON file: " << type << endl;
                 cerr << "Falling back to laminar " << endl;
-                m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+                m_paramsH->viscosity_type = ViscosityType::LAMINAR;
             }
         }
-
 
         if (doc["SPH Parameters"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
@@ -283,7 +279,7 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             else {
                 cerr << "Incorrect eos type in the JSON file: " << type << endl;
                 cerr << "Falling back to Tait Equation of State " << endl;
-                m_paramsH->eos_type = EosType::TAIT;
+                m_paramsH->eos_type = EosType::ISOTHERMAL;
             }
         }
 
@@ -654,13 +650,13 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      viscosity_type(ViscosityTreatmentType::ARTIFICIAL),
+      viscosity_type(ViscosityType::LAMINAR),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
       kernel_threshold(0.8),
       num_proximity_search_steps(4),
-      eos_type(EosType::TAIT) {}
+      eos_type(EosType::ISOTHERMAL) {}
 
 void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
@@ -887,7 +883,7 @@ void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-Real W3h_Spline(Real d, Real invh) {
+Real W3h_CubicSpline(Real d, Real invh) {
     Real q = std::abs(d) * invh;
     if (q < 1)
         return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
@@ -930,7 +926,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             for (int j = -IDX; j <= IDX; j++) {
                 for (int k = -IDX; k <= IDX; k++) {
                     Real3 pos = mR3(i, j, k) * m_paramsH->INITSPACE;
-                    Real W = W3h_Spline(length(pos), m_paramsH->INVHSML);
+                    Real W = W3h_CubicSpline(length(pos), m_paramsH->INVHSML);
                     sum += W;
                     if (W > 0)
                         count++;

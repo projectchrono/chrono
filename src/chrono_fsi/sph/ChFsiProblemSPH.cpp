@@ -730,11 +730,8 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
         m_offset_bce = m_offset_sph;
 }
 
-/// <summary>
-///  Luning TODO: This can actually get "absorbed" with the tank without beach, becasue one without beach is just slope angle being 0 
-/// </summary>
-/// <param name="box_size"></param>
-/// <param name="pos"></param>
+// Luning TODO: This can actually get "absorbed" with the tank without beach, becasue one without beach is just slope
+// angle being 0
 void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector3d& pos) {
     if (m_verbose) {
         cout << "Construct sph markers with slope" << endl;
@@ -775,7 +772,6 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector
         }
     }
 
-
     // Insert in cached sets
     for (auto& p : sph) {
         m_sph.insert(p);
@@ -788,10 +784,6 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector
 
     m_offset_sph = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
 }
-
-
-
-
 
 size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box dimensions
                                               const ChVector3d& pos,       // reference positions
@@ -996,22 +988,18 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
     return body;
 }
 
-
-std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMakerWithBeach(WavemakerType type,                     ///< wave generator type
-                                              const ChVector3d& box_size,             ///< box dimensions
-                                              const ChVector3d& fluid_dim,  ///< dimension of the fluid
-                                              const ChVector3d& pos,                  ///< reference position
-                                              std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
-
-){
-
-if (m_verbose) {
+std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMakerWithBeach(WavemakerType type,
+                                                                     const ChVector3d& box_size,
+                                                                     const ChVector3d& fluid_dim,
+                                                                     const ChVector3d& pos,
+                                                                     std::shared_ptr<ChFunction> piston_fun) {
+    if (m_verbose) {
         cout << "Construct piston wavemaker" << endl;
     }
 
     // Number of BCE layers
     int bce_layers = m_sysSPH.GetNumBCELayers();
-    
+
     // number of BCE layers extended on the right (so I have a long beach)
     int bce_layers_right = 2 * bce_layers;
     int Nx = std::round(box_size.x() / m_spacing) + 1;
@@ -1132,9 +1120,6 @@ if (m_verbose) {
 
     return body;
 }
-
-
-
 
 ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {
     return ChVector3i((int)std::round(point.x() / m_spacing),  //

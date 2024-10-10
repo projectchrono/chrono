@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
-    sph_params.viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
     sph_params.artificial_viscosity = 0.02;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
