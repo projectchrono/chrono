@@ -36,20 +36,29 @@ void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+#define INVPI Real(0.31830988618379)
+#define EPSILON Real(1e-8)
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
 // Kernel function and gradient
 
 #if defined(CHRONO_SPH_KERNEL_QUADRATIC)
     #define W3h W3h_Quadratic
     #define GradWh GradWh_Quadratic
+    #define RESOLUTION_LENGTH_MULT 2
 #elif defined(CHRONO_SPH_KERNEL_CUBICSPLINE)
     #define W3h W3h_CubicSpline
     #define GradWh GradWh_CubicSpline
+    #define RESOLUTION_LENGTH_MULT 2
 #elif defined(CHRONO_SPH_KERNEL_QUINTICSPLINE)
     #define W3h W3h_QuinticSpline
     #define GradWh GradWh_QuinticSpline
+    #define RESOLUTION_LENGTH_MULT 3
 #elif defined(CHRONO_SPH_KERNEL_WENDLAND)
     #define W3h W3h_Wendland
     #define GradWh GradWh_Wendland
+    #define RESOLUTION_LENGTH_MULT 2
 #endif
 
 //--------------------------------------------------------------------------------------------------------------------------------
