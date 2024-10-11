@@ -624,8 +624,7 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
             // artificial viscosity part, see Monaghan 1997, mainly for water
             Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
             if (vAB_dot_rAB < 0) {
-                Real mu_ab =
-                    paramsD.h * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
+                Real mu_ab = paramsD.h * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
                 Real Pi_ab = -paramsD.Ar_vis_alpha * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
                              paramsD.markerMass * mu_ab;
                 derivV.x -= Pi_ab * gradW.x;
@@ -639,8 +638,7 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
             // and Morris et al.,"Modeling Low Reynolds Number Incompressible Flows Using SPH, 1997" suitable for
             // Poiseulle flow, or oil, honey, etc
             Real rAB_Dot_GradWh = dot(dist3, gradW);
-            Real rAB_Dot_GradWh_OverDist =
-                rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
+            Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
             derivV = -paramsD.markerMass *
                          (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
                          gradW +
@@ -714,12 +712,28 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
     //     derivVy = derivV.y;
     //     derivVz = derivV.z;
     // }
-
-    // Artificial viscosity
+    Real derivM1 = 0.0;
     Real vAB_rAB = dot(velMasA - velMasB, dist3);
-    // if (vAB_rAB < 0.0) {
-    Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
-    Real derivM1 = -Mass * (nu * vAB_rAB * (invd * invd));  //+ paramsD.epsMinMarkersDis * paramsD.h * paramsD.h
+    switch (paramsD.viscosity_type) {
+        case ViscosityType::ARTIFICIAL: {
+            // Artificial Viscosity from Monaghan 1997
+            // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
+            if (vAB_rAB < 0.0) {
+                Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
+                derivM1 = -Mass * (nu * vAB_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h));
+            }
+
+            break;
+        }
+        case ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION: {
+            // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
+            // Here there is viscous force added even during the seperation phase - makes the simulation more stable
+            Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
+            derivM1 = -Mass * (nu * vAB_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h));
+            break;
+        }
+    }
+
     derivVx += derivM1 * gradW.x;
     derivVy += derivM1 * gradW.y;
     derivVz += derivM1 * gradW.z;

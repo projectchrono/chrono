@@ -57,17 +57,17 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Structure with elastic material properties.
     /// Used if solving an SPH continuum representation of granular dynamics.
     struct CH_FSI_API ElasticMaterialProperties {
-        double density;          ///< bulk density (default: 1000.0)
-        double Young_modulus;    ///< Young's modulus (default: 1e6)
-        double Poisson_ratio;    ///< Poisson's ratio (default: 0.3)
-        double stress;           ///< artifical stress (default: 0)
-        double mu_I0;            ///< reference inertia number (default: 0.03)
-        double mu_fric_s;        ///< friction mu_s (default: 0.7)
-        double mu_fric_2;        ///< mu_2 constant in mu=mu(I) (default: 0.7)
-        double average_diam;     ///< average particle diameter (default: 0.005)
-        double friction_angle;   ///< frictional angle of granular material (default: pi/10)
-        double dilation_angle;   ///< dilate angle of granular material (default: pi/10)
-        double cohesion_coeff;   ///< cohesion coefficient (default: 0)
+        double density;         ///< bulk density (default: 1000.0)
+        double Young_modulus;   ///< Young's modulus (default: 1e6)
+        double Poisson_ratio;   ///< Poisson's ratio (default: 0.3)
+        double stress;          ///< artifical stress (default: 0)
+        double mu_I0;           ///< reference inertia number (default: 0.03)
+        double mu_fric_s;       ///< friction mu_s (default: 0.7)
+        double mu_fric_2;       ///< mu_2 constant in mu=mu(I) (default: 0.7)
+        double average_diam;    ///< average particle diameter (default: 0.005)
+        double friction_angle;  ///< frictional angle of granular material (default: pi/10)
+        double dilation_angle;  ///< dilate angle of granular material (default: pi/10)
+        double cohesion_coeff;  ///< cohesion coefficient (default: 0)
 
         ElasticMaterialProperties();
     };
@@ -92,7 +92,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
         EosType eos_type;                          ///< equation of state (default: ISOTHERMAL)
-        ViscosityType viscosity_type;              ///< viscosity treatment (default: LAMINAR)
+        ViscosityType viscosity_type;              ///< viscosity treatment (default: ARTIFICIAL)
         SPHParameters();
     };
 
