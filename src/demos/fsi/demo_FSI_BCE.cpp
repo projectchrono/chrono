@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     double spacing = 0.025;
 
     sysSPH.SetInitialSpacing(spacing);
-    sysSPH.SetKernelLength(spacing);
+    sysSPH.SetKernelMultiplier(1.0);
 
     // Dummy body
 

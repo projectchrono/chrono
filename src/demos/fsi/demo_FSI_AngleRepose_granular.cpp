@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetInitialSpacing(init_spacing);
 
     // Set SPH kernel length.
-    sysSPH.SetKernelLength(1.2 * init_spacing);
+    sysSPH.SetKernelMultiplier(1.2);
 
     // Set density
     sysSPH.SetDensity(bulk_density);

@@ -220,8 +220,8 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.max_velocity = 8;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;

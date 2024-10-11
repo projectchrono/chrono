@@ -52,7 +52,7 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
 
     // Set parameters for underlying SPH system
     m_sysSPH.SetInitialSpacing(spacing);
-    m_sysSPH.SetKernelLength(spacing);
+    m_sysSPH.SetKernelMultiplier(1.2);
 
     m_sysFSI.SetVerbose(m_verbose);
 }

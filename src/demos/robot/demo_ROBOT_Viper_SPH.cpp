@@ -51,8 +51,8 @@ const std::string out_dir = GetChronoOutputPath() + "FSI_Viper/";
 bool save_obj = false;
 
 // Physical properties of terrain particles
-double iniSpacing = 0.01;
-double kernelLength = 0.01;
+double initSpacing = 0.01;
+double kernelMultiplier = 1;
 double density = 1700.0;
 
 // Dimension of the space domain
@@ -165,10 +165,10 @@ int main(int argc, char* argv[]) {
     sysSPH.ReadParametersFromFile(inputJson);
 
     // Set the initial particle spacing
-    sysSPH.SetInitialSpacing(iniSpacing);
+    sysSPH.SetInitialSpacing(initSpacing);
 
-    // Set the SPH kernel length
-    sysSPH.SetKernelLength(kernelLength);
+    // Set the SPH kernel (h = kernelMultiplier * initSpacing)
+    sysSPH.SetKernelMultiplier(kernelMultiplier);
 
     // Set the terrain density
     sysSPH.SetDensity(density);
@@ -184,8 +184,8 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition
     double initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
-    ChVector3d cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * iniSpacing, bzDim * 20);
+    ChVector3d cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * initSpacing, -bzDim * 10);
+    ChVector3d cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * initSpacing, bzDim * 20);
     sysSPH.SetBoundaries(cMin, cMax);
 
     // Set simulation data output length

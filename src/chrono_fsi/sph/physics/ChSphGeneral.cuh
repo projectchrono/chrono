@@ -256,7 +256,7 @@ __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
     dist3 = a - b;
     // modifying the markers perfect overlap
     Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-    Real MinD = paramsD.epsMinMarkersDis * paramsD.HSML;
+    Real MinD = paramsD.epsMinMarkersDis * paramsD.h;
     Real sq_MinD = MinD * MinD;
     if (dd < sq_MinD) {
         dist3 = mR3(MinD, 0, 0);

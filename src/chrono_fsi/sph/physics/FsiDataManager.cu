@@ -179,7 +179,7 @@ void FsiDataManager::AddSphParticle(Real3 pos,
                                     Real3 vel,
                                     Real3 tauXxYyZz,
                                     Real3 tauXyXzYz) {
-    sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->HSML));
+    sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(rho, pres, mu, -1));
 
@@ -189,7 +189,7 @@ void FsiDataManager::AddSphParticle(Real3 pos,
 }
 
 void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
-    sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->HSML));
+    sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
     sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, GetMarkerCode(type)));
 

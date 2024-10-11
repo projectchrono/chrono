@@ -235,8 +235,8 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = 0.012;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.1;
     sph_params.xsph_coefficient = 0.25;
     sph_params.shifting_coefficient = 1.0;

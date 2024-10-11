@@ -123,15 +123,15 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.friction_angle = CH_PI / 10;  // default
     mat_props.dilation_angle = CH_PI / 10;  // default
-    mat_props.cohesion_coeff = 1e3;           // default
+    mat_props.cohesion_coeff = 1e3;         // default
 
     sysSPH.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.kernel_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;

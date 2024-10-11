@@ -43,7 +43,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
         return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
 
     // get address in grid
@@ -64,7 +64,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
         Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
         if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
             continue;
-        Real3 grad_i_wij = GradWh(rij, paramsD.INVHSML);
+        Real3 grad_i_wij = GradWh(rij, paramsD.ooh);
         Real3 grw_vj = grad_i_wij * paramsD.volume0;
         mGi[0] -= rij.x * grw_vj.x;
         mGi[1] -= rij.x * grw_vj.y;
@@ -120,7 +120,7 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
         return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
 
     // get address in grid
@@ -139,7 +139,7 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
         Real dd = rij.x * rij.x + rij.y * rij.y + rij.z * rij.z;
         if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
             continue;
-        Real3 grad_ij = GradWh(rij, paramsD.INVHSML);
+        Real3 grad_ij = GradWh(rij, paramsD.ooh);
         Real V_j = paramsD.markerMass / paramsD.rho0;
         Real com_part = 0;
         com_part = (G_i[0] * grad_ij.x + G_i[1] * grad_ij.y + G_i[2] * grad_ij.z) * V_j;
@@ -196,7 +196,7 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
         return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
 
     Real B[36] = {0.0};
@@ -220,7 +220,7 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
         Real d = length(rij);
         Real3 eij = rij / d;
 
-        Real3 grad_ij = GradWh(rij, paramsD.INVHSML);
+        Real3 grad_ij = GradWh(rij, paramsD.ooh);
         Real V_j = paramsD.markerMass / paramsD.rho0;
         Real com_part = 0;
         // mn=11
@@ -344,7 +344,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     sortedRhoPreMu_old[index].y = Eos(sortedRhoPreMu_old[index].x, paramsD.eos_type);
 
     Real3 posRadA = mR3(sortedPosRad[index]);
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
 
     Real sum_mW = 0;
@@ -368,7 +368,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
         if (sortedRhoPreMu_old[j].w > -1.5 && sortedRhoPreMu_old[j].w < -0.5) {
             Real m_j = paramsD.markerMass;
             Real d = length(dist3);
-            Real W3 = W3h(d, paramsD.INVHSML);
+            Real W3 = W3h(d, paramsD.ooh);
             sum_mW += m_j * W3;
             sum_W += W3;
             sum_mW_rho += m_j * W3 / sortedRhoPreMu_old[j].x;
@@ -398,11 +398,11 @@ __global__ void calcKernelSupport(const Real4* sortedPosRad,
 
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
     Real3 posRadA = mR3(sortedPosRad[index]);
 
-    Real W0 = W3h(0, paramsD.INVHSML);
+    Real W0 = W3h(0, paramsD.ooh);
     Real sum_W_all = W0;
     Real sum_W_identical = W0;
 
@@ -416,7 +416,7 @@ __global__ void calcKernelSupport(const Real4* sortedPosRad,
         if (dd > SqRadii)
             continue;
         Real d = sqrt(dd);
-        Real W3 = W3h(d, paramsD.INVHSML);
+        Real W3 = W3h(d, paramsD.ooh);
         sum_W_all += W3;
         if (abs(sortedRhoPreMu[index].w - sortedRhoPreMu[j].w) < 0.001) {
             sum_W_identical += W3;
@@ -599,7 +599,7 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0.0);
 
-    Real3 gradW = GradWh(dist3, paramsD.INVHSML);
+    Real3 gradW = GradWh(dist3, paramsD.ooh);
 
     // Continuty equation
     Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW);
@@ -608,8 +608,8 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
         // diffusion term in continuity equation, this helps smoothing out the large oscillation in pressure
         // field see S. Marrone et al., "delta-SPH model for simulating violent impact flows", Computer Methods in
         // Applied Mechanics and Engineering, 200(2011), pp 1526 --1542.
-        Real Psi = paramsD.density_delta * paramsD.HSML * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. *
-                   (rhoPresMuA.x - rhoPresMuB.x) / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+        Real Psi = paramsD.density_delta * paramsD.h * paramsD.Cs * paramsD.markerMass / rhoPresMuB.x * 2. *
+                   (rhoPresMuA.x - rhoPresMuB.x) / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
         derivRho += Psi * dot(dist3, gradW);
     }
 
@@ -625,7 +625,7 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
             Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
             if (vAB_dot_rAB < 0) {
                 Real mu_ab =
-                    paramsD.HSML * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+                    paramsD.h * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
                 Real Pi_ab = -paramsD.Ar_vis_alpha * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
                              paramsD.markerMass * mu_ab;
                 derivV.x -= Pi_ab * gradW.x;
@@ -640,7 +640,7 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
             // Poiseulle flow, or oil, honey, etc
             Real rAB_Dot_GradWh = dot(dist3, gradW);
             Real rAB_Dot_GradWh_OverDist =
-                rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML);
+                rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
             derivV = -paramsD.markerMass *
                          (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
                          gradW +
@@ -705,8 +705,8 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
     // Real vel = length(velMasA);
     // if(vel > 0.3){
     //     Real rAB_Dot_GradWh = dot(dist3, gradW);
-    //     Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.HSML *
-    //     paramsD.HSML); Real3 derivV = - paramsD.markerMass *(rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) +
+    //     Real rAB_Dot_GradWh_OverDist = rAB_Dot_GradWh / (d * d + paramsD.epsMinMarkersDis * paramsD.h *
+    //     paramsD.h); Real3 derivV = - paramsD.markerMass *(rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) +
     //     rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) * gradW
     //                    + paramsD.markerMass * (8.0f * multViscosity) * paramsD.mu_fric_s
     //                    * pow(rhoPresMuA.x + rhoPresMuB.x, Real(-2)) * rAB_Dot_GradWh_OverDist * (velMasA - velMasB);
@@ -718,8 +718,8 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
     // Artificial viscosity
     Real vAB_rAB = dot(velMasA - velMasB, dist3);
     // if (vAB_rAB < 0.0) {
-    Real nu = -paramsD.Ar_vis_alpha * paramsD.HSML * paramsD.Cs * paramsD.invrho0;
-    Real derivM1 = -Mass * (nu * vAB_rAB * (invd * invd));  //+ paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML
+    Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
+    Real derivM1 = -Mass * (nu * vAB_rAB * (invd * invd));  //+ paramsD.epsMinMarkersDis * paramsD.h * paramsD.h
     derivVx += derivM1 * gradW.x;
     derivVy += derivM1 * gradW.y;
     derivVz += derivM1 * gradW.z;
@@ -746,7 +746,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
     // if (1 == 0) {
     //     Real xi0 = paramsD.Vis_Dam;
     //     Real E0 = paramsD.E_young;
-    //     Real h0 = paramsD.HSML;
+    //     Real h0 = paramsD.h;
     //     Real Cd = xi0 * sqrt(E0 / (rhoA * h0 * h0));
     //     derivVx -= Cd * velMasA.x;
     //     derivVy -= Cd * velMasA.y;
@@ -766,7 +766,7 @@ __device__ inline Real3 GradientOperator(float G_i[9],
                                          Real fB,
                                          Real4 rhoPresMuA,
                                          Real4 rhoPresMuB) {
-    Real3 gradW = GradWh(dist3, paramsD.INVHSML);
+    Real3 gradW = GradWh(dist3, paramsD.ooh);
     Real3 gradW_new;
     gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
     gradW_new.y = G_i[3] * gradW.x + G_i[4] * gradW.y + G_i[5] * gradW.z;
@@ -791,7 +791,7 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
                                           Real fB,
                                           Real4 rhoPresMuA,
                                           Real4 rhoPresMuB) {
-    Real3 gradW = GradWh(dist3, paramsD.INVHSML);
+    Real3 gradW = GradWh(dist3, paramsD.ooh);
     Real d = length(dist3);
     Real3 eij = dist3 / d;
 
@@ -851,7 +851,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real3 velMasA = sortedVelMas[index];
     Real4 rhoPresMuA = sortedRhoPreMu[index];
     Real4 derivVelRho = mR4(0.0);
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
 
     uint NLStart = numNeighborsPerPart[index];
@@ -904,7 +904,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
     Real3 inner_sum = mR3(0.0);
-    Real sum_w_i = W3h(0, paramsD.INVHSML) * paramsD.volume0;
+    Real sum_w_i = W3h(0, paramsD.ooh) * paramsD.volume0;
 
     for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
@@ -950,8 +950,8 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                                          rhoPresMuA, rhoPresMuB);
         }
 
-        if (d > paramsD.HSML * 1.0e-9)
-            sum_w_i = sum_w_i + W3h(d, paramsD.INVHSML) * paramsD.volume0;
+        if (d > paramsD.h * 1.0e-9)
+            sum_w_i = sum_w_i + W3h(d, paramsD.ooh) * paramsD.volume0;
     }
 
     if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
@@ -1042,7 +1042,7 @@ __global__ void updateBoundaryPres(const uint* activityIdentifierD,
         Real3 posRadB = mR3(sortedPosRadD[j]);
         Real3 rij = Distance(posRadA, posRadB);
         Real d = length(rij);
-        Real W3 = W3h(d, paramsD.INVHSML);
+        Real W3 = W3h(d, paramsD.ooh);
         sum_w += W3;
         sum_pw += sortedRhoPresMuD[j].y * W3;
         sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
@@ -1103,7 +1103,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     Real4 rhoPresMuA = sortedRhoPreMu[index];
     Real3 TauXxYyZzA = sortedTauXxYyZz[index];
     Real3 TauXyXzYzA = sortedTauXyXzYz[index];
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real4 derivVelRho = mR4(0.0);
     Real3 deltaV = mR3(0.0);
 
@@ -1130,7 +1130,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
             uint j = neighborList[n];
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real3 grad_i_wij = GradWh(rij, paramsD.INVHSML);
+            Real3 grad_i_wij = GradWh(rij, paramsD.ooh);
             Real3 grw_vj = grad_i_wij * paramsD.volume0;
             mGi[0] -= rij.x * grw_vj.x;
             mGi[1] -= rij.x * grw_vj.y;
@@ -1158,16 +1158,16 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         }
     }
 
-    Real radii = paramsD.INITSPACE * 1.241f;           // 1.129;//1.241
-    Real invRadii = 1.0f / 1.241f * paramsD.INV_INIT;  // 1.0 / radii
+    Real radii = paramsD.d0 * Real(1.241);  // 1.129;
+    Real invRadii = 1 / radii;
 
     Real vA = length(velMasA);
     Real vAdT = vA * paramsD.dT;
     Real bs_vAdT = paramsD.beta_shifting * vAdT;
 
     Real3 inner_sum = mR3(0.0);
-    Real sum_w_i = W3h(0, paramsD.INVHSML) * paramsD.volume0;
-    Real w_ini_inv = 1.0f / W3h(paramsD.INITSPACE, paramsD.INVHSML);
+    Real sum_w_i = W3h(0, paramsD.ooh) * paramsD.volume0;
+    Real w_ini_inv = 1 / W3h(paramsD.d0, paramsD.ooh);
     int N_ = 1;
     int N_s = 0;
 
@@ -1184,7 +1184,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         Real3 posRadB = mR3(sortedPosRad[j]);
         Real3 dist3 = Distance(posRadA, posRadB);
         Real d = length(dist3);
-        Real invd = 1.0f / d;
+        Real invd = 1 / d;
         Real3 velMasB = sortedVelMas[j];
         Real3 TauXxYyZzB = sortedTauXxYyZz[j];
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
@@ -1214,8 +1214,8 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         }
 
         // Correct the kernel function gradient
-        Real w_AB = W3h(d, paramsD.INVHSML);
-        Real3 gradW = GradWh(dist3, paramsD.INVHSML);
+        Real w_AB = W3h(d, paramsD.ooh);
+        Real3 gradW = GradWh(dist3, paramsD.ooh);
         if (paramsD.USE_Consistent_G) {
             Real3 gradW_new;
             gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
@@ -1256,8 +1256,8 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         }
 
         // Do integration for the kernel function, calculate the XSPH term
-        if (d > paramsD.HSML * 1.0e-9f) {
-            Real Wab = W3h(d, paramsD.INVHSML);
+        if (d > paramsD.h * 1.0e-9f) {
+            Real Wab = W3h(d, paramsD.ooh);
 
             // Integration of the kernel function
             sum_w_i += Wab * paramsD.volume0;
@@ -1342,7 +1342,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
 
     Real4 rhoPreMuA = sortedRhoPreMu[index];
     Real3 velMasA = sortedVelMas[index];
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
@@ -1372,7 +1372,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
         Real3 velMasB = sortedVelMas[j];
         Real rho_bar = 0.5 * (rhoPreMuA.x + rhoPresMuB.x);
         Real d = length(dist3);
-        deltaV += paramsD.markerMass * (velMasB - velMasA) * W3h(d, paramsD.INVHSML) / rho_bar;
+        deltaV += paramsD.markerMass * (velMasB - velMasA) * W3h(d, paramsD.ooh) / rho_bar;
     }
 
     vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + vel_XSPH_Sorted_D[index] / paramsD.dT;

@@ -26,7 +26,7 @@ message(STATUS "  Use double precision? " ${FSI_USE_DOUBLE})
 # Add options specific to the FSI-SPH module
 # ----------------------------------------------------------------------------
 
-set(KERNEL_TYPES Quadratic CubicSpline QuinticSpline Wendland Wendland8)
+set(KERNEL_TYPES Quadratic CubicSpline QuinticSpline Wendland)
 set(FSI_KERNEL_TYPE CubicSpline CACHE STRING "Type of the SPH kernel function")
 set_property(CACHE FSI_KERNEL_TYPE PROPERTY STRINGS ${KERNEL_TYPES})
 

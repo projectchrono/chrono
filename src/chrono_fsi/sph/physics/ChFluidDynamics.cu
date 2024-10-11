@@ -48,9 +48,9 @@ __device__ void collideCellDensityReInit(Real& numerator,
             Real4 rhoPreMuB = sortedRhoPreMu[j];
             Real3 dist3 = Distance(posRadA, posRadB);
             Real d = length(dist3);
-            if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML)
+            if (d > RESOLUTION_LENGTH_MULT * paramsD.h)
                 continue;
-            Real w = W3h(d, paramsD.INVHSML);
+            Real w = W3h(d, paramsD.ooh);
             numerator += paramsD.markerMass * w;
             denominator += paramsD.markerMass / rhoPreMuB.x * w;
         }
@@ -455,7 +455,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     uint isNotExtended = 0;
 
     Real3 Acdomain = paramsD.bodyActiveDomain;
-    Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
+    Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.h);
 
     Real3 posRadA = mR3(posRadD[index]);
 
