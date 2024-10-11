@@ -30,6 +30,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 namespace chrono {
@@ -52,7 +53,7 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
 
     // Set parameters for underlying SPH system
     m_sysSPH.SetInitialSpacing(spacing);
-    m_sysSPH.SetKernelLength(spacing);
+    m_sysSPH.SetKernelMultiplier(1.2);
 
     m_sysFSI.SetVerbose(m_verbose);
 }
@@ -406,7 +407,7 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
 
         // Safeguard -- stop as soon as we spill out of the mesh AABB
         if (!(crt > aabb_min && crt < aabb_max)) {
-            std::cout << "Obstacle BCE set is NOT watertight!" << std::endl;
+            cerr << "Obstacle BCE set is NOT watertight!" << endl;
             throw std::invalid_argument("Obstacle BCE set is NOT watertight!");
         }
 
@@ -592,6 +593,7 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     // Read the image file (request only 1 channel) and extract number of pixels
     STB cmap;
     if (!cmap.ReadFromFile(heightmap_file, 1)) {
+        cerr << "Cannot open height map image file " << heightmap_file << endl;
         throw std::invalid_argument("Cannot open height map image file");
     }
 
@@ -604,10 +606,10 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     // Create a matrix with gray levels (g = 0x0000 is black, g = 0xffff is white)
     unsigned short g_min = std::numeric_limits<unsigned short>::max();
     unsigned short g_max = 0;
-    ChMatrixDynamic<unsigned short> gmap(nx + 1, ny + 1);
-    for (int ix = 0; ix <= nx; ix++) {
-        for (int iy = 0; iy <= ny; iy++) {
-            auto gray = cmap.Gray(ix < nx ? ix : nx - 1, iy < ny ? iy : ny - 1);
+    ChMatrixDynamic<unsigned short> gmap(nx, ny);
+    for (int ix = 0; ix < nx; ix++) {
+        for (int iy = 0; iy < ny; iy++) {
+            auto gray = cmap.Gray(ix, iy);
             gmap(ix, iy) = gray;
             g_min = std::min(g_min, gray);
             g_max = std::max(g_max, gray);
@@ -623,17 +625,19 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     int Iz_min = (int)std::round(z_min / m_spacing);
     int Iz_max = (int)std::round(z_max / m_spacing);
 
-    ////std::cout << "g_min = " << g_min << std::endl;
-    ////std::cout << "g_max = " << g_max << std::endl;
+    ////cout << "g_min = " << g_min << endl;
+    ////cout << "g_max = " << g_max << endl;
 
     // Number of particles in each direction
-    int Nx = (int)std::floor(length / m_spacing);
-    int Ny = (int)std::floor(width / m_spacing);
-    double Dx = length / (Nx - 1);
-    double Dy = width / (Ny - 1);
+    int Nx = (int)std::round(length / m_spacing);
+    int Ny = (int)std::round(width / m_spacing);
+    double Dx = length / Nx;
+    double Dy = width / Ny;
+    Nx += 1;
+    Ny += 1;
 
     // Number of particles in Z direction over specified depth
-    int Nz = (int)std::floor(depth / m_spacing);
+    int Nz = (int)std::round(depth / m_spacing) + 1;
 
     // Number of BCE layers
     int bce_layers = m_sysSPH.GetNumBCELayers();
@@ -642,24 +646,29 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     std::vector<ChVector3i> sph;
     std::vector<ChVector3i> bce;
     sph.reserve(Nx * Ny * Nz);            // underestimate if not uniform depth
-    bce.reserve(bce_layers * (Nx * Ny));  // underestimate if side_walls
+    bce.reserve(bce_layers * (Nx * Ny));  // underestimate if creating side walls
 
     // Generate SPH and bottom BCE points
     for (int Ix = 0; Ix < Nx; Ix++) {
         double x = Ix * Dx;
-        int ix = (int)std::round(x / dx);       // x location between pixels ix and ix+1
-        double wx1 = ((ix + 1) * dx - x) / dx;  // weight for bi-linear interpolation
-        double wx2 = (x - ix * dx) / dx;        // weight for bi-linear interpolation
+        // x location between pixels ix1 and ix2
+        int ix1 = (Ix == Nx - 1) ? nx - 2 : (int)std::floor(x / dx);
+        int ix2 = (Ix == 0) ? 1 : (int)std::ceil(x / dx);
+        // weight for bi-linear interpolation
+        double wx = (ix2 * dx - x) / dx;
+
         for (int Iy = 0; Iy < Ny; Iy++) {
             double y = Iy * Dy;
-            int iy = (int)std::round(y / dy);       // y location between pixels iy and iy+1
-            double wy1 = ((iy + 1) * dy - y) / dy;  // weight for bi-linear interpolation
-            double wy2 = (y - iy * dy) / dy;        // weight for bi-linear interpolation
+            // y location between pixels iy1 and iy2
+            int iy1 = (Iy == Ny - 1) ? ny - 2 : (int)std::floor(y / dy);
+            int iy2 = (Iy == 0) ? 1 : (int)std::ceil(y / dy);
+            // weight for bi-linear interpolation
+            double wy = (iy2 * dy - y) / dy;
 
             // Calculate surface height at current location (bi-linear interpolation)
-            auto h1 = wx1 * gmap(ix + 0, iy + 0) + wx2 * gmap(ix + 1, iy + 0);
-            auto h2 = wx1 * gmap(ix + 0, iy + 1) + wx2 * gmap(ix + 1, iy + 1);
-            auto z = height_range[0] + (wy1 * h1 + wy2 * h2) * h_scale;
+            auto h1 = wx * gmap(ix1, iy1) + (1 - wx) * gmap(ix2, iy1);
+            auto h2 = wx * gmap(ix1, iy2) + (1 - wx) * gmap(ix2, iy2);
+            auto z = height_range[0] + (wy * h1 + (1 - wy) * h2) * h_scale;
             int Iz = (int)std::round(z / m_spacing);
 
             // Create SPH particle locations below current point
@@ -679,8 +688,8 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
         }
     }
 
-    std::cout << "IZmin = " << Iz_min << std::endl;
-    std::cout << "IZmax = " << Iz_max << std::endl;
+    ////cout << "IZmin = " << Iz_min << endl;
+    ////cout << "IZmax = " << Iz_max << endl;
 
     // Generate side BCE points
     if (side_walls) {
@@ -730,11 +739,8 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
         m_offset_bce = m_offset_sph;
 }
 
-/// <summary>
-///  Luning TODO: This can actually get "absorbed" with the tank without beach, becasue one without beach is just slope angle being 0 
-/// </summary>
-/// <param name="box_size"></param>
-/// <param name="pos"></param>
+// Luning TODO: This can actually get "absorbed" with the tank without beach, becasue one without beach is just slope
+// angle being 0
 void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector3d& pos) {
     if (m_verbose) {
         cout << "Construct sph markers with slope" << endl;
@@ -775,7 +781,6 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector
         }
     }
 
-
     // Insert in cached sets
     for (auto& p : sph) {
         m_sph.insert(p);
@@ -788,10 +793,6 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector
 
     m_offset_sph = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
 }
-
-
-
-
 
 size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box dimensions
                                               const ChVector3d& pos,       // reference positions
@@ -996,22 +997,18 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMaker(
     return body;
 }
 
-
-std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMakerWithBeach(WavemakerType type,                     ///< wave generator type
-                                              const ChVector3d& box_size,             ///< box dimensions
-                                              const ChVector3d& fluid_dim,  ///< dimension of the fluid
-                                              const ChVector3d& pos,                  ///< reference position
-                                              std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
-
-){
-
-if (m_verbose) {
+std::shared_ptr<ChBody> ChFsiProblemCartesian::AddWaveMakerWithBeach(WavemakerType type,
+                                                                     const ChVector3d& box_size,
+                                                                     const ChVector3d& fluid_dim,
+                                                                     const ChVector3d& pos,
+                                                                     std::shared_ptr<ChFunction> piston_fun) {
+    if (m_verbose) {
         cout << "Construct piston wavemaker" << endl;
     }
 
     // Number of BCE layers
     int bce_layers = m_sysSPH.GetNumBCELayers();
-    
+
     // number of BCE layers extended on the right (so I have a long beach)
     int bce_layers_right = 2 * bce_layers;
     int Nx = std::round(box_size.x() / m_spacing) + 1;
@@ -1132,9 +1129,6 @@ if (m_verbose) {
 
     return body;
 }
-
-
-
 
 ChVector3i ChFsiProblemCartesian::Snap2Grid(const ChVector3d& point) {
     return ChVector3i((int)std::round(point.x() / m_spacing),  //

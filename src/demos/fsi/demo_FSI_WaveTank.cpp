@@ -214,8 +214,8 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.max_velocity = 4.0;  // maximum velocity should be 2*sqrt(grav * fluid_height)
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
-    sph_params.viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
     sph_params.artificial_viscosity = 0.02;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;

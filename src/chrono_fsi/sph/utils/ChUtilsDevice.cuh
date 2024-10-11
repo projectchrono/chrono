@@ -88,14 +88,6 @@ typedef unsigned int uint;
 
 // ----------------------------------------------------------------------------
 
-#define INVPI 0.3183098861837906715377675267450287240689192914809128f
-#define EPSILON 1e-8
-
-#define RESOLUTION_LENGTH_MULT 2.0
-//#define RESOLUTION_LENGTH_MULT 3.0
-
-// ----------------------------------------------------------------------------
-
 #define cudaCheckError()                                                                     \
     {                                                                                        \
         cudaError_t e = cudaGetLastError();                                                  \

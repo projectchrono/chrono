@@ -119,8 +119,6 @@ int main(int argc, char* argv[]) {
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
     mat_props.stress = 0;  // default
-    mat_props.viscosity_alpha = 0.5;
-    mat_props.viscosity_beta = 0.0;
     mat_props.mu_I0 = 0.04;
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
@@ -133,9 +131,10 @@ int main(int argc, char* argv[]) {
 
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.kernel_threshold = 0.8;
+    sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
 

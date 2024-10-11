@@ -19,9 +19,33 @@ message(STATUS "\n==== Chrono FSI module ====\n")
 # Additional options for this module
 # ------------------------------------------------------------------------------
 
-option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
-if(USE_FSI_DOUBLE)
+option(FSI_USE_DOUBLE "Compile Chrono::FSI with double precision math" ON)
+if(FSI_USE_DOUBLE)
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+endif()
+
+# ------------------------------------------------------------------------------
+# Include directories, additional libraries, and linker flags
+# ------------------------------------------------------------------------------
+
+set(CH_FSI_INCLUDES "")
+set(CH_FSI_LINKED_LIBRARIES ChronoEngine)
+set(CH_FSI_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
+
+# Add optional run-time visualization support
+
+if(ENABLE_MODULE_OPENGL)
+  include_directories(${CH_OPENGL_INCLUDES})
+  set(CH_FSI_INCLUDES ${CH_FSI_INCLUDES} ${CH_OPENGL_INCLUDES})
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+     set(CH_FSI_LINKER_FLAGS  "${CH_FSI_LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
+  endif()
+  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_opengl)
+endif()
+
+if(ENABLE_MODULE_VSG)
+  include_directories(${CH_VSG_INCLUDES})
+  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -49,6 +73,12 @@ if(MSVC)
 endif()
 
 # ----------------------------------------------------------------------------
+# Configure submodules
+# ----------------------------------------------------------------------------
+
+add_subdirectory(sph)
+
+# ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
@@ -59,12 +89,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFsi.h.in
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h"
         DESTINATION include/chrono_fsi)
-
-# ----------------------------------------------------------------------------
-# Configure submodules
-# ----------------------------------------------------------------------------
-
-add_subdirectory(sph)
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory

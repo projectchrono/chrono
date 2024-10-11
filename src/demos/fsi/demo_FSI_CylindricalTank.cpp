@@ -130,15 +130,15 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 3;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.max_velocity = 8.0;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = 1;
-    sph_params.viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
     sph_params.artificial_viscosity = 0.1;
     sph_params.eos_type = EosType::TAIT;
     sph_params.use_delta_sph = true;

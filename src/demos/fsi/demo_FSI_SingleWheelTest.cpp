@@ -42,8 +42,8 @@ using namespace chrono;
 using namespace chrono::fsi;
 
 // Physical properties of terrain particles
-double iniSpacing = 0.01;
-double kernelLength = 0.01;
+double initSpacing = 0.01;
+double kernelMultiplier = 1;
 double density = 1700.0;
 
 // Dimension of the terrain container
@@ -60,7 +60,7 @@ double total_mass = 105.22;
 std::string wheel_obj = "vehicle/hmmwv/hmmwv_tire_coarse_closed.obj";
 
 // Initial Position of wheel
-ChVector3d wheel_IniPos(-bxDim / 2 + wheel_radius, 0.0, wheel_radius + bzDim + iniSpacing);
+ChVector3d wheel_IniPos(-bxDim / 2 + wheel_radius, 0.0, wheel_radius + bzDim + initSpacing);
 ChVector3d wheel_IniVel(0.0, 0.0, 0.0);
 
 // Simulation time and stepsize
@@ -189,7 +189,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
 
     // Add this body to the FSI system
     std::vector<ChVector3d> BCE_wheel;
-    sysSPH.CreateMeshPoints(*trimesh, iniSpacing, BCE_wheel);
+    sysSPH.CreateMeshPoints(*trimesh, initSpacing, BCE_wheel);
     sysSPH.AddPointsBCE(wheel, BCE_wheel, ChFrame<>(), true);
     sysFSI.AddFsiBody(wheel);
 
@@ -292,10 +292,10 @@ int main(int argc, char* argv[]) {
     sysSPH.ReadParametersFromFile(inputJson);
 
     // Set the initial particle spacing
-    sysSPH.SetInitialSpacing(iniSpacing);
+    sysSPH.SetInitialSpacing(initSpacing);
 
-    // Set the SPH kernel length
-    sysSPH.SetKernelLength(kernelLength);
+    // Set the SPH kernel multiplier (h = kernelMultiplier * initSpacing)
+    sysSPH.SetKernelMultiplier(kernelMultiplier);
 
     // Set the terrain density
     sysSPH.SetDensity(density);
@@ -317,8 +317,8 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHMethod(SPHMethod::WCSPH);
 
     // Set up the periodic boundary condition (if not, set relative larger values)
-    ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * iniSpacing, -bzDim * 10);
-    ChVector3d cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * iniSpacing, bzDim * 10);
+    ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * initSpacing, -bzDim * 10);
+    ChVector3d cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * initSpacing, bzDim * 10);
     sysSPH.SetBoundaries(cMin, cMax);
 
     // Initialize the SPH particles

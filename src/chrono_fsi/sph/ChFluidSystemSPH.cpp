@@ -30,6 +30,7 @@
 #include "chrono_fsi/sph/ChFluidSystemSPH.h"
 
 #include "chrono_fsi/sph/physics/ChParams.h"
+#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
@@ -87,11 +88,12 @@ void ChFluidSystemSPH::InitParams() {
 
     // SPH parameters
     m_paramsH->sph_method = SPHMethod::WCSPH;
-    m_paramsH->HSML = Real(0.01);
-    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
-    m_paramsH->INITSPACE = m_paramsH->HSML;
-    m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
-    m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
+    m_paramsH->d0 = Real(0.01);
+    m_paramsH->ood0 = 1 / m_paramsH->d0;
+    m_paramsH->h_multiplier = 1.2;
+    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->ooh = 1 / m_paramsH->h;
+    m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->v_Max = Real(1.0);
     m_paramsH->EPS_XSPH = Real(0.5);
     m_paramsH->beta_shifting = Real(1.0);
@@ -102,8 +104,8 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    // Luning todo: what default values to use here? I'm using old version for easy testing 
-    m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+    // Luning todo: what default values to use here? I'm using old version for easy testing
+    m_paramsH->viscosity_type = ViscosityType::LAMINAR;
     m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->density_delta = Real(0.1);
     m_paramsH->USE_Delta_SPH = false;
@@ -112,14 +114,14 @@ void ChFluidSystemSPH::InitParams() {
 
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
-    m_paramsH->NUM_BCE_LAYERS = 3;
+    m_paramsH->num_bce_layers = 3;
 
     m_paramsH->Co_number = Real(0.1);
     m_paramsH->dT = Real(-1);
 
     // Pressure equation
     m_paramsH->DensityBaseProjection = false;
-    m_paramsH->Alpha = m_paramsH->HSML;
+    m_paramsH->Alpha = m_paramsH->h;
     m_paramsH->PPE_relaxation = Real(1.0);
     m_paramsH->LinearSolver = SolverType::JACOBI;
     m_paramsH->LinearSolver_Abs_Tol = Real(0.0);
@@ -146,9 +148,8 @@ void ChFluidSystemSPH::InitParams() {
     // Elastic SPH
     ElasticMaterialProperties mat_props;
     SetElasticSPH(mat_props);
-    m_paramsH->elastic_SPH = false;  // default: fluid dynamics
-    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM? 
-
+    m_paramsH->elastic_SPH = false;        // default: fluid dynamics
+    m_paramsH->Ar_vis_alpha = Real(0.02);  // Does this mess with one for CRM?
 
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
@@ -230,11 +231,11 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             }
         }
 
-        if (doc["SPH Parameters"].HasMember("Kernel h"))
-            m_paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
-
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
-            m_paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
+            m_paramsH->d0 = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Kernel Multiplier"))
+            m_paramsH->h_multiplier = doc["SPH Parameters"]["Kernel Multiplier"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Epsilon"))
             m_paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
@@ -250,18 +251,15 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             if (m_verbose)
                 cout << "viscosity treatment is : " << type << endl;
             if (type == "Laminar")
-                m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+                m_paramsH->viscosity_type = ViscosityType::LAMINAR;
             else if (type == "Artificial") {
-                    m_paramsH->viscosity_type = ViscosityTreatmentType::ARTIFICIAL;
-                    m_paramsH->Ar_vis_alpha = 0.02;  // default 0.02 in case user forgot to set in json file
-                }
-            else {
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
+            } else {
                 cerr << "Incorrect viscosity type in the JSON file: " << type << endl;
                 cerr << "Falling back to laminar " << endl;
-                m_paramsH->viscosity_type = ViscosityTreatmentType::LAMINAR;
+                m_paramsH->viscosity_type = ViscosityType::LAMINAR;
             }
         }
-
 
         if (doc["SPH Parameters"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["SPH Parameters"]["Artificial viscosity alpha"].GetDouble();
@@ -283,7 +281,7 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             else {
                 cerr << "Incorrect eos type in the JSON file: " << type << endl;
                 cerr << "Falling back to Tait Equation of State " << endl;
-                m_paramsH->eos_type = EosType::TAIT;
+                m_paramsH->eos_type = EosType::ISOTHERMAL;
             }
         }
 
@@ -390,9 +388,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
 
-        if (doc["Elastic SPH"].HasMember("Artificial viscosity beta"))
-            m_paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
-
         if (doc["Elastic SPH"].HasMember("I0"))
             m_paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
 
@@ -471,10 +466,10 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
     }
 
     // Calculate dependent parameters
-    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
-    m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
-    m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
-    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
+    m_paramsH->ood0 = 1 / m_paramsH->d0;
+    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->ooh = 1 / m_paramsH->h;
+    m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
 
@@ -526,7 +521,7 @@ void ChFluidSystemSPH::SetActiveDomainDelay(double duration) {
 }
 
 void ChFluidSystemSPH::SetNumBCELayers(int num_layers) {
-    m_paramsH->NUM_BCE_LAYERS = num_layers;
+    m_paramsH->num_bce_layers = num_layers;
 }
 
 void ChFluidSystemSPH::SetInitPressure(const double height) {
@@ -547,17 +542,20 @@ void ChFluidSystemSPH::SetBodyForce(const ChVector3d& force) {
 }
 
 void ChFluidSystemSPH::SetInitialSpacing(double spacing) {
-    m_paramsH->INITSPACE = (Real)spacing;
-    m_paramsH->INV_INIT = 1 / m_paramsH->INITSPACE;
-    m_paramsH->volume0 = cube(m_paramsH->INITSPACE);
-    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
+    m_paramsH->d0 = (Real)spacing;
+    m_paramsH->ood0 = 1 / m_paramsH->d0;
+    m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
+
+    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->ooh = 1 / m_paramsH->h;
 }
 
-void ChFluidSystemSPH::SetKernelLength(double length) {
-    m_paramsH->HSML = (Real)length;
-    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
-    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
+void ChFluidSystemSPH::SetKernelMultiplier(double multiplier) {
+    m_paramsH->h_multiplier = Real(multiplier);
+
+    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->ooh = 1 / m_paramsH->h;
 }
 
 void ChFluidSystemSPH::SetDensity(double rho0) {
@@ -600,8 +598,6 @@ ChFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
       Young_modulus(1e6),
       Poisson_ratio(0.3),
       stress(0),
-      viscosity_alpha(0.5),
-      viscosity_beta(0),
       mu_I0(0.03),
       mu_fric_s(0.7),
       mu_fric_2(0.7),
@@ -618,8 +614,6 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
     m_paramsH->Ar_stress = Real(mat_props.stress);
-    m_paramsH->Ar_vis_alpha = Real(mat_props.viscosity_alpha);
-    m_paramsH->Ar_vis_beta = Real(mat_props.viscosity_beta);
     m_paramsH->mu_I0 = Real(mat_props.mu_I0);
     m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
     m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
@@ -643,8 +637,8 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
 
 ChFluidSystemSPH::SPHParameters::SPHParameters()
     : sph_method(SPHMethod::WCSPH),
-      kernel_h(0.01),
       initial_spacing(0.01),
+      h_multiplier(1.2),
       max_velocity(1.0),
       xsph_coefficient(0.5),
       shifting_coefficient(1.0),
@@ -654,21 +648,22 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      viscosity_type(ViscosityTreatmentType::ARTIFICIAL),
+      viscosity_type(ViscosityType::LAMINAR),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
       kernel_threshold(0.8),
       num_proximity_search_steps(4),
-      eos_type(EosType::TAIT) {}
+      eos_type(EosType::ISOTHERMAL) {}
 
 void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
 
-    m_paramsH->HSML = sph_params.kernel_h;
-    m_paramsH->INITSPACE = sph_params.initial_spacing;
-    m_paramsH->MULT_INITSPACE = m_paramsH->INITSPACE / m_paramsH->HSML;
-    m_paramsH->INVHSML = 1 / m_paramsH->HSML;
+    m_paramsH->d0 = sph_params.initial_spacing;
+    m_paramsH->h_multiplier = sph_params.h_multiplier;
+    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->ood0 = 1 / m_paramsH->d0;
+    m_paramsH->ooh = 1 / m_paramsH->h;
 
     m_paramsH->v_Max = sph_params.max_velocity;
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
@@ -679,7 +674,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
     m_paramsH->DensityBaseProjection = sph_params.use_density_based_projection;
 
-    m_paramsH->NUM_BCE_LAYERS = sph_params.num_bce_layers;
+    m_paramsH->num_bce_layers = sph_params.num_bce_layers;
 
     m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
@@ -887,15 +882,6 @@ void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-Real W3h_Spline(Real d, Real invh) {
-    Real q = std::abs(d) * invh;
-    if (q < 1)
-        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
-    if (q < 2)
-        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
-    return 0;
-}
-
 void ChFluidSystemSPH::Initialize() {
     Initialize(0, 0, 0, 0, 0, std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>());
 }
@@ -929,8 +915,8 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         for (int i = -IDX; i <= IDX; i++) {
             for (int j = -IDX; j <= IDX; j++) {
                 for (int k = -IDX; k <= IDX; k++) {
-                    Real3 pos = mR3(i, j, k) * m_paramsH->INITSPACE;
-                    Real W = W3h_Spline(length(pos), m_paramsH->INVHSML);
+                    Real3 pos = mR3(i, j, k) * m_paramsH->d0;
+                    Real W = W3h(length(pos), m_paramsH->ooh);
                     sum += W;
                     if (W > 0)
                         count++;
@@ -943,9 +929,9 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
     if (m_paramsH->use_default_limits) {
         m_paramsH->cMin =
-            mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->HSML);
+            mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
         m_paramsH->cMax =
-            mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->HSML);
+            mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
     }
 
     if (m_paramsH->use_init_pressure) {
@@ -964,9 +950,9 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
     // Set up subdomains for faster neighbor particle search
     m_paramsH->Apply_BC_U = false;  // You should go to CustomMath.h all the way to end of file and set your function
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * m_paramsH->HSML)));
+    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * m_paramsH->h)));
     Real3 binSize3 =
         mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y,
             (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
@@ -1010,11 +996,13 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         cout << "  gravity: " << m_paramsH->gravity.x << " " << m_paramsH->gravity.y << " " << m_paramsH->gravity.z
              << endl;
 
-        cout << "  HSML: " << m_paramsH->HSML << endl;
-        cout << "  INITSPACE: " << m_paramsH->INITSPACE << endl;
-        cout << "  INV_INIT: " << m_paramsH->INV_INIT << endl;
-        cout << "  MULT_INITSPACE: " << m_paramsH->MULT_INITSPACE << endl;
-        cout << "  NUM_BCE_LAYERS: " << m_paramsH->NUM_BCE_LAYERS << endl;
+        cout << "  d0: " << m_paramsH->d0 << endl;
+        cout << "  1/d0: " << m_paramsH->ood0 << endl;
+        cout << "  h_multiplier: " << m_paramsH->h_multiplier << endl;
+        cout << "  h: " << m_paramsH->h << endl;
+        cout << "  1/h: " << m_paramsH->ooh << endl;
+
+        cout << "  num_bce_layers: " << m_paramsH->num_bce_layers << endl;
         cout << "  epsMinMarkersDis: " << m_paramsH->epsMinMarkersDis << endl;
         cout << "  markerMass: " << m_paramsH->markerMass << endl;
         cout << "  volume0: " << m_paramsH->volume0 << endl;
@@ -1061,9 +1049,9 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         cout << "  cMin: " << m_paramsH->cMin.x << " " << m_paramsH->cMin.y << " " << m_paramsH->cMin.z << endl;
         cout << "  cMax: " << m_paramsH->cMax.x << " " << m_paramsH->cMax.y << " " << m_paramsH->cMax.z << endl;
 
-        ////Real dt_CFL = m_paramsH->Co_number * m_paramsH->HSML / 2.0 / MaxVel;
-        ////Real dt_nu = 0.2 * m_paramsH->HSML * m_paramsH->HSML / (m_paramsH->mu0 / m_paramsH->rho0);
-        ////Real dt_body = 0.1 * sqrt(m_paramsH->HSML / length(m_paramsH->bodyForce3 + m_paramsH->gravity));
+        ////Real dt_CFL = m_paramsH->Co_number * m_paramsH->h / 2.0 / MaxVel;
+        ////Real dt_nu = 0.2 * m_paramsH->h * m_paramsH->h / (m_paramsH->mu0 / m_paramsH->rho0);
+        ////Real dt_body = 0.1 * sqrt(m_paramsH->h / length(m_paramsH->bodyForce3 + m_paramsH->gravity));
         ////Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
 
         cout << "Counters" << endl;
@@ -1193,7 +1181,7 @@ void ChFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
 
 void ChFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
-    utils::ChGridSampler<> sampler(m_paramsH->INITSPACE);
+    utils::ChGridSampler<> sampler(m_paramsH->d0);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
@@ -1218,8 +1206,8 @@ void ChFluidSystemSPH::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                                           const ChFrame<>& frame,
                                           const ChVector3d& size,
                                           const ChVector3i faces) {
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    Real buffer = 2 * (m_paramsH->NUM_BCE_LAYERS - 1) * spacing;
+    Real spacing = m_paramsH->d0;
+    Real buffer = 2 * (m_paramsH->num_bce_layers - 1) * spacing;
 
     ChVector3d hsize = size / 2;
 
@@ -1289,7 +1277,7 @@ size_t ChFluidSystemSPH::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
                                                double radius_outer,
                                                double height,
                                                bool polar) {
-    auto delta = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
+    auto delta = m_paramsH->d0;
     std::vector<ChVector3d> points;
     CreateCylinderAnnulusPoints(radius_inner, radius_outer, height, polar, delta, points);
     return AddPointsBCE(body, points, frame, true);
@@ -1333,8 +1321,8 @@ size_t ChFluidSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
 const Real pi = Real(CH_PI);
 
 void ChFluidSystemSPH::CreateBCE_wall(const ChVector2d& size, std::vector<ChVector3d>& bce) {
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     // Calculate actual spacing in x-y directions
     ChVector2d hsize = size / 2;
@@ -1351,8 +1339,8 @@ void ChFluidSystemSPH::CreateBCE_wall(const ChVector2d& size, std::vector<ChVect
 }
 
 void ChFluidSystemSPH::CreateBCE_box(const ChVector3d& size, bool solid, std::vector<ChVector3d>& bce) {
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     // Calculate actual spacing in all 3 directions
     ChVector3d hsize = size / 2;
@@ -1394,8 +1382,8 @@ void ChFluidSystemSPH::CreateBCE_box(const ChVector3d& size, bool solid, std::ve
 }
 
 void ChFluidSystemSPH::CreateBCE_sphere(double rad, bool solid, bool polar, std::vector<ChVector3d>& bce) {
-    double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    double spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     // Use polar coordinates
     if (polar) {
@@ -1463,8 +1451,8 @@ void ChFluidSystemSPH::CreateBCE_cylinder(double rad,
                                           bool capped,
                                           bool polar,
                                           std::vector<ChVector3d>& bce) {
-    double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    double spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     // Calculate actual spacing
     double hheight = height / 2;
@@ -1563,8 +1551,8 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
                                       bool capped,
                                       bool polar,
                                       std::vector<ChVector3d>& bce) {
-    double spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    double spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     // Calculate actual spacing
     int np_h = (int)std::round(height / spacing);
@@ -1646,8 +1634,8 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
 unsigned int ChFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     // Traverse the contact segments:
     // - calculate their discretization number n
@@ -1717,8 +1705,8 @@ unsigned int ChFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMesh1
 unsigned int ChFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh) {
     const auto& surface = fsi_mesh.contact_surface;
 
-    Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
-    int num_layers = m_paramsH->NUM_BCE_LAYERS;
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
 
     ////std::ofstream ofile("mesh2D.txt");
     ////ofile << mesh->GetNumTriangles() << endl;
@@ -1982,15 +1970,15 @@ void ChFluidSystemSPH::CreateMeshPoints(ChTriangleMeshConnected& mesh, double de
 //--------------------------------------------------------------------------------------------------------------------------------
 
 double ChFluidSystemSPH::GetKernelLength() const {
-    return m_paramsH->HSML;
+    return m_paramsH->h;
 }
 
 double ChFluidSystemSPH::GetInitialSpacing() const {
-    return m_paramsH->INITSPACE;
+    return m_paramsH->d0;
 }
 
 int ChFluidSystemSPH::GetNumBCELayers() const {
-    return m_paramsH->NUM_BCE_LAYERS;
+    return m_paramsH->num_bce_layers;
 }
 
 ChVector3d ChFluidSystemSPH::GetContainerDim() const {

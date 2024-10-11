@@ -9,21 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author:Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Structure to hold the simulation parameters.
 //
-// For more information about these parameters see the following:
-//
-// - Using a half-implicit integration scheme for the SPH-based solution of
-//   fluid-solid interaction problems,
-//   Milad Rakhsha, Arman Pazouki, Radu Serban, Dan Negrut,
-//   Computer Methods in Applied Mechanics and Engineering
-//
-// - A Consistent Multi-Resolution Smoothed Particle Hydrodynamics Method,
-//   Wei Hu, Wenxiao Pan, Milad Rakhsha, Qiang Tian, Haiyan Hu, Dan Negrut,
-//   Computer Methods in Applied Mechanics and Engineering, 2018
+// For more information about these parameters see:
+// "Using a half-implicit integration scheme for the SPH-based solution of
+// fluid-solid interaction problems," M. Rakhsha, A. Pazouki, R. Serban, D. Negrut,
+// Computer Methods in Applied Mechanics and Engineering
 // =============================================================================
 
 #ifndef CH_FSI_PARAMS_H
@@ -53,16 +47,14 @@ struct SimParams {
     Real3 cellSize;         ///< Size of the neighbor particle searching cell.
     uint numBodies;         ///< Number of FSI bodies.
     Real3 boxDims;          ///< Dimensions of the domain. How big is the box that the domain is in.
-    Real HSML;              ///< Interaction Radius (or h)
-    Real INVHSML;           ///< 1.0 / h
-    Real INITSPACE;         ///< Initial separation of the fluid particles
-    Real INV_INIT;          ///< 1.0 / INITSPACE
-    Real MULT_INITSPACE;    ///< Multiplier to hsml to determine the initial separation of the fluid particles and the
-                            ///< fixed separation for the boundary particles. This means that the separation will always
-                            ///< be a multiple of hsml. Default value = 1.0.
+    Real d0;                ///< Initial separation of SPH particles
+    Real ood0;              ///< 1 / d0
+    Real h_multiplier;      ///< Multiplier of initial spacing to obtain the interaction radius, h
+    Real h;                 ///< Kernel interaction radius, h = h_multiplier * d0
+    Real ooh;               ///< 1 / h
     int num_neighbors;      ///< Number of neighbor particles.
     Real epsMinMarkersDis;  ///< epsilon mult for minimum distance between markers (d_min = eps * HSML)
-    int NUM_BCE_LAYERS;     ///< Number of BCE marker layers attached to boundary and solid surfaces. Default value = 3.
+    int num_bce_layers;     ///< Number of BCE marker layers attached to boundary and solid surfaces. Default value = 3.
     Real
         toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
                         ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
@@ -130,12 +122,12 @@ struct SimParams {
     int gradient_type;       ///< Type of the gradient operator.
     int laplacian_type;      ///< Type of the laplacian operator.
 
-    bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
-    bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
-    bool USE_Delta_SPH;             ///< Use delta SPH
-    Real density_delta;             /// parameter for delta SPH
-    EosType eos_type;               ///< Equation of state type 
-    ViscosityTreatmentType viscosity_type;  ///< Viscosity treatment type, physics-base laminar flow or artificial viscosity for water
+    bool USE_Consistent_G;         ///< Use consistent discretization for gradient operator
+    bool USE_Consistent_L;         ///< Use consistent discretization for laplacian operator
+    bool USE_Delta_SPH;            ///< Use delta SPH
+    Real density_delta;            ///< Parameter for delta SPH
+    EosType eos_type;              ///< Equation of state type
+    ViscosityType viscosity_type;  ///< Viscosity treatment type, physics-based laminar flow or artificial viscosity
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 
@@ -155,8 +147,8 @@ struct SimParams {
     Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
     Real Cs;                       ///< Speed of sound
 
-    bool Apply_BC_U;              ///< This option lets you apply a velocity BC on the BCE markers
-    Real L_Characteristic;        ///< Some length characteristic for Re number computation
+    bool Apply_BC_U;        ///< This option lets you apply a velocity BC on the BCE markers
+    Real L_Characteristic;  ///< Characteristic for Re number computation
 
     bool non_newtonian;       ///< Set true to model non-newtonian fluid.
     Rheology rheology_model;  ///< Model of the rheology
@@ -182,7 +174,6 @@ struct SimParams {
     Real Nu_poisson;    ///< Poisson’s ratio
     Real Ar_stress;     ///< Artifical stress
     Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
-    Real Ar_vis_beta;   ///< Artifical viscosity coefficient
     Real Fri_angle;     ///< Frictional angle of granular material
     Real Dil_angle;     ///< Dilate angle of granular material
     Real Coh_coeff;     ///< Cohesion coefficient

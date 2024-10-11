@@ -61,8 +61,6 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double Young_modulus;    ///< Young's modulus (default: 1e6)
         double Poisson_ratio;    ///< Poisson's ratio (default: 0.3)
         double stress;           ///< artifical stress (default: 0)
-        double viscosity_alpha;  ///< artifical viscosity coefficient (default: 0.5)
-        double viscosity_beta;   ///< artifical viscosity coefficient (default: 0)
         double mu_I0;            ///< reference inertia number (default: 0.03)
         double mu_fric_s;        ///< friction mu_s (default: 0.7)
         double mu_fric_2;        ///< mu_2 constant in mu=mu(I) (default: 0.7)
@@ -76,13 +74,13 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        SPHMethod sph_method;             ///< SPH method (default: WCSPH)
-        int num_bce_layers;               ///< number of BCE layers (boundary and solids, default: 3)
-        double kernel_h;                  ///< kernel separation (default: 0.01)
-        double initial_spacing;           ///< initial particle spacing (default: 0.01)
-        double max_velocity;              ///< maximum velocity (default: 1.0)
-        double xsph_coefficient;          ///< XSPH coefficient (default: 0.5)
-        double shifting_coefficient;      ///< shifting beta coefficient (default: 1.0)
+        SPHMethod sph_method;         ///< SPH method (default: WCSPH)
+        int num_bce_layers;           ///< number of BCE layers (boundary and solids, default: 3)
+        double initial_spacing;       ///< initial particle spacing (default: 0.01)
+        double h_multiplier;          ///< kernel length multiplier, h = h_multiplier * initial_spacing (default: 1.2)
+        double max_velocity;          ///< maximum velocity (default: 1.0)
+        double xsph_coefficient;      ///< XSPH coefficient (default: 0.5)
+        double shifting_coefficient;  ///< shifting beta coefficient (default: 1.0)
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
         bool use_density_based_projection;         ///< (ISPH only, default: false)
@@ -90,11 +88,11 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         bool consistent_laplacian_discretization;  ///< use L matrix in SPH Laplacian approximation (default: false)
         double artificial_viscosity;               ///< artificial viscosity coefficient (default: 0.02)
         bool use_delta_sph;                        ///< use delta SPH (default: true)
-        double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)    
+        double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
-        EosType eos_type;                               ///< equation of state (default: Tait's eos)
-        ViscosityTreatmentType viscosity_type;     ///< viscosity treatment (default: artificial viscosity)
+        EosType eos_type;                          ///< equation of state (default: ISOTHERMAL)
+        ViscosityType viscosity_type;              ///< viscosity treatment (default: LAMINAR)
         SPHParameters();
     };
 
@@ -117,8 +115,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);
 
-    /// Set SPH kernel length.
-    void SetKernelLength(double length);
+    /// Set SPH kernel multiplier.
+    /// h = multiplier * initial_spacing.
+    void SetKernelMultiplier(double multiplier);
 
     /// Set the fluid container dimension
     void SetContainerDim(const ChVector3d& boxDim);

@@ -50,7 +50,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
     }
 
     // Check particle is inside the domain.
-    Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.HSML);
+    Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.h);
     if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
         printf(
             "Out of Min Boundary, point %f %f %f, boundary min: %f %f %f. "
@@ -59,7 +59,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
         *error_flag = true;
         return;
     }
-    boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.HSML);
+    boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.h);
     if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {
         printf(
             "Out of max Boundary, point %f %f %f, boundary max: %f %f %f. "

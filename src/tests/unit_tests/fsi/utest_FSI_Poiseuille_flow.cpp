@@ -169,13 +169,13 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 3;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.max_velocity = 0.1;
     sph_params.xsph_coefficient = 0.0;
     sph_params.shifting_coefficient = 0.0;
     sph_params.density_reinit_steps = 10000;
-    sph_params.viscosity_type = ViscosityTreatmentType::LAMINAR;
+    sph_params.viscosity_type = ViscosityType::LAMINAR;
     sph_params.use_delta_sph = false;
     sph_params.eos_type = EosType::ISOTHERMAL;
     sph_params.consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity

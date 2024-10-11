@@ -149,8 +149,8 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::I2SPH;
     sph_params.num_bce_layers = 3;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.h_multiplier = 1;
     sph_params.max_velocity = 1;                     // default: 1.0
     sph_params.xsph_coefficient = 0.1;               // default: 0.5
     sph_params.shifting_coefficient = 0.0;           // default: 0.1
