@@ -48,7 +48,7 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach_new";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach_test";
 
 // Output frequency
 bool output = true;
@@ -75,14 +75,21 @@ bool show_particles_sph = true;
 
 // Size of initial volume of SPH fluid
 // wec location
-ChVector3d wec_pos(-2.9875, -0.0125, -0.1);
+//ChVector3d wec_pos(-2.9875, -0.0125, -0.1);
+//// Size of the baffles
+//ChVector3d wec_size(0.225, 0.975, 1.2);
+//ChVector3d fsize(12, 1.25, 1.3);  // fluid slightly higher than the flap.
+//// Container dimensions
+//ChVector3d csize(12, 1.25, 1.8);
+
+
+// use this set of parameters for fast testing
+ChVector3d wec_pos(-1.5875, -0.0125, -0.1);
 // Size of the baffles
-ChVector3d wec_size(0.225, 0.975, 1.2);
-
-ChVector3d fsize(12, 1.25, 1.3);  // fluid slightly higher than the flap.
-
+ChVector3d wec_size(0.225, 0.45, 1.2);
+ChVector3d fsize(6, 0.6, 1.3);  // fluid slightly higher than the flap.
 // Container dimensions
-ChVector3d csize(12, 1.25, 1.8);
+ChVector3d csize(6, 0.6, 1.8);
 
 
 // -----------------------------------------------------------------------------
@@ -193,7 +200,7 @@ void CreateFlap(ChFsiProblemSPH& fsi) {
 
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
-    double step_size = 5e-5;
+    double step_size = 1e-4;
     bool verbose = true;
 
     // Create the Chrono system and associated collision system
@@ -236,11 +243,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHParameters(sph_params);
     sysFSI.SetStepSizeCFD(step_size);
     sysFSI.SetStepsizeMBD(step_size);
-    sysSPH.SetNumBCELayers(5);
-
-    // Create rigid bodies
-    CreateFlap(fsi);
-
+    sysSPH.SetNumBCELayers(3);
 
     // Enable height-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
