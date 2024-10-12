@@ -52,12 +52,14 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-//Container dimensions
-ChVector3d csize(4.0, 0.4, 0.8);
+// Container dimensions
+ChVector3d csize(5.0, 0.4, 0.8);
 
-// Size of initial volume of SPH material
-ChVector3d fsize(4.0, 0.4, 0.4);
+// Beach start point
+double x_start = csize.x() / 2;
 
+// Fluid depth
+double depth = 0.4;
 
 // Visibility flags
 bool show_rigid = true;
@@ -100,25 +102,22 @@ class WaveFunction : public ChFunction {
     double omega;
 };
 
-
 class WaveFunctionDecay : public ChFunction {
   public:
     // stroke s0, period T, with an exponential decay
     WaveFunctionDecay() : s0(0.1), T(1) {}
-    WaveFunctionDecay(double s0, double period)
-        : s0(s0 / 2), T(period) {}
+    WaveFunctionDecay(double s0, double period) : s0(s0 / 2), T(period) {}
 
     virtual WaveFunction* Clone() const override { return new WaveFunction(); }
 
     virtual double GetVal(double t) const override {
-        return 0.5 * s0 * (1 - std::exp(-t/T)) * std::sin(2.* CH_PI/T * t);
+        return 0.5 * s0 * (1 - std::exp(-t / T)) * std::sin(2. * CH_PI / T * t);
     }
 
   private:
     double s0;  // stroke
     double T;   // period
 };
-
 
 // -----------------------------------------------------------------------------
 
@@ -181,9 +180,9 @@ int main(int argc, char* argv[]) {
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
-    //if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
-    //    return 1;
-    //}
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+        return 1;
+    }
 
     // Create the Chrono system and associated collision system
     ChSystemNSC sysMBS;
@@ -194,7 +193,6 @@ int main(int argc, char* argv[]) {
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
     ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
-
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -219,7 +217,7 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 4.0;  // maximum velocity should be 2*sqrt(grav * fluid_height)
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    //sph_params.density_reinit_steps = 1000;
+    ////sph_params.density_reinit_steps = 1000;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
@@ -229,30 +227,28 @@ int main(int argc, char* argv[]) {
     sph_params.delta_sph_coefficient = 0.1;
     sph_params.eos_type = EosType::TAIT;
 
-    //sysSPH.SetNumBCELayers(5);
     sysSPH.SetSPHParameters(sph_params);
 
     // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fsize.z()));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, depth));
 
-    // Create SPH material (with a slope like a beach)
-    //fsi.Construct(fsize,                // length x width x depth
-    //              ChVector3d(0, 0, 0)  // position of bottom origin
-    //);
-    fsi.Construct(fsize,                // length x width x depth
-                  ChVector3d(0, 0, 0),  // position of bottom origin
-                  false,                // no bottom wall
-                  false                 // no side walls
-    );
+    // Create wavemaker actuation function
+    ////auto fun = chrono_types::make_shared<WaveFunctionDecay>(0.2, 1.4);
+    auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.2, 1);
 
-    // Create a wave tank
-    double stroke = 0.2;
-    double period = 1.4;
-    auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
+    // Create wave tank with wavemaker mechanism
+    ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
+    ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
+    ////                                  fun);                                                                      //
+    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
+                                      ChVector3d(0, 0, 0), csize, depth,                                         //
+                                      fun,                                                                       //
+                                      chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), false);        //
+    ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
+    ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
+    ////                                  fun,                                                                       //
+    ////                                  chrono_types::make_shared<WaveTankParabolicBeach>(x_start, 0.32), false);  //
 
-    //auto body = fsi.AddWaveMakerWithBeach(ChFsiProblemSPH::WavemakerType::PISTON, csize, fsize, ChVector3d(0, 0, 0), fun);
-    auto body = fsi.AddWaveMaker(ChFsiProblemSPH::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
     fsi.Initialize();
 
     // Output directories
@@ -324,7 +320,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Chrono::FSI Wave Tank");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, -9 * fsize.y(), fsize.z() / 2), ChVector3d(0, 0, fsize.z() / 2));
+        visFSI->AddCamera(ChVector3d(0, -12 * csize.y(), depth / 2), ChVector3d(0, 0, depth / 2));
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
