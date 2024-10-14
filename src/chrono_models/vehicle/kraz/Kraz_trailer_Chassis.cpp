@@ -26,7 +26,7 @@ namespace kraz {
 const double Kraz_trailer_Chassis::m_body_mass = 20000.0;
 const ChVector3d Kraz_trailer_Chassis::m_body_inertiaXX(23904, 322240, 320011);
 const ChVector3d Kraz_trailer_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector3d Kraz_trailer_Chassis::m_body_COM_loc(-6, 0, 0.8);
+const ChVector3d Kraz_trailer_Chassis::m_body_COM_loc(-6, 0, 2);
 const ChVector3d Kraz_trailer_Chassis::m_connector_loc(-0.04, 0, 0.82);
 
 Kraz_trailer_Chassis::Kraz_trailer_Chassis(const std::string& name, CollisionType chassis_collision_type)
