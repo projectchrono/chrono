@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -15,6 +15,7 @@
 // FifthWheel chassis connector model constructed with data from file (JSON format).
 //
 // =============================================================================
+
 #ifndef CHASSIS_CONNECTOR_FIFTH_WHEEL_H
 #define CHASSIS_CONNECTOR_FIFTH_WHEEL_H
 

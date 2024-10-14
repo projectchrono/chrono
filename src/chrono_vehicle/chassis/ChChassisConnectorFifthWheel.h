@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -21,8 +21,6 @@
 #define CH_CHASSIS_CONNECTOR_FIFTH_WHEEL_H
 
 #include "chrono_vehicle/ChChassis.h"
-#include "chrono/physics/ChLinkUniversal.h"
-#include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,8 +28,9 @@ namespace vehicle {
 /// @addtogroup vehicle
 /// @{
 
-/// Template for a hitch chassis connector.  This is a passive connector, modeled with a spherical joint.
-class CH_VEHICLE_API ChChassisConnectorFifthWheel : public ChChassisConnectorHitch {
+/// Template for a fifth-wheel chassis connector.
+/// This is a passive connector, modeled with a universal joint that allows pitch and yaw relative DOFs.
+class CH_VEHICLE_API ChChassisConnectorFifthWheel : public ChChassisConnector {
   public:
     ChChassisConnectorFifthWheel(const std::string& name);
     ~ChChassisConnectorFifthWheel();
@@ -40,15 +39,14 @@ class CH_VEHICLE_API ChChassisConnectorFifthWheel : public ChChassisConnectorHit
     virtual std::string GetTemplateName() const override { return "ChassisConnectorFifthWheel"; }
 
     /// Initialize this chassis connector subsystem.
-    /// The subsystem is initialized by attaching it to the specified front and rear
-    /// chassis bodies at the specified location (with respect to and expressed in
-    /// the reference frame of the front chassis).
+    /// The subsystem is initialized by attaching it to the specified front and rear chassis bodies at their conection
+    /// points.
     virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
                             std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
                             ) override;
 
   protected:
-    std::shared_ptr<ChLinkUniversal> m_joint;  ///< spherical joint of the connector
+    std::shared_ptr<ChLinkUniversal> m_joint;  ///< universal joint of the connector
 };
 
 /// @} vehicle

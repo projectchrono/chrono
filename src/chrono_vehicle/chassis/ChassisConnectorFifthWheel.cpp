@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -36,7 +36,8 @@ ChassisConnectorFifthWheel::ChassisConnectorFifthWheel(const std::string& filena
     std::cout << "Loaded JSON " << filename << std::endl;
 }
 
-ChassisConnectorFifthWheel::ChassisConnectorFifthWheel(const rapidjson::Document& d) : ChChassisConnectorFifthWheel("") {
+ChassisConnectorFifthWheel::ChassisConnectorFifthWheel(const rapidjson::Document& d)
+    : ChChassisConnectorFifthWheel("") {
     Create(d);
 }
 

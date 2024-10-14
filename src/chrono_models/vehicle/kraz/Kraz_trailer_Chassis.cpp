@@ -51,15 +51,10 @@ Kraz_trailer_Chassis::Kraz_trailer_Chassis(const std::string& name, CollisionTyp
 
     utils::ChBodyGeometry::BoxShape box(ChVector3d(-5, 0, 1.4 + 0.7), ChQuaternion<>(1, 0, 0, 0),
                                     ChVector3d(13.62, 2.55, 2.8));
-    utils::ChBodyGeometry::SphereShape sphere(m_body_COM_loc, 0.1);
 
     m_geometry.vis_boxes.push_back(box);
-    m_geometry.vis_spheres.push_back(sphere);
-
     m_geometry.color_boxes = ChColor(0.3f, 0.2f, 0.2f);
-    m_geometry.color_cylinders = ChColor(0.3f, 0.2f, 0.2f);
 
-    // Collision shape is always a box
     box.matID = 0;
     m_geometry.coll_boxes.push_back(box);
 }
