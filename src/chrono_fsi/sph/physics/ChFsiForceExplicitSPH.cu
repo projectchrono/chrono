@@ -1419,7 +1419,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         return;
     }
 
-    if (IsBceMarker(sortedRhoPreMu[index].w))
+    if (IsBceWallMarker(sortedRhoPreMu[index].w))
         return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
