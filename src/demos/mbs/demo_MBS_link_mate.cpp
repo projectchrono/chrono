@@ -295,6 +295,7 @@ void test_pendulum() {
               << "The theoretical oscillation frequency is:\t" << std::sqrt(gacc / length) << " rad/s" << std::endl;
 }
 
+/*
 // ====================================
 // Test 2
 // Second example: Anchor chain
@@ -728,14 +729,15 @@ void test_anchorchain() {
         DoDynamicsUnderImpulse(vec_fz, "vibration_z");
     }
 }
+*/
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\n"
               << "Chrono version: " << CHRONO_VERSION << std::endl;
 
-    // test_pendulum();
+    test_pendulum();
 
-    test_anchorchain();
+    //test_anchorchain();
 
     return 0;
 }

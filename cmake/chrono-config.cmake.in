@@ -107,6 +107,7 @@ set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 # Local variables specifying which Chrono modules are available
 #-------------------------------------------------------------------------------
 
+
 set(Chrono_CASCADE_AVAILABLE        @CH_ENABLE_MODULE_CASCADE@)
 set(Chrono_IRRLICHT_AVAILABLE       @CH_ENABLE_MODULE_IRRLICHT@)
 set(Chrono_MATLAB_AVAILABLE         @CH_ENABLE_MODULE_MATLAB@)
@@ -125,6 +126,8 @@ set(Chrono_VSG_AVAILABLE            @CH_ENABLE_MODULE_VSG@)
 set(Chrono_CSHARP_AVAILABLE         @CH_ENABLE_MODULE_CSHARP@)
 set(Chrono_FMI_AVAILABLE            @CH_ENABLE_MODULE_FMI@)
 set(Chrono_ROS_AVAILABLE            @CH_ENABLE_MODULE_ROS@)
+set(Chrono_LDPM_AVAILABLE           @CH_ENABLE_MODULE_LDPM@)
+
 
 if(CHRONO_MPI_CXX_AVAILABLE)
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
@@ -504,6 +507,14 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "Chrono_irrlicht.dll")
       endif()
+    endif()
+      
+  elseif(${COMPONENT_UPPER} MATCHES "LDPM")
+
+    list(APPEND CHRONO_INCLUDE_DIRS "@CH_LDPM_INCLUDES@")
+    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_ldpm")
+    if (NOT CHRONO_STATIC)
+    list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ldpm.dll")
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "VSG")

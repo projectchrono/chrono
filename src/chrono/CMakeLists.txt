@@ -1208,6 +1208,19 @@ set(Chrono_collision_convexdecompHACDv2_FILES
     )
 source_group(collision\\convexdecomp\\HACDv2 FILES ${Chrono_collision_convexdecompHACDv2_FILES})
 
+
+set(ChronoEngine_fresh_concrete_SOURCES
+    fresh_concrete/FreshConcreteContact.cpp   
+)    
+
+set(ChronoEngine_fresh_concrete_HEADERS
+       
+)    
+
+source_group(fresh_concrete FILES
+    ${ChronoEngine_fresh_concrete_SOURCES}
+    ${ChronoEngine_fresh_concrete_HEADERS})
+
 # TinyObj Group
 set(Chrono_tiny_obj_FILES
   ../chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
