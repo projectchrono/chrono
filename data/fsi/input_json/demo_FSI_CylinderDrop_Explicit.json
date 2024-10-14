@@ -18,6 +18,7 @@
     // "Density Reinitialization": 1000,
     "Time steps per proximity search": 1,
     "Viscosity Treatment Type": "Artificial",
+    "Boundary Treatment Type": "Adami",
     "Artificial viscosity alpha": 0.02,
     "Use Delta SPH": true,
     "density diffusion delta": 0.1,

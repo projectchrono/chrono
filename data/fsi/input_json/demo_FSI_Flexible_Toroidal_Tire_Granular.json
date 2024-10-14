@@ -15,6 +15,7 @@
     "Shifting Coefficient": 1.0,
     "Time steps per proximity search": 1,
     "Viscosity Treatment Type": "Artificial Oppose Separation",
+    "Boundary Treatment Type": "Adami",
     "Artificial viscosity alpha": 0.5
   },
   "Time Stepping": {

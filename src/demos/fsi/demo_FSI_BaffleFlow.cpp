@@ -243,6 +243,7 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
+    sph_params.boundary_type = BoundaryType::ADAMI;
 
     sysSPH.SetSPHParameters(sph_params);
 

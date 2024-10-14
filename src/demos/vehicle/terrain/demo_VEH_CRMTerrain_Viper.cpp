@@ -138,6 +138,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION;
+    sph_params.boundary_type = BoundaryType::ADAMI;
     sysSPH.SetSPHParameters(sph_params);
 
     sysSPH.SetActiveDomain(ChVector3d(active_box_hdim));
