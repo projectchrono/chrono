@@ -246,6 +246,19 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
 
+        if (doc["SPH Parameters"].HasMember("Boundary Treatment Type")) {
+            std::string type = doc["SPH Parameters"]["Boundary Treatment Type"].GetString();
+            if (type == "Adami")
+                m_paramsH->boundary_type = BoundaryType::ADAMI;
+            else if (type == "Holmes")
+                m_paramsH->boundary_type = BoundaryType::HOLMES;
+            else {
+                cerr << "Incorrect boundary treatment type in the JSON file: " << type << endl;
+                cerr << "Falling back to Adami " << endl;
+                m_paramsH->boundary_type = BoundaryType::ADAMI;
+            }
+        }
+
         if (doc["SPH Parameters"].HasMember("Viscosity Treatment Type")) {
             std::string type = doc["SPH Parameters"]["Viscosity Treatment Type"].GetString();
             if (m_verbose)
@@ -651,6 +664,7 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
       viscosity_type(ViscosityType::ARTIFICIAL),
+      boundary_type(BoundaryType::ADAMI),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
@@ -681,6 +695,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
     m_paramsH->viscosity_type = sph_params.viscosity_type;
+    m_paramsH->boundary_type = sph_params.boundary_type;
     m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
     m_paramsH->eos_type = sph_params.eos_type;
     m_paramsH->USE_Delta_SPH = sph_params.use_delta_sph;
@@ -994,6 +1009,13 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             cout << "  Viscosity treatment: Laminar" << endl;
         } else {
             cout << "  Viscosity treatment: Artificial" << endl;
+        }
+        if (m_paramsH->boundary_type == BoundaryType::ADAMI) {
+            cout << "  Boundary treatment: Adami" << endl;
+        } else if (m_paramsH->boundary_type == BoundaryType::HOLMES) {
+            cout << "  Boundary treatment: Holmes" << endl;
+        } else {
+            cout << "  Boundary treatment: Adami" << endl;
         }
 
         cout << "  num_neighbors: " << m_paramsH->num_neighbors << endl;

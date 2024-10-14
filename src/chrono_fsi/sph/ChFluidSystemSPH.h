@@ -93,6 +93,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
         EosType eos_type;                          ///< equation of state (default: ISOTHERMAL)
         ViscosityType viscosity_type;              ///< viscosity treatment (default: ARTIFICIAL)
+        BoundaryType boundary_type;                ///< boundary treatment (default: ADAMI)
         SPHParameters();
     };
 

@@ -129,6 +129,7 @@ struct SimParams {
     EosType eos_type;              ///< Equation of state type
     ViscosityType viscosity_type;  ///< Viscosity treatment type, physics-based laminar flow or artificial viscosity or
                                    ///< artificial viscosity that also opposes separation
+    BoundaryType boundary_type;    ///< Boundary type - Adami or Holmes
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 

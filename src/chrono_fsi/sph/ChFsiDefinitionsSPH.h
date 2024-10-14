@@ -86,6 +86,9 @@ enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 /// Visosity method type.
 enum class ViscosityType { LAMINAR, ARTIFICIAL, ARTIFICIAL_OPPOSE_SEPARATION };
 
+/// Boundary type.
+enum class BoundaryType { ADAMI, HOLMES };
+
 /// Equation of State type.
 /// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
 enum class EosType { TAIT, ISOTHERMAL };

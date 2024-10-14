@@ -387,7 +387,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
-                                  Real3* sortedKernelSupport,
+                                  Real2* sortedKernelSupport,
                                   const uint* mapOriginalToSorted,
                                   const uint* numNeighborsPerPart,
                                   const uint* neighborList,
@@ -398,27 +398,22 @@ __global__ void calcKernelSupport(const Real4* sortedPosRad,
 
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
-    Real SqRadii = SuppRadii * SuppRadii;
     Real3 posRadA = mR3(sortedPosRad[index]);
 
     Real W0 = W3h(0, paramsD.ooh);
     Real sum_W_all = W0;
     Real sum_W_identical = W0;
+    Real index_type = sortedRhoPreMu[index].w;
 
     // Use the neighbors list
     for (int i = NLStart; i < NLEnd; i++) {
         uint j = neighborList[i];
         Real3 posRadB = mR3(sortedPosRad[j]);
-        Real3 dist3 = Distance(posRadA, posRadB);
-        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
-
-        if (dd > SqRadii)
-            continue;
-        Real d = sqrt(dd);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real d = length(rij);
         Real W3 = W3h(d, paramsD.ooh);
         sum_W_all += W3;
-        if (abs(sortedRhoPreMu[index].w - sortedRhoPreMu[j].w) < 0.001) {
+        if (abs(index_type - sortedRhoPreMu[j].w) < 0.001) {
             sum_W_identical += W3;
         }
     }
@@ -1011,6 +1006,322 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
         sortedXSPHandShift[index] = inner_sum * det_r_max / (det_r_A + 1e-9);
     }
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// Boundary condition application for Navier-Stokes using Holmes's method
+// The density and pressure of the BCE markers are extrapolated along with the velocity (no-slip).
+// See https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898 (for velocity
+// and https://www.sciencedirect.com/science/article/pii/S002199911200229X?ref=cra_js_challenge&fr=RR-1 (for pressure
+// and density extrapolation)
+__global__ void Boundary_NavierStokes_Holmes(const uint* activityIdentifierD,
+                                             const uint* numNeighborsPerPart,
+                                             const uint* neighborList,
+                                             const Real4* sortedPosRadD,
+                                             const Real2* sortedKernelSupport,
+                                             Real3* bceAcc,
+                                             Real4* sortedRhoPresMuD,
+                                             Real3* sortedVelMasD,
+                                             volatile bool* error_flag) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numAllMarkers)
+        return;
+
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+
+    // Ignore all fluid particles
+    if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
+        return;
+    }
+
+    Real3 posRadA = mR3(sortedPosRadD[index]);
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+    Real sum_pw = 0.0f;
+    Real3 sum_rhorw = mR3(0.0);
+    Real sum_w = 0.0f;
+    Real3 sum_vw = mR3(0.0);
+
+    // Requirements for the Holmes method
+    Real2 kernelSupport = sortedKernelSupport[index];
+    Real chi_BCE = kernelSupport.x / kernelSupport.y;
+    Real dBCE = SuppRadii * (2.0 * chi_BCE - 1.0);
+    int predicateBCE = (dBCE < 0.0);
+    dBCE = predicateBCE ? 0.01 * SuppRadii : dBCE;
+    Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (sortedVelMasD[index]) : mR3(0.0);
+    Real3 velMasB_new = mR3(0.0);
+
+    for (int n = NLStart + 1; n < NLEnd; n++) {
+        uint j = neighborList[n];
+
+        // only consider fluid neighbors
+        if (IsBceMarker(sortedRhoPresMuD[j].w)) {
+            continue;
+        }
+
+        Real3 posRadB = mR3(sortedPosRadD[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real d = length(rij);
+        Real W3 = W3h(d, paramsD.ooh);
+        sum_w += W3;
+        sum_pw += sortedRhoPresMuD[j].y * W3;
+        sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
+        sum_vw += sortedVelMasD[j] * W3;
+
+        // Compute the shortest perpendicular distance with the information about kernel support
+        Real chi_Fluid = sortedKernelSupport[j].x / sortedKernelSupport[j].y;
+        Real dFluid = SuppRadii * (2.0 * chi_Fluid - 1.0);
+        int predicateFluid = (dFluid < 0.0);
+        dFluid = predicateFluid ? 0.01 * SuppRadii : dFluid;
+
+        Real dFluidBCE = dBCE / dFluid;
+        // Use predication to avoid branching
+        int predicateAB = (dFluidBCE > 0.5);
+        dFluidBCE = predicateAB ? 0.5 : dFluidBCE;
+
+        velMasB_new = dFluidBCE * (prescribedVel - sortedVelMasD[j]) + prescribedVel;
+    }
+
+    sortedVelMasD[index] = velMasB_new;
+    if (sum_w > EPSILON) {
+        sortedRhoPresMuD[index].y = (sum_pw + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y, paramsD.eos_type);
+    } else {
+        sortedRhoPresMuD[index].y = 0.0f;
+        sortedVelMasD[index] = mR3(0.0);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// Boundary condition application for Elastic SPH using Holmes's method
+// The Stress tensor of the BCE markers are extrapolated along with the velocity (no-slip). For stress exploration
+// an Adami-like method is used. However, for velocity extrapolation, The Holmes method is used.
+// See https://www.sciencedirect.com/science/article/pii/S0266352X19300941 (for stress extrapolation)
+// and https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898 (for velocity
+// extrapolation)
+__global__ void Boundary_Elastic_Holmes(const uint* activityIdentifierD,
+                                        const uint* numNeighborsPerPart,
+                                        const uint* neighborList,
+                                        const Real4* sortedPosRadD,
+                                        const Real2* sortedKernelSupport,
+                                        Real3* bceAcc,
+                                        Real4* sortedRhoPresMuD,
+                                        Real3* sortedVelMasD,
+                                        Real3* sortedTauXxYyZz,
+                                        Real3* sortedTauXyXzYz,
+                                        volatile bool* error_flag) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numAllMarkers)
+        return;
+
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+
+    // Ignore all fluid particles
+    if (IsFluidParticle(
+            sortedRhoPresMuD[index].w)) {  // TODO: This array is only used for obtaining marker type - seems wasteful
+        return;
+    }
+
+    Real3 posRadA = mR3(sortedPosRadD[index]);
+    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+    Real sum_w = 0.0f;
+    Real3 sum_vw = mR3(0.0);
+    Real3 sum_rhorw = mR3(0.0);
+    Real3 sum_tauD = mR3(0.0);
+    Real3 sum_tauO = mR3(0.0);
+
+    // Requirements for the Holmes method
+    Real2 kernelSupport = sortedKernelSupport[index];
+    Real chi_BCE = kernelSupport.x / kernelSupport.y;
+    Real dBCE = SuppRadii * (2.0 * chi_BCE - 1.0);
+    int predicateBCE = (dBCE < 0.0);
+    dBCE = predicateBCE ? 0.01 * SuppRadii : dBCE;
+    Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (sortedVelMasD[index]) : mR3(0.0);
+    Real3 velMasB_new = mR3(0.0);
+
+    for (int n = NLStart + 1; n < NLEnd; n++) {
+        uint j = neighborList[n];
+
+        // only consider fluid neighbors
+        if (IsBceMarker(
+                sortedRhoPresMuD[j].w)) {  // TODO: This array is only used for obtaining marker type - seems wasteful
+            continue;
+        }
+
+        Real3 posRadB = mR3(sortedPosRadD[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real d = length(rij);
+        Real W3 = W3h(d, paramsD.ooh);
+        sum_w += W3;
+        sum_vw += sortedVelMasD[j] * W3;
+        sum_rhorw += paramsD.rho0 * rij * W3;  // Since density is constant in Elastic SPH
+        sum_tauD += sortedTauXxYyZz[j] * W3;
+        sum_tauO += sortedTauXyXzYz[j] * W3;
+
+        // Compute the shortest perpendicular distance with the information about kernel support
+        Real chi_Fluid = sortedKernelSupport[j].x / sortedKernelSupport[j].y;
+        Real dFluid = SuppRadii * (2.0 * chi_Fluid - 1.0);
+        int predicateFluid = (dFluid < 0.0);
+        dFluid = predicateFluid ? 0.01 * SuppRadii : dFluid;
+
+        Real dFluidBCE = dBCE / dFluid;
+        // Use predication to avoid branching
+        int predicateAB = (dFluidBCE > 0.5);
+        dFluidBCE = predicateAB ? 0.5 : dFluidBCE;
+
+        velMasB_new = dFluidBCE * (prescribedVel - sortedVelMasD[j]) + prescribedVel;
+    }
+
+    sortedVelMasD[index] = velMasB_new;
+    if (sum_w > EPSILON) {
+        sortedTauXxYyZz[index] = (sum_tauD + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedTauXyXzYz[index] = sum_tauO / sum_w;
+    } else {
+        sortedTauXxYyZz[index] = mR3(0.0);
+        sortedTauXyXzYz[index] = mR3(0.0);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// Boundary condition application for Navier-Stokes with Adami's method
+// The pressure and density of the BCE markers are extrapolated along with the velocity (no-slip)
+// See https://www.sciencedirect.com/science/article/pii/S002199911200229X?ref=cra_js_challenge&fr=RR-1
+__global__ void Boundary_NavierStokes_Adami(const uint* activityIdentifierD,
+                                            const uint* numNeighborsPerPart,
+                                            const uint* neighborList,
+                                            const Real4* sortedPosRadD,
+                                            Real3* bceAcc,
+                                            Real4* sortedRhoPresMuD,
+                                            Real3* sortedVelMasD,
+                                            volatile bool* error_flag) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numAllMarkers)
+        return;
+
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+
+    // Ignore all fluid particles
+    if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
+        return;
+    }
+
+    Real3 posRadA = mR3(sortedPosRadD[index]);
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+    Real sum_pw = 0.0f;
+    Real3 sum_rhorw = mR3(0.0);
+    Real sum_w = 0.0f;
+    Real3 sum_vw = mR3(0.0);
+
+    for (int n = NLStart + 1; n < NLEnd; n++) {
+        uint j = neighborList[n];
+
+        // only consider fluid neighbors
+        if (IsBceMarker(sortedRhoPresMuD[j].w)) {
+            continue;
+        }
+
+        Real3 posRadB = mR3(sortedPosRadD[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real d = length(rij);
+        Real W3 = W3h(d, paramsD.ooh);
+        sum_w += W3;
+        sum_pw += sortedRhoPresMuD[j].y * W3;
+        sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
+        sum_vw += sortedVelMasD[j] * W3;
+    }
+
+    if (sum_w > EPSILON) {
+        Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
+        sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
+        sortedRhoPresMuD[index].y = (sum_pw + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y, paramsD.eos_type);
+    } else {
+        sortedVelMasD[index] = mR3(0.0);
+        sortedRhoPresMuD[index].y = 0.0f;
+        sortedVelMasD[index] = mR3(0.0);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+// Boundary condition application for Elastic SPH using Adami's method
+// The Stress tensor of the BCE markers are extrapolated along with the velocity (no-slip)
+// See https://www.sciencedirect.com/science/article/pii/S0266352X19300941 (for stress extrapolation)
+// and https://www.sciencedirect.com/science/article/pii/S002199911200229X?ref=cra_js_challenge&fr=RR-1 (for velocity
+// extrapolation)
+__global__ void Boundary_Elastic_Adami(const uint* activityIdentifierD,
+                                       const uint* numNeighborsPerPart,
+                                       const uint* neighborList,
+                                       const Real4* sortedPosRadD,
+                                       Real3* bceAcc,
+                                       Real4* sortedRhoPresMuD,
+                                       Real3* sortedVelMasD,
+                                       Real3* sortedTauXxYyZz,
+                                       Real3* sortedTauXyXzYz,
+                                       volatile bool* error_flag) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numAllMarkers)
+        return;
+
+    if (activityIdentifierD[index] == 0) {
+        return;
+    }
+
+    // Ignore all fluid particles
+    if (IsFluidParticle(
+            sortedRhoPresMuD[index].w)) {  // TODO: This array is only used for obtaining marker type - seems wasteful
+        return;
+    }
+
+    Real3 posRadA = mR3(sortedPosRadD[index]);
+    uint NLStart = numNeighborsPerPart[index];
+    uint NLEnd = numNeighborsPerPart[index + 1];
+    Real sum_w = 0.0f;
+    Real3 sum_vw = mR3(0.0);
+    Real3 sum_rhorw = mR3(0.0);
+    Real3 sum_tauD = mR3(0.0);
+    Real3 sum_tauO = mR3(0.0);
+
+    for (int n = NLStart + 1; n < NLEnd; n++) {
+        uint j = neighborList[n];
+
+        // only consider fluid neighbors
+        if (IsBceMarker(
+                sortedRhoPresMuD[j].w)) {  // TODO: This array is only used for obtaining marker type - seems wasteful
+            continue;
+        }
+
+        Real3 posRadB = mR3(sortedPosRadD[j]);
+        Real3 rij = Distance(posRadA, posRadB);
+        Real d = length(rij);
+        Real W3 = W3h(d, paramsD.ooh);
+        sum_w += W3;
+        sum_vw += sortedVelMasD[j] * W3;
+        sum_rhorw += paramsD.rho0 * rij * W3;  // Since density is constant in Elastic SPH
+        sum_tauD += sortedTauXxYyZz[j] * W3;
+        sum_tauO += sortedTauXyXzYz[j] * W3;
+    }
+
+    if (sum_w > EPSILON) {
+        Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
+        sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
+        sortedTauXxYyZz[index] = (sum_tauD + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
+        sortedTauXyXzYz[index] = sum_tauO / sum_w;
+    } else {
+        sortedVelMasD[index] = mR3(0.0);
+        sortedTauXxYyZz[index] = mR3(0.0);
+        sortedTauXyXzYz[index] = mR3(0.0);
+    }
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void updateBoundaryPres(const uint* activityIdentifierD,
                                    const uint* numNeighborsPerPart,
@@ -1096,7 +1407,6 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
                        Real3* sortedDerivTauXxYyZz,
                        Real3* sortedDerivTauXyXzYz,
                        Real3* sortedXSPHandShift,
-                       Real3* sortedKernelSupport,
                        uint* sortedFreeSurfaceIdD,
                        volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1109,7 +1419,7 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         return;
     }
 
-    if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
+    if (IsBceMarker(sortedRhoPreMu[index].w))
         return;
 
     Real3 posRadA = mR3(sortedPosRad[index]);
@@ -1117,7 +1427,6 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     Real4 rhoPresMuA = sortedRhoPreMu[index];
     Real3 TauXxYyZzA = sortedTauXxYyZz[index];
     Real3 TauXyXzYzA = sortedTauXyXzYz[index];
-    Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.h;
     Real4 derivVelRho = mR4(0.0);
     Real3 deltaV = mR3(0.0);
 
@@ -1202,30 +1511,6 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         Real3 velMasB = sortedVelMas[j];
         Real3 TauXxYyZzB = sortedTauXxYyZz[j];
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
-
-        // TODO: Might need to eliminate this double application of ADAMI BC based on what Wei says
-        if (IsBceMarker(rhoPresMuB.w)) {
-            Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
-            Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
-            Real dA = SuppRadii * (2.0 * chi_A - 1.0);
-            Real dB = SuppRadii * (2.0 * chi_B - 1.0);
-
-            int predicateA = (dA < 0.0);
-            dA = predicateA ? 0.01 * SuppRadii : dA;
-
-            int predicateB = (dB < 0.0);
-            dB = predicateB ? 0.01 * SuppRadii : dB;
-
-            Real dAB = dB / dA;
-
-            // Use predication to avoid branching
-            int predicateAB = (dAB > 0.5);
-            dAB = predicateAB ? 0.5 : dAB;
-
-            Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
-
-            velMasB = velMasB_new;
-        }
 
         // Correct the kernel function gradient
         Real w_AB = W3h(d, paramsD.ooh);
@@ -1547,23 +1832,33 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
          int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
         neighborSearch();
 
-    thrust::device_vector<Real3> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
-    // Calculate the kernel support of each particle
-    calcKernelSupport<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(sortedKernelSupport),
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), U1CAST(m_data_mgr.numNeighborsPerPart),
-        U1CAST(m_data_mgr.neighborList), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
-
-    updateBoundaryPres<<<numBlocks, numThreads>>>(
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
-        mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "updateBoundaryPres");
-
     // Execute the kernel
     if (m_data_mgr.paramsH->elastic_SPH) {  // For granular material
+        if (m_data_mgr.paramsH->boundary_type == BoundaryType::ADAMI) {
+            Boundary_Elastic_Adami<<<numBlocks, numThreads>>>(
+                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
+                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc),
+                mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(m_sortedSphMarkers_D->velMasD),
+                mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
+            cudaCheckErrorFlag(error_flagD, "Boundary_ElasticSPH_Adami");
+        } else {
+            thrust::device_vector<Real2> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
+            // Calculate the kernel support of each particle
+            calcKernelSupport<<<numBlocks, numThreads>>>(
+                mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+            cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
+            // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
+            Boundary_Elastic_Holmes<<<numBlocks, numThreads>>>(
+                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
+                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR2CAST(sortedKernelSupport),
+                mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+                mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
+                mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
+            cudaCheckErrorFlag(error_flagD, "Boundary_ElasticSPH_Holmes");
+        }
+
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         NS_SSR<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.activityIdentifierD), mR4CAST(m_sortedSphMarkers_D->posRadD),
@@ -1571,9 +1866,32 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
             mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD),
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(m_data_mgr.derivVelRhoD),
             mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
-            mR3CAST(sortedKernelSupport), U1CAST(m_data_mgr.freeSurfaceIdD), error_flagD);
+            U1CAST(m_data_mgr.freeSurfaceIdD), error_flagD);
         cudaCheckErrorFlag(error_flagD, "NS_SSR");
+
     } else {  // For fluid
+        if (m_data_mgr.paramsH->boundary_type == BoundaryType::ADAMI) {
+            Boundary_NavierStokes_Adami<<<numBlocks, numThreads>>>(
+                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
+                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc),
+                mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(m_sortedSphMarkers_D->velMasD), error_flagD);
+            cudaCheckErrorFlag(error_flagD, "Boundary_NavierStokes_Adami");
+        } else {
+            thrust::device_vector<Real2> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
+            // Calculate the kernel support of each particle
+            calcKernelSupport<<<numBlocks, numThreads>>>(
+                mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+            cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
+            // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
+            Boundary_NavierStokes_Holmes<<<numBlocks, numThreads>>>(
+                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
+                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR2CAST(sortedKernelSupport),
+                mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+                mR3CAST(m_sortedSphMarkers_D->velMasD), error_flagD);
+            cudaCheckErrorFlag(error_flagD, "Boundary_NavierStokes_Holmes");
+        }
 
         // Find the index which is related to the wall boundary particle
         thrust::device_vector<uint> indexOfIndex(m_data_mgr.countersH->numAllMarkers);
@@ -1591,8 +1909,6 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
         cudaCheckErrorFlag(error_flagD, "Navier_Stokes");
     }
-
-    sortedKernelSupport.clear();
 
     cudaFreeErrorFlag(error_flagD);
 }
