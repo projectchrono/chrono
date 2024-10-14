@@ -610,7 +610,7 @@ __device__ inline Real4 DifVelocityRho(Real3 dist3,
 
     Real3 derivV;
     switch (paramsD.viscosity_type) {
-        case ViscosityType::ARTIFICIAL: {
+        case ViscosityType::ARTIFICIAL_UNILATERAL: {
             //  pressure component
             derivV = -paramsD.markerMass *
                      (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
@@ -710,7 +710,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
     Real derivM1 = 0.0;
     Real vAB_rAB = dot(velMasA - velMasB, dist3);
     switch (paramsD.viscosity_type) {
-        case ViscosityType::ARTIFICIAL: {
+        case ViscosityType::ARTIFICIAL_UNILATERAL: {
             // Artificial Viscosity from Monaghan 1997
             // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
             if (vAB_rAB < 0.0) {
@@ -720,7 +720,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real W_ini_inv,
 
             break;
         }
-        case ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION: {
+        case ViscosityType::ARTIFICIAL_BILATERAL: {
             // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
             // Here there is viscous force added even during the seperation phase - makes the simulation more stable
             Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
@@ -1322,78 +1322,6 @@ __global__ void Boundary_Elastic_Adami(const uint* activityIdentifierD,
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void updateBoundaryPres(const uint* activityIdentifierD,
-                                   const uint* numNeighborsPerPart,
-                                   const uint* neighborList,
-                                   const Real4* sortedPosRadD,
-                                   Real3* bceAcc,
-                                   Real4* sortedRhoPresMuD,
-                                   Real3* sortedVelMasD,
-                                   Real3* sortedTauXxYyZz,
-                                   Real3* sortedTauXyXzYz,
-                                   volatile bool* error_flag) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
-        return;
-
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
-
-    // Ignore all fluid particles
-    if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
-        return;
-    }
-
-    Real3 posRadA = mR3(sortedPosRadD[index]);
-    uint NLStart = numNeighborsPerPart[index];
-    uint NLEnd = numNeighborsPerPart[index + 1];
-    Real sum_pw = 0.0f;
-    Real3 sum_rhorw = mR3(0.0);
-    Real sum_w = 0.0f;
-    Real3 sum_vw = mR3(0.0);
-    Real3 sum_tauD = mR3(0.0);
-    Real3 sum_tauO = mR3(0.0);
-
-    for (int n = NLStart + 1; n < NLEnd; n++) {
-        uint j = neighborList[n];
-
-        // only consider fluid neighbors
-        if (IsBceMarker(sortedRhoPresMuD[j].w)) {
-            continue;
-        }
-
-        Real3 posRadB = mR3(sortedPosRadD[j]);
-        Real3 rij = Distance(posRadA, posRadB);
-        Real d = length(rij);
-        Real W3 = W3h(d, paramsD.ooh);
-        sum_w += W3;
-        sum_pw += sortedRhoPresMuD[j].y * W3;
-        sum_rhorw += sortedRhoPresMuD[j].x * rij * W3;
-        sum_vw += sortedVelMasD[j] * W3;
-        sum_tauD += sortedTauXxYyZz[j] * W3;
-        sum_tauO += sortedTauXyXzYz[j] * W3;
-    }
-
-    if (sum_w > EPSILON) {
-        sortedRhoPresMuD[index].y = (sum_pw + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
-        sortedRhoPresMuD[index].x = InvEos(sortedRhoPresMuD[index].y, paramsD.eos_type);
-
-        // Applies ADAMI only to Rigid/Flexible markers
-        Real3 prescribedVel = (IsBceSolidMarker(sortedRhoPresMuD[index].w)) ? (2.0f * sortedVelMasD[index]) : mR3(0.0);
-        // prescribedVel = 2.0f * sortedVelMasD[index];
-
-        sortedVelMasD[index] = prescribedVel - sum_vw / sum_w;
-        sortedTauXxYyZz[index] = (sum_tauD + dot(paramsD.gravity - bceAcc[index], sum_rhorw)) / sum_w;
-        sortedTauXyXzYz[index] = sum_tauO / sum_w;
-    } else {
-        sortedRhoPresMuD[index].y = 0.0f;
-        sortedVelMasD[index] = mR3(0.0);
-        sortedTauXxYyZz[index] = mR3(0.0);
-        sortedTauXyXzYz[index] = mR3(0.0);
-    }
-}
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void NS_SSR(const uint* activityIdentifierD,
                        const Real4* sortedPosRad,

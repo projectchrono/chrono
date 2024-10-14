@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 8.0;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
     sph_params.boundary_type = BoundaryType::ADAMI;
     sph_params.artificial_viscosity = 0.03;
     sph_params.eos_type = EosType::TAIT;

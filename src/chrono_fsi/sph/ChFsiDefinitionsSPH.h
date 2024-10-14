@@ -84,7 +84,7 @@ enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 
 /// Visosity method type.
-enum class ViscosityType { LAMINAR, ARTIFICIAL, ARTIFICIAL_OPPOSE_SEPARATION };
+enum class ViscosityType { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
 
 /// Boundary type.
 enum class BoundaryType { ADAMI, HOLMES };
