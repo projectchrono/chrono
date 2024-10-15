@@ -371,7 +371,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    #ifdef CHRONO_POSTPROCESS
+#ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/wave_fun.gpl");
     gplot.SetGrid();
     std::string speed_title = "Wave function";
@@ -379,35 +379,35 @@ int main(int argc, char* argv[]) {
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("height (m)");
     gplot.Plot(*fun, 0, 5, 0.02, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
-    #endif
+#endif
 
-    ////fsi.SaveInitialMarkers(out_dir);
+////fsi.SaveInitialMarkers(out_dir);
 
-    // Create a run-time visualizer
-    #ifndef CHRONO_OPENGL
+// Create a run-time visualizer
+#ifndef CHRONO_OPENGL
     if (vis_type == ChVisualSystem::Type::OpenGL)
         vis_type = ChVisualSystem::Type::VSG;
-    #endif
-    #ifndef CHRONO_VSG
+#endif
+#ifndef CHRONO_VSG
     if (vis_type == ChVisualSystem::Type::VSG)
         vis_type = ChVisualSystem::Type::OpenGL;
-    #endif
-    #if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+#endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
     render = false;
-    #endif
+#endif
 
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
-    #ifdef CHRONO_OPENGL
+#ifdef CHRONO_OPENGL
                 visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-    #endif
+#endif
                 break;
             case ChVisualSystem::Type::VSG: {
-    #ifdef CHRONO_VSG
+#ifdef CHRONO_VSG
                 visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-    #endif
+#endif
                 break;
             }
         }
