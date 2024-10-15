@@ -863,7 +863,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ChVectorDynamic<> applied_forces;  ///< system-wide vector of applied forces (lazy evaluation)
     bool applied_forces_current;       ///< indicates if system-wide vector of forces is up-to-date
 
-    bool limit_residuals_Mv_F_to_domain; // if true, LoadResidual_F and LoadResidual_Mv will call LoadResidual_F_domain and LoadResidual_Mv_domain instead.
+    bool limit_residuals_Mv_F_to_domain = false; // if true, LoadResidual_F and LoadResidual_Mv will call LoadResidual_F_domain and LoadResidual_Mv_domain instead.
     ChOverlapTest* overlap_domain_test = nullptr;
 
     // Friend class declarations
