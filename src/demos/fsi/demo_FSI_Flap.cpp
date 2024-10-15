@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Radu Serban
+// Author: Luning Bakke, Radu Serban
 // =============================================================================
 
 #include <cassert>
@@ -47,6 +47,23 @@ using std::endl;
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
+// Final simulation time
+double t_end = 20.0;
+
+// Position and dimensions of WEC device
+ChVector3d wec_pos(-2.9875, 0, -0.1);
+ChVector3d wec_size(0.225, 0.975, 1.2);
+double wec_density = 500;
+
+// Container dimensions
+ChVector3d csize(12, 1.25, 1.8);
+
+// Beach start location
+double x_start = 8;
+
+// Fluid depth
+double depth = 1.3;
+
 // Output directories and settings
 std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach_test";
 
@@ -54,14 +71,8 @@ std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach_test";
 bool output = true;
 double output_fps = 10;
 
-double wec_density = 500;
-
-
-// Final simulation time
-double t_end = 20.0;
-
 // Enable/disable run-time visualization
-bool render = true;
+bool render = false;
 float render_fps = 200;
 
 // Enable saving snapshots
@@ -70,30 +81,19 @@ bool snapshots = false;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_boundary_bce = false;
+bool show_boundary_bce = true;
 bool show_particles_sph = true;
 
 // Size of initial volume of SPH fluid
 // wec location
-//ChVector3d wec_pos(-2.9875, -0.0125, -0.1);
+// ChVector3d wec_pos(-2.9875, -0.0125, -0.1);
 //// Size of the baffles
-//ChVector3d wec_size(0.225, 0.975, 1.2);
-//ChVector3d fsize(12, 1.25, 1.3);  // fluid slightly higher than the flap.
+// ChVector3d wec_size(0.225, 0.975, 1.2);
+// ChVector3d fsize(12, 1.25, 1.3);  // fluid slightly higher than the flap.
 //// Container dimensions
-//ChVector3d csize(12, 1.25, 1.8);
-
-
-// use this set of parameters for fast testing
-ChVector3d wec_pos(-1.5875, -0.0125, -0.1);
-// Size of the baffles
-ChVector3d wec_size(0.225, 0.45, 1.2);
-ChVector3d fsize(6, 0.6, 1.3);  // fluid slightly higher than the flap.
-// Container dimensions
-ChVector3d csize(6, 0.6, 1.8);
-
+// ChVector3d csize(12, 1.25, 1.8);
 
 // -----------------------------------------------------------------------------
-
 class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
   public:
     PositionVisibilityCallback() {}
@@ -127,7 +127,6 @@ class WaveFunction : public ChFunction {
     double omega;
 };
 
-
 class WaveFunctionDecay : public ChFunction {
   public:
     // stroke s0, period T, with an exponential decay
@@ -137,7 +136,7 @@ class WaveFunctionDecay : public ChFunction {
     virtual WaveFunction* Clone() const override { return new WaveFunction(); }
 
     virtual double GetVal(double t) const override {
-        return 0.5 * s0 * (1 - std::exp(-t / T)) * std::sin(2. * CH_PI / T * t);
+        return 0.5 * s0 * (1 - std::exp(-t * 2 / T)) * std::sin(2. * CH_PI / T * t);
     }
 
   private:
@@ -145,14 +144,92 @@ class WaveFunctionDecay : public ChFunction {
     double T;   // period
 };
 
+// -----------------------------------------------------------------------------
+
+// Wave tank profile for a beach represented as a 4th order Bezier curve.
+class WaveTankBezierBeach : public ChFsiProblemCartesian::WaveTankProfile {
+  public:
+    WaveTankBezierBeach(double x_start) : x_start(x_start), last_t(1e-2) {
+        const double in2m = 0.0254;
+        P0 = in2m * ChVector2d(0, 0);
+        P1 = in2m * ChVector2d(0, 28.77);
+        P2 = in2m * ChVector2d(62.04, 50.83);
+        P3 = in2m * ChVector2d(90.28, 59.26);
+        P4 = in2m * ChVector2d(197.63, 61.19);
+
+        Q0 = 4.0 * (P1 - P0);
+        Q1 = 4.0 * (P2 - P1);
+        Q2 = 4.0 * (P3 - P2);
+        Q3 = 4.0 * (P4 - P3);
+    }
+
+    virtual double operator()(double x) {
+        if (x <= x_start)
+            return 0;
+
+        double xx = x - x_start;
+        if (xx >= P4.x())
+            return P4.y();
+
+        // Find t such that P(t).x = xx (Newton)
+        int N = 10;
+        double tol = 1e-5;
+        double t = last_t;
+        for (int i = 0; i < N; i++) {
+            double f = eval(t, 0) - xx;
+            if (std::abs(f) < tol)
+                break;
+            double fp = eval_der(t, 0);
+            assert(std::abs(fp) > tol);
+            t -= f / fp;
+        }
+        last_t = t;
+
+        // Return h = P(t).y
+        return eval(t, 1);
+    }
+
+  private:
+    // Evaluate Bezier curve at given parameter 0 <= t <= 1 and return specified coordinate.
+    double eval(double t, int i) {
+        double omt = 1 - t;
+        double t2 = t * t;
+        double t3 = t * t2;
+        double t4 = t2 * t2;
+        double omt2 = omt * omt;
+        double omt3 = omt2 * omt;
+        double omt4 = omt2 * omt2;
+        return omt4 * P0[i] + 4 * t * omt3 * P1[i] + 6 * t2 * omt2 * P2[i] + 4 * t3 * omt * P3[i] + t4 * P4[i];
+    }
+
+    // Evaluate Bezier curve derivative at given parameter 0 <= t <= 1 and return specified coordinate.
+    double eval_der(double t, int i) {
+        double omt = 1 - t;
+        double t2 = t * t;
+        double t3 = t * t2;
+        double omt2 = omt * omt;
+        double omt3 = omt2 * omt;
+        return omt3 * Q0[i] + 3 * t * omt2 * Q1[i] + 3 * t2 * omt * Q2[i] + t3 * Q3[i];
+    }
+
+    ChVector2d P0;
+    ChVector2d P1;
+    ChVector2d P2;
+    ChVector2d P3;
+    ChVector2d P4;
+
+    ChVector2d Q0;
+    ChVector2d Q1;
+    ChVector2d Q2;
+    ChVector2d Q3;
+
+    double x_start;
+    double last_t;
+};
 
 // -----------------------------------------------------------------------------
 
-void CreateFlap(ChFsiProblemSPH& fsi) {
-
-
-
-
+std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi) {
     ChSystem& sysMBS = fsi.GetSystyemMBS();
 
     // Common contact material and geometry
@@ -163,7 +240,8 @@ void CreateFlap(ChFsiProblemSPH& fsi) {
 
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(cmat);
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0.5 * wec_size.z()), QUNIT, wec_size, 0));
+    geometry.coll_boxes.push_back(
+        utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0.5 * wec_size.z()), QUNIT, wec_size, 0));
 
     auto flap = chrono_types::make_shared<ChBody>();
     flap->SetPos(wec_pos);
@@ -172,18 +250,18 @@ void CreateFlap(ChFsiProblemSPH& fsi) {
 
     double wec_volume = wec_size.x() * wec_size.y() * wec_size.z();
 
-
-    double wec_mass = wec_volume * wec_density;    
+    double wec_mass = wec_volume * wec_density;
     flap->SetMass(wec_mass);
-    flap->SetInertiaXX(ChVector3d(0.5 * wec_mass * wec_size.y() * wec_size.y(), 0.5 * wec_mass * wec_size.z() * wec_size.z(),
-        					   0.5 * wec_mass * wec_size.y() * wec_size.y()));
+    flap->SetInertiaXX(ChVector3d(0.5 * wec_mass * wec_size.y() * wec_size.y(),
+                                  0.5 * wec_mass * wec_size.z() * wec_size.z(),
+                                  0.5 * wec_mass * wec_size.y() * wec_size.y()));
 
     sysMBS.AddBody(flap);
     if (show_rigid)
         geometry.CreateVisualizationAssets(flap, VisualizationType::COLLISION);
     fsi.AddRigidBody(flap, geometry, true, true);
 
-    // add ground 
+    // add ground
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     ground->SetMass(2 * wec_mass);
@@ -195,8 +273,10 @@ void CreateFlap(ChFsiProblemSPH& fsi) {
     revolute->Initialize(ground, flap, ChFrame<>(wec_pos, Q_ROTATE_Z_TO_Y));
     sysMBS.AddLink(revolute);
 
-
+    return revolute;
 }
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.05;
@@ -232,7 +312,7 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 8;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    //sph_params.density_reinit_steps = 800;
+    // sph_params.density_reinit_steps = 800;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
@@ -243,31 +323,23 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHParameters(sph_params);
     sysFSI.SetStepSizeCFD(step_size);
     sysFSI.SetStepsizeMBD(step_size);
-    sysSPH.SetNumBCELayers(3);
+    sysSPH.SetNumBCELayers(5);
+
+    // Create WEC device
+    auto revolute = CreateFlap(fsi);
 
     // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(
-        chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fsize.z()));
-
-    // Create SPH material (do not create boundary BCEs)
-    fsi.Construct(fsize,         // length x width x depth
-                  ChVector3d(0, 0, 0)  // position of bottom origin
-    );
-
-    // Create a piston wavemaker mechanism
-    //double fun_amp = 0.2;
-    //double freq = 1.0;
-    //auto fun = chrono_types::make_shared<WaveFunction>(0.05, fun_amp, freq);
-    //fsi.AddWaveMaker(ChFsiProblem::WavemakerType::PISTON, csize, ChVector3d(0, 0, 0), fun);
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, depth));
 
     // Create a wave tank
     double stroke = 0.1;
     double period = 2;
     auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, period);
-    auto body =
-        fsi.AddWaveMakerWithBeach(ChFsiProblemSPH::WavemakerType::PISTON, csize, fsize, ChVector3d(0, 0, 0), fun);
 
-
+    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                           //
+                                      ChVector3d(0, 0, 0), csize, depth,                                //
+                                      fun,                                                              //
+                                      chrono_types::make_shared<WaveTankBezierBeach>(x_start), false);  //
 
     // Initialize the FSI system
     fsi.Initialize();
@@ -299,41 +371,43 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ////postprocess::ChGnuPlot gplot(out_dir + "/wave_fun.gpl");
-    ////gplot.SetGrid();
-    ////std::string speed_title = "Wave function";
-    ////gplot.SetTitle(speed_title);
-    ////gplot.SetLabelX("time (s)");
-    ////gplot.SetLabelY("height (m)");
-    ////gplot.Plot(*fun, 0, 5, 0.02, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+    #ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/wave_fun.gpl");
+    gplot.SetGrid();
+    std::string speed_title = "Wave function";
+    gplot.SetTitle(speed_title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("height (m)");
+    gplot.Plot(*fun, 0, 5, 0.02, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+    #endif
 
     ////fsi.SaveInitialMarkers(out_dir);
 
     // Create a run-time visualizer
-#ifndef CHRONO_OPENGL
+    #ifndef CHRONO_OPENGL
     if (vis_type == ChVisualSystem::Type::OpenGL)
         vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
+    #endif
+    #ifndef CHRONO_VSG
     if (vis_type == ChVisualSystem::Type::VSG)
         vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    #endif
+    #if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
     render = false;
-#endif
+    #endif
 
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
+    #ifdef CHRONO_OPENGL
                 visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
+    #endif
                 break;
             case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
+    #ifdef CHRONO_VSG
                 visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
+    #endif
                 break;
             }
         }
@@ -343,7 +417,7 @@ int main(int argc, char* argv[]) {
 
         visFSI->SetTitle("Chrono::FSI Flap");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, -4 * fsize.y(), fsize.z()), ChVector3d(0, 0, 0.5 * fsize.z()));
+        visFSI->AddCamera(wec_pos + ChVector3d(0, -9 * csize.y(), 0), wec_pos);
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
@@ -393,7 +467,7 @@ int main(int argc, char* argv[]) {
 
         // Call the FSI solver
         sysFSI.DoStepDynamics(step_size);
-        
+
         time += step_size;
         sim_frame++;
     }

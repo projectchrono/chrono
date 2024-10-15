@@ -19,6 +19,7 @@
 #ifndef CH_FSI_PROBLEM_SPH_H
 #define CH_FSI_PROBLEM_SPH_H
 
+#include <cmath>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -131,7 +132,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Get limits of computational domain.
     const ChAABB& GetComputationalDomainSize() const { return m_domain_aabb; }
 
-    /// Get limits of SPH volume
+    /// Get limits of SPH volume.
     const ChAABB& GetSPHBoundingBox() const { return m_sph_aabb; }
 
     /// Return the FSI applied force on the specified body (as returned by AddRigidBody).
@@ -233,8 +234,7 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
     void Construct(const ChVector3d& box_size,  ///< box dimensions
                    const ChVector3d& pos,       ///< reference position
                    bool bottom_wall,            ///< create bottom boundary
-
-        bool side_walls              ///< create side boundaries
+                   bool side_walls              ///< create side boundaries
     );
 
     /// Construct SPH particles and optionally BCE markers from a given heightmap.
@@ -258,15 +258,6 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                    bool side_walls                     ///< create side boundaries
     );
 
-    /// Construct SPH particles and the BCE marker boundaries for a wave tank scenario with the beach.
-    /// This is for SPH particles only, and I do not want to create boundary particles yet
-    /// 
-    void Construct(const ChVector3d& box_size,   /// size of the wave tank dimension
-                   const ChVector3d& pos        /// position of the wave tank
-    );  
-
-
-
     /// Add fixed BCE markers, representing a container for the computational domain.
     /// The specified 'box_size' represents the dimensions of the *interior* of the box.
     /// The reference position is the center of the bottom face of the box.
@@ -279,29 +270,35 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                            bool top_wall                ///< create top boundary
     );
 
-    /// Add a rigid-body wavemaker (piston-type or flap-type).
-    std::shared_ptr<ChBody> AddWaveMaker(WavemakerType type,                     ///< wave generator type
-                                         const ChVector3d& box_size,             ///< box dimensions
-                                         const ChVector3d& pos,                  ///< reference position
-                                         std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
-    );
+    /// Interface for callback to specify wave tank profile.
+    class CH_FSI_API WaveTankProfile {
+      public:
+        virtual ~WaveTankProfile() {}
 
-    /// <summary>
-    /// Add a rigid-body wavemaker (piston-type or flap-type) with a beach setup 
-    /// Note that this one I will need the size of the fluid as well to determine the slope 
-    /// </summary>
-    std::shared_ptr<ChBody> AddWaveMakerWithBeach(WavemakerType type,                     ///< wave generator type
-                                                  const ChVector3d& box_size,             ///< box dimensions
-                                                  const ChVector3d& pos,                  ///< reference position
-                                                  const ChVector3d& fluid_dim,            ///< dimension of the fluid
-                                                  std::shared_ptr<ChFunction> piston_fun  ///< piston actuation function
+        /// Set bottom height at specified downstream location (must be non-negative).
+        /// Default implementation corresponds to a tank with horizontal bottom.
+        virtual double operator()(double x) = 0;
+    };
 
+    /// Add a wave tank with a rigid-body wavemaker (piston-type or flap-type).
+    /// The wave tank can include a beach for wave dissipation, by specifying a profile for the bottom.
+    /// By default (no profile functor provided), the tank is created with a flat horizontal bottom.
+    std::shared_ptr<ChBody> ConstructWaveTank(
+        WavemakerType type,                                  ///< wave generator type
+        const ChVector3d& pos,                               ///< reference position
+        const ChVector3d& box_size,                          ///< box dimensions
+        double depth,                                        ///< fluid depth
+        std::shared_ptr<ChFunction> piston_fun,              ///< piston actuation function
+        std::shared_ptr<WaveTankProfile> profile = nullptr,  ///< profile for tank bottom
+        bool end_wall = true                                 ///< include end_wall
     );
 
   private:
     virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
     virtual ChVector3d Grid2Point(const ChVector3i& p) override;
 };
+
+// ----------------------------------------------------------------------------
 
 /// Class to set up a Chrono::FSI problem using particles and markers on a cylindrical coordinates grid.
 class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
@@ -362,6 +359,51 @@ class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::Parti
     double zero_height;
     double gz;
     double c2;
+};
+
+// ----------------------------------------------------------------------------
+
+/// Predefined wave tank profile with a ramp beach.
+/// Defines the tank bottom profile as:
+/// <pre>
+/// h = 0,                   if x < x_start
+/// h = alpha * (x-x_start), if x > x_start
+/// </pre>
+class CH_FSI_API WaveTankRampBeach : public ChFsiProblemCartesian::WaveTankProfile {
+  public:
+    WaveTankRampBeach(double x_start, double alpha) : x_start(x_start), alpha(alpha) {}
+
+    virtual double operator()(double x) {
+        if (x <= x_start)
+            return 0;
+        return alpha * (x - x_start);
+    }
+
+  private:
+    double x_start;
+    double alpha;
+};
+
+/// Predefined wave tank profile with a parabolic beach.
+/// Defines the tank bottom profile as:
+/// <pre>
+/// h = 0,                       if x < x_start
+/// h = alpha * sqrt(x-x_start), if x > x_start
+/// </pre>
+class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemCartesian::WaveTankProfile {
+  public:
+    WaveTankParabolicBeach(double x_start, double alpha) : x_start(x_start), alpha(alpha) {}
+
+    virtual double operator()(double x) {
+        if (x <= x_start)
+            return 0;
+        double xx = x - x_start;
+        return alpha * std::sqrt(xx);
+    }
+
+  private:
+    double x_start;
+    double alpha;
 };
 
 /// @} fsi_physics

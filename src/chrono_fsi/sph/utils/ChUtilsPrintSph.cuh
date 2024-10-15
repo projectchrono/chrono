@@ -37,9 +37,23 @@ namespace sph {
 /// @addtogroup fsi_utils
 /// @{
 
-/// Helper function to save the SPH data into files.
+/// Helper function to save the SPH data into files for Elastic SPH.
 /// When called, this function creates three files to write fluid,
-/// boundary and BCE particles data into files.
+/// boundary and BCE particles data into files- Includes stress if output_length is 2
+void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
+                         const thrust::device_vector<Real3>& velMasD,
+                         const thrust::device_vector<Real4>& rhoPresMuD,
+                         const thrust::device_vector<Real3>& tauXxYyZzD,
+                         const thrust::device_vector<Real3>& tauXyXzYzD,
+                         const thrust::device_vector<Real4>& derivVelRhoD,
+                         const thrust::host_vector<int4>& referenceArray,
+                         const thrust::host_vector<int4>& referenceArrayFEA,
+                         const std::string& dir,
+                         const std::shared_ptr<SimParams>& paramsH);
+
+/// Helper function to save the SPH data into files for Non-Elastic SPH.
+/// When called, this function creates three files to write fluid,
+/// boundary and BCE particles data into files - Includes shear rate if output_length is 2
 void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
                          const thrust::device_vector<Real4>& rhoPresMuD,

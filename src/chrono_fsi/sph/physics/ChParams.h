@@ -127,7 +127,8 @@ struct SimParams {
     bool USE_Delta_SPH;            ///< Use delta SPH
     Real density_delta;            ///< Parameter for delta SPH
     EosType eos_type;              ///< Equation of state type
-    ViscosityType viscosity_type;  ///< Viscosity treatment type, physics-based laminar flow or artificial viscosity
+    ViscosityType viscosity_type;  ///< Viscosity treatment type, physics-based laminar flow or artificial viscosity or
+                                   ///< artificial viscosity that also opposes separation
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 

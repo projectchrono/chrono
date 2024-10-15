@@ -104,8 +104,8 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    // Luning todo: what default values to use here? I'm using old version for easy testing
-    m_paramsH->viscosity_type = ViscosityType::LAMINAR;
+    // Default to artificial viscosity
+    m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
     m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->density_delta = Real(0.1);
     m_paramsH->USE_Delta_SPH = false;
@@ -254,10 +254,12 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
                 m_paramsH->viscosity_type = ViscosityType::LAMINAR;
             else if (type == "Artificial") {
                 m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
+            } else if (type == "Artificial Oppose Separation") {
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION;
             } else {
                 cerr << "Incorrect viscosity type in the JSON file: " << type << endl;
-                cerr << "Falling back to laminar " << endl;
-                m_paramsH->viscosity_type = ViscosityType::LAMINAR;
+                cerr << "Falling back to Artificial " << endl;
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
             }
         }
 
@@ -648,7 +650,7 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      viscosity_type(ViscosityType::LAMINAR),
+      viscosity_type(ViscosityType::ARTIFICIAL),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
@@ -986,6 +988,13 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
     if (m_verbose) {
         cout << "Simulation parameters" << endl;
+        if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION) {
+            cout << "  Viscosity treatment: Artificial Oppose Separation" << endl;
+        } else if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
+            cout << "  Viscosity treatment: Laminar" << endl;
+        } else {
+            cout << "  Viscosity treatment: Artificial" << endl;
+        }
 
         cout << "  num_neighbors: " << m_paramsH->num_neighbors << endl;
         cout << "  rho0: " << m_paramsH->rho0 << endl;
@@ -1143,10 +1152,17 @@ void ChFluidSystemSPH::WriteParticleFile(const std::string& outfilename) const {
 }
 
 void ChFluidSystemSPH::PrintParticleToFile(const std::string& dir) const {
-    sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                             m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sr_tau_I_mu_i_Original,
-                             m_data_mgr->derivVelRhoOriginalD, m_data_mgr->referenceArray,
-                             m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+    if (m_paramsH->elastic_SPH) {
+        sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sphMarkers_D->tauXxYyZzD,
+                                 m_data_mgr->sphMarkers_D->tauXyXzYzD, m_data_mgr->derivVelRhoOriginalD,
+                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+    } else {
+        sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sr_tau_I_mu_i_Original,
+                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->referenceArray,
+                                 m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+    }
 }
 
 void ChFluidSystemSPH::PrintFsiInfoToFile(const std::string& dir, double time) const {
