@@ -32,7 +32,7 @@ SET(ChronoEngine_MULTIDOMAIN_SOURCES
     ChDomainManagerMPI.cpp
     ChSystemDescriptorMultidomain.cpp
     ChSolverPSORmultidomain.cpp
-    ChSystemMultidomain.cpp
+    #ChSystemMultidomain.cpp
     ChMpi.cpp
 )
 
@@ -43,7 +43,7 @@ SET(ChronoEngine_MULTIDOMAIN_HEADERS
     ChDomainManagerMPI.h
     ChSystemDescriptorMultidomain.h
     ChSolverPSORmultidomain.h
-    ChSystemMultidomain.h
+    #ChSystemMultidomain.h
     ChMpi.h
 )
 
