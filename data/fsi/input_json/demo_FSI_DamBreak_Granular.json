@@ -17,7 +17,8 @@
     "Shifting Coefficient": 1.0,
     "Density Reinitialization": 1000,
     "Time steps per proximity search": 1,
-    "Viscosity Treatment Type": "Artificial Oppose Separation",
+    "Viscosity Treatment Type": "Artificial Bilateral",
+    "Boundary Treatment Type": "Holmes",
     "Artificial viscosity alpha": 0.5
   },
   "Time Stepping": {

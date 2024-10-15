@@ -105,7 +105,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->USE_Consistent_G = false;
 
     // Default to artificial viscosity
-    m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
+    m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
     m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->density_delta = Real(0.1);
     m_paramsH->USE_Delta_SPH = false;
@@ -246,20 +246,33 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
 
+        if (doc["SPH Parameters"].HasMember("Boundary Treatment Type")) {
+            std::string type = doc["SPH Parameters"]["Boundary Treatment Type"].GetString();
+            if (type == "Adami")
+                m_paramsH->boundary_type = BoundaryType::ADAMI;
+            else if (type == "Holmes")
+                m_paramsH->boundary_type = BoundaryType::HOLMES;
+            else {
+                cerr << "Incorrect boundary treatment type in the JSON file: " << type << endl;
+                cerr << "Falling back to Adami " << endl;
+                m_paramsH->boundary_type = BoundaryType::ADAMI;
+            }
+        }
+
         if (doc["SPH Parameters"].HasMember("Viscosity Treatment Type")) {
             std::string type = doc["SPH Parameters"]["Viscosity Treatment Type"].GetString();
             if (m_verbose)
                 cout << "viscosity treatment is : " << type << endl;
             if (type == "Laminar")
                 m_paramsH->viscosity_type = ViscosityType::LAMINAR;
-            else if (type == "Artificial") {
-                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
-            } else if (type == "Artificial Oppose Separation") {
-                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION;
+            else if (type == "Artificial Unilateral") {
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+            } else if (type == "Artificial Bilateral") {
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
             } else {
                 cerr << "Incorrect viscosity type in the JSON file: " << type << endl;
-                cerr << "Falling back to Artificial " << endl;
-                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL;
+                cerr << "Falling back to Artificial Unilateral Viscosity" << endl;
+                m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
             }
         }
 
@@ -650,7 +663,8 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       num_bce_layers(3),
       consistent_gradient_discretization(false),
       consistent_laplacian_discretization(false),
-      viscosity_type(ViscosityType::ARTIFICIAL),
+      viscosity_type(ViscosityType::ARTIFICIAL_UNILATERAL),
+      boundary_type(BoundaryType::ADAMI),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
@@ -681,6 +695,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
     m_paramsH->viscosity_type = sph_params.viscosity_type;
+    m_paramsH->boundary_type = sph_params.boundary_type;
     m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
     m_paramsH->eos_type = sph_params.eos_type;
     m_paramsH->USE_Delta_SPH = sph_params.use_delta_sph;
@@ -988,12 +1003,19 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
     if (m_verbose) {
         cout << "Simulation parameters" << endl;
-        if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION) {
-            cout << "  Viscosity treatment: Artificial Oppose Separation" << endl;
+        if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
+            cout << "  Viscosity treatment: Artificial Bilateral" << endl;
         } else if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
             cout << "  Viscosity treatment: Laminar" << endl;
         } else {
-            cout << "  Viscosity treatment: Artificial" << endl;
+            cout << "  Viscosity treatment: Artificial Unilateral" << endl;
+        }
+        if (m_paramsH->boundary_type == BoundaryType::ADAMI) {
+            cout << "  Boundary treatment: Adami" << endl;
+        } else if (m_paramsH->boundary_type == BoundaryType::HOLMES) {
+            cout << "  Boundary treatment: Holmes" << endl;
+        } else {
+            cout << "  Boundary treatment: Adami" << endl;
         }
 
         cout << "  num_neighbors: " << m_paramsH->num_neighbors << endl;

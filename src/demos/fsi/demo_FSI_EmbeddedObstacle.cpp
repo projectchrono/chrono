@@ -136,7 +136,8 @@ int main(int argc, char* argv[]) {
     sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_OPPOSE_SEPARATION;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_type = BoundaryType::HOLMES;
     sysSPH.SetSPHParameters(sph_params);
 
     // Create a rigid body

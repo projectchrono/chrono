@@ -221,7 +221,8 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+    sph_params.boundary_type = BoundaryType::ADAMI;
     sph_params.artificial_viscosity = 0.02;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
@@ -240,10 +241,10 @@ int main(int argc, char* argv[]) {
     ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
     ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
     ////                                  fun);                                                                      //
-    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
-                                      ChVector3d(0, 0, 0), csize, depth,                                         //
-                                      fun,                                                                       //
-                                      chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), false);        //
+    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                              //
+                                      ChVector3d(0, 0, 0), csize, depth,                                   //
+                                      fun,                                                                 //
+                                      chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), false);  //
     ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
     ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
     ////                                  fun,                                                                       //
