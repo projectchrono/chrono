@@ -85,13 +85,13 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.GetSolver()->AsIterative()->SetMaxIterations(5);
-
+    
     domain_manager.SetDomain(domain_builder.BuildDomain(
                                         &sys, // physical system of this domain
                                         domain_manager.GetMPIrank()     // rank of this domain 
                                        ));
-
+    sys.GetSolver()->AsIterative()->SetMaxIterations(5);
+    sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
  
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 

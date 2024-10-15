@@ -84,21 +84,24 @@ int main(int argc, char* argv[]) {
 
     ChSystemNSC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys_0.GetSolver()->AsIterative()->SetMaxIterations(25);
-
+    
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_0, // physical system of this domain
                                         0       // rank of this domain 
                                        ));
+    sys_0.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
+
 
     ChSystemNSC sys_1;
     sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys_1.GetSolver()->AsIterative()->SetMaxIterations(25);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_1, // physical system of this domain
                                         1       // rank of this domain 
                                        ));
+    sys_1.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys_1.GetSolver()->AsIterative()->SetTolerance(1e-6);
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
     // - Each "node" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
