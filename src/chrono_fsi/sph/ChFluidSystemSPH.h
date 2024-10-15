@@ -188,6 +188,12 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set the FSI system output mode (default: NONE).
     void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
 
+    /// Set boundary type
+    void SetBoundaryType(BoundaryType boundary_type) { m_paramsH->boundary_type = boundary_type; }
+
+    /// Set viscosity type
+    void SetViscosityType(ViscosityType viscosity_type) { m_paramsH->viscosity_type = viscosity_type; }
+
     /// Initialize the SPH fluid system with FSI support.
     virtual void Initialize(unsigned int num_fsi_bodies,
                             unsigned int num_fsi_nodes1D,
@@ -268,6 +274,12 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Return the SPH particle fluid properties.
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
+
+    /// Return the boundary type
+    BoundaryType GetBoundaryType() const { return m_paramsH->boundary_type; }
+
+    /// Return the viscosity type
+    ViscosityType GetViscosityType() const { return m_paramsH->viscosity_type; }
 
     /// Write FSI system particle output.
     void WriteParticleFile(const std::string& outfilename) const;

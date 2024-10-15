@@ -143,7 +143,9 @@ bool GetProblemSpecs(int argc,
                      bool& render,
                      double& render_fps,
                      bool& snapshots,
-                     int& ps_freq) {
+                     int& ps_freq,
+                     std::string& boundary_type,
+                     std::string& viscosity_type) {
     ChCLI cli(argv[0], "Baffle Flow FSI demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -157,6 +159,11 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    // options for boundary condition and viscosity type
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
+                               "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -174,6 +181,9 @@ bool GetProblemSpecs(int argc,
     render_fps = cli.GetAsType<double>("render_fps");
 
     ps_freq = cli.GetAsType<int>("ps_freq");
+
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
 
     return true;
 }
@@ -193,7 +203,10 @@ int main(int argc, char* argv[]) {
     double render_fps = 300;
     bool snapshots = false;
     int ps_freq = 1;
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
+                         boundary_type, viscosity_type)) {
         return 1;
     }
 
@@ -242,8 +255,20 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_coefficient = 1.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+
+    // Set boundary type
+    if (boundary_type == "holmes") {
+        sph_params.boundary_type = BoundaryType::HOLMES;
+    } else {
+        sph_params.boundary_type = BoundaryType::ADAMI;
+    }
+
+    // Set viscosity type
+    if (viscosity_type == "artificial_bilateral") {
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    } else {
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+    }
 
     sysSPH.SetSPHParameters(sph_params);
 
@@ -285,7 +310,8 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow" + std::to_string(ps_freq);
+    std::string out_dir =
+        GetChronoOutputPath() + "FSI_Baffle_Flow_" + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
 
     if (output || snapshots) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
