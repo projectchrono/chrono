@@ -237,14 +237,16 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     );
 
    */
-    /// Compute the dot product of a vector (in multidomain mode, using MPI_AllReduce)
+    /// Compute the GLOBAL dot product of a vector (in multidomain mode, using MPI_AllReduce)
     /// Here we assume that avector and bvector are the domain-sliced parts of the entire vectors.
     virtual double Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector);
 
-    /// Compute the norm of a vector (in multidomain mode, using MPI_AllReduce)
+    /// Compute the GLOBAL norm of a vector (in multidomain mode, using MPI_AllReduce)
     /// Here we assume that avector is the domain-sliced part of the entire vectors.
     virtual double Vnorm(const ChVectorDynamic<>& avector);
 
+    /// Compute the GLOBAL max among values (in multidomain mode, using MPI_AllReduce)
+    virtual double globalMax(const double val);
     /*
 
     // LOGGING/OUTPUT/ETC.

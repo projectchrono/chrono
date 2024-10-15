@@ -63,7 +63,12 @@ double ChSystemDescriptorMultidomain::Vnorm(const ChVectorDynamic<>& avector) {
     return sqrt(result);
 }
 
-
+double ChSystemDescriptorMultidomain::globalMax(const double val) {
+    double global_maxviolation = 0;
+    this->domain_manager->ReduceAll(this->domain->GetRank(), val, global_maxviolation,
+        chrono::multidomain::ChDomainManager::eCh_domainsReduceOperation::max);
+    return global_maxviolation;
+}
 
 
 

@@ -215,11 +215,13 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
         m_iterations++;
 
         // Terminate the loop if violation in constraints has been successfully limited. 
-        // **NO** there is a multidomain barrier below, so all nodes must run same number of iterations. 
-        // **TODO** a global flag so that if all domain converged in iterations, stop all together, before m_max_iterations
         
-        //if (maxviolation < m_tolerance)
-        //  break;
+        // MULTIDOMAIN******************
+        // The violation must be the global violation, not per-domain violation. so it is the same for all domains
+        // and they terminate all together. This requires a barrier for a reduction, though...
+        double global_maxviolation = descriptor.globalMax(maxviolation);
+        if (global_maxviolation < m_tolerance)
+          break;
 
         // MULTIDOMAIN******************
         // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
