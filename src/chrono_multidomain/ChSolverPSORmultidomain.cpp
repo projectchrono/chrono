@@ -41,7 +41,7 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
 
     // MULTIDOMAIN******************
     // aux data for multidomain
-    descriptor.SharedStatesToZero();
+    descriptor.SharedVectsToZero();
 
     // 1)  Update auxiliary data in all constraints before starting,
     //     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'

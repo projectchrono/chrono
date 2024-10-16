@@ -17,7 +17,6 @@
 
 #include "chrono/solver/ChIterativeSolverVI.h"
 #include "chrono_multidomain/ChApiMultiDomain.h"
-#include "chrono_multidomain/ChDomainManager.h"
 
 namespace chrono {
 namespace multidomain {
