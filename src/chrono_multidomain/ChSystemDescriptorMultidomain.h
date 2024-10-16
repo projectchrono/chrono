@@ -247,6 +247,34 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
     /// Compute the GLOBAL max among values (in multidomain mode, using MPI_AllReduce)
     virtual double globalMax(const double val);
+
+    /// Performs the product of N, the Schur complement of the KKT matrix, 
+    /// at the global level considering all the domains. The M,N,Cq,E from 
+    /// this domain are considered sub-matrices of the global problem; output vector
+    /// "result" is assumed a domain-relative slice of result of the global problem.
+    /// <pre>
+    ///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
+    /// </pre>
+    /// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
+    /// operation, so it may happen that you need to backup them via FromVariablesToVector()
+    /// NOTE! currently this function does NOT support the cases that use also ChKRMBlock
+    virtual void globalSchurComplementProduct(
+        ChVectorDynamic<>& result,            ///< result of  N * l_i
+        const ChVectorDynamic<>& lvector,     ///< vector to be multiplied
+        std::vector<bool>* enabled = nullptr  ///< optional: vector of "enabled" flags, one per scalar constraint.
+    );
+
+    /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}
+    /// at the global level. The M,N,Cq,E from this domain are considered sub-matrices of 
+    /// the global problem; output vector "result" is assumed a domain-relative slice of 
+    /// result of the global problem.
+    /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
+    /// operation, so thay may need to be backed up via FromVariablesToVector()
+    virtual void globalSystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
+        const ChVectorDynamic<>& x  ///< vector to be multiplied
+    );
+
+
     /*
 
     // LOGGING/OUTPUT/ETC.
@@ -349,18 +377,38 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     bool freeze_count;         ///< cache the number of active variables and constraints
     */
 
-    // Set vectors of shared_states to zero. Each interface of domain has a vector. 
-    virtual void SharedStatesToZero();
 
-    // Set vectors of shared_states to the current variables State() value. 
-    virtual void SharedStatesSyncToCurrentDomainStates();
+    // MULTIDOMAIN-SPECIFIC FUNCTIONS
+    
 
-    // SEND the delta ((current variables State) - (last shared_states)) to the neighbouring domains, 
+    // Set vectors of shared_vects to zero. Each interface of domain has a vector. 
+    virtual void SharedVectsToZero();
+
+    // Set vectors of shared_vects to the current variables State() value. 
+    virtual void SharedVectsSyncToCurrentDomainStates();
+
+    // SEND the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
     // where the delta is ADDED to the corresponding variables State(). 
     // This operation requires a network-expensive SEND and RECEIVE operation.
     // It is expected that all domains will execute this operation, otherwise deadlock.
-    // Finally, set vectors of shared_states to the current variables State() value.
+    // Finally, set vectors of shared_vects to the current variables State() value.
     virtual void SharedStatesDeltaAddToMultidomainAndSync();
+
+    // Takes a vector vect and spreads it the vectors of this->shared_vects, depending on the
+    // offsets of shared variables of this domain.
+    virtual void SharedVectsFromDomainVector(const ChVectorDynamic<>& vect);
+
+    // Writes vectors of this->shared_vects into corresponding slots of vector vect, depending on the
+    // offsets of shared variables of this domain.
+    virtual void SharedVectsToDomainVector(ChVectorDynamic<>& vect);
+
+    // The current shared vectors in shared_vects are summed across all domains, 
+    // with contributions from all the interfaces. Results overwritten in shared_vects.
+    // This operation requires a network-expensive SEND and RECEIVE operation.
+    virtual void SharedVectsSum();
+
+    
+
 
     /// Get domain
     std::shared_ptr<ChDomain> GetDomain() { return domain; }
@@ -372,7 +420,7 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     std::shared_ptr<ChDomain> domain;
     ChDomainManager* domain_manager = nullptr;
 
-    std::unordered_map<int, ChVectorDynamic<>> shared_states;
+    std::unordered_map<int, ChVectorDynamic<>> shared_vects;
 
 };
 
