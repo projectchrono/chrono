@@ -707,6 +707,12 @@ endif()
 # Propagate the CMake build to other directories
 #------------------------------------------------------------
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_CONFIG_INSTALL_PATH "cmake")
+else()
+    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
+endif()
+
 # Add directory for main ChronoEngine library
 add_subdirectory(chrono)
 
@@ -1008,6 +1014,9 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake"
                @ONLY)
 
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+
 # Generate the C# file with global constants
 # This must be done here, after replacement variables were set.
 if(ENABLE_MODULE_CSHARP)
@@ -1036,12 +1045,10 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
                @ONLY)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CH_CONFIG_INSTALL_PATH "cmake")
-else()
-    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
-endif()
-
 install(FILES "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         RENAME chrono-config.cmake)
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )

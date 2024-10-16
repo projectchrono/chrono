@@ -86,6 +86,26 @@ if (CHRONO_CONFIG_INCLUDED)
 endif()
 set(CHRONO_CONFIG_INCLUDED TRUE)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+
+#-------------------------------------------------------------------------------
+# Find Eigen3
+#-------------------------------------------------------------------------------
+message(STATUS "Searching for Eigen3...")
+set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@" CACHE PATH "Path to Eigen3 installation.")
+find_package(Eigen3 3.3.0)
+if(EIGEN3_FOUND)
+  message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+else()
+  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(FORCE Eigen3_DIR)
+  message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+endif()
+
+
+
+
 message(STATUS "Finding package Chrono...")
 
 #-------------------------------------------------------------------------------
@@ -128,8 +148,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "@CMAKE_CXX_FLAGS_RELEASE@")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "@CMAKE_CXX_FLAGS_MINSIZEREL@")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "@CMAKE_CXX_FLAGS_RELWITHDEBINFO@")
 
-
-list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDE_DIRS@")
+list(APPEND CHRONO_INCLUDE_DIRS "${EIGEN3_INCLUDE_DIR};@CH_INCLUDE_DIRS@")
 list(APPEND CHRONO_LIBRARIES "@OPENMP_LIBRARIES@")
 list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
 list(PREPEND CHRONO_LIB_NAMES "ChronoEngine")
@@ -321,21 +340,30 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
 
-      separate_arguments(CH_IRRLICHT_CXX_FLAGS NATIVE_COMMAND "@CH_IRRLICHT_CXX_FLAGS@")
-      separate_arguments(CH_IRRLICHT_C_FLAGS NATIVE_COMMAND "@CH_IRRLICHT_C_FLAGS@")
-      list(APPEND CHRONO_CXX_FLAGS ${CH_IRRLICHT_CXX_FLAGS})
-      list(APPEND CHRONO_C_FLAGS ${CH_IRRLICHT_C_FLAGS})
+      set(IRRLICHT_DIR "@IRRLICHT_DIR@")
+      find_package(IRRLICHT)
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHT_INCLUDES@")
+      if (NOT IRRLICHT_FOUND)
+        message(FATAL_ERROR "Could not find Irrlicht library. Please provide IRRLICHT_DIR.")
+        set(IRRLICHT_DIR "@IRRLICHT_DIR@" CACHE PATH "Path to Irrlicht SDK installation.")
+        return()
+      endif()
+
+      separate_arguments(IRRLICHT_CXX_FLAGS NATIVE_COMMAND " /wd4275")
+      separate_arguments(IRRLICHT_C_FLAGS NATIVE_COMMAND " /wd4275")
+      list(APPEND CHRONO_CXX_FLAGS ${IRRLICHT_CXX_FLAGS})
+      list(APPEND CHRONO_C_FLAGS ${IRRLICHT_C_FLAGS})
+
+      list(APPEND CHRONO_INCLUDE_DIRS "${IRRLICHT_INCLUDE_DIR}")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
       else()
         # when a library is static does not link against the dependencies;
         # the child project thus needs to link itself
-        list(APPEND CHRONO_LIBRARIES "@CH_IRRLICHT_LIB@")
+        list(APPEND CHRONO_LIBRARIES "${IRRLICHT_LIBRARY}")
       endif()
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@CH_IRRLICHT_DLL@")
+      list(APPEND CHRONO_DEPENDENCY_DLLS "${IRRLICHT_DLL}")
 
     elseif(${COMPONENT_UPPER} MATCHES "VSG")
 

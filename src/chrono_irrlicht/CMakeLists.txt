@@ -9,14 +9,16 @@ option(ENABLE_MODULE_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 # Return now if this module is not enabled
 IF(NOT ENABLE_MODULE_IRRLICHT)
   MARK_AS_ADVANCED(FORCE IRRLICHT_LIBRARY)
-  MARK_AS_ADVANCED(FORCE IRRLICHT_INSTALL_DIR)
+  MARK_AS_ADVANCED(FORCE IRRLICHT_DIR)
   RETURN()
 ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono Irrlicht module ====\n")
 
+set(IRRLICHT_DIR "C:/irrlicht-1.8.4" CACHE PATH "Path to Irrlicht SDK installation.")
+
 MARK_AS_ADVANCED(CLEAR IRRLICHT_LIBRARY)
-MARK_AS_ADVANCED(CLEAR IRRLICHT_INSTALL_DIR)
+MARK_AS_ADVANCED(CLEAR IRRLICHT_DIR)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_irrlicht lib
@@ -52,62 +54,18 @@ SOURCE_GROUP("" FILES
 #-------------------------------------------------------------------------------
 # Find the IRRLICHT library
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  SET(IRRLICHT_INSTALL_DIR "C:/irrlicht-1.8.1"  CACHE PATH   "Path to Irrlicht SDK installation.")
-  IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-    FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_INSTALL_DIR}/lib/Win32-visualstudio")
-  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-    FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_INSTALL_DIR}/lib/Win64-visualStudio")
-  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
-    FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_INSTALL_DIR}/lib/Win32-gcc")
-  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
-    FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_INSTALL_DIR}/lib/Win64-gcc")
-  ENDIF()
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  FIND_PATH(IRRLICHT_INSTALL_DIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-  FIND_LIBRARY(IRRLICHT_LIBRARY NAMES Irrlicht PATHS  ${IRRLICHT_INSTALL_DIR}/lib/Linux)
-  SET(IRRLICHT_LIBRARY "${IRRLICHT_LIBRARY}" -lXxf86vm -lglut -lX11 -lGL)
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  FIND_PATH(IRRLICHT_INSTALL_DIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-  FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "/usr/local/lib" ${IRRLICHT_INSTALL_DIR}/lib/Linux)
-  INCLUDE_DIRECTORIES ( /System/Library/Frameworks )
-  FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-  FIND_LIBRARY(OPENGL_LIBRARY OpenGL)
-  FIND_LIBRARY(IOKIT_LIBRARY IOKit)
-  SET(MAC_LIBS ${COCOA_LIBRARY} ${OPENGL_LIBRARY} ${IOKIT_LIBRARY})
-  SET(IRRLICHT_LIBRARY "${IRRLICHT_LIBRARY}")
+find_package(IRRLICHT)
+
+if (IRRLICHT_FOUND)
+    message(STATUS "IRRLICHT found")
 else()
-  FIND_PATH(IRRLICHT_INSTALL_DIR NAMES irrlicht.h PATHS "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-  FIND_LIBRARY(IRRLICHT_LIBRARY NAMES Irrlicht PATHS ${IRRLICHT_INSTALL_DIR}/../../lib)
-  set(IRRLICHT_LIBRARY "${IRRLICHT_LIBRARY}")
-ENDIF()
-
-# Add path to IRRLICHT headers
-IF(EXISTS "${IRRLICHT_INSTALL_DIR}/include/irrlicht")
-  SET(IRRLICHT_INCLUDE_DIR "${IRRLICHT_INSTALL_DIR}/include/irrlicht")
-ELSEIF(EXISTS "${IRRLICHT_INSTALL_DIR}/include")
-  SET(IRRLICHT_INCLUDE_DIR "${IRRLICHT_INSTALL_DIR}/include")
-ELSE()
-  SET(IRRLICHT_INCLUDE_DIR "${IRRLICHT_INSTALL_DIR}")
-ENDIF()
-
-# Irrlicht-specific compiler flags
-set(IRRLICHT_CXX_FLAGS "")
-set(IRRLICHT_C_FLAGS "")
-if(MSVC)
-  # If using MSVC, disable warning 4275 (non-DLL-interface class used as base for DLL-interface class)
-  ###add_compile_options(/wd4275)
-  set(IRRLICHT_CXX_FLAGS "${IRRLICHT_CXX_FLAGS} /wd4275")
-  set(IRRLICHT_C_FLAGS "${IRRLICHT_C_FLAGS} /wd4275")
+    message(ERROR "IRRLICHT not found. Please set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
 endif()
 
 # Let some variables be visible also from outside this directory
 set(CH_IRRLICHT_INCLUDES  "${IRRLICHT_INCLUDE_DIR}" PARENT_SCOPE)
 set(CH_IRRLICHT_CXX_FLAGS "${IRRLICHT_CXX_FLAGS}"   PARENT_SCOPE)
 set(CH_IRRLICHT_C_FLAGS   "${IRRLICHT_C_FLAGS}"     PARENT_SCOPE)
-
-message(STATUS "Include directory: ${IRRLICHT_INCLUDE_DIR}")
-message(STATUS "Library:           ${IRRLICHT_LIBRARY}")
 
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_irrlicht library
@@ -128,7 +86,7 @@ if (ENABLE_MODULE_MODAL)
     set(LIBRARIES ${LIBRARIES} ChronoEngine_modal)
 endif()
 
-ADD_LIBRARY(ChronoEngine_irrlicht
+add_library(ChronoEngine_irrlicht
   ${ChronoEngine_IRRLICHT_SOURCES}
   ${ChronoEngine_IRRLICHT_HEADERS}
 )
@@ -145,12 +103,12 @@ TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
   ${LIBRARIES}
 )
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
-  ${MAC_LIBS}
-)
+  TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
+    ${MAC_LIBS}
+  )
 ENDIF()
 
-ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine)
+ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine)
 
 if (ENABLE_MODULE_POSTPROCESS)
     ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_postprocess)
@@ -162,20 +120,17 @@ endif()
 
 
 #-------------------------------------------------------------------------------
-# On Windows, copy the IRRLICHT DLL to the bin/ directory
+# On Windows, copy the Irrlicht DLL to the bin/ directory
 # We do this through a custom command so that the Irrlich DLL is copied to the
 # appropriate directory (depending on the build type); however, we use
 # copy_if_different.
 
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-  IF(DEFINED ENV{CONDA_BUILD})
-    SET(CH_IRRLICHT_DLL "$ENV{PREFIX}/Library/bin/Irrlicht.dll")
-  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-    SET(CH_IRRLICHT_DLL "${IRRLICHT_INSTALL_DIR}/bin/Win32-VisualStudio/Irrlicht.dll")
-  ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-    SET(CH_IRRLICHT_DLL "${IRRLICHT_INSTALL_DIR}/bin/Win64-VisualStudio/Irrlicht.dll")
-  ENDIF()
+  # Make variable visible from outside this directory
+  SET(CH_IRRLICHT_DLL "${IRRLICHT_DLL}")
+  SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
 
   ADD_CUSTOM_COMMAND(
     TARGET ChronoEngine_irrlicht POST_BUILD
@@ -188,17 +143,16 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMENT "Copying Irrlicht DLL..."
   )
 
-  # copy the Irrlicht dll into the installed package to be on the safe side 
+  # copy the IRRLICHT dll into the installed package to be on the safe side 
   install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
-
-  # Make variable visible from outside this directory
-  SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
 
 ENDIF()
 
 if(CH_STATIC)
   SET(CH_IRRLICHT_LIB "${IRRLICHT_LIBRARY}" PARENT_SCOPE)
 endif()
+
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
 
 #-------------------------------------------------------------------------------
@@ -211,3 +165,7 @@ INSTALL(TARGETS ChronoEngine_irrlicht
 )
 
 INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS} DESTINATION include/chrono_irrlicht)
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )
