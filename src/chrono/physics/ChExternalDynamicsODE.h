@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 //
 // Physics element that carries its own dynamics, described as a system of ODEs.
-// The internal states are integrated simultaneous with the containing system
+// The internal states are integrated simultaneously with the containing system
 // and they can be accessed and used coupled with other physics elements.
 // =============================================================================
 
-#ifndef CH_EXTERNAL_SYNAMICS_H
-#define CH_EXTERNAL_SYNAMICS_H
+#ifndef CH_EXTERNAL_DYNAMICS_ODE_H
+#define CH_EXTERNAL_DYNAMICS_ODE_H
 
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
@@ -26,14 +26,14 @@
 namespace chrono {
 
 /// Physics element that carries its own dynamics, described as a system of ODEs.
-/// The internal states are integrated simultaneous with the containing system and they can be accessed and used coupled
+/// The internal states are integrated simultaneously with the containing system and they can be accessed and used coupled
 /// with other physics elements.
-class ChApi ChExternalDynamics : public ChPhysicsItem {
+class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
   public:
-    virtual ~ChExternalDynamics();
+    virtual ~ChExternalDynamicsODE();
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChExternalDynamics* Clone() const override;
+    virtual ChExternalDynamicsODE* Clone() const override;
 
     /// Initialize the physics item.
     virtual void Initialize();
@@ -55,7 +55,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     const ChVectorDynamic<>& GetRHS() const { return m_rhs; }
 
   protected:
-    ChExternalDynamics();
+    ChExternalDynamicsODE();
 
     /// Set initial conditions.
     /// Must load y0 = y(0).
