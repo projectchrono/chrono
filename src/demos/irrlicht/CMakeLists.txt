@@ -16,17 +16,6 @@ if(THRUST_FOUND)
 endif()
 
 #--------------------------------------------------------------
-# Additional include paths
-
-include_directories( ${CH_IRRLICHT_INCLUDES} )
-
-#--------------------------------------------------------------
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-endif()
-
-#--------------------------------------------------------------
 
 # Add executables
 
@@ -38,10 +27,7 @@ foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")
 
-  set_target_properties(${PROGRAM}  PROPERTIES
-    FOLDER demos
-    COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
   if(APPLE)
     set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
   endif()

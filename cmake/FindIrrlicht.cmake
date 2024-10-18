@@ -92,7 +92,8 @@ endif()
 find_path(IRRLICHT_INCLUDE_DIR NAMES irrlicht.h PATHS ${IRRLICHT_INCLUDE_PATHS} NO_CACHE)
 message(STATUS "IRRLICHT_INCLUDE_DIR: ${IRRLICHT_INCLUDE_DIR}")
 if (IRRLICHT_INCLUDE_DIR MATCHES IRRLICHT_INCLUDE_DIR-NOTFOUND)
-  message(FATAL_ERROR "Could not find 'irrlicht.h' in any of the following directories: ${IRRLICHT_INCLUDE_PATHS}")
+  message(FATAL_ERROR "Could not find 'irrlicht.h' in any of the following directories: ${IRRLICHT_INCLUDE_PATHS}. Set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
+  set(IRRLICHT_DIR "C:/irrlicht-1.8.5" CACHE PATH "Path to Irrlicht SDK installation.")
   return()
 endif()
 set(IRRLICHT_INCLUDE_DIRS ${IRRLICHT_INCLUDE_DIR} ${IRRLICHT_DEPENDENCY_INCLUDE_DIRS})
@@ -101,7 +102,8 @@ set(IRRLICHT_INCLUDE_DIRS ${IRRLICHT_INCLUDE_DIR} ${IRRLICHT_DEPENDENCY_INCLUDE_
 find_library(IRRLICHT_LIBRARY NAMES IRRLICHT PATHS ${IRRLICHT_LIBRARY_PATHS} NO_CACHE)
 message(STATUS "IRRLICHT_LIBRARY: ${IRRLICHT_LIBRARY}")
 if (IRRLICHT_LIBRARY MATCHES IRRLICHT_LIBRARY-NOTFOUND)
-  message(FATAL_ERROR "Could not find 'IRRLICHT.${CMAKE_IMPORT_LIBRARY_SUFFIX}' in any of the following directories: ${IRRLICHT_LIBRARY_PATHS}")
+  message(FATAL_ERROR "Could not find 'IRRLICHT.${CMAKE_IMPORT_LIBRARY_SUFFIX}' in any of the following directories: ${IRRLICHT_LIBRARY_PATHS}. Set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
+  set(IRRLICHT_DIR "C:/irrlicht-1.8.5" CACHE PATH "Path to Irrlicht SDK installation.")
   return()
 endif()
 set(IRRLICHT_LIBRARIES ${IRRLICHT_LIBRARY} ${IRRLICHT_DEPENDENCY_LIBS})
@@ -117,4 +119,25 @@ if(MSVC)
   ###add_compile_options(/wd4275)
   set(IRRLICHT_CXX_FLAGS "${IRRLICHT_CXX_FLAGS} /wd4275")
   set(IRRLICHT_C_FLAGS "${IRRLICHT_C_FLAGS} /wd4275")
+endif()
+
+if(IRRLICHT_FOUND AND NOT TARGET Irrlicht::Irrlicht)
+  add_library(Irrlicht::Irrlicht SHARED IMPORTED)
+  set_target_properties(Irrlicht::Irrlicht PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${IRRLICHT_INCLUDE_DIRS}")
+  
+  set_property(TARGET Irrlicht::Irrlicht PROPERTY
+              IMPORTED_LOCATION ${IRRLICHT_DLL})
+  set_property(TARGET Irrlicht::Irrlicht PROPERTY
+              IMPORTED_IMPLIB ${IRRLICHT_LIBRARY})
+  set_property(TARGET Irrlicht::Irrlicht PROPERTY
+              IMPORTED_LINK_DEPENDENT_LIBRARIES ${IRRLICHT_DEPENDENCY_LIBS})
+  set_property(TARGET Irrlicht::Irrlicht PROPERTY
+               INTERFACE_COMPILE_OPTIONS "/wd4275")
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set_property(TARGET Irrlicht::Irrlicht PROPERTY
+                 INTERFACE_COMPILE_OPTIONS "-framework IOKit -framework Cocoa -framework OpenGL")
+  endif()
+               
 endif()

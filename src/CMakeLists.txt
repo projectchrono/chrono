@@ -38,15 +38,6 @@ endif()
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
-
-set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
-set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
-set(CH_LINKERFLAG_LIB "")
-
-#-----------------------------------------------------------------------------
-# Collect compiler flags required to build the Chrono libraries
-#-----------------------------------------------------------------------------
 if (NOT BUILD_SHARED_LIBS)
   set(CH_STATIC ON)
   add_compile_definitions(CH_STATIC)
@@ -108,10 +99,10 @@ message(STATUS "C++17 compiler support:  ${CH_CXX17}")
 
 if(CH_CXX17)
     set(CMAKE_CXX_STANDARD 17)
-    set(CHRONO_CXX_STANDARD 17)
+    set(CHRONO_CXX_STANDARD cxx_std_17)
 elseif(CH_CXX14)
     set(CMAKE_CXX_STANDARD 14)
-    set(CHRONO_CXX_STANDARD 14)
+    set(CHRONO_CXX_STANDARD cxx_std_14)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -144,8 +135,6 @@ message(STATUS "  Thread library:      ${CMAKE_THREAD_LIBS_INIT}")
 message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
 message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
@@ -189,20 +178,20 @@ endif()
 cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON
                        "OPENMP_FOUND" OFF)
 
-set(OPENMP_INCLUDE_DIR "")
-set(OPENMP_LIBRARIES "")
+# set(OPENMP_INCLUDE_DIR "")
+# set(OPENMP_LIBRARIES "")
 if(ENABLE_OPENMP)
-  message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
-  message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
-  message(STATUS "  OpenMP includes:  ${OpenMP_CXX_INCLUDE_DIRS}")
-  message(STATUS "  OpenMP library:   ${OpenMP_CXX_LIBRARY}")
-  message(STATUS "  OpenMP libraries: ${OpenMP_CXX_LIBRARIES}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
-  set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
+  # message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
+  # message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
+  # message(STATUS "  OpenMP includes:  ${OpenMP_CXX_INCLUDE_DIRS}")
+  # message(STATUS "  OpenMP library:   ${OpenMP_CXX_LIBRARY}")
+  # message(STATUS "  OpenMP libraries: ${OpenMP_CXX_LIBRARIES}")
+  # # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  # # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  # # set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  # # set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
+  # set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
+  # set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 else()
 	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
 	find_package("TBB")
@@ -276,11 +265,6 @@ if(USE_SIMD)
      set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
    endif()
 
-   # Add SIMD flags to Chrono compiler flags
-   # Note that these flags are already added to CMake compiler flags
-   set(CH_C_FLAGS "${CH_C_FLAGS} ${SIMD_C_FLAGS}")
-   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SIMD_CXX_FLAGS}")
-
 else()
 
    message(STATUS "SIMD support disabled")
@@ -291,29 +275,41 @@ endif()
 # Eigen library
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for Eigen3...")
-find_package(Eigen3 3.3.0)
+message(STATUS "Searching for Eigen3 in module mode.")
+find_package(Eigen3 3.3 MODULE)
 if(EIGEN3_FOUND)
-  message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
-  message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
-else()
-  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  message(STATUS "Eigen3 found (module mode)")
+  message(STATUS "EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+  mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
-  message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+else()
+  message(STATUS "Eigen3 not found in module mode. Looking for Eigen3 in configuration mode.")
+  find_package(Eigen3 3.3 CONFIG)
+  if(EIGEN3_FOUND)
+    message(STATUS "Eigen3 found (config mode)")
+    message(STATUS "EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+    mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
+    mark_as_advanced(FORCE Eigen3_DIR)
+  else()
+    message(SEND_ERROR "Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
+    set(EIGEN3_INCLUDE_DIR "" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
+    mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+    mark_as_advanced(CLEAR Eigen3_DIR)
+  endif()
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-	  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
+    target_compile_definitions(Eigen3::Eigen INTERFACE "-D_ENABLE_EXTENDED_ALIGNED_STORAGE")
 	endif()
 endif()
 
 cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
 
 if (NOT USE_EIGEN_OPENMP)
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
-  set(CH_C_FLAGS "${CH_C_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+  target_compile_definitions(Eigen3::Eigen INTERFACE "-D_ENABLE_EXTENDED_ALIGNED_STORAGE")
+  target_compile_definitions(Eigen3::Eigen INTERFACE "-DEIGEN_DONT_PARALLELIZE")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -382,18 +378,18 @@ if(CUDA_FOUND)
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CUDA_PROPAGATE_HOST_FLAGS OFF)
     if(${CH_CXX17})
-      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++17")
-      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++17")
+      		list(APPEND CUDA_NVCC_FLAGS "-std c++17")
+      		list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-std=c++17")
     elseif(${CH_CXX14})
-      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++14")
-      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14")
+      		list(APPEND CUDA_NVCC_FLAGS "-std c++14")
+      		list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-std=c++14")
     else()
-      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
-      		set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
+      		list(APPEND CUDA_NVCC_FLAGS "-std c++11")
+      		list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-std=c++11")
     endif()
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+    list(APPEND CUDA_NVCC_FLAGS "--compiler-options;-fPIC")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+    list(APPEND CUDA_NVCC_FLAGS "--compiler-options;-fPIC")
   endif()
 
   include(${CMAKE_SOURCE_DIR}/cmake/FindCudaArch.cmake)
@@ -414,6 +410,13 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
   find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
   if (THRUST_INCLUDE_DIR)
     set(${THRUST_FOUND} TRUE)
+    add_library(Thrust INTERFACE IMPORT)
+    
+    if(NOT TARGET Thrust::Thrust)
+      add_library(Thrust::Thrust INTERFACE IMPORTED)
+      set_target_properties(Thrust::Thrust PROPERTIES
+                            INTERFACE_INCLUDE_DIRECTORIES "${THRUST_INCLUDE_DIR}")
+    endif()
   else()
     message("THRUST_INCLUDE_DIR is not set, but it is required.")
     set(${THRUST_FOUND} FALSE)
@@ -455,91 +458,6 @@ if (CUDA_FOUND) # CUB should only be used with CUDA
 			REQUIRED
 		)
 	endif()
-endif()
-
-#-----------------------------------------------------------------------------
-# Miscellaneous compiler flags
-#-----------------------------------------------------------------------------
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if(MSVC)
-        add_definitions( "-D_CRT_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-        add_definitions( "-D_SCL_SECURE_NO_DEPRECATE" )  # avoids deprecation warnings
-        add_definitions( "-DNOMINMAX" ) # do not use MSVC's min/max macros
-        add_definitions( "-MP" ) # perform parallel builds
-
-        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /Zc:__cplusplus")
-        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /EHsc") # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model
-        
-
-        # excluding wrong runtime libraries from the link (LNK4098): https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098
-        if(USE_MSVC_STATIC_RUNTIME)
-          set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
-          set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib /NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
-        else()
-          set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
-          set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
-        endif()
-
-    endif(MSVC)
-
-    if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-        set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -D_MINGW -D_WINDOWS")
-        set(CH_C_FLAGS "${CH_C_FLAGS} -D_MINGW -D_WINDOWS")
-        set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,--enable-runtime-pseudo-reloc")
-        set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
-
-        if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-            set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -m64")
-            set(CH_C_FLAGS "${CH_C_FLAGS} -m64")
-        endif()
-    endif()
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,-no_compact_unwind")
-    set(CH_LINKERFLAG_LIB "${CH_LINKERFLAG_LIB} -Wl,-no_compact_unwind")
-endif()
-
-# Compiler warning level and disbaled warnings
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    message(STATUS "[Clang] Warning level set to default")
-    #add_compile_options(-Wall)
-    add_compile_options(-Wno-unknown-warning-option)
-    add_compile_options(-Wno-reorder-ctor)
-    add_compile_options(-Wno-pragma-pack)
-    add_compile_options(-Wno-unused-local-typedef)
-    add_compile_options(-Wno-unused-function)
-    add_compile_options(-Wno-unused-parameter)
-    add_compile_options(-Wno-unused-result)
-    add_compile_options(-Wno-switch)
-elseif(MSVC)
-    message(STATUS "[MSVC] Warning level set to /W4")
-    add_compile_options(/W4)
-    add_compile_options(/wd4100)   # unreferenced formal parameter
-    add_compile_options(/wd4127)   # conditional expression is constant
-    add_compile_options(/wd4201)   # nameless struct/union
-    add_compile_options(/wd4244)   # conversion; possible loss of data
-    add_compile_options(/wd4250)   # inheritance via dominance
-    add_compile_options(/wd4251)   # class needs to have dll-interface
-    add_compile_options(/wd4275)   # non dll-interface class used as base class
-    add_compile_options(/wd4324)   # structure padded due to alignment specifier
-    add_compile_options(/wd4505)   # unreferenced local function
-    add_compile_options(/wd4458)   # declaration hides class member
-    add_compile_options(/wd4515)   # namespace uses itself
-    add_compile_options(/wd5038)   # order of initialization
-    add_compile_options(/wd26451)  # arithmetic overflow
-    add_compile_options(/wd26495)  # uninitialized member variable
-    add_compile_options(/wd26812)  # use of unscoped enums
-else()
-    message(STATUS "Warning level set to -Wall")
-    add_compile_options(-Wint-in-bool-context)
-    add_compile_options(-Wno-sign-compare)
-    add_compile_options(-Wno-reorder)
-    add_compile_options(-Wno-unused-function)
-    add_compile_options(-Wno-unused-parameter)
-    add_compile_options(-Wno-unused-result)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -600,22 +518,17 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
-
 message(STATUS "Compiler and linker flags:")
-message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
-message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
-message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-message(STATUS "  Linke flags LIB:         ${CH_LINKERFLAG_LIB}")
-message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
+# message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
+# message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
+# message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
+# message(STATUS "  Linke flags LIB:         ${CH_LINKERFLAG_LIB}")
+# message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
 if(CUDA_FOUND)
     message(STATUS "  CUDA flags:              ${CUDA_NVCC_FLAGS}")
 endif()
 
-# For Bullet to use 32 bit math
-add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
+
 
 #OPTION(USE_BULLET_DOUBLE "Compile Bullet in double precision" ON)
 #if (USE_BULLET_DOUBLE)
@@ -623,15 +536,15 @@ add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 #endif()
 
 
-#-----------------------------------------------------------------------------
-# Set the base include directories
-#-----------------------------------------------------------------------------
+# #-----------------------------------------------------------------------------
+# # Set the base include directories
+# #-----------------------------------------------------------------------------
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${PROJECT_BINARY_DIR})
-include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${OPENMP_INCLUDE_DIR})
-include_directories(${THRUST_INCLUDE_DIR})
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# include_directories(${PROJECT_BINARY_DIR})
+# include_directories(${EIGEN3_INCLUDE_DIR})
+# include_directories(${OPENMP_INCLUDE_DIR})
+# include_directories(${THRUST_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -716,8 +629,8 @@ endif()
 # Add directory for main ChronoEngine library
 add_subdirectory(chrono)
 
-# Let all modules have access to the headers of the main library
-include_directories(${CH_INCLUDES})
+# # Let all modules have access to the headers of the main library
+# include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
@@ -994,25 +907,27 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 # Create the Chrono CMake project configuration file
 #------------------------------------------------------------
 
-# For the BUILD tree
-set(CH_THIRDPARTY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty")
-set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACD")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
+# # For the BUILD tree
+# set(CH_THIRDPARTY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty")
+# set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACD")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
-set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
-set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
+# set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
+# set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
-configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-               "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake"
-               @ONLY)
+# # DEBUG DARIOM
+
+# # configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
+# #                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake"
+# #                @ONLY)
 
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
@@ -1026,29 +941,74 @@ if(ENABLE_MODULE_CSHARP)
 endif()
 
 
-# For the INSTALL tree
-set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")
-set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACD")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
+# # For the INSTALL tree
+# set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")
+# set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACD")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
-set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
-set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
+# set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
+# set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 
-configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-               "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
-               @ONLY)
+# DEBUG DARIOM
+# configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
+#                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
+#                @ONLY)
 
-install(FILES "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-        RENAME chrono-config.cmake)
+# install(FILES "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
+#         DESTINATION ${CH_CONFIG_INSTALL_PATH}
+#         RENAME chrono-config.cmake)
 
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
+
+
+
+############################################################ NEW INSTALL
+
+
+
+# include CMakePackageConfigHelpers macro
+include(CMakePackageConfigHelpers)
+
+
+## TODO DARIOM: do version
+# # set version
+# set(version 3.4.1)
+
+# set_property(TARGET MathFunctions PROPERTY VERSION ${version})
+# set_property(TARGET MathFunctions PROPERTY SOVERSION 3)
+# set_property(TARGET MathFunctions PROPERTY
+#   INTERFACE_MathFunctions_MAJOR_VERSION 3)
+# set_property(TARGET MathFunctions APPEND PROPERTY
+#   COMPATIBLE_INTERFACE_STRING MathFunctions_MAJOR_VERSION
+# )
+
+# # generate the version file for the config file
+# write_basic_package_version_file(
+#   "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
+#   VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}"
+#   COMPATIBILITY AnyNewerVersion
+# )
+
+# create config file
+configure_package_config_file(
+  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+  INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
+
+# install config files
+install(FILES
+        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+        # "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
+

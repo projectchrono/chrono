@@ -8,17 +8,10 @@ option(ENABLE_MODULE_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_MODULE_IRRLICHT)
-  MARK_AS_ADVANCED(FORCE IRRLICHT_LIBRARY)
-  MARK_AS_ADVANCED(FORCE IRRLICHT_DIR)
   RETURN()
 ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono Irrlicht module ====\n")
-
-set(IRRLICHT_DIR "C:/irrlicht-1.8.4" CACHE PATH "Path to Irrlicht SDK installation.")
-
-MARK_AS_ADVANCED(CLEAR IRRLICHT_LIBRARY)
-MARK_AS_ADVANCED(CLEAR IRRLICHT_DIR)
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_irrlicht lib
@@ -72,11 +65,11 @@ set(CH_IRRLICHT_C_FLAGS   "${IRRLICHT_C_FLAGS}"     PARENT_SCOPE)
 
 include_directories(${IRRLICHT_INCLUDE_DIR})
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${IRRLICHT_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
+# set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${IRRLICHT_CXX_FLAGS}")
+# set(LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
 set(LIBRARIES 
     ChronoEngine
-    ${IRRLICHT_LIBRARY}
+    Irrlicht::Irrlicht
     )
 
 if (ENABLE_MODULE_POSTPROCESS)
@@ -91,19 +84,24 @@ add_library(ChronoEngine_irrlicht
   ${ChronoEngine_IRRLICHT_HEADERS}
 )
 
-SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
-  COMPILE_FLAGS "${COMPILER_FLAGS}"
-  LINK_FLAGS "${LINKER_FLAGS}")
+add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
+
+target_compile_features(ChronoEngine_irrlicht PUBLIC ${CHRONO_CXX_STANDARD})
+
+
+# SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
+#   COMPILE_FLAGS "${COMPILER_FLAGS}"
+#   LINK_FLAGS "${LINKER_FLAGS}")
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
+target_link_libraries(ChronoEngine_irrlicht PUBLIC
   ${LIBRARIES}
 )
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
+  target_link_libraries(ChronoEngine_irrlicht
     ${MAC_LIBS}
   )
 ENDIF()
@@ -159,9 +157,11 @@ file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake DESTINATION ${CMAKE_BINAR
 # Install the ChronoEngine_irrlicht library
 
 INSTALL(TARGETS ChronoEngine_irrlicht
+  EXPORT ChronoEngineIrrlichtTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include/chrono_irrlicht
 )
 
 INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS} DESTINATION include/chrono_irrlicht)
@@ -169,3 +169,16 @@ INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS} DESTINATION include/chrono_irrlic
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
+
+# generate and install export file
+install(EXPORT ChronoEngineIrrlichtTargets
+        FILE ChronoEngineIrrlichtTargets.cmake
+        NAMESPACE ChronoEngine::
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
+
+# generate the export targets for the build tree
+export(EXPORT ChronoEngineIrrlichtTargets
+       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoEngineIrrlichtTargets.cmake"
+       NAMESPACE ChronoEngine::
+)
