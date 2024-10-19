@@ -44,10 +44,10 @@ public:
     virtual void PreInitialize() {};
     virtual void PostInitialize() {};
 
-    virtual void PreAdvance () {};
+    virtual void PreAdvance (double dt_mbs) {};
 
     
-    virtual void PostAdvance () {};
+    virtual void PostAdvance (double dt_mbs) {};
 
     virtual void Initialize() final {
         this->PreInitialize();
@@ -57,7 +57,7 @@ public:
     }
 
     virtual void Advance(double dt_mbs) final {
-        this->PreAdvance();
+        this->PreAdvance(dt_mbs);
 
         // std::cout << "#########################################################" << std::endl;
 
@@ -76,7 +76,7 @@ public:
         
         this->netlist = cosim.GetNetlist().netlist_file;
 
-        this->PostAdvance();
+        this->PostAdvance(dt_mbs);
 
         initial = false;
 

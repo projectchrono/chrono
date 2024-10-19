@@ -1036,10 +1036,10 @@ int main(int argc, char* argv[]) {
     // ==================================================
 
     ChElectronicMotor motor(Rotor_body, t_step_electronic);
-    // double kt_motor = 0.1105;//*1e3*1e3;  // Motor torque constant [Nm/A]
-    // double ke_motor = -0.0953*1.0;  // Motor back EMF constant [V/(rad/s)]
+    double kt_motor = 0.1105*1e6;//*1e3*1e3;  // Motor torque constant [Nm/A]
+    double ke_motor = -0.0953*1.0;  // Motor back EMF constant [V/(rad/s)]
 
-    // motor.InitParams(kt_motor,ke_motor);
+    motor.InitParams(kt_motor,ke_motor);
     motor.Initialize();
 
 
