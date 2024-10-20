@@ -82,7 +82,6 @@ struct SimParams {
     Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
     Real EPS_XSPH;       ///< Method to modify particle velocity.
     Real beta_shifting;  ///< this is the beta coefficient in the shifting vector formula. See
-    Real Vis_Dam;        ///< Viscous damping force
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
@@ -175,14 +174,8 @@ struct SimParams {
     Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
     Real Nu_poisson;    ///< Poisson’s ratio
-    Real Ar_stress;     ///< Artifical stress
     Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
-    Real Fri_angle;     ///< Frictional angle of granular material
-    Real Dil_angle;     ///< Dilate angle of granular material
     Real Coh_coeff;     ///< Cohesion coefficient
-    Real Q_FA;          ///< Material constants calculate from frictional angle
-    Real Q_DA;          ///< Material constants calculate from dilate angle
-    Real K_FA;          ///< Material constants calculate from frictional angle and cohesion coefficient
     Real C_Wi;          ///< Threshold of the integration of the kernel function
 
     Real boxDimX;  ///< Dimension of the space domain - X

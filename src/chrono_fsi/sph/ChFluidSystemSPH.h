@@ -60,13 +60,10 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double density;         ///< bulk density (default: 1000.0)
         double Young_modulus;   ///< Young's modulus (default: 1e6)
         double Poisson_ratio;   ///< Poisson's ratio (default: 0.3)
-        double stress;          ///< artifical stress (default: 0)
         double mu_I0;           ///< reference inertia number (default: 0.03)
         double mu_fric_s;       ///< friction mu_s (default: 0.7)
         double mu_fric_2;       ///< mu_2 constant in mu=mu(I) (default: 0.7)
         double average_diam;    ///< average particle diameter (default: 0.005)
-        double friction_angle;  ///< frictional angle of granular material (default: pi/10)
-        double dilation_angle;  ///< dilate angle of granular material (default: pi/10)
         double cohesion_coeff;  ///< cohesion coefficient (default: 0)
 
         ElasticMaterialProperties();

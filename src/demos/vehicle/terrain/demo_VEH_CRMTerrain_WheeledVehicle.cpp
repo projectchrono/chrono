@@ -123,13 +123,10 @@ int main(int argc, char* argv[]) {
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
-    mat_props.stress = 0;  // default
     mat_props.mu_I0 = 0.04;
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_PI / 10;  // default
-    mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = cohesion;
 
     sysSPH.SetElasticSPH(mat_props);

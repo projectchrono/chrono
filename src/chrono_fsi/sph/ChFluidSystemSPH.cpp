@@ -300,9 +300,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             }
         }
 
-        if (doc["SPH Parameters"].HasMember("Viscous damping"))
-            m_paramsH->Vis_Dam = doc["SPH Parameters"]["Viscous damping"].GetDouble();
-
         if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
             m_paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
 
@@ -397,9 +394,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Elastic SPH"].HasMember("Young modulus"))
             m_paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
 
-        if (doc["Elastic SPH"].HasMember("Artificial stress"))
-            m_paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
-
         if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
 
@@ -414,12 +408,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Elastic SPH"].HasMember("particle diameter"))
             m_paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("frictional angle"))
-            m_paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("dilate angle"))
-            m_paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("cohesion coefficient"))
             m_paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
@@ -493,13 +481,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
         m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
         m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-
-        Real sfri = std::sin(m_paramsH->Fri_angle);
-        Real cfri = std::cos(m_paramsH->Fri_angle);
-        Real sdil = std::sin(m_paramsH->Dil_angle);
-        m_paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-        m_paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-        m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
     } else {
         m_paramsH->Cs = 10 * m_paramsH->v_Max;
     }
@@ -612,13 +593,10 @@ ChFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
     : density(1000),
       Young_modulus(1e6),
       Poisson_ratio(0.3),
-      stress(0),
       mu_I0(0.03),
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      friction_angle(CH_PI / 10),
-      dilation_angle(CH_PI / 10),
       cohesion_coeff(0) {}
 
 void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
@@ -628,26 +606,16 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
-    m_paramsH->Ar_stress = Real(mat_props.stress);
     m_paramsH->mu_I0 = Real(mat_props.mu_I0);
     m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
     m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
     m_paramsH->ave_diam = Real(mat_props.average_diam);
-    m_paramsH->Fri_angle = Real(mat_props.friction_angle);
-    m_paramsH->Dil_angle = Real(mat_props.dilation_angle);
     m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
 
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
     m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-
-    Real sfri = std::sin(m_paramsH->Fri_angle);
-    Real cfri = std::cos(m_paramsH->Fri_angle);
-    Real sdil = std::sin(m_paramsH->Dil_angle);
-    m_paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-    m_paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-    m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
 }
 
 ChFluidSystemSPH::SPHParameters::SPHParameters()
