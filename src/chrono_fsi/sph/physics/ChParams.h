@@ -71,14 +71,12 @@ struct SimParams {
     Real3 bodyForce3;  ///< Constant force applied to the fluid. Flexible and rigid bodies are not affected by this
                        ///< force directly, but instead they are affected indirectly through the fluid.
 
-    Real rho0;       ///< Density
-    Real invrho0;    ///< Density's inverse
-    Real rho_solid;  ///< Solid Density
-    Real volume0;    ///< Initial volume of particle
+    Real rho0;     ///< Density
+    Real invrho0;  ///< Density's inverse
+    Real volume0;  ///< Initial volume of particle
 
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
-    Real kappa;       ///< surface tension parameter
     Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
     Real EPS_XSPH;       ///< Method to modify particle velocity.
     Real beta_shifting;  ///< this is the beta coefficient in the shifting vector formula. See
@@ -86,7 +84,6 @@ struct SimParams {
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
-    Real Co_number;  ///< Constant in CFL condition.
 
     Real kdT;      ///< Implicit integration parameter. Not very important
     Real gammaBB;  ///< Equation of state parameter.

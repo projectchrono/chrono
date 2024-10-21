@@ -25,7 +25,6 @@
     "Time steps per proximity search": 1
   },
   "Time Stepping": {
-    "CFL number": 0.1,
     "Time step": 0.002
   },
   "Pressure Equation": {

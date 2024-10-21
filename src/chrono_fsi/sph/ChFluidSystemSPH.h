@@ -48,7 +48,6 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     struct CH_FSI_API FluidProperties {
         double density;      ///< fluid density (default: 1000.0)
         double viscosity;    ///< fluid viscosity (default: 0.1)
-        double kappa;        ///< surface tension kappa (default: 0)
         double char_length;  ///< characteristic length (default: 1.0)
 
         FluidProperties();

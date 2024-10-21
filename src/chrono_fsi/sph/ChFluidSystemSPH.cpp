@@ -79,11 +79,9 @@ void ChFluidSystemSPH::InitParams() {
     // Fluid properties
     m_paramsH->rho0 = Real(1000.0);
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
-    m_paramsH->rho_solid = m_paramsH->rho0;
     m_paramsH->mu0 = Real(0.001);
     m_paramsH->bodyForce3 = mR3(0, 0, 0);
     m_paramsH->gravity = mR3(0, 0, 0);
-    m_paramsH->kappa = Real(0.0);
     m_paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
@@ -116,7 +114,6 @@ void ChFluidSystemSPH::InitParams() {
 
     m_paramsH->num_bce_layers = 3;
 
-    m_paramsH->Co_number = Real(0.1);
     m_paramsH->dT = Real(-1);
 
     // Pressure equation
@@ -196,9 +193,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
             m_paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
 
-        if (doc["Physical Properties of Fluid"].HasMember("Solid Density"))
-            m_paramsH->rho_solid = doc["Physical Properties of Fluid"]["Solid Density"].GetDouble();
-
         if (doc["Physical Properties of Fluid"].HasMember("Viscosity"))
             m_paramsH->mu0 = doc["Physical Properties of Fluid"]["Viscosity"].GetDouble();
 
@@ -207,9 +201,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Physical Properties of Fluid"].HasMember("Gravity"))
             m_paramsH->gravity = LoadVectorJSON(doc["Physical Properties of Fluid"]["Gravity"]);
-
-        if (doc["Physical Properties of Fluid"].HasMember("Surface Tension Kappa"))
-            m_paramsH->kappa = doc["Physical Properties of Fluid"]["Surface Tension Kappa"].GetDouble();
 
         if (doc["Physical Properties of Fluid"].HasMember("Characteristic Length"))
             m_paramsH->L_Characteristic = doc["Physical Properties of Fluid"]["Characteristic Length"].GetDouble();
@@ -326,9 +317,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
     }
 
     if (doc.HasMember("Time Stepping")) {
-        if (doc["Time Stepping"].HasMember("CFL number"))
-            m_paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
-
         if (doc["Time Stepping"].HasMember("Time step")) {
             m_paramsH->dT = doc["Time Stepping"]["Time step"].GetDouble();
             m_step = m_paramsH->dT;
@@ -577,7 +565,7 @@ void ChFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
     m_paramsH->num_proximity_search_steps = steps;
 }
 
-ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
+ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
 
 void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->elastic_SPH = false;
@@ -585,7 +573,6 @@ void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     SetDensity(fluid_props.density);
 
     m_paramsH->mu0 = Real(fluid_props.viscosity);
-    m_paramsH->kappa = Real(fluid_props.kappa);
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
 }
 
