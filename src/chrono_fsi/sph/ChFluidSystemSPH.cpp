@@ -565,6 +565,46 @@ void ChFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
     m_paramsH->num_proximity_search_steps = steps;
 }
 
+void ChFluidSystemSPH::CheckSPHParameters() {
+    // Calculate default cMin and cMax
+    Real3 default_cMin =
+        mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
+    Real3 default_cMax =
+        mR3(+2 * m_paramsH->boxDims.x, +2 * m_paramsH->boxDims.y, +2 * m_paramsH->boxDims.z) + 10 * mR3(m_paramsH->h);
+
+    // Check if user-defined cMin and cMax are much larger than defaults
+    if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y ||
+        m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
+        m_paramsH->cMax.y > 2 * default_cMax.y || m_paramsH->cMax.z > 2 * default_cMax.z) {
+        std::cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
+                  << "This may slow down the simulation." << std::endl;
+    }
+
+    if (m_paramsH->h_multiplier < 1) {
+        std::cerr << "WARNING: Kernel interaction radius multiplier is less than 1. This may lead to numerical "
+                     "instability due to poor particle approximation."
+                  << std::endl;
+    }
+
+    if (m_paramsH->h_multiplier > 1.5) {
+#ifdef W3h
+    // Check if W3h is defined as W3h_CubicSpline
+    #if W3h == W3h_CubicSpline
+        std::cerr << "WARNING: Kernel interaction radius multiplier is greater than 1.5 and the cubic spline kernel is "
+                     "used. This may lead to pairing instability. See Pg 10. of Ha H.Bui et al. Smoothed particle "
+                     "hydrodynamics (SPH) and its applications in geomechanics : From solid fracture to granular "
+                     "behaviour and multiphase flows in porous media. You might want to switch to the Wendland kernel."
+                  << std::endl;
+    #endif
+    }
+#endif
+    if (m_paramsH->num_bce_layers < 3) {
+        std::cerr << "WARNING: Number of BCE layers is less than 3. This may cause insufficient kernel support at the "
+                     "boundaries and lead to leakage of particles"
+                  << std::endl;
+    }
+}
+
 ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
 
 void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
@@ -574,6 +614,14 @@ void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
 
     m_paramsH->mu0 = Real(fluid_props.viscosity);
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
+}
+
+void ChFluidSystemSPH::CheckParametersCfdSPH() {
+    if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
+        throw std::runtime_error(
+            "ERROR: Viscosity type is set to ARTIFICIAL_BILATERAL for CFD SPH. This is not supported. Either set "
+            "viscosity type to ARTIFICIAL_UNILATERAL or LAMINAR.");
+    }
 }
 
 ChFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
@@ -603,6 +651,22 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
     m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+}
+
+void ChFluidSystemSPH::CheckParametersElasticSPH() {
+    if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
+        throw std::runtime_error(
+            "ERROR: Viscosity type is set to LAMINAR for elastic SPH. This is not supported. Either set viscosity type "
+            "to ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL");
+    }
+    if (m_paramsH->mu0 != Real(0.001)) {
+        std::cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
+                  << " while the viscosity model is not laminar"
+                  << ". This parameter will thus have no effect on the simulation" << std::endl;
+    }
+    if (m_paramsH->non_newtonian) {
+        throw std::runtime_error("ERROR: Non-Newtonian viscosity model is not supported for elastic SPH.");
+    }
 }
 
 ChFluidSystemSPH::SPHParameters::SPHParameters()
@@ -931,8 +995,6 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
     m_paramsH->binSize0 = binSize3.x;
     m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->straightChannelBoundaryMin = m_paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
-    m_paramsH->straightChannelBoundaryMax = m_paramsH->cMax;  // SmR3(3, 2, 3) * m_paramsH->sizeScale;
     m_paramsH->deltaPress = mR3(0);
     int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1),
                     int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
@@ -1069,6 +1131,14 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             cout << "  " << i << ": " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
         cout << endl;
+    }
+
+    CheckSPHParameters();
+
+    if (m_paramsH->elastic_SPH) {
+        CheckParametersElasticSPH();
+    } else {
+        CheckParametersCfdSPH();
     }
 }
 

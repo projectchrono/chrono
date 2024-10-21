@@ -172,6 +172,15 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
     void SetElasticSPH(const ElasticMaterialProperties& mat_props);
 
+    /// Checks the applicability of user set parameters for elastic SPH and throws an exception if necessary.
+    void CheckParametersElasticSPH();
+
+    /// Checks the applicability of user set parameters for CFD SPH and throws an exception if necessary.
+    void CheckParametersCfdSPH();
+
+    /// Checks the applicability of user set parameters for SPH and throws an exception if necessary.
+    void CheckSPHParameters();
+
     /// Set SPH method parameters.
     void SetSPHParameters(const SPHParameters& sph_params);
 
