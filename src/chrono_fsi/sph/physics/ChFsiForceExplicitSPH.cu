@@ -1423,11 +1423,9 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     int N_s = 0;
 
     // Get the interaction from neighbor particles
-    for (int n = NLStart; n < NLEnd; n++) {
+    // NLStart + 1 because the first element in neighbor list is the particle itself
+    for (int n = NLStart + 1; n < NLEnd; n++) {
         uint j = neighborList[n];
-        if (j == index) {
-            continue;
-        }
         Real4 rhoPresMuB = sortedRhoPreMu[j];
         if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
             continue;  // No BCE-BCE interaction
