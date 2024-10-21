@@ -157,28 +157,16 @@ file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake DESTINATION ${CMAKE_BINAR
 # Install the ChronoEngine_irrlicht library
 
 INSTALL(TARGETS ChronoEngine_irrlicht
-  EXPORT ChronoEngineIrrlichtTargets
+  EXPORT ChronoEngineTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include/chrono_irrlicht
 )
 
-INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS} DESTINATION include/chrono_irrlicht)
+INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS}
+        DESTINATION include/chrono_irrlicht)
 
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
-
-# generate and install export file
-install(EXPORT ChronoEngineIrrlichtTargets
-        FILE ChronoEngineIrrlichtTargets.cmake
-        NAMESPACE ChronoEngine::
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-)
-
-# generate the export targets for the build tree
-export(EXPORT ChronoEngineIrrlichtTargets
-       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoEngineIrrlichtTargets.cmake"
-       NAMESPACE ChronoEngine::
-)

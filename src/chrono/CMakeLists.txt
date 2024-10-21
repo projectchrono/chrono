@@ -1546,6 +1546,31 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 
+#-----------------------------------------------------------------------------
+# Optionally use static runtime library (MSVC only)
+#-----------------------------------------------------------------------------
+if (MSVC)
+    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
+    if (USE_MSVC_STATIC_RUNTIME)
+        set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# Collect compiler flags required to build the Chrono libraries
+#-----------------------------------------------------------------------------
+if (NOT BUILD_SHARED_LIBS)
+  set(CH_STATIC ON)
+  target_compile_definitions(ChronoEngine PUBLIC "CH_STATIC")
+  set_target_properties(ChronoEngine PROPERTIES POSITION_INDEPENDENT_CODE ON)
+else()
+  set(CH_STATIC OFF)
+endif()
+
+
+
 target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
 if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
@@ -1583,16 +1608,3 @@ install(TARGETS ChronoEngine
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DESTINATION include
     FILES_MATCHING REGEX ".*\\.(h|inl)$")
-
-# generate the export targets for the build tree
-export(EXPORT ChronoEngineTargets
-       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoEngineTargets.cmake"
-       NAMESPACE ChronoEngine::
-)
-
-# generate and install export file
-install(EXPORT ChronoEngineTargets
-        FILE ChronoEngineTargets.cmake
-        NAMESPACE ChronoEngine::
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-)

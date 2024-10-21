@@ -24,29 +24,6 @@ endif()
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 #-----------------------------------------------------------------------------
-# Optionally use static runtime library (MSVC only)
-#-----------------------------------------------------------------------------
-if (MSVC)
-    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
-    if (USE_MSVC_STATIC_RUNTIME)
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    else()
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-    endif()
-endif()
-
-#-----------------------------------------------------------------------------
-# Collect compiler flags required to build the Chrono libraries
-#-----------------------------------------------------------------------------
-if (NOT BUILD_SHARED_LIBS)
-  set(CH_STATIC ON)
-  add_compile_definitions(CH_STATIC)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-else()
-  set(CH_STATIC OFF)
-endif()
-
-#-----------------------------------------------------------------------------
 # Check for C++14 and C++17 support
 #-----------------------------------------------------------------------------
 
@@ -1012,3 +989,15 @@ install(FILES
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
+
+
+export(EXPORT ChronoEngineTargets
+       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoEngineTargets.cmake"
+       NAMESPACE ChronoEngine::
+)
+
+install(EXPORT ChronoEngineTargets
+        FILE ChronoEngineTargets.cmake
+        NAMESPACE ChronoEngine::
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
