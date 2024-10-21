@@ -1322,46 +1322,46 @@ __global__ void NS_SSR(uint* activityIdentifierD,
         Real3 velMasB = sortedVelMas[j];
         Real3 TauXxYyZzB = sortedTauXxYyZz[j];
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
-        if (rhoPresMuB.w > -0.5) {
-            int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
-            rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
-            velMasB = velMas_ModifiedBCE[bceIndexB];
-            TauXxYyZzB = tauXxYyZz_ModifiedBCE[bceIndexB];
-            TauXyXzYzB = tauXyXzYz_ModifiedBCE[bceIndexB];
+        // if (rhoPresMuB.w > -0.5) {
+        //     int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
+        //     rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
+        //     velMasB = velMas_ModifiedBCE[bceIndexB];
+        //     TauXxYyZzB = tauXxYyZz_ModifiedBCE[bceIndexB];
+        //     TauXyXzYzB = tauXyXzYz_ModifiedBCE[bceIndexB];
             // Extrapolated from velocity of fluid particle
-            if(rhoPresMuB.w > 0.5 && paramsD.bceType == BceVersion::ADAMI){
-                velMasB = sortedVelMas[j];
-                Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
-                Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
-                Real dA = SuppRadii * (2.0 * chi_A - 1.0);
-                if (dA < 0.0)
-                    dA = 0.01 * SuppRadii;
-                Real dB = SuppRadii * (2.0 * chi_B - 1.0);
-                if (dB < 0.0)
-                    dB = 0.01 * SuppRadii;
-                Real dAB = dB / dA;
-                if (dAB > 0.5)
-                    dAB = 0.5;
-                Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
-                velMasB = velMasB_new;
-            }
-            if(rhoPresMuB.w < 0.5 && paramsD.bceTypeWall == BceVersion::ADAMI){
-                velMasB = sortedVelMas[j];
-                Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
-                Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
-                Real dA = SuppRadii * (2.0 * chi_A - 1.0);
-                if (dA < 0.0)
-                    dA = 0.01 * SuppRadii;
-                Real dB = SuppRadii * (2.0 * chi_B - 1.0);
-                if (dB < 0.0)
-                    dB = 0.01 * SuppRadii;
-                Real dAB = dB / dA;
-                if (dAB > 0.5)
-                    dAB = 0.5;
-                Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
-                velMasB = velMasB_new;
-            }
-        }
+            // if(rhoPresMuB.w > 0.5 && paramsD.bceType == BceVersion::ADAMI){
+            //     velMasB = sortedVelMas[j];
+            //     Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
+            //     Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
+            //     Real dA = SuppRadii * (2.0 * chi_A - 1.0);
+            //     if (dA < 0.0)
+            //         dA = 0.01 * SuppRadii;
+            //     Real dB = SuppRadii * (2.0 * chi_B - 1.0);
+            //     if (dB < 0.0)
+            //         dB = 0.01 * SuppRadii;
+            //     Real dAB = dB / dA;
+            //     if (dAB > 0.5)
+            //         dAB = 0.5;
+            //     Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
+            //     velMasB = velMasB_new;
+            // }
+            // if(rhoPresMuB.w < 0.5 && paramsD.bceTypeWall == BceVersion::ADAMI){
+            //     velMasB = sortedVelMas[j];
+            //     Real chi_A = sortedKernelSupport[index].y / sortedKernelSupport[index].x;
+            //     Real chi_B = sortedKernelSupport[j].y / sortedKernelSupport[j].x;
+            //     Real dA = SuppRadii * (2.0 * chi_A - 1.0);
+            //     if (dA < 0.0)
+            //         dA = 0.01 * SuppRadii;
+            //     Real dB = SuppRadii * (2.0 * chi_B - 1.0);
+            //     if (dB < 0.0)
+            //         dB = 0.01 * SuppRadii;
+            //     Real dAB = dB / dA;
+            //     if (dAB > 0.5)
+            //         dAB = 0.5;
+            //     Real3 velMasB_new = dAB * (velMasB - velMasA) + velMasB;
+            //     velMasB = velMasB_new;
+            // }
+        // }
         // Correct the kernel function gradient
         Real w_AB = W3h(d, hA);
         Real3 gradW = GradWh(dist3, hA);
@@ -1650,13 +1650,13 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
 
     // Calculate the kernel support of each particle
-    if (paramsH->bceTypeWall == BceVersion::ADAMI || paramsH->bceType == BceVersion::ADAMI){
-        calcKernelSupport<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-            mR3CAST(sortedKernelSupport), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), isErrorD);
-        ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcKernelSupport");
-    }
+    // if (paramsH->bceTypeWall == BceVersion::ADAMI || paramsH->bceType == BceVersion::ADAMI){
+    //     calcKernelSupport<<<numBlocks, numThreads>>>(
+    //         mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+    //         mR3CAST(sortedKernelSupport), U1CAST(markersProximityD->cellStartD),
+    //         U1CAST(markersProximityD->cellEndD), isErrorD);
+    //     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcKernelSupport");
+    // }
 
     // Re-Initialize the density after several time steps
     if (density_initialization >= paramsH->densityReinit) {

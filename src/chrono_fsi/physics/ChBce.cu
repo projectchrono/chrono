@@ -399,7 +399,8 @@ __global__ void BCE_VelocityPressureStress(Real3* velMas_ModifiedBCE,
     if (abs(sumWFluid) > EPSILON) {
         // modify velocity
         Real3 modifiedBCE_v = 2 * velMasA - sumVW / sumWFluid;
-        velMas_ModifiedBCE[bceIndex] = modifiedBCE_v;
+        velMas_ModifiedBCE[bceIndex] = modifiedBCE_v * 1.0;
+        // velMas_ModifiedBCE[bceIndex] = mR3(0.0);
         // modify pressure and stress
         Real3 aW = mR3(0.0);
         if (rhoPreMuA.w > 0.5 && rhoPreMuA.w < 1.5) {
