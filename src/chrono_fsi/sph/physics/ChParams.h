@@ -91,22 +91,11 @@ struct SimParams {
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
 
-    Real3 cMinInit;                    ///< Minimum point of the fluid domain.
-    Real3 cMaxInit;                    ///< Maximum point of the fluid domain.
-    Real3 straightChannelBoundaryMin;  ///< Origin of the coordinate system (Point (0,0,0)). In this case (straigh
-                                       ///< channel) this point is where the leftmost particle of the 3rd layer of
-                                       ///< boundary particles is located. Everything below this point is outside the
-                                       ///< tolerance zone, this means that everything below is not considered part of
-                                       ///< the system
-    Real3 straightChannelBoundaryMax;  ///< Upper right most part of the system, this is Point(2 * mm, 1 * mm, 3 * mm)
-                                       ///< where mm is a constant defined at the beginning of main.cpp.This is also the
-                                       ///< rightmost particle of the 3rd layer of the top boundaryparticles.Everything
-                                       ///< above this point is not considered part of thesystem.
-    Real binSize0;  ///< Suggests the length of the bin each particle occupies. Normally this would be 2*hsml since
-                    ///< hsml is the radius of the particle, but when we have periodic boundary condition varies a
-                    ///< little from 2 hsml.This may change slightly due to the location of the periodic BC.
-
-    Real3 rigidRadius;  ///< Radius of rigid bodies.
+    Real3 cMinInit;  ///< Minimum point of the fluid domain.
+    Real3 cMaxInit;  ///< Maximum point of the fluid domain.
+    Real binSize0;   ///< Suggests the length of the bin each particle occupies. Normally this would be 2*hsml since
+                     ///< hsml is the radius of the particle, but when we have periodic boundary condition varies a
+                     ///< little from 2 hsml.This may change slightly due to the location of the periodic BC.
 
     double pressure_height;  ///< height for pressure initialization
 
