@@ -18,7 +18,7 @@ message(STATUS "\n==== Chrono VSG module ====\n")
 
 # VSG requires C++17 support. Disable module if not available
 if(NOT CH_CXX17)
-   message("Chrono::VSG requires C++17 support which is not available; disabling Chrono::VSG")
+   message(WARNING "Chrono::VSG requires C++17 support which is not available; disabling Chrono::VSG")
    set(ENABLE_MODULE_VSG OFF CACHE BOOL "Enable the Chrono VSG module" FORCE)
    mark_as_advanced(FORCE vsg_DIR)
    mark_as_advanced(FORCE vsgXchange_DIR)
@@ -126,19 +126,26 @@ add_library(ChronoEngine_vsg
 
 target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
 
-target_link_libraries(ChronoEngine_vsg
+target_link_libraries(ChronoEngine_vsg PUBLIC
                       ChronoEngine
                       vsg::vsg
                       vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
 
+# TODO DARIOM: verify if needed
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  target_link_options(ChronoEngine_vsg PUBLIC "-framework IOKit -framework Cocoa -framework OpenGL")
+endif()
+
 #-------------------------------------------------------------------------------
 # Install the ChronoEngine_vsg library
 
 install(TARGETS ChronoEngine_vsg
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_vsg)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vsg

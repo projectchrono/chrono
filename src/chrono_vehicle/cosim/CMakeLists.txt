@@ -118,7 +118,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
   list(APPEND LIBRARIES ChronoEngine_vsg)
   list(APPEND LIBRARIES ChronoEngine_vehicle_vsg)
 endif()

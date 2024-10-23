@@ -94,7 +94,6 @@ if(ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 

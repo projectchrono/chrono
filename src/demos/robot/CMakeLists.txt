@@ -63,7 +63,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-    include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
     if(ENABLE_MODULE_VEHICLE) 
       list(APPEND LIBS "ChronoEngine_vehicle_vsg")

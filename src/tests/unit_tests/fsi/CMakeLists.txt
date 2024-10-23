@@ -10,7 +10,6 @@ list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_fsi")
 
 if(ENABLE_MODULE_VSG)
-    include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 

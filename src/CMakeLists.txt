@@ -115,6 +115,35 @@ if (MSVC)
   endif()
 endif()
 
+
+
+# #-----------------------------------------------------------------------------
+# # CUDA support
+# #-----------------------------------------------------------------------------
+
+include(CheckLanguage)
+check_language(CUDA)
+
+# If CUDA was found, enable the CUDA language
+if(CMAKE_CUDA_COMPILER)
+    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "  CUDA toolkit root dir: ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
+    enable_language(CUDA)
+    set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
+    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
+    message(STATUS "CUDA found and enabled.")
+else()
+    mark_as_advanced(FORCE CUDA_ARCHITECTURES)
+    message(WARNING "CUDA not found. CUDA features will be disabled.")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(CUDA_SEPARABLE_COMPILATION OFF)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+endif()
+
+
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
@@ -320,34 +349,6 @@ if(MPI_FOUND)
   message(STATUS "  MPIEXEC_POSTFLAGS:     ${MPIEXEC_POSTFLAGS}")
 endif()
 
-
-# #-----------------------------------------------------------------------------
-# # CUDA support
-# #-----------------------------------------------------------------------------
-
-# Try to find CUDA
-find_package(CUDAToolkit)
-
-# If CUDA was found, enable the CUDA language
-if(CUDAToolkit_FOUND)
-    message(STATUS "  CUDA version:          ${CUDA_VERSION}")
-    message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
-    enable_language(CUDA)
-    set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
-    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
-    message(STATUS "CUDA found and enabled.")
-else()
-    mark_as_advanced(FORCE CUDA_ARCHITECTURES)
-    message(WARNING "CUDA not found. CUDA features will be disabled.")
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CUDA_SEPARABLE_COMPILATION OFF)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-endif()
-
-
 #-----------------------------------------------------------------------------
 # Thrust library
 #-----------------------------------------------------------------------------
@@ -374,7 +375,7 @@ endif()
 # CUB Library
 #-----------------------------------------------------------------------------
 
-if (CUDAToolkit_FOUND) # CUB should only be used with CUDA 
+if (CMAKE_CUDA_COMPILER) # CUB should only be used with CUDA 
 	message(STATUS "Searching for CUB...")
 
 	if (CUDA_VERSION_STRING VERSION_LESS 11.0)

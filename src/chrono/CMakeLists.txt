@@ -1407,7 +1407,9 @@ target_include_directories(ChronoEngine PUBLIC
 target_link_libraries(ChronoEngine PUBLIC Eigen3::Eigen)
 
 if(THRUST_FOUND)
-  target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust) # in main Chrono library Thrust is not exposed
+  # in main Chrono library Thrust is used only from cpp files, so we can link it privately
+  # because of the same reason there is no need to propagate Thrust to other targets
+  target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust)
 endif(THRUST_FOUND)
 
 if(ENABLE_OPENMP)

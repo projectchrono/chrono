@@ -49,7 +49,7 @@ mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
 # ------------------------------------------------------------------------------
 
 # ----- CUDA support -----
-cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CUDAToolkit_FOUND" OFF)
+cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CMAKE_CUDA_COMPILER" OFF)
 
 if(USE_MULTICORE_CUDA)
   set(CHRONO_MULTICORE_USE_CUDA "#define CHRONO_MULTICORE_USE_CUDA")

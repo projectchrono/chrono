@@ -970,7 +970,7 @@ if(ENABLE_MODULE_IRRLICHT)
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include/chrono_vehicle)
+            INCLUDES DESTINATION include/chrono_vehicle) # TODO DARIOM: verify if correct folder
 
 endif()
 
@@ -980,29 +980,23 @@ endif()
 
 if(ENABLE_MODULE_VSG)
 
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_vehicle)
-    list(APPEND LIBRARIES ChronoEngine_vsg) 
-    
     add_library(ChronoEngine_vehicle_vsg
         ${CVVSG_FILES}
         ${CVVSG_WV_FILES}
         ${CVVSG_TV_FILES}
     )
     
-    set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES
-                          COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-    
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
     
-    target_link_libraries(ChronoEngine_vehicle_vsg ${LIBRARIES})
+    target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine_vehicle ChronoEngine_vsg)
     
     install(TARGETS ChronoEngine_vehicle_vsg
+            EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib)
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_vehicle) # TODO DARIOM: verify if correct folder
 
 endif()
 
@@ -1030,9 +1024,10 @@ if(ENABLE_MODULE_OPENGL)
     target_link_libraries(ChronoEngine_vehicle_opengl ${LIBRARIES})
     
     install(TARGETS ChronoEngine_vehicle_opengl
+            EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib)
+            INCLUDES DESTINATION include/chrono_vehicle) # TODO DARIOM: verify if correct folder
 
 endif()
 

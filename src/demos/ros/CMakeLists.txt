@@ -53,7 +53,6 @@ endif()
 if(ENABLE_MODULE_VSG)
     set(CMAKE_CXX_STANDARD 17)
 
-    include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
     if (ENABLE_MODULE_VEHICLE)
         list(APPEND LIBS "ChronoEngine_vehicle")
