@@ -19,7 +19,6 @@ set(DEMOS
 #--------------------------------------------------------------
 # Additional include directories
 
-include_directories(${CH_MULTICORE_INCLUDES})
 include_directories(${CH_OPENGL_INCLUDES})
 
 #--------------------------------------------------------------
@@ -31,9 +30,6 @@ foreach(PROGRAM ${DEMOS})
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
 
-    set_target_properties(${PROGRAM} PROPERTIES
-                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM}
                           ChronoEngine

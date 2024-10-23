@@ -80,42 +80,19 @@ SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 # ----------------------------------------------------------------------------
 if(ENABLE_IRRKLANG)
 
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(IRRKLANG_INSTALL_DIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
-      set(IRRKLANG_LIBRARY   "" CACHE FILEPATH "Where is your Irrklang library?")
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      FIND_PATH(IRRKLANG_INSTALL_DIR NAMES irrKlang.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
-      FIND_LIBRARY(IRRKLANG_LIBRARY NAMES Irrklang PATHS "/usr/local/lib" ${IRRKLANG_INSTALL_DIR}/lib/Linux)
-  endif()
+  find_package(IRRKLANG)
 
-  if(EXISTS "${IRRKLANG_INSTALL_DIR}/include")
-      set(CH_IRRKLANG_INCLUDES "${IRRKLANG_INSTALL_DIR}/include")
+  if (NOT IRRKLANG_FOUND)
+    set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
+    set(IRRKLANG_LIBDIR "" CACHE PATH "IrrKlang SDK library directory")
+    mark_as_advanced(CLEAR IRRKLANG_ROOT)
+    mark_as_advanced(CLEAR IRRKLANG_LIBDIR)
   else()
-      set(CH_IRRKLANG_INCLUDES "${IRRKLANG_INSTALL_DIR}")
+    mark_as_advanced(FORCE IRRKLANG_ROOT)
+    mark_as_advanced(FORCE IRRKLANG_LIBDIR)
   endif()
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        set(CH_IRRKLANG_DLL "${IRRKLANG_INSTALL_DIR}/bin/Win32-VisualStudio/irrKlang.dll")
-    elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        set(CH_IRRKLANG_DLL "${IRRKLANG_INSTALL_DIR}/bin/Winx64-VisualStudio/irrKlang.dll")
-    endif()
-  endif()
-
-  mark_as_advanced(CLEAR IRRKLANG_INSTALL_DIR)
-  mark_as_advanced(CLEAR IRRKLANG_LIBRARY)
-
-  message(STATUS "IrrKlang include dir: ${IRRKLANG_INSTALL_DIR}")
-  message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
   
-  set(HAVE_IRRKLANG TRUE)
-
-else()
-
-  mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
-  mark_as_advanced(FORCE IRRKLANG_LIBRARY)
-
-  set(HAVE_IRRKLANG FALSE)
+  set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
 
 endif()
 
@@ -888,10 +865,8 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 # Add the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
 
-set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
-set(LINK_FLAGS ${CH_LINKERFLAG_LIB})
-set(LIBRARIES "ChronoEngine")
+set(LIBRARIES ChronoEngine)
 
 if(HDF5_FOUND)
     set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
@@ -951,22 +926,20 @@ add_library(ChronoEngine_vehicle
 
 message(STATUS "Add ChronoEngine_vehicle library")
 
-set_target_properties(ChronoEngine_vehicle PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_API_COMPILE_VEHICLE")
 target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
 if(HDF5_FOUND)
-target_compile_definitions(ChronoEngine_vehicle PRIVATE ${HDF5_COMPILE_DEFS})
+  target_compile_definitions(ChronoEngine_vehicle PRIVATE ${HDF5_COMPILE_DEFS})
 endif()
 
-target_link_libraries(ChronoEngine_vehicle ${LIBRARIES})
+target_link_libraries(ChronoEngine_vehicle PUBLIC ${LIBRARIES})
 
 install(TARGETS ChronoEngine_vehicle
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_vehicle)
 
 
 #-------------------------------------------------------------------------------
@@ -975,37 +948,29 @@ install(TARGETS ChronoEngine_vehicle
 
 if(ENABLE_MODULE_IRRLICHT)
 
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_vehicle)
-    list(APPEND LIBRARIES ChronoEngine_irrlicht) 
-
     add_library(ChronoEngine_vehicle_irrlicht
         ${CVIRR_FILES}
         ${CVIRR_WV_FILES}
         ${CVIRR_TV_FILES}
     )
+
+    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_vehicle)
+    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_irrlicht)
     
     if(ENABLE_IRRKLANG)
-        target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANG_INCLUDES})
-        list(APPEND LIBRARIES ${IRRKLANG_LIBRARY})
-        set(CH_IRRLICHT_INCLUDES ${CH_IRRLICHT_INCLUDES} ${CH_IRRKLANG_INCLUDES} PARENT_SCOPE)
-        set(CH_IRRKLANG_INCLUDES "${CH_IRRKLANG_INCLUDES}" PARENT_SCOPE)
+        target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
     endif()
-    
-    set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
-                          COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
     
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
     
-    target_link_libraries(ChronoEngine_vehicle_irrlicht ${LIBRARIES})
     
     install(TARGETS ChronoEngine_vehicle_irrlicht
+            EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib)
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_vehicle)
 
 endif()
 
@@ -1112,16 +1077,23 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )
+
+
 #-------------------------------------------------------------------------------
 # On Windows, copy DLLs (if specified)
 #-------------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-    if(ENABLE_MODULE_IRRLICHT AND EXISTS "${CH_IRRKLANG_DLL}")
+    if(ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_IRRKLANG_DLL}"
+            "${IRRKLANG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
@@ -1134,7 +1106,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 
   # Make variable visible from outside this directory
-  SET(CH_IRRKLANG_DLL "${CH_IRRKLANG_DLL}" PARENT_SCOPE)
+  SET(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
   SET(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
 
 endif()

@@ -43,7 +43,6 @@ SET(PROGRAM
 # Additional include directories
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
-INCLUDE_DIRECTORIES(${CH_IRRLICHT_INCLUDES})
 
 #--------------------------------------------------------------
 # Create the executable
@@ -54,9 +53,6 @@ ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
 SOURCE_GROUP("" FILES ${PROGRAM}.cpp ${MODEL_FILES})
 
-SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}")
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
