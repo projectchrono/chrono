@@ -19,12 +19,11 @@
 #ifndef CH_INDUSTRIAL_ROBOT_H
 #define CH_INDUSTRIAL_ROBOT_H
 
+#include "chrono_models/ChApiModels.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
-
-#include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace industrial {

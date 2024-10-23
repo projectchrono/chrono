@@ -60,37 +60,44 @@ IndustrialRobot6dof::IndustrialRobot6dof(ChSystem* sys,
 void IndustrialRobot6dof::SetupBodies() {
     // Base
     m_base = chrono_types::make_shared<ChBodyAuxRef>();
+    m_base->SetName("robot_base");
     m_base->SetFixed(true);
     m_base->SetPos(m_joint_frames[0].GetPos());
     m_sys->Add(m_base);
 
     // Shoulder
     m_shoulder = chrono_types::make_shared<ChBodyAuxRef>();
+    m_shoulder->SetName("robot_shoulder");
     m_shoulder->SetPos((m_joint_frames[0].GetPos() + m_joint_frames[1].GetPos()) * 0.5);
     m_sys->Add(m_shoulder);
 
     // Biceps
     m_biceps = chrono_types::make_shared<ChBodyAuxRef>();
+    m_biceps->SetName("robot_biceps");
     m_biceps->SetPos((m_joint_frames[1].GetPos() + m_joint_frames[2].GetPos()) * 0.5);
     m_sys->Add(m_biceps);
 
     // Elbow
     m_elbow = chrono_types::make_shared<ChBodyAuxRef>();
+    m_elbow->SetName("robot_elbow");
     m_elbow->SetPos(m_joint_frames[2].GetPos());
     m_sys->Add(m_elbow);
 
     // Forearm
     m_forearm = chrono_types::make_shared<ChBodyAuxRef>();
+    m_forearm->SetName("robot_forearm");
     m_forearm->SetPos((m_joint_frames[3].GetPos() + m_joint_frames[4].GetPos()) * 0.5);
     m_sys->Add(m_forearm);
 
     // Wrist
     m_wrist = chrono_types::make_shared<ChBodyAuxRef>();
+    m_wrist->SetName("robot_wrist");
     m_wrist->SetPos((m_joint_frames[4].GetPos() + m_joint_frames[5].GetPos()) * 0.5);
     m_sys->Add(m_wrist);
 
     // End effector
     m_end_effector = chrono_types::make_shared<ChBodyAuxRef>();
+    m_end_effector->SetName("robot_end_effector");
     m_end_effector->SetPos(m_joint_frames[6].GetPos());
     m_sys->Add(m_end_effector);
 

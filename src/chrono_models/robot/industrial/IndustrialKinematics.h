@@ -19,11 +19,10 @@
 #ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_H
 #define CH_INDUSTRIAL_ROBOT_KINEMATICS_H
 
+#include "chrono_models/ChApiModels.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChRotation.h"
 #include "chrono/utils/ChUtils.h"
-
-#include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace industrial {
