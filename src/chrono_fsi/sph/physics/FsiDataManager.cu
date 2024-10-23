@@ -168,6 +168,8 @@ FsiDataManager::FsiDataManager(std::shared_ptr<SimParams> params) : paramsH(para
     fsiMesh2DState_H = chrono_types::make_shared<FsiMeshStateH>();
 
     markersProximity_D = chrono_types::make_shared<ProximityDataD>();
+
+    cudaDeviceInfo = chrono_types::make_shared<CudaDeviceInfo>();
 }
 
 FsiDataManager::~FsiDataManager() {}

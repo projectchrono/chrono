@@ -1018,7 +1018,30 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
+    // Check if GPU is available and initialize CUDA device information
+    int device;
+    cudaGetDevice(&device);
+    cudaCheckError();
+    m_data_mgr->cudaDeviceInfo->deviceID = device;
+    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
+    cudaCheckError();
+
     if (m_verbose) {
+        cout << "GPU device: " << m_data_mgr->cudaDeviceInfo->deviceProp.name << endl;
+        cout << "  Compute capability: " << m_data_mgr->cudaDeviceInfo->deviceProp.major << "."
+             << m_data_mgr->cudaDeviceInfo->deviceProp.minor << endl;
+        cout << "  Total global memory: "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.totalGlobalMem / (1024. * 1024. * 1024.) << " GB" << endl;
+        cout << "  Total constant memory: " << m_data_mgr->cudaDeviceInfo->deviceProp.totalConstMem / 1024. << " KB"
+             << endl;
+        cout << "  Total Static shared memory per block Available: "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.sharedMemPerBlock / 1024. << " KB" << endl;
+        cout << "  Maximum Dynamic shared memory per block (with opt-in): "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.sharedMemPerBlockOptin / 1024. << " KB" << endl;
+        cout << "  Total shared memory per multiprocessor: "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.sharedMemPerMultiprocessor / 1024. << " KB" << endl;
+        cout << "  Number of multiprocessors: " << m_data_mgr->cudaDeviceInfo->deviceProp.multiProcessorCount << endl;
+
         cout << "Simulation parameters" << endl;
         if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
             cout << "  Viscosity treatment: Artificial Bilateral" << endl;

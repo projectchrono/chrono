@@ -65,172 +65,229 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
     rigid_BCEcoords_D[index] = dist3LF;
 }
 
-// -----------------------------------------------------------------------------
+__global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
+                                  Real3* __restrict__ rigid_FSI_TorquesD,
+                                  const Real4* __restrict__ derivVelRhoD,
+                                  const Real4* __restrict__ posRadD,
+                                  const uint* __restrict__ rigid_BCEsolids_D,
+                                  const Real3* __restrict__ posRigidD,
+                                  const uint* __restrict__ mapOriginalToSorted,
+                                  const uint numRigidMarkers,
+                                  const Real markerMass,
+                                  const uint startRigidMarkers,
+                                  const SPHMethod sph_method) {
+    // Shared memory allocations
+    extern __shared__ char sharedMem[];
+    Real3* sharedForces = (Real3*)sharedMem;                       // Size: blockDim.x
+    Real3* sharedTorques = (Real3*)&sharedForces[blockDim.x];      // Size: blockDim.x
+    uint* sharedRigidIndices = (uint*)&sharedTorques[blockDim.x];  // Size: blockDim.x
 
-__global__ void CalcRigidForces_D(Real3* rigid_FSI_ForcesD,
-                                  Real3* rigid_FSI_TorquesD,
-                                  Real4* derivVelRhoD,
-                                  Real4* posRadD,
-                                  uint* rigid_BCEsolids_D,
-                                  Real3* posRigidD,
-                                  Real3* rigid_BCEcoords_D,
-                                  uint* mapOriginalToSorted) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numRigidMarkers)
+    uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    if (globalIndex >= numRigidMarkers)
         return;
 
-    int RigidIndex = rigid_BCEsolids_D[index];
-    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
+    // Compute indices
+    uint rigidMarkerIndex = globalIndex + startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
 
+    // Get RigidIndex for the current marker
+    uint RigidIndex = rigid_BCEsolids_D[globalIndex];
+
+    // Store RigidIndex in shared memory - This is the Rigid Body index of each BCE marker
+    sharedRigidIndices[threadIdx.x] = RigidIndex;
+
+    // Compute force
     Real3 Force;
-
-    if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
-
-    }
-    // TODO: check IISPH
-    else {
+    if (sph_method == SPHMethod::WCSPH) {
+        Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
+    } else {
         Force = mR3(derivVelRhoD[sortedIndex]);
     }
-
-    if (std::is_same<Real, double>::value) {
-        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
-        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
-        atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].z), Force.z);
-    } else {
-        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].x), Force.x);
-        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].y), Force.y);
-        atomicAdd((float*)&(rigid_FSI_ForcesD[RigidIndex].z), Force.z);
-    }
-
     Real3 dist3 = mR3(posRadD[sortedIndex]) - posRigidD[RigidIndex];
-    Real3 mtorque = cross(dist3, Force);
+    Real3 Torque = cross(dist3, Force);
 
-    if (std::is_same<Real, double>::value) {
-        atomicAdd_double((double*)&(rigid_FSI_TorquesD[RigidIndex].x), mtorque.x);
-        atomicAdd_double((double*)&(rigid_FSI_TorquesD[RigidIndex].y), mtorque.y);
-        atomicAdd_double((double*)&(rigid_FSI_TorquesD[RigidIndex].z), mtorque.z);
-    } else {
-        atomicAdd((float*)&(rigid_FSI_TorquesD[RigidIndex].x), mtorque.x);
-        atomicAdd((float*)&(rigid_FSI_TorquesD[RigidIndex].y), mtorque.y);
-        atomicAdd((float*)&(rigid_FSI_TorquesD[RigidIndex].z), mtorque.z);
+    // Compute block local BCE marker force and torque
+    sharedForces[threadIdx.x] = Force;
+    sharedTorques[threadIdx.x] = Torque;
+
+    __syncthreads();
+
+    // Perform reduction at block level to store accumulated force and torque at array position 0 or at array psoitions
+    // where the rigidIndex changes Force accumulates only if the rigidIndex matches
+    for (uint stride = 1; stride < blockDim.x; stride *= 2) {
+        uint index = 2 * stride * threadIdx.x;
+        if (index + stride < blockDim.x) {
+            if (sharedRigidIndices[index] == sharedRigidIndices[index + stride]) {
+                sharedForces[index].x += sharedForces[index + stride].x;
+                sharedForces[index].y += sharedForces[index + stride].y;
+                sharedForces[index].z += sharedForces[index + stride].z;
+
+                sharedTorques[index].x += sharedTorques[index + stride].x;
+                sharedTorques[index].y += sharedTorques[index + stride].y;
+                sharedTorques[index].z += sharedTorques[index + stride].z;
+            }
+        }
+        __syncthreads();
     }
-}
 
-__global__ void CalcFlex1DForces_D(Real3* flex1D_FSIforces_D,  // FEA node forces (output)
-                                   Real4* derivVelRhoD,        // dv/dt
-                                   uint2* flex1D_Nodes_D,      // segment node indices
-                                   uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
-                                   Real3* flex1D_BCEcoords_D,   // local coordinates of BCE markers on FEA 1-D segments
-                                   const uint* mapOriginalToSorted
-) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numFlexMarkers1D)
+    // The first thread for each rigid body in the block performs atomic addition
+    if (threadIdx.x == 0 || sharedRigidIndices[threadIdx.x] != sharedRigidIndices[threadIdx.x - 1]) {
+        uint idx = threadIdx.x;
+        uint rid = sharedRigidIndices[idx];
+
+        // Atomic addition to global arrays
+        atomicAdd(&rigid_FSI_ForcesD[rid].x, sharedForces[idx].x);
+        atomicAdd(&rigid_FSI_ForcesD[rid].y, sharedForces[idx].y);
+        atomicAdd(&rigid_FSI_ForcesD[rid].z, sharedForces[idx].z);
+
+        atomicAdd(&rigid_FSI_TorquesD[rid].x, sharedTorques[idx].x);
+        atomicAdd(&rigid_FSI_TorquesD[rid].y, sharedTorques[idx].y);
+        atomicAdd(&rigid_FSI_TorquesD[rid].z, sharedTorques[idx].z);
+    }
+};
+
+__global__ void CalcFlex1DForces_D(Real3* __restrict__ flex1D_FSIforces_D,
+                                   const Real4* __restrict__ derivVelRhoD,
+                                   const uint2* __restrict__ flex1D_Nodes_D,
+                                   const uint3* __restrict__ flex1D_BCEsolids_D,
+                                   const Real3* __restrict__ flex1D_BCEcoords_D,
+                                   const uint* __restrict__ mapOriginalToSorted,
+                                   const uint numFlexMarkers1D,
+                                   const uint startFlexMarkers1D,
+                                   const Real markerMass,
+                                   const SPHMethod sph_method) {
+    extern __shared__ char sharedMem[];
+    // Each thread handles a segment which contains 2 nodes
+    const int maxNodesPerMarker = 2;
+    const int threadsPerBlock = blockDim.x;
+
+    // Shared memory for node indices and forces
+    uint* sharedNodeIndices = (uint*)sharedMem;  // Size: maxNodesPerMarker * threadsPerBlock
+    Real3* sharedForces = (Real3*)&sharedNodeIndices[maxNodesPerMarker * threadsPerBlock];  // Same size
+
+    uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    if (globalIndex >= numFlexMarkers1D)
         return;
 
-    uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
+    uint flex_index = globalIndex + startFlexMarkers1D;
     uint sortedIndex = mapOriginalToSorted[flex_index];
-    uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
-    uint flex_seg = flex_solid.z;                              // index of segment in global list
 
-    // Fluid force on BCE marker
+    // Read data
+    uint3 flex_solid = flex1D_BCEsolids_D[globalIndex];
+    uint flex_seg = flex_solid.z;
+
     Real3 Force;
     if (paramsD.sph_method == SPHMethod::WCSPH) {
         Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
     } else {
         Force = mR3(derivVelRhoD[sortedIndex]);
     }
-
-    uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
+    uint2 seg_nodes = flex1D_Nodes_D[flex_seg];
     uint n0 = seg_nodes.x;
     uint n1 = seg_nodes.y;
 
-    Real lambda0 = flex1D_BCEcoords_D[index].x;  // segment coordinate
-    Real lambda1 = 1 - lambda0;                  // segment coordinate
+    Real lambda0 = flex1D_BCEcoords_D[globalIndex].x;
+    Real lambda1 = 1 - lambda0;
 
-    // Split BCE marker force to the 2 nodes of the 1-D segment and accumulate
-    if (std::is_same<Real, double>::value) {
-        atomicAdd_double((double*)&(flex1D_FSIforces_D[n0].x), lambda0 * Force.x);
-        atomicAdd_double((double*)&(flex1D_FSIforces_D[n0].y), lambda0 * Force.y);
-        atomicAdd_double((double*)&(flex1D_FSIforces_D[n0].z), lambda0 * Force.z);
+    // Compute contributions to nodes
+    Real3 force_n0 = Force * lambda0;
+    Real3 force_n1 = Force * lambda1;
 
-        atomicAdd_double((double*)&(flex1D_FSIforces_D[n1].x), lambda1 * Force.x);
-        atomicAdd_double((double*)&(flex1D_FSIforces_D[n1].y), lambda1 * Force.y);
-        atomicAdd_double((double*)&(flex1D_FSIforces_D[n1].z), lambda1 * Force.z);
-    } else {
-        atomicAdd((float*)&(flex1D_FSIforces_D[n0].x), lambda0 * Force.x);
-        atomicAdd((float*)&(flex1D_FSIforces_D[n0].y), lambda0 * Force.y);
-        atomicAdd((float*)&(flex1D_FSIforces_D[n0].z), lambda0 * Force.z);
+    // Store node indices and forces in shared memory
+    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 0] = n0;
+    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 1] = n1;
 
-        atomicAdd((float*)&(flex1D_FSIforces_D[n1].x), lambda1 * Force.x);
-        atomicAdd((float*)&(flex1D_FSIforces_D[n1].y), lambda1 * Force.y);
-        atomicAdd((float*)&(flex1D_FSIforces_D[n1].z), lambda1 * Force.z);
+    sharedForces[threadIdx.x * maxNodesPerMarker + 0] = force_n0;
+    sharedForces[threadIdx.x * maxNodesPerMarker + 1] = force_n1;
+
+    __syncthreads();
+
+    // Now perform reduction per node within the block
+    // We'll use a simple approach since nodes can be shared among markers
+    for (int i = 0; i < maxNodesPerMarker; ++i) {
+        uint nodeIndex = sharedNodeIndices[threadIdx.x * maxNodesPerMarker + i];
+        Real3 force = sharedForces[threadIdx.x * maxNodesPerMarker + i];
+
+        // Use atomic operations to accumulate forces per node
+        atomicAdd(&flex1D_FSIforces_D[nodeIndex].x, force.x);
+        atomicAdd(&flex1D_FSIforces_D[nodeIndex].y, force.y);
+        atomicAdd(&flex1D_FSIforces_D[nodeIndex].z, force.z);
     }
 }
 
-__global__ void CalcFlex2DForces_D(Real3* flex2D_FSIforces_D,  // FEA node forces (output)
-                                   Real4* derivVelRhoD,        // dv/dt
-                                   uint3* flex2D_Nodes_D,      // triangle node indices
-                                   uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
-                                   Real3* flex2D_BCEcoords_D,   // local coordinates of BCE markers on FEA 2-D faces
-                                   const uint* mapOriginalToSorted
-) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numFlexMarkers2D)
+__global__ void CalcFlex2DForces_D(Real3* __restrict__ flex2D_FSIforces_D,
+                                   const Real4* __restrict__ derivVelRhoD,
+                                   const uint3* __restrict__ flex2D_Nodes_D,
+                                   const uint3* __restrict__ flex2D_BCEsolids_D,
+                                   const Real3* __restrict__ flex2D_BCEcoords_D,
+                                   const uint* __restrict__ mapOriginalToSorted,
+                                   const uint numFlexMarkers2D,
+                                   const uint startFlexMarkers2D,
+                                   const Real markerMass,
+                                   const SPHMethod sph_method) {
+    extern __shared__ char sharedMem[];
+
+    // Each marker deals with 3 nodes in the 2D case
+    const int maxNodesPerMarker = 3;
+    const int threadsPerBlock = blockDim.x;
+
+    // Shared memory for node indices and forces
+    uint* sharedNodeIndices = (uint*)sharedMem;  // Size: maxNodesPerMarker * threadsPerBlock
+    Real3* sharedForces = (Real3*)&sharedNodeIndices[maxNodesPerMarker * threadsPerBlock];  // Same size
+
+    uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    if (globalIndex >= numFlexMarkers2D)
         return;
 
-    uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
+    uint flex_index = globalIndex + startFlexMarkers2D;
     uint sortedIndex = mapOriginalToSorted[flex_index];
-    uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
-    ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
-    uint flex_tri = flex_solid.z;                              // index of triangle in global list
 
-    // Fluid force on BCE marker
+    // Read data
+    uint3 flex_solid = flex2D_BCEsolids_D[globalIndex];
+    uint flex_tri = flex_solid.z;
+
     Real3 Force;
     if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
+        Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
     } else {
         Force = mR3(derivVelRhoD[sortedIndex]);
     }
 
-    auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
+    uint3 tri_nodes = flex2D_Nodes_D[flex_tri];
     uint n0 = tri_nodes.x;
     uint n1 = tri_nodes.y;
     uint n2 = tri_nodes.z;
 
-    Real lambda0 = flex2D_BCEcoords_D[index].x;  // barycentric coordinate
-    Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
-    Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
+    Real lambda0 = flex2D_BCEcoords_D[globalIndex].x;
+    Real lambda1 = flex2D_BCEcoords_D[globalIndex].y;
+    Real lambda2 = 1.0f - lambda0 - lambda1;
 
-    // Split BCE marker force to the 3 nodes of the 2-D face and accumulate
-    if (std::is_same<Real, double>::value) {
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n0].x), lambda0 * Force.x);
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n0].y), lambda0 * Force.y);
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n0].z), lambda0 * Force.z);
+    // Compute contributions to nodes
+    Real3 force_n0 = Force * lambda0;
+    Real3 force_n1 = Force * lambda1;
+    Real3 force_n2 = Force * lambda2;
 
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n1].x), lambda1 * Force.x);
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n1].y), lambda1 * Force.y);
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n1].z), lambda1 * Force.z);
+    // Store node indices and forces in shared memory
+    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 0] = n0;
+    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 1] = n1;
+    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 2] = n2;
 
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n2].x), lambda2 * Force.x);
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n2].y), lambda2 * Force.y);
-        atomicAdd_double((double*)&(flex2D_FSIforces_D[n2].z), lambda2 * Force.z);
-    } else {
-        atomicAdd((float*)&(flex2D_FSIforces_D[n0].x), lambda0 * Force.x);
-        atomicAdd((float*)&(flex2D_FSIforces_D[n0].y), lambda0 * Force.y);
-        atomicAdd((float*)&(flex2D_FSIforces_D[n0].z), lambda0 * Force.z);
+    sharedForces[threadIdx.x * maxNodesPerMarker + 0] = force_n0;
+    sharedForces[threadIdx.x * maxNodesPerMarker + 1] = force_n1;
+    sharedForces[threadIdx.x * maxNodesPerMarker + 2] = force_n2;
 
-        atomicAdd((float*)&(flex2D_FSIforces_D[n1].x), lambda1 * Force.x);
-        atomicAdd((float*)&(flex2D_FSIforces_D[n1].y), lambda1 * Force.y);
-        atomicAdd((float*)&(flex2D_FSIforces_D[n1].z), lambda1 * Force.z);
+    __syncthreads();
 
-        atomicAdd((float*)&(flex2D_FSIforces_D[n2].x), lambda2 * Force.x);
-        atomicAdd((float*)&(flex2D_FSIforces_D[n2].y), lambda2 * Force.y);
-        atomicAdd((float*)&(flex2D_FSIforces_D[n2].z), lambda2 * Force.z);
+    // Now perform accumulation per node within the block
+    // We'll use a simple approach since nodes can be shared among markers
+    for (int i = 0; i < maxNodesPerMarker; ++i) {
+        uint nodeIndex = sharedNodeIndices[threadIdx.x * maxNodesPerMarker + i];
+        Real3 force = sharedForces[threadIdx.x * maxNodesPerMarker + i];
+
+        // Use atomic operations to accumulate forces per node
+        atomicAdd(&flex2D_FSIforces_D[nodeIndex].x, force.x);
+        atomicAdd(&flex2D_FSIforces_D[nodeIndex].y, force.y);
+        atomicAdd(&flex2D_FSIforces_D[nodeIndex].z, force.z);
     }
 }
 
@@ -281,9 +338,8 @@ __global__ void CalcFlex1DBceAcceleration_D(
     Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
     uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
     uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
-    Real3* flex1D_BCEcoords_D,   // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
-    const uint* mapOriginalToSorted
-) {
+    Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
+    const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers1D)
         return;
@@ -293,7 +349,7 @@ __global__ void CalcFlex1DBceAcceleration_D(
     uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
     ////uint flex_mesh_seg = flex_solid.y;             // index of segment in associated mesh
-    uint flex_seg = flex_solid.z;                  // index of segment in global list
+    uint flex_seg = flex_solid.z;  // index of segment in global list
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
     Real3 A0 = acc_fsi_fea_D[seg_nodes.x];       // (absolute) acceleration of node 0
@@ -310,9 +366,8 @@ __global__ void CalcFlex2DBceAcceleration_D(
     Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
     uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
     uint3* flex2D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and face
-    Real3* flex2D_BCEcoords_D,   // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 2-D faces
-    const uint* mapOriginalToSorted
-) {
+    Real3* flex2D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 2-D faces
+    const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers2D)
         return;
@@ -322,7 +377,7 @@ __global__ void CalcFlex2DBceAcceleration_D(
     uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
     ////uint flex_mesh_tri = flex_solid.y;             // index of triangle in associated mesh
-    uint flex_tri = flex_solid.z;                  // index of triangle in global list
+    uint flex_tri = flex_solid.z;  // index of triangle in global list
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
     Real3 A0 = acc_fsi_fea_D[tri_nodes.x];      // (absolute) acceleration of node 0
@@ -333,21 +388,20 @@ __global__ void CalcFlex2DBceAcceleration_D(
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
     Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
 
-    bceAcc[sortedIndex] =
-        A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
+    bceAcc[sortedIndex] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
 }
 
 // -----------------------------------------------------------------------------
 
 __global__ void UpdateBodyMarkerState_D(Real4* posRadD,
-                                       Real3* velMasD,
-                                       Real3* rigid_BCEcoords_D,
-                                       uint* rigid_BCEsolids_D,
-                                       Real3* posRigidD,
-                                       Real3* velRigidD,
-                                       Real3* omegaLRF_D,
-                                       Real4* qD,
-                                       const uint* mapOriginalToSorted) {
+                                        Real3* velMasD,
+                                        Real3* rigid_BCEcoords_D,
+                                        uint* rigid_BCEsolids_D,
+                                        Real3* posRigidD,
+                                        Real3* velRigidD,
+                                        Real3* omegaLRF_D,
+                                        Real4* qD,
+                                        const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numRigidMarkers)
         return;
@@ -383,19 +437,18 @@ __global__ void UpdateMeshMarker1DState_D(
     Real3* vel_fsi_fea_D,       // velocities of FEA 1-D segment nodes
     uint2* flex1D_Nodes_D,      // segment node indices
     uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
-    Real3* flex1D_BCEcoords_D,   // local coordinates of BCE markers on FEA 1-D segments
-    const uint* mapOriginalToSorted
-) {
+    Real3* flex1D_BCEcoords_D,  // local coordinates of BCE markers on FEA 1-D segments
+    const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers1D)
         return;
 
     uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint sortedIndex = mapOriginalToSorted[flex_index];
-    uint3 flex_solid = flex1D_BCEsolids_D[index];              // associated flex mesh and segment
+    uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
     ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
-    uint flex_seg = flex_solid.z;                              // index of segment in global list
+    uint flex_seg = flex_solid.z;  // index of segment in global list
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
     Real3 P0 = pos_fsi_fea_D[seg_nodes.x];       // (absolute) position of node 0
@@ -428,19 +481,18 @@ __global__ void UpdateMeshMarker2DState_D(
     Real3* vel_fsi_fea_D,       // velocities of FEA 2-D face nodes
     uint3* flex2D_Nodes_D,      // triangle node indices
     uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
-    Real3* flex2D_BCEcoords_D,   // local coordinates of BCE markers on FEA 2-D faces
-    const uint* mapOriginalToSorted
-) {
+    Real3* flex2D_BCEcoords_D,  // local coordinates of BCE markers on FEA 2-D faces
+    const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers2D)
         return;
 
     uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint sortedIndex = mapOriginalToSorted[flex_index];
-    uint3 flex_solid = flex2D_BCEsolids_D[index];              // associated flex mesh and face
+    uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
     ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
-    uint flex_tri = flex_solid.z;                              // index of triangle in global list
+    uint flex_tri = flex_solid.z;  // index of triangle in global list
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
     Real3 P0 = pos_fsi_fea_D[tri_nodes.x];      // (absolute) position of node 0
@@ -507,14 +559,14 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
     Real3* vel_fsi_fea_D,       // velocities of FEA 1-D segment nodes
     uint2* flex1D_Nodes_D,      // segment node indices
     uint3* flex1D_BCEsolids_D,  // association of flex BCEs with a mesh and segment
-    Real3* flex1D_BCEcoords_D  // local coordinates of BCE markers on FEA 1-D segments
-    ) {
+    Real3* flex1D_BCEcoords_D   // local coordinates of BCE markers on FEA 1-D segments
+) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers1D)
         return;
 
     uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
-    uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
+    uint3 flex_solid = flex1D_BCEsolids_D[index];            // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
     ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
     uint flex_seg = flex_solid.z;  // index of segment in global list
@@ -550,14 +602,14 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
     Real3* vel_fsi_fea_D,       // velocities of FEA 2-D face nodes
     uint3* flex2D_Nodes_D,      // triangle node indices
     uint3* flex2D_BCEsolids_D,  // association of flex BCEs with a mesh and face
-    Real3* flex2D_BCEcoords_D  // local coordinates of BCE markers on FEA 2-D faces
-    ) {
+    Real3* flex2D_BCEcoords_D   // local coordinates of BCE markers on FEA 2-D faces
+) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers2D)
         return;
 
     uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
-    uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
+    uint3 flex_solid = flex2D_BCEsolids_D[index];            // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
     ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
     uint flex_tri = flex_solid.z;  // index of triangle in global list
@@ -651,8 +703,9 @@ void BceManager::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
 
     Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR4CAST(m_data_mgr.sphMarkers_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR4CAST(m_data_mgr.sphMarkers_D->posRadD),
+        U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR4CAST(m_data_mgr.fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -667,10 +720,10 @@ void BceManager::CalcRigidBceAcceleration() {
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(
-        mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc),
-        mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
+        mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
+        mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),
+        mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
+        U1CAST(m_data_mgr.rigid_BCEsolids_D), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -765,13 +818,17 @@ void BceManager::Rigid_Forces_Torques() {
     thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
 
     uint nBlocks, nThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 512, nBlocks, nThreads);
+    // Need forces and torques as well as rigid index of the particular BCE marker in shared memory
+    size_t sharedMemSize = (2 * nThreads * sizeof(Real3)) + (nThreads * sizeof(uint));
 
-    CalcRigidForces_D<<<nBlocks, nThreads>>>(
+    // Launch the kernel
+    CalcRigidForces_D<<<nBlocks, nThreads, sharedMemSize>>>(
         mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), mR4CAST(m_data_mgr.derivVelRhoD),
-        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
-        U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
+        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
+        (uint)m_data_mgr.countersH->numRigidMarkers, m_data_mgr.paramsH->markerMass,
+        m_data_mgr.countersH->startRigidMarkers, m_data_mgr.paramsH->sph_method);
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -786,14 +843,20 @@ void BceManager::Flex1D_Forces() {
 
     uint nBlocks, nThreads;
     computeGridSize((int)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
+    // Each marker deals with 2 nodes in the 1D case
+    size_t sharedMemSize = nThreads * (2 * sizeof(uint) + 2 * sizeof(Real3));
 
-    CalcFlex1DForces_D<<<nBlocks, nThreads>>>(                      //
-        mR3CAST(m_data_mgr.flex1D_FSIforces_D),                     //
-        mR4CAST(m_data_mgr.derivVelRhoD),                           //
-        U2CAST(m_data_mgr.flex1D_Nodes_D),                          //
-        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                      //
-        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                     //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
+    CalcFlex1DForces_D<<<nBlocks, nThreads, sharedMemSize>>>(        //
+        mR3CAST(m_data_mgr.flex1D_FSIforces_D),                      //
+        mR4CAST(m_data_mgr.derivVelRhoD),                            //
+        U2CAST(m_data_mgr.flex1D_Nodes_D),                           //
+        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                       //
+        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                      //
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
+        (uint)m_data_mgr.countersH->numFlexMarkers1D,                //
+        m_data_mgr.countersH->startFlexMarkers1D,                    //
+        m_data_mgr.paramsH->markerMass,                              //
+        m_data_mgr.paramsH->sph_method                               //
     );
 
     cudaDeviceSynchronize();
@@ -809,14 +872,20 @@ void BceManager::Flex2D_Forces() {
 
     uint nBlocks, nThreads;
     computeGridSize((int)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
+    // Each marker deals with 3 nodes in the 2D case
+    size_t sharedMemSize = nThreads * (3 * sizeof(uint) + 3 * sizeof(Real3));
 
-    CalcFlex2DForces_D<<<nBlocks, nThreads>>>(                      //
-        mR3CAST(m_data_mgr.flex2D_FSIforces_D),                     //
-        mR4CAST(m_data_mgr.derivVelRhoD),                           //
-        U3CAST(m_data_mgr.flex2D_Nodes_D),                          //
-        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                      //
-        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                     //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
+    CalcFlex2DForces_D<<<nBlocks, nThreads, sharedMemSize>>>(        //
+        mR3CAST(m_data_mgr.flex2D_FSIforces_D),                      //
+        mR4CAST(m_data_mgr.derivVelRhoD),                            //
+        U3CAST(m_data_mgr.flex2D_Nodes_D),                           //
+        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                       //
+        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                      //
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
+        (uint)m_data_mgr.countersH->numFlexMarkers2D,                //
+        m_data_mgr.countersH->startFlexMarkers2D,                    //
+        m_data_mgr.paramsH->markerMass,                              //
+        m_data_mgr.paramsH->sph_method                               //
     );
 
     cudaDeviceSynchronize();
@@ -853,8 +922,9 @@ void BceManager::UpdateBodyMarkerStateInitial() {
 
     UpdateBodyMarkerStateUnsorted_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
+        mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
 
     cudaDeviceSynchronize();
     cudaCheckError();
