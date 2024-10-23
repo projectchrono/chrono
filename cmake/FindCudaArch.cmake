@@ -5,7 +5,7 @@
 
 # Known NVIDIA GPU achitectures Chrono can be compiled for.
 # This list will be used for CUDA_ARCH_NAME = All option
-SET(KNOWN_GPU_ARCHITECTURES "5.2 5.3 6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6 8.9")
+SET(KNOWN_GPU_ARCHITECTURES "6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6 8.9")
 
 ################################################################################################
 # Removes duplicates from LIST(s)
@@ -81,7 +81,7 @@ ENDFUNCTION()
 #   SELECT_NVCC_ARCH_FLAGS(out_variable)
 FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   # List of arch names
-  SET(__archs_names "Kepler" "Maxwell" "Pascal" "Volta" "Turing" "Ampere" "All" "Manual")
+  SET(__archs_names "Pascal" "Volta" "Turing" "Ampere" "All" "Manual")
   SET(__archs_name_default "All")
   IF(NOT CMAKE_CROSSCOMPILING)
     LIST(APPEND __archs_names "Auto")
@@ -114,9 +114,9 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   #  SET(__cuda_arch_bin "3.0 3.5")
   #if(${CUDA_ARCH_NAME} STREQUAL "Kepler")
   #  SET(__cuda_arch_bin "3.5 3.7")
-  if(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
-    SET(__cuda_arch_bin "5.2 5.3")
-  elseif(${CUDA_ARCH_NAME} STREQUAL "Pascal")
+  # if(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
+  #   SET(__cuda_arch_bin "5.2 5.3")
+  if(${CUDA_ARCH_NAME} STREQUAL "Pascal")
     SET(__cuda_arch_bin "6.0 6.1 6.2")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Volta")
     SET(__cuda_arch_bin "7.0 7.2")
