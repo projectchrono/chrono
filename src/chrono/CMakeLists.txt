@@ -1388,7 +1388,6 @@ add_library(ChronoEngine::ChronoEngine ALIAS ChronoEngine)
 # TODO DARIOM: CH_INCLUDES_BUILD can be removed, used only here now
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
-list(APPEND CH_INCLUDES_BUILD "${THRUST_INCLUDE_DIR}")
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet" )
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono/collision/gimpact" )
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACD")
@@ -1408,11 +1407,11 @@ target_include_directories(ChronoEngine PUBLIC
 target_link_libraries(ChronoEngine PUBLIC Eigen3::Eigen)
 
 if(THRUST_FOUND)
-    target_link_libraries(ChronoEngine PUBLIC Thrust::Thrust)
+  target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust) # in main Chrono library Thrust is not exposed
 endif(THRUST_FOUND)
 
 if(ENABLE_OPENMP)
-    target_link_libraries(ChronoEngine PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(ChronoEngine PUBLIC OpenMP::OpenMP_CXX)
 endif(ENABLE_OPENMP)
 
 
@@ -1435,7 +1434,7 @@ ENDIF()
 
 if(USE_SIMD)
     message(STATUS "Using SIMD flags: ${SIMD_FLAGS}")
-	target_compile_options(ChronoEngine PUBLIC ${SIMD_FLAGS})
+	target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${SIMD_FLAGS}>)
 endif() 
 
 
@@ -1450,31 +1449,31 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_compile_definitions(ChronoEngine PUBLIC "-DNOMINMAX") # do not use MSVC's min/max macros
         target_compile_options(ChronoEngine PUBLIC "-MP") # perform parallel builds
 
-        target_compile_options(ChronoEngine PUBLIC "/Zc:__cplusplus")
-        target_compile_options(ChronoEngine PUBLIC "/EHsc") # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model        
+        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>")
+        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/EHsc>") # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model        
 
         # excluding wrong runtime libraries from the link (LNK4098): https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098
         if(USE_MSVC_STATIC_RUNTIME)
-          target_link_options(ChronoEngine PUBLIC "/NODEFAULTLIB:msvcrt.lib;/NODEFAULTLIB:msvcrtd.lib;/NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
+          target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:msvcrt.lib;/NODEFAULTLIB:msvcrtd.lib;/NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib>")
         else()
-          target_link_options(ChronoEngine PUBLIC "/NODEFAULTLIB:libcmt.lib;/NODEFAULTLIB:libcmtd.lib;/NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib")
+          target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:libcmt.lib;/NODEFAULTLIB:libcmtd.lib;/NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib>")
         endif()
 
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-        target_compile_definitions(ChronoEngine PUBLIC "-D_MINGW -D_WINDOWS")
-        target_compile_options(ChronoEngine PUBLIC "-Wl,--enable-runtime-pseudo-reloc")
-        target_link_options(ChronoEngine PUBLIC "-Wl,--export-all-symbols;-Wl,--enable-auto-import;-Wl,--enable-runtime-pseudo-reloc")
+        target_compile_definitions(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-D_MINGW -D_WINDOWS>")
+        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wl,--enable-runtime-pseudo-reloc>")
+        target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wl,--export-all-symbols;-Wl,--enable-auto-import;-Wl,--enable-runtime-pseudo-reloc>")
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-            target_compile_options(ChronoEngine PUBLIC "-m64")
+            target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-m64>")
         endif()
     endif()
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(ChronoEngine PUBLIC "-Wl,-no_compact_unwind")
+    target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>")
 endif()
 
 # Compiler warning level and disbaled warnings
@@ -1482,40 +1481,40 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "[Clang] Warning level set to default")
     #target_compile_options(ChronoEngine PUBLIC -Wall)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unknown-warning-option)
-    target_compile_options(ChronoEngine PUBLIC -Wno-reorder-ctor)
-    target_compile_options(ChronoEngine PUBLIC -Wno-pragma-pack)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-local-typedef)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-function)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-parameter)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-result)
-    target_compile_options(ChronoEngine PUBLIC -Wno-switch)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-warning-option>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-pragma-pack>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-local-typedef>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-switch>)
 elseif(MSVC)
     message(STATUS "[MSVC] Warning level set to /W4")
-    target_compile_options(ChronoEngine PUBLIC /W4)
-    target_compile_options(ChronoEngine PUBLIC /wd4100)   # unreferenced formal parameter
-    target_compile_options(ChronoEngine PUBLIC /wd4127)   # conditional expression is constant
-    target_compile_options(ChronoEngine PUBLIC /wd4201)   # nameless struct/union
-    target_compile_options(ChronoEngine PUBLIC /wd4244)   # conversion; possible loss of data
-    target_compile_options(ChronoEngine PUBLIC /wd4250)   # inheritance via dominance
-    target_compile_options(ChronoEngine PUBLIC /wd4251)   # class needs to have dll-interface
-    target_compile_options(ChronoEngine PUBLIC /wd4275)   # non dll-interface class used as base class
-    target_compile_options(ChronoEngine PUBLIC /wd4324)   # structure padded due to alignment specifier
-    target_compile_options(ChronoEngine PUBLIC /wd4505)   # unreferenced local function
-    target_compile_options(ChronoEngine PUBLIC /wd4458)   # declaration hides class member
-    target_compile_options(ChronoEngine PUBLIC /wd4515)   # namespace uses itself
-    target_compile_options(ChronoEngine PUBLIC /wd5038)   # order of initialization
-    target_compile_options(ChronoEngine PUBLIC /wd26451)  # arithmetic overflow
-    target_compile_options(ChronoEngine PUBLIC /wd26495)  # uninitialized member variable
-    target_compile_options(ChronoEngine PUBLIC /wd26812)  # use of unscoped enums
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/W4>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)   # unreferenced formal parameter
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4127>)   # conditional expression is constant
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4201>)   # nameless struct/union
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4244>)   # conversion; possible loss of data
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4250>)   # inheritance via dominance
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)   # class needs to have dll-interface
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)   # non dll-interface class used as base class
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4324>)   # structure padded due to alignment specifier
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4505>)   # unreferenced local function
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4458>)   # declaration hides class member
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4515>)   # namespace uses itself
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd5038>)   # order of initialization
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd26451>)  # arithmetic overflow
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd26495>)  # uninitialized member variable
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd26812>)  # use of unscoped enums
 else()
     message(STATUS "Warning level set to -Wall")
-    target_compile_options(ChronoEngine PUBLIC -Wint-in-bool-context)
-    target_compile_options(ChronoEngine PUBLIC -Wno-sign-compare)
-    target_compile_options(ChronoEngine PUBLIC -Wno-reorder)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-function)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-parameter)
-    target_compile_options(ChronoEngine PUBLIC -Wno-unused-result)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wint-in-bool-context>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-sign-compare>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-parameter>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result>)
 endif()
 
 # Globally define debug and NOT-debug macros based on build type 
@@ -1524,9 +1523,6 @@ target_compile_definitions(ChronoEngine PUBLIC
 	$<$<CONFIG:DEBUG>:_DEBUG>
 	$<$<CONFIG:RELEASE>:NDEBUG>
 )
-
-# For Bullet to use 32 bit math
-target_compile_definitions(ChronoEngine PRIVATE "-DBP_USE_FIXEDPOINT_INT_32" )
 
 
 target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
@@ -1547,16 +1543,9 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# Optionally use static runtime library (MSVC only)
+# Select proper MSVC Runtime Library
 #-----------------------------------------------------------------------------
-if (MSVC)
-    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
-    if (USE_MSVC_STATIC_RUNTIME)
-        set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    else()
-        set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-    endif()
-endif()
+set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -1572,19 +1561,24 @@ endif()
 
 
 target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
+target_compile_definitions(ChronoEngine PRIVATE "BP_USE_FIXEDPOINT_INT_32" )
+
 if (USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
 endif()
+
 if (USE_BULLET_OPENMP)
     target_compile_definitions(ChronoEngine PRIVATE "BT_USE_OPENMP")
 endif()
+
+# For Bullet to use 32 bit math
 
 if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
-        target_compile_options(ChronoEngine PUBLIC "/bigobj")
+        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/bigobj>")
     endif()
 endif()
 

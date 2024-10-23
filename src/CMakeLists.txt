@@ -24,6 +24,20 @@ endif()
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 #-----------------------------------------------------------------------------
+# Optionally use static runtime library (MSVC only)
+#-----------------------------------------------------------------------------
+# TODO DARIOM: MSVC_RUNTIME_LIBRARY is shouldn't be set globally but on a per-target basis
+if (MSVC)
+    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
+    if (USE_MSVC_STATIC_RUNTIME)
+      set(CH_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+      set(CH_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    endif()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+#-----------------------------------------------------------------------------
 # Check for C++14 and C++17 support
 #-----------------------------------------------------------------------------
 
@@ -74,6 +88,7 @@ endif()
 message(STATUS "C++14 compiler support:  ${CH_CXX14}")
 message(STATUS "C++17 compiler support:  ${CH_CXX17}")
 
+## TODO DARIOM: cleanup
 if(CH_CXX17)
     set(CMAKE_CXX_STANDARD 17)
     set(CHRONO_CXX_STANDARD cxx_std_17)
@@ -276,17 +291,14 @@ else()
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    target_compile_definitions(Eigen3::Eigen INTERFACE "-D_ENABLE_EXTENDED_ALIGNED_STORAGE")
-	endif()
+if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915) OR NOT USE_EIGEN_OPENMP)
+    target_compile_definitions(Eigen3::Eigen INTERFACE "_ENABLE_EXTENDED_ALIGNED_STORAGE")
 endif()
 
 cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
 
 if (NOT USE_EIGEN_OPENMP)
-  target_compile_definitions(Eigen3::Eigen INTERFACE "-D_ENABLE_EXTENDED_ALIGNED_STORAGE")
-  target_compile_definitions(Eigen3::Eigen INTERFACE "-DEIGEN_DONT_PARALLELIZE")
+  target_compile_definitions(Eigen3::Eigen INTERFACE "EIGEN_DONT_PARALLELIZE")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -308,74 +320,33 @@ if(MPI_FOUND)
   message(STATUS "  MPIEXEC_POSTFLAGS:     ${MPIEXEC_POSTFLAGS}")
 endif()
 
-#-----------------------------------------------------------------------------
-# CUDA support
-#-----------------------------------------------------------------------------
 
-message(STATUS "Searching for CUDA...")
+# #-----------------------------------------------------------------------------
+# # CUDA support
+# #-----------------------------------------------------------------------------
 
-find_package(CUDA QUIET)
+# Try to find CUDA
+find_package(CUDAToolkit)
 
-if(CUDA_FOUND)
-  set(CUDA_BINARY_DIR "${CUDA_TOOLKIT_ROOT_DIR}/bin")
-
-  message(STATUS "  CUDA version:          ${CUDA_VERSION}")
-  message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
-  message(STATUS "  CUDA binary dir:       ${CUDA_BINARY_DIR}")
-  mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
-
-  if(CUDA_VERSION VERSION_GREATER "12.3")
-    message("  CUDA version newer than 12.3 not supported. CUDA support disabled.")
-    set(CUDA_FOUND FALSE)
-  endif()
-
+# If CUDA was found, enable the CUDA language
+if(CUDAToolkit_FOUND)
+    message(STATUS "  CUDA version:          ${CUDA_VERSION}")
+    message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+    enable_language(CUDA)
+    set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
+    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
+    message(STATUS "CUDA found and enabled.")
 else()
-  message(STATUS "  CUDA not found (consider manually setting CUDA_TOOLKIT_ROOT_DIR)")
-  mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
-  mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
+    mark_as_advanced(FORCE CUDA_ARCHITECTURES)
+    message(WARNING "CUDA not found. CUDA features will be disabled.")
 endif()
 
-mark_as_advanced(FORCE
-    CUDA_BUILD_CUBIN
-    CUDA_BUILD_EMULATION
-    CUDA_SEPARABLE_COMPILATION
-    CUDA_SDK_ROOT_DIR
-    CUDA_HOST_COMPILER
-    CUDA_rt_LIBRARY)
-
-# Identify the CUDA architecture
-if(CUDA_FOUND)
-
-  mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
-
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CUDA_SEPARABLE_COMPILATION OFF)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CUDA_SEPARABLE_COMPILATION OFF)
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    if(${CH_CXX17})
-      		list(APPEND CUDA_NVCC_FLAGS "-std c++17")
-      		list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-std=c++17")
-    elseif(${CH_CXX14})
-      		list(APPEND CUDA_NVCC_FLAGS "-std c++14")
-      		list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-std=c++14")
-    else()
-      		list(APPEND CUDA_NVCC_FLAGS "-std c++11")
-      		list(APPEND CUDA_NVCC_FLAGS "-Xcompiler;-std=c++11")
-    endif()
-    list(APPEND CUDA_NVCC_FLAGS "--compiler-options;-fPIC")
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    list(APPEND CUDA_NVCC_FLAGS "--compiler-options;-fPIC")
-  endif()
-
-  include(${CMAKE_SOURCE_DIR}/cmake/FindCudaArch.cmake)
-  SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
-  list(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
-
-  message(STATUS "  CUDA compile flags:   ${CUDA_NVCC_FLAGS}")
-
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 endif()
+
 
 #-----------------------------------------------------------------------------
 # Thrust library
@@ -383,45 +354,27 @@ endif()
 
 message(STATUS "Searching for Thrust...")
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
-  if (THRUST_INCLUDE_DIR)
-    set(${THRUST_FOUND} TRUE)
-    add_library(Thrust INTERFACE IMPORT)
-    
-    if(NOT TARGET Thrust::Thrust)
-      add_library(Thrust::Thrust INTERFACE IMPORTED)
-      set_target_properties(Thrust::Thrust PROPERTIES
-                            INTERFACE_INCLUDE_DIRECTORIES "${THRUST_INCLUDE_DIR}")
-    endif()
-  else()
-    message("THRUST_INCLUDE_DIR is not set, but it is required.")
-    set(${THRUST_FOUND} FALSE)
-  endif()
-else()
-  find_package(Thrust)
-endif()
+find_package(Thrust)
 
 if(THRUST_FOUND)
   message(STATUS "  Thrust version:     ${THRUST_VERSION}")
   message(STATUS "  Thrust include dir: ${THRUST_INCLUDE_DIR}")
-  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+  mark_as_advanced(FORCE THRUST_ROOT)
 
   if(THRUST_VERSION VERSION_GREATER "2.2.0")
     message("  Thrust version newer than 2.2.0 not supported. Thrust support disabled.")
     set(THRUST_FOUND FALSE)
   endif()
 else()
-  message(STATUS "  Thrust not found (consider manually setting THRUST_INCLUDE_DIR)")
-  set(THRUST_INCLUDE_DIR "")
-  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
+  message(STATUS "  Thrust not found. Set THRUST_ROOT to the location of Thrust library.")
+  mark_as_advanced(CLEAR THRUST_ROOT)
 endif()
 
 #-----------------------------------------------------------------------------
 # CUB Library
 #-----------------------------------------------------------------------------
 
-if (CUDA_FOUND) # CUB should only be used with CUDA 
+if (CUDAToolkit_FOUND) # CUB should only be used with CUDA 
 	message(STATUS "Searching for CUB...")
 
 	if (CUDA_VERSION_STRING VERSION_LESS 11.0)
@@ -495,16 +448,12 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
-message(STATUS "Compiler and linker flags:")
+# message(STATUS "Compiler and linker flags:")
 # message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
 # message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
 # message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
 # message(STATUS "  Linke flags LIB:         ${CH_LINKERFLAG_LIB}")
 # message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
-if(CUDA_FOUND)
-    message(STATUS "  CUDA flags:              ${CUDA_NVCC_FLAGS}")
-endif()
-
 
 
 #OPTION(USE_BULLET_DOUBLE "Compile Bullet in double precision" ON)

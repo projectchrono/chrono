@@ -86,12 +86,10 @@ add_library(ChronoEngine_irrlicht
 
 add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
 
-target_compile_features(ChronoEngine_irrlicht PUBLIC ${CHRONO_CXX_STANDARD})
-
-
-# SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
-#   COMPILE_FLAGS "${COMPILER_FLAGS}"
-#   LINK_FLAGS "${LINKER_FLAGS}")
+#-----------------------------------------------------------------------------
+# Select proper MSVC Runtime Library
+#-----------------------------------------------------------------------------
+set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
@@ -100,6 +98,7 @@ target_compile_definitions(ChronoEngine_irrlicht PRIVATE "IGNORE_DEPRECATED_WARN
 target_link_libraries(ChronoEngine_irrlicht PUBLIC
   ${LIBRARIES}
 )
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(ChronoEngine_irrlicht
     ${MAC_LIBS}
@@ -109,11 +108,11 @@ ENDIF()
 ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine)
 
 if (ENABLE_MODULE_POSTPROCESS)
-    ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_postprocess)
+    ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine_postprocess)
 endif()
 
 if (ENABLE_MODULE_MODAL)
-    ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_modal)
+    ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine_modal)
 endif()
 
 

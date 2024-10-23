@@ -14,7 +14,7 @@ option(ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
 # Return now if this module is not enabled
 
 if(NOT ENABLE_MODULE_MULTICORE)
-  mark_as_advanced(FORCE BLAZE_INSTALL_DIR)
+  mark_as_advanced(FORCE Blaze_ROOT)
   mark_as_advanced(FORCE USE_MULTICORE_DOUBLE)
   mark_as_advanced(FORCE USE_MULTICORE_SIMD)
   mark_as_advanced(FORCE USE_MULTICORE_CUDA)
@@ -30,25 +30,26 @@ if (NOT THRUST_FOUND)
   return()
 endif()
 
-mark_as_advanced(CLEAR BLAZE_INSTALL_DIR)
+find_package(Blaze REQUIRED)
+
+if (NOT Blaze_FOUND)
+  set(Blaze_ROOT "" CACHE PATH "Blaze library location (should contain 'blaze/Blaze.h')")
+  message(FATAL_ERROR "Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
+endif()
+
+
+
+mark_as_advanced(CLEAR Blaze_ROOT)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
 mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
-
-# ------------------------------------------------------------------------------
-# Additional compiler flags
-# ------------------------------------------------------------------------------
-
-set(CH_MULTICORE_CXX_FLAGS "")
-set(CH_MULTICORE_C_FLAGS "")
 
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
 
 # ----- CUDA support -----
-
-cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CUDA_FOUND" OFF)
+cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CUDAToolkit_FOUND" OFF)
 
 if(USE_MULTICORE_CUDA)
   set(CHRONO_MULTICORE_USE_CUDA "#define CHRONO_MULTICORE_USE_CUDA")
@@ -60,73 +61,10 @@ endif()
 
 OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision math" ON)
 
-IF(USE_MULTICORE_DOUBLE)
-  SET(CHRONO_MULTICORE_USE_DOUBLE "#define CHRONO_MULTICORE_USE_DOUBLE")
-ENDIF()
-
-# ----- Blaze library -----
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  SET(BLAZE_INSTALL_DIR ""  CACHE PATH   "Where is Blaze located?")
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  FIND_PATH(BLAZE_INSTALL_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  FIND_PATH(BLAZE_INSTALL_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
-else()
-  find_path(BLAZE_INSTALL_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
-ENDIF()
-
-# Extract Blaze version
-find_file(BLAZE_VERSION_FILENAME "Version.h" PATHS "${BLAZE_INSTALL_DIR}/blaze/system")
-mark_as_advanced(FORCE BLAZE_VERSION_FILENAME)
-if(BLAZE_VERSION_FILENAME)
-  file(READ ${BLAZE_VERSION_FILENAME} BLAZE_VERSION_FILE)
-  message(STATUS "Blaze version file: ${BLAZE_VERSION_FILENAME}")
-  string(REGEX MATCH "#define BLAZE_MAJOR_VERSION ([0-9]*)" _BLAZE_MAJOR_VERSION ${BLAZE_VERSION_FILE})
-  set(BLAZE_MAJOR_VERSION ${CMAKE_MATCH_1})
-  string(REGEX MATCH "#define BLAZE_MINOR_VERSION ([0-9]*)" _BLAZE_MINOR_VERSION ${BLAZE_VERSION_FILE})
-  set(BLAZE_MINOR_VERSION ${CMAKE_MATCH_1})
-  set(BLAZE_VERSION "${BLAZE_MAJOR_VERSION}.${BLAZE_MINOR_VERSION}")
-  message(STATUS "Blaze version: ${BLAZE_VERSION}")
-else()
-  message(FATAL_ERROR "Cannot find blaze/system/Version.h.  Set BLAZE_INSTALL_DIR.")
+if(USE_MULTICORE_DOUBLE)
+  set(CHRONO_MULTICORE_USE_DOUBLE "#define CHRONO_MULTICORE_USE_DOUBLE")
 endif()
 
-# ----- Configure Blaze and Thrust -----
-
-IF(ENABLE_OPENMP)
-  add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
-  add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
-ELSEIF(ENABLE_TBB)
-  add_definitions(-DBLAZE_USE_CPP_THREADS)
-  add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB)
-  add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB)
-ELSE()
-  add_definitions(-DBLAZE_USE_CPP_THREADS)
-  add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP)
-  add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
-ENDIF()
-
-# ----- BOOST -- required only for older versions of Blaze -----
-
-if (BLAZE_VERSION VERSION_LESS "3.2")
-  set(BOOST_REQUIRED "TRUE")
-else()
-  set(BOOST_REQUIRED "FALSE")
-endif()
-
-if(BOOST_REQUIRED)
-  set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
-  find_package(Boost REQUIRED)
-
-  if (Boost_FOUND)
-    message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
-  else()
-    mark_as_advanced(CLEAR BOOST_ROOT)
-    message(FATAL_ERROR "Boost required for Blaze version ${BLAZE_VERSION}. Specify BOOST_ROOT or use Blaze 3.2 or newer.")
-  endif()
-
-endif()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
@@ -136,7 +74,7 @@ endif()
 # Place the header file in the library output directory and make sure it can
 # be found at compile time.
 
-CONFIGURE_FILE(
+configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/ChConfigMulticore.h.in
   ${PROJECT_BINARY_DIR}/chrono_multicore/ChConfigMulticore.h
   )
@@ -145,35 +83,10 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_multicore/ChConfigMulticore.h"
         DESTINATION include/chrono_multicore)
 
 # ------------------------------------------------------------------------------
-# Collect all additional include directories necessary for the MULTICORE module
-# ------------------------------------------------------------------------------
-
-set(CH_MULTICORE_INCLUDES
-    ${BLAZE_INSTALL_DIR}
-    ${THRUST_INCLUDE_DIR}
-)
-
-if(BOOST_REQUIRED)
-  set(CH_MULTICORE_INCLUDES "${CH_MULTICORE_INCLUDES};${Boost_INCLUDE_DIRS}")
-endif()
-
-INCLUDE_DIRECTORIES(${CH_MULTICORE_INCLUDES})
-
-message(STATUS "Include dirs: ${CH_MULTICORE_INCLUDES}")
-
-# ------------------------------------------------------------------------------
-# Make some variables visible from parent directory
-# ------------------------------------------------------------------------------
-
-SET(CH_MULTICORE_CXX_FLAGS "${CH_MULTICORE_CXX_FLAGS}" PARENT_SCOPE)
-SET(CH_MULTICORE_C_FLAGS "${CH_MULTICORE_C_FLAGS}" PARENT_SCOPE)
-SET(CH_MULTICORE_INCLUDES "${CH_MULTICORE_INCLUDES}" PARENT_SCOPE)
-
-# ------------------------------------------------------------------------------
 # List the files in the Chrono::Multicore module
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_Multicore_BASE
+set(ChronoEngine_Multicore_BASE
     ChApiMulticore.h
     ChMulticoreDefines.h
     ChSettings.h
@@ -183,9 +96,9 @@ SET(ChronoEngine_Multicore_BASE
     ChDataManager.cpp
     )
 
-SOURCE_GROUP("" FILES ${ChronoEngine_Multicore_BASE})
+source_group("" FILES ${ChronoEngine_Multicore_BASE})
 
-SET(ChronoEngine_Multicore_PHYSICS
+set(ChronoEngine_Multicore_PHYSICS
     physics/ChSystemMulticore.h
     physics/ChSystemMulticore.cpp
     physics/ChSystemMulticoreNSC.cpp
@@ -198,9 +111,9 @@ SET(ChronoEngine_Multicore_PHYSICS
     physics/ChMPMSettings.h
     )
 
-SOURCE_GROUP(physics FILES ${ChronoEngine_Multicore_PHYSICS})
+source_group(physics FILES ${ChronoEngine_Multicore_PHYSICS})
 
-SET(ChronoEngine_Multicore_CUDA
+set(ChronoEngine_Multicore_CUDA
     cuda/matrixf.cuh
     cuda/svd.h
     cuda/ChCudaHelper.cuh
@@ -210,9 +123,10 @@ SET(ChronoEngine_Multicore_CUDA
     cuda/ChMPMUtils.h
     )
 
-SOURCE_GROUP(cuda FILES ${ChronoEngine_Multicore_CUDA})
+source_group(cuda FILES ${ChronoEngine_Multicore_CUDA})
+
     
-SET(ChronoEngine_Multicore_SOLVER
+set(ChronoEngine_Multicore_SOLVER
     solver/ChSystemDescriptorMulticore.h
     solver/ChIterativeSolverMulticore.h
     solver/ChIterativeSolverMulticore.cpp
@@ -231,9 +145,9 @@ SET(ChronoEngine_Multicore_SOLVER
     solver/ChSchurProduct.cpp
     )
 
-SOURCE_GROUP(solver FILES ${ChronoEngine_Multicore_SOLVER})
+source_group(solver FILES ${ChronoEngine_Multicore_SOLVER})
 
-SET(ChronoEngine_Multicore_CONSTRAINTS
+set(ChronoEngine_Multicore_CONSTRAINTS
     constraints/ChConstraintRigidRigid.cpp
     constraints/ChConstraintRigidRigid.h
     constraints/ChConstraintBilateral.cpp
@@ -242,9 +156,9 @@ SET(ChronoEngine_Multicore_CONSTRAINTS
     constraints/ChConstraintUtils.h
     )
 
-SOURCE_GROUP(constraints FILES ${ChronoEngine_Multicore_CONSTRAINTS})
+source_group(constraints FILES ${ChronoEngine_Multicore_CONSTRAINTS})
 
-SET(ChronoEngine_Multicore_COLLISION
+set(ChronoEngine_Multicore_COLLISION
     collision/ChCollisionSystemChronoMulticore.h
     collision/ChCollisionSystemChronoMulticore.cpp
     collision/ChContactContainerMulticore.h
@@ -255,68 +169,95 @@ SET(ChronoEngine_Multicore_COLLISION
     collision/ChContactContainerMulticoreSMC.cpp
     )
 
-SOURCE_GROUP(collision FILES ${ChronoEngine_Multicore_COLLISION})
+source_group(collision FILES ${ChronoEngine_Multicore_COLLISION})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_multicore library
 # ------------------------------------------------------------------------------
 
-IF(USE_MULTICORE_CUDA)
-    CUDA_ADD_LIBRARY(ChronoEngine_multicore
-            ${ChronoEngine_Multicore_BASE}
-            ${ChronoEngine_Multicore_PHYSICS}
-            ${ChronoEngine_Multicore_CUDA}
-            ${ChronoEngine_Multicore_COLLISION}
-            ${ChronoEngine_Multicore_CONSTRAINTS}
-            ${ChronoEngine_Multicore_SOLVER}
-            ) 
-    SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
-ELSE()
-    ADD_LIBRARY(ChronoEngine_multicore
-            ${ChronoEngine_Multicore_BASE}
-            ${ChronoEngine_Multicore_PHYSICS}
-            ${ChronoEngine_Multicore_COLLISION}
-            ${ChronoEngine_Multicore_CONSTRAINTS}
-            ${ChronoEngine_Multicore_SOLVER}
-            )
-    SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
-ENDIF()
+add_library(ChronoEngine_multicore
+  ${ChronoEngine_Multicore_BASE}
+  ${ChronoEngine_Multicore_PHYSICS}
+  ${ChronoEngine_Multicore_COLLISION}
+  ${ChronoEngine_Multicore_CONSTRAINTS}
+  ${ChronoEngine_Multicore_SOLVER}
+)
+
+if(USE_MULTICORE_CUDA)
+  target_sources(ChronoEngine_multicore PRIVATE ${ChronoEngine_Multicore_CUDA}) 
+endif()
+
+set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+
+# PUBLIC|PRIVATE|INTERFACE keywords cannot be used yet since the FindCUDA is using the plain version (without keywords) thus forcing all the remaining target_link_libraries on the same target to be plain as well
+target_link_libraries(ChronoEngine_multicore ChronoEngine)
+if(ENABLE_OPENMP)
+  target_link_libraries(ChronoEngine_multicore OpenMP::OpenMP_CXX)
+elseif(ENABLE_TBB)
+  target_link_libraries(ChronoEngine_multicore ${TBB_LIBRARIES})
+endif()
+target_link_libraries(ChronoEngine_multicore Thrust::Thrust) # here Thrust is available for sure
+target_link_libraries(ChronoEngine_multicore Blaze::Blaze)
+if(BOOST_REQUIRED)
+  target_include_directories(ChronoEngine_multicore PRIVATE "${Boost_INCLUDE_DIRS}")
+endif()
 
 # On Visual Studio, disable warning C4146 from Blaze
 # ("unary minus operator applied to unsigned type, result still unsigned")
 if(MSVC)
-    target_compile_options(ChronoEngine_multicore PUBLIC "/wd4146" )
+  target_compile_options(ChronoEngine_multicore PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4146>)
 endif()
 
-SET_TARGET_PROPERTIES(ChronoEngine_multicore PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
+target_compile_definitions(ChronoEngine_multicore PRIVATE CH_API_COMPILE_MULTICORE)
+target_compile_definitions(ChronoEngine_multicore PRIVATE CH_IGNORE_DEPRECATED)
+target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)
 
-target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_API_COMPILE_MULTICORE")
-target_compile_definitions(ChronoEngine_multicore PRIVATE "CH_IGNORE_DEPRECATED")
+# ----- Configure Blaze and Thrust -----
 
-target_compile_definitions(ChronoEngine_multicore PRIVATE "BT_THREADSAFE")
+if(ENABLE_OPENMP)
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
+elseif(ENABLE_TBB)
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "BLAZE_USE_CPP_THREADS")
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB")
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB")
+else()
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "BLAZE_USE_CPP_THREADS")
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
+  target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+endif()
 
-TARGET_LINK_LIBRARIES(ChronoEngine_multicore ${CHRONO_MULTICORE_LINKED_LIBRARIES})
 
-INSTALL(TARGETS ChronoEngine_multicore
+
+
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+
+install(TARGETS ChronoEngine_multicore
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_multicore)
 
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_multicore
         FILES_MATCHING PATTERN "*.h")
 
-IF(USE_MULTICORE_CUDA)
-  INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+if(USE_MULTICORE_CUDA)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
           DESTINATION include/chrono_multicore
           FILES_MATCHING PATTERN "*.cuh")
-ENDIF()
+endif()
 
 # Install required chrono_thirdparty headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )
 
 if(USE_MULTICORE_CUDA)
 	if (DEFINED CUB_INCLUDE_DIR)

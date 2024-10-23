@@ -28,9 +28,11 @@
 find_path( THRUST_INCLUDE_DIR
   HINTS
     /usr/include/cuda
+    /usr/local/
     /usr/local/include
     /usr/local/cuda/include
     /opt/cuda/include
+    ${THRUST_ROOT}
     ${CUDA_INCLUDE_DIRS}
     $ENV{CUDA_PATH}/include
   NAMES thrust/version.h
@@ -70,12 +72,9 @@ find_package_handle_standard_args( Thrust
   VERSION_VAR THRUST_VERSION
   )
 
+
 set(THRUST_INCLUDE_DIRS ${THRUST_INCLUDE_DIR})
 mark_as_advanced(THRUST_INCLUDE_DIR)
-
-add_library(Thrust INTERFACE IMPORTED)
-target_include_directories(Thrust INTERFACE ${THRUST_INCLUDE_DIR})
-
 
 if(THRUST_INCLUDE_DIR AND NOT TARGET Thrust::Thrust)
   add_library(Thrust::Thrust INTERFACE IMPORTED)

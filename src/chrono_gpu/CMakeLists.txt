@@ -22,7 +22,7 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
 endif()
 
 # Return now if CUDA is not available
-if(NOT CUDA_FOUND)
+if(NOT CUDAToolkit_FOUND)
     message("Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
     set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()

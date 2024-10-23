@@ -21,7 +21,7 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
 endif()
 
 # Return now if CUDA is not available
-if(NOT CUDA_FOUND)
+if(NOT CUDAToolkit_FOUND)
     message("Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
     set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()

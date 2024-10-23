@@ -93,18 +93,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 include("${CMAKE_CURRENT_LIST_DIR}/ChronoEngineTargets.cmake")
 
-# foreach(_comp ${Chrono_FIND_COMPONENTS})
-#   if (NOT _comp IN_LIST CHRONO_AVAILABLE_MODULES)
-#     set(ChronoEngine_FOUND False)
-#     set(ChronoEngine_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
-#   endif()
-#   set(INCLUDE_TARGETS_TEMP "${CMAKE_CURRENT_LIST_DIR}/ChronoEngine${_comp}Targets.cmake")
-#   message(STATUS "Including targets from: ${INCLUDE_TARGETS_TEMP}")
-#   include("${INCLUDE_TARGETS_TEMP}")
-# endforeach()
-
 
 include(CMakeFindDependencyMacro)
+
+## Handle MSVC Runtime Library
+set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
 ## Handle OpenMP dependency
 if(@ENABLE_OPENMP@)
@@ -131,17 +124,6 @@ if(EIGEN3_FOUND)
   mark_as_advanced(FORCE Eigen3_DIR)
   mark_as_advanced(FORCE Eigen3_ROOT)
 endif(EIGEN3_FOUND)
-
-
-## Handle Thrust dependency
-set(CHRONO_HAS_THRUST @THRUST_FOUND@)
-if(CHRONO_HAS_THRUST)
-    ## Handle Thrust dependency
-    find_dependency(Thrust)
-
-    message(STATUS "THRUST_INCLUDE_DIR: ${THRUST_INCLUDE_DIR}")
-endif(CHRONO_HAS_THRUST)
-
 
 
 #################### Checking ChronoEngine Modules ####################
@@ -293,15 +275,27 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     if(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
-      separate_arguments(CH_MULTICORE_CXX_FLAGS NATIVE_COMMAND "@CH_MULTICORE_CXX_FLAGS@")
-      separate_arguments(CH_MULTICORE_C_FLAGS NATIVE_COMMAND "@CH_MULTICORE_C_FLAGS@")
-      list(APPEND CHRONO_CXX_FLAGS ${CH_MULTICORE_CXX_FLAGS})
-      list(APPEND CHRONO_C_FLAGS ${CH_MULTICORE_C_FLAGS})
+      find_dependency(Thrust)
+      
+      # Return now if Thrust not available
+      if (NOT THRUST_FOUND)
+        message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_MULTICORE_INCLUDES@")
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+      find_dependency(Blaze)
+
+      if (NOT Blaze_FOUND)
+        set(Blaze_ROOT "@Blaze_ROOT@" CACHE PATH "Blaze library location (should contain 'blaze/Blaze.h')")
+        message(WARNING "Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "MODAL")
@@ -316,22 +310,34 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       set(GLEW_DIR "@GLEW_DIR@")
       set(glfw3_DIR "@glfw3_DIR@")
-      find_package(GLEW REQUIRED)
-      find_package(glfw3 REQUIRED)
+      find_package(GLEW)
+      find_package(glfw3)
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+      if (NOT GLEW_FOUND)
+        message(WARNING "Chrono::OpenGL requires GLEW, but GLEW was not found.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
-      if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-        list(APPEND CHRONO_LINKER_FLAGS "-s" "FULL_ES3=1" "-s" "USE_GLFW=3")
-      else()
-        list(APPEND CHRONO_LIBRARIES "GLEW::glew")
-        list(APPEND CHRONO_LIBRARIES "glfw")
-        list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
+      
+      if (NOT glfw3_FOUND)
+        message(WARNING "Chrono::OpenGL requires glfw, but glfw was not found.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+        endif()
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+          list(APPEND CHRONO_LINKER_FLAGS "-s" "FULL_ES3=1" "-s" "USE_GLFW=3")
+        else()
+          list(APPEND CHRONO_LIBRARIES "GLEW::glew")
+          list(APPEND CHRONO_LIBRARIES "glfw")
+          list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
+        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
@@ -342,27 +348,31 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       find_package(Irrlicht MODULE)
 
-      # if (NOT IRRLICHT_FOUND)
-      #   message(FATAL_ERROR "Could not find Irrlicht library. Please provide IRRLICHT_DIR.")
-      #   set(IRRLICHT_DIR "@IRRLICHT_DIR@" CACHE PATH "Path to Irrlicht SDK installation.")
-      #   return()
-      # endif()
+      if (NOT IRRLICHT_FOUND)
+        message(WARNING "Could not find Irrlicht library. Please provide IRRLICHT_DIR.")
+        set(IRRLICHT_DIR "@IRRLICHT_DIR@" CACHE PATH "Path to Irrlicht SDK installation.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
 
       # separate_arguments(IRRLICHT_CXX_FLAGS NATIVE_COMMAND " /wd4275")
       # separate_arguments(IRRLICHT_C_FLAGS NATIVE_COMMAND " /wd4275")
       # list(APPEND CHRONO_CXX_FLAGS ${IRRLICHT_CXX_FLAGS})
       # list(APPEND CHRONO_C_FLAGS ${IRRLICHT_C_FLAGS})
 
-      # list(APPEND CHRONO_INCLUDE_DIRS "${IRRLICHT_INCLUDE_DIR}")
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
-      else()
-        # when a library is static does not link against the dependencies;
-        # the child project thus needs to link itself
-        list(APPEND CHRONO_LIBRARIES "${IRRLICHT_LIBRARY}")
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        # list(APPEND CHRONO_INCLUDE_DIRS "${IRRLICHT_INCLUDE_DIR}")
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
+        list(APPEND CHRONO_DEPENDENCY_DLLS "${IRRLICHT_DLL}")
+
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
+        else()
+          # when a library is static does not link against the dependencies;
+          # the child project thus needs to link itself
+          list(APPEND CHRONO_LIBRARIES "${IRRLICHT_LIBRARY}")
+        endif()
+
       endif()
-      list(APPEND CHRONO_DEPENDENCY_DLLS "${IRRLICHT_DLL}")
 
     elseif(${COMPONENT_UPPER} MATCHES "VSG")
 

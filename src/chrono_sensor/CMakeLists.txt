@@ -30,7 +30,7 @@ endif()
 
 
 # Return now if CUDA is not available
-if(NOT CUDA_FOUND)
+if(NOT CUDAToolkit_FOUND)
     message(WARNING "Chrono::Sensor requires CUDA, but CUDA was not found; disabling Chrono::Sensor")
 
     mark_as_advanced(FORCE GLM_INCLUDE_DIR)
