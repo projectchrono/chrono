@@ -48,32 +48,29 @@ robot = chronorob.IndustrialRobot6dof(sys, lengths, chrono.ChFramed())
 # robot.Add1dShapes()  # add segment-like shapes
 robot.Add3dShapes(0.05)  # add 3d silhouette shapes
 
+# Trajectory -------------------------------------------------------------
 # Target keyframes, in operation space
-motion_cycle_time = 5
+motion_cycle_time = 6
 key_0 = chrono.ChCoordsysd(robot.GetMarkerTCP().GetAbsCoordsys())
 key_1 = chrono.ChCoordsysd(key_0.pos + chrono.ChVector3d(-0.1, 0.2, 0), chrono.QuatFromAngleZ(30 * chrono.CH_DEG_TO_RAD) * key_0.rot)
 key_2 = chrono.ChCoordsysd(key_1.pos + chrono.ChVector3d(0.2, -0.1, 0.2), chrono.QuatFromAngleX(-70 * chrono.CH_DEG_TO_RAD) * key_0.rot)
 keys = [key_0, key_1, key_2, key_0]
 
-positions = []
-rotations = []
-for i in range(len(keys)):
-   positions.append(keys[i].pos)
-   rotations.append(keys[i].rot)
 
-# Position motion law
-posline = chrono.ChLineBezier(chrono.ChBezierCurve(positions))
-pos_spacefun = chrono.ChFunctionRamp(0, 1. / motion_cycle_time)
+# Create a trajectory interpolator from given keyframes
+interpolator = chronorob.TrajectoryInterpolator(
+    keys, 
+    motion_cycle_time, 
+    chronorob.TrajectoryInterpolator.PosfunType_LINE,
+    chronorob.TrajectoryInterpolator.SpacefunType_PW_POLY345,
+    chronorob.TrajectoryInterpolator.RotfunType_BSPLINE1,
+    chronorob.TrajectoryInterpolator.SpacefunType_PW_POLY345)
 
-posfun = chrono.ChFunctionPositionLine()
-posfun.SetLine(posline)
-posfun.SetSpaceFunction(pos_spacefun)
+posfun = interpolator.GetPositionFunction()
+rotfun = interpolator.GetRotationFunction()
 
-# Rotation motion law
-rotfun = chrono.ChFunctionRotationBSpline(1, rotations)
-rot_spacefun = chrono.ChFunctionRamp(0, 1.0 / motion_cycle_time)
-rotfun.SetSpaceFunction(rot_spacefun)
-
+# Visualize trajectory
+posline = posfun.GetLine()
 trajectory_vis = chrono.ChVisualShapeLine()
 trajectory_vis.SetLineGeometry(posline)
 trajectory_vis.SetColor(chrono.ChColor(1, 1, 0))
@@ -137,8 +134,8 @@ while vis.Run():
     # Updates
     t = sys.GetChTime()
     if t > motion_cycle_time:
-        sys.SetChTime(0)
-    targetcoord = chrono.ChCoordsysd(posfun.GetPos(t), rotfun.GetQuat(t)) # update target
+        sys.SetChTime(0) # loop trajectory
+    targetcoord = interpolator.GetInterpolation(t) # update target
 
     # Graphics
     vis.BeginScene()

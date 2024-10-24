@@ -80,6 +80,7 @@
 #include "chrono_models/robot/industrial/IndustrialKinematicsSCARA.h"
 #include "chrono_models/robot/industrial/IndustrialKinematics6dofSpherical.h"
 #include "chrono_models/robot/industrial/IndustrialKinematicsNdofNumerical.h"
+#include "chrono_models/robot/industrial/TrajectoryInterpolator.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
@@ -147,6 +148,8 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::ChFunction)
 %shared_ptr(chrono::ChFunctionSetpoint)
 %shared_ptr(chrono::ChFunctionSetpointCallback)
+%shared_ptr(chrono::ChFunctionPosition)
+%shared_ptr(chrono::ChFunctionPositionLine)
 %shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChPhysicsItem)
@@ -205,6 +208,7 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::industrial::IndustrialKinematicsSCARA)
 %shared_ptr(chrono::industrial::IndustrialKinematics6dofSpherical)
 %shared_ptr(chrono::industrial::IndustrialKinematicsNdofNumerical)
+%shared_ptr(chrono::industrial::TrajectoryInterpolator)
 
 //
 // B- INCLUDE HEADERS
@@ -247,6 +251,8 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
 %import(module = "pychrono.core") "../chrono/functions/ChFunctionBase.h"
 %import(module = "pychrono.core") "../chrono/functions/ChFunctionSetpoint.h"
+%import(module = "pychrono.core") "../chrono/functions/ChFunctionPosition.h"
+%import(module = "pychrono.core") "../chrono/functions/ChFunctionPositionLine.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
 %import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
@@ -281,7 +287,7 @@ using namespace chrono::industrial;
 %include "../../../chrono_models/robot/industrial/IndustrialKinematicsSCARA.h"
 %include "../../../chrono_models/robot/industrial/IndustrialKinematics6dofSpherical.h"
 %include "../../../chrono_models/robot/industrial/IndustrialKinematicsNdofNumerical.h"
-
+%include "../../../chrono_models/robot/industrial/TrajectoryInterpolator.h"
 
 
 //
