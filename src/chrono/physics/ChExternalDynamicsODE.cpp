@@ -43,10 +43,6 @@ void ChExternalDynamicsODE::Initialize() {
     }
 }
 
-ChExternalDynamicsODE* ChExternalDynamicsODE::Clone() const {
-    return new ChExternalDynamicsODE(*this);
-}
-
 ChVectorDynamic<> ChExternalDynamicsODE::GetInitialStates() {
     ChVectorDynamic<> y0(m_nstates);
     SetInitialConditions(y0);

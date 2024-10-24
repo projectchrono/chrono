@@ -126,7 +126,7 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     void SetRealInputFunction(const std::string& name, std::function<double(double)> function);
 
     /// Initialize this physics item.
-    /// This function initializes the underlying FMU as well as this physcis item.
+    /// This function initializes the underlying FMU as well as this physics item.
     virtual void Initialize() override;
 
     /// Print the list of FMU variables.

@@ -42,6 +42,8 @@ class VanDerPolODE : public ChExternalDynamicsODE {
   public:
     VanDerPolODE(double mu) : m_mu(mu) {}
 
+    virtual VanDerPolODE* Clone() const override { return new VanDerPolODE(*this); }
+
     virtual unsigned int GetNumStates() const override { return 2; }
 
     virtual bool IsStiff() const override { return m_mu > 10; }
