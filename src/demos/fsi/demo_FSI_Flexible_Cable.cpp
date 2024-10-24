@@ -98,7 +98,9 @@ bool GetProblemSpecs(int argc,
                      bool& render,
                      double& render_fps,
                      bool& snapshots,
-                     int& ps_freq);
+                     int& ps_freq,
+                     std::string& boundary_type,
+                     std::string& viscosity_type);
 
 // -----------------------------------------------------------------------------
 
@@ -125,8 +127,10 @@ int main(int argc, char* argv[]) {
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
     if (!GetProblemSpecs(argc, argv, inputJSON, t_end, verbose, output, output_fps, render, render_fps, snapshots,
-                         ps_freq)) {
+                         ps_freq, boundary_type, viscosity_type)) {
         return 1;
     }
 
@@ -139,6 +143,22 @@ int main(int argc, char* argv[]) {
 
     // Use the specified input JSON file
     sysSPH.ReadParametersFromFile(inputJSON);
+
+    // Set boundary type
+    if (boundary_type == "holmes") {
+        sysSPH.SetBoundaryType(BoundaryType::HOLMES);
+    } else {
+        sysSPH.SetBoundaryType(BoundaryType::ADAMI);
+    }
+
+    // Set viscosity type
+    if (viscosity_type == "laminar") {
+        sysSPH.SetViscosityType(ViscosityType::LAMINAR);
+    } else if (viscosity_type == "artificial_bilateral") {
+        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
+    } else {
+        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
+    }
 
     // Set frequency of proximity search
     sysSPH.SetNumProximitySearchSteps(ps_freq);
@@ -171,7 +191,8 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     // Create oputput directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Cable" + std::to_string(ps_freq);
+    std::string out_dir =
+        GetChronoOutputPath() + "FSI_Flexible_Cable_" + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -415,14 +436,15 @@ bool GetProblemSpecs(int argc,
                      bool& render,
                      double& render_fps,
                      bool& snapshots,
-                     int& ps_freq) {
+                     int& ps_freq,
+                     std::string& boundary_type,
+                     std::string& viscosity_type) {
     ChCLI cli(argv[0], "Flexible cable FSI demo");
 
     cli.AddOption<std::string>("Input", "inputJSON", "Problem specification file [JSON format]", inputJSON);
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
-
     cli.AddOption<bool>("Output", "output", "Enable collection of output files");
     cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
 
@@ -431,6 +453,11 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
+                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)",
+                               "artificial_unilateral");
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -448,6 +475,9 @@ bool GetProblemSpecs(int argc,
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
     ps_freq = cli.GetAsType<int>("ps_freq");
+
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
 
     return true;
 }

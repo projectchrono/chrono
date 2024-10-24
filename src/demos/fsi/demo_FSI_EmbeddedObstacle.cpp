@@ -116,14 +116,11 @@ int main(int argc, char* argv[]) {
     mat_props.density = 1700;
     mat_props.Young_modulus = 1e6;
     mat_props.Poisson_ratio = 0.3;
-    mat_props.stress = 0;  // default
     mat_props.mu_I0 = 0.04;
     mat_props.mu_fric_s = 0.8;
     mat_props.mu_fric_2 = 0.8;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_PI / 10;  // default
-    mat_props.dilation_angle = CH_PI / 10;  // default
-    mat_props.cohesion_coeff = 1e3;         // default
+    mat_props.cohesion_coeff = 1e3;  // default
 
     sysSPH.SetElasticSPH(mat_props);
 

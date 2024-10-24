@@ -59,7 +59,9 @@ bool GetProblemSpecs(int argc,
                      int& ps_freq,
                      double& sphere_density,
                      double& Hdrop,
-                     bool& render) {
+                     bool& render,
+                     std::string& boundary_type,
+                     std::string& viscosity_type) {
     ChCLI cli(argv[0], "FSI Sphere Drop Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
@@ -71,6 +73,11 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Geometry", "sphere_density", "Sphere density", std::to_string(sphere_density));
     cli.AddOption<double>("Geometry", "Hdrop", "Drop height", std::to_string(Hdrop));
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
+
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
+                               "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
+
     if (!cli.Parse(argc, argv))
         return false;
 
@@ -83,6 +90,10 @@ bool GetProblemSpecs(int argc,
     sphere_density = cli.GetAsType<double>("sphere_density");
     Hdrop = cli.GetAsType<double>("Hdrop");
     render = !cli.GetAsType<bool>("no_vis");
+
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+
     return true;
 }
 
@@ -98,10 +109,12 @@ int main(int argc, char* argv[]) {
     double Hdrop = 0.5;
     bool render = true;
     double render_fps = 100;
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
 
     // Parse command-line arguments
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, sphere_density, Hdrop,
-                         render)) {
+                         render, boundary_type, viscosity_type)) {
         return 1;
     }
 
@@ -112,6 +125,20 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH sysSPH;
     // Create an FSI system
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+
+    // Set boundary type
+    if (boundary_type == "holmes") {
+        sysSPH.SetBoundaryType(BoundaryType::HOLMES);
+    } else {
+        sysSPH.SetBoundaryType(BoundaryType::ADAMI);
+    }
+
+    // Set viscosity type
+    if (viscosity_type == "artificial_bilateral") {
+        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
+    } else {
+        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
+    }
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SphereDrop_granular.json");
     sysSPH.ReadParametersFromFile(inputJson);
@@ -201,7 +228,7 @@ int main(int argc, char* argv[]) {
 
     // Set up output directories
     std::stringstream ss;
-    ss << "FSI_SphereDrop_ps" << ps_freq << "_d";
+    ss << "FSI_SphereDrop_" << viscosity_type << "_" << boundary_type << "_ps" << ps_freq << "_d";
 
     std::string density_str = std::to_string(sphere_density);
     std::replace(density_str.begin(), density_str.end(), '.', '_');

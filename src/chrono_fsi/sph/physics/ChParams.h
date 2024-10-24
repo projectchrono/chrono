@@ -71,23 +71,19 @@ struct SimParams {
     Real3 bodyForce3;  ///< Constant force applied to the fluid. Flexible and rigid bodies are not affected by this
                        ///< force directly, but instead they are affected indirectly through the fluid.
 
-    Real rho0;       ///< Density
-    Real invrho0;    ///< Density's inverse
-    Real rho_solid;  ///< Solid Density
-    Real volume0;    ///< Initial volume of particle
+    Real rho0;     ///< Density
+    Real invrho0;  ///< Density's inverse
+    Real volume0;  ///< Initial volume of particle
 
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
-    Real kappa;       ///< surface tension parameter
     Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
     Real EPS_XSPH;       ///< Method to modify particle velocity.
     Real beta_shifting;  ///< this is the beta coefficient in the shifting vector formula. See
-    Real Vis_Dam;        ///< Viscous damping force
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
-    Real Co_number;  ///< Constant in CFL condition.
 
     Real kdT;      ///< Implicit integration parameter. Not very important
     Real gammaBB;  ///< Equation of state parameter.
@@ -95,22 +91,11 @@ struct SimParams {
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
 
-    Real3 cMinInit;                    ///< Minimum point of the fluid domain.
-    Real3 cMaxInit;                    ///< Maximum point of the fluid domain.
-    Real3 straightChannelBoundaryMin;  ///< Origin of the coordinate system (Point (0,0,0)). In this case (straigh
-                                       ///< channel) this point is where the leftmost particle of the 3rd layer of
-                                       ///< boundary particles is located. Everything below this point is outside the
-                                       ///< tolerance zone, this means that everything below is not considered part of
-                                       ///< the system
-    Real3 straightChannelBoundaryMax;  ///< Upper right most part of the system, this is Point(2 * mm, 1 * mm, 3 * mm)
-                                       ///< where mm is a constant defined at the beginning of main.cpp.This is also the
-                                       ///< rightmost particle of the 3rd layer of the top boundaryparticles.Everything
-                                       ///< above this point is not considered part of thesystem.
-    Real binSize0;  ///< Suggests the length of the bin each particle occupies. Normally this would be 2*hsml since
-                    ///< hsml is the radius of the particle, but when we have periodic boundary condition varies a
-                    ///< little from 2 hsml.This may change slightly due to the location of the periodic BC.
-
-    Real3 rigidRadius;  ///< Radius of rigid bodies.
+    Real3 cMinInit;  ///< Minimum point of the fluid domain.
+    Real3 cMaxInit;  ///< Maximum point of the fluid domain.
+    Real binSize0;   ///< Suggests the length of the bin each particle occupies. Normally this would be 2*hsml since
+                     ///< hsml is the radius of the particle, but when we have periodic boundary condition varies a
+                     ///< little from 2 hsml.This may change slightly due to the location of the periodic BC.
 
     double pressure_height;  ///< height for pressure initialization
 
@@ -175,14 +160,8 @@ struct SimParams {
     Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
     Real Nu_poisson;    ///< Poisson’s ratio
-    Real Ar_stress;     ///< Artifical stress
     Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
-    Real Fri_angle;     ///< Frictional angle of granular material
-    Real Dil_angle;     ///< Dilate angle of granular material
     Real Coh_coeff;     ///< Cohesion coefficient
-    Real Q_FA;          ///< Material constants calculate from frictional angle
-    Real Q_DA;          ///< Material constants calculate from dilate angle
-    Real K_FA;          ///< Material constants calculate from frictional angle and cohesion coefficient
     Real C_Wi;          ///< Threshold of the integration of the kernel function
 
     Real boxDimX;  ///< Dimension of the space domain - X

@@ -90,7 +90,9 @@ bool GetProblemSpecs(int argc,
                      bool& render,
                      double& render_fps,
                      bool& snapshots,
-                     int& ps_freq) {
+                     int& ps_freq,
+                     std::string& boundary_type,
+                     std::string& viscosity_type) {
     ChCLI cli(argv[0], "FSI Sphere Bounce demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -104,6 +106,12 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    // options for boundary condition and viscosity type
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
+                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)",
+                               "artificial_unilateral");
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -121,6 +129,9 @@ bool GetProblemSpecs(int argc,
     render_fps = cli.GetAsType<double>("render_fps");
 
     ps_freq = cli.GetAsType<int>("ps_freq");
+
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
 
     return true;
 }
@@ -140,7 +151,10 @@ int main(int argc, char* argv[]) {
     bool verbose = true;
     bool snapshots = false;
     int ps_freq = 1;
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
+                         boundary_type, viscosity_type)) {
         return 1;
     }
 
@@ -179,16 +193,28 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 8.0;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
     sph_params.artificial_viscosity = 0.03;
     sph_params.eos_type = EosType::TAIT;
-    // sph_params.density_reinit_steps = 1000;   // not needed if using delta SPH
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = ps_freq;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
+
+    // Set boundary and viscosity types
+    if (boundary_type == "holmes") {
+        sph_params.boundary_type = BoundaryType::HOLMES;
+    } else {
+        sph_params.boundary_type = BoundaryType::ADAMI;
+    }
+
+    if (viscosity_type == "laminar") {
+        sph_params.viscosity_type = ViscosityType::LAMINAR;
+    } else if (viscosity_type == "artificial_bilateral") {
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    } else {
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+    }
 
     sysSPH.SetSPHParameters(sph_params);
 
@@ -233,7 +259,8 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce" + std::to_string(ps_freq);
+    std::string out_dir =
+        GetChronoOutputPath() + "FSI_Sphere_Bounce_" + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;

@@ -48,7 +48,6 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     struct CH_FSI_API FluidProperties {
         double density;      ///< fluid density (default: 1000.0)
         double viscosity;    ///< fluid viscosity (default: 0.1)
-        double kappa;        ///< surface tension kappa (default: 0)
         double char_length;  ///< characteristic length (default: 1.0)
 
         FluidProperties();
@@ -60,13 +59,10 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double density;         ///< bulk density (default: 1000.0)
         double Young_modulus;   ///< Young's modulus (default: 1e6)
         double Poisson_ratio;   ///< Poisson's ratio (default: 0.3)
-        double stress;          ///< artifical stress (default: 0)
         double mu_I0;           ///< reference inertia number (default: 0.03)
         double mu_fric_s;       ///< friction mu_s (default: 0.7)
         double mu_fric_2;       ///< mu_2 constant in mu=mu(I) (default: 0.7)
         double average_diam;    ///< average particle diameter (default: 0.005)
-        double friction_angle;  ///< frictional angle of granular material (default: pi/10)
-        double dilation_angle;  ///< dilate angle of granular material (default: pi/10)
         double cohesion_coeff;  ///< cohesion coefficient (default: 0)
 
         ElasticMaterialProperties();
@@ -176,6 +172,15 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
     void SetElasticSPH(const ElasticMaterialProperties& mat_props);
 
+    /// Checks the applicability of user set parameters for elastic SPH and throws an exception if necessary.
+    void CheckParametersElasticSPH();
+
+    /// Checks the applicability of user set parameters for CFD SPH and throws an exception if necessary.
+    void CheckParametersCfdSPH();
+
+    /// Checks the applicability of user set parameters for SPH and throws an exception if necessary.
+    void CheckSPHParameters();
+
     /// Set SPH method parameters.
     void SetSPHParameters(const SPHParameters& sph_params);
 
@@ -187,6 +192,12 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Set the FSI system output mode (default: NONE).
     void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
+
+    /// Set boundary type
+    void SetBoundaryType(BoundaryType boundary_type) { m_paramsH->boundary_type = boundary_type; }
+
+    /// Set viscosity type
+    void SetViscosityType(ViscosityType viscosity_type) { m_paramsH->viscosity_type = viscosity_type; }
 
     /// Initialize the SPH fluid system with FSI support.
     virtual void Initialize(unsigned int num_fsi_bodies,
@@ -268,6 +279,12 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Return the SPH particle fluid properties.
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
+
+    /// Return the boundary type
+    BoundaryType GetBoundaryType() const { return m_paramsH->boundary_type; }
+
+    /// Return the viscosity type
+    ViscosityType GetViscosityType() const { return m_paramsH->viscosity_type; }
 
     /// Write FSI system particle output.
     void WriteParticleFile(const std::string& outfilename) const;

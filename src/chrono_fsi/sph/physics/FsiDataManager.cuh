@@ -165,6 +165,12 @@ struct ProximityDataD {
     void resize(size_t s);
 };
 
+/// Struct to store CUDA device information.
+struct CudaDeviceInfo {
+    int deviceID;               ///< CUDA device ID
+    cudaDeviceProp deviceProp;  ///< CUDA device properties
+};
+
 // -----------------------------------------------------------------------------
 
 /// Number of rigid and flexible solid bodies, fluid SPH particles, solid SPH particles, boundary SPH particles.
@@ -270,6 +276,8 @@ class FsiDataManager {
     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
 
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< Information of neighbor search on the device
+
+    std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
 
     // fluidfsiBodiesIndex (host)
     thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles

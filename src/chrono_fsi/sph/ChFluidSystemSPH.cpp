@@ -79,11 +79,9 @@ void ChFluidSystemSPH::InitParams() {
     // Fluid properties
     m_paramsH->rho0 = Real(1000.0);
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
-    m_paramsH->rho_solid = m_paramsH->rho0;
     m_paramsH->mu0 = Real(0.001);
     m_paramsH->bodyForce3 = mR3(0, 0, 0);
     m_paramsH->gravity = mR3(0, 0, 0);
-    m_paramsH->kappa = Real(0.0);
     m_paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
@@ -116,7 +114,6 @@ void ChFluidSystemSPH::InitParams() {
 
     m_paramsH->num_bce_layers = 3;
 
-    m_paramsH->Co_number = Real(0.1);
     m_paramsH->dT = Real(-1);
 
     // Pressure equation
@@ -196,9 +193,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
             m_paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();
 
-        if (doc["Physical Properties of Fluid"].HasMember("Solid Density"))
-            m_paramsH->rho_solid = doc["Physical Properties of Fluid"]["Solid Density"].GetDouble();
-
         if (doc["Physical Properties of Fluid"].HasMember("Viscosity"))
             m_paramsH->mu0 = doc["Physical Properties of Fluid"]["Viscosity"].GetDouble();
 
@@ -207,9 +201,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Physical Properties of Fluid"].HasMember("Gravity"))
             m_paramsH->gravity = LoadVectorJSON(doc["Physical Properties of Fluid"]["Gravity"]);
-
-        if (doc["Physical Properties of Fluid"].HasMember("Surface Tension Kappa"))
-            m_paramsH->kappa = doc["Physical Properties of Fluid"]["Surface Tension Kappa"].GetDouble();
 
         if (doc["Physical Properties of Fluid"].HasMember("Characteristic Length"))
             m_paramsH->L_Characteristic = doc["Physical Properties of Fluid"]["Characteristic Length"].GetDouble();
@@ -300,9 +291,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             }
         }
 
-        if (doc["SPH Parameters"].HasMember("Viscous damping"))
-            m_paramsH->Vis_Dam = doc["SPH Parameters"]["Viscous damping"].GetDouble();
-
         if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
             m_paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
 
@@ -329,9 +317,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
     }
 
     if (doc.HasMember("Time Stepping")) {
-        if (doc["Time Stepping"].HasMember("CFL number"))
-            m_paramsH->Co_number = doc["Time Stepping"]["CFL number"].GetDouble();
-
         if (doc["Time Stepping"].HasMember("Time step")) {
             m_paramsH->dT = doc["Time Stepping"]["Time step"].GetDouble();
             m_step = m_paramsH->dT;
@@ -397,9 +382,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Elastic SPH"].HasMember("Young modulus"))
             m_paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();
 
-        if (doc["Elastic SPH"].HasMember("Artificial stress"))
-            m_paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
-
         if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha"))
             m_paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
 
@@ -414,12 +396,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["Elastic SPH"].HasMember("particle diameter"))
             m_paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("frictional angle"))
-            m_paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();
-
-        if (doc["Elastic SPH"].HasMember("dilate angle"))
-            m_paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();
 
         if (doc["Elastic SPH"].HasMember("cohesion coefficient"))
             m_paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();
@@ -493,13 +469,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
         m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
         m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-
-        Real sfri = std::sin(m_paramsH->Fri_angle);
-        Real cfri = std::cos(m_paramsH->Fri_angle);
-        Real sdil = std::sin(m_paramsH->Dil_angle);
-        m_paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-        m_paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-        m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
     } else {
         m_paramsH->Cs = 10 * m_paramsH->v_Max;
     }
@@ -596,7 +565,47 @@ void ChFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
     m_paramsH->num_proximity_search_steps = steps;
 }
 
-ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), kappa(0), char_length(1) {}
+void ChFluidSystemSPH::CheckSPHParameters() {
+    // Calculate default cMin and cMax
+    Real3 default_cMin =
+        mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
+    Real3 default_cMax =
+        mR3(+2 * m_paramsH->boxDims.x, +2 * m_paramsH->boxDims.y, +2 * m_paramsH->boxDims.z) + 10 * mR3(m_paramsH->h);
+
+    // Check if user-defined cMin and cMax are much larger than defaults
+    if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y ||
+        m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
+        m_paramsH->cMax.y > 2 * default_cMax.y || m_paramsH->cMax.z > 2 * default_cMax.z) {
+        std::cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
+                  << "This may slow down the simulation." << std::endl;
+    }
+
+    if (m_paramsH->h_multiplier < 1) {
+        std::cerr << "WARNING: Kernel interaction radius multiplier is less than 1. This may lead to numerical "
+                     "instability due to poor particle approximation."
+                  << std::endl;
+    }
+
+    if (m_paramsH->h_multiplier > 1.5) {
+#ifdef W3h
+    // Check if W3h is defined as W3h_CubicSpline
+    #if W3h == W3h_CubicSpline
+        std::cerr << "WARNING: Kernel interaction radius multiplier is greater than 1.5 and the cubic spline kernel is "
+                     "used. This may lead to pairing instability. See Pg 10. of Ha H.Bui et al. Smoothed particle "
+                     "hydrodynamics (SPH) and its applications in geomechanics : From solid fracture to granular "
+                     "behaviour and multiphase flows in porous media. You might want to switch to the Wendland kernel."
+                  << std::endl;
+    #endif
+    }
+#endif
+    if (m_paramsH->num_bce_layers < 3) {
+        std::cerr << "WARNING: Number of BCE layers is less than 3. This may cause insufficient kernel support at the "
+                     "boundaries and lead to leakage of particles"
+                  << std::endl;
+    }
+}
+
+ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
 
 void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     m_paramsH->elastic_SPH = false;
@@ -604,21 +613,25 @@ void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
     SetDensity(fluid_props.density);
 
     m_paramsH->mu0 = Real(fluid_props.viscosity);
-    m_paramsH->kappa = Real(fluid_props.kappa);
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
+}
+
+void ChFluidSystemSPH::CheckParametersCfdSPH() {
+    if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
+        throw std::runtime_error(
+            "ERROR: Viscosity type is set to ARTIFICIAL_BILATERAL for CFD SPH. This is not supported. Either set "
+            "viscosity type to ARTIFICIAL_UNILATERAL or LAMINAR.");
+    }
 }
 
 ChFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
     : density(1000),
       Young_modulus(1e6),
       Poisson_ratio(0.3),
-      stress(0),
       mu_I0(0.03),
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      friction_angle(CH_PI / 10),
-      dilation_angle(CH_PI / 10),
       cohesion_coeff(0) {}
 
 void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props) {
@@ -628,26 +641,32 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
 
     m_paramsH->E_young = Real(mat_props.Young_modulus);
     m_paramsH->Nu_poisson = Real(mat_props.Poisson_ratio);
-    m_paramsH->Ar_stress = Real(mat_props.stress);
     m_paramsH->mu_I0 = Real(mat_props.mu_I0);
     m_paramsH->mu_fric_s = Real(mat_props.mu_fric_s);
     m_paramsH->mu_fric_2 = Real(mat_props.mu_fric_2);
     m_paramsH->ave_diam = Real(mat_props.average_diam);
-    m_paramsH->Fri_angle = Real(mat_props.friction_angle);
-    m_paramsH->Dil_angle = Real(mat_props.dilation_angle);
     m_paramsH->Coh_coeff = Real(mat_props.cohesion_coeff);
 
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
     m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+}
 
-    Real sfri = std::sin(m_paramsH->Fri_angle);
-    Real cfri = std::cos(m_paramsH->Fri_angle);
-    Real sdil = std::sin(m_paramsH->Dil_angle);
-    m_paramsH->Q_FA = 6 * sfri / (sqrt(3) * (3 + sfri));
-    m_paramsH->Q_DA = 6 * sdil / (sqrt(3) * (3 + sdil));
-    m_paramsH->K_FA = 6 * m_paramsH->Coh_coeff * cfri / (sqrt(3) * (3 + sfri));
+void ChFluidSystemSPH::CheckParametersElasticSPH() {
+    if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
+        throw std::runtime_error(
+            "ERROR: Viscosity type is set to LAMINAR for elastic SPH. This is not supported. Either set viscosity type "
+            "to ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL");
+    }
+    if (m_paramsH->mu0 != Real(0.001)) {
+        std::cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
+                  << " while the viscosity model is not laminar"
+                  << ". This parameter will thus have no effect on the simulation" << std::endl;
+    }
+    if (m_paramsH->non_newtonian) {
+        throw std::runtime_error("ERROR: Non-Newtonian viscosity model is not supported for elastic SPH.");
+    }
 }
 
 ChFluidSystemSPH::SPHParameters::SPHParameters()
@@ -976,8 +995,6 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
     m_paramsH->binSize0 = binSize3.x;
     m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->straightChannelBoundaryMin = m_paramsH->cMin;  // mR3(0, 0, 0);  // 3D channel
-    m_paramsH->straightChannelBoundaryMax = m_paramsH->cMax;  // SmR3(3, 2, 3) * m_paramsH->sizeScale;
     m_paramsH->deltaPress = mR3(0);
     int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1),
                     int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
@@ -1001,7 +1018,30 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
+    // Check if GPU is available and initialize CUDA device information
+    int device;
+    cudaGetDevice(&device);
+    cudaCheckError();
+    m_data_mgr->cudaDeviceInfo->deviceID = device;
+    cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
+    cudaCheckError();
+
     if (m_verbose) {
+        cout << "GPU device: " << m_data_mgr->cudaDeviceInfo->deviceProp.name << endl;
+        cout << "  Compute capability: " << m_data_mgr->cudaDeviceInfo->deviceProp.major << "."
+             << m_data_mgr->cudaDeviceInfo->deviceProp.minor << endl;
+        cout << "  Total global memory: "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.totalGlobalMem / (1024. * 1024. * 1024.) << " GB" << endl;
+        cout << "  Total constant memory: " << m_data_mgr->cudaDeviceInfo->deviceProp.totalConstMem / 1024. << " KB"
+             << endl;
+        cout << "  Total Static shared memory per block Available: "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.sharedMemPerBlock / 1024. << " KB" << endl;
+        cout << "  Maximum Dynamic shared memory per block (with opt-in): "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.sharedMemPerBlockOptin / 1024. << " KB" << endl;
+        cout << "  Total shared memory per multiprocessor: "
+             << m_data_mgr->cudaDeviceInfo->deviceProp.sharedMemPerMultiprocessor / 1024. << " KB" << endl;
+        cout << "  Number of multiprocessors: " << m_data_mgr->cudaDeviceInfo->deviceProp.multiProcessorCount << endl;
+
         cout << "Simulation parameters" << endl;
         if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
             cout << "  Viscosity treatment: Artificial Bilateral" << endl;
@@ -1114,6 +1154,14 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             cout << "  " << i << ": " << num.x << " " << num.y << " " << num.z << " " << num.w << endl;
         }
         cout << endl;
+    }
+
+    CheckSPHParameters();
+
+    if (m_paramsH->elastic_SPH) {
+        CheckParametersElasticSPH();
+    } else {
+        CheckParametersCfdSPH();
     }
 }
 
