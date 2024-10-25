@@ -26,6 +26,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialRobotSCARA : public IndustrialRobot {
   public:
     /// Default constructor.
@@ -95,6 +98,8 @@ class CH_MODELS_API IndustrialRobotSCARA : public IndustrialRobot {
     std::shared_ptr<ChLinkMotorRotationAngle> m_link_base_biceps, m_link_biceps_forearm, m_link_forearm_screw_rot;
     std::shared_ptr<ChLinkMotorLinearPosition> m_link_forearm_screw_transl;
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

@@ -24,6 +24,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialKinematicsNdofNumerical : public IndustrialKinematics {
   public:
     /// Default constructor.
@@ -83,6 +86,8 @@ class CH_MODELS_API IndustrialKinematicsNdofNumerical : public IndustrialKinemat
     ChCoordsysd m_targetcoord;                    ///< IK target coordinates
     ChVectorDynamic<> m_uik, m_du;                ///< IK solution and increment
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

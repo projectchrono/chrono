@@ -28,6 +28,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialRobot {
   public:
     /// Default constructor.
@@ -142,6 +145,8 @@ class CH_MODELS_API IndustrialRobot {
     bool m_body_attached = false;                            ///< flag for external body attached/not attached
     ChVectorDynamic<> m_encoder, m_encoder_prev;             ///< motors encoder internal data
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

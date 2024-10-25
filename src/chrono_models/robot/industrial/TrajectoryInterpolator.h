@@ -27,6 +27,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API TrajectoryInterpolator {
   public:
     /// Type of geometric position function used to define trajectory.
@@ -128,6 +131,8 @@ class CH_MODELS_API TrajectoryInterpolator {
     SpacefunType m_pos_spacefun_type = SpacefunType::LINEAR;     ///< type of time evaluation function for position
     SpacefunType m_rot_spacefun_type = SpacefunType::LINEAR;     ///< type of time evaluation function for rotation
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

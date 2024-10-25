@@ -27,6 +27,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialKinematics {
   public:
     /// Default constructor.
@@ -41,6 +44,8 @@ class CH_MODELS_API IndustrialKinematics {
   protected:
     int m_num_joints = 0;
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

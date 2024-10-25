@@ -24,6 +24,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
   public:
     /// Default constructor.
@@ -58,6 +61,8 @@ class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
     std::vector<std::string> m_bodynames;    ///< name of bodies to search in sys for building robot model
     std::shared_ptr<ChBodyAuxRef> m_ground;  ///< robot 'ground' virtual body
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

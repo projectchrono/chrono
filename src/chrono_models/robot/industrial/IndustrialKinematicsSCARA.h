@@ -24,6 +24,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialKinematicsSCARA : public IndustrialKinematics {
   public:
     /// Default constructor.
@@ -63,6 +66,8 @@ class CH_MODELS_API IndustrialKinematicsSCARA : public IndustrialKinematics {
     ChQuaternion<> m_TCP_rot0;                          ///< initial TCP rotation
     ChVector3d m_TCP_offset0;                           ///< initial TCP vertical offset from base
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

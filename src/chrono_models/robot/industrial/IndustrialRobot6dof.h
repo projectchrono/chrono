@@ -24,6 +24,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
   public:
     /// Default constructor.
@@ -96,6 +99,8 @@ class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
     std::shared_ptr<ChLinkMotorRotationAngle> m_link_base_shoulder, m_link_shoulder_biceps, m_link_biceps_elbow,
         m_link_elbow_forearm, m_link_forearm_wrist, m_link_wrist_end_effector;
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono

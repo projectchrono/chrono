@@ -24,6 +24,9 @@
 namespace chrono {
 namespace industrial {
 
+/// @addtogroup robot_models_industrial
+/// @{
+
 class CH_MODELS_API IndustrialKinematics6dofSpherical : public IndustrialKinematics {
   public:
     /// Default constructor.
@@ -76,6 +79,8 @@ class CH_MODELS_API IndustrialKinematics6dofSpherical : public IndustrialKinemat
     std::array<double, 4> m_lengths = {0, 0, 0, 0};  ///< robot arm lengths (H, L1, L2, L3)
     std::array<double, 2> m_vert_angs = {0, 0};      ///< adjust th2/th3 values
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono
