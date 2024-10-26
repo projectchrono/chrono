@@ -297,7 +297,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     }
     for (const auto& mesh : m_geometry[i_shape].coll_meshes) {
         std::vector<ChVector3d> point_cloud;
-        sysSPH.CreateMeshPoints(*mesh.trimesh, (double)sysSPH.GetInitialSpacing(), point_cloud);
+        sysSPH.CreatePoints_Mesh(*mesh.trimesh, (double)sysSPH.GetInitialSpacing(), point_cloud);
         sysSPH.AddPointsBCE(body, point_cloud, ChFrame<>(VNULL, QUNIT), true);
     }
 

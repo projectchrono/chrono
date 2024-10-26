@@ -347,7 +347,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
     trimesh->RepairDuplicateVertexes(1e-9);                              // if meshes are not watertight
 
     std::vector<ChVector3d> BCE_wheel;
-    sysSPH.CreateMeshPoints(*trimesh, initSpace0, BCE_wheel);
+    sysSPH.CreatePoints_Mesh(*trimesh, initSpace0, BCE_wheel);
 
     // Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {

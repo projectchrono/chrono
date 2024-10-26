@@ -88,7 +88,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->sph_method = SPHMethod::WCSPH;
     m_paramsH->d0 = Real(0.01);
     m_paramsH->ood0 = 1 / m_paramsH->d0;
-    m_paramsH->h_multiplier = 1.2;
+    m_paramsH->h_multiplier = Real(1.2);
     m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
     m_paramsH->ooh = 1 / m_paramsH->h;
     m_paramsH->volume0 = cube(m_paramsH->d0);
@@ -1282,9 +1282,9 @@ void ChFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size) {
+void ChFluidSystemSPH::AddPlateBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size) {
     std::vector<ChVector3d> points;
-    CreateBCE_wall(size, points);
+    CreateBCE_Plate(size, points);
     AddPointsBCE(body, points, frame, false);
 }
 
@@ -1306,24 +1306,24 @@ void ChFluidSystemSPH::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
 
     // Z- wall
     if (faces.z() == -1 || faces.z() == 2)
-        AddWallBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
+        AddPlateBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
     // Z+ wall
     if (faces.z() == +1 || faces.z() == 2)
-        AddWallBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_PI)), {size.x(), size.y()});
+        AddPlateBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_PI)), {size.x(), size.y()});
 
     // X- wall
     if (faces.x() == -1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_PI_2)), {size.z() + buffer, size.y()});
+        AddPlateBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_PI_2)), {size.z() + buffer, size.y()});
     // X+ wall
     if (faces.x() == +1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_PI_2)), {size.z() + buffer, size.y()});
+        AddPlateBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_PI_2)), {size.z() + buffer, size.y()});
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)), {size.x() + buffer, size.z() + buffer});
+        AddPlateBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)), {size.x() + buffer, size.z() + buffer});
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)), {size.x() + buffer, size.z() + buffer});
+        AddPlateBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)), {size.x() + buffer, size.z() + buffer});
 }
 
 size_t ChFluidSystemSPH::AddBoxBCE(std::shared_ptr<ChBody> body,
@@ -1331,7 +1331,11 @@ size_t ChFluidSystemSPH::AddBoxBCE(std::shared_ptr<ChBody> body,
                                    const ChVector3d& size,
                                    bool solid) {
     std::vector<ChVector3d> points;
-    CreateBCE_box(size, solid, points);
+    if (solid)
+        CreateBCE_BoxInterior(size, points);
+    else
+        CreateBCE_BoxExterior(size, points);
+
     return AddPointsBCE(body, points, frame, solid);
 }
 
@@ -1341,7 +1345,11 @@ size_t ChFluidSystemSPH::AddSphereBCE(std::shared_ptr<ChBody> body,
                                       bool solid,
                                       bool polar) {
     std::vector<ChVector3d> points;
-    CreateBCE_sphere(radius, solid, polar, points);
+    if (solid)
+        CreateBCE_SphereInterior(radius, polar, points);
+    else
+        CreateBCE_SphereExterior(radius, polar, points);
+
     return AddPointsBCE(body, points, frame, solid);
 }
 
@@ -1350,11 +1358,29 @@ size_t ChFluidSystemSPH::AddCylinderBCE(std::shared_ptr<ChBody> body,
                                         double radius,
                                         double height,
                                         bool solid,
-                                        bool capped,
                                         bool polar) {
     std::vector<ChVector3d> points;
-    CreateBCE_cylinder(radius, height, solid, capped, polar, points);
+    if (solid)
+        CreateBCE_CylinderInterior(radius, height, polar, points);
+    else
+        CreateBCE_CylinderExterior(radius, height, polar, points);
+
     return AddPointsBCE(body, points, frame, solid);
+}
+
+size_t ChFluidSystemSPH::AddConeBCE(std::shared_ptr<ChBody> body,
+                                    const ChFrame<>& frame,
+                                    double radius,
+                                    double height,
+                                    bool solid,
+                                    bool polar) {
+    std::vector<ChVector3d> points;
+    if (solid)
+        CreateBCE_ConeInterior(radius, height, polar, points);
+    else
+        CreateBCE_ConeExterior(radius, height, polar, points);
+
+    return AddPointsBCE(body, points, frame, true);
 }
 
 size_t ChFluidSystemSPH::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
@@ -1365,19 +1391,7 @@ size_t ChFluidSystemSPH::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
                                                bool polar) {
     auto delta = m_paramsH->d0;
     std::vector<ChVector3d> points;
-    CreateCylinderAnnulusPoints(radius_inner, radius_outer, height, polar, delta, points);
-    return AddPointsBCE(body, points, frame, true);
-}
-
-size_t ChFluidSystemSPH::AddConeBCE(std::shared_ptr<ChBody> body,
-                                    const ChFrame<>& frame,
-                                    double radius,
-                                    double height,
-                                    bool solid,
-                                    bool capped,
-                                    bool polar) {
-    std::vector<ChVector3d> points;
-    CreateBCE_cone(radius, height, solid, capped, polar, points);
+    CreatePoints_CylinderAnnulus(radius_inner, radius_outer, height, polar, delta, points);
     return AddPointsBCE(body, points, frame, true);
 }
 
@@ -1406,7 +1420,7 @@ size_t ChFluidSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
 
 const Real pi = Real(CH_PI);
 
-void ChFluidSystemSPH::CreateBCE_wall(const ChVector2d& size, std::vector<ChVector3d>& bce) {
+void ChFluidSystemSPH::CreateBCE_Plate(const ChVector2d& size, std::vector<ChVector3d>& bce) {
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -1424,62 +1438,140 @@ void ChFluidSystemSPH::CreateBCE_wall(const ChVector2d& size, std::vector<ChVect
     }
 }
 
-void ChFluidSystemSPH::CreateBCE_box(const ChVector3d& size, bool solid, std::vector<ChVector3d>& bce) {
+void ChFluidSystemSPH::CreateBCE_BoxInterior(const ChVector3d& size, std::vector<ChVector3d>& bce) {
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    // Calculate actual spacing in all 3 directions
-    ChVector3d hsize = size / 2;
-    int3 np = {(int)std::round(hsize.x() / spacing), (int)std::round(hsize.y() / spacing),
-               (int)std::round(hsize.z() / spacing)};
-    ChVector3d delta = {hsize.x() / np.x, hsize.y() / np.y, hsize.z() / np.z};
+    // Decide if any direction is small enough to be filled
+    ChVector3<int> np(1 + (int)std::round(size.x() / spacing),  //
+                      1 + (int)std::round(size.y() / spacing),  //
+                      1 + (int)std::round(size.z() / spacing));
+    bool fill = np[0] <= 2 * num_layers || np[1] <= 2 * num_layers || np[2] <= 2 * num_layers;
 
-    // Inflate box if boundary
-    if (!solid) {
-        np += num_layers - 1;
-        hsize = hsize + (num_layers - 1.0) * delta;
+    std::cout << fill << std::endl;
+
+    // Adjust spacing in each direction
+    ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
+
+    // If any direction must be filled, the box must be filled
+    if (fill) {
+        for (int ix = 0; ix < np.x(); ix++) {
+            double x = -size.x() / 2 + ix * delta.x();
+            for (int iy = 0; iy < np.y(); iy++) {
+                double y = -size.y() / 2 + iy * delta.y();
+                for (int iz = 0; iz < np.z(); iz++) {
+                    double z = -size.z() / 2 + iz * delta.z();
+                    bce.push_back({x, y, z});
+                }
+            }
+        }
+        return;
     }
 
+    // Create interior BCE layers
     for (int il = 0; il < num_layers; il++) {
-        // faces in Z direction
-        for (int ix = -np.x; ix <= np.x; ix++) {
-            for (int iy = -np.y; iy <= np.y; iy++) {
-                bce.push_back({ix * delta.x(), iy * delta.y(), -hsize.z() + il * delta.z()});
-                bce.push_back({ix * delta.x(), iy * delta.y(), +hsize.z() - il * delta.z()});
+        // x faces
+        double xm = -size.x() / 2 + il * delta.x();
+        double xp = +size.x() / 2 - il * delta.x();
+        for (int iy = 0; iy < np.y(); iy++) {
+            double y = -size.y() / 2 + iy * delta.y();
+            for (int iz = 0; iz < np.z(); iz++) {
+                double z = -size.z() / 2 + iz * delta.z();
+                bce.push_back({xm, y, z});
+                bce.push_back({xp, y, z});
             }
         }
 
-        // faces in Y direction
-        for (int ix = -np.x; ix <= np.x; ix++) {
-            for (int iz = -np.z + num_layers; iz <= np.z - num_layers; iz++) {
-                bce.push_back({ix * delta.x(), -hsize.y() + il * delta.y(), iz * delta.z()});
-                bce.push_back({ix * delta.x(), +hsize.y() - il * delta.y(), iz * delta.z()});
+        // y faces
+        double ym = -size.y() / 2 + il * delta.y();
+        double yp = +size.y() / 2 - il * delta.y();
+        for (int iz = 0; iz < np.z(); iz++) {
+            double z = -size.z() / 2 + iz * delta.z();
+            for (int ix = 0; ix < np.x(); ix++) {
+                double x = -size.x() / 2 + ix * delta.x();
+                bce.push_back({x, ym, z});
+                bce.push_back({x, yp, z});
             }
         }
 
-        // faces in X direction
-        for (int iy = -np.y + num_layers; iy <= np.y - num_layers; iy++) {
-            for (int iz = -np.z + num_layers; iz <= np.z - num_layers; iz++) {
-                bce.push_back({-hsize.x() + il * delta.x(), iy * delta.y(), iz * delta.z()});
-                bce.push_back({+hsize.x() - il * delta.x(), iy * delta.y(), iz * delta.z()});
+        // z faces
+        double zm = -size.z() / 2 + il * delta.z();
+        double zp = +size.z() / 2 - il * delta.z();
+        for (int ix = 0; ix < np.x(); ix++) {
+            double x = -size.x() / 2 + ix * delta.x();
+            for (int iy = 0; iy < np.y(); iy++) {
+                double y = -size.y() / 2 + iy * delta.y();
+                bce.push_back({x, y, zm});
+                bce.push_back({x, y, zp});
             }
         }
     }
 }
 
-void ChFluidSystemSPH::CreateBCE_sphere(double rad, bool solid, bool polar, std::vector<ChVector3d>& bce) {
+void ChFluidSystemSPH::CreateBCE_BoxExterior(const ChVector3d& size, std::vector<ChVector3d>& bce) {
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
+
+    // Adjust spacing in each direction
+    ChVector3i np(1 + (int)std::round(size.x() / spacing),  //
+                  1 + (int)std::round(size.y() / spacing),  //
+                  1 + (int)std::round(size.z() / spacing));
+    ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
+
+    // Inflate box
+    ChVector3i Np = np + 2 * (num_layers - 1);
+    ChVector3d Size = size + 2.0 * (num_layers - 1.0) * delta;
+
+    // Create exterior BCE layers
+    for (int il = 0; il < num_layers; il++) {
+        // x faces
+        double xm = -Size.x() / 2 + il * delta.x();
+        double xp = +Size.x() / 2 - il * delta.x();
+        for (int iy = 0; iy < Np.y(); iy++) {
+            double y = -Size.y() / 2 + iy * delta.y();
+            for (int iz = 0; iz < Np.z(); iz++) {
+                double z = -Size.z() / 2 + iz * delta.z();
+                bce.push_back({xm, y, z});
+                bce.push_back({xp, y, z});
+            }
+        }
+
+        // y faces
+        double ym = -Size.y() / 2 + il * delta.y();
+        double yp = +Size.y() / 2 - il * delta.y();
+        for (int iz = 0; iz < Np.z(); iz++) {
+            double z = -Size.z() / 2 + iz * delta.z();
+            for (int ix = 0; ix < np.x(); ix++) {
+                double x = -size.x() / 2 + ix * delta.x();
+                bce.push_back({x, ym, z});
+                bce.push_back({x, yp, z});
+            }
+        }
+
+        // z faces
+        double zm = -Size.z() / 2 + il * delta.z();
+        double zp = +Size.z() / 2 - il * delta.z();
+        for (int ix = 0; ix < np.x(); ix++) {
+            double x = -size.x() / 2 + ix * delta.x();
+            for (int iy = 0; iy < np.y(); iy++) {
+                double y = -size.y() / 2 + iy * delta.y();
+                bce.push_back({x, y, zm});
+                bce.push_back({x, y, zp});
+            }
+        }
+    }
+}
+
+void ChFluidSystemSPH::CreateBCE_SphereInterior(double radius, bool polar, std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
     // Use polar coordinates
     if (polar) {
-        double rad_out = solid ? rad : rad + num_layers * spacing;
-        double rad_in = rad_out - num_layers * spacing;
-        int np_r = (int)std::round((rad - rad_in) / spacing);
-        double delta_r = (rad_out - rad_in) / np_r;
+        double rad_in = radius - (num_layers - 1) * spacing;
 
-        for (int ir = 0; ir <= np_r; ir++) {
-            double r = rad_in + ir * delta_r;
+        for (int ir = 0; ir < num_layers; ir++) {
+            double r = rad_in + ir * spacing;
             int np_phi = (int)std::round(pi * r / spacing);
             double delta_phi = pi / np_phi;
             for (int ip = 0; ip < np_phi; ip++) {
@@ -1500,17 +1592,13 @@ void ChFluidSystemSPH::CreateBCE_sphere(double rad, bool solid, bool polar, std:
         return;
     }
 
-    // Use a regular grid and accept/reject points
-    int np = (int)std::round(rad / spacing);
-    double delta = rad / np;
-    if (!solid) {
-        np += num_layers;
-        rad += num_layers * delta;
-    }
+    // Use a Cartesian grid and accept/reject points
+    int np = (int)std::round(radius / spacing);
+    double delta = radius / np;
 
     for (int iz = 0; iz <= np; iz++) {
         double z = iz * delta;
-        double rz_max = std::sqrt(rad * rad - z * z);
+        double rz_max = std::sqrt(radius * radius - z * z);
         double rz_min = std::max(rz_max - num_layers * delta, 0.0);
         if (iz >= np - num_layers)
             rz_min = 0;
@@ -1531,29 +1619,164 @@ void ChFluidSystemSPH::CreateBCE_sphere(double rad, bool solid, bool polar, std:
     }
 }
 
-void ChFluidSystemSPH::CreateBCE_cylinder(double rad,
-                                          double height,
-                                          bool solid,
-                                          bool capped,
-                                          bool polar,
-                                          std::vector<ChVector3d>& bce) {
+void ChFluidSystemSPH::CreateBCE_SphereExterior(double radius, bool polar, std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    // Calculate actual spacing
-    double hheight = height / 2;
-    int np_h = (int)std::round(hheight / spacing);
-    double delta_h = hheight / np_h;
-
-    // Inflate cylinder if boundary
-    if (!solid && capped) {
-        np_h += num_layers;
-        hheight += num_layers * delta_h;
+    // Use polar coordinates
+    if (polar) {
+        for (int ir = 0; ir < num_layers; ir++) {
+            double r = radius + ir * spacing;
+            int np_phi = (int)std::round(pi * r / spacing);
+            double delta_phi = pi / np_phi;
+            for (int ip = 0; ip < np_phi; ip++) {
+                double phi = ip * delta_phi;
+                double cphi = std::cos(phi);
+                double sphi = std::sin(phi);
+                double x = r * sphi;
+                double y = r * sphi;
+                double z = r * cphi;
+                int np_th = (int)std::round(2 * pi * r * sphi / spacing);
+                double delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
+                for (int it = 0; it < np_th; it++) {
+                    double theta = it * delta_th;
+                    bce.push_back({x * std::cos(theta), y * std::sin(theta), z});
+                }
+            }
+        }
+        return;
     }
+
+    // Inflate sphere and accept/reject points on a Cartesian grid
+    int np = (int)std::round(radius / spacing);
+    double delta = radius / np;
+    np += num_layers;
+    radius += num_layers * delta;
+
+    for (int iz = 0; iz <= np; iz++) {
+        double z = iz * delta;
+        double rz_max = std::sqrt(radius * radius - z * z);
+        double rz_min = std::max(rz_max - num_layers * delta, 0.0);
+        if (iz >= np - num_layers)
+            rz_min = 0;
+        double rz_min2 = rz_min * rz_min;
+        double rz_max2 = radius * radius - z * z;
+        for (int ix = -np; ix <= np; ix++) {
+            double x = ix * delta;
+            for (int iy = -np; iy <= np; iy++) {
+                double y = iy * delta;
+                double r2 = x * x + y * y;
+                if (r2 >= rz_min2 && r2 <= rz_max2) {
+                    bce.push_back({x, y, +z});
+                    bce.push_back({x, y, -z});
+                }
+            }
+        }
+    }
+}
+
+void ChFluidSystemSPH::CreateBCE_CylinderInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+    double spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
+
+    // Radial direction (num divisions and adjusted spacing)
+    int np_r = (int)std::round(rad / spacing);
+    double delta_r = rad / np_r;
+
+    // Axial direction (num divisions and adjusted spacing)
+    int np_h = (int)std::round(height / spacing);
+    double delta_h = height / np_h;
+
+    // Check if radius is small enough to be filled
+    bool fill = np_r <= num_layers - 1;
 
     // Use polar coordinates
     if (polar) {
-        double rad_max = solid ? rad : rad + num_layers * spacing;
+        double rad_min = std::max(rad - (num_layers - 1) * spacing, 0.0);
+        np_r = (int)std::round((rad - rad_min) / spacing);
+        delta_r = (rad - rad_min) / np_r;
+
+        for (int ir = 0; ir <= np_r; ir++) {
+            double r = rad_min + ir * delta_r;
+            int np_th = std::max((int)std::round(2 * pi * r / spacing) - 1, 1);
+            double delta_th = CH_2PI / np_th;
+            for (int it = 0; it < np_th; it++) {
+                double theta = it * delta_th;
+                double x = r * cos(theta);
+                double y = r * sin(theta);
+                for (int iz = 0; iz <= np_h; iz++) {
+                    double z = -height / 2 + iz * delta_h;
+                    bce.push_back({x, y, z});
+                }
+            }
+        }
+
+        // Add cylinder caps (unless already filled)
+        if (!fill) {
+            np_r = (int)std::round(rad_min / spacing);
+            delta_r = rad_min / np_r;
+
+            for (int ir = 0; ir < np_r; ir++) {
+                double r = ir * delta_r;
+                int np_th = std::max((int)std::round(2 * pi * r / spacing) - 1, 1);
+                double delta_th = CH_2PI / np_th;
+                for (int it = 0; it < np_th; it++) {
+                    double theta = it * delta_th;
+                    double x = r * cos(theta);
+                    double y = r * sin(theta);
+                    for (int iz = 0; iz < num_layers; iz++) {
+                        double z = height / 2 - iz * delta_h;
+                        bce.push_back({x, y, -z});
+                        bce.push_back({x, y, +z});
+                    }
+                }
+            }
+        }
+
+        return;
+    }
+
+    // Use a Cartesian grid and accept/reject points
+    double r_max = rad;
+    double r_min = std::max(rad - num_layers * delta_r, 0.0);
+    double r_max2 = r_max * r_max;
+    double r_min2 = r_min * r_min;
+    for (int ix = -np_r; ix <= np_r; ix++) {
+        double x = ix * delta_r;
+        for (int iy = -np_r; iy <= np_r; iy++) {
+            double y = iy * delta_r;
+            double r2 = x * x + y * y;
+            if (r2 >= r_min2 && r2 <= r_max2) {
+                for (int iz = 0; iz <= np_h; iz++) {
+                    double z = -height / 2 + iz * delta_h;
+                    bce.push_back({x, y, z});
+                }
+            }
+            // Add cylinder caps (unless already filled)
+            if (r2 < r_min2) {
+                for (int iz = 0; iz < num_layers; iz++) {
+                    double z = height / 2 - iz * delta_h;
+                    bce.push_back({x, y, -z});
+                    bce.push_back({x, y, +z});
+                }
+            }
+        }
+    }
+}
+
+void ChFluidSystemSPH::CreateBCE_CylinderExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+    double spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
+
+    // Calculate actual spacing and inflate cylinder
+    int np_h = (int)std::round(height / spacing);
+    double delta_h = height / np_h;
+    np_h += 2 * (num_layers - 1);
+    height += 2 * (num_layers - 1) * delta_h;
+
+    // Use polar coordinates
+    if (polar) {
+        double rad_max = rad + num_layers * spacing;
         double rad_min = rad_max - num_layers * spacing;
         int np_r = (int)std::round((rad_max - rad_min) / spacing);
         double delta_r = (rad_max - rad_min) / np_r;
@@ -1566,30 +1789,29 @@ void ChFluidSystemSPH::CreateBCE_cylinder(double rad,
                 double theta = it * delta_th;
                 double x = r * cos(theta);
                 double y = r * sin(theta);
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
+                for (int iz = 0; iz <= np_h; iz++) {
+                    double z = -height / 2 + iz * delta_h;
                     bce.push_back({x, y, z});
                 }
             }
         }
 
-        if (capped) {
-            np_r = (int)std::round(rad_max / spacing);
-            delta_r = rad_max / np_r;
+        // Add cylinder caps
+        np_r = (int)std::round(rad_min / spacing);
+        delta_r = rad_min / np_r;
 
-            for (int ir = 0; ir <= np_r; ir++) {
-                double r = rad_max - ir * delta_r;
-                int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
-                double delta_th = (2 * pi) / np_th;
-                for (int it = 0; it < np_th; it++) {
-                    double theta = it * delta_th;
-                    double x = r * cos(theta);
-                    double y = r * sin(theta);
-                    for (int iz = 0; iz <= num_layers; iz++) {
-                        double z = hheight - iz * delta_h;
-                        bce.push_back({x, y, -z});
-                        bce.push_back({x, y, +z});
-                    }
+        for (int ir = 0; ir < np_r; ir++) {
+            double r = ir * delta_r;
+            int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
+            double delta_th = (2 * pi) / np_th;
+            for (int it = 0; it < np_th; it++) {
+                double theta = it * delta_th;
+                double x = r * cos(theta);
+                double y = r * sin(theta);
+                for (int iz = 0; iz < num_layers; iz++) {
+                    double z = -height / 2 + iz * delta_h;
+                    bce.push_back({x, y, -z});
+                    bce.push_back({x, y, +z});
                 }
             }
         }
@@ -1597,13 +1819,11 @@ void ChFluidSystemSPH::CreateBCE_cylinder(double rad,
         return;
     }
 
-    // Use a regular grid and accept/reject points
+    // Inflate cylinder and accept/reject points on a Cartesian grid
     int np_r = (int)std::round(rad / spacing);
     double delta_r = rad / np_r;
-    if (!solid) {
-        np_r += num_layers;
-        rad += num_layers * delta_r;
-    }
+    np_r += num_layers;
+    rad += num_layers * delta_r;
 
     double rad_max = rad;
     double rad_min = std::max(rad - num_layers * delta_r, 0.0);
@@ -1615,14 +1835,15 @@ void ChFluidSystemSPH::CreateBCE_cylinder(double rad,
             double y = iy * delta_r;
             double r2 = x * x + y * y;
             if (r2 >= r_min2 && r2 <= r_max2) {
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
+                for (int iz = 0; iz <= np_h; iz++) {
+                    double z = -height / 2 + iz * delta_h;
                     bce.push_back({x, y, z});
                 }
             }
-            if (capped && r2 < r_min2) {
-                for (int iz = 0; iz <= num_layers; iz++) {
-                    double z = hheight - iz * delta_h;
+            // Add cylinder caps
+            if (r2 < r_min2) {
+                for (int iz = 0; iz < num_layers; iz++) {
+                    double z = -height / 2 + iz * delta_h;
                     bce.push_back({x, y, -z});
                     bce.push_back({x, y, +z});
                 }
@@ -1631,12 +1852,7 @@ void ChFluidSystemSPH::CreateBCE_cylinder(double rad,
     }
 }
 
-void ChFluidSystemSPH::CreateBCE_cone(double rad,
-                                      double height,
-                                      bool solid,
-                                      bool capped,
-                                      bool polar,
-                                      std::vector<ChVector3d>& bce) {
+void ChFluidSystemSPH::CreateBCE_ConeInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -1644,22 +1860,12 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
     int np_h = (int)std::round(height / spacing);
     double delta_h = height / np_h;
 
-    // Inflate cone if boundary
-    if (!solid) {
-        np_h += num_layers;
-        height += num_layers * delta_h;
-        if (capped) {
-            np_h += num_layers;
-            height += num_layers * delta_h;
-        }
-    }
-
     // Use polar coordinates
     if (polar) {
         for (int iz = 0; iz < np_h; iz++) {
             double z = iz * delta_h;
             double rz = rad * (height - z) / height;
-            double rad_out = solid ? rz : rz + num_layers * spacing;
+            double rad_out = rz;
             double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
             if (iz >= np_h - num_layers)
                 rad_in = 0;
@@ -1680,9 +1886,7 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
 
         bce.push_back({0.0, 0.0, height});
 
-        if (capped) {
-            //// RADU TODO
-        }
+        //// TODO: add cap
 
         return;
     }
@@ -1694,7 +1898,7 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
     for (int iz = 0; iz <= np_h; iz++) {
         double z = iz * delta_h;
         double rz = rad * (height - z) / height;
-        double rad_out = solid ? rz : rz + num_layers * spacing;
+        double rad_out = rz;
         double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
         double r_out2 = rad_out * rad_out;
         double r_in2 = rad_in * rad_in;
@@ -1708,9 +1912,76 @@ void ChFluidSystemSPH::CreateBCE_cone(double rad,
                 }
             }
 
-            if (capped) {
-                //// RADU TODO
+            //// TODO: add cap
+        }
+    }
+}
+
+void ChFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+    double spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
+
+    // Calculate actual spacing
+    int np_h = (int)std::round(height / spacing);
+    double delta_h = height / np_h;
+
+    // Inflate cone
+    np_h += 2 * num_layers;
+    height += 2 * num_layers * delta_h;
+
+    // Use polar coordinates
+    if (polar) {
+        for (int iz = 0; iz < np_h; iz++) {
+            double z = iz * delta_h;
+            double rz = rad * (height - z) / height;
+            double rad_out = rz + num_layers * spacing;
+            double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
+            if (iz >= np_h - num_layers)
+                rad_in = 0;
+            int np_r = (int)std::round((rad_out - rad_in) / spacing);
+            double delta_r = (rad_out - rad_in) / np_r;
+            for (int ir = 0; ir <= np_r; ir++) {
+                double r = rad_in + ir * delta_r;
+                int np_th = (int)std::round(2 * pi * r / spacing);
+                double delta_th = (2 * pi) / np_th;
+                for (int it = 0; it < np_th; it++) {
+                    double theta = it * delta_th;
+                    double x = r * cos(theta);
+                    double y = r * sin(theta);
+                    bce.push_back({x, y, z});
+                }
             }
+        }
+
+        bce.push_back({0.0, 0.0, height});
+
+        //// TODO: add cap
+
+        return;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad / spacing);
+    double delta_r = rad / np_r;
+
+    for (int iz = 0; iz <= np_h; iz++) {
+        double z = iz * delta_h;
+        double rz = rad * (height - z) / height;
+        double rad_out = rz + num_layers * spacing;
+        double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
+        double r_out2 = rad_out * rad_out;
+        double r_in2 = rad_in * rad_in;
+        for (int ix = -np_r; ix <= np_r; ix++) {
+            double x = ix * delta_r;
+            for (int iy = -np_r; iy <= np_r; iy++) {
+                double y = iy * delta_r;
+                double r2 = x * x + y * y;
+                if (r2 >= r_in2 && r2 <= r_out2) {
+                    bce.push_back({x, y, z});
+                }
+            }
+
+            //// TODO: add cap
         }
     }
 }
@@ -1916,12 +2187,12 @@ unsigned int ChFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const FsiMesh2
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::CreateCylinderAnnulusPoints(double rad_inner,
-                                                   double rad_outer,
-                                                   double height,
-                                                   bool polar,
-                                                   double delta,
-                                                   std::vector<ChVector3d>& points) {
+void ChFluidSystemSPH::CreatePoints_CylinderAnnulus(double rad_inner,
+                                                    double rad_outer,
+                                                    double height,
+                                                    bool polar,
+                                                    double delta,
+                                                    std::vector<ChVector3d>& points) {
     // Calculate actual spacing
     double hheight = height / 2;
     int np_h = (int)std::round(hheight / delta);
@@ -1969,7 +2240,7 @@ void ChFluidSystemSPH::CreateCylinderAnnulusPoints(double rad_inner,
     }
 }
 
-void ChFluidSystemSPH::CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points) {
+void ChFluidSystemSPH::CreatePoints_Mesh(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
     auto bbox = mesh.GetBoundingBox();
 
