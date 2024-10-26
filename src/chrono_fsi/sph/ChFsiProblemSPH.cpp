@@ -281,14 +281,14 @@ bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p) {
     }
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        if (std::abs(pp.x()) <= box.dims.x() / 2 ||  //
-            std::abs(pp.y()) <= box.dims.y() / 2 ||  //
+        if (std::abs(pp.x()) <= box.dims.x() / 2 &&  //
+            std::abs(pp.y()) <= box.dims.y() / 2 &&  //
             std::abs(pp.z()) <= box.dims.z() / 2)
             return true;
     }
     for (const auto& cyl : geometry.coll_cylinders) {
         auto pp = cyl.rot.RotateBack(p - cyl.pos);
-        if (pp.x() * pp.x() + pp.y() * pp.y() <= cyl.radius * cyl.radius || std::abs(pp.z()) <= cyl.length / 2)
+        if (pp.x() * pp.x() + pp.y() * pp.y() <= cyl.radius * cyl.radius && std::abs(pp.z()) <= cyl.length / 2)
             return true;
     }
     return false;

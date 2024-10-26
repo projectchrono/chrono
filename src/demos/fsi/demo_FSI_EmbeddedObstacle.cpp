@@ -50,12 +50,16 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Output directories and settings
 std::string out_dir = GetChronoOutputPath() + "FSI_EmbeddedObstacle";
 
+// Object geometry
+enum class ObjectShape { SPHERE_PRIMITIVE, SPHERE_MESH, BOX_PRIMITIVE, CYLINDER_PRIMITIVE, BOX_FRAME };
+ObjectShape object_shape = ObjectShape::BOX_FRAME;
+
 // Output frequency
 bool output = false;
 double output_fps = 20;
 
 // Object initial height
-double initial_height = 0.35;
+double initial_height = 0.25;
 
 // Final simulation time
 double t_end = 200.0;
@@ -72,6 +76,9 @@ bool show_rigid = true;
 bool show_rigid_bce = false;
 bool show_boundary_bce = true;
 bool show_particles_sph = true;
+
+ChFsiVisualization::RenderMode render_mode = ChFsiVisualization::RenderMode::SOLID;
+////ChFsiVisualization::RenderMode render_mode = ChFsiVisualization::RenderMode::WIREFRAME;
 
 // -----------------------------------------------------------------------------
 
@@ -137,27 +144,71 @@ int main(int argc, char* argv[]) {
     sph_params.boundary_type = BoundaryType::HOLMES;
     sysSPH.SetSPHParameters(sph_params);
 
-    // Create a rigid body
+    // Create body geometry
     double density = 5000;
-    double radius = 0.25;
-    auto mass = density * ChSphere::GetVolume(radius);
-    auto inertia = mass * ChSphere::GetGyration(radius);
+    double mass;
+    ChMatrix33d inertia;
+    utils::ChBodyGeometry geometry;
+    geometry.materials.push_back(ChContactMaterialData());
+    switch (object_shape) {
+        case ObjectShape::SPHERE_PRIMITIVE: {
+            double radius = 0.2;
+            ChSphere sphere(radius);
+            mass = density * sphere.GetVolume();
+            inertia = mass * sphere.GetGyration();
+            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
+            break;
+        }
+        case ObjectShape::SPHERE_MESH: {
+            double radius = 0.2;
+            ChSphere sphere(radius);
+            mass = density * sphere.GetVolume();
+            inertia = mass * sphere.GetGyration();
+            std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
+            geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius));
+            break;
+        }
+        case ObjectShape::BOX_PRIMITIVE: {
+            ChVector3d size(0.25, 0.11, 0.4);
+            ChBox box(size);
+            mass = density * box.GetVolume();
+            inertia = density * box.GetGyration();
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, box, 0));
+            break;
+        }
+        case ObjectShape::CYLINDER_PRIMITIVE: {
+            double radius = 0.2;
+            double length = 0.4;
+            ChCylinder cylinder(radius, length);
+            mass = density * cylinder.GetVolume();
+            inertia = density * cylinder.GetGyration();
+            geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, cylinder, 0));
+            break;
+        }
+        case ObjectShape::BOX_FRAME: {
+            ChBox box1(ChVector3d(0.3, 0.1, 0.1));
+            ChBox box2(ChVector3d(0.1, 0.1, 0.4));
+            mass = density * box1.GetVolume();       // not exact
+            inertia = density * box1.GetGyration();  // not exact
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, -0.15), QUNIT, box1, 0));
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, +0.15), QUNIT, box1, 0));
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(-0.2, 0, 0), QUNIT, box2, 0));
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(+0.2, 0, 0), QUNIT, box2, 0));
+            break;
+        }
+    }
 
+    // Create the rigid body
     auto body = chrono_types::make_shared<ChBody>();
     body->SetName("ball");
     body->SetPos(ChVector3d(0, 0, initial_height));
-    body->SetRot(QUNIT);
+    body->SetRot(QuatFromAngleZ(-CH_PI / 4));
     body->SetMass(mass);
     body->SetInertia(inertia);
     body->SetFixed(false);
     body->EnableCollision(false);
     sysMBS.AddBody(body);
 
-    std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    ////geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius));
     if (show_rigid)
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
@@ -241,8 +292,9 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
         auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
+        auto col_callback = chrono_types::make_shared<HeightColorCallback>(ChColor(0.3f, 0.6f, 0.0f), -0.3, 0.3);
+        ////auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
@@ -256,6 +308,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(vis_callback);
         visFSI->SetBCEVisibilityCallback(vis_callback);
+        visFSI->SetRenderMode(render_mode);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
