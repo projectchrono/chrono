@@ -42,8 +42,14 @@ ChBodyGeometry::ChBodyGeometry()
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID)
     : pos(pos), rot(rot), dims(dims), matID(matID) {}
 
+ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChBox& box, int matID)
+    : pos(pos), rot(rot), dims(box.GetLengths()), matID(matID) {}
+
 ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, double radius, int matID)
     : pos(pos), radius(radius), matID(matID) {}
+
+ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, const ChSphere& sphere, int matID)
+    : pos(pos), radius(sphere.GetRadius()), matID(matID) {}
 
 ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
                                              const ChQuaternion<>& rot,
@@ -62,6 +68,12 @@ ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
     rot_mat.SetFromAxisX(axis);
     rot = rot_mat.GetQuaternion() * QuatFromAngleY(-CH_PI_2);
 }
+
+ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
+                                             const ChQuaternion<>& rot,
+                                             const ChCylinder& cylinder,
+                                             int matID)
+    : pos(pos), rot(rot), radius(cylinder.GetRadius()), length(cylinder.GetHeight()), matID(matID) {}
 
 ChBodyGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line)
     : pos(pos), rot(rot), line(line) {}
