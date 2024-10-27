@@ -141,12 +141,13 @@ class Pendulum2D_DAE : public ChExternalDynamicsDAE {
         F(2) = 0;
     }
 
-    virtual void CalculateConstraintViolation(const ChVectorDynamic<>& y, ChVectorDynamic<>& violation) override {
-        violation(0) = y(0) - L * std::cos(y(2));  // x = L * cos(theta)
-        violation(1) = y(1) - L * std::sin(y(2));  // y = L * sin(theta)
+    virtual void CalculateConstraintViolation(double time, const ChVectorDynamic<>& y, ChVectorDynamic<>& c) override {
+        c(0) = y(0) - L * std::cos(y(2));  // x = L * cos(theta)
+        c(1) = y(1) - L * std::sin(y(2));  // y = L * sin(theta)
     }
 
-    virtual void CalculateConstraintJacobian(const ChVectorDynamic<>& y,
+    virtual void CalculateConstraintJacobian(double time,
+                                             const ChVectorDynamic<>& y,
                                              const ChVectorDynamic<>& c,
                                              ChMatrixDynamic<>& J) override {
         J(0, 0) = 1;
@@ -214,7 +215,7 @@ class Pendulum3D_DAE : public ChExternalDynamicsDAE {
         return true;
     }
 
-    virtual void OnUpdate(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override {
+    virtual void OnUpdate(double time, const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override {
         // Current body frame (expressed in absolute frame)
         ChFrame<> body(ChVector3d(y.segment(0, 3)), ChQuaterniond(y.segment(3, 4)));
 
@@ -230,17 +231,18 @@ class Pendulum3D_DAE : public ChExternalDynamicsDAE {
         F(1) = -m * g;
     }
 
-    virtual void CalculateConstraintViolation(const ChVectorDynamic<>& y, ChVectorDynamic<>& violation) override {
+    virtual void CalculateConstraintViolation(double time, const ChVectorDynamic<>& y, ChVectorDynamic<>& c) override {
         ChVector3d w(0, 0, 1);  // absolute z direction
 
-        violation(0) = frame_abs.GetPos().x();
-        violation(1) = frame_abs.GetPos().y();
-        violation(2) = frame_abs.GetPos().z();
-        violation(3) = Vdot(frame_abs.GetRotMat().GetAxisX(), w);
-        violation(4) = Vdot(frame_abs.GetRotMat().GetAxisY(), w);
+        c(0) = frame_abs.GetPos().x();
+        c(1) = frame_abs.GetPos().y();
+        c(2) = frame_abs.GetPos().z();
+        c(3) = Vdot(frame_abs.GetRotMat().GetAxisX(), w);
+        c(4) = Vdot(frame_abs.GetRotMat().GetAxisY(), w);
     }
 
-    virtual void CalculateConstraintJacobian(const ChVectorDynamic<>& y,
+    virtual void CalculateConstraintJacobian(double time,
+                                             const ChVectorDynamic<>& y,
                                              const ChVectorDynamic<>& c,
                                              ChMatrixDynamic<>& J) override {
         ChVector3d u_abs(1, 0, 0);  // absolute x direction

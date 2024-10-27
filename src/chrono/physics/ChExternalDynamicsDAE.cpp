@@ -30,9 +30,11 @@ void ChExternalDynamicsDAE::Initialize() {
     m_nyd = GetNumStateDerivatives();
     m_y.resize(m_ny);
     m_yd.resize(m_nyd);
+    m_ydd.resize(m_nyd);
     m_F.resize(m_nyd);
 
     SetInitialConditions(m_y, m_yd);
+    m_ydd.setZero();
 
     m_variables = new ChVariablesGeneric(m_nyd);
     if (InExplicitForm()) {
@@ -59,6 +61,10 @@ void ChExternalDynamicsDAE::Initialize() {
     m_multipliers.resize(m_nc, 0);
     m_Jc.resize(m_nc, m_nyd);
 
+    if (IsRheonomous()) {
+        m_ct.resize(m_nc);
+    }
+
     m_constraints.resize(m_nc);
     for (auto& constraint : m_constraints)
         constraint.SetVariables({m_variables});
@@ -83,16 +89,21 @@ ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStateDerivatives() {
 void ChExternalDynamicsDAE::Update(double time, bool update_assets) {
     ChTime = time;
 
-    OnUpdate(m_y, m_yd);
+    OnUpdate(time, m_y, m_yd);
 
     // Compute forcing terms at current states
     CalculateForce(time, m_y, m_yd, m_F);
 
     // Compute constraint violations
-    CalculateConstraintViolation(m_y, m_c);
+    CalculateConstraintViolation(time, m_y, m_c);
 
     // Compute constraint Jacobian
-    CalculateConstraintJacobian(m_y, m_c, m_Jc);
+    CalculateConstraintJacobian(time, m_y, m_c, m_Jc);
+
+    // Compute constraint time derivatives
+    if (IsRheonomous()) {
+        ComputeConstraintDerivative(time);
+    }
 
     // Update assets
     ChPhysicsItem::Update(ChTime, update_assets);
@@ -148,13 +159,11 @@ void ChExternalDynamicsDAE::IntStateScatter(const unsigned int off_x,  // offset
 }
 
 void ChExternalDynamicsDAE::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    //// TODO
-    //// Anything to do here?
+    a.segment(off_a, m_nyd) = m_ydd;
 }
 
 void ChExternalDynamicsDAE::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    //// TODO
-    //// Anything to do here?
+    m_ydd = a.segment(off_a, m_nyd);
 }
 
 void ChExternalDynamicsDAE::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
@@ -164,7 +173,7 @@ void ChExternalDynamicsDAE::IntStateGatherReactions(const unsigned int off_L, Ch
 
 void ChExternalDynamicsDAE::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     for (unsigned int i = 0; i < m_nc; i++)
-        m_multipliers[i]  = L(off_L + i);
+        m_multipliers[i] = L(off_L + i);
 }
 
 void ChExternalDynamicsDAE::IntStateIncrement(const unsigned int off_x,  // offset in state vector
@@ -262,8 +271,10 @@ void ChExternalDynamicsDAE::IntLoadConstraint_Ct(const unsigned int off,  // off
                                                  ChVectorDynamic<>& Qc,   // result: the Qc residual, Qc += c*Ct
                                                  const double c           // a scaling factor
 ) {
-    //// TODO
-    //// For now, assume no time dependency
+    if (!IsRheonomous())
+        return;
+
+    Qc.segment(off, m_nc) += c * m_ct;
 }
 
 void ChExternalDynamicsDAE::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
@@ -321,30 +332,6 @@ void ChExternalDynamicsDAE::LoadConstraintJacobians() {
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamicsDAE::ComputeForceJacobian(double time, double alpha, double beta) {
-    m_J.setZero();
-
-    // Invoke Jacobian function
-    bool has_jac = CalculateForceJacobians(time, m_y, m_yd, m_F, alpha, beta, m_J);
-
-    // If Jacobian not provided, estimate with finite differences (here, m_ny = m_nyd)
-    if (!has_jac) {
-        ChVectorDynamic<> F(m_nyd);
-        for (unsigned int i = 0; i < m_nyd; i++) {
-            m_y(i) += m_FD_delta;
-            CalculateForce(time, m_y, m_yd, F);
-            m_J.col(i) += (F - m_F) * (alpha / m_FD_delta);
-            m_y(i) -= m_FD_delta;
-        }
-        for (unsigned int i = 0; i < m_nyd; i++) {
-            m_yd(i) += m_FD_delta;
-            CalculateForce(time, m_y, m_yd, F);
-            m_J.col(i) += (F - m_F) * (beta / m_FD_delta);
-            m_yd(i) -= m_FD_delta;
-        }
-    }
-}
-
 void ChExternalDynamicsDAE::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!IsStiff())
         return;
@@ -364,37 +351,68 @@ void ChExternalDynamicsDAE::LoadKRMMatrices(double Kfactor, double Rfactor, doub
 
 /*
 void ChExternalDynamicsDAE::VariablesFbReset() {
-    m_variables->Force().setZero();
 }
 
 void ChExternalDynamicsDAE::VariablesFbLoadForces(double factor) {
-    m_variables->Force() = m_rhs;
 }
 
 void ChExternalDynamicsDAE::VariablesQbLoadSpeed() {
-    m_variables->State() = m_states;
 }
 
 void ChExternalDynamicsDAE::VariablesQbSetSpeed(double step) {
-    m_states = m_variables->State();
 }
 
 void ChExternalDynamicsDAE::VariablesFbIncrementMq() {
-    m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
 }
 
 void ChExternalDynamicsDAE::VariablesQbIncrementPosition(double dt_step) {
-    //// RADU: correct?
-    // nothing to do here
 }
 
 void ChExternalDynamicsDAE::ConstraintsBiReset() {
-    m_constraints.SetRightHandSide(0);
 }
 
 void ChExternalDynamicsDAE::ConstraintsFbLoadForces(double factor) {
-    // nothing to do here
 }
 */
+
+// -----------------------------------------------------------------------------
+
+void ChExternalDynamicsDAE::ComputeForceJacobian(double time, double alpha, double beta) {
+    m_J.setZero();
+
+    // Invoke Jacobian function
+    bool has_jac = CalculateForceJacobians(time, m_y, m_yd, m_F, alpha, beta, m_J);
+
+    // If Jacobian not provided, approximate with finite differences (here, m_ny = m_nyd)
+    if (!has_jac) {
+        ChVectorDynamic<> F(m_nyd);
+        for (unsigned int i = 0; i < m_nyd; i++) {
+            m_y(i) += m_FD_delta;
+            CalculateForce(time, m_y, m_yd, F);
+            m_J.col(i) += (F - m_F) * (alpha / m_FD_delta);
+            m_y(i) -= m_FD_delta;
+        }
+        for (unsigned int i = 0; i < m_nyd; i++) {
+            m_yd(i) += m_FD_delta;
+            CalculateForce(time, m_y, m_yd, F);
+            m_J.col(i) += (F - m_F) * (beta / m_FD_delta);
+            m_yd(i) -= m_FD_delta;
+        }
+    }
+}
+
+void ChExternalDynamicsDAE::ComputeConstraintDerivative(double time) {
+    // Invoke constraint derivative function
+    bool has_ct = CalculateConstraintDerivative(time, m_y, m_c, m_ct);
+
+    // If derivative function not provided, approximate with finite differences
+    if (!has_ct) {
+        ChVectorDynamic<> c(m_nc);
+        time += m_FD_delta;
+        CalculateConstraintViolation(time, m_y, c);
+        m_ct = (c - m_c) / m_FD_delta;
+        time -= m_FD_delta;
+    }
+}
 
 }  // end namespace chrono

@@ -51,6 +51,10 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     /// If stiff, Jacobian information will be generated.
     virtual bool IsStiff() const { return false; }
 
+    /// Declare the DAE as rheonomous (default: false).
+    /// A rheonomous system has constraints that depend explicitly on time.
+    virtual bool IsRheonomous() const { return false; }
+
     /// Get number of states (dimension of y).
     virtual unsigned int GetNumStates() const = 0;
 
@@ -127,16 +131,31 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
         return false;
     }
 
-    /// Calculate the constraint violations.
-    virtual void CalculateConstraintViolation(const ChVectorDynamic<>& y,   ///< current DAE states
-                                              ChVectorDynamic<>& violation  ///< output constraint violation vector
+    /// Calculate the constraint violations c.
+    virtual void CalculateConstraintViolation(double time,                 ///< current time
+                                              const ChVectorDynamic<>& y,  ///< current DAE states
+                                              ChVectorDynamic<>& c         ///< output constraint violation vector
     ) {
         if (m_nc > 0)
             throw std::runtime_error("CalculateConstraintViolation required if constraints are present.");
     }
 
+    /// Calculate the constraint violation partial derivative with respect to time.
+    /// Must load ct = \partial c / \partial t, for c = c(t,y).
+    /// This function is optional and only used is the system is rheonomous. If provided, load the constraint
+    /// derivatives in the provided vector 'c' and return 'true'. In that case, this overrides the default finite
+    /// difference approximation.
+    virtual bool CalculateConstraintDerivative(double time,                 ///< current time
+                                               const ChVectorDynamic<>& y,  ///< current DAE states
+                                               const ChVectorDynamic<>& c,  ///< current constraint violations
+                                               ChVectorDynamic<>& ct        ///< output constraint derivative vector
+    ) {
+        return false;
+    }
+
     /// Calculate the Jacobian of the constraints with respect to the DAE states.
-    virtual void CalculateConstraintJacobian(const ChVectorDynamic<>& y,  ///< current DAE states
+    virtual void CalculateConstraintJacobian(double time,                 ///< current time
+                                             const ChVectorDynamic<>& y,  ///< current DAE states
                                              const ChVectorDynamic<>& c,  ///< current constraint violations
                                              ChMatrixDynamic<>& J         ///< output Jacobian matrix
     ) {
@@ -169,7 +188,8 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     /// Optional operations performed before an update.
     /// This function is invoked before calls to CalculateForce, CalculateConstraintViolation, and
     /// CalculateConstraintJacobian.
-    virtual void OnUpdate(const ChVectorDynamic<>& y,  ///< current DAE states
+    virtual void OnUpdate(double time,                 ///< current time
+                          const ChVectorDynamic<>& y,  ///< current DAE states
                           const ChVectorDynamic<>& yd  ///< current DAE state derivatives
     ) {}
 
@@ -262,13 +282,21 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
 
   private:
     /// Compute the Jacobian at the current time and state.
+    /// Use the provided Jacobian (if CalculateForceJacobians is implemented), otherwise approximate with finite
+    /// differences.
     void ComputeForceJacobian(double time, double alpha, double beta);
+
+    /// Compute the constraint time derivatives.
+    /// Use the provided vector (if CalculateConstraintDerivative is implemented), otherwise approximate with finite
+    /// differences.
+    void ComputeConstraintDerivative(double time);
 
     unsigned int m_ny;                                ///< number of DAE states
     unsigned int m_nyd;                               ///< number of DAE state derivatives
     unsigned int m_nc;                                ///< number of algebraic constraints
     ChVectorDynamic<> m_y;                            ///< vector of DAE states
-    ChVectorDynamic<> m_yd;                           ///< vector of DAE state derivatives
+    ChVectorDynamic<> m_yd;                           ///< vector of DAE state first derivatives
+    ChVectorDynamic<> m_ydd;                          ///< vector of DAE state second derivatives
     ChVariablesGeneric* m_variables;                  ///< carrier for internal dynamics states
     std::vector<double> m_multipliers;                ///< vector of DAE Lagrange multipliers
     std::vector<ChConstraintNgeneric> m_constraints;  ///< carrier for algebraic constraints
@@ -277,6 +305,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     ChVectorDynamic<> m_F;   ///< generalized force
     ChMatrixDynamic<> m_J;   ///< Jacobian of generalized force w.r.t. DAE states and derivatives
     ChVectorDynamic<> m_c;   ///< vector of constraint violations
+    ChVectorDynamic<> m_ct;  ///< vector of constraint time derivatives
     ChMatrixDynamic<> m_Jc;  ///< Jacobian of constraints w.r.t. DAE states
 
     ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with item
