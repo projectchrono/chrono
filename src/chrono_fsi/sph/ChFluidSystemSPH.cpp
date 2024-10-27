@@ -1687,12 +1687,14 @@ void ChFluidSystemSPH::CreateBCE_CylinderInterior(double rad, double height, boo
     int np_h = (int)std::round(height / spacing);
     double delta_h = height / np_h;
 
-    // Check if radius is small enough to be filled
-    bool fill = np_r <= num_layers - 1;
+    // If the radius or height are too small, fill the entire cylinder
+    bool fill = (np_r <= num_layers - 1) || (np_h <= 2 * num_layers - 1);
 
     // Use polar coordinates
     if (polar) {
         double rad_min = std::max(rad - (num_layers - 1) * spacing, 0.0);
+        if (fill)
+            rad_min = 0;
         np_r = (int)std::round((rad - rad_min) / spacing);
         delta_r = (rad - rad_min) / np_r;
 
@@ -1739,6 +1741,8 @@ void ChFluidSystemSPH::CreateBCE_CylinderInterior(double rad, double height, boo
     // Use a Cartesian grid and accept/reject points
     double r_max = rad;
     double r_min = std::max(rad - num_layers * delta_r, 0.0);
+    if (fill)
+        r_min = 0;
     double r_max2 = r_max * r_max;
     double r_min2 = r_min * r_min;
     for (int ix = -np_r; ix <= np_r; ix++) {
@@ -1753,7 +1757,7 @@ void ChFluidSystemSPH::CreateBCE_CylinderInterior(double rad, double height, boo
                 }
             }
             // Add cylinder caps (unless already filled)
-            if (r2 < r_min2) {
+            if (!fill && r2 < r_min2) {
                 for (int iz = 0; iz < num_layers; iz++) {
                     double z = height / 2 - iz * delta_h;
                     bce.push_back({x, y, -z});

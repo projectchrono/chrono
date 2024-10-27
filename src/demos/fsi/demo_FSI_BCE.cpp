@@ -52,10 +52,13 @@ const std::string out_dir = GetChronoOutputPath() + "FSI_BCE/";
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSystem& sysMBS);
+std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI,
+                                                       ChSystem& sysMBS,
+                                                       const std::string& title);
 void Box();
 void Sphere();
-void Cylinder();
+void Cylinder1();
+void Cylinder2();
 void CylindricalAnnulus();
 void Cone();
 
@@ -79,11 +82,20 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
+    // Interior and exterior BCEs for box geometry (also with small dimension)
     Box();
+
+    // Interior and exterior BCEs for sphere geometry (Cartesian and polar coordinates)
     Sphere();
-    Cylinder();
-    CylindricalAnnulus();
+
+    // Interior and exterior BCEs for cylinder geometry (Cartesian and polar coordinates)
+    Cylinder1();
+
+    // Interior and exterior BCEs for thin cylinder geometry (Cartesian and polar coordinates)
+    Cylinder2();
+
     Cone();
+    CylindricalAnnulus();
 
     return 0;
 }
@@ -100,7 +112,9 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
     };
 };
 
-std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSystem& sysMBS) {
+std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI,
+                                                       ChSystem& sysMBS,
+                                                       const std::string& title) {
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
         switch (vis_type) {
@@ -119,7 +133,7 @@ std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI, C
 
         auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
 
-        visFSI->SetTitle("Chrono::FSI cylinder drop");
+        visFSI->SetTitle(title);
         visFSI->SetSize(1280, 1280);
         visFSI->AddCamera(ChVector3d(-0.2, -3.0, 0), ChVector3d(-0.2, 0, 0));
         visFSI->SetCameraMoveScale(0.1f);
@@ -154,7 +168,7 @@ void Box() {
     ChFrame<> frame(ChVector3d(-0.1, 0, -0.1), QuatFromAngleY(CH_PI / 8));
 
     {
-        ChVector3d box_size(0.2, 0.4, 0.4);
+        ChVector3d box_size(0.4, 0.2, 0.4);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(ChVector3d(-0.5, 0, -0.5));
@@ -176,7 +190,7 @@ void Box() {
     }
 
     {
-        ChVector3d box_size(0.2, 0.1, 0.4);
+        ChVector3d box_size(0.1, 0.2, 0.4);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(ChVector3d(+0.5, 0, -0.5));
@@ -198,7 +212,7 @@ void Box() {
     }
 
     {
-        ChVector3d box_size(0.2, 0.4, 0.4);
+        ChVector3d box_size(0.4, 0.2, 0.4);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(ChVector3d(-0.5, 0, +0.5));
@@ -220,7 +234,7 @@ void Box() {
     }
 
     {
-        ChVector3d box_size(0.2, 0.1, 0.4);
+        ChVector3d box_size(0.1, 0.2, 0.4);
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetPos(ChVector3d(+0.5, 0, +0.5));
@@ -243,7 +257,7 @@ void Box() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS);
+        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for box geometry");
         while (visFSI->Render()) {
         }
     }
@@ -360,7 +374,7 @@ void Sphere() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS);
+        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for sphere geometry");
         while (visFSI->Render()) {
         }
     }
@@ -368,7 +382,7 @@ void Sphere() {
 
 // -----------------------------------------------------------------------------
 
-void Cylinder() {
+void Cylinder1() {
     double spacing = 0.025;
 
     ChSystemSMC sysMBS;
@@ -389,7 +403,7 @@ void Cylinder() {
         double length = 0.4;
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(-0.5, 0, -0.75));
+        body->SetPos(ChVector3d(-0.5, 0, -0.5));
 
         utils::ChBodyGeometry geometry;
         geometry.coll_cylinders.push_back(
@@ -414,7 +428,7 @@ void Cylinder() {
         double length = 0.4;
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(+0.5, 0, -0.75));
+        body->SetPos(ChVector3d(+0.5, 0, -0.5));
 
         utils::ChBodyGeometry geometry;
         geometry.coll_cylinders.push_back(
@@ -439,7 +453,7 @@ void Cylinder() {
         double length = 0.4;
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(-0.5, 0, 0));
+        body->SetPos(ChVector3d(-0.5, 0, +0.5));
 
         utils::ChBodyGeometry geometry;
         geometry.coll_cylinders.push_back(
@@ -464,7 +478,7 @@ void Cylinder() {
         double length = 0.4;
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(+0.5, 0, 0));
+        body->SetPos(ChVector3d(+0.5, 0, +0.5));
 
         utils::ChBodyGeometry geometry;
         geometry.coll_cylinders.push_back(
@@ -483,13 +497,36 @@ void Cylinder() {
         sysSPH.AddPointsBCE(body, bce, frame, true);
     }
 
-    // Cylindrical solid thin (Cartesian coordinates)
+    if (render) {
+        sysFSI.Initialize();
+        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for cylinder geometry");
+        while (visFSI->Render()) {
+        }
+    }
+}
+
+void Cylinder2() {
+    double spacing = 0.025;
+
+    ChSystemSMC sysMBS;
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+
+    sysSPH.SetInitialSpacing(spacing);
+    sysSPH.SetKernelMultiplier(1.0);
+    sysFSI.SetStepSizeCFD(1e-4);
+
+    std::vector<ChVector3d> bce;
+    std::ofstream fbce;
+    ChFrame<> frame(ChVector3d(-0.1, 0, -0.1), QuatFromAngleY(CH_PI / 8));
+
+    // Cylindrical solid short (Cartesian coordinates)
     {
-        double radius = 0.06;
-        double length = 0.4;
+        double radius = 0.125;
+        double length = 0.1;
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(-0.5, 0, +0.75));
+        body->SetPos(ChVector3d(-0.5, 0, -0.5));
 
         utils::ChBodyGeometry geometry;
         geometry.coll_cylinders.push_back(
@@ -508,13 +545,13 @@ void Cylinder() {
         sysSPH.AddPointsBCE(body, bce, frame, true);
     }
 
-    // Cylindrical solid thin (Polar coordinates)
+    // Cylindrical solid short (Polar coordinates)
     {
-        double radius = 0.05;
-        double length = 0.4;
+        double radius = 0.125;
+        double length = 0.1;
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetPos(ChVector3d(+0.5, 0, +0.75));
+        body->SetPos(ChVector3d(+0.5, 0, -0.5));
 
         utils::ChBodyGeometry geometry;
         geometry.coll_cylinders.push_back(
@@ -523,7 +560,57 @@ void Cylinder() {
 
         bce.clear();
         sysSPH.CreateBCE_CylinderInterior(radius, length, true, bce);
-        fbce.open((out_dir + "/cylinder_solid_3.txt"), std::ios::trunc);
+        fbce.open((out_dir + "/cylinder_solid_4.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body);
+        sysSPH.AddPointsBCE(body, bce, frame, true);
+    }
+
+    // Cylindrical solid thin (Cartesian coordinates)
+    {
+        double radius = 0.06;
+        double length = 0.4;
+
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(-0.5, 0, +0.5));
+
+        utils::ChBodyGeometry geometry;
+        geometry.coll_cylinders.push_back(
+            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+
+        bce.clear();
+        sysSPH.CreateBCE_CylinderInterior(radius, length, false, bce);
+        fbce.open((out_dir + "/cylinder_solid_5.txt"), std::ios::trunc);
+        for (const auto& p : bce)
+            fbce << p << endl;
+        fbce.close();
+
+        sysMBS.AddBody(body);
+        sysFSI.AddFsiBody(body);
+        sysSPH.AddPointsBCE(body, bce, frame, true);
+    }
+
+    // Cylindrical solid thin (Polar coordinates)
+    {
+        double radius = 0.05;
+        double length = 0.4;
+
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetPos(ChVector3d(+0.5, 0, +0.5));
+
+        utils::ChBodyGeometry geometry;
+        geometry.coll_cylinders.push_back(
+            utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRot(), radius, length));
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+
+        bce.clear();
+        sysSPH.CreateBCE_CylinderInterior(radius, length, true, bce);
+        fbce.open((out_dir + "/cylinder_solid_6.txt"), std::ios::trunc);
         for (const auto& p : bce)
             fbce << p << endl;
         fbce.close();
@@ -535,7 +622,7 @@ void Cylinder() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS);
+        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for thin cylinder geometry");
         while (visFSI->Render()) {
         }
     }
