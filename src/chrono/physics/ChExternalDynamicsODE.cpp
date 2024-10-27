@@ -12,19 +12,19 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChExternalDynamics.h"
+#include "chrono/physics/ChExternalDynamicsODE.h"
 
 namespace chrono {
 
 // Perturbation for finite-difference Jacobian approximation
-const double ChExternalDynamics::m_FD_delta = 1e-8;
+const double ChExternalDynamicsODE::m_FD_delta = 1e-8;
 
-ChExternalDynamics::ChExternalDynamics() {}
-ChExternalDynamics::~ChExternalDynamics() {
+ChExternalDynamicsODE::ChExternalDynamicsODE() {}
+ChExternalDynamicsODE::~ChExternalDynamicsODE() {
     delete m_variables;
 }
 
-void ChExternalDynamics::Initialize() {
+void ChExternalDynamicsODE::Initialize() {
     m_nstates = GetNumStates();
     m_states.resize(m_nstates);
     m_rhs.resize(m_nstates);
@@ -43,11 +43,7 @@ void ChExternalDynamics::Initialize() {
     }
 }
 
-ChExternalDynamics* ChExternalDynamics::Clone() const {
-    return new ChExternalDynamics(*this);
-}
-
-ChVectorDynamic<> ChExternalDynamics::GetInitialStates() {
+ChVectorDynamic<> ChExternalDynamicsODE::GetInitialStates() {
     ChVectorDynamic<> y0(m_nstates);
     SetInitialConditions(y0);
     return y0;
@@ -55,7 +51,7 @@ ChVectorDynamic<> ChExternalDynamics::GetInitialStates() {
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamics::ComputeJac(double time) {
+void ChExternalDynamicsODE::ComputeJac(double time) {
     m_jac.setZero();
 
     // Invoke Jacobian function
@@ -75,7 +71,7 @@ void ChExternalDynamics::ComputeJac(double time) {
     }
 }
 
-void ChExternalDynamics::Update(double time, bool update_assets) {
+void ChExternalDynamicsODE::Update(double time, bool update_assets) {
     ChTime = time;
 
     // Compute forcing terms at current states
@@ -92,18 +88,18 @@ void ChExternalDynamics::Update(double time, bool update_assets) {
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamics::InjectVariables(ChSystemDescriptor& descriptor) {
+void ChExternalDynamicsODE::InjectVariables(ChSystemDescriptor& descriptor) {
     m_variables->SetDisabled(!IsActive());
     descriptor.InsertVariables(m_variables);
 }
 
-void ChExternalDynamics::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
+void ChExternalDynamicsODE::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (IsStiff()) {
         descriptor.InsertKRMBlock(&m_KRM);
     }
 }
 
-void ChExternalDynamics::IntStateGather(const unsigned int off_x,  // offset in x state vector
+void ChExternalDynamicsODE::IntStateGather(const unsigned int off_x,  // offset in x state vector
                                         ChState& x,                // state vector, position part
                                         const unsigned int off_v,  // offset in v state vector
                                         ChStateDelta& v,           // state vector, speed part
@@ -117,7 +113,7 @@ void ChExternalDynamics::IntStateGather(const unsigned int off_x,  // offset in 
     T = GetChTime();
 }
 
-void ChExternalDynamics::IntStateScatter(const unsigned int off_x,  // offset in x state vector
+void ChExternalDynamicsODE::IntStateScatter(const unsigned int off_x,  // offset in x state vector
                                          const ChState& x,          // state vector, position part
                                          const unsigned int off_v,  // offset in v state vector
                                          const ChStateDelta& v,     // state vector, speed part
@@ -133,18 +129,18 @@ void ChExternalDynamics::IntStateScatter(const unsigned int off_x,  // offset in
     Update(T, full_update);
 }
 
-void ChExternalDynamics::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+void ChExternalDynamicsODE::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     if (!IsActive())
         return;
 
     a.segment(off_a, m_nstates) = m_rhs;
 }
 
-void ChExternalDynamics::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
+void ChExternalDynamicsODE::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     // Nothing to do here
 }
 
-void ChExternalDynamics::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+void ChExternalDynamicsODE::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                            ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                            const double c           // a scaling factor
 ) {
@@ -155,7 +151,7 @@ void ChExternalDynamics::IntLoadResidual_F(const unsigned int off,  // offset in
     R.segment(off, m_nstates) += c * m_rhs;
 }
 
-void ChExternalDynamics::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
+void ChExternalDynamicsODE::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
                                             ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                             const ChVectorDynamic<>& v,  // the v vector
                                             const double c               // a scaling factor
@@ -166,7 +162,7 @@ void ChExternalDynamics::IntLoadResidual_Mv(const unsigned int off,      // offs
     R.segment(off, m_nstates) += c * v.segment(off, m_nstates);
 }
 
-void ChExternalDynamics::IntLoadLumpedMass_Md(const unsigned int off,
+void ChExternalDynamicsODE::IntLoadLumpedMass_Md(const unsigned int off,
                                               ChVectorDynamic<>& Md,
                                               double& err,
                                               const double c) {
@@ -176,7 +172,7 @@ void ChExternalDynamics::IntLoadLumpedMass_Md(const unsigned int off,
     Md.segment(off, m_nstates).array() += c * 1.0;
 }
 
-void ChExternalDynamics::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+void ChExternalDynamicsODE::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                          const ChStateDelta& v,
                                          const ChVectorDynamic<>& R,
                                          const unsigned int off_L,  // offset in L, Qc
@@ -189,7 +185,7 @@ void ChExternalDynamics::IntToDescriptor(const unsigned int off_v,  // offset in
     m_variables->Force() = R.segment(off_v, m_nstates);
 }
 
-void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset in v
+void ChExternalDynamicsODE::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                            ChStateDelta& v,
                                            const unsigned int off_L,  // offset in L
                                            ChVectorDynamic<>& L) {
@@ -201,7 +197,7 @@ void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset 
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamics::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
+void ChExternalDynamicsODE::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (IsStiff()) {
         // Recall to flip sign to load R = -dQ/dv (K is zero here)
         m_KRM.GetMatrix() = Mfactor * ChMatrixDynamic<>::Identity(m_nstates, m_nstates) - Rfactor * m_jac;
@@ -210,32 +206,32 @@ void ChExternalDynamics::LoadKRMMatrices(double Kfactor, double Rfactor, double 
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamics::VariablesFbReset() {
+void ChExternalDynamicsODE::VariablesFbReset() {
     m_variables->Force().setZero();
 }
 
-void ChExternalDynamics::VariablesFbLoadForces(double factor) {
+void ChExternalDynamicsODE::VariablesFbLoadForces(double factor) {
     m_variables->Force() = m_rhs;
 }
 
-void ChExternalDynamics::VariablesQbLoadSpeed() {
+void ChExternalDynamicsODE::VariablesQbLoadSpeed() {
     m_variables->State() = m_states;
 }
 
-void ChExternalDynamics::VariablesQbSetSpeed(double step) {
+void ChExternalDynamicsODE::VariablesQbSetSpeed(double step) {
     m_states = m_variables->State();
 }
 
-void ChExternalDynamics::VariablesFbIncrementMq() {
+void ChExternalDynamicsODE::VariablesFbIncrementMq() {
     m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
 }
 
-void ChExternalDynamics::VariablesQbIncrementPosition(double dt_step) {
+void ChExternalDynamicsODE::VariablesQbIncrementPosition(double dt_step) {
     //// RADU: correct?
     // nothing to do here
 }
 
-void ChExternalDynamics::ConstraintsFbLoadForces(double factor) {
+void ChExternalDynamicsODE::ConstraintsFbLoadForces(double factor) {
     // nothing to do here
 }
 
