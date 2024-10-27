@@ -169,11 +169,11 @@ int main(int argc, char* argv[]) {
             break;
         }
         case ObjectShape::BOX_PRIMITIVE: {
-            ChVector3d size(0.25, 0.11, 0.4);
+            ChVector3d size(0.4, 0.11, 0.2);
             ChBox box(size);
             mass = density * box.GetVolume();
             inertia = density * box.GetGyration();
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, box, 0));
+            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
             break;
         }
         case ObjectShape::CYLINDER_PRIMITIVE: {
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
             ChCylinder cylinder(radius, length);
             mass = density * cylinder.GetVolume();
             inertia = density * cylinder.GetGyration();
-            geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, cylinder, 0));
+            geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI/4), cylinder, 0));
             break;
         }
         case ObjectShape::BOX_FRAME: {
