@@ -82,6 +82,12 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
     Real3* sharedTorques = (Real3*)&sharedForces[blockDim.x];      // Size: blockDim.x
     uint* sharedRigidIndices = (uint*)&sharedTorques[blockDim.x];  // Size: blockDim.x
 
+    // Reduction needs to know what threads in the block are valid
+    // Since some will be removed if there global index is greater than numRigidMarkers
+    uint validThreads = numRigidMarkers - blockIdx.x * blockDim.x;
+    if (validThreads > blockDim.x)
+        validThreads = blockDim.x;
+
     uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if (globalIndex >= numRigidMarkers)
         return;
@@ -116,7 +122,7 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
     // where the rigidIndex changes Force accumulates only if the rigidIndex matches
     for (uint stride = 1; stride < blockDim.x; stride *= 2) {
         uint index = 2 * stride * threadIdx.x;
-        if (index + stride < blockDim.x) {
+        if (index + stride < validThreads) {
             if (sharedRigidIndices[index] == sharedRigidIndices[index + stride]) {
                 sharedForces[index].x += sharedForces[index + stride].x;
                 sharedForces[index].y += sharedForces[index + stride].y;
@@ -131,7 +137,8 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
     }
 
     // The first thread for each rigid body in the block performs atomic addition
-    if (threadIdx.x == 0 || sharedRigidIndices[threadIdx.x] != sharedRigidIndices[threadIdx.x - 1]) {
+    if ((threadIdx.x == 0 || sharedRigidIndices[threadIdx.x] != sharedRigidIndices[threadIdx.x - 1]) &&
+        (threadIdx.x < validThreads)) {
         uint idx = threadIdx.x;
         uint rid = sharedRigidIndices[idx];
 
