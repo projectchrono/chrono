@@ -18,7 +18,8 @@ set(DEMOS
   demo_MBS_friction
   demo_MBS_motors
   demo_MBS_spring  
-  demo_MBS_external_dynamics
+  demo_MBS_external_ODE
+  demo_MBS_external_DAE  
   demo_MBS_hydraulic_actuator
   demo_MBS_hydraulic_crane
   demo_MBS_hydraulic_crane_cosim

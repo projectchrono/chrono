@@ -24,7 +24,7 @@
 #include <unordered_map>
 
 #include "chrono_fmi/ChApiFMI.h"
-#include "chrono/physics/ChExternalDynamics.h"
+#include "chrono/physics/ChExternalDynamicsODE.h"
 
 namespace chrono {
 
@@ -57,10 +57,10 @@ class ChFmuWrapper {
 };
 
 /// Chrono physics item that wraps a model exchange FMU.
-/// This class allows importing the underlying model in the associated FMU and encapsulate it into a ChExternalDynamics
-/// physics item which can be added to a Chrono system. The dynamics of the model exchange FMU are integrated at the
-/// same time as the Chrono system and its states can be coupled to other components in the system.
-class ChApiFMI ChExternalFmu : public ChExternalDynamics {
+/// This class allows importing the underlying model in the associated FMU and encapsulate it into a
+/// ChExternalDynamicsODE physics item which can be added to a Chrono system. The dynamics of the model exchange FMU are
+/// integrated at the same time as the Chrono system and its states can be coupled to other components in the system.
+class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
   public:
     ChExternalFmu();
 
@@ -126,7 +126,7 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamics {
     void SetRealInputFunction(const std::string& name, std::function<double(double)> function);
 
     /// Initialize this physics item.
-    /// This function initializes the underlying FMU as well as this physcis item.
+    /// This function initializes the underlying FMU as well as this physics item.
     virtual void Initialize() override;
 
     /// Print the list of FMU variables.

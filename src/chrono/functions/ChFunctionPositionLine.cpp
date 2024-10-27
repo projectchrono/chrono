@@ -33,6 +33,10 @@ ChFunctionPositionLine::ChFunctionPositionLine() {
     m_space_fun = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
 }
 
+ChFunctionPositionLine::ChFunctionPositionLine(std::shared_ptr<ChLine> line) {
+    SetLine(line);
+}
+
 ChFunctionPositionLine::ChFunctionPositionLine(const ChFunctionPositionLine& other) {
     // m_trajectory_line = other.m_trajectory_line;
     m_trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.m_trajectory_line->Clone());  // deep copy

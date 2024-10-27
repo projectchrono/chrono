@@ -47,8 +47,17 @@ struct ChApi ChAABB {
     /// Get AABB dimensions.
     ChVector3d Size() const;
 
-    /// Return true foir an inverted bounding box.
+    /// Return true for an inverted bounding box.
     bool IsInverted() const;
+
+    /// Return the union of this AABB and the specified AABB.
+    ChAABB operator+(const ChAABB& aabb);
+
+    /// Include the specified AABB to this AABB.
+    ChAABB& operator+=(const ChAABB& aabb);
+
+    /// Transform by the given frame.
+    ChAABB Transform(const ChFrame<>& frame) const;
 
     ChVector3d min;  ///< low AABB corner
     ChVector3d max;  ///< high AABB corner

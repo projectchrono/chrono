@@ -29,9 +29,9 @@ namespace vehicle {
 /// @addtogroup vehicle
 /// @{
 
-/// Template for a torsion chassis connector.  This is a passive connector,
-/// modeled with a revolute joint (aligned with the vehicle's longitudinal axis)
-/// and a rotational spring-damper.
+/// Template for a torsion chassis connector.
+/// This is a passive connector, modeled with a revolute joint (aligned with the vehicle's longitudinal axis) and a
+/// rotational spring-damper.
 class CH_VEHICLE_API ChChassisConnectorTorsion : public ChChassisConnector {
   public:
     ChChassisConnectorTorsion(const std::string& name);
@@ -41,9 +41,8 @@ class CH_VEHICLE_API ChChassisConnectorTorsion : public ChChassisConnector {
     virtual std::string GetTemplateName() const override { return "ChassisConnectorTorsion"; }
 
     /// Initialize this chassis connector subsystem.
-    /// The subsystem is initialized by attaching it to the specified front and rear
-    /// chassis bodies at the specified location (with respect to and expressed in
-    /// the reference frame of the front chassis).
+    /// The subsystem is initialized by attaching it to the specified front and rear chassis bodies at their conection
+    /// points.
     virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
                             std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
                             ) override;
