@@ -118,8 +118,9 @@ void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, c
 // Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
+void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     // Common contact material
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -328,7 +329,7 @@ int main(int argc, char* argv[]) {
     sysSPH.AddBoxSPH(boxCenter, boxHalfDim);
 
     // Create Solid region and attach BCE SPH particles
-    CreateSolidPhase(sysMBS, sysFSI);
+    CreateSolidPhase(sysFSI);
 
     // Set simulation data output length
     sysSPH.SetOutputLength(0);

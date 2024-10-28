@@ -62,24 +62,6 @@ bool render = true;
 bool snapshots = false;
 float render_fps = 100;
 
-//------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if FSI,
-// their BCE representation are created and added to the systems
-//------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChFluidSystemSPH& sysSPH) {
-    // General setting of ground body
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    ground->EnableCollision(false);
-    sysMBS.AddBody(ground);
-
-    // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(0, 0, 2));
-}
-
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -123,7 +105,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solid region and attach BCE SPH particles
-    CreateSolidPhase(sysMBS, sysSPH);
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
+    sysMBS.AddBody(ground);
+
+    sysSPH.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(0, 0, 2));
 
     // Complete construction of the fluid system
     sysFSI.Initialize();

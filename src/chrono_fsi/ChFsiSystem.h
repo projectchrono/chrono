@@ -45,6 +45,12 @@ class CH_FSI_API ChFsiSystem {
     /// Destructor for the FSI system.
     virtual ~ChFsiSystem();
 
+    /// Access the associated fluid system.
+    ChFluidSystem& GetFluidSystem() const;
+
+    /// Access the associated multibody system.
+    ChSystem& GetMultibodySystem() const;
+
     /// Access the associated FSI interface.
     ChFsiInterface& GetFsiInterface() const;
 

@@ -74,7 +74,7 @@ double Lz_fluid = 1.0;
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI, bool verbose);
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbose);
 bool GetProblemSpecs(int argc,
                      char** argv,
                      std::string& inputJSON,
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solids
-    auto mesh = Create_MB_FE(sysMBS, sysFSI, verbose);
+    auto mesh = CreateSolidPhase(sysFSI, verbose);
 
     // Initialize FSI system
     sysFSI.Initialize();
@@ -338,8 +338,9 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI, bool verbose) {
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbose) {
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));

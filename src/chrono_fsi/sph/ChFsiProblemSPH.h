@@ -52,7 +52,7 @@ class CH_FSI_API ChFsiProblemSPH {
     ChFluidSystemSPH& GetFluidSystemSPH() { return m_sysSPH; }
 
     /// Access the underlying MBS system.
-    ChSystem& GetSystyemMBS() { return m_sysMBS; }
+    ChSystem& GetMultibodySystem() { return m_sysFSI.GetMultibodySystem(); }
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
@@ -188,7 +188,6 @@ class CH_FSI_API ChFsiProblemSPH {
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
-    ChSystem& m_sysMBS;                ///< associated Chrono MBS system
     ChFluidSystemSPH m_sysSPH;         ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
     double m_spacing;                  ///< particle and marker spacing

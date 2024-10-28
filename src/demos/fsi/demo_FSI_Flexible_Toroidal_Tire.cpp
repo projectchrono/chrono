@@ -94,7 +94,7 @@ float render_fps = 100;
 
 // -----------------------------------------------------------------
 
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI);
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI);
 
 // -----------------------------------------------------------------
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create solids
-    auto mesh = Create_MB_FE(sysMBS, sysFSI);
+    auto mesh = CreateSolidPhase(sysFSI);
 
     // Initialize FSI system
     sysFSI.Initialize();
@@ -243,8 +243,9 @@ int main(int argc, char* argv[]) {
 //--------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
-std::shared_ptr<fea::ChMesh> Create_MB_FE(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));

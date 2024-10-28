@@ -92,7 +92,7 @@ class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback
 // ----------------------------------------------------------------------------
 
 void CreateBaffles(ChFsiProblemSPH& fsi) {
-    ChSystem& sysMBS = fsi.GetSystyemMBS();
+    ChSystem& sysMBS = fsi.GetMultibodySystem();
 
     // Common contact material and geometry
     ChContactMaterialData cmat;

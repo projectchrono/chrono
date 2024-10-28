@@ -230,7 +230,7 @@ class WaveTankBezierBeach : public ChFsiProblemCartesian::WaveTankProfile {
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi) {
-    ChSystem& sysMBS = fsi.GetSystyemMBS();
+    ChSystem& sysMBS = fsi.GetMultibodySystem();
 
     // Common contact material and geometry
     ChContactMaterialData cmat;

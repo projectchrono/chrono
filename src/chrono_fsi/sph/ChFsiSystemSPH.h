@@ -40,6 +40,7 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH, bool use_generic_interface = false);
     ~ChFsiSystemSPH();
 
+    /// Access the associated SPH fluid system.
     ChFluidSystemSPH& GetFluidSystemSPH() const;
 
   private:

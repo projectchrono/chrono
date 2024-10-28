@@ -119,8 +119,8 @@ std::shared_ptr<ChContactMaterial> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Forward declaration of helper functions
-void SaveParaViewFiles(ChFsiSystemSPH& sysFSI, ChSystemNSC& sysMBS, double mTime);
-void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI);
+void SaveParaViewFiles(double time, ChFsiSystemSPH& sysFSI);
+void CreateSolidPhase(ChFsiSystemSPH& sysFSI);
 
 int main(int argc, char* argv[]) {
     // Create oputput directories
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
 
     // Create MBD and BCE particles for the solid domain
     std::cout << "Generate BCE markers" << std::endl;
-    CreateSolidPhase(sysMBS, sysFSI);
+    CreateSolidPhase(sysFSI);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
             if (current_step % output_steps == 0) {
                 sysSPH.PrintParticleToFile(out_dir + "/particles");
                 sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
-                SaveParaViewFiles(sysFSI, sysMBS, time);
+                SaveParaViewFiles(time, sysFSI);
             }
         }
 
@@ -315,8 +315,9 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid bodies and their
 // BCE representations are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
+void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     // Create a body for the rigid soil container
     auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
@@ -377,7 +378,9 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChFsiSystemSPH& sysFSI) {
 //------------------------------------------------------------------
 // Function to save the povray files of the MBD
 //------------------------------------------------------------------
-void SaveParaViewFiles(ChFsiSystemSPH& sysFSI, ChSystemNSC& sysMBS, double mTime) {
+void SaveParaViewFiles(double time, ChFsiSystemSPH& sysFSI) {
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
+
     std::string rover_dir = out_dir + "/rover";
     std::string filename;
     static int frame_number = -1;
@@ -770,6 +773,6 @@ void SaveParaViewFiles(ChFsiSystemSPH& sysFSI, ChSystemNSC& sysMBS, double mTime
 
     std::cout << "-------------------------------------" << std::endl;
     std::cout << " Output frame:  " << frame_number << std::endl;
-    std::cout << " Time:          " << mTime << std::endl;
+    std::cout << " Time:          " << time << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 }

@@ -88,7 +88,7 @@ class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI);
+std::shared_ptr<ChBody> CreateSolidPhase(ChFsiSystemSPH& sysFSI);
 void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res);
 
 // -----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create MBD and BCE particles for the solid domain
-    auto cylinder = CreateSolidPhase(sysMBS, sysFSI);
+    auto cylinder = CreateSolidPhase(sysFSI);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
@@ -282,8 +282,9 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<ChBody> CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiSystemSPH& sysFSI) {
+std::shared_ptr<ChBody> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     // Set gravity to the rigid body system in chrono
     sysMBS.SetGravitationalAcceleration(sysSPH.GetGravitationalAcceleration());

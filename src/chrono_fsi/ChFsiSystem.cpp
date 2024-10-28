@@ -51,6 +51,14 @@ ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
 
 ChFsiSystem::~ChFsiSystem() {}
 
+ChFluidSystem& ChFsiSystem::GetFluidSystem() const {
+    return m_sysCFD;
+}
+
+ChSystem& ChFsiSystem::GetMultibodySystem() const {
+    return m_sysMBS;
+}
+
 ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
     return *m_fsi_interface;
 }

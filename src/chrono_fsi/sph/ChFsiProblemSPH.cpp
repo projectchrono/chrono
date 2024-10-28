@@ -39,8 +39,7 @@ namespace fsi {
 // ----------------------------------------------------------------------------
 
 ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
-    : m_sysMBS(sys),
-      m_sysFSI(ChFsiSystemSPH(m_sysMBS, m_sysSPH)),
+    : m_sysFSI(ChFsiSystemSPH(sys, m_sysSPH)),
       m_spacing(spacing),
       m_initialized(false),
       m_offset_sph(VNULL),
@@ -49,7 +48,7 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetFixed(true);
-    m_sysMBS.AddBody(m_ground);
+    sys.AddBody(m_ground);
 
     // Set parameters for underlying SPH system
     m_sysSPH.SetInitialSpacing(spacing);
@@ -930,6 +929,8 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
     ChVector3d body_size(body_thickness, box_size.y(), box_size.z());
     ChVector3d body_pos(-box_size.x() / 2 - body_thickness / 2 - m_spacing, 0, box_size.z() / 2);
 
+    ChSystem& sysMBS = m_sysFSI.GetMultibodySystem();
+
     switch (type) {
         case WavemakerType::PISTON: {
             // Create the piston body and a linear motor
@@ -938,12 +939,12 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
             body->SetRot(QUNIT);
             body->SetFixed(false);
             body->EnableCollision(false);
-            m_sysMBS.AddBody(body);
+            sysMBS.AddBody(body);
 
             auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
             motor->Initialize(body, m_ground, ChFramed(body->GetPos(), Q_ROTATE_Z_TO_X));
             motor->SetMotorFunction(piston_fun);
-            m_sysMBS.AddLink(motor);
+            sysMBS.AddLink(motor);
 
             break;
         }
@@ -959,12 +960,12 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
             body->SetRot(QUNIT);
             body->SetFixed(false);
             body->EnableCollision(false);
-            m_sysMBS.AddBody(body);
+            sysMBS.AddBody(body);
 
             auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
             motor->Initialize(body, m_ground, ChFramed(rev_pos, Q_ROTATE_Z_TO_Y));
             motor->SetMotorFunction(piston_fun);
-            m_sysMBS.AddLink(motor);
+            sysMBS.AddLink(motor);
 
             break;
         }
