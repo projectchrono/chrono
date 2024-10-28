@@ -19,7 +19,7 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChExternalDynamics.h"
+#include "chrono/physics/ChExternalDynamicsODE.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -38,9 +38,11 @@
 
 using namespace chrono;
 
-class VanDerPolODE : public ChExternalDynamics {
+class VanDerPolODE : public ChExternalDynamicsODE {
   public:
     VanDerPolODE(double mu) : m_mu(mu) {}
+
+    virtual VanDerPolODE* Clone() const override { return new VanDerPolODE(*this); }
 
     virtual unsigned int GetNumStates() const override { return 2; }
 

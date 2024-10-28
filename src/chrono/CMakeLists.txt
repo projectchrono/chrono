@@ -128,7 +128,8 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainer.cpp
     physics/ChConveyor.cpp
     physics/ChFeeder.cpp
-    physics/ChExternalDynamics.cpp
+    physics/ChExternalDynamicsODE.cpp
+    physics/ChExternalDynamicsDAE.cpp
     physics/ChAssembly.cpp
     )
 
@@ -152,7 +153,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
-    physics/ChExternalDynamics.h
+    physics/ChExternalDynamicsODE.h
+    physics/ChExternalDynamicsDAE.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
     )

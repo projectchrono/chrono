@@ -88,28 +88,28 @@ size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
     // Create the BCE markers for each shape in the collision geometry
     for (const auto& sphere : geometry.coll_spheres) {
         std::vector<ChVector3d> points;
-        m_sysSPH.CreateBCE_sphere(sphere.radius, true, !use_grid, points);
+        m_sysSPH.CreateBCE_SphereInterior(sphere.radius, !use_grid, points);
         for (auto& p : points)
             p += sphere.pos;
         b.bce.insert(b.bce.end(), points.begin(), points.end());
     }
     for (const auto& box : geometry.coll_boxes) {
         std::vector<ChVector3d> points;
-        m_sysSPH.CreateBCE_box(box.dims, true, points);
+        m_sysSPH.CreateBCE_BoxInterior(box.dims, points);
         for (auto& p : points)
             p = box.pos + box.rot.Rotate(p);
         b.bce.insert(b.bce.end(), points.begin(), points.end());
     }
     for (const auto& cyl : geometry.coll_cylinders) {
         std::vector<ChVector3d> points;
-        m_sysSPH.CreateBCE_cylinder(cyl.radius, cyl.length, true, true, !use_grid, points);
+        m_sysSPH.CreateBCE_CylinderInterior(cyl.radius, cyl.length, !use_grid, points);
         for (auto& p : points)
             p = cyl.pos + cyl.rot.Rotate(p);
         b.bce.insert(b.bce.end(), points.begin(), points.end());
     }
     for (const auto& mesh : geometry.coll_meshes) {
         std::vector<ChVector3d> points;
-        m_sysSPH.CreateMeshPoints(*mesh.trimesh, m_spacing, points);
+        m_sysSPH.CreatePoints_Mesh(*mesh.trimesh, m_spacing, points);
         for (auto& p : points)
             p += mesh.pos;
         b.bce.insert(b.bce.end(), points.begin(), points.end());
@@ -281,14 +281,14 @@ bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p) {
     }
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        if (std::abs(pp.x()) <= box.dims.x() / 2 ||  //
-            std::abs(pp.y()) <= box.dims.y() / 2 ||  //
+        if (std::abs(pp.x()) <= box.dims.x() / 2 &&  //
+            std::abs(pp.y()) <= box.dims.y() / 2 &&  //
             std::abs(pp.z()) <= box.dims.z() / 2)
             return true;
     }
     for (const auto& cyl : geometry.coll_cylinders) {
         auto pp = cyl.rot.RotateBack(p - cyl.pos);
-        if (pp.x() * pp.x() + pp.y() * pp.y() <= cyl.radius * cyl.radius || std::abs(pp.z()) <= cyl.length / 2)
+        if (pp.x() * pp.x() + pp.y() * pp.y() <= cyl.radius * cyl.radius && std::abs(pp.z()) <= cyl.length / 2)
             return true;
     }
     return false;
@@ -370,7 +370,7 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
 
     // BCE marker locations (in FSIProblem frame)
     std::vector<ChVector3d> bce;
-    m_sysSPH.CreateMeshPoints(trimesh, m_spacing, bce);
+    m_sysSPH.CreatePoints_Mesh(trimesh, m_spacing, bce);
 
     // BCE marker locations in integer grid coordinates
     GridPoints gbce;

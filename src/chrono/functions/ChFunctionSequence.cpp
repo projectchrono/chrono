@@ -257,7 +257,7 @@ double ChFunctionSequence::GetVal(double x) const {
         res = 0;
     } else if (x >= m_functions.back().t_end) { // clamp to last node value after end
         auto last_node = &m_functions.back();
-        localtime = m_functions.back().t_end;
+        localtime = m_functions.back().duration;
         res = last_node->fx->GetVal(localtime) + last_node->Iy + last_node->Iydt * localtime +
               last_node->Iydtdt * localtime * localtime;
     } else {

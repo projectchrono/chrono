@@ -45,25 +45,16 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 int main(int argc, char* argv[]) {
     std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/r2d2/r2d2.urdf";
     ////std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/robosimian/rs.urdf";
-    ////std::string filename = (argc > 1) ? std::string(argv[1]) : "robot/viper/viper.urdf";
 
     // Create a Chrono system
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
-    // Create a "floor" body
-    auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetFixed(true);
-    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 3, 0.1);
-    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"), 1, 1);
-    floor->AddVisualShape(floor_box);
-    sys.AddBody(floor);
-
     // Create parser instance
     ChParserURDF parser(GetChronoDataFile(filename));
 
     // Set root body pose
-    parser.SetRootInitPose(ChFrame<>(ChVector3d(0, 0, 1.5), QUNIT));
+    ////parser.SetRootInitPose(ChFrame<>(ChVector3d(0, 0, 1.5), QUNIT));
 
     // Make all eligible joints as actuated
     parser.SetAllJointsActuationType(ChParserURDF::ActuationType::POSITION);
@@ -94,15 +85,33 @@ int main(int argc, char* argv[]) {
         virtual void Process(tinyxml2::XMLElement& element, ChSystem& system) override {
             std::cout << "Process element: " << element.Name() << std::endl;
             if (element.FirstChildElement()) {
-                std::cout << "   First child name: " << element.FirstChildElement()->Name() << std::endl;
+                std::cout << "  First child name: " << element.FirstChildElement()->Name() << std::endl;
             }
         }
     };
     parser.CustomProcess("link", chrono_types::make_shared<MyCustomProcessor>());
     std::cout << std::endl;
 
+    // Report generated elements
+    parser.PrintChronoBodies();
+    parser.PrintChronoJoints();
+
+    // Robot bounding box (visualizatino models)
+    auto aabb_coll = parser.GetCollisionBoundingBox();
+    auto aabb_vis = parser.GetVisualizationBoundingBox();
+    std::cout << "Collision AABB" << std::endl;
+    std::cout << "  min: " << aabb_coll.min << std::endl;
+    std::cout << "  max: " << aabb_coll.max << std::endl;
+    std::cout << "Visualization AABB" << std::endl;
+    std::cout << "  min: " << aabb_vis.min << std::endl;
+    std::cout << "  max: " << aabb_vis.max << std::endl;
+    std::cout << std::endl;
+
+    auto aabb_size = aabb_vis.Size();
+    auto aabb_center = aabb_vis.Center();
+
     // Get location of the root body
-    auto root_loc = parser.GetRootChBody()->GetPos();
+    ////auto root_loc = parser.GetRootChBody()->GetPos();
 
     // Fix root body
     parser.GetRootChBody()->SetFixed(true);
@@ -110,6 +119,15 @@ int main(int argc, char* argv[]) {
     // Example: Change actuation function for a particular joint
     auto sfun = chrono_types::make_shared<ChFunctionSine>(1.0, 0.2);
     parser.SetMotorFunction("head_swivel", sfun);  // hardcoded for R2D2 model
+
+    // Create a "floor" body
+    auto floor = chrono_types::make_shared<ChBody>();
+    floor->SetPos(ChVector3d(aabb_center.x(), aabb_center.y(), aabb_vis.min.z() - 0.05));
+    floor->SetFixed(true);
+    auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(aabb_size.x(), aabb_size.y(), 0.1);
+    floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"), 1, 1);
+    floor->AddVisualShape(floor_box);
+    sys.AddBody(floor);
 
     // Create the visualization window
     std::shared_ptr<ChVisualSystem> vis;
@@ -122,6 +140,8 @@ int main(int argc, char* argv[]) {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
+    double cam_offset = 3 * std::max(std::abs(aabb_vis.max.x()), std::abs(aabb_vis.min.y()));
+
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
@@ -133,7 +153,7 @@ int main(int argc, char* argv[]) {
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
-            vis_irr->AddCamera(root_loc + ChVector3d(3, 3, 0), root_loc);
+            vis_irr->AddCamera(aabb_center + ChVector3d(cam_offset, -cam_offset, 0), aabb_center);
             vis_irr->AddTypicalLights();
 
             vis = vis_irr;
@@ -147,7 +167,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetWindowTitle("URDF parser demo");
-            vis_vsg->AddCamera(root_loc + ChVector3d(3, 3, 0), root_loc);
+            vis_vsg->AddCamera(aabb_center + ChVector3d(cam_offset, -cam_offset, 0), aabb_center);
             vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2i(500, 100));
             vis_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));

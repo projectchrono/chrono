@@ -82,8 +82,7 @@ void WheeledTrailer::Create(const std::string& filename, bool create_tires) {
 
     {
         std::string file_name = d["Connector"]["Input File"].GetString();
-        auto connector = ReadChassisConnectorJSON(vehicle::GetDataFile(file_name));
-        m_connector = std::dynamic_pointer_cast<ChChassisConnectorHitch>(connector);
+        m_connector = ReadChassisConnectorJSON(vehicle::GetDataFile(file_name));
         assert(m_connector);
         if (d["Connector"].HasMember("Output")) {
             m_connector->SetOutput(d["Chassis"]["Output"].GetBool());

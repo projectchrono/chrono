@@ -13,7 +13,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_SphereBounce
    demo_FSI_CylindricalTank
    demo_FSI_WaveTank
-   demo_FSI_EmbeddedObstacle
+   demo_FSI_EmbeddedObject
    demo_FSI_BaffleFlow
    demo_FSI_CouetteFlow
    demo_FSI_Flap

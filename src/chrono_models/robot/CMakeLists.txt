@@ -69,6 +69,23 @@ source_group("copters" FILES ${CRM_COPTERS_FILES})
 
 #-----------------------------------------------------------------------------
 
+set(INDUSTRIAL_FILES
+    industrial/IndustrialRobot.h industrial/IndustrialRobot.cpp
+	industrial/IndustrialRobotSCARA.h industrial/IndustrialRobotSCARA.cpp
+	industrial/IndustrialRobotSCARA_CAD.h industrial/IndustrialRobotSCARA_CAD.cpp
+	industrial/IndustrialRobot6dof.h industrial/IndustrialRobot6dof.cpp
+	industrial/IndustrialRobot6dofCAD.h industrial/IndustrialRobot6dofCAD.cpp
+	industrial/IndustrialKinematics.h industrial/IndustrialKinematics.cpp
+	industrial/IndustrialKinematicsSCARA.h industrial/IndustrialKinematicsSCARA.cpp
+	industrial/IndustrialKinematics6dofSpherical.h industrial/IndustrialKinematics6dofSpherical.cpp
+	industrial/IndustrialKinematicsNdofNumerical.h industrial/IndustrialKinematicsNdofNumerical.cpp
+	industrial/TrajectoryInterpolator.h industrial/TrajectoryInterpolator.cpp
+)
+
+source_group("industrial" FILES ${INDUSTRIAL_FILES})
+
+#-----------------------------------------------------------------------------
+
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(LIBRARIES "ChronoEngine")
 
@@ -87,6 +104,7 @@ add_library(ChronoModels_robot
             ${CRM_VIPER_FILES}
             ${CRM_TURTLEBOT_FILES}
             ${CRM_COPTERS_FILES}
+			${INDUSTRIAL_FILES}
             )
 
 set_target_properties(ChronoModels_robot PROPERTIES
