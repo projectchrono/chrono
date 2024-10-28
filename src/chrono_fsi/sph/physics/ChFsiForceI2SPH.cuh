@@ -42,11 +42,9 @@ class ChFsiForceI2SPH : public ChFsiForce {
     std::shared_ptr<ChFsiLinearSolver> myLinearSolver;
 
     thrust::device_vector<Real> _sumWij_inv;
-    thrust::device_vector<uint> Contact_i;
     thrust::device_vector<Real> G_i;
     thrust::device_vector<Real> A_i;
     thrust::device_vector<Real> L_i;
-    thrust::device_vector<uint> csrColInd;
     thrust::device_vector<Real> csrValLaplacian;
     thrust::device_vector<Real3> csrValGradient;
     thrust::device_vector<Real> csrValFunction;
@@ -61,13 +59,15 @@ class ChFsiForceI2SPH : public ChFsiForce {
     thrust::device_vector<Real> Residuals;
 
     bool* error_flagD;
-    
+
     size_t numAllMarkers;
     int NNZ;
 
     void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
 
     void PreProcessor(bool calcLaplacianOperator);
+
+    void neighborSearch();
 };
 
 /// @} fsi_physics

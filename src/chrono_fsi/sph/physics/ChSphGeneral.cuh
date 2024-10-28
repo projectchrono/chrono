@@ -440,22 +440,10 @@ __global__ void calc_L_tensor(Real* A_tensor,
 __global__ void calcRho_kernel(Real4* sortedPosRad,  // input: sorted positionsmin(
                                Real4* sortedRhoPreMu,
                                Real* sumWij_inv,
-                               uint* cellStart,
-                               uint* cellEnd,
-                               uint* mynumContact,
+                               const uint* neighborList,
+                               const uint* mynumContacts,
                                volatile bool* error_flag);
 
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,  // input: sorted positions
-                                         Real3* sortedVelMas,
-                                         Real4* sortedRhoPreMu,
-                                         Real* sumWij_inv,
-                                         Real* G_i,
-                                         Real3* normals,
-                                         Real* Color,
-                                         uint* cellStart,
-                                         uint* cellEnd,
-                                         volatile bool* error_flag);
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  // input: sorted positions
                                                          Real3* sortedVelMas,
@@ -463,10 +451,8 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  /
                                                          Real* sumWij_inv,
                                                          Real* G_i,
                                                          Real3* normals,
-                                                         uint* csrColInd,
-                                                         uint* numContacts,
-                                                         uint* cellStart,
-                                                         uint* cellEnd,
+                                                         const uint* csrColInd,
+                                                         const uint* numContacts,
                                                          volatile bool* error_flag);
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // input: sorted positions

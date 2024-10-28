@@ -88,6 +88,7 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an SPH system
     ChSystemSMC sysMBS;
     ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_Explicit.json");
@@ -127,7 +128,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetInitPressure(fzDim);
 
     // Complete construction of the FSI system
-    sysSPH.Initialize();
+    sysFSI.Initialize();
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -217,7 +218,7 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        sysSPH.DoStepDynamics(dT);
+        sysFSI.DoStepDynamics(dT);
 
         auto rhoPresMu = sysSPH.GetParticleFluidProperties();
         auto vel = sysSPH.GetParticleVelocities();

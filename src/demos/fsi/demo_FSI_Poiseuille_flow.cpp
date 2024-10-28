@@ -86,9 +86,10 @@ int main(int argc, char* argv[]) {
     // Create a physics system and an SPH system
     ChSystemSMC sysMBS;
     ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_I2SPH.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
@@ -125,7 +126,7 @@ int main(int argc, char* argv[]) {
     CreateSolidPhase(sysMBS, sysSPH);
 
     // Complete construction of the fluid system
-    sysSPH.Initialize();
+    sysFSI.Initialize();
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysSPH.DoStepDynamics(dT);
+        sysFSI.DoStepDynamics(dT);
 
         time += dT;
         sim_frame++;
