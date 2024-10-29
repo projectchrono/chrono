@@ -19,9 +19,9 @@ All rights reserved.
 #include <set>
 #include <vector>
 #include <limits>
-#include <hacdVersion.h>
-#include <hacdVector.h>
-#include <hacdSArray.h>
+#include "hacdVersion.h"
+#include "hacdVector.h"
+#include "hacdSArray.h"
 
 namespace HACD
 {
