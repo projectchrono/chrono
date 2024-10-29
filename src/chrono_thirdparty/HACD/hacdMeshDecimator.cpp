@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <vector>
-#include <hacdMeshDecimator.h>
+#include "hacdMeshDecimator.h"
 #define _CRT_SECURE_NO_WARNINGS
 namespace HACD
 {

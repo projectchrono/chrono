@@ -14,15 +14,15 @@
  */
 #define _CRT_SECURE_NO_WARNINGS
 #include <sstream>
-#include <hacdGraph.h>
-#include <hacdHACD.h>
-#include <hacdICHull.h>
+#include "hacdGraph.h"
+#include "hacdHACD.h"
+#include "hacdICHull.h"
 #include <string.h>
 #include <algorithm>
 #include <iterator>
 #include <limits>
-#include <hacdMeshDecimator.h>
-#include <hacdRaycastMesh.h>
+#include "hacdMeshDecimator.h"
+#include "hacdRaycastMesh.h"
 
 #if defined _WIN32
 #define SIZET_FMT "%zu"
