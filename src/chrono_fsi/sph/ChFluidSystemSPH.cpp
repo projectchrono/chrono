@@ -1448,8 +1448,6 @@ void ChFluidSystemSPH::CreateBCE_BoxInterior(const ChVector3d& size, std::vector
                       1 + (int)std::round(size.z() / spacing));
     bool fill = np[0] <= 2 * num_layers || np[1] <= 2 * num_layers || np[2] <= 2 * num_layers;
 
-    std::cout << fill << std::endl;
-
     // Adjust spacing in each direction
     ChVector3d delta(size.x() / (np.x() - 1), size.y() / (np.y() - 1), size.z() / (np.z() - 1));
 

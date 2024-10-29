@@ -92,6 +92,7 @@ class CH_FSI_API ChFsiSystem {
     /// - advance multibody dynamics to new data exchange point
     /// - extract new states for FSI solid objects
     void DoStepDynamics(double step);
+    void DoStepDynamicsConcurrent(double step);
 
     /// Get current simulation time.
     double GetSimTime() const { return m_time; }
@@ -158,6 +159,9 @@ class CH_FSI_API ChFsiSystem {
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
     void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
+
+    void AdvanceCFD(double step, double threshold);
+    void AdvanceMBS(double step, double threshold);
 
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics
