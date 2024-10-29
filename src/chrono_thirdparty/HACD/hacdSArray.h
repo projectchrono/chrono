@@ -15,7 +15,7 @@
 #pragma once
 #ifndef HACD_SARRAY_H
 #define HACD_SARRAY_H
-#include<hacdVersion.h>
+#include "hacdVersion.h"
 #include<stdio.h>
 #include <string.h>
 #include <stdlib.h>
