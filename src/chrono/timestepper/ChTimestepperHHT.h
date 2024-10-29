@@ -17,6 +17,8 @@
 
 #include "chrono/timestepper/ChTimestepper.h"
 
+#include <array>
+
 namespace chrono {
 
 /// @addtogroup chrono_timestepper
