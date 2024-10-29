@@ -67,8 +67,9 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     ChVector3d active_box_hdim(0.4, 0.3, 0.5);
 
-    bool visualization = true;             // run-time visualization
-    double visualizationFPS = 0;           // frames rendered per second (0: every frame)
+    bool render = true;       // use run-time visualization
+    double render_fps = 200;  // rendering FPS
+
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = false;  // render wheel BCE markers
@@ -186,9 +187,12 @@ int main(int argc, char* argv[]) {
     if (vis_type == ChVisualSystem::Type::VSG)
         vis_type = ChVisualSystem::Type::OpenGL;
 #endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
 
     std::shared_ptr<ChFsiVisualization> visFSI;
-    if (visualization) {
+    if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
@@ -219,25 +223,44 @@ int main(int argc, char* argv[]) {
     }
 
     // Start the simulation
-    int render_steps = (visualizationFPS > 0) ? (int)std::round((1.0 / visualizationFPS) / step_size) : 1;
-    double t = 0;
-    int frame = 0;
+    double time = 0;
+    int sim_frame = 0;
+    int render_frame = 0;
 
-    while (t < tend) {
+    double timer_CFD = 0;
+    double timer_MBS = 0;
+    double timer_FSI = 0;
+    double timer_step = 0;
+
+    while (time < tend) {
         rover->Update();
 
         // Run-time visualization
-        if (visualization && frame % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+            render_frame++;
         }
-        if (!visualization) {
+        if (!render) {
             std::cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRtf() << std::endl;
         }
 
         sysFSI.DoStepDynamics(step_size);
-        t += step_size;
-        frame++;
+
+        timer_CFD += sysFSI.GetTimerCFD();
+        timer_MBS += sysFSI.GetTimerMBS();
+        timer_FSI += sysFSI.GetTimerFSI();
+        timer_step += sysFSI.GetTimerStep();
+        if (sim_frame == 2000) {
+            cout << "Cummulative timers at time: " << time << endl;
+            cout << "   timer CFD:  " << timer_CFD << endl;
+            cout << "   timer MBS:  " << timer_MBS << endl;
+            cout << "   timer FSI:  " << timer_FSI << endl;
+            cout << "   timer step: " << timer_step << endl;
+        }
+
+        time += step_size;
+        sim_frame++;
     }
 
     return 0;

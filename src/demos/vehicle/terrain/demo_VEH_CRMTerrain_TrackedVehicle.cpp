@@ -82,12 +82,14 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     double active_box_hdim = 0.4;
 
-    bool visualization = true;             // run-time visualization
-    double visualizationFPS = 0;           // frames rendered per second (0: every frame)
+    bool render = true;       // use run-time visualization
+    double render_fps = 200;  // rendering FPS
+
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = false;  // render wheel BCE markers
-    bool chase_cam = true;                 // chase-cam or fixed camera
+
+    bool chase_cam = true;  // chase-cam or fixed camera
 
     bool verbose = true;
 
@@ -179,9 +181,12 @@ int main(int argc, char* argv[]) {
     if (vis_type == ChVisualSystem::Type::VSG)
         vis_type = ChVisualSystem::Type::OpenGL;
 #endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
 
     std::shared_ptr<ChFsiVisualization> visFSI;
-    if (visualization) {
+    if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
@@ -213,9 +218,14 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     DriverInputs driver_inputs = {0, 0, 0};
-    int render_steps = (visualizationFPS > 0) ? (int)std::round((1.0 / visualizationFPS) / step_size) : 1;
-    double t = 0;
-    int frame = 0;
+    double time = 0;
+    int sim_frame = 0;
+    int render_frame = 0;
+
+    double timer_CFD = 0;
+    double timer_MBS = 0;
+    double timer_FSI = 0;
+    double timer_step = 0;
 
     if (x_max < veh_init_pos.x())
         x_max = veh_init_pos.x() + 0.25;
@@ -224,7 +234,7 @@ int main(int argc, char* argv[]) {
     TerrainForces shoe_forces_left(vehicle->GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle->GetNumTrackShoes(RIGHT));
 
-    while (t < tend) {
+    while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
         // Stop before end of patch
@@ -234,15 +244,15 @@ int main(int argc, char* argv[]) {
         // Set current driver inputs
         driver_inputs = driver.GetInputs();
 
-        if (t < 0.5) {
+        if (time < 0.5) {
             driver_inputs.m_throttle = 0;
             driver_inputs.m_braking = 1;
         } else {
-            ChClampValue(driver_inputs.m_throttle, driver_inputs.m_throttle, (t - 0.5) / 0.5);
+            ChClampValue(driver_inputs.m_throttle, driver_inputs.m_throttle, (time - 0.5) / 0.5);
         }
 
         // Run-time visualization
-        if (visualization && frame % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (chase_cam) {
                 ChVector3d cam_loc = veh_loc + ChVector3d(-6, 6, 0.5);
                 ChVector3d cam_point = veh_loc;
@@ -250,21 +260,34 @@ int main(int argc, char* argv[]) {
             }
             if (!visFSI->Render())
                 break;
+            render_frame++;
         }
-        if (!visualization) {
+        if (!render) {
             cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRtf() << endl;
         }
 
         // Synchronize sy^stems
-        driver.Synchronize(t);
-        vehicle->Synchronize(t, driver_inputs, shoe_forces_left, shoe_forces_right);
+        driver.Synchronize(time);
+        vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Advance system state
         driver.Advance(step_size);
         sysFSI.DoStepDynamics(step_size);
-        t += step_size;
 
-        frame++;
+        timer_CFD += sysFSI.GetTimerCFD();
+        timer_MBS += sysFSI.GetTimerMBS();
+        timer_FSI += sysFSI.GetTimerFSI();
+        timer_step += sysFSI.GetTimerStep();
+        if (sim_frame == 2000) {
+            cout << "Cummulative timers at time: " << time << endl;
+            cout << "   timer CFD:  " << timer_CFD << endl;
+            cout << "   timer MBS:  " << timer_MBS << endl;
+            cout << "   timer FSI:  " << timer_FSI << endl;
+            cout << "   timer step: " << timer_step << endl;
+        }
+
+        time += step_size;
+        sim_frame++;
     }
 
     return 0;

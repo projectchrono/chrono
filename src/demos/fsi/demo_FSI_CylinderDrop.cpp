@@ -40,6 +40,10 @@
 using namespace chrono;
 using namespace chrono::fsi;
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 // -----------------------------------------------------------------------------
 
 // Run-time visualization system (OpenGL or VSG)
@@ -51,6 +55,9 @@ std::string out_dir = GetChronoOutputPath() + "FSI_Cylinder_Drop";
 // Output frequency
 bool output = true;
 double output_fps = 20;
+
+// Verbose terminal output
+bool verbose = true;
 
 // Dimension of the space domain
 double bxDim = 1.0;
@@ -101,13 +108,15 @@ int main(int argc, char* argv[]) {
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_CylinderDrop_Explicit.json");
     if (argc == 1) {
-        std::cout << "Use the default JSON file" << std::endl;
+        if (verbose)
+            cout << "Using the default JSON file" << endl;
     } else if (argc == 2) {
-        std::cout << "Use the specified JSON file" << std::endl;
+        if (verbose)
+            cout << "Using the specified JSON file" << endl;
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        std::cout << "usage: ./demo_FSI_CylinderDrop <json_file>" << std::endl;
+        cerr << "usage: ./demo_FSI_CylinderDrop <json_file>" << endl;
         return 1;
     }
     sysSPH.ReadParametersFromFile(inputJson);
@@ -147,26 +156,26 @@ int main(int argc, char* argv[]) {
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-            std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
             return 1;
         }
         if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-            std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
             return 1;
         }
         if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-            std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
             return 1;
         }
     }
@@ -228,6 +237,11 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
+    double timer_CFD = 0;
+    double timer_MBS = 0;
+    double timer_FSI = 0;
+    double timer_step = 0;
+
     std::string out_file = out_dir + "/results.txt";
     std::ofstream ofile(out_file, std::ios::trunc);
 
@@ -238,7 +252,8 @@ int main(int argc, char* argv[]) {
         ofile << time << "\t" << cylinder_height << "\n";
 
         if (output && time >= out_frame / output_fps) {
-            std::cout << " -- Output frame " << out_frame << " at t = " << time << std::endl;
+            if (verbose)
+                cout << " -- Output frame " << out_frame << " at t = " << time << endl;
 
             sysSPH.PrintParticleToFile(out_dir + "/particles");
             sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
@@ -258,11 +273,24 @@ int main(int argc, char* argv[]) {
 
         // Call the FSI solver
         sysFSI.DoStepDynamics(dT);
+
+        timer_CFD += sysFSI.GetTimerCFD();
+        timer_MBS += sysFSI.GetTimerMBS();
+        timer_FSI += sysFSI.GetTimerFSI();
+        timer_step += sysFSI.GetTimerStep();
+        if (verbose && sim_frame == 2000) {
+            cout << "Cummulative timers at time: " << time << endl;
+            cout << "   timer CFD:  " << timer_CFD << endl;
+            cout << "   timer MBS:  " << timer_MBS << endl;
+            cout << "   timer FSI:  " << timer_FSI << endl;
+            cout << "   timer step: " << timer_step << endl;
+        }
+
         time += dT;
         sim_frame++;
     }
     timer.stop();
-    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
+    cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
     ofile.close();
 
@@ -362,7 +390,7 @@ std::shared_ptr<ChBody> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
 void WriteCylinderVTK(const std::string& filename, double radius, double length, const ChFrame<>& frame, int res) {
     std::ofstream outf;
     outf.open(filename, std::ios::app);
-    outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
+    outf << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << endl;
     outf << "DATASET UNSTRUCTURED_GRID\nPOINTS " << 2 * res << " float\n";
 
     for (int i = 0; i < res; i++) {

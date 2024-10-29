@@ -41,6 +41,12 @@
 using namespace chrono;
 using namespace chrono::fsi;
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
+// -----------------------------------------------------------------------------
+
 // Physical properties of terrain particles
 double initSpacing = 0.01;
 double kernelMultiplier = 1;
@@ -250,19 +256,19 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
 int main(int argc, char* argv[]) {
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
+        cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
+        cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
         return 1;
     }
     if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
+        cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
         return 1;
     }
 
@@ -285,8 +291,8 @@ int main(int argc, char* argv[]) {
         inputJson = std::string(argv[1]);
         wheel_slip = std::stod(argv[2]);
     } else if (argc != 1) {
-        std::cout << "usage: ./demo_FSI_SingleWheelTest <json_file> <wheel_slip>" << std::endl;
-        std::cout << "or to use default input parameters ./demo_FSI_SingleWheelTest " << std::endl;
+        cout << "usage: ./demo_FSI_SingleWheelTest <json_file> <wheel_slip>" << endl;
+        cout << "or to use default input parameters ./demo_FSI_SingleWheelTest " << endl;
         return 1;
     }
 
@@ -370,6 +376,11 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
+    double timer_CFD = 0;
+    double timer_MBS = 0;
+    double timer_FSI = 0;
+    double timer_step = 0;
+
     ChTimer timer;
     timer.start();
     while (time < total_time) {
@@ -382,12 +393,12 @@ int main(int argc, char* argv[]) {
         const auto& angvel = wheel->GetAngVelLocal();
 
         if (verbose) {
-            std::cout << "time: " << time << std::endl;
-            std::cout << "  wheel position:         " << w_pos << std::endl;
-            std::cout << "  wheel linear velocity:  " << w_vel << std::endl;
-            std::cout << "  wheel angular velocity: " << angvel << std::endl;
-            std::cout << "  drawbar pull:           " << force << std::endl;
-            std::cout << "  wheel torque:           " << torque << std::endl;
+            cout << "time: " << time << endl;
+            cout << "  wheel position:         " << w_pos << endl;
+            cout << "  wheel linear velocity:  " << w_vel << endl;
+            cout << "  wheel angular velocity: " << angvel << endl;
+            cout << "  drawbar pull:           " << force << endl;
+            cout << "  wheel torque:           " << torque << endl;
         }
 
         if (output) {
@@ -399,7 +410,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (output && time >= out_frame / output_fps) {
-            std::cout << "-------- Output" << std::endl;
+            cout << "-------- Output" << endl;
             sysSPH.PrintParticleToFile(out_dir + "/particles");
             sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
@@ -419,11 +430,24 @@ int main(int argc, char* argv[]) {
 
         // Call the FSI solver
         sysFSI.DoStepDynamics(dT);
+
+        timer_CFD += sysFSI.GetTimerCFD();
+        timer_MBS += sysFSI.GetTimerMBS();
+        timer_FSI += sysFSI.GetTimerFSI();
+        timer_step += sysFSI.GetTimerStep();
+        if (verbose && sim_frame == 2000) {
+            cout << "Cummulative timers at time: " << time << endl;
+            cout << "   timer CFD:  " << timer_CFD << endl;
+            cout << "   timer MBS:  " << timer_MBS << endl;
+            cout << "   timer FSI:  " << timer_FSI << endl;
+            cout << "   timer step: " << timer_step << endl;
+        }
+
         time += dT;
         sim_frame++;
     }
     timer.stop();
-    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
+    cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
     if (output) {
         myFile.close();

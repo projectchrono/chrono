@@ -291,6 +291,11 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
+    double timer_CFD = 0;
+    double timer_MBS = 0;
+    double timer_FSI = 0;
+    double timer_step = 0;
+
     // Initial position of top most node
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
     std::cout << "Initial position of top node: " << node->GetPos().x() << " " << node->GetPos().y() << " "
@@ -339,6 +344,18 @@ int main(int argc, char* argv[]) {
         ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\t" << displacement << "\n";
 
         sysFSI.DoStepDynamics(dT);
+
+        timer_CFD += sysFSI.GetTimerCFD();
+        timer_MBS += sysFSI.GetTimerMBS();
+        timer_FSI += sysFSI.GetTimerFSI();
+        timer_step += sysFSI.GetTimerStep();
+        if (verbose && sim_frame == 2000) {
+            cout << "Cummulative timers at time: " << time << endl;
+            cout << "   timer CFD:  " << timer_CFD << endl;
+            cout << "   timer MBS:  " << timer_MBS << endl;
+            cout << "   timer FSI:  " << timer_FSI << endl;
+            cout << "   timer step: " << timer_step << endl;
+        }
 
         time += dT;
         sim_frame++;
