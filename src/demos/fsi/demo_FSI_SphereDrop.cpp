@@ -12,11 +12,11 @@
 // Author: Wei Hu, Huzaifa Mustafa Unjhawala
 // =============================================================================
 
-// General Includes
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <fstream>
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -24,6 +24,7 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFluidSystemSPH.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -36,8 +37,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
-#include "chrono/utils/ChUtilsSamplers.h"
-
 using namespace chrono;
 using namespace chrono::fsi;
 
@@ -46,15 +45,8 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Truths from Wei Paper -
 // https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff
-
-double bulk_density = 1500;
-double mu_s = 0.3819;
-double granular_particle_diameter = 0.002;  // Set in JSON - Not overwritten
-double youngs_modulus = 2e6;                // Set in JSON - Not overwritten
-
-// Global arguments
-
-std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Angle_Repose_Granular.json");
+// Global parameters
+const double sphere_radius = 0.0125;
 
 // Function to handle CLI arguments
 bool GetProblemSpecs(int argc,
@@ -65,11 +57,12 @@ bool GetProblemSpecs(int argc,
                      double& output_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     double& cylinder_radius,
-                     double& cylinder_height,
-                     double& init_spacing,
-                     bool& render) {
-    ChCLI cli(argv[0], "FSI Angle of Repose Demo");
+                     double& sphere_density,
+                     double& Hdrop,
+                     bool& render,
+                     std::string& boundary_type,
+                     std::string& viscosity_type) {
+    ChCLI cli(argv[0], "FSI Sphere Drop Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
     cli.AddOption<bool>("Simulation", "verbose", "Verbose output", std::to_string(verbose));
@@ -77,10 +70,13 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Output", "output_fps", "Output FPS", std::to_string(output_fps));
     cli.AddOption<bool>("Output", "snapshots", "Enable snapshots", std::to_string(snapshots));
     cli.AddOption<int>("Simulation", "ps_freq", "Proximity search frequency", std::to_string(ps_freq));
+    cli.AddOption<double>("Geometry", "sphere_density", "Sphere density", std::to_string(sphere_density));
+    cli.AddOption<double>("Geometry", "Hdrop", "Drop height", std::to_string(Hdrop));
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
-    cli.AddOption<double>("Geometry", "cylinder_radius", "Cylinder radius", std::to_string(cylinder_radius));
-    cli.AddOption<double>("Geometry", "cylinder_height", "Cylinder height", std::to_string(cylinder_height));
-    cli.AddOption<double>("Simulation", "init_spacing", "Initial particle spacing", std::to_string(init_spacing));
+
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
+                               "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     if (!cli.Parse(argc, argv))
         return false;
@@ -91,81 +87,99 @@ bool GetProblemSpecs(int argc,
     output_fps = cli.GetAsType<double>("output_fps");
     snapshots = cli.GetAsType<bool>("snapshots");
     ps_freq = cli.GetAsType<int>("ps_freq");
-    cylinder_radius = cli.GetAsType<double>("cylinder_radius");
-    cylinder_height = cli.GetAsType<double>("cylinder_height");
-    init_spacing = cli.GetAsType<double>("init_spacing");
+    sphere_density = cli.GetAsType<double>("sphere_density");
+    Hdrop = cli.GetAsType<double>("Hdrop");
     render = !cli.GetAsType<bool>("no_vis");
+
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+
     return true;
 }
 
 int main(int argc, char* argv[]) {
     // Default values
-    double t_end = 10.0;
-    bool verbose = false;
+    double t_end = 2.0;
+    bool verbose = true;
     bool output = true;
     double output_fps = 20;
     bool snapshots = false;
     int ps_freq = 1;
-    double cylinder_radius = 0.5;
-    double cylinder_height = 1.0;
-    double init_spacing = 0.01;
+    double sphere_density = 700;
+    double Hdrop = 0.5;
     bool render = true;
     double render_fps = 100;
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
+
     // Parse command-line arguments
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, cylinder_radius,
-                         cylinder_height, init_spacing, render)) {
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, sphere_density, Hdrop,
+                         render, boundary_type, viscosity_type)) {
         return 1;
     }
 
+    // Create a physics system
     ChSystemSMC sysMBS;
+
+    // Create a fluid system
     ChFluidSystemSPH sysSPH;
+    // Create an FSI system
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
-    sysFSI.SetVerbose(verbose);
+    // Set boundary type
+    if (boundary_type == "holmes") {
+        sysSPH.SetBoundaryType(BoundaryType::HOLMES);
+    } else {
+        sysSPH.SetBoundaryType(BoundaryType::ADAMI);
+    }
+
+    // Set viscosity type
+    if (viscosity_type == "artificial_bilateral") {
+        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
+    } else {
+        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
+    }
+
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SphereDrop_granular.json");
     sysSPH.ReadParametersFromFile(inputJson);
+    auto init_spacing = sysSPH.GetInitialSpacing();
+
+    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysMBS.SetGravitationalAcceleration(sysSPH.GetGravitationalAcceleration());
+    // Get the pointer to the system parameter and use a JSON file to fill it out with the user
+
+    sysFSI.SetVerbose(verbose);
     sysSPH.SetNumProximitySearchSteps(ps_freq);
 
-    // Modify based on command line
-    sysSPH.SetInitialSpacing(init_spacing);
-
-    // Set SPH kernel length.
-    sysSPH.SetKernelMultiplier(1.2);
-
-    // Set density
-    sysSPH.SetDensity(bulk_density);
-
     // Dimension of the space domain
-    double bxDim = 10 * cylinder_radius;
-    double byDim = 10 * cylinder_radius;
-    double bzDim = 1.5 * cylinder_height;  // Higher than the cylinder to allow forparticle settling
+    double bxDim = 0.14;
+    double byDim = 0.1;
+    double fzDim = 0.15;
+    double bzDim = fzDim;
 
     // Set the periodic boundary condition
-    auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 - 10.0 * initSpace0 / 2.0, -byDim / 2 - 1.0 * initSpace0 / 2.0,
-                    -1.0 * bzDim - 5 * initSpace0);
-    ChVector3d cMax(bxDim / 2 + 10.0 * initSpace0 / 2.0, byDim / 2 + 1.0 * initSpace0 / 2.0,
-                    2.0 * bzDim + 5 * initSpace0);
+    ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim * 1.2);
+    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + Hdrop + sphere_radius + init_spacing) * 1.2);
     sysSPH.SetBoundaries(cMin, cMax);
-    sysSPH.SetOutputLength(2);
 
-    // Create SPH particle locations using a sampler
+    // Create SPH particle locations using a regular grid sampler
     chrono::utils::ChGridSampler<> sampler(init_spacing);
-    ChVector3d cylinderCenter(0.0, 0.0, -bzDim / 2 + cylinder_height / 2 + 2 * init_spacing);
-    std::vector<ChVector3d> points = sampler.SampleCylinderZ(cylinderCenter, cylinder_radius, cylinder_height / 2);
+    ChVector3d boxCenter(0, 0, fzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2 - init_spacing, byDim / 2 - init_spacing, fzDim / 2 - init_spacing);
+    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
-    // Add fluid particles
+    // Add SPH particles to the fluid system
     double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
     for (const auto& p : points) {
-        double pre_ini = sysSPH.GetDensity() * gz * (-(p.z() + cylinder_height / 2) + cylinder_height);
+        double pre_ini = sysSPH.GetDensity() * gz * (-p.z() + fzDim);
         double rho_ini = sysSPH.GetDensity() + pre_ini / (sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed());
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0));
     }
 
-    // Add a box
-    // Set common material Properties
+    // Create MBD and BCE particles for the solid domain
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
-    cmaterial->SetFriction(0.389f);
+    cmaterial->SetFriction(0.3f);
     cmaterial->SetRestitution(0.05f);
     cmaterial->SetAdhesion(0);
 
@@ -177,41 +191,57 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(box);
 
     // Add collision geometry for the container walls
-    chrono::utils::AddBoxContainer(box, cmaterial,                         //
-                                   ChFrame<>(ChVector3d(0, 0, 0), QUNIT),  //
-                                   ChVector3d(bxDim, byDim, bzDim), 0.1,   //
-                                   ChVector3i(0, 0, -1),                   //
+    chrono::utils::AddBoxContainer(box, cmaterial,                                 //
+                                   ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                                   ChVector3d(bxDim, byDim, bzDim), 0.1,           //
+                                   ChVector3i(2, 2, -1),                           //
                                    false);
     box->EnableCollision(false);
 
     // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(box,                                    //
-                              ChFrame<>(ChVector3d(0, 0, 0), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),        //
-                              ChVector3i(0, 0, -1));
+    sysSPH.AddBoxContainerBCE(box,                                            //
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(2, 2, -1));
 
+    // Create a falling sphere
+    auto sphere = chrono_types::make_shared<ChBody>();
+    double volume = ChSphere::GetVolume(sphere_radius);
+    double mass = sphere_density * volume;
+    auto inertia = mass * ChSphere::GetGyration(sphere_radius);
+
+    double sphere_z_pos = Hdrop + fzDim + sphere_radius + 0.5 * init_spacing;
+    ChVector3d sphere_pos = ChVector3d(0, 0, sphere_z_pos);
+    sphere->SetPos(sphere_pos);
+    sphere->SetMass(mass);
+    sphere->SetInertia(inertia);
+
+    chrono::utils::AddSphereGeometry(sphere.get(), cmaterial, sphere_radius);
+    sphere->GetCollisionModel()->SetSafeMargin(init_spacing);
+
+    sysMBS.AddBody(sphere);
+    sysFSI.AddFsiBody(sphere);
+    sysSPH.AddSphereBCE(sphere, ChFrame<>(VNULL, QUNIT), sphere_radius, true, true);
+
+    // Complete construction of the FSI system
     sysFSI.Initialize();
 
-    // Set up output directories
-    std::stringstream ss;
-    ss << "FSI_Angle_Repose_ps" << ps_freq << "_r" << std::fixed << std::setprecision(3) << std::setfill('0');
-
-    // Create temporary strings and modify them
-    std::string radius_str = std::to_string(cylinder_radius);
-    std::replace(radius_str.begin(), radius_str.end(), '.', '_');
-    ss << radius_str << "_h";
-
-    std::string height_str = std::to_string(cylinder_height);
-    std::replace(height_str.begin(), height_str.end(), '.', '_');
-    ss << std::fixed << std::setprecision(3) << std::setfill('0') << height_str << "_s";
-
-    std::string spacing_str = std::to_string(init_spacing);
-    std::replace(spacing_str.begin(), spacing_str.end(), '.', '_');
-    ss << std::fixed << std::setprecision(3) << std::setfill('0') << spacing_str;
-
-    std::string out_dir = GetChronoOutputPath() + ss.str();
-
+    // Output directories
+    std::string out_dir;
     if (output || snapshots) {
+        out_dir = GetChronoOutputPath() + "FSI_SphereDrop/";
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        std::stringstream ss;
+        ss << viscosity_type << "_" << boundary_type;
+        ss << "_ps" << ps_freq;
+        ss << "_d" << sphere_density;
+        ss << "_h" << Hdrop;
+        ss << "_s" << init_spacing;
+        out_dir = out_dir + ss.str();
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
@@ -239,19 +269,8 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    // Create a run-tme visualizer
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
-    render = false;
-#endif
 
+    // Create a run-time visualizer
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
         switch (vis_type) {
@@ -269,13 +288,13 @@ int main(int argc, char* argv[]) {
         }
 
         if (visFSI) {
-            visFSI->SetTitle("FSI Angle of Repose Demo");
+            visFSI->SetTitle("FSI Sphere Drop Demo");
             visFSI->SetSize(1280, 720);
-            visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
+            visFSI->AddCamera(ChVector3d(0, -7 * byDim, bzDim), ChVector3d(0, 0, 0));
             visFSI->SetCameraMoveScale(0.1f);
             visFSI->EnableFluidMarkers(true);
             visFSI->EnableBoundaryMarkers(true);
-            visFSI->EnableRigidBodyMarkers(false);
+            visFSI->EnableRigidBodyMarkers(true);
             visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
             visFSI->AttachSystem(&sysMBS);
@@ -289,6 +308,10 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
     double dT = sysFSI.GetStepSizeCFD();
+
+    std::string out_file = out_dir + "/sphere_penetration_depth.txt";
+    std::ofstream ofile(out_file, std::ios::trunc);
+
     ChTimer timer;
     timer.start();
     while (time < t_end) {
@@ -298,7 +321,6 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
-        // Render SPH particles
         if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
@@ -306,22 +328,22 @@ int main(int argc, char* argv[]) {
             if (snapshots) {
                 std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
-                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
-                         << ".bmp";
+                filename << out_dir << "/snapshots/" << std::setw(5) << std::setfill('0') << render_frame << ".jpg";
                 visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
             }
 
             render_frame++;
         }
 
-        if (sim_frame % 1000 == 0) {
-            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRtf() << std::endl;
-        }
-
-        // Call the FSI solver
+        // Write penetration depth to file
+        double d_pen = fzDim + sphere_radius + 0.5 * init_spacing - sphere->GetPos().z();
+        ofile << time << " " << d_pen << " " << sphere->GetPos().x() << " " << sphere->GetPos().y() << " "
+              << sphere->GetPos().z() << " " << sphere->GetPosDt().x() << " " << sphere->GetPosDt().y() << " "
+              << sphere->GetPosDt().z() << std::endl;
+        // Advance simulation for one timestep for all systems
         sysFSI.DoStepDynamics(dT);
-
         time += dT;
+
         sim_frame++;
     }
     timer.stop();

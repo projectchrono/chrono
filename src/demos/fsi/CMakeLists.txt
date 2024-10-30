@@ -17,13 +17,13 @@ set(DEMOS ${DEMOS}
    demo_FSI_BaffleFlow
    demo_FSI_CouetteFlow
    demo_FSI_Flap
-   demo_FSI_AngleRepose_granular
-   demo_FSI_SphereDrop_granular
+   demo_FSI_AngleRepose
+   demo_FSI_SphereDrop
 )
 
 if(ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
-      demo_FSI_Flexible_Flat_Plate
+      demo_FSI_Flexible_Plate
       demo_FSI_Flexible_Cable
       demo_FSI_Flexible_Toroidal_Tire
    )

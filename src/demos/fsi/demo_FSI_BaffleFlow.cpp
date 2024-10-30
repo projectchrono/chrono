@@ -139,7 +139,7 @@ bool GetProblemSpecs(int argc,
                      double& t_end,
                      bool& verbose,
                      bool& output,
-                     unsigned int& output_fps,
+                     double& output_fps,
                      bool& render,
                      double& render_fps,
                      bool& snapshots,
@@ -152,7 +152,7 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
     cli.AddOption<bool>("Output", "output", "Enable collection of output files");
-    cli.AddOption<unsigned int>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
 
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
@@ -177,7 +177,7 @@ bool GetProblemSpecs(int argc,
     render = !cli.GetAsType<bool>("no_vis");
     snapshots = cli.GetAsType<bool>("snapshots");
 
-    output_fps = cli.GetAsType<unsigned int>("output_fps");
+    output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
 
     ps_freq = cli.GetAsType<int>("ps_freq");
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     double t_end = 0.7;
     bool verbose = true;
     bool output = false;
-    unsigned int output_fps = 100;
+    double output_fps = 100;
     bool render = true;
     double render_fps = 300;
     bool snapshots = false;
@@ -307,10 +307,15 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir =
-        GetChronoOutputPath() + "FSI_Baffle_Flow_" + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
-
+    std::string out_dir;
     if (output || snapshots) {
+        out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow/";
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        out_dir = out_dir + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;

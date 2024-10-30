@@ -64,15 +64,12 @@ double x_start = 8;
 // Fluid depth
 double depth = 1.3;
 
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Flap_beach_test";
-
 // Output frequency
 bool output = true;
 double output_fps = 10;
 
 // Enable/disable run-time visualization
-bool render = false;
+bool render = true;
 float render_fps = 200;
 
 // Enable saving snapshots
@@ -346,11 +343,12 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     // Create oputput directories
+    std::string out_dir = GetChronoOutputPath() + "FSI_Flap/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;

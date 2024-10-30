@@ -28,11 +28,10 @@ using namespace chrono::postprocess;
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-const std::string out_dir = GetChronoOutputPath() + "FSI_KERNELS/";
-
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+    std::string out_dir = GetChronoOutputPath() + "FSI_Kernels/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;

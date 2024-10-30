@@ -166,15 +166,19 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     // Create output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Flat_Plate_" + viscosity_type + "_" + boundary_type +
-                          std::to_string(ps_freq);
-
+    std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Plate/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString() + "/";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
+    out_dir = out_dir + viscosity_type + "_" + boundary_type + "_ps" + std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;

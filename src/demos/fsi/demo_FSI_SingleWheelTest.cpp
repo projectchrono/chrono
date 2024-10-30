@@ -79,7 +79,7 @@ auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
 
 // Save data as csv files to see the results off-line using Paraview
 bool output = true;
-int output_fps = 20;
+double output_fps = 20;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Single_Wheel_Test/";

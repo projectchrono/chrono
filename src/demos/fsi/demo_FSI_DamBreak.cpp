@@ -95,7 +95,7 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Granular.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
@@ -171,14 +171,14 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break_" + std::to_string(ps_freq);
-
+    std::string out_dir = GetChronoOutputPath() + "FSI_Dam_Break/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
 
+    out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString() + "_ps" +
+              std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
