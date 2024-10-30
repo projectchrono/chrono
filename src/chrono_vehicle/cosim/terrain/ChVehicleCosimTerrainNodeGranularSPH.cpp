@@ -172,7 +172,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     sysFSI.SetStepSizeCFD(m_step_size);
     sysFSI.SetStepsizeMBD(m_step_size);
     sysSPH.SetConsistentDerivativeDiscretization(false, false);
-    sysSPH.SetOutputLength(0);
+    sysSPH.SetOutputLevel(OutputLevel::STATE);
 
     sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     sysSPH.SetDensity(m_density);
@@ -399,13 +399,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnRender() {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
     // Save SPH and BCE particles' information into CSV files
-    m_terrain->GetSystemFSI().GetFluidSystemSPH().PrintParticleToFile(m_node_out_dir + "/simulation");
+    m_terrain->GetSystemFSI().GetFluidSystemSPH().SaveParticleData(m_node_out_dir + "/simulation");
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_terrain->GetSystemFSI().GetFluidSystemSPH().SetParticleOutputMode(ChFluidSystemSPH::OutputMode::CHPF);
-    m_terrain->GetSystemFSI().GetFluidSystemSPH().WriteParticleFile(filename);
+    m_terrain->GetSystemFSI().GetFluidSystemSPH().WriteParticleFile(filename, OutputMode::CHPF);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies

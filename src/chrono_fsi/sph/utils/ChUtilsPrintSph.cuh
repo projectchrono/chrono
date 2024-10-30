@@ -37,64 +37,64 @@ namespace sph {
 /// @addtogroup fsi_utils
 /// @{
 
-/// Helper function to save the SPH data into files for Elastic SPH.
-/// When called, this function creates three files to write fluid,
-/// boundary and BCE particles data into files- Includes stress if output_length is 2
-void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
+/// Save current CFD SPH data to files.
+/// Create separate files to write fluid, boundary BCE, rigid BCE, and flex BCE marker information.
+/// The amount of data saved for each marker is controlled by the specified OutputLevel (e.g., for level CFD_FULL, the
+/// output includes shear rate).
+void SaveParticleDataCFD(const std::string& dir,
+                         OutputLevel level,
+                         const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
+                         const thrust::device_vector<Real4>& derivVelRhoD,
+                         const thrust::device_vector<Real4>& rhoPresMuD,
+                         const thrust::device_vector<Real4>& srTauMuD,
+                         const thrust::host_vector<int4>& referenceArray,
+                         const thrust::host_vector<int4>& referenceArrayFEA);
+
+/// Save current CRM SPH data to files.
+/// Create separate files to write fluid, boundary BCE, rigid BCE, and flex BCE marker information.
+/// The amount of data saved for each marker is controlled by the specified OutputLevel (e.g., for level CRM_FULL, the
+/// output includes stress).
+void SaveParticleDataCRM(const std::string& dir,
+                         OutputLevel level,
+                         const thrust::device_vector<Real4>& posRadD,
+                         const thrust::device_vector<Real3>& velMasD,
+                         const thrust::device_vector<Real4>& derivVelRhoD,
                          const thrust::device_vector<Real4>& rhoPresMuD,
                          const thrust::device_vector<Real3>& tauXxYyZzD,
                          const thrust::device_vector<Real3>& tauXyXzYzD,
-                         const thrust::device_vector<Real4>& derivVelRhoD,
                          const thrust::host_vector<int4>& referenceArray,
-                         const thrust::host_vector<int4>& referenceArrayFEA,
-                         const std::string& dir,
-                         const std::shared_ptr<SimParams>& paramsH);
+                         const thrust::host_vector<int4>& referenceArrayFEA);
 
-/// Helper function to save the SPH data into files for Non-Elastic SPH.
-/// When called, this function creates three files to write fluid,
-/// boundary and BCE particles data into files - Includes shear rate if output_length is 2
-void PrintParticleToFile(const thrust::device_vector<Real4>& posRadD,
-                         const thrust::device_vector<Real3>& velMasD,
-                         const thrust::device_vector<Real4>& rhoPresMuD,
-                         const thrust::device_vector<Real4>& sr_tau_I_mu_i,
-                         const thrust::device_vector<Real4>& derivVelRhoD,
-                         const thrust::host_vector<int4>& referenceArray,
-                         const thrust::host_vector<int4>& referenceArrayFEA,
-                         const std::string& dir,
-                         const std::shared_ptr<SimParams>& paramsH);
+/// Save current FSI solid data.
+/// Append states and fluid forces at current time for all solids in the FSI problem.
+void SaveSolidData(const std::string& dir,
+                   double time,
+                   const thrust::device_vector<Real3>& posRigidD,
+                   const thrust::device_vector<Real4>& rotRigidD,
+                   const thrust::device_vector<Real3>& velRigidD,
+                   const thrust::device_vector<Real3>& forceRigidD,
+                   const thrust::device_vector<Real3>& torqueRigidD,
+                   const thrust::device_vector<Real3>& pos1DNodeD,
+                   const thrust::device_vector<Real3>& vel1DNodeD,
+                   const thrust::device_vector<Real3>& force1DNodeD,
+                   const thrust::device_vector<Real3>& pos2DNodeD,
+                   const thrust::device_vector<Real3>& vel2DNodeD,
+                   const thrust::device_vector<Real3>& force2DNodeD);
 
-/// Helper function to save the FSI information into files.
-/// When called, this function creates files to write position,
-/// velocity, orientation of rigid bosied and position, velocity
-/// of nodes on flexible bodies.
-void PrintFsiInfoToFile(const thrust::device_vector<Real3>& posRigidD,
-                        const thrust::device_vector<Real4>& qRigidD,
-                        const thrust::device_vector<Real3>& velRigidD,
-                        const thrust::device_vector<Real3>& pos1DNodeD,
-                        const thrust::device_vector<Real3>& pos2DNodeD,
-                        const thrust::device_vector<Real3>& vel1DNodeD,
-                        const thrust::device_vector<Real3>& vel2DNodeD,
-                        const thrust::device_vector<Real3>& forceRigidD,
-                        const thrust::device_vector<Real3>& torqueRigidD,
-                        const thrust::device_vector<Real3>& force1DNodeD,
-                        const thrust::device_vector<Real3>& force2DNodeD,
-                        const std::string& dir,
-                        const double time);
+/// Save current particle data to a CSV file.
+/// Write particle positions, velocities, rho, pressure, and mu.
+void WriteParticleFileCSV(const std::string& filename,
+                          thrust::device_vector<Real4>& posRadD,
+                          thrust::device_vector<Real3>& velMasD,
+                          thrust::device_vector<Real4>& rhoPresMuD,
+                          thrust::host_vector<int4>& referenceArray);
 
-/// Helper function to save particle info from FSI system to a CSV files.
-/// This function saves particle positions, velocities, rho, pressure, and mu.
-void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,
-                             thrust::device_vector<Real3>& velMasD,
-                             thrust::device_vector<Real4>& rhoPresMuD,
-                             thrust::host_vector<int4>& referenceArray,
-                             const std::string& outfilename);
-
-/// Helper function to save particle info from FSI system to a ChPF binary files.
-/// This function saves only particle positions.
-void WriteChPFParticlesToFile(thrust::device_vector<Real4>& posRadD,
-                              thrust::host_vector<int4>& referenceArray,
-                              const std::string& outfilename);
+/// Save current particle data to a binary ChPF file.
+/// Write particle positions only.
+void WriteParticleFileCHPF(const std::string& filename,
+                           thrust::device_vector<Real4>& posRadD,
+                           thrust::host_vector<int4>& referenceArray);
 
 /// @} fsi_utils
 

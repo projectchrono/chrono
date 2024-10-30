@@ -291,8 +291,8 @@ int main(int argc, char* argv[]) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
 
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
-            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
 
             std::ostringstream filename;
             filename << out_dir << "/vtk/flex_body." << std::setw(5) << std::setfill('0') << out_frame + 1 << ".vtk";

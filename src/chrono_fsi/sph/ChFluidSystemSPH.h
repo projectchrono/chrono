@@ -187,11 +187,13 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set linear solver parameters (used only for implicit SPH).
     void SetLinSolverParameters(const LinSolverParameters& linsolv_params);
 
-    /// Set simulation data output length
-    void SetOutputLength(int OutputLength);
-
-    /// Set the FSI system output mode (default: NONE).
-    void SetParticleOutputMode(OutputMode mode) { m_write_mode = mode; }
+    /// Set simulation data output level (default: STATE_PRESSURE).
+    /// Options:
+    /// - STATE           marker state, velocity, and acceleration
+    /// - STATE_PRESSURE  STATE plus density and pressure
+    /// - CFD_FULL        STATE_PRESSURE plus various CFD parameters
+    /// - CRM_FULL        STATE_PRESSURE plus normal and shear stress
+    void SetOutputLevel(OutputLevel output_level);
 
     /// Set boundary type
     void SetBoundaryType(BoundaryType boundary_type) { m_paramsH->boundary_type = boundary_type; }
@@ -287,15 +289,15 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     ViscosityType GetViscosityType() const { return m_paramsH->viscosity_type; }
 
     /// Write FSI system particle output.
-    void WriteParticleFile(const std::string& outfilename) const;
+    void WriteParticleFile(const std::string& filename, OutputMode mode) const;
 
-    /// Save the SPH particle information into files.
+    /// Save current SPH particle and BCE marker data to files.
     /// This function creates three CSV files for SPH particles, boundary BCE markers, and solid BCE markers data.
-    void PrintParticleToFile(const std::string& dir) const;
+    void SaveParticleData(const std::string& dir) const;
 
-    /// Save the FSI information into files.
+    /// Save current FSI solid data to files.
     /// This function creates CSV files for force and torque on rigid bodies and flexible nodes.
-    void PrintFsiInfoToFile(const std::string& dir, double time) const;
+    void SaveSolidData(const std::string& dir, double time) const;
 
     // ----------- Functions for adding SPH particles
 
@@ -559,6 +561,8 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
+
+    OutputLevel m_output_level;
 
     BcePatternMesh1D m_pattern1D;
     BcePatternMesh2D m_pattern2D;

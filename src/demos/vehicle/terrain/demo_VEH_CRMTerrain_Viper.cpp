@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
 
     sysSPH.SetActiveDomain(ChVector3d(active_box_hdim));
 
-    sysSPH.SetOutputLength(0);
+    sysSPH.SetOutputLevel(OutputLevel::STATE);
 
     // Add rover wheels as FSI bodies
     cout << "Create wheel BCE markers..." << endl;

@@ -98,6 +98,20 @@ enum class EosType { TAIT, ISOTHERMAL };
 enum class KernelType {QUADRATIC, CUBIC, QUINTIC, WENDLAND};
 */
 
+/// Output level.
+enum class OutputLevel {
+    STATE,           ///< marker state, velocity, and acceleration
+    STATE_PRESSURE,  ///< STATE plus density and pressure
+    CFD_FULL,        ///< STATE_PRESSURE plus various CFD parameters
+    CRM_FULL         ///< STATE_PRESSURE plus normal and shear stress
+};
+
+/// Output mode.
+enum class OutputMode {
+    CSV,  ///< comma-separated value
+    CHPF  ///< binary
+};
+
 /// @} fsi_physics
 
 }  // namespace fsi

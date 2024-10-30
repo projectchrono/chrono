@@ -228,8 +228,8 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << "-------- Output" << endl;
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
-            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
             fea::ChMeshExporter::WriteFrame(mesh, out_dir + "/Flex_MESH.vtk", filename);

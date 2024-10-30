@@ -337,8 +337,8 @@ int main(int argc, char* argv[]) {
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(sysFSI);
 
-    // Set simulation data output length
-    sysSPH.SetOutputLength(0);
+    // Set simulation data output level
+    sysSPH.SetOutputLevel(OutputLevel::STATE);
 
     // Construction of the FSI system must be finalized before running
     sysFSI.Initialize();
@@ -411,8 +411,8 @@ int main(int argc, char* argv[]) {
 
         if (output && time >= out_frame / output_fps) {
             cout << "-------- Output" << endl;
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
-            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
             WriteWheelVTK(filename, wheel_mesh, wheel->GetFrameRefToAbs());

@@ -37,8 +37,7 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFluidSystem::ChFluidSystem()
-    : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_RTF(0), m_write_mode(OutputMode::NONE) {}
+ChFluidSystem::ChFluidSystem() : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_RTF(0) {}
 
 ChFluidSystem::~ChFluidSystem() {}
 

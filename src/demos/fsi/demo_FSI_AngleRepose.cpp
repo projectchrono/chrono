@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     ChVector3d cMax(bxDim / 2 + 10.0 * initSpace0 / 2.0, byDim / 2 + 1.0 * initSpace0 / 2.0,
                     2.0 * bzDim + 5 * initSpace0);
     sysSPH.SetBoundaries(cMin, cMax);
-    sysSPH.SetOutputLength(2);
+    sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
 
     // Create SPH particle locations using a sampler
     chrono::utils::ChGridSampler<> sampler(init_spacing);
@@ -288,8 +288,8 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
-            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
             out_frame++;
         }
 

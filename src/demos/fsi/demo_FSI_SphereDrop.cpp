@@ -316,8 +316,8 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
-            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
             out_frame++;
         }
 

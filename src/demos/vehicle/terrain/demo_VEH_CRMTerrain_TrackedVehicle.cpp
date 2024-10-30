@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     sysSPH.SetActiveDomain(ChVector3d(active_box_hdim));
 
-    sysSPH.SetOutputLength(0);
+    sysSPH.SetOutputLevel(OutputLevel::STATE);
 
     // Add track shoes as FSI bodies
     CreateTrackBCEMarkers(vehicle, terrain);

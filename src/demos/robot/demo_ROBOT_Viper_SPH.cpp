@@ -188,8 +188,8 @@ int main(int argc, char* argv[]) {
     ChVector3d cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * initSpacing, bzDim * 20);
     sysSPH.SetBoundaries(cMin, cMax);
 
-    // Set simulation data output length
-    sysSPH.SetOutputLength(0);
+    // Set simulation data output level
+    sysSPH.SetOutputLevel(OutputLevel::STATE);
 
     // Create an initial box for the terrain patch
     chrono::utils::ChGridSampler<> sampler(initSpace0);
@@ -285,8 +285,8 @@ int main(int argc, char* argv[]) {
         if (output) {
             ofile << time << "  " << body->GetPos() << "    " << body->GetPosDt() << std::endl;
             if (current_step % output_steps == 0) {
-                sysSPH.PrintParticleToFile(out_dir + "/particles");
-                sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+                sysSPH.SaveParticleData(out_dir + "/particles");
+                sysSPH.SaveSolidData(out_dir + "/fsi", time);
                 SaveParaViewFiles(time, sysFSI);
             }
         }

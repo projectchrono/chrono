@@ -368,8 +368,8 @@ int main(int argc, char* argv[]) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
 
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
-            sysSPH.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
 
             out_frame++;
         }

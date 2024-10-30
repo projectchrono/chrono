@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
         // Save data of the simulation
         if (output && time >= out_frame / output_fps) {
             std::cout << "------- OUTPUT" << std::endl;
-            sysSPH.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.SaveParticleData(out_dir + "/particles");
             out_frame++;
         }
 

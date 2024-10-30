@@ -59,7 +59,8 @@ ChFluidSystemSPH::ChFluidSystemSPH()
       m_remove_center1D(false),
       m_remove_center2D(false),
       m_num_flex1D_elements(0),
-      m_num_flex2D_elements(0) {
+      m_num_flex2D_elements(0),
+      m_output_level(OutputLevel::STATE_PRESSURE) {
     m_paramsH = chrono_types::make_shared<SimParams>();
     InitParams();
 
@@ -73,8 +74,6 @@ ChFluidSystemSPH::~ChFluidSystemSPH() {}
 void ChFluidSystemSPH::InitParams() {
     //// RADU TODO
     //// Provide default values for *all* parameters!
-
-    m_paramsH->output_length = 1;
 
     // Fluid properties
     m_paramsH->rho0 = Real(1000.0);
@@ -185,9 +184,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         cerr << "Invalid JSON file!!" << endl;
         return;
     }
-
-    if (doc.HasMember("Data Output Length"))
-        m_paramsH->output_length = doc["Data Output Length"].GetInt();
 
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
@@ -553,8 +549,8 @@ void ChFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gra
     m_paramsH->USE_Consistent_L = consistent_Laplacian;
 }
 
-void ChFluidSystemSPH::SetOutputLength(int OutputLength) {
-    m_paramsH->output_length = OutputLength;
+void ChFluidSystemSPH::SetOutputLevel(OutputLevel output_level) {
+    m_output_level = output_level;
 }
 
 void ChFluidSystemSPH::SetCohesionForce(double Fc) {
@@ -1212,38 +1208,45 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::WriteParticleFile(const std::string& outfilename) const {
-    if (m_write_mode == OutputMode::CSV) {
-        WriteCsvParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                                m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray, outfilename);
-    } else if (m_write_mode == OutputMode::CHPF) {
-        WriteChPFParticlesToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray, outfilename);
+void ChFluidSystemSPH::WriteParticleFile(const std::string& filename, OutputMode mode) const {
+    switch (mode) {
+        case OutputMode::CSV:
+            WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
+            break;
+        case OutputMode::CHPF:
+            WriteParticleFileCHPF(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray);
+            break;
+        default:
+            break;
     }
 }
 
-void ChFluidSystemSPH::PrintParticleToFile(const std::string& dir) const {
+void ChFluidSystemSPH::SaveParticleData(const std::string& dir) const {
     if (m_paramsH->elastic_SPH) {
-        sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sphMarkers_D->tauXxYyZzD,
-                                 m_data_mgr->sphMarkers_D->tauXyXzYzD, m_data_mgr->derivVelRhoOriginalD,
-                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+        sph::SaveParticleDataCRM(dir, m_output_level,                                                         //
+                                 m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,        //
+                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->sphMarkers_D->rhoPresMuD,      //
+                                 m_data_mgr->sphMarkers_D->tauXxYyZzD, m_data_mgr->sphMarkers_D->tauXyXzYzD,  //
+                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);                 //
     } else {
-        sph::PrintParticleToFile(m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->sr_tau_I_mu_i_Original,
-                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->referenceArray,
-                                 m_data_mgr->referenceArray_FEA, dir, m_paramsH);
+        sph::SaveParticleDataCFD(dir, m_output_level,                                                     //
+                                 m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,    //
+                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->sphMarkers_D->rhoPresMuD,  //
+                                 m_data_mgr->sr_tau_I_mu_i_Original,                                      //
+                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);             //
     }
 }
 
-void ChFluidSystemSPH::PrintFsiInfoToFile(const std::string& dir, double time) const {
-    sph::PrintFsiInfoToFile(                                                                       //
-        m_data_mgr->fsiBodyState_D->pos, m_data_mgr->fsiBodyState_D->rot,                          //
-        m_data_mgr->fsiBodyState_D->lin_vel,                                                       //
-        m_data_mgr->fsiMesh1DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->pos_fsi_fea_D,  //
-        m_data_mgr->fsiMesh1DState_D->vel_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->vel_fsi_fea_D,  //
-        m_data_mgr->rigid_FSI_ForcesD, m_data_mgr->rigid_FSI_TorquesD,                             //
-        m_data_mgr->flex1D_FSIforces_D, m_data_mgr->flex2D_FSIforces_D,                            //
-        dir, time);
+void ChFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
+    sph::SaveSolidData(dir, time,                                                                                 //
+                       m_data_mgr->fsiBodyState_D->pos, m_data_mgr->fsiBodyState_D->rot,                          //
+                       m_data_mgr->fsiBodyState_D->lin_vel,                                                       //
+                       m_data_mgr->rigid_FSI_ForcesD, m_data_mgr->rigid_FSI_TorquesD,                             //
+                       m_data_mgr->fsiMesh1DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh1DState_D->vel_fsi_fea_D,  //
+                       m_data_mgr->flex1D_FSIforces_D,                                                            //
+                       m_data_mgr->fsiMesh2DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->vel_fsi_fea_D,  //
+                       m_data_mgr->flex2D_FSIforces_D);                                                           //
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -40,7 +40,6 @@ namespace sph {
 /// Structure with FSI simulation parameters.
 struct SimParams {
     SPHMethod sph_method;  ///< SPH mehtod (WCSPH or I2SPH)
-    int output_length;     ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
 
     int3 gridSize;          ///< dx, dy, dz distances between particle centers.
     Real3 worldOrigin;      ///< Origin point.

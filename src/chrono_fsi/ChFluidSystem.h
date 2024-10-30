@@ -35,13 +35,6 @@ namespace fsi {
 /// Base class for an FSI-aware fluid solver.
 class CH_FSI_API ChFluidSystem {
   public:
-    /// Output mode.
-    enum class OutputMode {
-        CSV,   ///< comma-separated value
-        CHPF,  ///< binary
-        NONE   ///< none
-    };
-
     virtual ~ChFluidSystem();
 
     /// Enable/disable verbose terminal output (default: true).
@@ -122,9 +115,8 @@ class CH_FSI_API ChFluidSystem {
   protected:
     ChFluidSystem();
 
-    bool m_verbose;           ///< enable/disable m_verbose terminal output
-    std::string m_outdir;     ///< output directory
-    OutputMode m_write_mode;  ///< output type
+    bool m_verbose;        ///< enable/disable m_verbose terminal output
+    std::string m_outdir;  ///< output directory
 
     bool m_is_initialized;  ///< set to true once the Initialize function is called
 
