@@ -23,31 +23,6 @@ endif()
 message(STATUS "  Use double precision? " ${FSI_USE_DOUBLE})
 
 # ----------------------------------------------------------------------------
-# Add options specific to the FSI-SPH module
-# ----------------------------------------------------------------------------
-
-set(KERNEL_TYPES Quadratic CubicSpline QuinticSpline Wendland)
-set(FSI_KERNEL_TYPE CubicSpline CACHE STRING "Type of the SPH kernel function")
-set_property(CACHE FSI_KERNEL_TYPE PROPERTY STRINGS ${KERNEL_TYPES})
-
-message(STATUS "  Selected kernel type: ${FSI_KERNEL_TYPE}")
-
-if ("${FSI_KERNEL_TYPE}" STREQUAL "Quadratic")
-  set(CHRONO_SPH_KERNEL_TYPE "#define CHRONO_SPH_KERNEL_QUADRATIC")
-elseif ("${FSI_KERNEL_TYPE}" STREQUAL "CubicSpline")
-  set(CHRONO_SPH_KERNEL_TYPE "#define CHRONO_SPH_KERNEL_CUBICSPLINE")
-elseif ("${FSI_KERNEL_TYPE}" STREQUAL "QuinticSpline")
-  set(CHRONO_SPH_KERNEL_TYPE "#define CHRONO_SPH_KERNEL_QUINTICSPLINE")
-elseif ("${FSI_KERNEL_TYPE}" STREQUAL "Wendland")
-  set(CHRONO_SPH_KERNEL_TYPE "#define CHRONO_SPH_KERNEL_WENDLAND")
-else()
-  message(ERROR "Incorrect SPH kernel function type")
-  return()
-endif()
-
-set(CHRONO_SPH_KERNEL_TYPE "${CHRONO_SPH_KERNEL_TYPE}" PARENT_SCOPE)
-
-# ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI-SPH module
 # ----------------------------------------------------------------------------
 

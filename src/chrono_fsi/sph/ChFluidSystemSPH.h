@@ -70,13 +70,17 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        SPHMethod sph_method;         ///< SPH method (default: WCSPH)
-        int num_bce_layers;           ///< number of BCE layers (boundary and solids, default: 3)
-        double initial_spacing;       ///< initial particle spacing (default: 0.01)
-        double h_multiplier;          ///< kernel length multiplier, h = h_multiplier * initial_spacing (default: 1.2)
-        double max_velocity;          ///< maximum velocity (default: 1.0)
-        double xsph_coefficient;      ///< XSPH coefficient (default: 0.5)
-        double shifting_coefficient;  ///< shifting beta coefficient (default: 1.0)
+        SPHMethod sph_method;          ///< SPH method (default: WCSPH)
+        EosType eos_type;              ///< equation of state (default: ISOTHERMAL)
+        ViscosityType viscosity_type;  ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
+        BoundaryType boundary_type;    ///< boundary treatment (default: ADAMI)
+        KernelType kernel_type;        ///< kernel type (default: CUBIC_CPLINE)
+        int num_bce_layers;            ///< number of BCE layers (boundary and solids, default: 3)
+        double initial_spacing;        ///< initial particle spacing (default: 0.01)
+        double d0_multiplier;           ///< kernel length multiplier, h = d0_multiplier * initial_spacing (default: 1.2)
+        double max_velocity;           ///< maximum velocity (default: 1.0)
+        double xsph_coefficient;       ///< XSPH coefficient (default: 0.5)
+        double shifting_coefficient;   ///< shifting beta coefficient (default: 1.0)
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
         bool use_density_based_projection;         ///< (ISPH only, default: false)
@@ -87,9 +91,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double delta_sph_coefficient;              ///< delta SPH coefficient (default: 0.1)
         double kernel_threshold;                   ///< threshold for identifying free surface (CRM only, default: 0.8)
         int num_proximity_search_steps;            ///< number of steps between updates to neighbor lists (default: 4)
-        EosType eos_type;                          ///< equation of state (default: ISOTHERMAL)
-        ViscosityType viscosity_type;              ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
-        BoundaryType boundary_type;                ///< boundary treatment (default: ADAMI)
+
         SPHParameters();
     };
 
@@ -112,7 +114,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);
 
-    /// Set SPH kernel multiplier.
+    /// Set multiplier for interaction length.
     /// h = multiplier * initial_spacing.
     void SetKernelMultiplier(double multiplier);
 
@@ -155,11 +157,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     void SetCohesionForce(double Fc);
 
     /// Set the linear system solver for implicit methods.
-    //// TODO: OBSOLETE
     void SetSPHLinearSolver(SolverType lin_solver);
 
     /// Set the SPH method and, optionally, the linear solver type.
-    //// TODO: OBSOLETE
     void SetSPHMethod(SPHMethod SPH_method);
 
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
@@ -171,12 +171,6 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
     /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
     void SetElasticSPH(const ElasticMaterialProperties& mat_props);
-
-    /// Checks the applicability of user set parameters for elastic SPH and throws an exception if necessary.
-    void CheckParametersElasticSPH();
-
-    /// Checks the applicability of user set parameters for CFD SPH and throws an exception if necessary.
-    void CheckParametersCfdSPH();
 
     /// Checks the applicability of user set parameters for SPH and throws an exception if necessary.
     void CheckSPHParameters();
@@ -195,11 +189,14 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// - CRM_FULL        STATE_PRESSURE plus normal and shear stress
     void SetOutputLevel(OutputLevel output_level);
 
-    /// Set boundary type
-    void SetBoundaryType(BoundaryType boundary_type) { m_paramsH->boundary_type = boundary_type; }
+    /// Set boundary treatment type (default: Adami).
+    void SetBoundaryType(BoundaryType boundary_type);
 
-    /// Set viscosity type
-    void SetViscosityType(ViscosityType viscosity_type) { m_paramsH->viscosity_type = viscosity_type; }
+    /// Set viscosity treatment type (default: artificial unilateral).
+    void SetViscosityType(ViscosityType viscosity_type);
+
+    /// Set kernel type.
+    void SetKernelType(KernelType kernel_type);
 
     /// Initialize the SPH fluid system with FSI support.
     virtual void Initialize(unsigned int num_fsi_bodies,
@@ -282,11 +279,14 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties() const;
 
-    /// Return the boundary type
+    /// Return the boundary treatment type.
     BoundaryType GetBoundaryType() const { return m_paramsH->boundary_type; }
 
-    /// Return the viscosity type
+    /// Return the viscosity treatment type.
     ViscosityType GetViscosityType() const { return m_paramsH->viscosity_type; }
+
+    /// Return the kernel type.
+    KernelType GetKernelType() const { return m_paramsH->kernel_type; }
 
     /// Write FSI system particle output.
     void WriteParticleFile(const std::string& filename, OutputMode mode) const;

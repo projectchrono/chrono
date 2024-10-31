@@ -37,6 +37,28 @@ enum class SPHMethod {
     I2SPH   ///< Implicit SPH
 };
 
+/// Equation of State type.
+/// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
+enum class EosType { TAIT, ISOTHERMAL };
+
+/// SPH kernel type.
+enum class KernelType { QUADRATIC, CUBIC_SPLINE, QUINTIC_SPLINE, WENDLAND };
+
+/// Visosity method type.
+enum class ViscosityType { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
+
+/// Boundary type.
+enum class BoundaryType { ADAMI, HOLMES };
+
+/// Rheology type.
+enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
+
+/// Friction law in ISPH.
+enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
+
+/// Linear solver type.
+enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
+
 /// BCE pattern in cross section of 1-D flexible elements.
 /// The available patterns are illustrated below (assuming 3 BCE layers):
 /// <pre>
@@ -73,30 +95,6 @@ enum class BcePatternMesh1D { FULL, STAR };
 ///    |    ...--X--X--X--...
 /// </pre>
 enum class BcePatternMesh2D { CENTERED, OUTWARD, INWARD };
-
-/// Rheology type.
-enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
-
-/// Friction law in ISPH.
-enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
-
-/// Linear solver type.
-enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
-
-/// Visosity method type.
-enum class ViscosityType { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
-
-/// Boundary type.
-enum class BoundaryType { ADAMI, HOLMES };
-
-/// Equation of State type.
-/// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
-enum class EosType { TAIT, ISOTHERMAL };
-
-/*
-/// SPH kernel type.
-enum class KernelType {QUADRATIC, CUBIC, QUINTIC, WENDLAND};
-*/
 
 /// Output level.
 enum class OutputLevel {

@@ -193,7 +193,7 @@ void FsiDataManager::AddSphParticle(Real3 pos,
 void FsiDataManager::AddBceMarker(MarkerType type, Real3 pos, Real3 vel) {
     sphMarkers_H->posRadH.push_back(mR4(pos, paramsH->h));
     sphMarkers_H->velMasH.push_back(vel);
-    sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, GetMarkerCode(type)));
+    sphMarkers_H->rhoPresMuH.push_back(mR4(paramsH->rho0, paramsH->base_pressure, paramsH->mu0, GetMarkerCode(type)));
 
     //// TODO: do this only for elasticSPH!
     sphMarkers_H->tauXyXzYzH.push_back(mR3(0.0));

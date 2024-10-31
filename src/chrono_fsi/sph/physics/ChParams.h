@@ -39,40 +39,44 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct SimParams {
-    SPHMethod sph_method;  ///< SPH mehtod (WCSPH or I2SPH)
+    SPHMethod sph_method;          ///< SPH method (WCSPH or I2SPH)
+    EosType eos_type;              ///< Equation of state type (Tait or isothermal)
+    ViscosityType viscosity_type;  ///< Viscosity treatment type (physics-based laminar flow or artificial)
+    BoundaryType boundary_type;    ///< Boundary type (Adami or Holmes)
+    KernelType kernel_type;        ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
 
-    int3 gridSize;          ///< dx, dy, dz distances between particle centers.
-    Real3 worldOrigin;      ///< Origin point.
-    Real3 cellSize;         ///< Size of the neighbor particle searching cell.
+    bool elastic_SPH;              ///< Set physics problem: CFD (false) or CRM granular (true)
+
+    int3 gridSize;          ///< dx, dy, dz distances between particle centers
+    Real3 worldOrigin;      ///< Origin point
+    Real3 cellSize;         ///< Cell size for the neighbor particle search
     uint numBodies;         ///< Number of FSI bodies.
-    Real3 boxDims;          ///< Dimensions of the domain. How big is the box that the domain is in.
+    Real3 boxDims;          ///< Dimensions (AABB) of the domain
     Real d0;                ///< Initial separation of SPH particles
     Real ood0;              ///< 1 / d0
-    Real h_multiplier;      ///< Multiplier of initial spacing to obtain the interaction radius, h
-    Real h;                 ///< Kernel interaction radius, h = h_multiplier * d0
+    Real d0_multiplier;     ///< Multiplier to obtain the interaction length, h = d0_multiplier * d0
+    Real h;                 ///< Kernel interaction length
     Real ooh;               ///< 1 / h
-    int num_neighbors;      ///< Number of neighbor particles.
-    Real epsMinMarkersDis;  ///< epsilon mult for minimum distance between markers (d_min = eps * HSML)
-    int num_bce_layers;     ///< Number of BCE marker layers attached to boundary and solid surfaces. Default value = 3.
+    Real h_multiplier;      ///< Multiplier to obtain kernel radius, r = h_multiplier * h (depends on kernel type)
+    int num_neighbors;      ///< Number of neighbor particles
+    Real epsMinMarkersDis;  ///< Multiplier for minimum distance between markers (d_min = eps * h)
+    int num_bce_layers;     ///< Number of BCE marker layers attached to boundary and solid surfaces (default: 3)
     Real
         toleranceZone;  ///< Helps determine the particles that are in the domain but are outside the boundaries, so
                         ///< they are not considered fluid particles and are dropped at the beginning of the simulation.
 
-    Real BASEPRES;  ///< Relative value of pressure applied to the whole domain.
+    Real base_pressure;    ///< Relative value of pressure applied to the whole domain
+    Real3 delta_pressure;  ///< Change in Pressure for periodic BC (when particle moves from one side to the other)
 
-    Real3 deltaPress;  ///< Change in Pressure. This is needed for periodic BC. The change in pressure of a particle
-                       ///< when it moves from end boundary to beginning.
+    Real3 V_in;  ///< Inlet velocity for inlet BC
+    Real x_in;   ///< Inlet position for inlet BC
 
-    Real3 V_in;  ///< Inlet velocity. This is needed for inlet BC.
-    Real x_in;   ///< Inlet position. This is needed for inlet BC.
-
-    Real3 gravity;     ///< Gravity. Applied to fluid, rigid and flexible.
-    Real3 bodyForce3;  ///< Constant force applied to the fluid. Flexible and rigid bodies are not affected by this
-                       ///< force directly, but instead they are affected indirectly through the fluid.
+    Real3 gravity;     ///< Gravitational acceleration
+    Real3 bodyForce3;  ///< Constant force applied to the fluid particles (solids not directly affected)
 
     Real rho0;     ///< Density
-    Real invrho0;  ///< Density's inverse
-    Real volume0;  ///< Initial volume of particle
+    Real invrho0;  ///< 1 / rho0
+    Real volume0;  ///< Initial particle volume
 
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
@@ -84,8 +88,8 @@ struct SimParams {
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
 
-    Real kdT;      ///< Implicit integration parameter. Not very important
-    Real gammaBB;  ///< Equation of state parameter.
+    Real kdT;      ///< Implicit integration parameter
+    Real gammaBB;  ///< Equation of state parameter
 
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
@@ -103,18 +107,13 @@ struct SimParams {
                         /// larger densityReinit
 
     bool Conservative_Form;  ///< Whether conservative or consistent discretization should be used
-    int gradient_type;       ///< Type of the gradient operator.
-    int laplacian_type;      ///< Type of the laplacian operator.
+    int gradient_type;       ///< Type of the gradient operator
+    int laplacian_type;      ///< Type of the laplacian operator
 
     bool USE_Consistent_G;  ///< Use consistent discretization for gradient operator
     bool USE_Consistent_L;  ///< Use consistent discretization for laplacian operator
     bool USE_Delta_SPH;     ///< Use delta SPH
     Real density_delta;     ///< Parameter for delta SPH
-    EosType eos_type;       ///< Equation of state type
-    ViscosityType
-        viscosity_type;  ///< Viscosity treatment type, physics-based laminar flow or artificial viscosity
-                         ///< (Artificial Unilateral) or artificial viscosity that also opposes also particle separation
-    BoundaryType boundary_type;  ///< Boundary type - Adami or Holmes
 
     bool DensityBaseProjection;  ///< Set true to use density based projetion scheme in ISPH solver
 
@@ -131,13 +130,13 @@ struct SimParams {
     Real Max_Pressure;             ///< Max Pressure in the pressure solver
     Real PPE_relaxation;           ///< PPE_relaxation
     bool ClampPressure;            ///< Clamp pressure to 0 if negative, based on the ISPH paper by Ihmsen et al. (2013)
-    Real IncompressibilityFactor;  ///< Incompressibility factor, default = 1
+    Real IncompressibilityFactor;  ///< Incompressibility factor (default: 1)
     Real Cs;                       ///< Speed of sound
 
     bool Apply_BC_U;        ///< This option lets you apply a velocity BC on the BCE markers
     Real L_Characteristic;  ///< Characteristic for Re number computation
 
-    bool non_newtonian;       ///< Set true to model non-newtonian fluid.
+    bool non_newtonian;       ///< Set true to model non-newtonian fluid
     Rheology rheology_model;  ///< Model of the rheology
     Real ave_diam;            ///< average particle diameter
     Real cohesion;            ///< c in the stress model sigma=(mu*p+c)/|D|
@@ -153,7 +152,6 @@ struct SimParams {
     Real HB_n;     ///< Herschel–Bulkley  power
     Real HB_tau0;  ///< Herschel–Bulkley yeild stress
 
-    bool elastic_SPH;   ///< Handles the WCSPH solver for fluid (false) or granular (true)
     Real E_young;       ///< Young's modulus
     Real G_shear;       ///< Shear modulus
     Real INV_G_shear;   ///< 1.0 / G_shear

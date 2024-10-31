@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.h_multiplier = 1;
+    sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 4.0;  // maximum velocity should be 2*sqrt(grav * fluid_height)
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;

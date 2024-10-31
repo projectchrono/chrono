@@ -85,11 +85,18 @@ void ChFluidSystemSPH::InitParams() {
 
     // SPH parameters
     m_paramsH->sph_method = SPHMethod::WCSPH;
+    m_paramsH->eos_type = EosType::ISOTHERMAL;
+    m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+    m_paramsH->boundary_type = BoundaryType::ADAMI;
+    m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
+
     m_paramsH->d0 = Real(0.01);
     m_paramsH->ood0 = 1 / m_paramsH->d0;
-    m_paramsH->h_multiplier = Real(1.2);
-    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->d0_multiplier = Real(1.2);
+    m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
     m_paramsH->ooh = 1 / m_paramsH->h;
+    m_paramsH->h_multiplier = 2;
+
     m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->v_Max = Real(1.0);
     m_paramsH->EPS_XSPH = Real(0.5);
@@ -101,9 +108,6 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->USE_Consistent_L = false;
     m_paramsH->USE_Consistent_G = false;
 
-    // Default to artificial viscosity
-    m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
-    m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->density_delta = Real(0.1);
     m_paramsH->USE_Delta_SPH = false;
 
@@ -125,7 +129,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->LinearSolver_Max_Iter = 1000;
     m_paramsH->Verbose_monitoring = false;
     m_paramsH->Pressure_Constraint = false;
-    m_paramsH->BASEPRES = Real(0.0);
+    m_paramsH->base_pressure = Real(0.0);
     m_paramsH->ClampPressure = false;
 
     // Elastic SPH
@@ -222,7 +226,7 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->d0 = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Kernel Multiplier"))
-            m_paramsH->h_multiplier = doc["SPH Parameters"]["Kernel Multiplier"].GetDouble();
+            m_paramsH->d0_multiplier = doc["SPH Parameters"]["Kernel Multiplier"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Epsilon"))
             m_paramsH->epsMinMarkersDis = doc["SPH Parameters"]["Epsilon"].GetDouble();
@@ -232,6 +236,23 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Kernel Type")) {
+            std::string type = doc["SPH Parameters"]["Kernel Type"].GetString();
+            if (type == "Quadratic")
+                m_paramsH->kernel_type = KernelType::QUADRATIC;
+            else if (type == "Cubic")
+                m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
+            else if (type == "Quintic")
+                m_paramsH->kernel_type = KernelType::QUINTIC_SPLINE;
+            else if (type == "Wendland")
+                m_paramsH->kernel_type = KernelType::WENDLAND;
+            else {
+                cerr << "Incorrect kernel type in the JSON file: " << type << endl;
+                cerr << "Falling back to cubic spline." << endl;
+                m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
+            }
+        }
 
         if (doc["SPH Parameters"].HasMember("Boundary Treatment Type")) {
             std::string type = doc["SPH Parameters"]["Boundary Treatment Type"].GetString();
@@ -361,7 +382,7 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["Pressure Equation"].HasMember("Constraint Pressure")) {
             m_paramsH->Pressure_Constraint = doc["Pressure Equation"]["Constraint Pressure"].GetBool();
             if (doc["Pressure Equation"].HasMember("Average Pressure"))
-                m_paramsH->BASEPRES = doc["Pressure Equation"]["Average Pressure"].GetDouble();
+                m_paramsH->base_pressure = doc["Pressure Equation"]["Average Pressure"].GetDouble();
         }
 
         if (doc["Pressure Equation"].HasMember("Clamp Pressure"))
@@ -454,7 +475,7 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
     // Calculate dependent parameters
     m_paramsH->ood0 = 1 / m_paramsH->d0;
-    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
     m_paramsH->ooh = 1 / m_paramsH->h;
     m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
@@ -471,6 +492,32 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
+void ChFluidSystemSPH::SetBoundaryType(BoundaryType boundary_type) {
+    m_paramsH->boundary_type = boundary_type;
+}
+
+void ChFluidSystemSPH::SetViscosityType(ViscosityType viscosity_type) {
+    m_paramsH->viscosity_type = viscosity_type;
+}
+
+void ChFluidSystemSPH::SetKernelType(KernelType kernel_type) {
+    m_paramsH->kernel_type = kernel_type;
+    switch (m_paramsH->kernel_type) {
+        case KernelType::QUADRATIC:
+            m_paramsH->h_multiplier = 2;
+            break;
+        case KernelType::CUBIC_SPLINE:
+            m_paramsH->h_multiplier = 2;
+            break;
+        case KernelType::QUINTIC_SPLINE:
+            m_paramsH->h_multiplier = 3;
+            break;
+        case KernelType::WENDLAND:
+            m_paramsH->h_multiplier = 2;
+            break;
+    }
+}
 
 void ChFluidSystemSPH::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
@@ -527,14 +574,14 @@ void ChFluidSystemSPH::SetInitialSpacing(double spacing) {
     m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 
-    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
     m_paramsH->ooh = 1 / m_paramsH->h;
 }
 
 void ChFluidSystemSPH::SetKernelMultiplier(double multiplier) {
-    m_paramsH->h_multiplier = Real(multiplier);
+    m_paramsH->d0_multiplier = Real(multiplier);
 
-    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
     m_paramsH->ooh = 1 / m_paramsH->h;
 }
 
@@ -562,6 +609,41 @@ void ChFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
 }
 
 void ChFluidSystemSPH::CheckSPHParameters() {
+    // Check parameter compatibility with physics problem
+    if (m_paramsH->elastic_SPH) {
+        if (m_paramsH->sph_method != SPHMethod::WCSPH) {
+            cerr << "ERROR: Only WCSPH can be used for granular CRM problems." << endl;
+            throw std::runtime_error("ISPH not supported for granular CRM problems.");
+        }
+        if (m_paramsH->non_newtonian) {
+            cerr << "ERROR: Non-Newtonian viscosity model is not supported for granular CRM." << endl;
+            throw std::runtime_error("Non-Newtonian viscosity model is not supported for granular CRM.");
+        }
+        if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
+            cerr << "ERROR: Viscosity type LAMINAR not supported for CRM granular. "
+                    " Use ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL."
+                 << endl;
+            throw std::runtime_error("Viscosity type LAMINAR not supported for CRM granular.");
+        }
+        if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_UNILATERAL) {
+            cerr << "WARNING: Viscosity type ARTIFICIAL_UNILATERAL may be less stable for CRM granular. "
+                    "Consider using ARTIFICIAL_BILATERAL or ensure the step size is small enough."
+                 << endl;
+        }
+        if (m_paramsH->mu0 > Real(0.001)) {
+            cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
+                 << " but the viscosity model is not laminar. This parameter will have no influence on simulation."
+                 << endl;
+        }
+    } else {
+        if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
+            cerr << "ERROR: Viscosity type ARTIFICIAL_BILATERAL not supported for CFD. "
+                    " Use ARTIFICIAL_UNILATERAL or LAMINAR."
+                 << endl;
+            throw std::runtime_error("Viscosity type ARTIFICIAL_BILATERAL not supported for CFD.");
+        }
+    }
+
     // Calculate default cMin and cMax
     Real3 default_cMin =
         mR3(-2 * m_paramsH->boxDims.x, -2 * m_paramsH->boxDims.y, -2 * m_paramsH->boxDims.z) - 10 * mR3(m_paramsH->h);
@@ -572,32 +654,29 @@ void ChFluidSystemSPH::CheckSPHParameters() {
     if (m_paramsH->cMin.x < 2 * default_cMin.x || m_paramsH->cMin.y < 2 * default_cMin.y ||
         m_paramsH->cMin.z < 2 * default_cMin.z || m_paramsH->cMax.x > 2 * default_cMax.x ||
         m_paramsH->cMax.y > 2 * default_cMax.y || m_paramsH->cMax.z > 2 * default_cMax.z) {
-        std::cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
-                  << "This may slow down the simulation." << std::endl;
+        cerr << "WARNING: User-defined cMin or cMax is much larger than the default values. "
+             << "This may slow down the simulation." << endl;
     }
 
-    if (m_paramsH->h_multiplier < 1) {
-        std::cerr << "WARNING: Kernel interaction radius multiplier is less than 1. This may lead to numerical "
-                     "instability due to poor particle approximation."
-                  << std::endl;
+    if (m_paramsH->d0_multiplier < 1) {
+        cerr << "WARNING: Kernel interaction length multiplier is less than 1. This may lead to numerical "
+                "instability due to poor particle approximation."
+             << endl;
     }
 
-    if (m_paramsH->h_multiplier > 1.5) {
-#ifdef W3h
-    // Check if W3h is defined as W3h_CubicSpline
-    #if W3h == W3h_CubicSpline
-        std::cerr << "WARNING: Kernel interaction radius multiplier is greater than 1.5 and the cubic spline kernel is "
-                     "used. This may lead to pairing instability. See Pg 10. of Ha H.Bui et al. Smoothed particle "
-                     "hydrodynamics (SPH) and its applications in geomechanics : From solid fracture to granular "
-                     "behaviour and multiphase flows in porous media. You might want to switch to the Wendland kernel."
-                  << std::endl;
-    #endif
+    if (m_paramsH->kernel_type == KernelType::CUBIC_SPLINE && m_paramsH->d0_multiplier > 1.5) {
+        // Check if W3h is defined as W3h_CubicSpline
+        cerr << "WARNING: Kernel interaction radius multiplier is greater than 1.5 and the cubic spline kernel is "
+                "used. This may lead to pairing instability. See Pg 10. of Ha H.Bui et al. Smoothed particle "
+                "hydrodynamics (SPH) and its applications in geomechanics : From solid fracture to granular "
+                "behaviour and multiphase flows in porous media. You might want to switch to the Wendland kernel."
+             << endl;
     }
-#endif
+
     if (m_paramsH->num_bce_layers < 3) {
-        std::cerr << "WARNING: Number of BCE layers is less than 3. This may cause insufficient kernel support at the "
-                     "boundaries and lead to leakage of particles"
-                  << std::endl;
+        cerr << "WARNING: Number of BCE layers is less than 3. This may cause insufficient kernel support at the "
+                "boundaries and lead to leakage of particles"
+             << endl;
     }
 }
 
@@ -610,14 +689,6 @@ void ChFluidSystemSPH::SetCfdSPH(const FluidProperties& fluid_props) {
 
     m_paramsH->mu0 = Real(fluid_props.viscosity);
     m_paramsH->L_Characteristic = Real(fluid_props.char_length);
-}
-
-void ChFluidSystemSPH::CheckParametersCfdSPH() {
-    if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
-        throw std::runtime_error(
-            "ERROR: Viscosity type is set to ARTIFICIAL_BILATERAL for CFD SPH. This is not supported. Either set "
-            "viscosity type to ARTIFICIAL_UNILATERAL or LAMINAR.");
-    }
 }
 
 ChFluidSystemSPH::ElasticMaterialProperties::ElasticMaterialProperties()
@@ -649,26 +720,10 @@ void ChFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_props)
     m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
 }
 
-void ChFluidSystemSPH::CheckParametersElasticSPH() {
-    if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
-        throw std::runtime_error(
-            "ERROR: Viscosity type is set to LAMINAR for elastic SPH. This is not supported. Either set viscosity type "
-            "to ARTIFICIAL_UNILATERAL or ARTIFICIAL_BILATERAL");
-    }
-    if (m_paramsH->mu0 != Real(0.001)) {
-        std::cerr << "WARNING: The Laminar viscosity parameter has been set to " << m_paramsH->mu0
-                  << " while the viscosity model is not laminar"
-                  << ". This parameter will thus have no effect on the simulation" << std::endl;
-    }
-    if (m_paramsH->non_newtonian) {
-        throw std::runtime_error("ERROR: Non-Newtonian viscosity model is not supported for elastic SPH.");
-    }
-}
-
 ChFluidSystemSPH::SPHParameters::SPHParameters()
     : sph_method(SPHMethod::WCSPH),
       initial_spacing(0.01),
-      h_multiplier(1.2),
+      d0_multiplier(1.2),
       max_velocity(1.0),
       xsph_coefficient(0.5),
       shifting_coefficient(1.0),
@@ -680,6 +735,7 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       consistent_laplacian_discretization(false),
       viscosity_type(ViscosityType::ARTIFICIAL_UNILATERAL),
       boundary_type(BoundaryType::ADAMI),
+      kernel_type(KernelType::CUBIC_SPLINE),
       use_delta_sph(true),
       delta_sph_coefficient(0.1),
       artificial_viscosity(0.02),
@@ -690,9 +746,14 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
 void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
 
+    m_paramsH->eos_type = sph_params.eos_type;
+    m_paramsH->viscosity_type = sph_params.viscosity_type;
+    m_paramsH->boundary_type = sph_params.boundary_type;
+    m_paramsH->kernel_type = sph_params.kernel_type;
+
     m_paramsH->d0 = sph_params.initial_spacing;
-    m_paramsH->h_multiplier = sph_params.h_multiplier;
-    m_paramsH->h = m_paramsH->h_multiplier * m_paramsH->d0;
+    m_paramsH->d0_multiplier = sph_params.d0_multiplier;
+    m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
     m_paramsH->ood0 = 1 / m_paramsH->d0;
     m_paramsH->ooh = 1 / m_paramsH->h;
 
@@ -709,10 +770,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
 
     m_paramsH->USE_Consistent_G = sph_params.consistent_gradient_discretization;
     m_paramsH->USE_Consistent_L = sph_params.consistent_laplacian_discretization;
-    m_paramsH->viscosity_type = sph_params.viscosity_type;
-    m_paramsH->boundary_type = sph_params.boundary_type;
     m_paramsH->Ar_vis_alpha = sph_params.artificial_viscosity;
-    m_paramsH->eos_type = sph_params.eos_type;
     m_paramsH->USE_Delta_SPH = sph_params.use_delta_sph;
     m_paramsH->density_delta = sph_params.delta_sph_coefficient;
 
@@ -939,6 +997,22 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         SetStepSize(m_paramsH->dT);
     }
 
+    // Set kernel radius factor (based on kernel type)
+    switch (m_paramsH->kernel_type) {
+        case KernelType::QUADRATIC:
+            m_paramsH->h_multiplier = 2;
+            break;
+        case KernelType::CUBIC_SPLINE:
+            m_paramsH->h_multiplier = 2;
+            break;
+        case KernelType::QUINTIC_SPLINE:
+            m_paramsH->h_multiplier = 3;
+            break;
+        case KernelType::WENDLAND:
+            m_paramsH->h_multiplier = 2;
+            break;
+    }
+
     // Initialize SPH particle mass and number of neighbors
     {
         Real sum = 0;
@@ -948,7 +1022,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             for (int j = -IDX; j <= IDX; j++) {
                 for (int k = -IDX; k <= IDX; k++) {
                     Real3 pos = mR3(i, j, k) * m_paramsH->d0;
-                    Real W = W3h(length(pos), m_paramsH->ooh);
+                    Real W = W3h(m_paramsH->kernel_type, length(pos), m_paramsH->ooh);
                     sum += W;
                     if (W > 0)
                         count++;
@@ -982,16 +1056,16 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
     // Set up subdomains for faster neighbor particle search
     m_paramsH->Apply_BC_U = false;  // You should go to CustomMath.h all the way to end of file and set your function
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * m_paramsH->h)));
+    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
+                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
     Real3 binSize3 =
         mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y,
             (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
     m_paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
     m_paramsH->binSize0 = binSize3.x;
     m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
-    m_paramsH->deltaPress = mR3(0);
+    m_paramsH->delta_pressure = mR3(0);
     int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1),
                     int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
                     int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
@@ -1053,6 +1127,20 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         } else {
             cout << "  Boundary treatment: Adami" << endl;
         }
+        switch (m_paramsH->kernel_type) {
+            case KernelType::QUADRATIC:
+                cout << "  Kernel type: Quadratic" << endl;
+                break;
+            case KernelType::CUBIC_SPLINE:
+                cout << "  Kernel type: Cubic Spline" << endl;
+                break;
+            case KernelType::QUINTIC_SPLINE:
+                cout << "  Kernel type: Quintic Spline" << endl;
+                break;
+            case KernelType::WENDLAND:
+                cout << "  Kernel type: Wendland Quintic" << endl;
+                break;
+        }
 
         cout << "  num_neighbors: " << m_paramsH->num_neighbors << endl;
         cout << "  rho0: " << m_paramsH->rho0 << endl;
@@ -1065,7 +1153,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
         cout << "  d0: " << m_paramsH->d0 << endl;
         cout << "  1/d0: " << m_paramsH->ood0 << endl;
-        cout << "  h_multiplier: " << m_paramsH->h_multiplier << endl;
+        cout << "  d0_multiplier: " << m_paramsH->d0_multiplier << endl;
         cout << "  h: " << m_paramsH->h << endl;
         cout << "  1/h: " << m_paramsH->ooh << endl;
 
@@ -1153,12 +1241,6 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     }
 
     CheckSPHParameters();
-
-    if (m_paramsH->elastic_SPH) {
-        CheckParametersElasticSPH();
-    } else {
-        CheckParametersCfdSPH();
-    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1265,7 +1347,7 @@ void ChFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                       const ChVector3d& vel,
                                       const ChVector3d& tauXxYyZz,
                                       const ChVector3d& tauXyXzYz) {
-    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
+    AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
 }
 
 void ChFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
@@ -2356,7 +2438,7 @@ double ChFluidSystemSPH::GetViscosity() const {
 }
 
 double ChFluidSystemSPH::GetBasePressure() const {
-    return m_paramsH->BASEPRES;
+    return m_paramsH->base_pressure;
 }
 
 double ChFluidSystemSPH::GetParticleMass() const {

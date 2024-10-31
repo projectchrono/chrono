@@ -11,7 +11,9 @@
 // =============================================================================
 // Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
-// This file contains miscellaneous macros and utilities used in the SPH code.
+//
+// SPH utility functions
+//
 // =============================================================================
 
 #ifndef CH_SPH_GENERAL_CUH
@@ -40,28 +42,6 @@ void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<
 #define EPSILON Real(1e-8)
 
 //--------------------------------------------------------------------------------------------------------------------------------
-
-// Kernel function and gradient
-
-#if defined(CHRONO_SPH_KERNEL_QUADRATIC)
-    #define W3h W3h_Quadratic
-    #define GradWh GradWh_Quadratic
-    #define RESOLUTION_LENGTH_MULT 2
-#elif defined(CHRONO_SPH_KERNEL_CUBICSPLINE)
-    #define W3h W3h_CubicSpline
-    #define GradWh GradWh_CubicSpline
-    #define RESOLUTION_LENGTH_MULT 2
-#elif defined(CHRONO_SPH_KERNEL_QUINTICSPLINE)
-    #define W3h W3h_QuinticSpline
-    #define GradWh GradWh_QuinticSpline
-    #define RESOLUTION_LENGTH_MULT 3
-#elif defined(CHRONO_SPH_KERNEL_WENDLAND)
-    #define W3h W3h_Wendland
-    #define GradWh GradWh_Wendland
-    #define RESOLUTION_LENGTH_MULT 2
-#endif
-
-//--------------------------------------------------------------------------------------------------------------------------------
 // Cubic Spline SPH kernel function
 // d > 0 is the distance between 2 particles. h is the SPH kernel length
 
@@ -79,7 +59,7 @@ inline __host__ __device__ Real W3h_CubicSpline(Real d, Real invh) {
     return 0;
 }
 
-inline __host__ __device__ Real3 GradWh_CubicSpline(Real3 d, Real invh) {
+inline __host__ __device__ Real3 GradW3h_CubicSpline(Real3 d, Real invh) {
     Real q = length(d) * invh;
     if (abs(q) < EPSILON)
         return mR3(0);
@@ -109,7 +89,7 @@ inline __host__ __device__ Real W3h_Quadratic(Real d, Real invh) {
     return 0;
 }
 
-inline __host__ __device__ Real3 GradWh_Quadratic(Real3 d, Real invh) {
+inline __host__ __device__ Real3 GradW3h_Quadratic(Real3 d, Real invh) {
     Real q = length(d) * invh;
     if (abs(q) < EPSILON)
         return mR3(0);
@@ -142,7 +122,7 @@ inline __host__ __device__ Real W3h_QuinticSpline(Real d, Real invh) {
     return 0;
 }
 
-inline __host__ __device__ Real3 GradWh_QuinticSpline(Real3 d, Real invh) {
+inline __host__ __device__ Real3 GradW3h_QuinticSpline(Real3 d, Real invh) {
     Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
         return mR3(0);
@@ -175,7 +155,7 @@ inline __host__ __device__ Real W3h_Wendland(Real d, Real invh) {
     return 0;
 }
 
-inline __host__ __device__ Real3 GradWh_Wendland(Real3 d, Real invh) {
+inline __host__ __device__ Real3 GradW3h_Wendland(Real3 d, Real invh) {
     Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
         return mR3(0);
@@ -186,6 +166,42 @@ inline __host__ __device__ Real3 GradWh_Wendland(Real3 d, Real invh) {
         return (beta * cube(2 - q)) * d;
     }
     return mR3(0);
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+inline __host__ __device__ Real W3h(KernelType type, Real d, Real invh) {
+    switch (type) {
+        case KernelType::QUADRATIC:
+            return W3h_Quadratic(d, invh);
+            break;
+        case KernelType::CUBIC_SPLINE:
+            return W3h_CubicSpline(d, invh);
+            break;
+        case KernelType::QUINTIC_SPLINE:
+            return W3h_QuinticSpline(d, invh);
+            break;
+        case KernelType::WENDLAND:
+            return W3h_Wendland(d, invh);
+            break;
+    }
+}
+
+inline __host__ __device__ Real3 GradW3h(KernelType type, Real3 d, Real invh) {
+    switch (type) {
+        case KernelType::QUADRATIC:
+            return GradW3h_Quadratic(d, invh);
+            break;
+        case KernelType::CUBIC_SPLINE:
+            return GradW3h_CubicSpline(d, invh);
+            break;
+        case KernelType::QUINTIC_SPLINE:
+            return GradW3h_QuinticSpline(d, invh);
+            break;
+        case KernelType::WENDLAND:
+            return GradW3h_Wendland(d, invh);
+            break;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -203,7 +219,7 @@ inline __device__ Real Eos(Real rho, EosType eos_type) {
             //      rho = paramsD.rho0; //
             Real gama = 7;
             Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
-            return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES;
+            return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.base_pressure;
         }
         case EosType::ISOTHERMAL: {
             // Isothermal equation of state
@@ -219,7 +235,7 @@ inline __device__ Real InvEos(Real pw, EosType eos_type) {
             Real gama = 7;
             Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;  // 200;//314e6; //c^2 * paramsD.rho0 /
                                                                                  // gama where c = 1484 m/s for water
-            Real powerComp = (pw - paramsD.BASEPRES) / B + 1.0;
+            Real powerComp = (pw - paramsD.base_pressure) / B + 1.0;
             Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama)
                                        : -paramsD.rho0 * pow(fabs(powerComp), 1.0 / gama);
             return rho;

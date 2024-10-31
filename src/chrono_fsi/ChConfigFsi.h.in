@@ -30,15 +30,4 @@
 //   #define CHRONO_FSI_USE_DOUBLE
 @CHRONO_FSI_USE_DOUBLE@
 
-// -----------------------------------------------------------------------------
-// Definitions specific to the SPH-based FSI module 
-
-// SPH kernel function type
-// One and only one of the following will be defined: 
-//   CHRONO_SPH_KERNEL_QUADRATIC
-//   CHRONO_SPH_KERNEL_CUBICSPLINE
-//   CHRONO_SPH_KERNEL_QUINTICSPLINE
-//   CHRONO_SPH_KERNEL_WENDLAND
-@CHRONO_SPH_KERNEL_TYPE@
-
 #endif

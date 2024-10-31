@@ -48,9 +48,9 @@ __device__ void collideCellDensityReInit(Real& numerator,
             Real4 rhoPreMuB = sortedRhoPreMu[j];
             Real3 dist3 = Distance(posRadA, posRadB);
             Real d = length(dist3);
-            if (d > RESOLUTION_LENGTH_MULT * paramsD.h)
+            if (d > paramsD.h_multiplier * paramsD.h)
                 continue;
-            Real w = W3h(d, paramsD.ooh);
+            Real w = W3h(paramsD.kernel_type, d, paramsD.ooh);
             numerator += paramsD.markerMass * w;
             denominator += paramsD.markerMass / rhoPreMuB.x * w;
         }
@@ -79,13 +79,13 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, 
     if (posRad.x > paramsD.cMax.x) {
         posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMuD[index].y += paramsD.deltaPress.x;
+        rhoPresMuD[index].y += paramsD.delta_pressure.x;
         return;
     }
     if (posRad.x < paramsD.cMin.x) {
         posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMuD[index].y -= paramsD.deltaPress.x;
+        rhoPresMuD[index].y -= paramsD.delta_pressure.x;
         return;
     }
 }
@@ -108,14 +108,14 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
     if (posRad.x > paramsD.cMax.x) {
         posRad.x -= (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.x;
+        rhoPresMu.y = rhoPresMu.y + paramsD.delta_pressure.x;
         rhoPresMuD[index] = rhoPresMu;
     }
     if (posRad.x < paramsD.cMin.x) {
         posRad.x += (paramsD.cMax.x - paramsD.cMin.x);
         posRadD[index] = mR4(posRad, h);
         VelMassD[index] = mR3(paramsD.V_in.x, 0, 0);
-        rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.x;
+        rhoPresMu.y = rhoPresMu.y - paramsD.delta_pressure.x;
         rhoPresMuD[index] = rhoPresMu;
     }
 
@@ -148,14 +148,14 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
     if (posRad.y > paramsD.cMax.y) {
         posRad.y -= (paramsD.cMax.y - paramsD.cMin.y);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.y;
+        rhoPresMu.y = rhoPresMu.y + paramsD.delta_pressure.y;
         rhoPresMuD[index] = rhoPresMu;
         return;
     }
     if (posRad.y < paramsD.cMin.y) {
         posRad.y += (paramsD.cMax.y - paramsD.cMin.y);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.y;
+        rhoPresMu.y = rhoPresMu.y - paramsD.delta_pressure.y;
         rhoPresMuD[index] = rhoPresMu;
         return;
     }
@@ -183,14 +183,14 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, 
     if (posRad.z > paramsD.cMax.z) {
         posRad.z -= (paramsD.cMax.z - paramsD.cMin.z);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMu.y = rhoPresMu.y + paramsD.deltaPress.z;
+        rhoPresMu.y = rhoPresMu.y + paramsD.delta_pressure.z;
         rhoPresMuD[index] = rhoPresMu;
         return;
     }
     if (posRad.z < paramsD.cMin.z) {
         posRad.z += (paramsD.cMax.z - paramsD.cMin.z);
         posRadD[index] = mR4(posRad, h);
-        rhoPresMu.y = rhoPresMu.y - paramsD.deltaPress.z;
+        rhoPresMu.y = rhoPresMu.y - paramsD.delta_pressure.z;
         rhoPresMuD[index] = rhoPresMu;
         return;
     }
@@ -448,7 +448,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     uint isNotExtended = 0;
 
     Real3 Acdomain = paramsD.bodyActiveDomain;
-    Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.h);
+    Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
 
     Real3 posRadA = mR3(posRadD[index]);
 

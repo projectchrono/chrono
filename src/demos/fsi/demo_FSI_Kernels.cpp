@@ -57,28 +57,28 @@ int main(int argc, char* argv[]) {
         {
             // Quadratic kernel
             Real w = W3h_Quadratic(x, invh);
-            Real3 gw = GradWh_Quadratic(mR3(x, 0, 0), invh);
+            Real3 gw = GradW3h_Quadratic(mR3(x, 0, 0), invh);
             w_quadratic_func.AddPoint(x, w);
             w_quadratic_grad.AddPoint(x, gw.x);
         }
         {
             // Cubic spline kernel
             Real w = W3h_CubicSpline(x, invh);
-            Real3 gw = GradWh_CubicSpline(mR3(x, 0, 0), invh);
+            Real3 gw = GradW3h_CubicSpline(mR3(x, 0, 0), invh);
             w_cubicspline_func.AddPoint(x, w);
             w_cubicspline_grad.AddPoint(x, gw.x);
         }
         {
             // Quintic spline kernel
             Real w = W3h_QuinticSpline(x, invh);
-            Real3 gw = GradWh_QuinticSpline(mR3(x, 0, 0), invh);
+            Real3 gw = GradW3h_QuinticSpline(mR3(x, 0, 0), invh);
             w_quinticspline_func.AddPoint(x, w);
             w_quinticspline_grad.AddPoint(x, gw.x);
         }
         {
             // Wendland kernel
             Real w = W3h_Wendland(x, invh);
-            Real3 gw = GradWh_Wendland(mR3(x, 0, 0), invh);
+            Real3 gw = GradW3h_Wendland(mR3(x, 0, 0), invh);
             w_wendland_func.AddPoint(x, w);
             w_wendland_grad.AddPoint(x, gw.x);
         }
