@@ -80,6 +80,14 @@ class BceManager {
     thrust::device_vector<Real3> m_totalForceRigid;   ///< Total forces from fluid to bodies
     thrust::device_vector<Real3> m_totalTorqueRigid;  ///< Total torques from fluid to bodies
 
+    uint m_rigidBodyBlockSize;  ///< Block size used for kernel that accumulates force from Rigid BCE markers
+    uint m_rigidBodyGridSize;   ///< Grid size used for kernel that accumulates force from Rigid BCE markers
+    thrust::device_vector<uint> m_rigidBodyBlockValidThreads;  ///< Vector of size number of blocks that holds the
+                                                               ///< number of valid (non-padding) threads in the block
+    thrust::device_vector<uint>
+        m_rigidBodyAccumulatedPaddedThreads;  ///< Vector of size number of blocks that holds the accumulated number of
+                                              ///< padded threads uptill that block
+
     bool m_verbose;
 
     // Calculate accelerations of solid BCE markers based on the information of the ChSystem.

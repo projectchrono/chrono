@@ -67,6 +67,8 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
 
 __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
                                   Real3* __restrict__ rigid_FSI_TorquesD,
+                                  const uint* __restrict__ rigidBodyBlockValidThreads,
+                                  const uint* __restrict__ rigidBodyAccumulatedPaddedThreads,
                                   const Real4* __restrict__ derivVelRhoD,
                                   const Real4* __restrict__ posRadD,
                                   const uint* __restrict__ rigid_BCEsolids_D,
@@ -76,82 +78,76 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
                                   const Real markerMass,
                                   const uint startRigidMarkers,
                                   const SPHMethod sph_method) {
-    // Shared memory allocations
     extern __shared__ char sharedMem[];
-    Real3* sharedForces = (Real3*)sharedMem;                       // Size: blockDim.x
-    Real3* sharedTorques = (Real3*)&sharedForces[blockDim.x];      // Size: blockDim.x
-    uint* sharedRigidIndices = (uint*)&sharedTorques[blockDim.x];  // Size: blockDim.x
+    const uint blockSize = blockDim.x;
 
-    // Reduction needs to know what threads in the block are valid
-    // Since some will be removed if there global index is greater than numRigidMarkers
-    uint validThreads = numRigidMarkers - blockIdx.x * blockDim.x;
-    if (validThreads > blockDim.x)
-        validThreads = blockDim.x;
+    // Shared memory allocations
+    Real3* sharedForces = (Real3*)sharedMem;                  // Size: blockSize
+    Real3* sharedTorques = (Real3*)&sharedForces[blockSize];  // Size: blockSize
 
-    uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if (globalIndex >= numRigidMarkers)
+    uint threadIdx_x = threadIdx.x;
+    uint globalIndex = blockIdx.x * blockDim.x + threadIdx_x;
+
+    // Valid threads in current block
+    uint validThreads = rigidBodyBlockValidThreads[blockIdx.x];
+    // Valid threads in previous block
+    uint paddedThreads = rigidBodyAccumulatedPaddedThreads[blockIdx.x];
+
+    uint globalIndex_with_padding = globalIndex - paddedThreads;
+
+    if (globalIndex_with_padding >= numRigidMarkers)
         return;
 
-    // Compute indices
-    uint rigidMarkerIndex = globalIndex + startRigidMarkers;
+    uint rigidMarkerIndex = globalIndex_with_padding + startRigidMarkers;
+
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
 
     // Get RigidIndex for the current marker
-    uint RigidIndex = rigid_BCEsolids_D[globalIndex];
+    uint RigidIndex = rigid_BCEsolids_D[globalIndex_with_padding];
 
-    // Store RigidIndex in shared memory - This is the Rigid Body index of each BCE marker
-    sharedRigidIndices[threadIdx.x] = RigidIndex;
+    Real3 Force = make_Real3(0.0f, 0.0f, 0.0f);
+    Real3 Torque = make_Real3(0.0f, 0.0f, 0.0f);
+    if (threadIdx_x < validThreads) {
+        if (sph_method == SPHMethod::WCSPH) {
+            Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
+        } else {
+            Force = mR3(derivVelRhoD[sortedIndex]);
+        }
 
-    // Compute force
-    Real3 Force;
-    if (sph_method == SPHMethod::WCSPH) {
-        Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
-    } else {
-        Force = mR3(derivVelRhoD[sortedIndex]);
+        Real3 dist3 = mR3(posRadD[sortedIndex]) - posRigidD[RigidIndex];
+        Torque = cross(dist3, Force);
     }
-    Real3 dist3 = mR3(posRadD[sortedIndex]) - posRigidD[RigidIndex];
-    Real3 Torque = cross(dist3, Force);
 
-    // Compute block local BCE marker force and torque
-    sharedForces[threadIdx.x] = Force;
-    sharedTorques[threadIdx.x] = Torque;
+    sharedForces[threadIdx_x] = Force;
+    sharedTorques[threadIdx_x] = Torque;
 
     __syncthreads();
 
-    // Perform reduction at block level to store accumulated force and torque at array position 0 or at array psoitions
-    // where the rigidIndex changes Force accumulates only if the rigidIndex matches
-    for (uint stride = 1; stride < blockDim.x; stride *= 2) {
-        uint index = 2 * stride * threadIdx.x;
-        if (index + stride < validThreads) {
-            if (sharedRigidIndices[index] == sharedRigidIndices[index + stride]) {
-                sharedForces[index].x += sharedForces[index + stride].x;
-                sharedForces[index].y += sharedForces[index + stride].y;
-                sharedForces[index].z += sharedForces[index + stride].z;
+    // Standard block wise reduction - each block only contains elements from a single rigid body
+    for (uint stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (threadIdx_x < stride && threadIdx_x + stride < validThreads) {
+            sharedForces[threadIdx_x].x += sharedForces[threadIdx_x + stride].x;
+            sharedForces[threadIdx_x].y += sharedForces[threadIdx_x + stride].y;
+            sharedForces[threadIdx_x].z += sharedForces[threadIdx_x + stride].z;
 
-                sharedTorques[index].x += sharedTorques[index + stride].x;
-                sharedTorques[index].y += sharedTorques[index + stride].y;
-                sharedTorques[index].z += sharedTorques[index + stride].z;
-            }
+            sharedTorques[threadIdx_x].x += sharedTorques[threadIdx_x + stride].x;
+            sharedTorques[threadIdx_x].y += sharedTorques[threadIdx_x + stride].y;
+            sharedTorques[threadIdx_x].z += sharedTorques[threadIdx_x + stride].z;
         }
         __syncthreads();
     }
 
-    // The first thread for each rigid body in the block performs atomic addition
-    if ((threadIdx.x == 0 || sharedRigidIndices[threadIdx.x] != sharedRigidIndices[threadIdx.x - 1]) &&
-        (threadIdx.x < validThreads)) {
-        uint idx = threadIdx.x;
-        uint rid = sharedRigidIndices[idx];
-
+    if (threadIdx_x == 0) {
         // Atomic addition to global arrays
-        atomicAdd(&rigid_FSI_ForcesD[rid].x, sharedForces[idx].x);
-        atomicAdd(&rigid_FSI_ForcesD[rid].y, sharedForces[idx].y);
-        atomicAdd(&rigid_FSI_ForcesD[rid].z, sharedForces[idx].z);
+        atomicAdd(&rigid_FSI_ForcesD[RigidIndex].x, sharedForces[0].x);
+        atomicAdd(&rigid_FSI_ForcesD[RigidIndex].y, sharedForces[0].y);
+        atomicAdd(&rigid_FSI_ForcesD[RigidIndex].z, sharedForces[0].z);
 
-        atomicAdd(&rigid_FSI_TorquesD[rid].x, sharedTorques[idx].x);
-        atomicAdd(&rigid_FSI_TorquesD[rid].y, sharedTorques[idx].y);
-        atomicAdd(&rigid_FSI_TorquesD[rid].z, sharedTorques[idx].z);
+        atomicAdd(&rigid_FSI_TorquesD[RigidIndex].x, sharedTorques[0].x);
+        atomicAdd(&rigid_FSI_TorquesD[RigidIndex].y, sharedTorques[0].y);
+        atomicAdd(&rigid_FSI_TorquesD[RigidIndex].z, sharedTorques[0].z);
     }
-};
+}
 
 __global__ void CalcFlex1DForces_D(Real3* __restrict__ flex1D_FSIforces_D,
                                    const Real4* __restrict__ derivVelRhoD,
@@ -649,6 +645,8 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
 BceManager::BceManager(FsiDataManager& data_mgr, bool verbose) : m_data_mgr(data_mgr), m_verbose(verbose) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
+    m_rigidBodyBlockSize = 512;
+    m_rigidBodyGridSize = 0;
 }
 
 BceManager::~BceManager() {}
@@ -699,12 +697,37 @@ void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
 void BceManager::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
     // Create map between a BCE on a rigid body and the associated body ID
     uint start_bce = 0;
+    thrust::host_vector<uint> h_rigidBodyBlockValidThreads(0);
+    // 1 zero is pre added so that in a block with invalid threads, there is no need to map back the invalid threads in
+    // the global array. This is only required in the very next block
+    thrust::host_vector<uint> h_rigidBodyAccumulatedPaddedThreads(1, 0);
+    uint accumulatedPaddedThreads = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
         uint end_bce = start_bce + fsiBodyBceNum[irigid];
         thrust::fill(m_data_mgr.rigid_BCEsolids_D.begin() + start_bce, m_data_mgr.rigid_BCEsolids_D.begin() + end_bce,
                      irigid);
+
+        // Calculate block requirements with thread padding to ensure that during rigid body force accumulation
+        // each block only handles one rigid body
+        // For bodies with > m_rigidBodyBlockSize BCE markers, we need to split the work into multiple blocks and pad
+        // the last block with invalid threads
+        // For bodies with <= m_rigidBodyBlockSize BCE markers, we only need one block and pad that block with invalid
+        // threads
+        // Additionally, we accumulate the number of padded thread in each block to ensure we go to the right global
+        // index which does not account for thread padding
+        uint numBlocks = (fsiBodyBceNum[irigid] + m_rigidBodyBlockSize - 1) / m_rigidBodyBlockSize;
+        for (uint blockNum = 0; blockNum < numBlocks; blockNum++) {
+            uint numValidThreads = min(m_rigidBodyBlockSize, fsiBodyBceNum[irigid] - blockNum * m_rigidBodyBlockSize);
+            h_rigidBodyBlockValidThreads.push_back(numValidThreads);
+            uint numPaddedThreadsInThisBlock = m_rigidBodyBlockSize - numValidThreads;
+            accumulatedPaddedThreads += numPaddedThreadsInThisBlock;
+            h_rigidBodyAccumulatedPaddedThreads.push_back(accumulatedPaddedThreads);
+        }
+        m_rigidBodyGridSize += numBlocks;
         start_bce = end_bce;
     }
+    m_rigidBodyBlockValidThreads = h_rigidBodyBlockValidThreads;
+    m_rigidBodyAccumulatedPaddedThreads = h_rigidBodyAccumulatedPaddedThreads;
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
@@ -816,7 +839,6 @@ void BceManager::updateBCEAcc() {
 }
 
 // -----------------------------------------------------------------------------
-
 void BceManager::Rigid_Forces_Torques() {
     if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
@@ -824,18 +846,16 @@ void BceManager::Rigid_Forces_Torques() {
     thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
     thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
 
-    uint nBlocks, nThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 512, nBlocks, nThreads);
-    // Need forces and torques as well as rigid index of the particular BCE marker in shared memory
-    size_t sharedMemSize = (2 * nThreads * sizeof(Real3)) + (nThreads * sizeof(uint));
+    // Calculate shared memory size
+    size_t sharedMemSize = 2 * m_rigidBodyBlockSize * sizeof(Real3);
 
-    // Launch the kernel
-    CalcRigidForces_D<<<nBlocks, nThreads, sharedMemSize>>>(
-        mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), mR4CAST(m_data_mgr.derivVelRhoD),
-        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-        (uint)m_data_mgr.countersH->numRigidMarkers, m_data_mgr.paramsH->markerMass,
-        m_data_mgr.countersH->startRigidMarkers, m_data_mgr.paramsH->sph_method);
+    CalcRigidForces_D<<<m_rigidBodyGridSize, m_rigidBodyBlockSize, sharedMemSize>>>(
+        mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD),
+        U1CAST(m_rigidBodyBlockValidThreads), U1CAST(m_rigidBodyAccumulatedPaddedThreads),
+        mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
+        U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->numRigidMarkers,
+        m_data_mgr.paramsH->markerMass, m_data_mgr.countersH->startRigidMarkers, m_data_mgr.paramsH->sph_method);
 
     cudaDeviceSynchronize();
     cudaCheckError();
