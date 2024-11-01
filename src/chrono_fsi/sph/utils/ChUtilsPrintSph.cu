@@ -330,6 +330,7 @@ void SaveParticleDataCRM(const std::string& dir,
 // Worker function to write current data for all FSI solids.
 void SaveAllSolid(const std::string& dir,
                   const std::string& delim,
+                  double time,
                   thrust::host_vector<Real3> posRigid,
                   thrust::host_vector<Real4> rotRigid,
                   thrust::host_vector<Real3> velRigid,
@@ -455,7 +456,7 @@ void SaveSolidData(const std::string& dir,
 
     // Start printing in a separate thread and detach the thread to allow independent execution
     std::thread th(SaveAllSolid,                                                //
-                   dir, delim,                                                  //
+                   dir, delim, time,                                            //
                    posRigidH, rotRigidH, velRigidH, forceRigidH, torqueRigidH,  //
                    pos1DNodeH, vel1DNodeH, force1DNodeH,                        //
                    pos2DNodeH, vel2DNodeH, force2DNodeH);                       //
