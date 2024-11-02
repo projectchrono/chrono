@@ -406,6 +406,10 @@ CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 /// templates, to select which specialized template to use
 CH_CREATE_MEMBER_DETECTOR(GetTag)
 
+/// Macro to create a  ChDetect_SetTag that can be used in
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(SetTag)
+
 /// Class for registration data of classes
 /// whose objects can be created via a class factory.
 

@@ -483,11 +483,17 @@ class ChValue {
     /// Tell if the object has the GetTag() function; if so you might call CallGetTag
     virtual bool HasGetTag() = 0;
 
+    /// Tell if the object has the SetTag(int) function; if so you might call CallSetTag
+    virtual bool HasSetTag() = 0;
+
     /// Use this to call ArchiveContainerName member function, if present
     virtual std::string& CallArchiveContainerName() = 0;
 
     /// Use this to call GetTag() member function, if present
     virtual int  CallGetTag() = 0;
+
+    /// Use this to call GetTag(int) member function, if present
+    virtual void  CallSetTag(int ID) = 0;
 
     virtual void CallOut(ChArchiveOut& archive_out) = 0;
 
@@ -563,6 +569,8 @@ class ChValueSpecific : public ChValue {
 
     virtual bool HasGetTag() { return this->_has_get_tag(); };
 
+    virtual bool HasSetTag() { return this->_has_set_tag(); };
+
     virtual std::string& CallArchiveContainerName() { return this->_get_name_string(); }
 
     virtual void CallArchiveOut(ChArchiveOut& archive_out) { this->_archive_out(archive_out); }
@@ -570,6 +578,8 @@ class ChValueSpecific : public ChValue {
     virtual void CallArchiveOutConstructor(ChArchiveOut& archive_out) { this->_archive_out_constructor(archive_out); }
 
     virtual int  CallGetTag() { return this->_get_tag(); }
+
+    virtual void CallSetTag(int ID) { this->_set_tag(ID); }
 
     virtual void CallOut(ChArchiveOut& archive_out);
 
@@ -633,6 +643,16 @@ class ChValueSpecific : public ChValue {
     }
 
     template <class Tc = TClass>
+    typename enable_if<ChDetect_SetTag<Tc>::value, void>::type _set_tag(int ID) {
+        this->_ptr_to_val->SetTag(ID);
+    }
+
+    template <class Tc = TClass>
+    typename enable_if<!ChDetect_SetTag<Tc>::value, void>::type _set_tag(int ID) {
+        throw(std::exception()); // should not be called.
+    }
+
+    template <class Tc = TClass>
     typename enable_if<ChDetect_ArchiveContainerName<Tc>::value, bool>::type _has_get_name_string() {
         return true;
     }
@@ -649,6 +669,16 @@ class ChValueSpecific : public ChValue {
 
     template <class Tc = TClass>
     typename enable_if<!ChDetect_GetTag<Tc>::value, bool>::type _has_get_tag() {
+        return false;  // nothing to do if not provided
+    }
+
+    template <class Tc = TClass>
+    typename enable_if<ChDetect_SetTag<Tc>::value, bool>::type _has_set_tag() {
+        return true;
+    }
+
+    template <class Tc = TClass>
+    typename enable_if<!ChDetect_SetTag<Tc>::value, bool>::type _has_set_tag() {
         return false;  // nothing to do if not provided
     }
 
@@ -1266,9 +1296,6 @@ class ChApi ChArchiveIn : public ChArchive {
     /// Note, there is no check on pointer types when rebinding!
     template<typename Ty>
     void RebindExternalPointer(Ty*   mptr, size_t ID) { external_id_ptr[ID] = getVoidPointer<Ty>(mptr); }
-    /*
-    void RebindExternalPointer(void* mptr, size_t ID) { external_id_ptr[ID] = mptr; }
-    */
 
     /// Use the following to declare object IDs that must not be de-serialized
     /// but rather be 'rebind' to already-existing external shared pointers, given unique IDs.
@@ -1280,12 +1307,6 @@ class ChApi ChArchiveIn : public ChArchive {
         external_id_ptr[ID] = getVoidPointer<Ty>(mptr.get());
         shared_ptr_map.emplace(std::make_pair(getVoidPointer<Ty>(mptr.get()), shared_pair_type(mptr, "")));
     }
-    /*
-    void RebindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
-        external_id_ptr[ID] = mptr.get();
-        shared_ptr_map.emplace(std::make_pair(mptr.get(), shared_pair_type(mptr, "")));
-    }
-    */
 
     /// Access the map of pointer(s) that were not be serialized
     /// but rather saved just as unique IDs for rebinding at de-serialization.
