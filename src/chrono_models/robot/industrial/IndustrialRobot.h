@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_H
-#define CH_INDUSTRIAL_ROBOT_H
+#ifndef INDUSTRIAL_ROBOT_H
+#define INDUSTRIAL_ROBOT_H
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono/physics/ChSystem.h"
@@ -43,16 +43,25 @@ class CH_MODELS_API IndustrialRobot {
     ChSystem* GetSystem() { return m_sys; }
 
     /// Get the list of bodies in robot model.
-    std::vector<std::shared_ptr<ChBody>> GetBodylist() { return m_bodylist; }
+    std::vector<std::shared_ptr<ChBody>> GetBodies() { return m_bodylist; }
 
     /// Get the list of joint markers in robot model.
-    std::vector<std::shared_ptr<ChMarker>> GetMarkerlist() { return m_markerlist; }
+    std::vector<std::shared_ptr<ChMarker>> GetMarkers() { return m_markerlist; }
 
     /// Get the list of motor functions in robot model.
-    std::vector<std::shared_ptr<ChFunctionSetpoint>> GetMotfunlist() { return m_motfunlist; }
+    std::vector<std::shared_ptr<ChFunctionSetpoint>> GetMotfuns() { return m_motfunlist; }
 
-    /// Get the lsit of motors in robot model.
-    std::vector<std::shared_ptr<ChLinkMotor>> GetMotorlist() { return m_motorlist; }
+    /// Get the list of motors in robot model.
+    std::vector<std::shared_ptr<ChLinkMotor>> GetMotors() { return m_motorlist; }
+
+    /// Get robot base body.
+    std::shared_ptr<ChBody> GetBase() { return m_base; };
+
+    /// Get robot end-effector body.
+    std::shared_ptr<ChBody> GetEndEffector() { return m_end_effector; };
+
+    /// Get robot Tool-Center-Point marker.
+    std::shared_ptr<ChMarker> GetMarkerTCP() const { return m_marker_TCP; }
 
     /// Get motors rotations/positions, depending on specific robot architecture.
     /// Optionally wrap angles in interval [-PI..+PI].
@@ -75,26 +84,33 @@ class CH_MODELS_API IndustrialRobot {
     virtual double GetMass() const;
 
     /// Disable robot motors (true), or reactivate them (false).
-    void DisableMotors(bool disable);
+    void SetMotorsDisabled(bool disable);
+
+    /// Get if motors are currently disabled.
+    bool GetMotorsDisabled() const { return m_motors_disabled; }
 
     /// Set robot base coordinates and consequently update other internal frames.
     virtual void SetBaseFrame(const ChFramed& base_frame);
 
-    /// Set individual motors setpoints at given time.
+    /// Set individual motors setpoints, at given time.
     void SetSetpoints(const ChVectorDynamic<>& setpoints, double t);
 
     /// Set motors setpoints all equal to given value, at given time.
     void SetSetpoints(double setpoint, double t);
+
+    /// Move robot TCP to imposed absolute frame.
+    /// Useful to get single-shot numerical Inverse Kinematics. Not suitable for trajectory following.
+    AssemblyAnalysis::ExitFlag SetPoseTCP(const ChFramed& target_frame, unsigned int max_iters = 10);
 
     /// Set robot color (if visual shapes are added).
     void SetColor(const ChColor& col);
 
     /// Kinematically link external body to a specific robot body, in given frame.
     /// Useful for grip and relocation of some object by robot end-effector.
-    void AttachBody(std::shared_ptr<ChBody> slave, std::shared_ptr<ChBody> master, const ChFrame<>& frame);
+    void AttachBody(std::shared_ptr<ChBody> body_attach, std::shared_ptr<ChBody> robot_body, const ChFrame<>& frame);
 
     /// Unlink external body from robot (if previously attached) and potentially set it to 'fixed' thereafter.
-    void DetachBody(std::shared_ptr<ChBody> slave, bool setfix = false);
+    void DetachBody(std::shared_ptr<ChBody> body_attach, bool setfix = false);
 
     /// Update internal encoder to keep track of distance travelled by motors.
     /// NB: call this function at runtime and get reading with GetEncoderReading() function.
@@ -135,11 +151,14 @@ class CH_MODELS_API IndustrialRobot {
     ChSystem* m_sys = nullptr;  ///< containing sys
     ChFramed m_base_frame;      ///< coordinates of robot base
 
+    std::shared_ptr<ChBody> m_base, m_end_effector;
     std::vector<std::shared_ptr<ChBody>> m_bodylist;                ///< list of robot bodies
     std::vector<std::shared_ptr<ChMarker>> m_markerlist;            ///< list of robot joint markers
     std::vector<std::shared_ptr<ChFunctionSetpoint>> m_motfunlist;  ///< list of robot motors functions
     std::vector<std::shared_ptr<ChLinkMotor>> m_motorlist;          ///< list of robot motors
     std::vector<ChFramed> m_joint_frames;                           ///< list of starting joint frames
+    std::shared_ptr<ChMarker> m_marker_TCP;                         ///< Tool-Center-Point marker
+    bool m_motors_disabled = false;                                 ///< activation state of motors
 
     std::shared_ptr<ChLinkMateFix> m_link_attach = nullptr;  ///< internal link to grip external body
     bool m_body_attached = false;                            ///< flag for external body attached/not attached
@@ -151,4 +170,4 @@ class CH_MODELS_API IndustrialRobot {
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_H
+#endif  // end INDUSTRIAL_ROBOT_H

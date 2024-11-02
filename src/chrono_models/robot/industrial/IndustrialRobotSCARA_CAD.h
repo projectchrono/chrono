@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
-#define CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
+#ifndef INDUSTRIAL_ROBOT_SCARA_CAD_H
+#define INDUSTRIAL_ROBOT_SCARA_CAD_H
 
 #include "IndustrialRobotSCARA.h"
 
@@ -59,7 +59,7 @@ class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
 
     unsigned int m_id = 0;                   ///< robot model unique identifier
     std::vector<std::string> m_bodynames;    ///< name of bodies to search in sys for building robot model
-    std::shared_ptr<ChBodyAuxRef> m_ground;  ///< robot 'ground' virtual body
+    std::shared_ptr<ChBody> m_ground;  ///< robot 'ground' virtual body
 };
 
 /// @} robot_models_industrial
@@ -67,4 +67,4 @@ class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
+#endif  // end INDUSTRIAL_ROBOT_SCARA_CAD_H

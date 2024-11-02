@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
 
 #include "IndustrialKinematics.h"
 
@@ -85,4 +85,4 @@ class CH_MODELS_API IndustrialKinematics6dofSpherical : public IndustrialKinemat
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_6DOF_SPHERICAL_H

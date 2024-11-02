@@ -53,9 +53,8 @@ robot.Add3dShapes(0.05)  # add 3d silhouette shapes
 motion_cycle_time = 6
 key_0 = chrono.ChCoordsysd(robot.GetMarkerTCP().GetAbsCoordsys())
 key_1 = chrono.ChCoordsysd(key_0.pos + chrono.ChVector3d(-0.1, 0.2, 0), chrono.QuatFromAngleZ(30 * chrono.CH_DEG_TO_RAD) * key_0.rot)
-key_2 = chrono.ChCoordsysd(key_1.pos + chrono.ChVector3d(0.2, -0.1, 0.2), chrono.QuatFromAngleX(-70 * chrono.CH_DEG_TO_RAD) * key_0.rot)
+key_2 = chrono.ChCoordsysd(key_1.pos + chrono.ChVector3d(0.2, -0.1, 0.2), chrono.QuatFromAngleX(-50 * chrono.CH_DEG_TO_RAD) * key_0.rot)
 keys = [key_0, key_1, key_2, key_0]
-
 
 # Create a trajectory interpolator from given keyframes
 interpolator = chronorob.TrajectoryInterpolator(
@@ -80,7 +79,7 @@ floor.AddVisualShape(trajectory_vis)
 # If analytical solution of inverse kinematics is enabled, use appropriate class to retrieve
 # angles that must be provided to motors, at run time, to follow trajectory
 
-markerlist = robot.GetMarkerlist()
+markerlist = robot.GetMarkers()
 robot_joint_coords = []
 for i in range(len(markerlist)):
     robot_joint_coords.append(markerlist[i].GetAbsCoordsys())
@@ -99,7 +98,7 @@ kin_6dof_sph = chronorob.IndustrialKinematics6dofSpherical(robot_joint_coords, v
 
 if not USE_ANALYTICAL_IK:
     # Disable robot direct actuation
-    robot.DisableMotors(True)
+    robot.SetMotorsDisabled(True)
 
     # Impose trajectory on robot end-effector
     imposed_motion = chrono.ChLinkMotionImposed()
