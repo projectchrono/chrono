@@ -501,6 +501,10 @@ void ChFluidSystemSPH::SetViscosityType(ViscosityType viscosity_type) {
     m_paramsH->viscosity_type = viscosity_type;
 }
 
+void ChFluidSystemSPH::SetArtificialViscosityCoefficient(double coefficient) {
+    m_paramsH->Ar_vis_alpha = coefficient;
+}
+
 void ChFluidSystemSPH::SetKernelType(KernelType kernel_type) {
     m_paramsH->kernel_type = kernel_type;
     switch (m_paramsH->kernel_type) {
@@ -1113,12 +1117,18 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         cout << "  Number of multiprocessors: " << m_data_mgr->cudaDeviceInfo->deviceProp.multiProcessorCount << endl;
 
         cout << "Simulation parameters" << endl;
-        if (m_paramsH->viscosity_type == ViscosityType::ARTIFICIAL_BILATERAL) {
-            cout << "  Viscosity treatment: Artificial Bilateral" << endl;
-        } else if (m_paramsH->viscosity_type == ViscosityType::LAMINAR) {
-            cout << "  Viscosity treatment: Laminar" << endl;
-        } else {
-            cout << "  Viscosity treatment: Artificial Unilateral" << endl;
+        switch (m_paramsH->viscosity_type) {
+            case ViscosityType::LAMINAR:
+                cout << "  Viscosity treatment: Laminar" << endl;
+                break;
+            case ViscosityType::ARTIFICIAL_UNILATERAL:
+                cout << "  Viscosity treatment: Artificial Unilateral";
+                cout << "  (coefficient: " << m_paramsH->Ar_vis_alpha << ")" << endl;
+                break;
+            case ViscosityType::ARTIFICIAL_BILATERAL:
+                cout << "  Viscosity treatment: Artificial Bilateral";
+                cout << "  (coefficient: " << m_paramsH->Ar_vis_alpha << ")" << endl;
+                break;
         }
         if (m_paramsH->boundary_type == BoundaryType::ADAMI) {
             cout << "  Boundary treatment: Adami" << endl;

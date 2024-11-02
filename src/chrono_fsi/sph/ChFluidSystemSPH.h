@@ -195,6 +195,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set viscosity treatment type (default: artificial unilateral).
     void SetViscosityType(ViscosityType viscosity_type);
 
+    /// Set artificial viscosity coefficient (default: 0.02).
+    void SetArtificialViscosityCoefficient(double coefficient);
+
     /// Set kernel type.
     void SetKernelType(KernelType kernel_type);
 
