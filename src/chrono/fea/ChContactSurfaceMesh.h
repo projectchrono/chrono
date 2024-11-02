@@ -449,8 +449,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                  double sphere_swept = 0.0                     ///< thickness (radius of sweeping sphere)
     );
 
-    /// Utility function to add all boundary faces of the associated FEA mesh to this collision surface.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
+    /// Utility function to add all boundary faces of the specified FEA mesh to this collision surface.
     /// The function scans all the finite elements already added in the parent ChMesh and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
     /// For shells, the argument 'ccw' indicates whether the face vertices are provided in a counter-clockwise (default)
@@ -467,7 +466,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// - beams:
     ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)
     ///     - ChElementBeamEuler: Euler-Bernoulli beams (as sphere-swept lines, i.e. sequence of capsules)
-    void AddFacesFromBoundary(double sphere_swept = 0.0,           ///< radius of swept sphere
+    void AddFacesFromBoundary(const ChMesh& mesh,                  ///< FEA mesh
+                              double sphere_swept = 0.0,           ///< radius of swept sphere
                               bool ccw = true,                     ///< indicate counterclockwise vertex ordering
                               bool include_cable_elements = true,  ///< create contact triangles for cable elements
                               bool include_beam_elements = true    ///< create contact triangles for beam elements

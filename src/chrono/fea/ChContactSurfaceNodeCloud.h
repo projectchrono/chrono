@@ -143,6 +143,8 @@ class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
     ~ChContactNodeXYZsphere() {}
 };
 
+// -----------------------------------------------------------------------------
+
 // Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAxyz were inherited from ChNodeFEAxyzrot, but this is
 // currently not the case. As such, we need to also implement this ChContactNodeXYZRot as a proxy to ChNodeFEAxyzrot.
 
@@ -263,6 +265,8 @@ class ChApi ChContactNodeXYZRotSphere : public ChContactNodeXYZRot {
     ~ChContactNodeXYZRotSphere() {}
 };
 
+// -----------------------------------------------------------------------------
+
 /// Class which defines a contact surface for FEA elements.
 /// Only xyz nodes in the FEA model are used as contact items for the collision detection.
 /// Might be an efficient option in case of dense tessellations (but misses the node-vs-face and edge-vs-edge cases)
@@ -278,9 +282,8 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     /// Add a specific node to this collision cloud.
     void AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, const double point_radius = 0.001);
 
-    /// Utility function to add all nodes of the associated FEA mesh to this collision cloud.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
-    void AddAllNodes(const double point_radius = 0.001);
+    /// Utility function to add all nodes of the specified FEA mesh to this collision cloud.
+    void AddAllNodes(const ChMesh& mesh, double point_radius = 0.001);
 
     /// Utility function to add nodes of the associated mesh belonging to the given node_set, to this collision cloud.
     /// This function does nothing if the contact surface was not yet associated with an FEA mesh.

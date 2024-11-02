@@ -107,25 +107,23 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
     }
 
     // If no 1D surface contact found, create one with a default contact material and add segments from cable and beam
-    // elements in the FEA mesh
+    // elements in the FEA mesh. Do not add the new contact surface to the mesh.
     if (!has_contact1D) {
         ChContactMaterialData contact_material_data;  // default contact material
         auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
             contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        mesh->AddContactSurface(surface_segs);
-        surface_segs->AddAllSegments(0);
+        surface_segs->AddAllSegments(*mesh, 0);
         if (surface_segs->GetNumSegments() > 0)
             AddFsiMesh1D(surface_segs);
     }
 
     // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
-    // FEA mesh
+    // FEA mesh. Do not add the new contact surface to the mesh.
     if (!has_contact2D) {
         ChContactMaterialData contact_material_data;  // default contact material
         auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
             contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        mesh->AddContactSurface(surface_mesh);
-        surface_mesh->AddFacesFromBoundary(0, true, false, false);  // do not include cable and beam elements
+        surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
         if (surface_mesh->GetNumTriangles() > 0)
             AddFsiMesh2D(surface_mesh);
     }
