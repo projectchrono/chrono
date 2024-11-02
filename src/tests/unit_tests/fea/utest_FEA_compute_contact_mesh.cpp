@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     contact_material->SetGt(gt);
 
     auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    contact_surf->AddAllNodes(*mesh, contact_node_radius);
     mesh->AddContactSurface(contact_surf);
-    contact_surf->AddAllNodes(contact_node_radius);
 
     // Remember to add the mesh to the system!
     system.Add(mesh);
