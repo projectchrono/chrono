@@ -66,11 +66,11 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 // Dimensions of the boundary and fluid domains
 double Lx_bndry = 3;
 double Ly_bndry = 0.2;
-double Lz_bndry = 2.0;
+double Lz_bndry = 3.0;
 
 double Lx_fluid = 1.0;
 double Ly_fluid = Ly_bndry;
-double Lz_fluid = 1.0;
+double Lz_fluid = 0.75;
 
 // -----------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ bool GetProblemSpecs(int argc,
 int main(int argc, char* argv[]) {
     // Parse command line arguments
     std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Flat_Plate_Explicit.json");
-    double t_end = 10.0;
+    double t_end = 4.0;
     bool verbose = true;
     bool output = false;
     double output_fps = 20;
@@ -131,8 +131,10 @@ int main(int argc, char* argv[]) {
         sysSPH.SetViscosityType(ViscosityType::LAMINAR);
     } else if (viscosity_type == "artificial_bilateral") {
         sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
+        sysSPH.SetArtificialViscosityCoefficient(0.2);
     } else {
         sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
+        sysSPH.SetArtificialViscosityCoefficient(0.2);
     }
 
     // Set frequency of proximity search
@@ -230,7 +232,7 @@ int main(int argc, char* argv[]) {
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
                 visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-                visFSI->AddCamera(ChVector3d(0, -3, 0.75), ChVector3d(0, 0, 0.75));
+                visFSI->AddCamera(ChVector3d(0.75, -3, 0.75), ChVector3d(0, 0, 0.75));
 #endif
                 break;
             }
@@ -240,7 +242,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
-        visFSI->EnableFlexBodyMarkers(true);
+        visFSI->EnableFlexBodyMarkers(false);
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
@@ -363,12 +365,23 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
+    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
+    auto initSpace0 = sysSPH.GetInitialSpacing();
+
+    // Contact material (default properties)
+    auto contact_material_info = ChContactMaterialData();
+    auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
+
+    // Create ground body with a collision box
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
-    ground->EnableCollision(false);
+    ground->EnableCollision(true);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(Lx_bndry, Ly_bndry + 2 * initSpace0, 0.1),
+                          ChVector3d(0, 0, -0.05));
     sysMBS.AddBody(ground);
 
     // FSI representation of walls
@@ -377,7 +390,6 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
                               ChVector3d(Lx_bndry, Ly_bndry, Lz_bndry),          //
                               ChVector3i(2, 0, -1));
 
-    auto initSpace0 = sysSPH.GetInitialSpacing();
 
     // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
@@ -385,7 +397,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
     // Geometry of the plate
     double x_plate = 0.02;
     double y_plate = Ly_fluid;
-    double z_plate = 0.75 * Lz_fluid;
+    double z_plate = Lz_fluid;
 
     ChVector3d center_plate(0.0, 0.0, z_plate / 2 + initSpace0);
     ////ChVector3d center_plate(-0.25, 0.0, z_plate / 2 + initSpace0);
@@ -464,8 +476,20 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
         }
     }
 
+    // Create the FEA contact surface
+    auto contact_surface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    contact_surface->AddAllNodes(*mesh, sysSPH.GetInitialSpacing());
+    mesh->AddContactSurface(contact_surface);
+
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
+
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_mesh->SetColorscaleMinMax(0.0, 5.50);
+    vis_mesh->SetShrinkElements(true, 0.85);
+    vis_mesh->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(vis_mesh);
 
     // Add the mesh to the FSI system (only these meshes interact with the fluid)
     sysFSI.AddFsiMesh(mesh);
