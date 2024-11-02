@@ -23,7 +23,12 @@
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
+#include "chrono/serialization/ChArchiveUtils.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_multidomain/ChDomainManagerSharedmemory.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
@@ -32,6 +37,7 @@
 using namespace chrono;
 using namespace multidomain;
 using namespace chrono::irrlicht;
+using namespace chrono::fea;
 
 // For multi domain simulations, each item (body, link, fea element or node, etc.) must have
 // an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
@@ -125,6 +131,8 @@ int main(int argc, char* argv[]) {
     mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
     // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
     // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
+    // Note: an alternative to using SetTag() one by one, at the end you can use the helper 
+    // ChArchiveSetUniqueTags (see snippet later)
     mrigidBody->SetTag(unique_ID); unique_ID++; 
 
     auto mrigidBodyb = chrono_types::make_shared<ChBodyEasyBox>(0.7, 0.7, 0.7,  // x,y,z size
@@ -163,6 +171,41 @@ int main(int argc, char* argv[]) {
     linkdistance->Initialize(mrigidBody, mrigidBodyd, true, ChVector3d(0,1,0), ChVector3d(0,0,0));
     linkdistance->SetTag(unique_ID); unique_ID++;
 
+    // add a FEA beam to test migration of meshes too
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
+    sys_0.Add(my_mesh);
+    my_mesh->SetTag(unique_ID); unique_ID++;
+
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    double beam_wy = 0.012;
+    double beam_wz = 0.025;
+    msection->SetAsRectangularSection(beam_wy, beam_wz);
+    msection->SetYoungModulus(0.01e9);
+    msection->SetShearModulus(0.01e9 * 0.3);
+
+    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(-0.8, 1.3, 0)));
+    hnode1->SetPosDt(ChVector3d(20, 0, 0));
+    hnode1->SetTag(unique_ID); unique_ID++;
+    my_mesh->AddNode(hnode1);
+    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d( 0.2, 1.3, 0)));
+    hnode2->SetPosDt(ChVector3d(20, 0, 0));
+    hnode2->SetTag(unique_ID); unique_ID++;
+    my_mesh->AddNode(hnode2);
+    auto belement1 = chrono_types::make_shared<ChElementBeamEuler>();
+    belement1->SetNodes(hnode1, hnode2);
+    belement1->SetSection(msection);
+    belement1->SetRestLength(1.0);
+    my_mesh->AddElement(belement1);
+
+
+    // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
+    // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
+    // a SetTag function in sub objects, ans sets the ID incrementally. More hassle-free, but
+    // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
+    // Call this after you finished adding items to systems.
+    //   ChArchiveSetUniqueTags tagger;
+    //   tagger << CHNVP(sys_0);
+    //   tagger << CHNVP(sys_1);
 
 
     // For debugging: open two 3D realtime view windows, each per domain:
