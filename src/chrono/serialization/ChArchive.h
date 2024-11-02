@@ -1536,10 +1536,10 @@ class ChApi ChArchiveIn : public ChArchive {
             // no matter if case I) or case II)
             bVal.value() = std::shared_ptr<T>(mptr);
             // shared_ptr_map, on the contrary, needs to know the *true* address of the referred object
-            // i.e. the address of the most derived type
-            // and it holds a copy of a shared_prt so to be able to add to it if anyone else is going to refer to it
+            // i.e. the address of the most derived type, so use an 'aliasing constructor' of shared_ptr using the most derived idptr,
+            // then holds a copy of a shared_prt so to be able to add to it if anyone else is going to refer to it
             shared_ptr_map.emplace(
-                std::make_pair(idptr, std::make_pair(std::static_pointer_cast<void>(bVal.value()), true_classname)));
+                std::make_pair(idptr, std::make_pair(std::shared_ptr<void>(bVal.value(),idptr), true_classname)));
         } else {
             // case B: existing object already referenced by a shared_ptr, so increment ref count
             std::shared_ptr<void> converted_shptr =
