@@ -113,7 +113,6 @@ mmaterial.SetPoissonRatio(0.3)
 mmaterial.SetRayleighDampingBeta(0.003)
 mmaterial.SetDensity(1000)
 
-
 for i in range(4) :
     try :
         cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
@@ -128,18 +127,13 @@ for i in range(4) :
         print('Error Loading meshes')
         break
     
-
-
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
-
 mcontactsurf = fea.ChContactSurfaceMesh(mysurfmaterial)
+mcontactsurf.AddFacesFromBoundary(mesh, sphere_swept_thickness)
 mesh.AddContactSurface(mcontactsurf)
 
-mcontactsurf.AddFacesFromBoundary(sphere_swept_thickness)  # do this after my_meshAddContactSurface
-
-
-# Remember to add the mesh to the system!
+# Add the mesh to the system
 sys.Add(mesh)
 
 #
@@ -168,14 +162,11 @@ builder.BuildBeam(my_mesh_beams,             # the mesh where to put the created
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceNodeCloud, so just pass
 # all nodes to it.
-
 mcontactcloud = fea.ChContactSurfaceNodeCloud(mysurfmaterial)
+mcontactcloud.AddAllNodes(my_mesh_beams, 0.025)  # match beam section radius
 my_mesh_beams.AddContactSurface(mcontactcloud)
 
-mcontactcloud.AddAllNodes(0.025)  # use larger posize to match beam section radius
-
-
-# Remember to add the mesh to the system!
+# Add the mesh to the system
 sys.Add(my_mesh_beams)
 
 #
