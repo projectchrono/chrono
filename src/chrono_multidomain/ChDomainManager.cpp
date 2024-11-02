@@ -22,6 +22,7 @@
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChArchiveBinary.h"
+#include "chrono/serialization/ChArchiveUtils.h"
 
 namespace chrono {
 namespace multidomain {
@@ -29,60 +30,7 @@ namespace multidomain {
 using namespace fea;
 
 
-//
 ///////////////////////
-
-/// Helper class that simply builds a map of pointers-tags for all pointers
-/// and custom c++ objects embedded in an object (mostly the ChSystem), that is traversed like in a serialization. 
-/// The map can be used for debugging or to be used as a ExternalPointersMap()
-/// of an ChArchiveIn, for transplanting data to be re-bind incrementally.
-
-class ChArchiveOutPointerMap : public ChArchiveOut {
-public:
-	ChArchiveOutPointerMap() {}
-
-	virtual ~ChArchiveOutPointerMap() {}
-
-	virtual void out(ChNameValue<bool> bVal) {};
-	virtual void out(ChNameValue<int> bVal) {};
-	virtual void out(ChNameValue<double> bVal) {};
-	virtual void out(ChNameValue<float> bVal) {};
-	virtual void out(ChNameValue<char> bVal) {};
-	virtual void out(ChNameValue<unsigned int> bVal) {};
-	virtual void out(ChNameValue<unsigned long> bVal) {};
-	virtual void out(ChNameValue<unsigned long long> bVal) {};
-	virtual void out(ChNameValue<ChEnumMapperBase> bVal) {};
-	virtual void out(ChNameValue<const char*> bVal) {};
-	virtual void out(ChNameValue<std::string> bVal) {};
-	virtual void out_array_pre(ChValue& bVal, size_t size) {};
-	virtual void out_array_between(ChValue& bVal, size_t size) {};
-	virtual void out_array_end(ChValue& bVal, size_t size) {};
-
-	virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
-		if (process_objects_byval && bVal.HasGetTag()) {
-			this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
-			this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
-		}
-		bVal.CallArchiveOut(*this);
-	}
-	virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
-		if (!already_inserted) {
-			if (process_objects_byref && bVal.HasGetTag()) {
-				this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
-				this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
-			}
-			bVal.CallArchiveOut(*this);
-		}
-	}
-
-	bool process_objects_byval = false;
-	bool process_objects_byref = true;
-
-	/// Result goes here:
-	std::unordered_map<size_t, void*> pointer_map_id_ptr;
-	std::unordered_map<void*, size_t> pointer_map_ptr_id;
-};
-
 
 
 void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
@@ -108,20 +56,22 @@ void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
 			}
 		}
 	}
-	for (auto item : domain->GetSystem()->GetOtherPhysicsItems()) {
-		if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-			std::cout << "  ChMesh " << mesh->GetTag() << std::endl;
-			for (auto node : mesh->GetNodes()) {
-				std::cout << "      ChNodeFEAbase " << node->GetTag() << std::endl;
-			}
-			for (auto el : mesh->GetElements()) {
-				std::cout << "      ChElementBase " << std::endl;
-				for (int i = 0; i < el->GetNumNodes(); ++i) {
-					std::cout << "          ChNodeFEABase " << el->GetNode(i)->GetTag() << std::endl;
-				}
+	for (auto mesh : domain->GetSystem()->GetMeshes()) {
+		std::cout << "  ChMesh " << mesh->GetTag() << std::endl;
+		for (auto node : mesh->GetNodes()) {
+			std::cout << "      ChNodeFEAbase " << node->GetTag() << std::endl;
+		}
+		for (auto el : mesh->GetElements()) {
+			std::cout << "      ChElementBase " << std::endl;
+			for (int i = 0; i < el->GetNumNodes(); ++i) {
+				std::cout << "          ChNodeFEABase " << el->GetNode(i)->GetTag() << std::endl;
 			}
 		}
 	}
+	for (auto phys : domain->GetSystem()->GetOtherPhysicsItems()) {
+		std::cout << "  ChPhysicsItem " << phys->GetTag() << std::endl;
+	}
+
 	for (auto& interf : domain->GetInterfaces()) {
 		std::cout << " interface to domain rank " << interf.second.side_OUT->GetRank() << " ...... \n";
 		for (auto& item : interf.second.shared_items)
@@ -313,10 +263,19 @@ void ChDomain::DoUpdateSharedLeaving() {
 	
 		// Prepare a map of pointers to shared items so that they are not serialized but just referenced
 		// by tag. For this reason we traverse all the pointers in the shared items.
-		ChArchiveOutPointerMap rebinding_pointers;
+		ChArchivePointerMap rebinding_pointers;
+		rebinding_pointers.SetEmptyShallowContainers(true);	// we will take care of contained items one by one
 		for (const auto& body : system->GetBodies()) {
 			if (interf.second.shared_items.find(body->GetTag()) != interf.second.shared_items.end())
 				rebinding_pointers << CHNVP(body);
+		}
+		for (const auto& omesh : system->GetMeshes()) {
+			if (interf.second.shared_items.find(omesh->GetTag()) != interf.second.shared_items.end())
+				rebinding_pointers << CHNVP(omesh); // no nodes traversed, because of SetEmptyShallowContainers
+			for (const auto& onode : omesh->GetNodes()) {
+				if (interf.second.shared_nodes.find(onode->GetTag()) != interf.second.shared_nodes.end())
+					rebinding_pointers << CHNVP(onode);
+			}
 		}
 		for (const auto& oitem : system->GetOtherPhysicsItems()) {
 			if (interf.second.shared_items.find(oitem->GetTag()) != interf.second.shared_items.end())
@@ -327,12 +286,13 @@ void ChDomain::DoUpdateSharedLeaving() {
 		   serializer->CutPointers().insert(this->system);  //NO - better, assuming all domains already contain a ChSystem with same GetTag:
 		//serializer->UnbindExternalPointer(this->system, this->system->GetTag());
 
-		//std::cout << "           serializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
-		//for (auto& m : rebinding_pointers.pointer_map_ptr_id)
-		//	std::cout << "            tags: " << m.second << "\n";
+		std::cout << "           domain << " << this->rank << " ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
+		for (auto& m : rebinding_pointers.pointer_map_ptr_id)
+			std::cout << "            tags: " << m.second << "\n";
 
 		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
 		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
+		std::vector<ChIncrementalObj<ChMesh>>		meshes_migrating;
 		std::vector<ChIncrementalObj<ChLinkBase>>	links_migrating;
 		std::vector<ChIncrementalObj<ChNodeBase>>   nodes_migrating;
 		std::vector<ChIncrementalObj<ChElementBase>>elements_migrating;
@@ -355,7 +315,6 @@ void ChDomain::DoUpdateSharedLeaving() {
 				bodies_migrating,
 				interf.second.shared_items
 			);
-		
 		}
 
 		// 2-LINKS (and BODIES overlapping because of connected links)
@@ -429,41 +388,78 @@ void ChDomain::DoUpdateSharedLeaving() {
 		}
 		
 
-		// 3-OTHER PHYSICS ITEMS (inluding ChMesh container of fea stuff)
+		// 3-MESHES
 
-		for (const auto& item : system->GetOtherPhysicsItems()) {
-			ChAABB mabb = item->GetTotalAABB();
+		for (const auto& mmesh : system->GetMeshes()) {
+
+			ChAABB mabb = mmesh->GetTotalAABB();
 			bool is_overlapping_IN = interf.second.side_IN->IsOverlap(mabb) || mabb.IsInverted(); // if aabb is empty (reversed) assume always overlap
 			bool is_overlapping_OUT = interf.second.side_OUT->IsOverlap(mabb) || mabb.IsInverted(); // if aabb is empty (reversed) assume always overlap
 			
-			InterfaceManageNodeSharedLeaving<ChPhysicsItem, ChPhysicsItem >(
-				item,
+			InterfaceManageNodeSharedLeaving<ChMesh, ChPhysicsItem >(
+				mmesh,
 				is_overlapping_IN,
 				is_overlapping_OUT,
-				item->GetTag(),
+				mmesh->GetTag(),
 				system->GetAssembly().GetTag(),
 				shared_ids,
 				sent_ids,
-				items_migrating,
+				meshes_migrating,
 				interf.second.shared_items
 			);
 
-			// CASE OF FEA MESH - incremental serialization
-			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-				int parent_tag = mmesh->GetTag();
+			int parent_tag = mmesh->GetTag();
 
-				// FEA NODES
-				for (const auto& node : mmesh->GetNodes()) {
-					ChVector3d node_pos = node->GetCenter();
-					is_overlapping_IN  = interf.second.side_IN->IsInto(node_pos);
-					is_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
-					int mtag = node->GetTag();
+			// FEA NODES
+			for (const auto& node : mmesh->GetNodes()) {
+				ChVector3d node_pos = node->GetCenter();
+				is_overlapping_IN  = interf.second.side_IN->IsInto(node_pos);
+				is_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
+				int mtag = node->GetTag();
+
+				InterfaceManageNodeSharedLeaving<ChNodeBase, ChNodeBase>(
+					node,
+					is_overlapping_IN,
+					is_overlapping_OUT,
+					mtag,
+					parent_tag,
+					shared_ids,
+					sent_ids,
+					nodes_migrating,
+					interf.second.shared_nodes
+				);
+			}
+
+			// FEA ELEMENTS
+			for (const auto& element : mmesh->GetElements()) {
+				ChVector3d reference = element->GetNode(0)->GetCenter();
+				bool is_referencein_IN  = interf.second.side_IN->IsInto(reference);
+				bool is_referencein_OUT = interf.second.side_OUT->IsInto(reference);
+
+				if (is_referencein_OUT) {
+
+					// Serialize the element. Elements are never shared.
+					elements_migrating.push_back(ChIncrementalObj<ChElementBase>{system->GetAssembly().GetTag(), element});
+
+				}
+
+				// Also serialize and manage shared lists of the connected nodes.
+				for (int i = 0; i < (int)element->GetNumNodes(); ++i) {
+					const auto ref_node = element->GetNode(i);
+					int ref_tag = ref_node->GetTag();
+					ChVector3d node_pos;
+					if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(ref_node))
+						node_pos = nodexyz->GetPos();
+					if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(ref_node))
+						node_pos = nodexyzrot->GetPos();
+					bool is_ref_overlapping_IN = interf.second.side_IN->IsInto(node_pos);
+					bool is_ref_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
 
 					InterfaceManageNodeSharedLeaving<ChNodeBase, ChNodeBase>(
-						node,
-						is_overlapping_IN,
-						is_overlapping_OUT,
-						mtag,
+						ref_node,
+						is_ref_overlapping_IN  || is_referencein_IN, // ie. extend aabb of node to include element reference
+						is_ref_overlapping_OUT || is_referencein_OUT, // ie. extend aabb of node to include element reference
+						ref_tag,
 						parent_tag,
 						shared_ids,
 						sent_ids,
@@ -471,48 +467,8 @@ void ChDomain::DoUpdateSharedLeaving() {
 						interf.second.shared_nodes
 					);
 				}
-
-				// FEA ELEMENTS
-				for (const auto& element : mmesh->GetElements()) {
-					ChVector3d reference = element->GetNode(0)->GetCenter();
-					bool is_referencein_IN  = interf.second.side_IN->IsInto(reference);
-					bool is_referencein_OUT = interf.second.side_OUT->IsInto(reference);
-
-					if (is_referencein_OUT) {
-
-						// Serialize the element. Elements are never shared.
-						elements_migrating.push_back(ChIncrementalObj<ChElementBase>{system->GetAssembly().GetTag(), element});
-
-					}
-
-					// Also serialize and manage shared lists of the connected nodes.
-					for (int i = 0; i < (int)element->GetNumNodes(); ++i) {
-						const auto ref_node = element->GetNode(i);
-						int ref_tag = ref_node->GetTag();
-						ChVector3d node_pos;
-						if (const auto nodexyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(ref_node))
-							node_pos = nodexyz->GetPos();
-						if (const auto nodexyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(ref_node))
-							node_pos = nodexyzrot->GetPos();
-						bool is_ref_overlapping_IN = interf.second.side_IN->IsInto(node_pos);
-						bool is_ref_overlapping_OUT = interf.second.side_OUT->IsInto(node_pos);
-
-						InterfaceManageNodeSharedLeaving<ChNodeBase, ChNodeBase>(
-							ref_node,
-							is_ref_overlapping_IN  || is_referencein_IN, // ie. extend aabb of node to include element reference
-							is_ref_overlapping_OUT || is_referencein_OUT, // ie. extend aabb of node to include element reference
-							ref_tag,
-							parent_tag,
-							shared_ids,
-							sent_ids,
-							nodes_migrating,
-							interf.second.shared_nodes
-						);
-					}
 					
-				} // end fea elements
-
-			} // end fea mesh
+			} // end fea elements
 
 		}
 
@@ -530,12 +486,13 @@ void ChDomain::DoUpdateSharedLeaving() {
 		for (const auto& oitem : system->GetOtherPhysicsItems()) {
 			if (shared_ids.find(oitem->GetTag()) != shared_ids.end())
 				interf.second.shared_items[oitem->GetTag()] = oitem;
-
-			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(oitem)) {
-				for (const auto& node : mmesh->GetNodes()) {
-					if (shared_ids.find(node->GetTag()) != shared_ids.end())
-						interf.second.shared_nodes[node->GetTag()] = node;
-				}
+		}
+		for (const auto& mmesh : system->GetMeshes()) {
+			if (shared_ids.find(mmesh->GetTag()) != shared_ids.end())
+				interf.second.shared_items[mmesh->GetTag()] = mmesh;
+			for (const auto& node : mmesh->GetNodes()) {
+				if (shared_ids.find(node->GetTag()) != shared_ids.end())
+					interf.second.shared_nodes[node->GetTag()] = node;
 			}
 		}
 
@@ -551,6 +508,8 @@ void ChDomain::DoUpdateSharedLeaving() {
 		*serializer << CHNVP(links_migrating);
 		// Serialize outbound otherphysics items
 		*serializer << CHNVP(items_migrating);
+		// Serialize outbound meshes
+		*serializer << CHNVP(meshes_migrating);
 		// Serialize outbound nodes 
 		*serializer << CHNVP(nodes_migrating);
 		// Serialize outbound elements 
@@ -586,6 +545,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
 		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
+		std::vector<ChIncrementalObj<ChMesh>>		meshes_migrating;
 		std::vector<ChIncrementalObj<ChLinkBase>>	links_migrating;
 		std::vector<ChIncrementalObj<ChNodeBase>>   nodes_migrating;
 		std::vector<ChIncrementalObj<ChElementBase>>elements_migrating;
@@ -609,14 +569,14 @@ void  ChDomain::DoUpdateSharedReceived() {
 		// In this case for simplicity and safety we collect all the pointers in this->system, but future implemetation
 		// could just collect the pointers of the shared items.
 		
-		ChArchiveOutPointerMap rebinding_pointers;
+		ChArchivePointerMap rebinding_pointers;
 		rebinding_pointers << CHNVP(this->system);
 		deserializer->ExternalPointersMap() = rebinding_pointers.pointer_map_id_ptr; // will rebuild all pointers between objects with GetTag()
 		//deserializer->RebindExternalPointer(this->system, this->system->GetTag()); // assuming all domains have ChSystem with same tag
 
-		//std::cout << "           deserializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
-		//for (auto& m : rebinding_pointers.pointer_map_id_ptr)
-		//	std::cout << "             tag: " << m.first << "\n";
+		std::cout << "           deserializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
+		for (auto& m : rebinding_pointers.pointer_map_id_ptr)
+			std::cout << "             tag: " << m.first << "   ptr: " << (int)m.second << "\n";
 
 
 		// Deserialize inbound bodies
@@ -625,6 +585,8 @@ void  ChDomain::DoUpdateSharedReceived() {
 		*deserializer >> CHNVP(links_migrating);
 		// Deserialize outbound otherphysics items
 		*deserializer >> CHNVP(items_migrating);
+		// Deserialize outbound otherphysics items
+		*deserializer >> CHNVP(meshes_migrating);
 		// Deserialize outbound nodes 
 		*deserializer >> CHNVP(nodes_migrating);
 		// Deserialize outbound elements 
@@ -656,22 +618,39 @@ void  ChDomain::DoUpdateSharedReceived() {
 			system->GetCollisionSystem()->BindItem(oitem);
 		}
 
-		// 4-NODES
-		for (const auto& inode : nodes_migrating) {
-			std::shared_ptr<ChNodeBase> onode = inode.obj;
-			std::shared_ptr<ChMesh> mmesh = std::dynamic_pointer_cast<ChMesh>(interf.second.shared_items[inode.container_ID]);
-			if (auto feanode = std::dynamic_pointer_cast<ChNodeFEAbase>(onode))
-				mmesh->AddNode(feanode);
-			//system->GetCollisionSystem()->BindItem(feanode);
+		// 4-MESHES
+
+		for (const auto& imesh : meshes_migrating) {
+			std::shared_ptr<ChMesh> omesh = imesh.obj;
+			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ilink.container_ID]);
+			system->AddMesh(omesh);
+			system->GetCollisionSystem()->BindItem(omesh);
 		}
 
-		// 5-ELEMENTS
+		// 5-NODES
+		for (const auto& inode : nodes_migrating) {
+			std::shared_ptr<ChNodeBase> onode = inode.obj;
+
+			for (const auto& imesh : system->GetMeshes()) {
+				if (imesh->GetTag() == inode.container_ID) {
+					if (auto feanode = std::dynamic_pointer_cast<ChNodeFEAbase>(onode))
+						imesh->AddNode(feanode);
+					//system->GetCollisionSystem()->BindItem(feanode);
+					break;
+				}
+			}
+		}
+
+		// 6-ELEMENTS
 		for (const auto& ielement : elements_migrating) {
 			std::shared_ptr<ChElementBase> oelem = ielement.obj;
-			std::shared_ptr<ChMesh> mmesh = std::dynamic_pointer_cast<ChMesh>(interf.second.shared_items[ielement.container_ID]);
-			mmesh->AddElement(oelem);
-			//system->GetCollisionSystem()->BindItem(feanode);
 
+			for (auto imesh : system->GetMeshes()) {
+				if (imesh->GetTag() == ielement.container_ID) {
+					imesh->AddElement(oelem);
+					break;
+				}
+			}
 		}
 
 		// HANDSHAKE IDS
@@ -688,17 +667,17 @@ void  ChDomain::DoUpdateSharedReceived() {
 			if (shared_ids_incoming.find(body->GetTag()) != shared_ids_incoming.end())
 				interf.second.shared_items[body->GetTag()] = body;
 		}
+		for (const auto& mmesh : system->GetMeshes()) {
+			if (shared_ids_incoming.find(mmesh->GetTag()) != shared_ids_incoming.end())
+				interf.second.shared_items[mmesh->GetTag()] = mmesh;
+			for (const auto& node : mmesh->GetNodes()) {
+				if (shared_ids_incoming.find(node->GetTag()) != shared_ids_incoming.end())
+					interf.second.shared_nodes[node->GetTag()] = node;
+			}
+		}
 		for (const auto& oitem : system->GetOtherPhysicsItems()) {
 			if (shared_ids_incoming.find(oitem->GetTag()) != shared_ids_incoming.end())
 				interf.second.shared_items[oitem->GetTag()] = oitem;
-
-			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(oitem)) {
-				for (const auto& node : mmesh->GetNodes()) {
-					if (shared_ids_incoming.find(node->GetTag()) != shared_ids_incoming.end())
-						interf.second.shared_nodes[node->GetTag()] = node;
-				}
-				//for (const auto& node : mmesh->GetElements()) // not needed, as not shared
-			}
 		}
 
 
@@ -719,6 +698,10 @@ void  ChDomain::DoUpdateSharedReceived() {
 		ChSystemDescriptor temp_descr;
 		
 		for (auto& mshitem : interf.second.shared_items) {
+
+			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(mshitem.second))
+				continue; // if mesh, do not share all variables but later InjectVariables of shared nodes only
+
 			mshitem.second->InjectVariables(temp_descr);
 		}
 		for (auto& mshnode : interf.second.shared_nodes) {
@@ -734,41 +717,56 @@ void  ChDomain::DoUpdateSharedReceived() {
 	// Removal of objects that are not anymore overlapping this domain
 	//
 
+	std::vector<std::shared_ptr<chrono::fea::ChMesh>> meshes_to_remove;
+	for (const auto& mmesh : system->GetMeshes()) {
+
+		// remove nodes spilling outside
+		std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> nodes_to_remove;
+		for (const auto& node : mmesh->GetNodes()) {
+			ChVector3d node_pos = node->GetCenter();
+			bool is_overlapping_IN = this->IsInto(node_pos);
+			bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
+			if (!is_overlapping_IN && !is_sharing){
+				nodes_to_remove.push_back(node);
+			}
+		}
+		for (const auto& delnode : nodes_to_remove)
+			mmesh->RemoveNode(delnode); // can be made more efficient - this require N searches in vector container
+
+		// remove elements spilling outside
+		std::vector<std::shared_ptr<chrono::fea::ChElementBase>> elements_to_remove;
+		for (const auto& element : mmesh->GetElements()) {
+			ChVector3d reference = element->GetNode(0)->GetCenter();
+			bool is_reference_IN = this->IsInto(reference);
+			//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
+			if (!is_reference_IN) {
+				elements_to_remove.push_back(element);
+			}
+		}
+		for (const auto& delelement : elements_to_remove)
+			mmesh->RemoveElement(delelement); // can be made more efficient - this require N searches in vector container
+
+		// remove the mesh container fully spilling outside 
+		auto mabb = mmesh->GetTotalAABB();
+		bool is_overlapping_IN = this->IsOverlap(mabb); 
+		bool is_sharing = (set_of_domainshared.find(mmesh->GetTag()) != set_of_domainshared.end());
+		if (!is_overlapping_IN && !is_sharing)
+		{
+			meshes_to_remove.push_back(mmesh);
+			// unneeded?
+			for (auto& interf : this->interfaces) {
+				interf.second.shared_items.erase(mmesh->GetTag());
+			}
+		}
+	}
+	for (const auto& delmesh : meshes_to_remove)
+		system->RemoveMesh(delmesh); // can be made more efficient - this require N searches in vector container
+
 	std::vector<std::shared_ptr<chrono::ChPhysicsItem>> items_to_remove;
 	for (const auto& oitem : system->GetOtherPhysicsItems()) {
-
-		if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(oitem)) {
-
-			// remove nodes spilling outside
-			std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> nodes_to_remove;
-			for (const auto& node : mmesh->GetNodes()) {
-				ChVector3d node_pos = node->GetCenter();
-				bool is_overlapping_IN = this->IsInto(node_pos);
-				bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
-				if (!is_overlapping_IN && !is_sharing){
-					nodes_to_remove.push_back(node);
-				}
-			}
-			for (const auto& delnode : nodes_to_remove)
-				mmesh->RemoveNode(delnode); // can be made more efficient - this require N searches in vector container
-
-			// remove elements spilling outside
-			std::vector<std::shared_ptr<chrono::fea::ChElementBase>> elements_to_remove;
-			for (const auto& element : mmesh->GetElements()) {
-				ChVector3d reference = element->GetNode(0)->GetCenter();
-				bool is_reference_IN = this->IsInto(reference);
-				//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
-				if (!is_reference_IN) {
-					elements_to_remove.push_back(element);
-				}
-			}
-			for (const auto& delelement : elements_to_remove)
-				mmesh->RemoveElement(delelement); // can be made more efficient - this require N searches in vector container
-		}
-
 		// remove the generic physics item spilling outside (could be a ChMesh container)
 		auto mabb = oitem->GetTotalAABB();
-		bool is_overlapping_IN = this->IsOverlap(mabb); 
+		bool is_overlapping_IN = this->IsOverlap(mabb);
 		bool is_sharing = (set_of_domainshared.find(oitem->GetTag()) != set_of_domainshared.end());
 		if (!is_overlapping_IN && !is_sharing)
 		{
@@ -781,7 +779,6 @@ void  ChDomain::DoUpdateSharedReceived() {
 	}
 	for (const auto& delitem : items_to_remove)
 		system->RemoveOtherPhysicsItem(delitem); // can be made more efficient - this require N searches in vector container
-
 
 	std::vector<std::shared_ptr<chrono::ChBody>> bodies_to_remove;
 	for (const auto& body : system->GetBodies()) {
