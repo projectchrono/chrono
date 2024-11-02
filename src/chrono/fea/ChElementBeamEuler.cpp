@@ -19,6 +19,7 @@
 namespace chrono {
 namespace fea {
 
+
 ChElementBeamEuler::ChElementBeamEuler()
     : q_refrotA(QUNIT),
       q_refrotB(QUNIT),
@@ -1066,6 +1067,7 @@ double ChElementBeamEuler::GetDensity() {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChElementBeamEuler)
+CH_UPCASTING(ChElementBeamEuler, ChElementBase)
 
 void ChElementBeamEuler::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

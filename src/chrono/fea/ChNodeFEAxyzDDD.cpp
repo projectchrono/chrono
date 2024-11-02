@@ -17,6 +17,14 @@
 namespace chrono {
 namespace fea {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChNodeFEAxyzDDD)
+CH_UPCASTING(ChNodeFEAxyzDDD, ChNodeFEAxyzDD)
+CH_UPCASTING(ChNodeFEAxyzDDD, ChNodeFEAxyz)
+CH_UPCASTING(ChNodeFEAxyzDDD, ChNodeFEAbase)
+CH_UPCASTING(ChNodeFEAxyzDDD, ChNodeXYZ)
+CH_UPCASTING(ChNodeFEAxyzDDD, ChNodeBase)
+
 ChNodeFEAxyzDDD::ChNodeFEAxyzDDD(ChVector3d initial_pos,
                                  ChVector3d initial_dir_u,
                                  ChVector3d initial_dir_v,

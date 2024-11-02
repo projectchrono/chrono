@@ -17,6 +17,14 @@
 namespace chrono {
 namespace fea {
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChNodeFEAxyzrot)
+CH_UPCASTING(ChNodeFEAxyzrot, ChNodeFEAbase)
+CH_UPCASTING(ChNodeFEAxyzrot, ChBodyFrame)
+CH_UPCASTING(ChNodeFEAxyzrot, ChNodeBase)
+CH_UPCASTING(ChNodeFEAxyzrot, ChLoadableUVW)
+
+
 ChNodeFEAxyzrot::ChNodeFEAxyzrot(ChFrame<> initialf) : Force(VNULL), Torque(VNULL) {
     this->Frame() = initialf;
     X0 = ChFrame<>(initialf);
