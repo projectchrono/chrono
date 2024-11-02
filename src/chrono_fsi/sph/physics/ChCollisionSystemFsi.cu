@@ -42,9 +42,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
     Real3 p = mR3(posRad[index]);
 
     if (!IsFinite(p)) {
-        printf(
-            "Error! particle position is NAN: thrown from "
-            "ChCollisionSystemFsi.cu, calcHashD !\n");
+        printf("[calcHashD] index %d position is NaN\n", index);
         *error_flag = true;
         return;
     }
@@ -52,19 +50,15 @@ __global__ void calcHashD(uint* gridMarkerHashD,   // gridMarkerHash Store parti
     // Check particle is inside the domain.
     Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.h);
     if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
-        printf(
-            "Out of Min Boundary, point %f %f %f, boundary min: %f %f %f. "
-            "Thrown from ChCollisionSystemFsi.cu, calcHashD !\n",
-            p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
+        printf("[calcHashD] index %u (%f %f %f) out of min boundary (%f %f %f)\n",  //
+               index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
         return;
     }
     boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.h);
     if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {
-        printf(
-            "Out of max Boundary, point %f %f %f, boundary max: %f %f %f. "
-            "Thrown from ChCollisionSystemFsi.cu, calcHashD !\n",
-            p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
+        printf("[calcHashD] index %u (%f %f %f) out of max boundary (%f %f %f)\n",  //
+               index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
         return;
     }
@@ -234,11 +228,10 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // =========================================================================================================
     if (!(m_data_mgr.markersProximity_D->gridMarkerHashD.size() == m_data_mgr.countersH->numAllMarkers &&
           m_data_mgr.markersProximity_D->gridMarkerIndexD.size() == m_data_mgr.countersH->numAllMarkers)) {
-        printf(
-            "mError! calcHash!, gridMarkerHashD.size() %zu "
-            "gridMarkerIndexD.size() %zu countersH->numAllMarkers %zu \n",
-            m_data_mgr.markersProximity_D->gridMarkerHashD.size(),
-            m_data_mgr.markersProximity_D->gridMarkerIndexD.size(), m_data_mgr.countersH->numAllMarkers);
+        printf("[calcHashD] marker hash size: %u | marker index size: %u\n            num markers: %u\n",  //
+               (uint)m_data_mgr.markersProximity_D->gridMarkerHashD.size(),                                //
+               (uint)m_data_mgr.markersProximity_D->gridMarkerIndexD.size(),                               //
+               (uint)m_data_mgr.countersH->numAllMarkers);                                                 //
         throw std::runtime_error("Error! size error, calcHash!");
     }
 
