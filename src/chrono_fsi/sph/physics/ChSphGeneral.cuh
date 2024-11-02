@@ -24,6 +24,8 @@
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
 
+#include "chrono_fsi/sph/physics/ChParams.h"
+
 namespace chrono {
 namespace fsi {
 namespace sph {
