@@ -91,8 +91,8 @@ class CH_FSI_API ChFsiSystem {
     /// - apply fluid forces on solid objects
     /// - advance multibody dynamics to new data exchange point
     /// - extract new states for FSI solid objects
+    /// The multibody step dynamics is ran in a separate thread and does not block execution.
     void DoStepDynamics(double step);
-    void DoStepDynamicsConcurrent(double step);
 
     /// Get current simulation time.
     double GetSimTime() const { return m_time; }

@@ -187,69 +187,6 @@ const ChVector3d& ChFsiSystem::GetFsiBodyTorque(size_t i) const {
     return m_fsi_interface->GetFsiBodyTorque(i);
 }
 
-void ChFsiSystem::DoStepDynamics(double step) {
-    if (!m_is_initialized) {
-        cout << "ERROR: FSI system not initialized!\n" << endl;
-        throw std::runtime_error("FSI system not initialized!\n");
-    }
-
-    double factor = 1e-6;
-    double threshold_CFD = factor * m_step_CFD;
-    double threshold_MBD = factor * m_step_MBD;
-
-    m_timer_step.reset();
-    m_timer_FSI.reset();
-
-    m_timer_step.start();
-
-    // Advance the dynamics of the fluid system
-    {
-        double t = 0;
-        while (t < step) {
-            double h = std::min<>(m_step_CFD, step - t);
-            if (h <= threshold_CFD)
-                break;
-            m_sysCFD.DoStepDynamics(h);
-            t += h;
-        }
-        m_timer_CFD = m_sysCFD.GetTimerStep();
-    }
-
-    // Apply fluid forces and torques on FSI solids
-    m_timer_FSI.start();
-    m_sysCFD.OnExchangeSolidForces();
-    m_fsi_interface->ExchangeSolidForces();
-    m_timer_FSI.stop();
-
-    // Advance the dynamics of the multibody system
-    {
-        double t = 0;
-        while (t < step) {
-            double h = std::min<>(m_step_MBD, step - t);
-            if (h <= threshold_MBD)
-                break;
-            m_sysMBS.DoStepDynamics(h);
-            t += h;
-        }
-        m_timer_MBS = m_sysMBS.GetTimerStep();
-    }
-
-    // Load new solid phase states
-    m_timer_FSI.start();
-    m_fsi_interface->ExchangeSolidStates();
-    m_sysCFD.OnExchangeSolidStates();
-    m_timer_FSI.stop();
-
-    m_timer_step.stop();
-
-    // Calculate RTF
-    m_RTF = m_timer_step() / step;
-    m_ratio_MBS = m_timer_MBS / m_timer_CFD;
-
-    // Update simulation time
-    m_time += step;
-}
-
 void ChFsiSystem::AdvanceCFD(double step, double threshold) {
     double t = 0;
     while (t < step) {
@@ -274,7 +211,7 @@ void ChFsiSystem::AdvanceMBS(double step, double threshold) {
     m_timer_MBS = m_sysMBS.GetTimerStep();
 }
 
-void ChFsiSystem::DoStepDynamicsConcurrent(double step) {
+void ChFsiSystem::DoStepDynamics(double step) {
     if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;
         throw std::runtime_error("FSI system not initialized!\n");
