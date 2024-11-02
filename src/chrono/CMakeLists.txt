@@ -100,6 +100,7 @@ set(ChronoEngine_serialization_HEADERS
     serialization/ChArchiveJSON.h
     serialization/ChArchiveXML.h
     serialization/ChOutputASCII.h
+    serialization/ChArchiveUtils.h
     )
 
 source_group(serialization FILES
