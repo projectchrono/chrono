@@ -20,7 +20,7 @@
 #define KRAZ_TRAILER_CHASSIS_H
 
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
-#include "chrono_vehicle/chassis/ChChassisConnectorHitch.h"
+#include "chrono_vehicle/chassis/ChChassisConnectorFifthWheel.h"
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
@@ -60,10 +60,10 @@ class CH_MODELS_API Kraz_trailer_Chassis : public ChRigidChassisRear {
 
 // -----------------------------------------------------------------------------
 
-/// Kraz tractor-trailer hitch connector subsystem.
-class CH_MODELS_API Kraz_trailer_Connector : public ChChassisConnectorHitch {
+/// Kraz tractor-trailer fifth wheel connector subsystem.
+class CH_MODELS_API Kraz_trailer_Connector : public ChChassisConnectorFifthWheel {
   public:
-    Kraz_trailer_Connector(const std::string& name) : ChChassisConnectorHitch(name) {}
+    Kraz_trailer_Connector(const std::string& name) : ChChassisConnectorFifthWheel(name) {}
     ~Kraz_trailer_Connector() {}
 };
 

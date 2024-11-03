@@ -33,6 +33,12 @@ ChVisualShapeBarrel::ChVisualShapeBarrel(double Y_low,
     SetMutable(false);
 }
 
+ChAABB ChVisualShapeBarrel::GetBoundingBox() const {
+    double y_min = std::min(Hlow, -Rvert);
+    double y_max = std::max(Hsup, +Rvert);
+    return ChAABB(ChVector3d(-Rhor, y_min, -Rhor), ChVector3d(+Rhor, y_max, +Rhor));
+}
+
 void ChVisualShapeBarrel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVisualShapeBarrel>();

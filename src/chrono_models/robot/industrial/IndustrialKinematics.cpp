@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
-#include "ChRobotKinematics.h"
+#include "IndustrialKinematics.h"
 
 namespace chrono {
 namespace industrial {
 
-ChRobotKinematics::ChRobotKinematics() : m_num_joints(0) {}
+IndustrialKinematics::IndustrialKinematics() : m_num_joints(0) {}
 
 }  // end namespace industrial
 }  // end namespace chrono

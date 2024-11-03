@@ -16,15 +16,15 @@
 //
 // =============================================================================
 
-#include "ChRobotSCARA_CAD.h"
+#include "IndustrialRobotSCARA_CAD.h"
 
 namespace chrono {
 namespace industrial {
 
-ChRobotSCARA_CAD::ChRobotSCARA_CAD(ChSystem* sys,
-                                   const ChFramed& base_frame,
-                                   unsigned int id,
-                                   std::vector<std::string> bodynames)
+IndustrialRobotSCARA_CAD::IndustrialRobotSCARA_CAD(ChSystem* sys,
+                                                   const ChFramed& base_frame,
+                                                   unsigned int id,
+                                                   std::vector<std::string> bodynames)
     : m_id(id), m_bodynames(bodynames) {
     m_sys = sys;
     m_base_frame = base_frame;
@@ -41,7 +41,7 @@ ChRobotSCARA_CAD::ChRobotSCARA_CAD(ChSystem* sys,
     SetBaseFrame(m_base_frame);
 }
 
-void ChRobotSCARA_CAD::SetupBodies() {
+void IndustrialRobotSCARA_CAD::SetupBodies() {
     // Ground (virtual)
     auto ground = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody("SLDW_GROUND"));
     ground->SetName(("robot" + std::to_string(m_id) + "_ground").c_str());
@@ -69,7 +69,7 @@ void ChRobotSCARA_CAD::SetupBodies() {
     m_bodylist = {m_base, m_biceps, m_forearm, m_screw, m_end_effector};
 }
 
-void ChRobotSCARA_CAD::SetupMarkers() {
+void IndustrialRobotSCARA_CAD::SetupMarkers() {
     // Marker ground-base
     m_marker_ground_base = m_sys->SearchMarker("MARKER_0");
     m_marker_ground_base->SetName(("robot" + std::to_string(m_id) + "_MARKER_0").c_str());
@@ -118,7 +118,7 @@ void ChRobotSCARA_CAD::SetupMarkers() {
     m_lengths = {H, L1, L2, D, L3};
 }
 
-void ChRobotSCARA_CAD::SetupLinks() {
+void IndustrialRobotSCARA_CAD::SetupLinks() {
     m_motfunlist = {chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>(),
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>()};
 
@@ -159,6 +159,8 @@ void ChRobotSCARA_CAD::SetupLinks() {
     m_sys->Add(fix_screw_end_effector);
 
     m_motorlist = {m_link_base_biceps, m_link_biceps_forearm, m_link_forearm_screw_rot, m_link_forearm_screw_transl};
+
+    CreatePassiveLinks();
 }
 
 }  // end namespace industrial

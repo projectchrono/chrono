@@ -16,21 +16,24 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
-#define CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
+#ifndef INDUSTRIAL_ROBOT_SCARA_CAD_H
+#define INDUSTRIAL_ROBOT_SCARA_CAD_H
 
-#include "ChRobotSCARA.h"
+#include "IndustrialRobotSCARA.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotSCARA_CAD : public ChRobotSCARA {
+/// @addtogroup robot_models_industrial
+/// @{
+
+class CH_MODELS_API IndustrialRobotSCARA_CAD : public IndustrialRobotSCARA {
   public:
     /// Default constructor.
-    ChRobotSCARA_CAD(){};
+    IndustrialRobotSCARA_CAD(){};
 
     /// Build SCARA R-R-R-P robot model from CAD bodies already imported in sys.
-    ChRobotSCARA_CAD(ChSystem* sys,                            ///< containing sys
+    IndustrialRobotSCARA_CAD(ChSystem* sys,                            ///< containing sys
                      const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinatesv
                      unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of
                                            ///< same CAD robot without name clashes)
@@ -56,10 +59,12 @@ class CH_MODELS_API ChRobotSCARA_CAD : public ChRobotSCARA {
 
     unsigned int m_id = 0;                   ///< robot model unique identifier
     std::vector<std::string> m_bodynames;    ///< name of bodies to search in sys for building robot model
-    std::shared_ptr<ChBodyAuxRef> m_ground;  ///< robot 'ground' virtual body
+    std::shared_ptr<ChBody> m_ground;  ///< robot 'ground' virtual body
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_SCARA_CAD_H
+#endif  // end INDUSTRIAL_ROBOT_SCARA_CAD_H

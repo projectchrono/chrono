@@ -16,20 +16,23 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_SCARA_H
-#define CH_INDUSTRIAL_ROBOT_SCARA_H
+#ifndef INDUSTRIAL_ROBOT_SCARA_H
+#define INDUSTRIAL_ROBOT_SCARA_H
 
-#include "ChRobot.h"
+#include "IndustrialRobot.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotSCARA : public ChRobot {
+/// @addtogroup robot_models_industrial
+/// @{
+
+class CH_MODELS_API IndustrialRobotSCARA : public IndustrialRobot {
   public:
     /// Default constructor.
-    ChRobotSCARA(){};
+    IndustrialRobotSCARA(){};
 
     /// Build SCARA R-R-R-P robot model from given arm lengths (as in scheme below) and add it to sys.
     ///    L1  L2
@@ -38,7 +41,7 @@ class CH_MODELS_API ChRobotSCARA : public ChRobot {
     /// H |       I--<
     ///   |        L3
     ///  ---
-    ChRobotSCARA(
+    IndustrialRobotSCARA(
         ChSystem* sys,                           ///< containing sys
         const std::array<double, 5>& lengths,    ///< robot arm lengths: base height (H), biceps length (L1), forearm
                                                  ///< length (L2), screw height (D), end-effector length (L3)
@@ -46,18 +49,15 @@ class CH_MODELS_API ChRobotSCARA : public ChRobot {
     );
 
     /// Get specific robot body.
-    std::shared_ptr<ChBodyAuxRef> GetBase() { return m_base; };
-    std::shared_ptr<ChBodyAuxRef> GetBiceps() { return m_biceps; };
-    std::shared_ptr<ChBodyAuxRef> GetForearm() { return m_forearm; };
-    std::shared_ptr<ChBodyAuxRef> GetScrew() { return m_screw; };
-    std::shared_ptr<ChBodyAuxRef> GetEndEffector() { return m_end_effector; };
+    std::shared_ptr<ChBody> GetBiceps() { return m_biceps; };
+    std::shared_ptr<ChBody> GetForearm() { return m_forearm; };
+    std::shared_ptr<ChBody> GetScrew() { return m_screw; };
 
     /// Get specific robot joint marker.
     std::shared_ptr<ChMarker> GetMarkerGroundBase() const { return m_marker_ground_base; }
     std::shared_ptr<ChMarker> GetMarkerBaseBiceps() const { return m_marker_base_biceps; }
     std::shared_ptr<ChMarker> GetMarkerBicepsForearm() const { return m_marker_biceps_forearm; }
     std::shared_ptr<ChMarker> GetMarkerForearmScrew() const { return m_marker_forearm_screw; }
-    std::shared_ptr<ChMarker> GetMarkerTCP() const { return m_marker_TCP; }
 
     /// Get specific robot motor.
     std::shared_ptr<ChLinkMotorRotationAngle> GetLinkBaseBiceps() { return m_link_base_biceps; }
@@ -89,14 +89,16 @@ class CH_MODELS_API ChRobotSCARA : public ChRobot {
     virtual void SetupLinks();
 
     std::array<double, 5> m_lengths = {0, 0, 0, 0, 0};  ///< robot arm lengths (H, L1, L2, D, L3)
-    std::shared_ptr<ChBodyAuxRef> m_base, m_biceps, m_forearm, m_screw, m_end_effector;
+    std::shared_ptr<ChBody> m_biceps, m_forearm, m_screw;
     std::shared_ptr<ChMarker> m_marker_ground_base, m_marker_base_biceps, m_marker_biceps_forearm,
-        m_marker_forearm_screw, m_marker_TCP;
+        m_marker_forearm_screw;
     std::shared_ptr<ChLinkMotorRotationAngle> m_link_base_biceps, m_link_biceps_forearm, m_link_forearm_screw_rot;
     std::shared_ptr<ChLinkMotorLinearPosition> m_link_forearm_screw_transl;
 };
 
+/// @} robot_models_industrial
+
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_SCARA_H
+#endif  // end INDUSTRIAL_ROBOT_SCARA_H

@@ -16,21 +16,24 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
 
-#include "ChRobotKinematics.h"
+#include "IndustrialKinematics.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotKinematicsSCARA : public ChRobotKinematics {
+/// @addtogroup robot_models_industrial
+/// @{
+
+class CH_MODELS_API IndustrialKinematicsSCARA : public IndustrialKinematics {
   public:
     /// Default constructor.
-    ChRobotKinematicsSCARA(){};
+    IndustrialKinematicsSCARA(){};
 
     /// Build model from joints absolute coordinates and link lengths.
-    ChRobotKinematicsSCARA(
+    IndustrialKinematicsSCARA(
         const std::array<ChCoordsysd, 5>&
             joints_abs_coord,  ///< joints starting absolute coordinates (assume rotation about local Z axes)
         const std::array<double, 5>& lengths,  ///< robot arm lengths (H, L1, L2, D, L3)
@@ -38,10 +41,10 @@ class CH_MODELS_API ChRobotKinematicsSCARA : public ChRobotKinematics {
     );
 
     /// Copy constructor.
-    ChRobotKinematicsSCARA(const ChRobotKinematicsSCARA& other);
+    IndustrialKinematicsSCARA(const IndustrialKinematicsSCARA& other);
 
     /// Virtual destructor.
-    virtual ~ChRobotKinematicsSCARA(){};
+    virtual ~IndustrialKinematicsSCARA(){};
 
     /// Set absolute and relative robot joints coordinates.
     void SetupCoords(const std::array<ChCoordsysd, 5>& joints_abs_coord);
@@ -64,7 +67,9 @@ class CH_MODELS_API ChRobotKinematicsSCARA : public ChRobotKinematics {
     ChVector3d m_TCP_offset0;                           ///< initial TCP vertical offset from base
 };
 
+/// @} robot_models_industrial
+
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
