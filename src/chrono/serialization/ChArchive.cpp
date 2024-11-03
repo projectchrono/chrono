@@ -52,8 +52,6 @@ void ChArchiveOut::out_version(int mver, const std::type_index mtypeid) {
 }
 
 ChArchiveIn::ChArchiveIn() : can_tolerate_missing_tokens(false) {
-    internal_ptr_id.clear();
-    internal_ptr_id[nullptr] = 0;  // null pointer -> ID=0.
     internal_id_ptr.clear();
     internal_id_ptr[0] = nullptr;  // ID=0 -> null pointer.
 }

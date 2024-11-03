@@ -924,9 +924,7 @@ class ChApi ChArchiveOut : public ChArchive {
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
     template <typename Ty>
     void UnbindExternalPointer(Ty* mptr, size_t ID) { external_ptr_id[getVoidPointer<Ty>(mptr)] = ID; }
-    /*
-    void UnbindExternalPointer(void* mptr, size_t ID) { external_ptr_id[mptr] = ID; }
-    */
+
 
     /// Use the following to declare pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
@@ -934,9 +932,7 @@ class ChApi ChArchiveOut : public ChArchive {
     /// Note, the same IDs must be used when de-serializing pointers in ArchiveIn.
     template <typename Ty>
     void UnbindExternalPointer(std::shared_ptr<Ty> mptr, size_t ID) { external_ptr_id[getVoidPointer<Ty>(mptr.get())] = ID; }
-    /*
-    void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) { external_ptr_id[mptr.get()] = ID; }
-    */
+
 
     /// Access the map of pointer(s) that must not be serialized
     /// but rather be 'unbind' and be saved just as unique IDs.
@@ -1011,6 +1007,12 @@ class ChApi ChArchiveOut : public ChArchive {
 
     // for pointed objects
     virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) = 0;
+
+    // for objects pointed by a std::shared_ptr (defaults to out_ref, enough for most 
+    // serializer heads - see template void out(ChNameValue<std::shared_ptr<T>> bVal) below)
+    virtual void out_ref_sharedptr(ChValue& bVal_wrapped, std::shared_ptr<void> bVal_shptr_wrapper, bool already_inserted, size_t obj_ID, size_t ext_ID) {
+        return out_ref(bVal_wrapped, already_inserted, obj_ID, ext_ID);
+    }
 
     // for wrapping arrays and lists
     virtual void out_array_pre(ChValue& bVal, size_t msize) = 0;
@@ -1178,9 +1180,9 @@ class ChApi ChArchiveOut : public ChArchive {
         }
         ChValueSpecific<T> specVal(
             *mptr, bVal.name(), bVal.flags(), bVal.GetCausality(),
-            bVal.GetVariability());  // TODO: mptr might be null if cut_all_pointers; double check if it is ok
-        this->out_ref(specVal, already_stored, obj_ID,
-                      ext_ID);  // note, this class name is not platform independent
+            bVal.GetVariability()); 
+        //this->out_ref(specVal, already_stored, obj_ID, ext_ID); 
+        this->out_ref_sharedptr(specVal, std::shared_ptr<void>(bVal.value(),idptr), already_stored, obj_ID, ext_ID); 
     }
 
     // trick to call out_ref on raw pointers:
@@ -1273,7 +1275,6 @@ class ChApi ChArchiveOut : public ChArchive {
 /// Base class for deserializing from archives.
 class ChApi ChArchiveIn : public ChArchive {
   protected:
-    std::unordered_map<void*, size_t> internal_ptr_id;
     std::unordered_map<size_t, void*> internal_id_ptr;
     using shared_pair_type = std::pair<std::shared_ptr<void>, std::string>;
     std::unordered_map<void*, shared_pair_type> shared_ptr_map;
@@ -1301,16 +1302,25 @@ class ChApi ChArchiveIn : public ChArchive {
     /// but rather be 'rebind' to already-existing external shared pointers, given unique IDs.
     /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer.
     /// Note, the same IDs must be used when serializing pointers in ArchiveOut.
-    /// Note, there is no check on pointer types when rebinding!
+    /// Note, there is no casting nor check on types when rebinding, unless true_classname is provided (for registered classes)
     template<typename Ty>
-    void RebindExternalPointer(std::shared_ptr<Ty> mptr, size_t ID) {
+    void RebindExternalPointer(std::shared_ptr<Ty> mptr, size_t ID, std::string true_classname ="") {
         external_id_ptr[ID] = getVoidPointer<Ty>(mptr.get());
-        shared_ptr_map.emplace(std::make_pair(getVoidPointer<Ty>(mptr.get()), shared_pair_type(mptr, "")));
+        if (true_classname == "")
+            shared_ptr_map.emplace(std::make_pair(getVoidPointer<Ty>(mptr.get()), shared_pair_type(mptr, "")));
+        else {
+            void* ptr_instance = getVoidPointer<Ty>(mptr.get());
+            shared_ptr_map.emplace(std::make_pair(ptr_instance, shared_pair_type(std::shared_ptr<void>(mptr,ptr_instance), true_classname)));
+        }
     }
 
-    /// Access the map of pointer(s) that were not be serialized
-    /// but rather saved just as unique IDs for rebinding at de-serialization.
+    /// Access the map of pointer(s) that must not be de-serialized
+    /// but rather re-bind from unique IDs. Suggested: manipulate via RebindExternalPointer.
     std::unordered_map<size_t, void*>& ExternalPointersMap() { return external_id_ptr; }
+
+    /// Access the map of shared_pointer(s) used when re-binding pointers.
+    /// Automatically managed, no need to manipulate except for debug or optimizations.
+    std::unordered_map<void*, shared_pair_type>& SharedPointersMap() { return shared_ptr_map; }
 
     /// Returns true if the class can tolerate missing tokes;
     /// on the contrary the archive must contain a complete set of info about the object that is going to be loaded
@@ -1330,11 +1340,9 @@ class ChApi ChArchiveIn : public ChArchive {
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
     void PutNewPointer(void* object, size_t obj_ID) {
-        if (internal_ptr_id.find(object) != internal_ptr_id.end() ||
-            internal_id_ptr.find(obj_ID) != internal_id_ptr.end())
+        if (internal_id_ptr.find(obj_ID) != internal_id_ptr.end())
             throw std::runtime_error("Expected to create a new object from pointer, but was already created.");
 
-        internal_ptr_id[object] = obj_ID;
         internal_id_ptr[obj_ID] = object;
     }
 
