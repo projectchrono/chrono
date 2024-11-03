@@ -572,8 +572,10 @@ void  ChDomain::DoUpdateSharedReceived() {
 		ChArchivePointerMap rebinding_pointers;
 		rebinding_pointers << CHNVP(this->system);
 		deserializer->ExternalPointersMap() = rebinding_pointers.pointer_map_id_ptr; // will rebuild all pointers between objects with GetTag()
+		deserializer->SharedPointersMap() = rebinding_pointers.shared_ptr_map;
 		//deserializer->RebindExternalPointer(this->system, this->system->GetTag()); // assuming all domains have ChSystem with same tag
 
+		//***TEST
 		std::cout << "           deserializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
 		for (auto& m : rebinding_pointers.pointer_map_id_ptr)
 			std::cout << "             tag: " << m.first << "   ptr: " << (int)m.second << "\n";
