@@ -560,6 +560,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     std::unique_ptr<sph::ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<sph::BceManager> m_bce_mgr;              ///< BCE manager
 
+    unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 

@@ -70,8 +70,9 @@ class ChFluidDynamics {
         bool firstHalfStep = true  ///< flag to indicate the first half step in case of explicit integration
     );
 
-    /// Copy from sorted to original
-    void CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2,
+    /// Copy markers in the specified group from sorted arrays to original-order arrays.
+    void CopySortedToOriginal(MarkerGroup group,
+                              std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2,
                               std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Function to Shepard Filtering.

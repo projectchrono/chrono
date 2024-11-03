@@ -28,6 +28,28 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
+/// Marker (SPH and BCE) groups.
+enum class MarkerGroup { FLUID, SOLID, BOUNDARY, NON_FLUID, NON_SOLID, NON_BOUNDARY, ALL };
+
+__host__ __device__ inline bool IsInMarkerGroup(MarkerGroup group, Real code) {
+    switch (group) {
+        case MarkerGroup::ALL:
+            return true;
+        case MarkerGroup::FLUID:
+            return code < -0.5;
+        case MarkerGroup::SOLID:
+            return code > 0.5;
+        case MarkerGroup::BOUNDARY:
+            return code < 0.5 && code > -0.5;
+        case MarkerGroup::NON_FLUID:
+            return code > -0.5;
+        case MarkerGroup::NON_SOLID:
+            return code < 0.5;
+        case MarkerGroup::NON_BOUNDARY:
+            return code > 0.5 || code < -0.5;
+    }
+}
+
 /// Marker (SPH and BCE) type.
 enum class MarkerType { SPH_PARTICLE, SPH_HELPER, SPH_GHOST, BCE_WALL, BCE_RIGID, BCE_FLEX1D, BCE_FLEX2D };
 

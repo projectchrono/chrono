@@ -58,6 +58,7 @@ ChFluidSystemSPH::ChFluidSystemSPH()
       m_pattern2D(BcePatternMesh2D::CENTERED),
       m_remove_center1D(false),
       m_remove_center2D(false),
+      m_num_rigid_bodies(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
       m_output_level(OutputLevel::STATE_PRESSURE) {
@@ -915,7 +916,9 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
     }
 }
 
-void ChFluidSystemSPH::OnAddFsiBody(unsigned int index, FsiBody& fsi_body) {}
+void ChFluidSystemSPH::OnAddFsiBody(unsigned int index, FsiBody& fsi_body) {
+    m_num_rigid_bodies++;
+}
 
 void ChFluidSystemSPH::ChFluidSystemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
     m_pattern1D = pattern;
@@ -1282,6 +1285,9 @@ void ChFluidSystemSPH::OnDoStepDynamics(double step) {
             break;
         }
     }
+
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D,
+                                           m_data_mgr->sphMarkers_D);
 }
 
 void ChFluidSystemSPH::OnExchangeSolidForces() {
@@ -1291,11 +1297,14 @@ void ChFluidSystemSPH::OnExchangeSolidForces() {
 }
 
 void ChFluidSystemSPH::OnExchangeSolidStates() {
+    if (m_num_rigid_bodies == 0 && m_num_flex1D_elements == 0 && m_num_flex2D_elements == 0)
+        return;
+
     m_bce_mgr->UpdateBodyMarkerState();
     m_bce_mgr->UpdateMeshMarker1DState();
     m_bce_mgr->UpdateMeshMarker2DState();
 
-    m_fluid_dynamics->CopySortedToOriginal(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

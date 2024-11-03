@@ -488,7 +488,8 @@ __global__ void UpdateActivityD(const Real4* posRadD,
 }
 
 // -----------------------------------------------------------------------------
-__global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
+__global__ void CopySortedToOriginal_D(MarkerGroup group,
+                                       const Real4* sortedPosRad,
                                        const Real3* sortedVelMas,
                                        const Real4* sortedRhoPresMu,
                                        const Real3* sortedTauXxYyZz,
@@ -512,6 +513,10 @@ __global__ void CopySortedToOriginal_D(const Real4* sortedPosRad,
     // Check the activity of this particle
     uint activity = activityIdentifierD[id];
     if (activity == 0)
+        return;
+
+    Real type = sortedRhoPresMu[id].w;
+    if (!IsInMarkerGroup(group, type))
         return;
 
     uint index = gridMarkerIndex[id];
@@ -624,7 +629,8 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarke
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
+void ChFluidDynamics::CopySortedToOriginal(MarkerGroup group,
+                                           std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
                                            std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
@@ -637,7 +643,7 @@ void ChFluidDynamics::CopySortedToOriginal(std::shared_ptr<SphMarkerDataD> sorte
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
 
     CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+        group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
