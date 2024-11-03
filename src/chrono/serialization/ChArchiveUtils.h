@@ -48,29 +48,54 @@ public:
 
 	virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
 		if (process_objects_byval && bVal.HasGetTag()) {
-			this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
-			this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
+			if(build_map_id_ptr)
+				this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
+			if(build_map_ptr_id)
+				this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
 		}
 		bVal.CallArchiveOut(*this);
 	}
 	virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
 		if (!already_inserted) {
 			if (process_objects_byref && bVal.HasGetTag()) {
-				this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
-				this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
+				if (build_map_id_ptr)
+					this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
+				if (build_map_ptr_id)
+					this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
 			}
 			bVal.CallArchiveOut(*this);
 		}
 	}
 
+	virtual void out_ref_sharedptr(ChValue& bVal_wrapped, std::shared_ptr<void> bVal_shptr_wrapper, bool already_inserted, size_t obj_ID, size_t ext_ID) {
+		if (!already_inserted) {
+			if (process_objects_byref && bVal_wrapped.HasGetTag()) {
+				
+				if (build_map_id_ptr)
+					this->pointer_map_id_ptr[bVal_wrapped.CallGetTag()] = bVal_wrapped.GetRawPtr();
+				if (build_map_ptr_id)
+					this->pointer_map_ptr_id[bVal_wrapped.GetRawPtr()] = bVal_wrapped.CallGetTag();
+				
+				this->shared_ptr_map.emplace(
+					std::make_pair(bVal_wrapped.GetRawPtr(), 
+						std::make_pair(bVal_shptr_wrapper, bVal_wrapped.GetClassRegisteredName())));
+			}
+			bVal_wrapped.CallArchiveOut(*this);
+		}
+	}
+
+
 	bool process_objects_byval = false;
 	bool process_objects_byref = true;
+	bool build_map_id_ptr = true;
+	bool build_map_ptr_id = true;
 
 	/// Result goes here:
+
 	std::unordered_map<size_t, void*> pointer_map_id_ptr;
 	std::unordered_map<void*, size_t> pointer_map_ptr_id;
 
-
+	std::unordered_map<void*, std::pair<std::shared_ptr<void>, std::string>> shared_ptr_map;
 };
 
 
