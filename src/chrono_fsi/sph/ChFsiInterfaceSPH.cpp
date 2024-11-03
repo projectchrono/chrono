@@ -52,7 +52,7 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         // Load from FEA nodes on host
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
-            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+            ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (const auto& node : fsi_mesh.ind2ptr_map) {
                 m_data_mgr.fsiMesh1DState_H->pos_fsi_fea_H[index] = ToReal3(node.second->GetPos());
                 m_data_mgr.fsiMesh1DState_H->vel_fsi_fea_H[index] = ToReal3(node.second->GetPosDt());
@@ -69,7 +69,7 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         // Load from FEA nodes on host
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
-            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+            ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (const auto& node : fsi_mesh.ind2ptr_map) {
                 m_data_mgr.fsiMesh2DState_H->pos_fsi_fea_H[index] = ToReal3(node.second->GetPos());
                 m_data_mgr.fsiMesh2DState_H->vel_fsi_fea_H[index] = ToReal3(node.second->GetPosDt());
@@ -108,7 +108,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         // Apply to FEA 1-D mesh nodes
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
-            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+            ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (auto& node : fsi_mesh.ind2ptr_map) {
                 node.second->SetForce(ToChVector(forces_H[index]));
                 index++;
@@ -123,7 +123,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         // Apply to FEA 2-D mesh nodes
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
-            int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
+            ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (auto& node : fsi_mesh.ind2ptr_map) {
                 node.second->SetForce(ToChVector(forces_H[index]));
                 index++;

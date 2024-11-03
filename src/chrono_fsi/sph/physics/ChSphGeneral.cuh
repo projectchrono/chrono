@@ -176,34 +176,30 @@ inline __host__ __device__ Real W3h(KernelType type, Real d, Real invh) {
     switch (type) {
         case KernelType::QUADRATIC:
             return W3h_Quadratic(d, invh);
-            break;
         case KernelType::CUBIC_SPLINE:
             return W3h_CubicSpline(d, invh);
-            break;
         case KernelType::QUINTIC_SPLINE:
             return W3h_QuinticSpline(d, invh);
-            break;
         case KernelType::WENDLAND:
             return W3h_Wendland(d, invh);
-            break;
     }
+
+    return -1;
 }
 
 inline __host__ __device__ Real3 GradW3h(KernelType type, Real3 d, Real invh) {
     switch (type) {
         case KernelType::QUADRATIC:
             return GradW3h_Quadratic(d, invh);
-            break;
         case KernelType::CUBIC_SPLINE:
             return GradW3h_CubicSpline(d, invh);
-            break;
         case KernelType::QUINTIC_SPLINE:
             return GradW3h_QuinticSpline(d, invh);
-            break;
         case KernelType::WENDLAND:
             return GradW3h_Wendland(d, invh);
-            break;
     }
+
+    return mR3(-1, -1, -1);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -328,6 +324,9 @@ __device__ inline uint calcGridHash(int3 gridPos) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
+
+//// TODO (Huzaifa) check type consistency
+
 __device__ inline uint calcCellID(uint3 cellPos) {
     if (cellPos.x < paramsD.gridSize.x && cellPos.y < paramsD.gridSize.y && cellPos.z < paramsD.gridSize.z) {
         return cellPos.z * paramsD.gridSize.x * paramsD.gridSize.y + cellPos.y * paramsD.gridSize.x + cellPos.x;
