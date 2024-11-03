@@ -1608,60 +1608,6 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-// TODO (Huzaifa): Why have so many seperate SortedToOriginal function (one below this and one in ChFluidDynamics.cu) -
-// Can these be combined?
-__global__ void CopySortedToOriginal_D(const Real4* sortedDerivVelRho,
-                                       const Real3* sortedDerivTauXxYyZz,
-                                       const Real3* sortedDerivTauXyXzYz,
-                                       Real4* originalDerivVelRho,
-                                       Real3* originalDerivTauXxYyZz,
-                                       Real3* originalDerivTauXyXzYz,
-                                       const uint* gridMarkerIndex,
-                                       const uint* activityIdentifierD,
-                                       const uint* mapOriginalToSorted,
-                                       uint* originalFreeSurfaceId,
-                                       const uint* sortedFreeSurfaceId) {
-    uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
-        return;
-
-    // Check the activity of this particle
-    uint activity = activityIdentifierD[id];
-    if (activity == 0)
-        return;
-
-    uint index = mapOriginalToSorted[id];
-
-    originalDerivVelRho[id] = sortedDerivVelRho[index];
-    if (paramsD.elastic_SPH) {
-        originalDerivTauXxYyZz[id] = sortedDerivTauXxYyZz[index];
-        originalDerivTauXyXzYz[id] = sortedDerivTauXyXzYz[index];
-        originalFreeSurfaceId[id] = sortedFreeSurfaceId[index];
-    }
-    return;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-__global__ void CopySortedToOriginal_XSPH_D(const Real3* sortedXSPH,
-                                            Real3* originalXSPH,
-                                            const uint* gridMarkerIndex,
-                                            const uint* activityIdentifierD,
-                                            const uint* mapOriginalToSorted) {
-    uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
-        return;
-
-    // Check the activity of this particle
-    uint activity = activityIdentifierD[id];
-    if (activity == 0)
-        return;
-
-    uint index = mapOriginalToSorted[id];
-
-    originalXSPH[id] = sortedXSPH[index];
-}
-
 // ===============================================================================================================================
 
 ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
