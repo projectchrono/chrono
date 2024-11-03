@@ -65,25 +65,17 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Dimension of the domain
-double smalldis = 1.0e-9;
-double bxDim = 3.0 + smalldis;
-double byDim = 0.2 + smalldis;
-double bzDim = 2.0 + smalldis;
+double bxDim = 3.0;
+double byDim = 0.2;
+double bzDim = 2.0;
 
 // Dimension of the fluid domain
-double fxDim = 1.0 + smalldis;
-double fyDim = 0.2 + smalldis;
-double fzDim = 1.0 + smalldis;
+double fxDim = 1.0;
+double fyDim = 0.2;
+double fzDim = 1.0;
 
-// Dimension of the cable
-double length_cable = 0.8 + smalldis;
-double loc_x = -0.3;
-int num_cable_element = 15;
-
-// Material Properties
-double E = 8e9;
-double density = 8000;
-double BeamRayleighDamping = 0.02;
+// Rigid cylinder?
+bool create_cylinder = true;
 
 // -----------------------------------------------------------------------------
 
@@ -391,12 +383,23 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
+    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
+    auto initSpace0 = sysSPH.GetInitialSpacing();
+
+    // Create ground body with collision boxes
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     ground->EnableCollision(false);
+    ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(bxDim, byDim, 0.1)),
+                           ChFrame<>(ChVector3d(0, 0, -0.05), QUNIT));
+    ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(0.1, byDim, bzDim + 0.2)),
+                           ChFrame<>(ChVector3d(+bxDim / 2 + 0.05, 0, bzDim / 2), QUNIT));
+    ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(0.1, byDim, bzDim + 0.2)),
+                           ChFrame<>(ChVector3d(-bxDim / 2 - 0.05, 0, bzDim / 2), QUNIT));
     sysMBS.AddBody(ground);
 
     // FSI representation of walls
@@ -405,11 +408,30 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, -1));
 
-    auto initSpace0 = sysSPH.GetInitialSpacing();
+    // Create a cylindrical rigid body
+    if (create_cylinder) {
+        double length = 0.8;
+        double radius = initSpace0;
+
+        auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetPos(ChVector3d(0.25 * bxDim, 0, length / 2));
+        cylinder->SetFixed(true);
+        cylinder->EnableCollision(false);
+        cylinder->AddVisualShape(chrono_types::make_shared<ChVisualShapeCylinder>(radius, length), ChFrame<>());
+        sysMBS.AddBody(cylinder);
+        sysFSI.AddFsiBody(cylinder);
+        sysSPH.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QUNIT), radius, length, true);
+    }
 
     // Create an FEA mesh representing a cantilever beam modeled with ANCF cable elements
-    auto mesh = chrono_types::make_shared<fea::ChMesh>();
-    std::vector<std::vector<int>> _1D_elementsNodes_mesh;
+    double length_cable = 0.8;
+    double loc_x = -0.3;
+    int num_cable_element = 15;
+
+    // Material Properties
+    double E = 8e9;
+    double density = 8000;
+    double BeamRayleighDamping = 0.02;
 
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable->SetDiameter(initSpace0);
@@ -417,14 +439,16 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     msection_cable->SetDensity(density);
     msection_cable->SetRayleighDamping(BeamRayleighDamping);
 
-    ChBuilderCableANCF builder;
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+    std::vector<std::vector<int>> node_indices;
     std::vector<std::vector<int>> node_nbrs;
+    ChBuilderCableANCF builder;
     builder.BuildBeam(mesh,                                  // FEA mesh with nodes and elements
                       msection_cable,                        // section material for cable elements
                       num_cable_element,                     // number of elements in the segment
                       ChVector3d(loc_x, 0.0, length_cable),  // beam start point
                       ChVector3d(loc_x, 0.0, initSpace0),    // beam end point
-                      _1D_elementsNodes_mesh,                // node indices
+                      node_indices,                          // node indices
                       node_nbrs                              // neighbor node indices
     );
 
