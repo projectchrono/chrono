@@ -757,6 +757,8 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->kernel_type = sph_params.kernel_type;
 
     m_paramsH->d0 = sph_params.initial_spacing;
+    m_paramsH->volume0 = cube(m_paramsH->d0);
+    m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
     m_paramsH->d0_multiplier = sph_params.d0_multiplier;
     m_paramsH->h = m_paramsH->d0_multiplier * m_paramsH->d0;
     m_paramsH->ood0 = 1 / m_paramsH->d0;
@@ -1304,7 +1306,8 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
     m_bce_mgr->UpdateMeshMarker1DState();
     m_bce_mgr->UpdateMeshMarker2DState();
 
-    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::SOLID, m_data_mgr->sortedSphMarkers2_D,
+                                           m_data_mgr->sphMarkers_D);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
