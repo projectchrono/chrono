@@ -11,10 +11,18 @@
 // =============================================================================
 // Author: Wei Hu, Huzaifa Mustafa Unjhawala
 // =============================================================================
+// Cratering validation problem involving spherical impactors with different
+// densities falling from different heights (zero velocity) on CRM soil.
+// 
+// Reference solution:
+// https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff
+//
+// =============================================================================
 
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 #include <iomanip>
 #include <fstream>
 
@@ -40,13 +48,26 @@
 using namespace chrono;
 using namespace chrono::fsi;
 
+// -----------------------------------------------------------------------------
+
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Truths from Wei Paper -
-// https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff
-// Global parameters
 const double sphere_radius = 0.0125;
+
+// -----------------------------------------------------------------------------
+
+class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+  public:
+    PositionVisibilityCallback() {}
+
+    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
+        auto p = cloud.GetParticlePos(n);
+        return p.y() > 0;
+    };
+};
+
+// -----------------------------------------------------------------------------
 
 // Function to handle CLI arguments
 bool GetProblemSpecs(int argc,
@@ -62,7 +83,7 @@ bool GetProblemSpecs(int argc,
                      bool& render,
                      std::string& boundary_type,
                      std::string& viscosity_type) {
-    ChCLI cli(argv[0], "FSI Sphere Drop Demo");
+    ChCLI cli(argv[0], "FSI Cratering Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
     cli.AddOption<bool>("Simulation", "verbose", "Verbose output", std::to_string(verbose));
@@ -108,7 +129,7 @@ int main(int argc, char* argv[]) {
     double sphere_density = 700;
     double Hdrop = 0.5;
     bool render = true;
-    double render_fps = 100;
+    double render_fps = 400;
     std::string boundary_type = "adami";
     std::string viscosity_type = "artificial_unilateral";
 
@@ -140,13 +161,13 @@ int main(int argc, char* argv[]) {
         sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
     }
 
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_SphereDrop_granular.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Cratering_granular.json");
     sysSPH.ReadParametersFromFile(inputJson);
     auto init_spacing = sysSPH.GetInitialSpacing();
 
-    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    double g = 9.81;
+    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, -g));
     sysMBS.SetGravitationalAcceleration(sysSPH.GetGravitationalAcceleration());
-    // Get the pointer to the system parameter and use a JSON file to fill it out with the user
 
     sysFSI.SetVerbose(verbose);
     sysSPH.SetNumProximitySearchSteps(ps_freq);
@@ -159,7 +180,8 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition
     ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim * 1.2);
-    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + Hdrop + sphere_radius + init_spacing) * 1.2);
+    ////ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + Hdrop + sphere_radius + init_spacing) * 1.2);
+    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + sphere_radius + init_spacing) * 1.2);
     sysSPH.SetBoundaries(cMin, cMax);
 
     // Create SPH particle locations using a regular grid sampler
@@ -205,21 +227,27 @@ int main(int argc, char* argv[]) {
                               ChVector3i(2, 2, -1));
 
     // Create a falling sphere
-    auto sphere = chrono_types::make_shared<ChBody>();
     double volume = ChSphere::GetVolume(sphere_radius);
     double mass = sphere_density * volume;
     auto inertia = mass * ChSphere::GetGyration(sphere_radius);
+    double impact_vel = std::sqrt(2 * Hdrop * g);
 
-    double sphere_z_pos = Hdrop + fzDim + sphere_radius + 0.5 * init_spacing;
-    ChVector3d sphere_pos = ChVector3d(0, 0, sphere_z_pos);
-    sphere->SetPos(sphere_pos);
+    ////double sphere_z_pos = Hdrop + fzDim + sphere_radius + 0.5 * init_spacing;
+    ////double sphere_z_vel = 0;
+
+    double sphere_z_pos = fzDim + sphere_radius + 0.5 * init_spacing;
+    double sphere_z_vel = impact_vel;
+
+    auto sphere = chrono_types::make_shared<ChBody>();
+    sysMBS.AddBody(sphere);
+    sphere->SetPos(ChVector3d(0, 0, sphere_z_pos));
+    sphere->SetPosDt(ChVector3d(0, 0, -sphere_z_vel));
     sphere->SetMass(mass);
     sphere->SetInertia(inertia);
 
     chrono::utils::AddSphereGeometry(sphere.get(), cmaterial, sphere_radius);
     sphere->GetCollisionModel()->SetSafeMargin(init_spacing);
 
-    sysMBS.AddBody(sphere);
     sysFSI.AddFsiBody(sphere);
     sysSPH.AddSphereBCE(sphere, ChFrame<>(VNULL, QUNIT), sphere_radius, true, true);
 
@@ -229,7 +257,7 @@ int main(int argc, char* argv[]) {
     // Output directories
     std::string out_dir;
     if (output || snapshots) {
-        out_dir = GetChronoOutputPath() + "FSI_SphereDrop/";
+        out_dir = GetChronoOutputPath() + "FSI_Cratering/";
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;
@@ -288,15 +316,18 @@ int main(int argc, char* argv[]) {
         }
 
         if (visFSI) {
-            visFSI->SetTitle("FSI Sphere Drop Demo");
+            visFSI->SetTitle("FSI Cratering");
             visFSI->SetSize(1280, 720);
-            visFSI->AddCamera(ChVector3d(0, -7 * byDim, bzDim), ChVector3d(0, 0, 0));
+            visFSI->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
             visFSI->SetCameraMoveScale(0.1f);
             visFSI->EnableFluidMarkers(true);
             visFSI->EnableBoundaryMarkers(true);
-            visFSI->EnableRigidBodyMarkers(true);
+            visFSI->EnableRigidBodyMarkers(false);
             visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+            visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, impact_vel / 2));
+            visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
+            visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
             visFSI->AttachSystem(&sysMBS);
             visFSI->Initialize();
         }
