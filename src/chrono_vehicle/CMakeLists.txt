@@ -547,6 +547,8 @@ set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.cpp
     wheeled_vehicle/test_rig/ChTireTestRig.h
     wheeled_vehicle/test_rig/ChTireTestRig.cpp
+    wheeled_vehicle/test_rig/ChTireStaticTestRig.h
+    wheeled_vehicle/test_rig/ChTireStaticTestRig.cpp
 )
 source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES})
 
