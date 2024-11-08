@@ -9,8 +9,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_SingleWheelTest
    demo_FSI_BCE
    demo_FSI_Kernels
-   demo_FSI_CylinderDrop
-   demo_FSI_SphereBounce
+   demo_FSI_ObjectDrop
    demo_FSI_CylindricalTank
    demo_FSI_WaveTank
    demo_FSI_EmbeddedObject
@@ -18,7 +17,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_CouetteFlow
    demo_FSI_Flap
    demo_FSI_AngleRepose
-   demo_FSI_SphereDrop
+   demo_FSI_Cratering
 )
 
 if(ENABLE_MODULE_PARDISO_MKL)

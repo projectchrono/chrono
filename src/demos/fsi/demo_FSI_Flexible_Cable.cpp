@@ -65,17 +65,18 @@ using std::endl;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Dimension of the domain
-double bxDim = 3.0;
-double byDim = 0.2;
-double bzDim = 2.0;
+double cxDim = 3.0;
+double cyDim = 0.2;
+double czDim = 2.0;
 
 // Dimension of the fluid domain
 double fxDim = 1.0;
 double fyDim = 0.2;
 double fzDim = 1.0;
 
-// Rigid cylinder?
-bool create_cylinder = true;
+// Rigid cylinders?
+bool create_cylinder_post = false;
+bool create_cylinder_free = false;
 
 // -----------------------------------------------------------------------------
 
@@ -156,11 +157,11 @@ int main(int argc, char* argv[]) {
     sysSPH.SetNumProximitySearchSteps(ps_freq);
 
     // Set simulation domain
-    sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3d(cxDim, cyDim, czDim));
 
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
-    ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
+    ChVector3d cMin = ChVector3d(-5 * cxDim, -cyDim / 2.0 - initSpace0 / 2.0, -5 * czDim);
+    ChVector3d cMax = ChVector3d(5 * cxDim, cyDim / 2.0 + initSpace0 / 2.0, 5 * czDim);
     sysSPH.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
@@ -168,7 +169,7 @@ int main(int argc, char* argv[]) {
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
-    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2);
+    ChVector3d boxCenter(-cxDim / 2 + fxDim / 2, 0, fzDim / 2);
     ChVector3d boxHalfDim(fxDim / 2 - initSpace0, fyDim / 2, fzDim / 2 - initSpace0);
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
@@ -259,11 +260,12 @@ int main(int argc, char* argv[]) {
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableFlexBodyMarkers(true);
+        visFSI->EnableRigidBodyMarkers(false);
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
-        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
+        //visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
@@ -390,16 +392,27 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
 
     auto initSpace0 = sysSPH.GetInitialSpacing();
 
+    // Contact material (default properties)
+    auto contact_material_info = ChContactMaterialData();
+    contact_material_info.mu = 0.1f;
+    auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
+
     // Create ground body with collision boxes
+    double bxDim = cxDim;
+    double byDim = cyDim + 2 * initSpace0;
+    double bzDim = czDim;
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
-    ground->EnableCollision(false);
-    ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(bxDim, byDim, 0.1)),
-                           ChFrame<>(ChVector3d(0, 0, -0.05), QUNIT));
-    ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(0.1, byDim, bzDim + 0.2)),
-                           ChFrame<>(ChVector3d(+bxDim / 2 + 0.05, 0, bzDim / 2), QUNIT));
-    ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChVector3d(0.1, byDim, bzDim + 0.2)),
-                           ChFrame<>(ChVector3d(-bxDim / 2 - 0.05, 0, bzDim / 2), QUNIT));
+    ground->EnableCollision(true);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(bxDim, byDim, 0.1), ChVector3d(0, 0, -0.05));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, byDim, bzDim + 0.2),
+                          ChVector3d(+bxDim / 2 + 0.05, 0, bzDim / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, byDim, bzDim + 0.2),
+                          ChVector3d(-bxDim / 2 - 0.05, 0, bzDim / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(bxDim + 0.2, 0.1, bzDim + 0.2),
+                          ChVector3d(0, +byDim / 2 + 0.05, bzDim / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(bxDim + 0.2, 0.1, bzDim + 0.2),
+                          ChVector3d(0, -byDim / 2 - 0.05, bzDim / 2), QUNIT, false);
     sysMBS.AddBody(ground);
 
     // FSI representation of walls
@@ -407,20 +420,40 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, -1));
-
-    // Create a cylindrical rigid body
-    if (create_cylinder) {
+    // Create a fixed cylindrical post
+    if (create_cylinder_post) {
         double length = 0.8;
         double radius = initSpace0;
 
         auto cylinder = chrono_types::make_shared<ChBody>();
-        cylinder->SetPos(ChVector3d(0.25 * bxDim, 0, length / 2));
+        cylinder->SetPos(ChVector3d(0.2 * cxDim, 0, length / 2));
         cylinder->SetFixed(true);
         cylinder->EnableCollision(false);
         cylinder->AddVisualShape(chrono_types::make_shared<ChVisualShapeCylinder>(radius, length), ChFrame<>());
         sysMBS.AddBody(cylinder);
         sysFSI.AddFsiBody(cylinder);
         sysSPH.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QUNIT), radius, length, true);
+    }
+
+    // Create a free cylindrical rigid body
+    if (create_cylinder_free) {
+        double length = 0.1;
+        double radius = 0.05;
+        double density = 200;
+        double volume = ChCylinder::GetVolume(radius, length);
+        double mass = density * volume;
+        auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
+
+        auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetMass(mass);
+        cylinder->SetInertiaXX(mass * gyration);
+        cylinder->SetPos(ChVector3d(0.3 * bxDim, 0, 0.1 + radius));
+        cylinder->SetFixed(false);
+        cylinder->EnableCollision(true);
+        utils::AddCylinderGeometry(cylinder.get(), contact_material, radius, length, VNULL, Q_ROTATE_Y_TO_Z);
+        sysMBS.AddBody(cylinder);
+        sysFSI.AddFsiBody(cylinder);
+        sysSPH.AddCylinderBCE(cylinder, ChFrame<>(VNULL, Q_ROTATE_Y_TO_Z), radius, length, true);
     }
 
     // Create an FEA mesh representing a cantilever beam modeled with ANCF cable elements

@@ -55,11 +55,15 @@ ChVector3d csize(0.8, 0.8, 1.6);
 // Dimensions of fluid domain
 ChVector3d fsize(0.8, 0.8, 1.2);
 
-// Sphere density
+// Object type
+enum class ObjectType {SPHERE, CYLINDER};
+ObjectType object_type = ObjectType::CYLINDER;
+
+// Object density
 double density = 500;
 
-// Sphere initial height
-double initial_height = 0.95;
+// Object initial height above floor (as a ratio of fluid height)
+double initial_height = 1.05;
 
 // Visibility flags
 bool show_rigid = true;
@@ -93,7 +97,7 @@ bool GetProblemSpecs(int argc,
                      int& ps_freq,
                      std::string& boundary_type,
                      std::string& viscosity_type) {
-    ChCLI cli(argv[0], "FSI Sphere Bounce demo");
+    ChCLI cli(argv[0], "FSI object drop demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
@@ -218,24 +222,50 @@ int main(int argc, char* argv[]) {
 
     sysSPH.SetSPHParameters(sph_params);
 
-    // Create a rigid body
-    double radius = 0.12;
-    auto mass = density * ChSphere::GetVolume(radius);
-    auto inertia = mass * ChSphere::GetGyration(radius);
-
-    auto body = chrono_types::make_shared<ChBody>();
-    body->SetName("ball");
-    body->SetPos(ChVector3d(0, 0, initial_height));
-    body->SetRot(QUNIT);
-    body->SetMass(mass);
-    body->SetInertia(inertia);
-    body->SetFixed(false);
-    body->EnableCollision(false);
-    sysMBS.AddBody(body);
-
+    // Create the rigid body
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
+
+    auto body = chrono_types::make_shared<ChBody>();
+    sysMBS.AddBody(body);
+    body->SetName("object");
+    body->SetFixed(false);
+    body->EnableCollision(false);
+
+    switch (object_type) {
+        case ObjectType::SPHERE: {
+            double radius = 0.12;
+            auto mass = density * ChSphere::GetVolume(radius);
+            auto inertia = mass * ChSphere::GetGyration(radius);
+
+            body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
+            body->SetRot(QUNIT);
+            body->SetMass(mass);
+            body->SetInertia(inertia);
+
+            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
+
+            break;
+        }
+        case ObjectType::CYLINDER: {
+            double length = 0.20;
+            double radius = 0.12;
+
+            double mass = density * ChCylinder::GetVolume(radius, length);
+            auto inertia = mass * ChCylinder::GetGyration(radius, length / 2);
+
+            body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
+            body->SetRot(QUNIT);
+            body->SetMass(mass);
+            body->SetInertia(inertia);
+
+            geometry.coll_cylinders.push_back(
+                utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Z_TO_X, radius, length));
+
+            break;
+        }
+    }
+
     if (show_rigid)
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
@@ -259,7 +289,7 @@ int main(int argc, char* argv[]) {
     fsi.Initialize();
 
     // Output directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_Sphere_Bounce/";
+    std::string out_dir = GetChronoOutputPath() + "FSI_Object_Drop/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -417,7 +447,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
     gplot.SetGrid();
-    std::string speed_title = "Sphere height";
+    std::string speed_title = "Object height";
     gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("height (m)");
