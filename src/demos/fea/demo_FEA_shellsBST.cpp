@@ -31,19 +31,19 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 
-#include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "FEAvisualization.h"
+
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     auto vis_shell_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_shell_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    vis_shell_speed->SetColorscaleMinMax(0.0, 5.0);
+    vis_shell_speed->SetColorscaleMinMax(0.0, 7.5);
     vis_shell_speed->SetWireframe(false);
     vis_shell_speed->SetShellResolution(3);
     mesh->AddVisualShapeFEA(vis_shell_speed);
@@ -345,17 +345,9 @@ int main(int argc, char* argv[]) {
         sys.AddBody(cylinder);
     }
 
-    // Create the Irrlicht visualization system
-    auto vsys = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vsys->AttachSystem(&sys);
-    vsys->SetWindowSize(1024, 768);
-    vsys->SetWindowTitle("Shells FEA test: triangle BST elements");
-    vsys->Initialize();
-    vsys->AddLogo();
-    vsys->AddSkyBox();
-    vsys->AddCamera(ChVector3d(1, 0.3, 1.3), ChVector3d(0.5, -0.3, 0.5));
-    vsys->AddLight(ChVector3d(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
-    vsys->AddLight(ChVector3d(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "BST triangle shell",
+                                         ChVector3d(1, 0.3, 1.3), ChVector3d(0.5, -0.3, 0.5));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -374,10 +366,10 @@ int main(int argc, char* argv[]) {
     ChFunctionInterp rec_X;
     ChFunctionInterp rec_Y;
 
-    while (vsys->Run()) {
-        vsys->BeginScene();
-        vsys->Render();
-        vsys->EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
         sys.DoStepDynamics(timestep);
     }
 

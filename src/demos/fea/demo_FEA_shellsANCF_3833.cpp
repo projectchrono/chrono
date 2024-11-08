@@ -23,13 +23,14 @@
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -236,29 +237,36 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto vismesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    vismesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_DISP_Z);
-    vismesh->SetColorscaleMinMax(-0.2, 0.2);
-    vismesh->SetSmoothFaces(true);
-    mesh->AddVisualShapeFEA(vismesh);
+    auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizemeshA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
+    visualizemeshA->SetShrinkElements(true, 0.85);
+    visualizemeshA->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(visualizemeshA);
 
-    auto visnodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
-    visnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    visnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    visnodes->SetSymbolsThickness(0.004);
-    mesh->AddVisualShapeFEA(visnodes);
+    auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+    visualizemeshB->SetWireframe(true);
+    visualizemeshB->SetDrawInUndeformedReference(true);
+    mesh->AddVisualShapeFEA(visualizemeshB);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("ANCF Shells");
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0.5, -0.5, 0.5), ChVector3d(0.5, 0.25, 0.0));
-    vis->AttachSystem(&sys);
+    auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    visualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visualizemeshC->SetSymbolsThickness(0.004);
+    mesh->AddVisualShapeFEA(visualizemeshC);
+
+    auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
+    visualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    visualizemeshD->SetSymbolsScale(1);
+    visualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    visualizemeshD->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(visualizemeshD);
+
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Shells 3833",
+                                         ChVector3d(0.5, -0.5, 0.5), ChVector3d(0.5, 0.25, 0.0));
 
     // ----------------------------------
     // Perform a dynamic time integration
