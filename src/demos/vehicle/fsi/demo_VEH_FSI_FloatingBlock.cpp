@@ -15,6 +15,7 @@
 // Demo showing a Polaris vehicle moving over a floating block
 //
 // =============================================================================
+
 #include <assert.h>
 #include <stdlib.h>
 #include <ctime>
@@ -24,7 +25,6 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChBodyGeometry.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
@@ -37,12 +37,10 @@
 #endif
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
-#include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 // Chrono namespaces
 using namespace chrono;
@@ -53,11 +51,6 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
                                               ChFluidSystemSPH& sysSPH,
                                               ChFsiSystemSPH& sysFSI,
                                               const ChCoordsys<>& init_pos);
-std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
-
-//------------------------------------------------------------------
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // =============================================================================
 
@@ -174,8 +167,6 @@ int main(int argc, char* argv[]) {
         chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, ChVector3d(bxDim, byDim, 2 * initSpace0)),
         ChFrame<>());
     sysMBS.AddBody(left_box);
-    sysFSI.AddFsiBody(left_box);
-    sysSPH.AddBoxBCE(left_box, ChFrame<>(), ChVector3d(bxDim, byDim, 2 * initSpace0), true);
 
     auto right_box = chrono_types::make_shared<ChBody>();
     right_box->SetPos(ChVector3d(bxDim / 2 + bxDim / 2 + 3 * initSpace0, 0, bzDim + initSpace0));
@@ -187,8 +178,6 @@ int main(int argc, char* argv[]) {
         chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, ChVector3d(bxDim, byDim, 2 * initSpace0)),
         ChFrame<>());
     sysMBS.AddBody(right_box);
-    sysFSI.AddFsiBody(right_box);
-    sysSPH.AddBoxBCE(right_box, ChFrame<>(), ChVector3d(bxDim, byDim, 2 * initSpace0), true);
 
     // Floating block size and density
     ChVector3d plate_size(0.9 * fxDim, 0.7 * fyDim, 4 * initSpace0);
@@ -260,7 +249,7 @@ int main(int argc, char* argv[]) {
         visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 
         visFSI->SetTitle("Chrono::FSI Floating Block");
-        visFSI->AddCamera(ChVector3d(0, -12 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visFSI->AddCamera(ChVector3d(0, -8 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);

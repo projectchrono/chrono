@@ -3,12 +3,16 @@
 # These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
+if(NOT ENABLE_MODULE_FSI)
+   return()
+endif()
+
 #--------------------------------------------------------------
 # List all demos
 
 set(DEMOS "")
 
-if(ENABLE_MODULE_FSI AND ENABLE_MODULE_VSG)
+if(ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_FSI_FloatingBlock
     )
