@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
 
 #include "IndustrialKinematics.h"
 
@@ -92,4 +92,4 @@ class CH_MODELS_API IndustrialKinematicsNdofNumerical : public IndustrialKinemat
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H

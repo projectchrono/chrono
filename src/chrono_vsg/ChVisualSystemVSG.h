@@ -371,6 +371,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
 
+    vsg::ref_ptr<vsg::Data> m_exportImageData;
+    vsg::ref_ptr<vsg::MappedData<vsg::ubyteArray>> m_exportMappedData;
+
     friend class ChMainGuiVSG;
     friend class ChBaseGuiComponentVSG;
     friend class ChBaseEventHandlerVSG;

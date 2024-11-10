@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_TRAJECTORY_INTERPOLATOR_H
-#define CH_TRAJECTORY_INTERPOLATOR_H
+#ifndef TRAJECTORY_INTERPOLATOR_H
+#define TRAJECTORY_INTERPOLATOR_H
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono/functions/ChFunctionPositionLine.h"
@@ -137,4 +137,4 @@ class CH_MODELS_API TrajectoryInterpolator {
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_TRAJECTORY_INTERPOLATOR_H
+#endif  // end TRAJECTORY_INTERPOLATOR_H

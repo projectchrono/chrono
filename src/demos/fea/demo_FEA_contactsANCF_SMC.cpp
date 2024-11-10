@@ -38,14 +38,13 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChBuilderBeam.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // ------------------------------------------------------------
 
@@ -157,7 +156,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------
     // Create a mesh with CableANCF elements
     // ------------------------------------------
-    
+
     auto mesh_cables = chrono_types::make_shared<ChMesh>();
 
     auto section_cables = chrono_types::make_shared<ChBeamSectionCable>();
@@ -189,7 +188,7 @@ int main(int argc, char* argv[]) {
 
     // Add the mesh to the system
     sys.Add(mesh_cables);
-    
+
     // FEA visualization
     {
         auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>(mesh_cables);
@@ -198,7 +197,7 @@ int main(int argc, char* argv[]) {
         fea_vis->SetSmoothFaces(true);
         mesh_cables->AddVisualShapeFEA(fea_vis);
     }
-    
+
     // Register callback for printing contact info
     auto contact_callback = chrono_types::make_shared<PrintContactInfo>();
     sys.GetContactContainer()->RegisterAddContactCallback(contact_callback);
@@ -207,18 +206,8 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization system
     // ------------------------------------
 
-    auto vsys = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vsys->AttachSystem(&sys);
-    vsys->SetWindowSize(800, 600);
-    vsys->SetWindowTitle("ANCF Contact");
-    vsys->SetCameraVertical(CameraVerticalDir::Z);
-    vsys->Initialize();
-    vsys->AddLogo();
-    vsys->AddSkyBox();
-    vsys->AddTypicalLights();
-    vsys->AddCamera(ChVector3d(0.4, 0.4, 0.4), ChVector3d(-0.25, -0.25, 0.0));
-    vsys->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
-    vsys->EnableShadows();
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Z, sys, "ANCF Contact", ChVector3d(0.4, 0.4, 0.4),
+                                         ChVector3d(-0.25, -0.25, 0.0));
 
     // -------------------------
     // Set solver and integrator
@@ -250,18 +239,18 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-    
+
     double time_step = 5e-4;
 
-    while (vsys->Run()) {
-        vsys->BeginScene();
-        vsys->Render();
-        vsys->EndScene();
+    while (vis->Run()) {
+        vis->BeginScene();
+        vis->Render();
+        vis->EndScene();
 
-        ////std::cout << "Time t = " << sys.GetChTime() << "s \n";
-        ////for (auto n : nodes_cables)
-        ////    std::cout << n->GetPos().z() << "  ";
-        ////std::cout << std::endl;
+        std::cout << "Time t = " << sys.GetChTime() << "s \n";
+        for (auto n : nodes_cables)
+            std::cout << n->GetPos().z() << "  ";
+        std::cout << std::endl;
 
         ////std::cout << "Time t = " << sys.GetChTime() << "s \t";
         ////std::cout << "n contacts: " << sys.GetNumContacts() << "\t";

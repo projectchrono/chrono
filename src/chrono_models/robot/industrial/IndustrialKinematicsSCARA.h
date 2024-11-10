@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
 
 #include "IndustrialKinematics.h"
 
@@ -72,4 +72,4 @@ class CH_MODELS_API IndustrialKinematicsSCARA : public IndustrialKinematics {
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H

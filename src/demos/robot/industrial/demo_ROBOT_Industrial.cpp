@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     // If analytical solution of inverse kinematics is enabled, use appropriate class to retrieve
     // angles that must be provided to motors, at run time, to follow trajectory
 
-    auto markerlist = robot->GetMarkerlist();
+    auto markerlist = robot->GetMarkers();
     std::array<ChCoordsysd, 7> robot_joint_coords;
     for (int i = 0; i < markerlist.size(); ++i)
         robot_joint_coords[i] = markerlist[i]->GetAbsCoordsys();
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
 
     if (!USE_ANALYTICAL_IK) {
         // Disable robot direct actuation
-        robot->DisableMotors(true);
+        robot->SetMotorsDisabled(true);
 
         // Impose trajectory on robot end-effector
         auto imposed_motion = chrono_types::make_shared<ChLinkMotionImposed>();

@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_H
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono/core/ChCoordsys.h"
@@ -50,4 +50,4 @@ class CH_MODELS_API IndustrialKinematics {
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_H

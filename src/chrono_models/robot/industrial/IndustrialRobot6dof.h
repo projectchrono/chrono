@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_6DOF_H
-#define CH_INDUSTRIAL_ROBOT_6DOF_H
+#ifndef INDUSTRIAL_ROBOT_6DOF_H
+#define INDUSTRIAL_ROBOT_6DOF_H
 
 #include "IndustrialRobot.h"
 
@@ -46,13 +46,11 @@ class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
     );
 
     /// Get specific robot body.
-    std::shared_ptr<ChBodyAuxRef> GetBase() { return m_base; };
-    std::shared_ptr<ChBodyAuxRef> GetShoulder() { return m_shoulder; };
-    std::shared_ptr<ChBodyAuxRef> GetBiceps() { return m_biceps; };
-    std::shared_ptr<ChBodyAuxRef> GetForearm() { return m_forearm; };
-    std::shared_ptr<ChBodyAuxRef> GetElbow() { return m_elbow; };
-    std::shared_ptr<ChBodyAuxRef> GetWrist() { return m_wrist; };
-    std::shared_ptr<ChBodyAuxRef> GetEndEffector() { return m_end_effector; };
+    std::shared_ptr<ChBody> GetShoulder() { return m_shoulder; };
+    std::shared_ptr<ChBody> GetBiceps() { return m_biceps; };
+    std::shared_ptr<ChBody> GetForearm() { return m_forearm; };
+    std::shared_ptr<ChBody> GetElbow() { return m_elbow; };
+    std::shared_ptr<ChBody> GetWrist() { return m_wrist; };
 
     /// Get specific robot joint marker.
     std::shared_ptr<ChMarker> GetMarkerBaseShoulder() const { return m_marker_base_shoulder; }
@@ -61,7 +59,6 @@ class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
     std::shared_ptr<ChMarker> GetMarkerElbowForearm() const { return m_marker_elbow_forearm; }
     std::shared_ptr<ChMarker> GetMarkerForearmWrist() const { return m_marker_forearm_wrist; }
     std::shared_ptr<ChMarker> GetMarkerWristEndeffector() const { return m_marker_wrist_end_effector; }
-    std::shared_ptr<ChMarker> GetMarkerTCP() const { return m_marker_TCP; }
 
     /// Get specific robot motor.
     std::shared_ptr<ChLinkMotorRotationAngle> GetMotorBaseShoulder() { return m_link_base_shoulder; }
@@ -93,9 +90,9 @@ class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
     virtual void SetupLinks();
 
     std::array<double, 4> m_lengths = {0, 0, 0, 0};  ///< robot arm lengths (H, L1, L2, L3)
-    std::shared_ptr<ChBodyAuxRef> m_base, m_shoulder, m_biceps, m_elbow, m_forearm, m_wrist, m_end_effector;
+    std::shared_ptr<ChBody> m_shoulder, m_biceps, m_elbow, m_forearm, m_wrist;
     std::shared_ptr<ChMarker> m_marker_base_shoulder, m_marker_shoulder_biceps, m_marker_biceps_elbow,
-        m_marker_elbow_forearm, m_marker_forearm_wrist, m_marker_wrist_end_effector, m_marker_TCP;
+        m_marker_elbow_forearm, m_marker_forearm_wrist, m_marker_wrist_end_effector;
     std::shared_ptr<ChLinkMotorRotationAngle> m_link_base_shoulder, m_link_shoulder_biceps, m_link_biceps_elbow,
         m_link_elbow_forearm, m_link_forearm_wrist, m_link_wrist_end_effector;
 };
@@ -105,4 +102,4 @@ class CH_MODELS_API IndustrialRobot6dof : public IndustrialRobot {
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_6DOF_H
+#endif  // end INDUSTRIAL_ROBOT_6DOF_H
