@@ -229,11 +229,11 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
     /// Construct SPH particles and optionally BCE markers in a box of given dimensions.
     /// The reference position is the center of the bottom face of the box; in other words, SPH particles are generated
     /// above this location and BCE markers for the bottom boundary are generated below this location.
-    /// If created, the BCE markers for the bottom and side walls are adjacent to the SPH domain.
+    /// If created, the BCE markers for the top, bottom, and side walls are adjacent to the SPH domain; 'side_flags' are
+    /// boolean combinations of BoxSide enums.
     void Construct(const ChVector3d& box_size,  ///< box dimensions
                    const ChVector3d& pos,       ///< reference position
-                   bool bottom_wall,            ///< create bottom boundary
-                   bool side_walls              ///< create side boundaries
+                   int side_flags               ///< sides for which BCE markers are created
     );
 
     /// Construct SPH particles and optionally BCE markers from a given heightmap.
@@ -244,8 +244,8 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
     /// translation. The height at each grid point is obtained through bilinear interpolation from the gray values in
     /// the provided heightmap image (with pure black corresponding to the lower height range and pure white to the
     /// upper height range). SPH particle grid locations are generated to cover the specified depth under each grid
-    /// point. BCE marker layers are created below the bottom-most layer of SPH particles and (optionally) on the sides
-    /// of the patch.
+    /// point. If created, BCE marker layers are generated below the bottom-most layer of SPH particles and on the sides
+    /// of the patch. 'side_flags' are boolean combinations of BoxSide enums.
     void Construct(const std::string& heightmap_file,  ///< filename for the heightmap image
                    double length,                      ///< patch length (X direction)
                    double width,                       ///< patch width (Y direction)
@@ -253,20 +253,18 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                    double depth,                       ///< fluid phase depth
                    bool uniform_depth,                 ///< if true, bottom follows surface
                    const ChVector3d& pos,              ///< reference position
-                   bool bottom_wall,                   ///< create bottom boundary
-                   bool side_walls                     ///< create side boundaries
+                   int side_flags                      ///< sides for which BCE markers are created
     );
 
     /// Add fixed BCE markers, representing a container for the computational domain.
     /// The specified 'box_size' represents the dimensions of the *interior* of the box.
     /// The reference position is the center of the bottom face of the box.
     /// Boundary BCE markers are created outside this volume, in layers, starting at a distance equal to the spacing.
+    /// 'side_flags' are boolean combinations of BoxSide enums.
     /// It is the caller responsibility to ensure that the container BCE markers do not overlap with any SPH particles.
     size_t AddBoxContainer(const ChVector3d& box_size,  ///< box dimensions
-                           const ChVector3d& pos,       ///< reference position
-                           bool bottom_wall,            ///< create bottom boundary
-                           bool side_walls,             ///< create side boundaries
-                           bool top_wall                ///< create top boundary
+                           const ChVector3d& pos,       ///< reference positions
+                           int side_flags               ///< sides for which BCE markers are created
     );
 
     /// Interface for callback to specify wave tank profile.
@@ -309,26 +307,26 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
     /// Construct SPH particles and optionally BCE markers in a cylindrical annulus of given dimensions.
     /// Set inner radius to zero to create a cylindrical container.
     /// The reference position is the center of the bottom face of the cylinder; in other words, SPH particles are
-    /// generated above this location and BCE markers for the bottom boundary are generated below this location. If
-    /// created, the BCE markers for the bottom and side walls are adjacent to the SPH domain.
-    void Construct(double radius_inner,
-                   double radius_outer,
-                   double height,
-                   const ChVector3d& pos,
-                   bool bottom_wall,
-                   double side_walls);
+    /// generated above this location and BCE markers for the bottom boundary are generated below this location.
+    /// If created, the BCE markers for the bottom and side walls are adjacent to the SPH domain; 'side_flags' are
+    /// boolean combinations of CylSide enums.
+    void Construct(double radius_inner,    ///< inner radius
+                   double radius_outer,    ///< outer radius
+                   double height,          ///< height
+                   const ChVector3d& pos,  ///< reference position,
+                   int side_flags          ///< sides for which BCE markers are created
+    );
 
     /// Add fixed BCE markers, representing a cylindrical annulus container for the computational domain.
     /// Set inner radius to zero to create a cylindrical container.
     /// The cylinder is constructed with its axis along the global Z axis.
     /// The specified dimensions refer to the *interior* of the cylindrical annulus.
+    /// 'side_flags' are boolean combinations of CylSide enums.
     size_t AddCylindricalContainer(double radius_inner,    ///< inner radius
                                    double radius_outer,    ///< outer radius
                                    double height,          ///< height
                                    const ChVector3d& pos,  ///< reference position
-                                   bool bottom_wall,       ///< create bottom boundary
-                                   bool side_walls,        ///< create side boundaries
-                                   bool top_wall           ///< create top boundary
+                                   int side_flags          ///< sides for which BCE markers are created
     );
 
   private:

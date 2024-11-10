@@ -190,10 +190,8 @@ int main(int argc, char* argv[]) {
     ChVector3d fsize(bxDim, byDim, bzDim - 2 * initial_spacing);
     fsi.Construct(fsize,                              // length x width x depth
                   ChVector3d(0, 0, initial_spacing),  // position of bottom origin
-                  false,                              // bottom wall?
-                  false                               // side walls?
+                  BoxSide::Z_NEG | BoxSide::Z_POS     // bottom and top boundaries
     );
-    fsi.AddBoxContainer(fsize, ChVector3d(0, 0, initial_spacing), true, false, true);
 
     // Explicitly set computational domain
     ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -10.0 * initial_spacing);

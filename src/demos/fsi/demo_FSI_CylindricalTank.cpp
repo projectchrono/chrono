@@ -171,18 +171,17 @@ int main(int argc, char* argv[]) {
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, false);
 
-    // Enable height-based initial pressure for SPH particles
+    // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, height));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(r_inner, r_outer, height,  //
                   ChVector3d(0, 0, 0),       // position of bottom origin
-                  false,                     // bottom wall?
-                  false                      // side walls?
+                  CylSide::NONE              // no boundary BCEs
     );
 
     // Create a matching cylindrical container (with bottom, side, and top walls)
-    fsi.AddCylindricalContainer(r_inner, r_outer, height + 0.4, ChVector3d(0, 0, 0), true, true, true);
+    fsi.AddCylindricalContainer(r_inner, r_outer, height + 0.4, ChVector3d(0, 0, 0), CylSide::ALL);
 
     fsi.Initialize();
 
@@ -193,7 +192,7 @@ int main(int argc, char* argv[]) {
     }
     out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
+        cerr << "Error creating directory " << out_dir << endl; 
         return 1;
     }
 

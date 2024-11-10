@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
     // Create WEC device
     auto revolute = CreateFlap(fsi);
 
-    // Enable height-based initial pressure for SPH particles
+    // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, depth));
 
     // Create a wave tank

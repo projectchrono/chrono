@@ -68,7 +68,7 @@ double initial_height = 1.05;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_boundary_bce = false;
+bool show_boundary_bce = true;
 bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
@@ -272,20 +272,17 @@ int main(int argc, char* argv[]) {
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, true);
 
-    // Enable height-based initial pressure for SPH particles
+    // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(
         chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fsize.z()));
 
-    // Create SPH material (do not create boundary BCEs)
-    fsi.Construct(fsize,                // length x width x depth
-                  ChVector3d(0, 0, 0),  // position of bottom origin
-                  false,                // bottom wall?
-                  false                 // side walls?
+    // Create SPH material and boundaries
+    fsi.Construct(fsize,                          // length x width x depth
+                  ChVector3d(0, 0, 0),            // position of bottom origin
+                  BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries except top
     );
 
-    // Add box container (with bottom, side, and top walls)
-    fsi.AddBoxContainer(csize, ChVector3d(0, 0, 0), true, true, true);
-
+    // Initialize FSI problem
     fsi.Initialize();
 
     // Output directories

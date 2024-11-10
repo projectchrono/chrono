@@ -272,24 +272,20 @@ int main(int argc, char* argv[]) {
     // Create rigid bodies
     CreateBaffles(fsi);
 
-    // Enable height-based initial pressure for SPH particles
+    // Enable depth-based initial pressure for SPH particles
     ChVector3d v0(1.5, 0, 0);
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysSPH, fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,                                                                          // box dimensions
                   ChVector3d(bloc1.x() - bsize.x() / 2 - fsize.x() / 2 - initial_spacing, 0, 0),  // reference location
-                  false,                                                                          // bottom wall?
-                  false                                                                           // side walls?
+                  BoxSide::NONE                                                                   // no boundary BCEs
     );
 
     // Create container
-    bool side_walls = false;
     fsi.AddBoxContainer(csize,                // length x width x height
                         ChVector3d(0, 0, 0),  // reference location
-                        true,                 // bottom wall
-                        side_walls,           // side walls
-                        false                 // top wall
+                        BoxSide::Z_NEG        // creater only bottom boundary
     );
 
     // Explicitly set computational domain (necessary if no side walls)

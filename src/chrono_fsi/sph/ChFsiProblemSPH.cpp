@@ -494,16 +494,10 @@ void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::st
     m_offset_bce = m_offset_sph;
 }
 
-void ChFsiProblemCartesian::Construct(const ChVector3d& box_size,
-                                      const ChVector3d& pos,
-                                      bool bottom_wall,
-                                      bool side_walls) {
+void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector3d& pos, int side_flags) {
     if (m_verbose) {
         cout << "Construct box ChFsiProblemSPH" << endl;
     }
-
-    // Number of BCE layers
-    int bce_layers = m_sysSPH.GetNumBCELayers();
 
     // Number of points in each direction
     int Nx = std::round(box_size.x() / m_spacing) + 1;
@@ -512,47 +506,15 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size,
 
     // Reserve space for containers
     int num_sph = Nx * Ny * Nz;
-    int num_bce = 0;
-    if (bottom_wall)
-        num_bce += Nx * Ny * bce_layers;
-    if (side_walls)
-        num_bce += (Nx + Ny + 2 * bce_layers) * 2 * bce_layers * Nz;
 
     std::vector<ChVector3i> sph;
-    std::vector<ChVector3i> bce;
     sph.reserve(num_sph);
-    bce.reserve(num_bce);
 
     // Generate SPH and bottom BCE points
     for (int Ix = 0; Ix < Nx; Ix++) {
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Iz = 0; Iz < Nz; Iz++) {
                 sph.push_back(ChVector3i(Ix, Iy, Iz));  // SPH particles above 0
-            }
-            if (bottom_wall) {
-                for (int Iz = 1; Iz <= bce_layers; Iz++) {
-                    bce.push_back(ChVector3i(Ix, Iy, -Iz));  // BCE markers below 0
-                }
-            }
-        }
-    }
-
-    // Generate side BCE points
-    if (side_walls) {
-        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
-            for (int Iy = -bce_layers; Iy < 0; Iy++) {
-                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                    bce.push_back(ChVector3i(Ix, Iy, Iz));
-                    bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, Iz));
-                }
-            }
-        }
-        for (int Iy = 0; Iy < Ny; Iy++) {
-            for (int Ix = -bce_layers; Ix < 0; Ix++) {
-                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                    bce.push_back(ChVector3i(Ix, Iy, Iz));
-                    bce.push_back(ChVector3i(Nx - 1 - Ix, Iy, Iz));
-                }
             }
         }
     }
@@ -561,19 +523,16 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size,
     for (auto& p : sph) {
         m_sph.insert(p);
     }
-    for (auto& p : bce) {
-        m_bce.insert(p);
-    }
 
     if (m_verbose) {
         cout << "  Particle grid size:      " << Nx << " " << Ny << " " << Nz << endl;
         cout << "  Num. SPH particles:      " << m_sph.size() << " (" << sph.size() << ")" << endl;
-        cout << "  Num. bndry. BCE markers: " << m_bce.size() << " (" << bce.size() << ")" << endl;
     }
 
     m_offset_sph = pos - ChVector3d(box_size.x() / 2, box_size.y() / 2, 0);
-    if (bottom_wall || side_walls)
-        m_offset_bce = m_offset_sph;
+
+    if (side_flags != BoxSide::NONE)
+        AddBoxContainer(box_size, pos, side_flags);
 }
 
 void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
@@ -583,8 +542,7 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
                                       double depth,
                                       bool uniform_depth,
                                       const ChVector3d& pos,
-                                      bool bottom_wall,
-                                      bool side_walls) {
+                                      int side_flags) {
     if (m_verbose) {
         cout << "Construct ChFsiProblemSPH from heightmap file" << endl;
     }
@@ -595,6 +553,12 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
         cerr << "Cannot open height map image file " << heightmap_file << endl;
         throw std::invalid_argument("Cannot open height map image file");
     }
+
+    bool x_pos = (side_flags & static_cast<int>(BoxSide::X_POS)) != 0;
+    bool x_neg = (side_flags & static_cast<int>(BoxSide::X_NEG)) != 0;
+    bool y_pos = (side_flags & static_cast<int>(BoxSide::Y_POS)) != 0;
+    bool y_neg = (side_flags & static_cast<int>(BoxSide::Y_NEG)) != 0;
+    bool z_neg = (side_flags & static_cast<int>(BoxSide::Z_NEG)) != 0;
 
     int nx = cmap.GetWidth();   // number of pixels in x direction
     int ny = cmap.GetHeight();  // number of pixels in y direction
@@ -678,7 +642,7 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
             }
 
             // Create BCE marker locations below the SPH particles
-            if (bottom_wall) {
+            if (z_neg) {
                 for (int k = 0; k < bce_layers; k++) {
                     bce.push_back(ChVector3i(Ix, Iy, Iz));
                     Iz--;
@@ -691,26 +655,44 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     ////cout << "IZmax = " << Iz_max << endl;
 
     // Generate side BCE points
-    if (side_walls) {
-        auto nz_min = Iz_min - Nz - bce_layers;
-        auto nz_max = Iz_max + bce_layers;
+    auto nz_min = Iz_min - Nz - bce_layers;
+    auto nz_max = Iz_max + bce_layers;
 
-        Iz_min -= Nz + bce_layers;
-        Iz_max += bce_layers;
-        Nz += 2 * bce_layers;
-        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
-            for (int Iy = -bce_layers; Iy < 0; Iy++) {
-                for (int k = nz_min; k < nz_max; k++) {
-                    bce.push_back(ChVector3i(Ix, Iy, k));
-                    bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, k));
-                }
-            }
-        }
+    if (x_neg) {
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Ix = -bce_layers; Ix < 0; Ix++) {
                 for (int k = nz_min; k < nz_max; k++) {
                     bce.push_back(ChVector3i(Ix, Iy, k));
+                }
+            }
+        }
+    }
+
+    if (x_pos) {
+        for (int Iy = 0; Iy < Ny; Iy++) {
+            for (int Ix = -bce_layers; Ix < 0; Ix++) {
+                for (int k = nz_min; k < nz_max; k++) {
                     bce.push_back(ChVector3i(Nx - 1 - Ix, Iy, k));
+                }
+            }
+        }
+    }
+
+    if (y_neg) {
+        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
+            for (int Iy = -bce_layers; Iy < 0; Iy++) {
+                for (int k = nz_min; k < nz_max; k++) {
+                    bce.push_back(ChVector3i(Ix, Iy, k));
+                }
+            }
+        }
+    }
+
+    if (y_pos) {
+        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
+            for (int Iy = -bce_layers; Iy < 0; Iy++) {
+                for (int k = nz_min; k < nz_max; k++) {
+                    bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, k));
                 }
             }
         }
@@ -734,36 +716,50 @@ void ChFsiProblemCartesian::Construct(const std::string& heightmap_file,
     }
 
     m_offset_sph = pos - ChVector3d(length / 2, width / 2, 0);
-    if (bottom_wall || side_walls)
+    if (side_flags != BoxSide::NONE)
         m_offset_bce = m_offset_sph;
 }
 
 size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // box dimensions
                                               const ChVector3d& pos,       // reference positions
-                                              bool bottom_wall,            // create bottom boundary
-                                              bool side_walls,             // create side boundaries
-                                              bool top_wall                // create top boundary
+                                              int side_flags               // sides for which BCE markers are created
 ) {
     if (m_verbose) {
         cout << "Construct box container" << endl;
     }
 
-    // Number of BCE layers
     int bce_layers = m_sysSPH.GetNumBCELayers();
 
     int Nx = std::round(box_size.x() / m_spacing) + 1;
     int Ny = std::round(box_size.y() / m_spacing) + 1;
     int Nz = std::round(box_size.z() / m_spacing) + 1;
 
-    int num_bce = Nx * Ny * bce_layers;
-    if (side_walls)
-        num_bce += (Nx + Ny + 2 * bce_layers) * 2 * bce_layers * Nz;
+    bool x_pos = (side_flags & static_cast<int>(BoxSide::X_POS)) != 0;
+    bool x_neg = (side_flags & static_cast<int>(BoxSide::X_NEG)) != 0;
+    bool y_pos = (side_flags & static_cast<int>(BoxSide::Y_POS)) != 0;
+    bool y_neg = (side_flags & static_cast<int>(BoxSide::Y_NEG)) != 0;
+    bool z_pos = (side_flags & static_cast<int>(BoxSide::Z_POS)) != 0;
+    bool z_neg = (side_flags & static_cast<int>(BoxSide::Z_NEG)) != 0;
+
+    int num_bce = 0;
+    if (x_pos)
+        num_bce += Ny * Nz * bce_layers;
+    if (x_neg)
+        num_bce += Ny * Nz * bce_layers;
+    if (y_pos)
+        num_bce += Nz * Nx * bce_layers;
+    if (y_neg)
+        num_bce += Nz * Nx * bce_layers;
+    if (z_pos)
+        num_bce += Nx * Ny * bce_layers;
+    if (z_neg)
+        num_bce += Nx * Ny * bce_layers;
 
     std::vector<ChVector3i> bce;
     bce.reserve(num_bce);
 
-    // Bottom BCE points
-    if (bottom_wall) {
+    // Bottom/top BCE points
+    if (z_neg) {
         for (int Ix = 0; Ix < Nx; Ix++) {
             for (int Iy = 0; Iy < Ny; Iy++) {
                 for (int Iz = 1; Iz <= bce_layers; Iz++) {
@@ -772,9 +768,7 @@ size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // bo
             }
         }
     }
-
-    // Top BCE points
-    if (top_wall) {
+    if (z_pos) {
         for (int Ix = 0; Ix < Nx; Ix++) {
             for (int Iy = 0; Iy < Ny; Iy++) {
                 for (int Iz = 1; Iz <= bce_layers; Iz++) {
@@ -784,21 +778,41 @@ size_t ChFsiProblemCartesian::AddBoxContainer(const ChVector3d& box_size,  // bo
         }
     }
 
-    // Generate side BCE points
-    if (side_walls) {
-        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
-            for (int Iy = -bce_layers; Iy < 0; Iy++) {
-                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                    bce.push_back(ChVector3i(Ix, Iy, Iz));
-                    bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, Iz));
-                }
-            }
-        }
+    // Left/right BCE points
+    if (x_neg) {
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Ix = -bce_layers; Ix < 0; Ix++) {
                 for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
                     bce.push_back(ChVector3i(Ix, Iy, Iz));
+                }
+            }
+        }
+    }
+    if (x_pos) {
+        for (int Iy = 0; Iy < Ny; Iy++) {
+            for (int Ix = -bce_layers; Ix < 0; Ix++) {
+                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
                     bce.push_back(ChVector3i(Nx - 1 - Ix, Iy, Iz));
+                }
+            }
+        }
+    }
+
+    // Front/back BCE points
+    if (y_neg) {
+        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
+            for (int Iy = -bce_layers; Iy < 0; Iy++) {
+                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                    bce.push_back(ChVector3i(Ix, Iy, Iz));
+                }
+            }
+        }
+    }
+    if (y_pos) {
+        for (int Ix = -bce_layers; Ix < Nx + bce_layers; Ix++) {
+            for (int Iy = -bce_layers; Iy < 0; Iy++) {
+                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                    bce.push_back(ChVector3i(Ix, Ny - 1 - Iy, Iz));
                 }
             }
         }
@@ -1002,16 +1016,12 @@ void ChFsiProblemCylindrical::Construct(double radius_inner,
                                         double radius_outer,
                                         double height,
                                         const ChVector3d& pos,
-                                        bool bottom_wall,
-                                        double side_walls) {
+                                        int side_flags) {
     if (m_verbose) {
         cout << "Construct cylinder ChFsiProblemSPH" << endl;
     }
 
     bool filled = (radius_inner < 0.5 * m_spacing);
-
-    // Number of BCE layers
-    int bce_layers = m_sysSPH.GetNumBCELayers();
 
     // Number of points in each direction
     int Ir_start = std::round(radius_inner / m_spacing);
@@ -1026,11 +1036,6 @@ void ChFsiProblemCylindrical::Construct(double radius_inner,
         for (int Iz = 0; Iz < Nz; Iz++) {
             m_sph.insert(ChVector3i(0, 0, Iz));
         }
-        if (bottom_wall) {
-            for (int Iz = 1; Iz <= bce_layers; Iz++) {
-                m_bce.insert(ChVector3i(0, 0, -Iz));
-            }
-        }
     }
 
     for (int Ir = Ir_start; Ir < Ir_start + Nr; Ir++) {
@@ -1039,77 +1044,34 @@ void ChFsiProblemCylindrical::Construct(double radius_inner,
             for (int Iz = 0; Iz < Nz; Iz++) {
                 m_sph.insert(ChVector3i(Ir, Ia, Iz));
             }
-            if (bottom_wall) {
-                for (int Iz = 1; Iz <= bce_layers; Iz++) {
-                    m_bce.insert(ChVector3i(Ir, Ia, -Iz));
-                }
-            }
         }
     }
-
-    // 2. Generate side BCE points
-    if (side_walls) {
-        // Exterior
-        for (int Ir = Ir_start + Nr; Ir <= Ir_start + Nr + bce_layers; Ir++) {
-            int Na = std::round(2 * CH_PI * Ir);
-            for (int Ia = 0; Ia < Na; Ia++) {
-                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                    m_bce.insert(ChVector3i(Ir, Ia, Iz));
-                }
-            }
-        }
-
-        // Interior
-        if (!filled) {
-            if (Ir_start <= bce_layers) {
-                // Create central BCE markers
-                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                    m_bce.insert(ChVector3i(0, 0, Iz));
-                }
-            }
-
-            for (int Ir = Ir_start - bce_layers; Ir <= Ir_start - 1; Ir++) {
-                if (Ir <= 0)
-                    continue;
-                int Na = std::round(2 * CH_PI * Ir);
-                for (int Ia = 0; Ia < Na; Ia++) {
-                    for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                        m_bce.insert(ChVector3i(Ir, Ia, Iz));
-                    }
-                }
-            }
-        }
-    }
-
-    //// DEBUG
-    ////for (const auto& p : m_bce) {
-    ////    auto point = Grid2Point(p);
-    ////    auto p1 = Snap2Grid(point);
-    ////    cout << p << " | " << point << " | " << p1 << endl;
-    ////}
 
     if (m_verbose) {
         cout << "  Num. SPH particles:      " << m_sph.size() << " (" << m_sph.size() << ")" << endl;
-        cout << "  Num. bndry. BCE markers: " << m_bce.size() << " (" << m_bce.size() << ")" << endl;
     }
 
     m_offset_sph = pos;
-    if (bottom_wall || side_walls)
-        m_offset_bce = m_offset_sph;
+
+    if (side_flags != CylSide::NONE)
+        AddCylindricalContainer(radius_inner, radius_outer, height, pos, side_flags);
 }
 
 size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
                                                         double radius_outer,
                                                         double height,
                                                         const ChVector3d& pos,
-                                                        bool bottom_wall,
-                                                        bool side_walls,
-                                                        bool top_wall) {
+                                                        int side_flags) {
     if (m_verbose) {
         cout << "Construct cylinder container" << endl;
     }
 
     bool filled = (radius_inner < 0.5 * m_spacing);
+
+    bool z_pos = (side_flags & static_cast<int>(CylSide::Z_POS)) != 0;
+    bool z_neg = (side_flags & static_cast<int>(CylSide::Z_NEG)) != 0;
+    bool side_int = (side_flags & static_cast<int>(CylSide::SIDE_INT)) != 0;
+    bool side_ext = (side_flags & static_cast<int>(CylSide::SIDE_EXT)) != 0;
 
     // Number of BCE layers
     int bce_layers = m_sysSPH.GetNumBCELayers();
@@ -1120,7 +1082,7 @@ size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
     int Nz = std::round(height / m_spacing) + 1;
 
     // 1. Generate bottom BCE points
-    if (bottom_wall) {
+    if (z_neg) {
         if (filled) {
             assert(Ir_start == 0);
             for (int Iz = 1; Iz <= bce_layers; Iz++) {
@@ -1139,7 +1101,7 @@ size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
     }
 
     // 2. Generate top BCE points
-    if (top_wall) {
+    if (z_pos) {
         if (filled) {
             assert(Ir_start == 0);
             for (int Iz = Nz; Iz < Nz + bce_layers; Iz++) {
@@ -1157,9 +1119,8 @@ size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
         }
     }
 
-    // 3. Generate side BCE points
-    if (side_walls) {
-        // Exterior
+    // 3. Generate exterior BCE points
+    if (side_ext) {
         for (int Ir = Ir_start + Nr; Ir <= Ir_start + Nr + bce_layers; Ir++) {
             int Na = std::round(2 * CH_PI * Ir);
             for (int Ia = 0; Ia < Na; Ia++) {
@@ -1168,24 +1129,24 @@ size_t ChFsiProblemCylindrical::AddCylindricalContainer(double radius_inner,
                 }
             }
         }
+    }
 
-        // Interior
-        if (!filled) {
-            if (Ir_start <= bce_layers) {
-                // Create central BCE markers
-                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                    m_bce.insert(ChVector3i(0, 0, Iz));
-                }
+    // 3. Generate interior BCE points
+    if (side_int && !filled) {
+        if (Ir_start <= bce_layers) {
+            // Create central BCE markers
+            for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                m_bce.insert(ChVector3i(0, 0, Iz));
             }
+        }
 
-            for (int Ir = Ir_start - bce_layers; Ir <= Ir_start - 1; Ir++) {
-                if (Ir <= 0)
-                    continue;
-                int Na = std::round(2 * CH_PI * Ir);
-                for (int Ia = 0; Ia < Na; Ia++) {
-                    for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
-                        m_bce.insert(ChVector3i(Ir, Ia, Iz));
-                    }
+        for (int Ir = Ir_start - bce_layers; Ir <= Ir_start - 1; Ir++) {
+            if (Ir <= 0)
+                continue;
+            int Na = std::round(2 * CH_PI * Ir);
+            for (int Ia = 0; Ia < Na; Ia++) {
+                for (int Iz = -bce_layers; Iz < Nz + bce_layers; Iz++) {
+                    m_bce.insert(ChVector3i(Ir, Ia, Iz));
                 }
             }
         }

@@ -157,10 +157,9 @@ int main(int argc, char* argv[]) {
     switch (patch_type) {
         case PatchType::RECTANGULAR:
             // Create a rectangular terrain patch
-            terrain.Construct({10.0, 3.0, 0.25},    // length X width X height
-                              ChVector3d(5, 0, 0),  // patch center
-                              true,                 // bottom wall?
-                              true                  // side walls?
+            terrain.Construct({10.0, 3.0, 0.25},              // length X width X height
+                              ChVector3d(5, 0, 0),            // patch center
+                              BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries, except top
             );
             break;
         case PatchType::MARKER_DATA:
@@ -177,8 +176,7 @@ int main(int argc, char* argv[]) {
                               0.25,                                                    // depth
                               true,                                                    // uniform depth
                               ChVector3d(5, 0, 0),                                     // patch center
-                              true,                                                    // bottom wall?
-                              false                                                    // side walls?
+                              BoxSide::Z_NEG                                           // bottom wall
             );
             break;
     }

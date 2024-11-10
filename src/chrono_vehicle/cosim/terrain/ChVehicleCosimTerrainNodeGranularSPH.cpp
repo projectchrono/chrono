@@ -184,7 +184,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Construct the CRMTerrain (generate SPH particles and boundary BCE markers)
     switch (m_terrain_type) {
         case ConstructionMethod::PATCH:
-            m_terrain->Construct({m_dimX, m_dimY, m_depth}, VNULL, true, true);
+            m_terrain->Construct({m_dimX, m_dimY, m_depth}, VNULL, BoxSide::ALL & ~BoxSide::Z_POS);
             break;
         case ConstructionMethod::FILES:
             m_terrain->Construct(m_sph_filename, m_bce_filename, VNULL);

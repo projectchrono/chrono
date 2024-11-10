@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
 
     // Create body geometry
     double density = 5000;
-    double mass;
+    double mass = 0;
     ChMatrix33d inertia;
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
@@ -222,8 +222,7 @@ int main(int argc, char* argv[]) {
                   0.3,                                                          // depth
                   true,                                                         // uniform depth
                   ChVector3d(0, 0, 0),                                          // patch center
-                  true,                                                         // bottom wall?
-                  false                                                         // side walls?
+                  BoxSide::Z_NEG                                                // bottom wall
     );
 
     fsi.Initialize();

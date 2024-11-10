@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
 
     sysSPH.SetSPHParameters(sph_params);
 
-    // Enable height-based initial pressure for SPH particles
+    // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, depth));
 
     // Create wavemaker actuation function

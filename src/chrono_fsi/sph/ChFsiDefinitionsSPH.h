@@ -59,6 +59,30 @@ enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 /// Linear solver type.
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 
+// -----------------------------------------------------------------------------
+
+/// Enumeration for box sides.
+/// These flags are used to identify sides of a box container and can be combined using unary boolean operations.
+namespace BoxSide {
+enum Enum {
+    NONE = 0x0000,  
+    X_POS = 1 << 0,
+    X_NEG = 1 << 1,
+    Y_POS = 1 << 2,
+    Y_NEG = 1 << 3,
+    Z_POS = 1 << 4,
+    Z_NEG = 1 << 5,
+    ALL = 0xFFFF
+};
+}
+
+/// Enumeration for cylinder sides.
+/// These flags are used to identify sides of a cylindrical container and can be combined using unary boolean
+/// operations.
+namespace CylSide {
+enum Enum { NONE = 0x0000, SIDE_INT = 1 << 0, SIDE_EXT = 1 << 1, Z_NEG = 1 << 2, Z_POS = 1 << 3, ALL = 0xFFFF };
+}
+
 /// BCE pattern in cross section of 1-D flexible elements.
 /// The available patterns are illustrated below (assuming 3 BCE layers):
 /// <pre>
