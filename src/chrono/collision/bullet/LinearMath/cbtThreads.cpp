@@ -327,11 +327,11 @@ bool cbtIsMainThread()
 	return cbtGetCurrentThreadIndex() == 0;
 }
 
-void cbtResetThreadIndexCounter()
-{
-	// for when all current worker threads are destroyed
-	cbtAssert(cbtIsMainThread());
-	gThreadCounter.mCounter = 0;
+void cbtResetThreadIndexCounter() {
+    // for when all current worker threads are destroyed
+    /* ***CHRONO*** Comment out assertion */
+    ////cbtAssert(cbtIsMainThread());
+    gThreadCounter.mCounter = 0;
 }
 
 cbtITaskScheduler::cbtITaskScheduler(const char* name)
