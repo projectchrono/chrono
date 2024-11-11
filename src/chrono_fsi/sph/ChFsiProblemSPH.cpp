@@ -61,12 +61,12 @@ ChFsiProblemCartesian::ChFsiProblemCartesian(ChSystem& sys, double spacing) : Ch
 
 ChFsiProblemCylindrical::ChFsiProblemCylindrical(ChSystem& sys, double spacing) : ChFsiProblemSPH(sys, spacing) {}
 
-// ----------------------------------------------------------------------------
-
 void ChFsiProblemSPH::SetVerbose(bool verbose) {
     m_sysFSI.SetVerbose(verbose);
     m_verbose = verbose;
 }
+
+// ----------------------------------------------------------------------------
 
 size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
                                      const utils::ChBodyGeometry& geometry,
@@ -157,6 +157,31 @@ size_t ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
     utils::ChBodyGeometry geometry;
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
     return AddRigidBody(body, geometry, true, true);
+}
+
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
+    m_sysSPH.SetBcePattern1D(pattern, remove_center);
+}
+
+void ChFsiProblemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_center) {
+    m_sysSPH.SetBcePattern2D(pattern, remove_center);
+}
+
+size_t ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
+    if (m_verbose) {
+        cout << "Add FSI FEM mesh " << mesh->GetName() << endl;
+    }
+
+    FeaMesh m;
+    m.mesh = mesh;
+    m.check_embedded = check_embedded;
+
+    auto index = m_meshes.size();
+    m_meshes.push_back(m);
+
+    return index;
 }
 
 // ----------------------------------------------------------------------------
@@ -264,6 +289,12 @@ void ChFsiProblemSPH::Initialize() {
         auto body_index = m_sysFSI.AddFsiBody(b.body);
         m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
         m_fsi_bodies[b.body] = body_index;
+    }
+
+    // Create the mesh BCE markers
+    // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
+    for (const auto& m : m_meshes) {
+        m_sysFSI.AddFsiMesh(m.mesh);
     }
 
     // Initialize the underlying FSI system

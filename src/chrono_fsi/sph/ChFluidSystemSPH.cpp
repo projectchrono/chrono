@@ -922,7 +922,7 @@ void ChFluidSystemSPH::OnAddFsiBody(unsigned int index, FsiBody& fsi_body) {
     m_num_rigid_bodies++;
 }
 
-void ChFluidSystemSPH::ChFluidSystemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
+void ChFluidSystemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
     m_pattern1D = pattern;
     m_remove_center1D = remove_center;
 }

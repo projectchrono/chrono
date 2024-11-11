@@ -82,6 +82,24 @@ class CH_FSI_API ChFsiProblemSPH {
                             const ChVector3d& interior_point,
                             double scale);
 
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh.
+    /// By default, a full set of BCE markers is used across each section, including a central marker.
+    void SetBcePattern1D(BcePatternMesh1D pattern,   ///< marker pattern in cross-section
+                         bool remove_center = false  ///< eliminate markers on center line
+    );
+
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFeaMesh.
+    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
+    void SetBcePattern2D(BcePatternMesh2D pattern,   ///< pattern of marker locations along normal
+                         bool remove_center = false  ///< eliminate markers on surface
+    );
+
+    /// Add an FEA mesh to the FSI problem.
+    /// BCE markers are created based on the type of elements and a corresponding FEA collision surface.
+    /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
+    /// This function must be called before Initialize().
+    size_t AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
@@ -179,6 +197,12 @@ class CH_FSI_API ChFsiProblemSPH {
         ChVector3d oobb_dims;                    ///< dimensions of bounding box
     };
 
+    /// Specification of an FSI FEA mesh.
+    struct FeaMesh {
+        std::shared_ptr<fea::ChMesh> mesh;  ///< associated FEA mesh
+        bool check_embedded;                ///< if true, check for overlapping SPH particles
+    };
+
     /// Prune SPH markers that are inside the solid body volume.
     /// Treat separately primitive shapes (use explicit test for interior points) and mesh shapes (use ProcessBodyMesh).
     void ProcessBody(RigidBody& b);
@@ -199,6 +223,7 @@ class CH_FSI_API ChFsiProblemSPH {
     ChAABB m_domain_aabb;              ///< computational domain bounding box
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
+    std::vector<FeaMesh> m_meshes;     ///< list of FSI FEA meshes
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;
 
