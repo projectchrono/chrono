@@ -318,6 +318,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
         visFSI->SetCameraMoveScale(0.1f);
+        visFSI->SetLightIntensity(0.9);
+        visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);

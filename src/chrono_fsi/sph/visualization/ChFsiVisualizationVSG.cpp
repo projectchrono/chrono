@@ -166,6 +166,14 @@ void ChFsiVisualizationVSG::SetCameraMoveScale(float scale) {
     //// TOOD
 }
 
+void ChFsiVisualizationVSG::SetLightIntensity(double intensity) {
+    m_vsys->SetLightIntensity(intensity);
+}
+
+void ChFsiVisualizationVSG::SetLightDirection(double azimuth, double elevation) {
+    m_vsys->SetLightDirection(azimuth, elevation);
+}
+
 void ChFsiVisualizationVSG::SetParticleRenderMode(RenderMode mode) {
     //// TODO
 }

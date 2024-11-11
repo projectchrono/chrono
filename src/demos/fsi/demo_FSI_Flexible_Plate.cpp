@@ -243,6 +243,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetTitle("Chrono::FSI flexible plate");
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraMoveScale(1.0f);
+        visFSI->SetLightIntensity(0.9);
+        visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableFlexBodyMarkers(false);
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));

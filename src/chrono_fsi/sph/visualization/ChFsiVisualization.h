@@ -63,6 +63,15 @@ class CH_FSI_API ChFsiVisualization {
     /// Set scale for camera movement increments (default: 0.1).
     virtual void SetCameraMoveScale(float scale);
 
+    /// Set directional light intensity (default: 1).
+    /// The light intensity must be in [0,1].
+    virtual void SetLightIntensity(double intensity);
+
+    /// Set azimuth and elevation of directional light in radians (default: 0, 0).
+    /// The azimuth must be in [-pi,+pi], with 0 corresponding to the positive x direction.
+    /// The elevation must be in [0, pi/2] with 0 corresponding to the horizontal.
+    virtual void SetLightDirection(double azimuth, double elevation);
+
     /// Set rendering mode for SPH particles.
     /// Must be called before Initialize().
     virtual void SetParticleRenderMode(RenderMode mode);

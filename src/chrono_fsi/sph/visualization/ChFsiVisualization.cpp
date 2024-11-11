@@ -72,6 +72,10 @@ void ChFsiVisualization::SetCameraVertical(CameraVerticalDir up) {}
 
 void ChFsiVisualization::SetCameraMoveScale(float scale) {}
 
+void ChFsiVisualization::SetLightIntensity(double intensity) {}
+
+void ChFsiVisualization::SetLightDirection(double azimuth, double elevation) {}
+
 void ChFsiVisualization::SetParticleRenderMode(RenderMode mode) {}
 
 void ChFsiVisualization::SetRenderMode(RenderMode mode) {}
