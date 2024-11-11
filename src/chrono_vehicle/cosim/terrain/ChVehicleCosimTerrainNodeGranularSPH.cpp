@@ -333,7 +333,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->EnableRigidBodyMarkers(true);
             m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            m_vsys->SetSPHColorCallback(chrono_types::make_shared<HeightColorCallback>(
+            m_vsys->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(
                 ChColor(0.10f, 0.40f, 0.65f), m_aabb_particles.min.z(), m_aabb_particles.max.z()));
             m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
             m_vsys->SetImageOutput(m_writeRT);

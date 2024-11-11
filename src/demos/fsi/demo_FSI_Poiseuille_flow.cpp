@@ -166,13 +166,15 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 0.04);
+
         visFSI->SetTitle("Chrono::FSI Poiseuille flow");
         visFSI->AddCamera(ChVector3d(0, -5 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.5 * bzDim));
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 0.04));
+        visFSI->SetSPHColorCallback(col_callback);
         visFSI->Initialize();
     }
 

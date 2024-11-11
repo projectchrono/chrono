@@ -102,14 +102,11 @@ int main(int argc, char* argv[]) {
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.y() >= 0;
-    };
+    virtual bool get(unsigned int n) const override { return pos[n].y >= 0; }
 };
 
 std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI,
@@ -131,8 +128,6 @@ std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI,
             }
         }
 
-        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
-
         visFSI->SetTitle(title);
         visFSI->SetSize(1280, 1280);
         visFSI->AddCamera(ChVector3d(-0.2, -3.0, 0), ChVector3d(-0.2, 0, 0));
@@ -142,7 +137,7 @@ std::shared_ptr<ChFsiVisualization> CreateVisulization(ChFsiSystemSPH& sysFSI,
         visFSI->EnableRigidBodyMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetBCEVisibilityCallback(vis_callback);
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

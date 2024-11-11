@@ -24,6 +24,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 
 namespace chrono {
 namespace fsi {
@@ -81,17 +82,41 @@ class CH_FSI_API ChFsiVisualization {
     /// Set default color for flex body BCE markers (default: [0.40, 0.10, 0.65]).
     void SetColorFlexBodyMarkers(const ChColor& col) { m_flex_bce_color = col; }
 
+    /// Class to be used as a callback interface for dynamic coloring of SPH particles.
+    class CH_FSI_API ParticleColorCallback : public ChParticleCloud::ColorCallback {
+      public:
+        virtual ChColor get(unsigned int n) const = 0;
+
+        sph::Real3* pos;
+        sph::Real3* vel;
+        sph::Real3* prop;
+
+      private:
+        virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
+    };
+
     /// Set a callback for dynamic coloring of SPH particles.
     /// If none provided, SPH particles are rendered with a default color.
-    void SetSPHColorCallback(std::shared_ptr<ChParticleCloud::ColorCallback> functor) { m_color_fun = functor; }
+    void SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor) { m_color_fun = functor; }
+
+    /// Class to be used as a callback interface for dynamic visibility of SPH particles or BCE markers.
+    class CH_FSI_API MarkerVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+      public:
+        virtual bool get(unsigned int n) const = 0;
+
+        sph::Real3* pos;
+
+      private:
+        virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
+    };
 
     /// Set a callback for dynamic visibility of SPH particles.
     /// If none provided, all SPH particles are visible.
-    void SetSPHVisibilityCallback(std::shared_ptr<ChParticleCloud::VisibilityCallback> functor) { m_vis_sph_fun = functor; }
+    void SetSPHVisibilityCallback(std::shared_ptr<MarkerVisibilityCallback> functor) { m_vis_sph_fun = functor; }
 
     /// Set a callback for dynamic visibility of boundary BCE markers.
     /// If none provided, all boundary BCE markers are visible.
-    void SetBCEVisibilityCallback(std::shared_ptr<ChParticleCloud::VisibilityCallback> functor) { m_vis_bndry_fun = functor; }
+    void SetBCEVisibilityCallback(std::shared_ptr<MarkerVisibilityCallback> functor) { m_vis_bndry_fun = functor; }
 
     /// Set output directory for saving frame snapshots (default: ".").
     void SetImageOutputDirectory(const std::string& dir) { m_image_dir = dir; }
@@ -168,12 +193,162 @@ class CH_FSI_API ChFsiVisualization {
     ChColor m_rigid_bce_color;  ///< color for BCE markers on rigid bodies
     ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
 
-    std::shared_ptr<ChParticleCloud::ColorCallback> m_color_fun;           ///< color functor for SPH particles
-    std::shared_ptr<ChParticleCloud::VisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
-    std::shared_ptr<ChParticleCloud::VisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for bndry BCE markers
+    std::shared_ptr<ParticleColorCallback> m_color_fun;         ///< color functor for SPH particles
+    std::shared_ptr<MarkerVisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
+    std::shared_ptr<MarkerVisibilityCallback> m_vis_bndry_fun;  ///< visibility functor for bndry BCE markers
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files
+};
+
+// -----------------------------------------------------------------------------
+
+/// Predefined SPH coloring based on particle height.
+class CH_FSI_API ParticleHeightColorCallback : public ChFsiVisualization::ParticleColorCallback {
+  public:
+    ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1))
+        : m_monochrome(false), m_hmin(hmin), m_hmax(hmax), m_up(sph::ToReal3(up)) {}
+    ParticleHeightColorCallback(const ChColor& base_color,
+                                double hmin,
+                                double hmax,
+                                const ChVector3d& up = ChVector3d(0, 0, 1))
+        : m_monochrome(true), m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(sph::ToReal3(up)) {}
+
+    virtual ChColor get(unsigned int n) const override {
+        double h = dot(pos[n], m_up);  // particle height
+        if (m_monochrome) {
+            float factor = (float)((h - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
+            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        } else
+            return ChColor::ComputeFalseColor(h, m_hmin, m_hmax);
+    }
+
+  private:
+    bool m_monochrome;
+    ChColor m_base_color;
+    double m_hmin;
+    double m_hmax;
+    sph::Real3 m_up;
+};
+
+/// Predefined SPH coloring based on particle velocity.
+class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualization::ParticleColorCallback {
+  public:
+    enum class Component { X, Y, Z, NORM };
+
+    ParticleVelocityColorCallback(double vmin, double vmax, Component component = Component::NORM)
+        : m_monochrome(false), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
+    ParticleVelocityColorCallback(const ChColor& base_color,
+                                  double vmin,
+                                  double vmax,
+                                  Component component = Component::NORM)
+        : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
+
+    virtual ChColor get(unsigned int n) const override {
+        double v = 0;
+        switch (m_component) {
+            case Component::NORM:
+                v = length(vel[n]);
+                break;
+            case Component::X:
+                v = std::abs(vel[n].x);
+                break;
+            case Component::Y:
+                v = std::abs(vel[n].y);
+                break;
+            case Component::Z:
+                v = std::abs(vel[n].z);
+                break;
+        }
+
+        if (m_monochrome) {
+            float factor = (float)((v - m_vmin) / (m_vmax - m_vmin));  // color scaling factor (0,1)
+            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        } else
+            return ChColor::ComputeFalseColor(v, m_vmin, m_vmax);
+    }
+
+  private:
+    Component m_component;
+    bool m_monochrome;
+    ChColor m_base_color;
+    double m_vmin;
+    double m_vmax;
+};
+
+/// Predefined SPH coloring based on particle density.
+class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualization::ParticleColorCallback {
+  public:
+    ParticleDensityColorCallback(double dmin, double dmax)
+        : m_monochrome(false), m_dmin(dmin), m_dmax(dmax) {}
+    ParticleDensityColorCallback(const ChColor& base_color,
+                                  double dmin,
+                                  double dmax)
+        : m_monochrome(true), m_base_color(base_color), m_dmin(dmin), m_dmax(dmax) {}
+
+    virtual ChColor get(unsigned int n) const override {
+        double d = prop[n].x;
+
+        if (m_monochrome) {
+            float factor = (float)((d - m_dmin) / (m_dmax - m_dmin));  // color scaling factor (0,1)
+            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        } else
+            return ChColor::ComputeFalseColor(d, m_dmin, m_dmax);
+    }
+
+  private:
+    bool m_monochrome;
+    ChColor m_base_color;
+    double m_dmin;
+    double m_dmax;
+};
+
+/// Predefined SPH coloring based on particle pressure.
+class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualization::ParticleColorCallback {
+  public:
+    ParticlePressureColorCallback(double pmin, double pmax)
+        : m_monochrome(false), m_bichrome(false), m_pmin(pmin), m_pmax(pmax) {}
+    ParticlePressureColorCallback(const ChColor& base_color, double pmin, double pmax)
+        : m_monochrome(true), m_bichrome(false), m_base_color(base_color), m_pmin(pmin), m_pmax(pmax) {}
+    ParticlePressureColorCallback(const ChColor& base_color_neg,
+                                  const ChColor& base_color_pos,
+                                  double pmin,
+                                  double pmax)
+        : m_monochrome(false),
+          m_bichrome(true),
+          m_base_color_neg(base_color_neg),
+          m_base_color_pos(base_color_pos),
+          m_pmin(pmin),
+          m_pmax(pmax) {
+        assert(m_pmin < 0);
+    }
+
+    virtual ChColor get(unsigned int n) const override {
+        double p = prop[n].y;
+
+        if (m_monochrome) {
+            float factor = (float)((p - m_pmin) / (m_pmax - m_pmin));  // color scaling factor (0,1)
+            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
+        } else if (m_bichrome) {
+            if (p < 0) {
+                float factor = (float)(p / m_pmin);  // color scaling factor (0,1)
+                return ChColor(factor * m_base_color_neg.R, factor * m_base_color_neg.G, factor * m_base_color_neg.B);
+            } else {
+                float factor = (float)(+p / m_pmax);  // color scaling factor (0,1)
+                return ChColor(factor * m_base_color_pos.R, factor * m_base_color_pos.G, factor * m_base_color_pos.B);
+            }
+        } else
+            return ChColor::ComputeFalseColor(p, m_pmin, m_pmax);
+    }
+
+  private:
+    bool m_monochrome;
+    bool m_bichrome;
+    ChColor m_base_color;
+    ChColor m_base_color_pos;
+    ChColor m_base_color_neg;
+    double m_pmin;
+    double m_pmax;
 };
 
 /// @} fsi_visualization

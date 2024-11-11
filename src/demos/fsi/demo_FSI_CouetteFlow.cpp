@@ -88,14 +88,11 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.x() < 0;
-    };
+    virtual bool get(unsigned int n) const override { return pos[n].x < 0; }
 };
 
 // -----------------------------------------------------------------------------
@@ -318,8 +315,7 @@ int main(int argc, char* argv[]) {
         }
 
         auto v_max = omega * outer_cylinder_radius;
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, v_max);
-        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v_max);
 
         visFSI->SetTitle("Chrono::FSI BMC Simulation");
         visFSI->SetSize(1280, 720);
@@ -332,8 +328,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
-        visFSI->SetBCEVisibilityCallback(vis_callback);
-        visFSI->SetSPHVisibilityCallback(vis_callback);
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

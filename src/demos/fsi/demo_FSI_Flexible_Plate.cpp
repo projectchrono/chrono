@@ -238,6 +238,8 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
+
         visFSI->SetTitle("Chrono::FSI flexible plate");
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraMoveScale(1.0f);
@@ -246,7 +248,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
+        visFSI->SetSPHColorCallback(col_callback);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

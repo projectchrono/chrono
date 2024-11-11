@@ -69,14 +69,11 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.y() >= 0;
-    };
+    virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
 };
 
 // -----------------------------------------------------------------------------
@@ -342,8 +339,9 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 2.0);
-        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
+        ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.0);
+        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
+            ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 3900);
 
         visFSI->SetTitle("Chrono::FSI Wave Tank");
         visFSI->SetSize(1280, 720);
@@ -355,8 +353,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
-        visFSI->SetSPHVisibilityCallback(vis_callback);
-        visFSI->SetBCEVisibilityCallback(vis_callback);
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

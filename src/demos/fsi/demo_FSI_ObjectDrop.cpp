@@ -73,14 +73,14 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.x() < 0 || p.y() < 0;
-    };
+    virtual bool get(unsigned int n) const override {
+        auto p = pos[n];
+        return p.x < 0 || p.y < 0;
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -351,10 +351,12 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
-        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
+        ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
+        ////auto col_callback = chrono_types::make_shared<ParticleDensityColorCallback>(995, 1005);
+        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
+            ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 12000);
 
-        visFSI->SetTitle("Chrono::FSI Sphere Bounce Test");
+        visFSI->SetTitle("Chrono::FSI object drop");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2.5 * fsize.x(), 2.5 * fsize.y(), 1.5 * fsize.z()),
                           ChVector3d(0, 0, 0.5 * fsize.z()));
@@ -365,8 +367,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
-        visFSI->SetSPHVisibilityCallback(vis_callback);
-        visFSI->SetBCEVisibilityCallback(vis_callback);
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

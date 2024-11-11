@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 5.0));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

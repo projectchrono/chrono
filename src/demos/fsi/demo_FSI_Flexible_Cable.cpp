@@ -97,14 +97,11 @@ bool GetProblemSpecs(int argc,
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.y() > 0;
-    };
+    virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
 };
 
 // -----------------------------------------------------------------------------
@@ -255,6 +252,8 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
+
         visFSI->SetTitle("Chrono::FSI flexible cable");
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraMoveScale(1.0f);
@@ -264,8 +263,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 2.5));
-        //visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
+        visFSI->SetSPHColorCallback(col_callback);
+        //visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }

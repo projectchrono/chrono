@@ -475,7 +475,6 @@ class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
     ChColor m_base_color;
     double m_vmin;
     double m_vmax;
-    ChVector3d m_up;
 };
 
 CH_CLASS_VERSION(ChParticleCloud, 0)

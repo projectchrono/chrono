@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, v0.Length());
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v0.Length());
 
         visFSI->SetTitle("Chrono::FSI baffle flow");
         visFSI->SetSize(1280, 720);

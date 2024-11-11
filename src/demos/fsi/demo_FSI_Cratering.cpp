@@ -57,14 +57,11 @@ const double sphere_radius = 0.0125;
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.y() > 0;
-    };
+    virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
 };
 
 // -----------------------------------------------------------------------------
@@ -315,22 +312,22 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (visFSI) {
-            visFSI->SetTitle("FSI Cratering");
-            visFSI->SetSize(1280, 720);
-            visFSI->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
-            visFSI->SetCameraMoveScale(0.1f);
-            visFSI->EnableFluidMarkers(true);
-            visFSI->EnableBoundaryMarkers(true);
-            visFSI->EnableRigidBodyMarkers(false);
-            visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, impact_vel / 2));
-            visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
-            visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<PositionVisibilityCallback>());
-            visFSI->AttachSystem(&sysMBS);
-            visFSI->Initialize();
-        }
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, impact_vel / 2);
+
+        visFSI->SetTitle("FSI Cratering");
+        visFSI->SetSize(1280, 720);
+        visFSI->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
+        visFSI->SetCameraMoveScale(0.1f);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableRigidBodyMarkers(false);
+        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->AttachSystem(&sysMBS);
+        visFSI->Initialize();
     }
 
     // Start the simulation
