@@ -24,6 +24,7 @@ if(ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
       demo_FSI_Flexible_Plate
       demo_FSI_Flexible_Cable
+      demo_FSI_Flexible_Cable2
       demo_FSI_Flexible_Toroidal_Tire
    )
 endif()
