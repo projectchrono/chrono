@@ -230,12 +230,6 @@ class FsiDataManager {
                     unsigned int num_fsi_nodes2D,
                     unsigned int num_fsi_elements2D);
 
-    /// Extract forces applied on all SPH particles.
-    thrust::device_vector<Real4> GetParticleForces();
-
-    /// Extract accelerations of all SPH particles.
-    thrust::device_vector<Real4> GetParticleAccelerations();
-
     /// Find indices of all SPH particles inside the specified OBB.
     thrust::device_vector<int> FindParticlesInBox(const Real3& hsize,
                                                   const Real3& pos,
@@ -243,21 +237,41 @@ class FsiDataManager {
                                                   const Real3& ay,
                                                   const Real3& az);
 
-    /// Extract positions of all SPH particles with indices in the provided array.
+    /// Extract positions of all markers (SPH and BCE).
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real4> GetParticlePositions(const thrust::device_vector<int>& indices);
+    thrust::device_vector<Real3> GetPositions();
 
-    /// Extract velocities of all SPH particles with indices in the provided array.
+    /// Extract velocities of all markers (SPH and BCE).
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetParticleVelocities(const thrust::device_vector<int>& indices);
+    thrust::device_vector<Real3> GetVelocities();
 
-    /// Extract forces applied to all SPH particles with indices in the provided array.
+    /// Extract accelerations of all markers (SPH and BCE).
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real4> GetParticleForces(const thrust::device_vector<int>& indices);
+    thrust::device_vector<Real3> GetAccelerations();
 
-    /// Extract accelerations of all SPH particles with indices in the provided array.
+    /// Extract forces applied to all markers (SPH and BCE).
     /// The return value is a device thrust vector.
-    thrust::device_vector<Real4> GetParticleAccelerations(const thrust::device_vector<int>& indices);
+    thrust::device_vector<Real3> GetForces();
+
+    /// Extract fluid properties of all markers (SPH and BCE).
+    /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
+    thrust::device_vector<Real3> GetProperties();
+
+    /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real3> GetPositions(const thrust::device_vector<int>& indices);
+
+    /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real3> GetVelocities(const thrust::device_vector<int>& indices);
+
+    /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real3> GetAccelerations(const thrust::device_vector<int>& indices);
+
+    /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
+    /// The return value is a device thrust vector.
+    thrust::device_vector<Real3> GetForces(const thrust::device_vector<int>& indices);
 
     std::shared_ptr<SimParams> paramsH;   ///< simulation parameters (host)
     std::shared_ptr<Counters> countersH;  ///< problem counters (host)

@@ -2511,16 +2511,6 @@ std::vector<ChVector3d> ChFluidSystemSPH::GetParticlePositions() const {
     return pos;
 }
 
-std::vector<ChVector3d> ChFluidSystemSPH::GetParticleFluidProperties() const {
-    thrust::host_vector<Real4> rhoPresMuH = m_data_mgr->sphMarkers_D->rhoPresMuD;
-    std::vector<ChVector3d> props;
-
-    for (size_t i = 0; i < rhoPresMuH.size(); i++) {
-        props.push_back(ToChVector(rhoPresMuH[i]));
-    }
-    return props;
-}
-
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleVelocities() const {
     thrust::host_vector<Real3> velH = m_data_mgr->sphMarkers_D->velMasD;
     std::vector<ChVector3d> vel;
@@ -2532,7 +2522,7 @@ std::vector<ChVector3d> ChFluidSystemSPH::GetParticleVelocities() const {
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleAccelerations() const {
-    thrust::host_vector<Real4> accH = m_data_mgr->GetParticleAccelerations();
+    thrust::host_vector<Real3> accH = m_data_mgr->GetAccelerations();
     std::vector<ChVector3d> acc;
     for (size_t i = 0; i < accH.size(); i++) {
         acc.push_back(ToChVector(accH[i]));
@@ -2541,12 +2531,22 @@ std::vector<ChVector3d> ChFluidSystemSPH::GetParticleAccelerations() const {
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleForces() const {
-    thrust::host_vector<Real4> frcH = m_data_mgr->GetParticleForces();
+    thrust::host_vector<Real3> frcH = m_data_mgr->GetForces();
     std::vector<ChVector3d> frc;
     for (size_t i = 0; i < frcH.size(); i++) {
         frc.push_back(ToChVector(frcH[i]));
     }
     return frc;
+}
+
+std::vector<ChVector3d> ChFluidSystemSPH::GetParticleFluidProperties() const {
+    thrust::host_vector<Real4> rhoPresMuH = m_data_mgr->sphMarkers_D->rhoPresMuD;
+    std::vector<ChVector3d> props;
+
+    for (size_t i = 0; i < rhoPresMuH.size(); i++) {
+        props.push_back(ToChVector(rhoPresMuH[i]));
+    }
+    return props;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2566,20 +2566,40 @@ thrust::device_vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>&
     return m_data_mgr->FindParticlesInBox(hsize, pos, ax, ay, az);
 }
 
-thrust::device_vector<Real4> ChFluidSystemSPH::GetParticlePositions(const thrust::device_vector<int>& indices) {
-    return m_data_mgr->GetParticlePositions(indices);
+thrust::device_vector<Real3> ChFluidSystemSPH::GetPositions() {
+    return m_data_mgr->GetPositions();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetParticleVelocities(const thrust::device_vector<int>& indices) {
-    return m_data_mgr->GetParticleVelocities(indices);
+thrust::device_vector<Real3> ChFluidSystemSPH::GetVelocities() {
+    return m_data_mgr->GetVelocities();
 }
 
-thrust::device_vector<Real4> ChFluidSystemSPH::GetParticleForces(const thrust::device_vector<int>& indices) {
-    return m_data_mgr->GetParticleForces(indices);
+thrust::device_vector<Real3> ChFluidSystemSPH::GetAccelerations() {
+    return m_data_mgr->GetAccelerations();
 }
 
-thrust::device_vector<Real4> ChFluidSystemSPH::GetParticleAccelerations(const thrust::device_vector<int>& indices) {
-    return m_data_mgr->GetParticleAccelerations(indices);
+thrust::device_vector<Real3> ChFluidSystemSPH::GetForces() {
+    return m_data_mgr->GetForces();
+}
+
+thrust::device_vector<Real3> ChFluidSystemSPH::GetProperties() {
+    return m_data_mgr->GetProperties();
+}
+
+thrust::device_vector<Real3> ChFluidSystemSPH::GetPositions(const thrust::device_vector<int>& indices) {
+    return m_data_mgr->GetPositions(indices);
+}
+
+thrust::device_vector<Real3> ChFluidSystemSPH::GetVelocities(const thrust::device_vector<int>& indices) {
+    return m_data_mgr->GetVelocities(indices);
+}
+
+thrust::device_vector<Real3> ChFluidSystemSPH::GetAccelerations(const thrust::device_vector<int>& indices) {
+    return m_data_mgr->GetAccelerations(indices);
+}
+
+thrust::device_vector<Real3> ChFluidSystemSPH::GetForces(const thrust::device_vector<int>& indices) {
+    return m_data_mgr->GetForces(indices);
 }
 
 }  // end namespace fsi
