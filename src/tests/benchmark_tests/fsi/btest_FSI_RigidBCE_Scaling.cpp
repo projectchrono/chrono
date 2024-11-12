@@ -266,10 +266,17 @@ void FsiRigidBceScalingTest<num_boxes>::SimulateVis() {
 // =============================================================================
 #define NUM_SKIP_STEPS 2500  // number of steps for hot start (1e-4 * 2500 = 0.25s)
 #define NUM_SIM_STEPS 10000  // number of simulation steps for each benchmark (1e-4 * 10000 = 1s)
-#define REPEATS 10
+#define REPEATS 5
 
-typedef FsiRigidBceScalingTest<500> scalingTest;
-CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1, scalingTest, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1, FsiRigidBceScalingTest<1>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_10, FsiRigidBceScalingTest<10>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_100, FsiRigidBceScalingTest<100>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_500, FsiRigidBceScalingTest<500>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_1000, FsiRigidBceScalingTest<1000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_2000, FsiRigidBceScalingTest<2000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_3000, FsiRigidBceScalingTest<3000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_4000, FsiRigidBceScalingTest<4000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
+CH_BM_SIMULATION_ONCE(FSI_RigidBceScaling_5000, FsiRigidBceScalingTest<5000>, NUM_SKIP_STEPS, NUM_SIM_STEPS, REPEATS);
 
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
