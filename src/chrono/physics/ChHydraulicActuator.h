@@ -27,7 +27,7 @@
 
 #include <array>
 
-#include "chrono/physics/ChExternalDynamics.h"
+#include "chrono/physics/ChExternalDynamicsODE.h"
 #include "chrono/physics/ChHydraulicCircuit.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/functions/ChFunction.h"
@@ -43,7 +43,7 @@ namespace chrono {
 /// is inferred from the states of those two bodies. Alternatively, a hydraulic actuator can be instantiated stand-alone
 /// (e.g., for use in a co-simulation setting), in which case the actuator length and rate must be provided from
 /// outside.
-class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
+class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
   public:
     virtual ~ChHydraulicActuatorBase() {}
 
@@ -202,7 +202,7 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
     void SetHoseVolumes(double hose_dvalve_piston, double hose_dvalve_rod);
 
   private:
-    // Interface to ChExternalDynamics
+    // Interface to ChExternalDynamicsODE
 
     virtual unsigned int GetNumStates() const override { return 1 + 2; }
 
@@ -292,7 +292,7 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
     ChHydraulicThrottleValve& ThrottleValve() { return tvalve; }
 
   private:
-    // Interface to ChExternalDynamics
+    // Interface to ChExternalDynamicsODE
 
     virtual unsigned int GetNumStates() const override { return 1 + 3; }
 

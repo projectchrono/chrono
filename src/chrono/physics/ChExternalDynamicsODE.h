@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 //
 // Physics element that carries its own dynamics, described as a system of ODEs.
-// The internal states are integrated simultaneous with the containing system
+// The internal states are integrated simultaneously with the containing system
 // and they can be accessed and used coupled with other physics elements.
 // =============================================================================
 
-#ifndef CH_EXTERNAL_SYNAMICS_H
-#define CH_EXTERNAL_SYNAMICS_H
+#ifndef CH_EXTERNAL_DYNAMICS_ODE_H
+#define CH_EXTERNAL_DYNAMICS_ODE_H
 
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
@@ -25,15 +25,16 @@
 
 namespace chrono {
 
-/// Physics element that carries its own dynamics, described as a system of ODEs.
-/// The internal states are integrated simultaneous with the containing system and they can be accessed and used coupled
+/// Physics element that carries its own dynamics, described as an ODE IVP of the form:
+/// <pre>
+///   y' = f(t,y)
+///   y(t0) = y0
+/// </pre>
+/// The internal states are integrated simultaneously with the containing system and they can be accessed and coupled
 /// with other physics elements.
-class ChApi ChExternalDynamics : public ChPhysicsItem {
+class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
   public:
-    virtual ~ChExternalDynamics();
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChExternalDynamics* Clone() const override;
+    virtual ~ChExternalDynamicsODE();
 
     /// Initialize the physics item.
     virtual void Initialize();
@@ -43,7 +44,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     virtual bool IsStiff() const { return false; }
 
     /// Get number of states (dimension of y).
-    virtual unsigned int GetNumStates() const { return 0; }
+    virtual unsigned int GetNumStates() const = 0;
 
     /// Get the initial values (state at initial time).
     ChVectorDynamic<> GetInitialStates();
@@ -55,18 +56,18 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     const ChVectorDynamic<>& GetRHS() const { return m_rhs; }
 
   protected:
-    ChExternalDynamics();
+    ChExternalDynamicsODE();
 
     /// Set initial conditions.
     /// Must load y0 = y(0).
-    virtual void SetInitialConditions(ChVectorDynamic<>& y0) {}
+    virtual void SetInitialConditions(ChVectorDynamic<>& y0) = 0;
 
     /// Calculate and return the ODE right-hand side at the provided time and states.
     /// Must load rhs = f(t,y).
     virtual void CalculateRHS(double time,                 ///< current time
                               const ChVectorDynamic<>& y,  ///< current ODE states
                               ChVectorDynamic<>& rhs       ///< output ODE right-hand side vector
-    ) {}
+                              ) = 0;
 
     /// Calculate the Jacobian of the ODE right-hand side with respect to the ODE states.
     /// Must load J = df/dy.
@@ -81,6 +82,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
         return false;
     }
 
+  protected:
     virtual void Update(double time, bool update_assets = true) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
@@ -135,10 +137,10 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     virtual void VariablesQbIncrementPosition(double step) override;
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
+  private:
     /// Compute the Jacobian at the current time and state.
     void ComputeJac(double time);
 
-  private:
     int m_nstates;                                ///< number of internal ODE states
     ChVectorDynamic<> m_states;                   ///< vector of internal ODE states
     ChVariablesGenericDiagonalMass* m_variables;  ///< carrier for internal dynamics states

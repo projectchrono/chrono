@@ -60,6 +60,7 @@
 #include "chrono/timestepper/ChState.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
+#include "chrono/timestepper/ChAssemblyAnalysis.h"
 
 using namespace chrono;
 %}
@@ -90,14 +91,10 @@ using namespace chrono;
 %shared_ptr(chrono::ChImplicitIterativeTimestepper)
 %shared_ptr(chrono::ChImplicitTimestepper)
 %shared_ptr(chrono::ChExplicitTimestepper)  
+%shared_ptr(chrono::ChAssemblyAnalysis)  
 
 %include "../../../chrono/timestepper/ChState.h"
 %include "../../../chrono/timestepper/ChIntegrable.h"
 %include "../../../chrono/timestepper/ChTimestepper.h"
 %include "../../../chrono/timestepper/ChTimestepperHHT.h"
-
-
-
-
-
-
+%include "../../../chrono/timestepper/ChAssemblyAnalysis.h"

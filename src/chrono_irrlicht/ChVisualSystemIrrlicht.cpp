@@ -628,6 +628,7 @@ void ChVisualSystemIrrlicht::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
     if (node != m_nodes.end()) {
         node->second->removeAll();
         node->second->remove();
+        m_nodes.erase(node);
     }
 }
 

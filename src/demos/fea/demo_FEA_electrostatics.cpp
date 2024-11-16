@@ -29,16 +29,13 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -129,17 +126,9 @@ int main(int argc, char* argv[]) {
     mvisualizemeshC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("FEM electrostatics");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddLight(ChVector3d(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
-    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector3d(0., 0.2, -0.3));
+    // Create the run-time visualization system
+    auto vis =
+        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEM electrostatics", ChVector3d(0, 0.2, -0.3));
 
     // SIMULATION LOOP
 

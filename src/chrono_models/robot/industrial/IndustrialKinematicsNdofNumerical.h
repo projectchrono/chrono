@@ -16,21 +16,24 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
 
-#include "ChRobotKinematics.h"
+#include "IndustrialKinematics.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobotKinematicsNdofNumerical : public ChRobotKinematics {
+/// @addtogroup robot_models_industrial
+/// @{
+
+class CH_MODELS_API IndustrialKinematicsNdofNumerical : public IndustrialKinematics {
   public:
     /// Default constructor.
-    ChRobotKinematicsNdofNumerical(){};
+    IndustrialKinematicsNdofNumerical(){};
 
     /// Build model from joint absolute coordinate, IK tolerance and IK max iterations.
-    ChRobotKinematicsNdofNumerical(
+    IndustrialKinematicsNdofNumerical(
         const std::vector<ChCoordsysd>& m_joints_abs_coord,  ///< joints starting absolute coordinates
         const double tol = 1e-6,                             ///< IK tolerance
         const int max_iter = 10,                             ///< IK max iterations
@@ -40,10 +43,10 @@ class CH_MODELS_API ChRobotKinematicsNdofNumerical : public ChRobotKinematics {
     );
 
     /// Copy constructor.
-    ChRobotKinematicsNdofNumerical(const ChRobotKinematicsNdofNumerical& other);
+    IndustrialKinematicsNdofNumerical(const IndustrialKinematicsNdofNumerical& other);
 
     /// Virtual destructor.
-    virtual ~ChRobotKinematicsNdofNumerical(){};
+    virtual ~IndustrialKinematicsNdofNumerical(){};
 
     /// Set absolute and relative robot joint coordinates.
     void SetupCoords(const std::vector<ChCoordsysd>& m_joints_abs_coord);
@@ -84,7 +87,9 @@ class CH_MODELS_API ChRobotKinematicsNdofNumerical : public ChRobotKinematics {
     ChVectorDynamic<> m_uik, m_du;                ///< IK solution and increment
 };
 
+/// @} robot_models_industrial
+
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_NDOF_NUMERICAL_H

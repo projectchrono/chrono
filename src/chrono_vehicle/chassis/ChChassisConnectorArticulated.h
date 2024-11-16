@@ -30,9 +30,9 @@ namespace vehicle {
 /// @addtogroup vehicle
 /// @{
 
-/// Template for an articulation chassis connector.  This is an active connector,
-/// modeled with a rotational motor (a revolute joint along the chassis vertical
-/// axis whose DOF can be actuated based on current steering input).
+/// Template for an articulation chassis connector.
+/// This is an active connector, modeled with a rotational motor (a revolute joint along the chassis vertical axis whose
+/// DOF can be actuated based on current steering input).
 class CH_VEHICLE_API ChChassisConnectorArticulated : public ChChassisConnector {
   public:
     ChChassisConnectorArticulated(const std::string& name);
@@ -42,9 +42,8 @@ class CH_VEHICLE_API ChChassisConnectorArticulated : public ChChassisConnector {
     virtual std::string GetTemplateName() const override { return "ChassisConnectorArticulated"; }
 
     /// Initialize this chassis connector subsystem.
-    /// The subsystem is initialized by attaching it to the specified front and rear
-    /// chassis bodies at the specified location (with respect to and expressed in
-    /// the reference frame of the front chassis).
+    /// The subsystem is initialized by attaching it to the specified front and rear chassis bodies at their conection
+    /// points.
     virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
                             std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
                             ) override;

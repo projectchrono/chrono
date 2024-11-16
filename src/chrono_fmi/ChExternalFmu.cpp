@@ -102,7 +102,7 @@ class ChFmu3Wrapper : public ChFmuWrapper {
 };
 
 // =============================================================================
-// Implementation of a ChExternalDynamics component that wraps an FMU
+// Implementation of a ChExternalDynamicsODE component that wraps an FMU
 
 ChExternalFmu::ChExternalFmu() : m_verbose(false), m_initialized(false), m_num_states(0) {}
 
@@ -231,7 +231,7 @@ void ChExternalFmu::Initialize() {
     m_wrapper->Initialize(m_initial_conditions, m_parameters_real, m_parameters_int);
 
     // Initialize the base class
-    ChExternalDynamics::Initialize();
+    ChExternalDynamicsODE::Initialize();
 
     m_initialized = true;
 }
@@ -242,7 +242,7 @@ void ChExternalFmu::SetInitialConditions(ChVectorDynamic<>& y0) {
     std::vector<double> states(m_num_states);
     m_wrapper->GetContinuousStates(states);
 
-    // Load initial conditions for the ChExternalDynamics component
+    // Load initial conditions for the ChExternalDynamicsODE component
     for (unsigned int i = 0; i < m_num_states; i++)
         y0(i) = states[i];
 }
@@ -254,7 +254,7 @@ void ChExternalFmu::CalculateRHS(double time, const ChVectorDynamic<>& y, ChVect
         states[i] = y(i);
     m_wrapper->SetContinuousStates(states);
 
-    // Get the RHS from the FMU and load for the ChExternalDynamics component
+    // Get the RHS from the FMU and load for the ChExternalDynamicsODE component
     std::vector<double> derivs(m_num_states);
     m_wrapper->GetContinuousDerivatives(derivs);
     for (unsigned int i = 0; i < m_num_states; i++)
@@ -272,7 +272,7 @@ void ChExternalFmu::Update(double time, bool update_assets) {
     m_wrapper->SetInputs(inputs_real);
 
     // Invoke base class Update
-    ChExternalDynamics::Update(time, update_assets);
+    ChExternalDynamicsODE::Update(time, update_assets);
 }
 
 void ChExternalFmu::PrintFmuVariables() const {

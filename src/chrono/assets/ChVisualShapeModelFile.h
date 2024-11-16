@@ -36,6 +36,10 @@ class ChApi ChVisualShapeModelFile : public ChVisualShape {
     void SetScale(const ChVector3d& s) { scale = s; }
     void SetScale(double s) { scale = ChVector3d(s, s, s); }
 
+    /// Get the shape bounding box.
+    /// Currently, this calculates an updated bounding box only for OBJ and STL files.
+    virtual ChAABB GetBoundingBox() const override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

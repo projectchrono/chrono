@@ -41,6 +41,9 @@ class ChApi ChVisualShapePath : public ChVisualShape {
     double GetThickness() const { return thickness; }
     void SetThickness(double mt) { thickness = mt; }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return gpath->GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

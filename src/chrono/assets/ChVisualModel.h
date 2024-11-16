@@ -75,6 +75,9 @@ class ChApi ChVisualModel {
     /// Erase the specified visual shape from this model.
     void Erase(std::shared_ptr<ChVisualShape> shape);
 
+    /// Return the axis aligned bounding box (AABB) of the visual model.
+    ChAABB GetBoundingBox() const;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 

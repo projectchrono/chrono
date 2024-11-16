@@ -16,6 +16,8 @@
 #define CHASSEMBLY_H
 
 #include <cmath>
+#include <vector>
+
 #include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"

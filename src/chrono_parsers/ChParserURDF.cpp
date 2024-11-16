@@ -248,16 +248,38 @@ void ChParserURDF::PopulateSystem(ChSystem& sys) {
     // Cache the containing Chrono system
     m_sys = &sys;
 
-    // Start at the root body, create the root (if necessary),
-    // then traverse all links recursively to populate the Chrono system
+    // Create the root body, then traverse all links recursively to populate the Chrono system
     auto root_link = m_model->getRoot();
     ChFrame<> frame = m_init_pose;
     if (root_link->inertial) {
+        // root body is a free body (no parent)
         m_root_body = toChBody(root_link);
-        m_root_body->SetFrameRefToAbs(frame);
-        m_sys->AddBody(m_root_body);
+    } else {
+        // assume root body is the ground
+        m_root_body = chrono_types::make_shared<ChBodyAuxRef>();
+        m_root_body->SetName(root_link->name);
+        m_root_body->SetFixed(true);
+        attachVisualization(m_root_body, root_link, ChFrame<>());
+        attachCollision(m_root_body, root_link, ChFrame<>());
     }
+    m_root_body->SetFrameRefToAbs(frame);
+    m_sys->AddBody(m_root_body);
+    m_bodies.push_back(m_root_body);
+
     createChildren(root_link, frame);
+
+    // Calculate visualization and collision bounding boxes
+    for (const auto& body : m_bodies) {
+        if (body->GetVisualModel()) {
+            ChAABB body_aabb = body->GetVisualModel()->GetBoundingBox();
+            m_aabb_vis += body_aabb.Transform(*body);
+        }
+
+        if (body->GetCollisionModel()) {
+            ChAABB body_aabb = body->GetCollisionModel()->GetBoundingBox(true);
+            m_aabb_coll += body_aabb.Transform(*body);
+        }
+    }
 }
 
 void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame<>& parent_frame) {
@@ -274,6 +296,7 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
         if (body) {
             body->SetFrameRefToAbs(child_frame);
             m_sys->AddBody(body);
+            m_bodies.push_back(body);
         }
 
         // Set this as the root body of the model if not already set
@@ -284,6 +307,7 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
         auto link = toChLink((*child)->parent_joint);
         if (link) {
             m_sys->AddLink(link);
+            m_joints.push_back(link);
         }
 
         // Process grandchildren
@@ -749,24 +773,21 @@ void ChParserURDF::PrintModelBodyTree() {
     cout << endl;
 }
 
-// -----------------------------------------------------------------------------
-
 void ChParserURDF::PrintModelBodies() {
-    cout << "Joint list in <" << m_model->getName() << "> model" << endl;
+    cout << "Body list in <" << m_model->getName() << "> model" << endl;
     std::vector<urdf::LinkSharedPtr> links;
     m_model->getLinks(links);
     for (const auto& link : links) {
         bool collision = !link->collision_array.empty();
 
-        cout << "Link: " << std::left << std::setw(25) << link->name;
+        cout << "  ";
+        cout << std::left << std::setw(25) << link->name;
         cout << "discarded? " << (Discard(link) ? "Y    " : "     ");
         cout << "collision? " << (collision ? "Y    " : "     ");
         cout << endl;
     }
     cout << endl;
 }
-
-// -----------------------------------------------------------------------------
 
 void ChParserURDF::PrintModelJoints() {
     cout << "Joint list in <" << m_model->getName() << "> model" << endl;
@@ -777,6 +798,7 @@ void ChParserURDF::PrintModelJoints() {
         if (!joint)
             continue;
 
+        cout << "  ";
         cout << (m_actuated_joints.find(joint->name) == m_actuated_joints.end() ? "[P] " : "[A] ");
         switch (joint->type) {
             case urdf::Joint::REVOLUTE:
@@ -803,6 +825,28 @@ void ChParserURDF::PrintModelJoints() {
         cout << "Joint: " << std::left << std::setw(25) << joint->name;
         cout << "Link: " << std::left << std::setw(25) << link->name;
         cout << "Parent:" << std::left << std::setw(25) << joint->parent_link_name << endl;
+    }
+    cout << endl;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChParserURDF::PrintChronoBodies() {
+    cout << "Body list in Chrono system" << endl;
+    for (const auto& b : m_bodies) {
+        cout << "  " << std::setw(25) << b->GetName();
+        cout << std::left << "Fixed? " << (b->IsFixed() ? "Y" : "N") << "   Pos: ";
+        cout << b->GetPos() << endl;
+    }
+    cout << endl;
+}
+
+void ChParserURDF::PrintChronoJoints() {
+    cout << "Joint list in Chrono system" << endl;
+    for (const auto& j : m_joints) {
+        auto motor = std::dynamic_pointer_cast<ChLinkMotor>(j);
+        cout << "  " << std::left << std::setw(25) << j->GetName();
+        cout << "Actuated? " << (motor ? "Y" : "N") << endl;
     }
     cout << endl;
 }

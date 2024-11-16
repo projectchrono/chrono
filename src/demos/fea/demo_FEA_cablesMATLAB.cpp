@@ -21,12 +21,14 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 #include "chrono_matlab/ChSolverMatlab.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
+#include "FEAvisualization.h"
 #include "FEAcables.h"
 
 using namespace chrono;
 using namespace fea;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -68,16 +70,9 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Cables FEM (Matlab)");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis =
+        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM (Matlab)", ChVector3d(0, 0.6, -1.0));
 
     // Change solver to Matlab external linear solver.
     ChMatlabEngine matlab_engine;

@@ -6,63 +6,75 @@ set(FEA_DEMOS
     demo_FEA_loads_statics
 )
 
-# Add demos that require Irrlicht
+# Add demos that require IRRLICHT run-time visualization
 if(ENABLE_MODULE_IRRLICHT)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_thermal
-    demo_FEA_electrostatics
-    demo_FEA_contacts_SMC
-    demo_FEA_cables
-    demo_FEA_shellsANCF_3423
-    demo_FEA_shellsANCF_3833
-    demo_FEA_hexaANCF_3813
-    demo_FEA_cosimulate_load
-    demo_FEA_loads_dynamics
-    demo_FEA_truss
-)
+
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_truss
+    )
+
+    if(ENABLE_MODULE_PARDISO_MKL)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_beams_static
+        demo_FEA_beams_extrude
+        demo_FEA_beamsIGA
+        demo_FEA_cosimulate_load
+    )
+    endif()
+
+    if(ENABLE_MODULE_MUMPS)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_cablesMUMPS
+    )
+    endif()
+
 endif()
 
-# Add demos that require Irrlicht and Matlab
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_MATLAB)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_cablesMATLAB
-)
+# Add demos that require run-time visualization (IRRLICHT or VSG)
+if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_thermal
+        demo_FEA_electrostatics
+        demo_FEA_contacts_SMC
+        demo_FEA_cables
+        demo_FEA_shellsANCF_3423
+        demo_FEA_shellsANCF_3833
+        demo_FEA_hexaANCF_3813
+        demo_FEA_loads_dynamics
+    )
+    
+    # Add demos that require Matlab
+    if(ENABLE_MODULE_MATLAB)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_cablesMATLAB
+    )
+    endif()
+    
+    # Add demos that require MKL
+    if(ENABLE_MODULE_PARDISO_MKL)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_beamsEuler
+        demo_FEA_beams_constr
+        demo_FEA_cablesMKL
+        demo_FEA_abaqus_wheel
+        demo_FEA_shellsReissner
+        demo_FEA_shellsBST
+        demo_FEA_contacts_NSC
+        demo_FEA_contactsANCF_SMC
+        demo_FEA_hexaANCF_3813_9
+        demo_FEA_beamsANCF
+    )
+    endif()
+    
+    # Add demos that require MKL and postprocess
+    if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_beams_rotor
+    )
+    endif()
+
 endif()
-
-# Add demos that require Irrlicht and MKL
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_beamsEuler
-    demo_FEA_beams_static
-    demo_FEA_beams_constr
-    demo_FEA_beams_extrude
-    demo_FEA_cablesMKL
-    demo_FEA_abaqus_wheel
-    demo_FEA_shellsReissner
-    demo_FEA_shellsBST
-    demo_FEA_contacts_NSC
-    demo_FEA_contactsANCF_SMC
-    demo_FEA_hexaANCF_3813_9
-    demo_FEA_beamsIGA
-    demo_FEA_beamsANCF
-)
-endif()
-
-# Add demos that require Irrlicht and MUMPS
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_MUMPS)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_cablesMUMPS
-)
-endif()
-
-# Add demos that require Irrlicht and MKL and postprocess
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
-set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_beams_rotor
-)
-endif()
-
-
 
 #--------------------------------------------------------------
 
@@ -79,6 +91,11 @@ if(ENABLE_MODULE_IRRLICHT)
   include_directories(${CH_IRRLICHT_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBS "ChronoEngine_irrlicht")
+endif()
+
+if(ENABLE_MODULE_VSG)
+  include_directories(${CH_VSG_INCLUDES})
+  list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)

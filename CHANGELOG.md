@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Support for modeling components with internal dynamics (DAE)](#added-support-for-modeling-components-with-internal-dynamics-dae)
   - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
 - [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
   - [\[Fixed\] Bug fixes in FSI solver](#fixed-bug-fixes-in-fsi-solver)
@@ -23,7 +24,7 @@ Change Log
   - [\[Changed\] Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
   - [\[Changed\] Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
   - [\[Added\] Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
-  - [\[Added\] Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
+  - [\[Added\] Support for modeling components with internal dynamics (ODE)](#added-support-for-modeling-components-with-internal-dynamics-ode)
   - [\[Changed\] Renamed SPHTerrain and RCCar vehicle classes](#changed-renamed-sphterrain-and-rccar-vehicle-classes)
   - [\[Changed\] Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
   - [\[Changed\] Transmission gear numbering](#changed-transmission-gear-numbering)
@@ -111,6 +112,109 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Added] Support for modeling components with internal dynamics (DAE)
+
+The new base class `ChExternalDynamicsDAE` allows modeling and inclusion in a Chrono system of a physics item that carries its own dynamics, described as a set of 2nd order, index-3 Differential Algebraic Equations (DAE). The states and constraints of such components are appended to those of the containing system and are integrated simultaneously with the system's equations of motion. These states can be accessed and used coupled with other components.
+
+The general form of the initial value DAE problem is:
+```math
+\begin{array}{l} 
+M\ddot y + C_y^T \lambda = F(t,y,\dot y)\\
+C(t,y) = 0
+\end{array}
+```
+with
+```math
+\begin{array}{l}
+y_0 = y(t_0)\\
+\dot y_0 = \dot y(t_0)
+\end{array}
+```
+
+A user-provided modeling element inherits from `ChExternalDynamicsDAE` and defines the DAE initial value problem by implementing, at a minimum, the functions `SetInitialConditions` (to provide the DAE initial conditions), `CalculateMassMatrix` (to provide the DAE mass matrix $M$), `CalculateForce` (to provide the generalized force vector $F$), `CalculateConstraintViolation` (to provide the vector of constraint violations $C$), and `CalculateConstraintJacobian` (to provide the constraint Jacobian $C_y$). Optionally, for stiff DAE systems, a derived class may also implement `CalculateForceJacobian` to provide the Jacobian of the generalized force with respect to the DAE states and state derivatives and, if the system is rheonomous, the function `CalculateConstraintDerivative` to provide the partial derivative with respect to time of the constrain violations. 
+If neded and not provided, these derivatives are approximated using forward finite-differences.
+
+This mechanism can be used to include external, black-box dynamics components into a Chrono simulation (e.g., controllers, actuators, ADAS vehicle components, etc.).
+
+A simple illustration of using this new feature is provided in `demo_MBS_external_dynamics_DAE` for solving the equations of motion of a simple rigid pendulum in various forms.  For example, the full definition of the user-provided derived class for a 2D simple pendulum is:
+
+```cpp
+/// Simple 2D pendulum modeled as a DAE.
+/// - 3 states: (x,y) and pendulum angle.
+/// - 3 state derivatives.
+/// - 2 constraints.
+class Pendulum2D_DAE : public ChExternalDynamicsDAE {
+  public:
+    Pendulum2D_DAE(double L, double mass) : g(9.8), L(L), m(mass), I(mass * L * L / 3) {}
+
+    virtual Pendulum2D_DAE* Clone() const override { return new Pendulum2D_DAE(*this); }
+
+    virtual unsigned int GetNumStates() const override { return 3; }
+    virtual unsigned int GetNumStateDerivatives() const override { return 3; }
+    virtual unsigned int GetNumAlgebraicConstraints() const override { return 2; }
+
+    virtual bool InExplicitForm() const override { return false; }
+    virtual bool IsStiff() const override { return false; }
+
+    virtual void SetInitialConditions(ChVectorDynamic<>& y0, ChVectorDynamic<>& yd0) override {
+        y0(0) = L;  // x
+        y0(1) = 0;  // y
+        y0(2) = 0;  // theta
+
+        yd0.setZero();
+    }
+
+    virtual void CalculateMassMatrix(ChMatrixDynamic<>& M) override {
+        M.setZero();
+        M(0, 0) = m;
+        M(1, 1) = m;
+        M(2, 2) = I;
+    }
+
+    virtual bool CalculateMassTimesVector(const ChVectorDynamic<>& v, ChVectorDynamic<>& Mv) override {
+        Mv(0) = m * v(0);
+        Mv(1) = m * v(1);
+        Mv(2) = I * v(2);
+
+        return true;
+    }
+
+    virtual void CalculateForce(double time,
+                                const ChVectorDynamic<>& y,
+                                const ChVectorDynamic<>& yd,
+                                ChVectorDynamic<>& F) override {
+        F(0) = 0;
+        F(1) = -m * g;
+        F(2) = 0;
+    }
+
+    virtual void CalculateConstraintViolation(double time, const ChVectorDynamic<>& y, ChVectorDynamic<>& c) override {
+        c(0) = y(0) - L * std::cos(y(2));  // x = L * cos(theta)
+        c(1) = y(1) - L * std::sin(y(2));  // y = L * sin(theta)
+    }
+
+    virtual void CalculateConstraintJacobian(double time,
+                                             const ChVectorDynamic<>& y,
+                                             const ChVectorDynamic<>& c,
+                                             ChMatrixDynamic<>& J) override {
+        J(0, 0) = 1;
+        J(0, 1) = 0;
+        J(0, 2) = L * std::sin(y(2));
+
+        J(1, 0) = 0;
+        J(1, 1) = 1;
+        J(1, 2) = -L * std::cos(y(2));
+    }
+
+  private:
+    double g;  // gravitational acceleration
+    double L;  // pendulum half-length
+    double m;  // pendulum mass
+    double I;  // pendulum moment of inertia
+};
+```
+Note: for consistency, the previous `ChExternalDynamics` was renamed to `ChExternalDynamicsODE`.
 
 ## [Changed] Eigensolvers refactoring
 
@@ -1923,11 +2027,11 @@ If used in a co-simulation setting, the actuator is initialized stand-alone:
 ```
 In this case, the current actuator length is provided from the outside, while the force generated by the actuator can be extracted with the `ChHydraulicActuatorBase::GetActuatorForce` function, thus allowing a force-displacement co-simulation setup.
 
-## [Added] Support for modeling components with own dynamics
+## [Added] Support for modeling components with internal dynamics (ODE)
 
 The new base class `ChExternalDynamics` allows modeling and inclusion in a Chrono system of a physics item that carries its own dynamics, described as a set of Ordinary Differential Equations (ODE). The states of such components are appended to those of the containing system and are integrated simultaneously with the system's equations of motion. These states can be accessed and used coupled with other components.
 
-A user-provided modeling element inherits from `ChExternalDynamics` and defines the ODE initial value problem by implementing, at a minimum, the functions `SetInitialConditions` (to provide the ODE initial conditions) and `CalculateRHS` (to provide the ODE right-hand side function). Optionally, a derived class may also implement `CalculateJac` to provide the JAcobian of the right-hand side function with respect to the ODE states. The Jacobian is used only is the physics component is declared as stiff (by overriding the function `IsStiff`); if a Jacobian function is not provided, a finite-difference approximation is used.
+A user-provided modeling element inherits from `ChExternalDynamics` and defines the ODE initial value problem by implementing, at a minimum, the functions `SetInitialConditions` (to provide the ODE initial conditions) and `CalculateRHS` (to provide the ODE right-hand side function). Optionally, a derived class may also implement `CalculateJac` to provide the Jacobian of the right-hand side function with respect to the ODE states. The Jacobian is used only is the physics component is declared as stiff (by overriding the function `IsStiff`); if a Jacobian function is not provided, a finite-difference approximation is used.
 
 This mechanism can be used to include external, black-box dynamics components into a Chrono simulation (e.g., controllers, actuators, ADAS vehicle components, etc.) and will be extended in the future to also support components with dynamics described as Differential Algebraic Equation (DAE) systems.
 

@@ -48,6 +48,9 @@ class ChApi ChCollisionShapeRoundedCylinder : public ChCollisionShape {
     /// Get the radius of the sweeping sphere.
     double GetSRadius() const { return gcylinder.GetSphereRadius(); }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return gcylinder.GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

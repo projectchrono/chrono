@@ -16,15 +16,15 @@
 //
 // =============================================================================
 
-#include "ChRobot6dofCAD.h"
+#include "IndustrialRobot6dofCAD.h"
 
 namespace chrono {
 namespace industrial {
 
-ChRobot6dofCAD::ChRobot6dofCAD(ChSystem* sys,
-                               const ChFramed& base_frame,
-                               unsigned int id,
-                               std::vector<std::string> bodynames)
+IndustrialRobot6dofCAD::IndustrialRobot6dofCAD(ChSystem* sys,
+                                               const ChFramed& base_frame,
+                                               unsigned int id,
+                                               std::vector<std::string> bodynames)
     : m_id(id), m_bodynames(bodynames) {
     m_sys = sys;
     m_base_frame = base_frame;
@@ -41,7 +41,7 @@ ChRobot6dofCAD::ChRobot6dofCAD(ChSystem* sys,
     SetBaseFrame(m_base_frame);
 }
 
-void ChRobot6dofCAD::SetupBodies() {
+void IndustrialRobot6dofCAD::SetupBodies() {
     // Check if 6+1 robot bodies are provided (i.e. including a robot basement).
     // If not, fallback to use internal 'ground' as robot base.
     bool has_base = true;
@@ -100,7 +100,7 @@ void ChRobot6dofCAD::SetupBodies() {
     }
 }
 
-void ChRobot6dofCAD::SetupMarkers() {
+void IndustrialRobot6dofCAD::SetupMarkers() {
     m_marker_base_shoulder = PreprocessMarker("MARKER_1", m_base ? m_base : m_ground);
     m_marker_shoulder_biceps = PreprocessMarker("MARKER_2", m_shoulder);
     m_marker_biceps_elbow = PreprocessMarker("MARKER_3", m_biceps);
@@ -128,12 +128,11 @@ void ChRobot6dofCAD::SetupMarkers() {
     m_joint_frames = {};  // no use
 }
 
-void ChRobot6dofCAD::SetupLinks() {
+void IndustrialRobot6dofCAD::SetupLinks() {
     m_motfunlist = {chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>(),
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>(),
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>()};
 
-    // Link base-shoulder
     m_link_base_shoulder = CreateMotorRotationAngle(m_sys, m_shoulder, m_base ? m_base : m_ground,
                                                     m_marker_base_shoulder->GetAbsFrame(), m_motfunlist[0]);
     m_link_shoulder_biceps =
@@ -153,7 +152,8 @@ void ChRobot6dofCAD::SetupLinks() {
     CreatePassiveLinks();
 }
 
-std::shared_ptr<ChMarker> ChRobot6dofCAD::PreprocessMarker(const std::string& name, std::shared_ptr<ChBody> body) {
+std::shared_ptr<ChMarker> IndustrialRobot6dofCAD::PreprocessMarker(const std::string& name,
+                                                                   std::shared_ptr<ChBody> body) {
     auto marker = m_sys->SearchMarker(name);
     marker->SetName("robot" + std::to_string(m_id) + "_" + name);
     body->AddMarker(marker);

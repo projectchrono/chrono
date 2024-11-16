@@ -70,15 +70,16 @@ source_group("copters" FILES ${CRM_COPTERS_FILES})
 #-----------------------------------------------------------------------------
 
 set(INDUSTRIAL_FILES
-    industrial/ChRobot.h industrial/ChRobot.cpp
-	industrial/ChRobotSCARA.h industrial/ChRobotSCARA.cpp
-	industrial/ChRobotSCARA_CAD.h industrial/ChRobotSCARA_CAD.cpp
-	industrial/ChRobot6dof.h industrial/ChRobot6dof.cpp
-	industrial/ChRobot6dofCAD.h industrial/ChRobot6dofCAD.cpp
-	industrial/ChRobotKinematics.h industrial/ChRobotKinematics.cpp
-	industrial/ChRobotKinematicsSCARA.h industrial/ChRobotKinematicsSCARA.cpp
-	industrial/ChRobotKinematics6dofSpherical.h industrial/ChRobotKinematics6dofSpherical.cpp
-	industrial/ChRobotKinematicsNdofNumerical.h industrial/ChRobotKinematicsNdofNumerical.cpp
+    industrial/IndustrialRobot.h industrial/IndustrialRobot.cpp
+	industrial/IndustrialRobotSCARA.h industrial/IndustrialRobotSCARA.cpp
+	industrial/IndustrialRobotSCARA_CAD.h industrial/IndustrialRobotSCARA_CAD.cpp
+	industrial/IndustrialRobot6dof.h industrial/IndustrialRobot6dof.cpp
+	industrial/IndustrialRobot6dofCAD.h industrial/IndustrialRobot6dofCAD.cpp
+	industrial/IndustrialKinematics.h industrial/IndustrialKinematics.cpp
+	industrial/IndustrialKinematicsSCARA.h industrial/IndustrialKinematicsSCARA.cpp
+	industrial/IndustrialKinematics6dofSpherical.h industrial/IndustrialKinematics6dofSpherical.cpp
+	industrial/IndustrialKinematicsNdofNumerical.h industrial/IndustrialKinematicsNdofNumerical.cpp
+	industrial/TrajectoryInterpolator.h industrial/TrajectoryInterpolator.cpp
 )
 
 source_group("industrial" FILES ${INDUSTRIAL_FILES})

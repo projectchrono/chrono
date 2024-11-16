@@ -16,12 +16,12 @@
 //
 // =============================================================================
 
-#include "ChRobotKinematicsNdofNumerical.h"
+#include "IndustrialKinematicsNdofNumerical.h"
 
 namespace chrono {
 namespace industrial {
 
-ChRobotKinematicsNdofNumerical::ChRobotKinematicsNdofNumerical(const std::vector<ChCoordsysd>& joints_abs_coord,
+IndustrialKinematicsNdofNumerical::IndustrialKinematicsNdofNumerical(const std::vector<ChCoordsysd>& joints_abs_coord,
                                                                const double tol,
                                                                const int max_iter,
                                                                bool dosubsteps,
@@ -35,7 +35,7 @@ ChRobotKinematicsNdofNumerical::ChRobotKinematicsNdofNumerical(const std::vector
     SetupCoords(joints_abs_coord);
 }
 
-ChRobotKinematicsNdofNumerical::ChRobotKinematicsNdofNumerical(const ChRobotKinematicsNdofNumerical& other)
+IndustrialKinematicsNdofNumerical::IndustrialKinematicsNdofNumerical(const IndustrialKinematicsNdofNumerical& other)
     : m_joints_abs_coord(other.m_joints_abs_coord),
       m_joints_rel_coord(other.m_joints_rel_coord),
       m_tol(other.m_tol),
@@ -49,14 +49,14 @@ ChRobotKinematicsNdofNumerical::ChRobotKinematicsNdofNumerical(const ChRobotKine
     m_J = other.m_J;
 }
 
-void ChRobotKinematicsNdofNumerical::SetupCoords(const std::vector<ChCoordsysd>& joints_abs_coord) {
+void IndustrialKinematicsNdofNumerical::SetupCoords(const std::vector<ChCoordsysd>& joints_abs_coord) {
     m_joints_abs_coord = joints_abs_coord;
     m_joints_rel_coord = joints_abs_coord;
     for (int i = 1; i < m_num_joints + 1; ++i)
         m_joints_rel_coord[i] = m_joints_abs_coord[i - 1].TransformParentToLocal(m_joints_abs_coord[i]);
 }
 
-void ChRobotKinematicsNdofNumerical::SetupIK(double tol, int max_iter, bool do_substeps, int num_substeps, double h) {
+void IndustrialKinematicsNdofNumerical::SetupIK(double tol, int max_iter, bool do_substeps, int num_substeps, double h) {
     m_tol = tol;
     m_max_iter = max_iter;
     m_dosubsteps = do_substeps;
@@ -64,18 +64,18 @@ void ChRobotKinematicsNdofNumerical::SetupIK(double tol, int max_iter, bool do_s
     m_h = h;
 }
 
-ChCoordsysd ChRobotKinematicsNdofNumerical::GetFK(const ChVectorDynamic<>& u, int N) {
+ChCoordsysd IndustrialKinematicsNdofNumerical::GetFK(const ChVectorDynamic<>& u, int N) {
     ChCoordsysd coord = m_joints_rel_coord[0];  // Xw0
     for (auto i = 1; i < N + 1; ++i)
         coord = coord * (QuatFromAngleZ(u[i - 1]) * m_joints_rel_coord[i]);  // up to XwN
     return coord;
 }
 
-ChCoordsysd ChRobotKinematicsNdofNumerical::GetFK(const ChVectorDynamic<>& u) {
+ChCoordsysd IndustrialKinematicsNdofNumerical::GetFK(const ChVectorDynamic<>& u) {
     return GetFK(u, m_num_joints);  // up to TCP
 }
 
-ChVectorDynamic<> ChRobotKinematicsNdofNumerical::GetResidualIK(const ChVectorDynamic<>& u) {
+ChVectorDynamic<> IndustrialKinematicsNdofNumerical::GetResidualIK(const ChVectorDynamic<>& u) {
     ChCoordsysd ucoord = GetFK(u);                                           // FK at given u
     ChVector3d t_delta = ucoord.pos - m_targetcoord.pos;                     // translation residual
     ChQuaternion<> q_delta = ucoord.rot.GetConjugate() * m_targetcoord.rot;  // rotation residual
@@ -83,12 +83,12 @@ ChVectorDynamic<> ChRobotKinematicsNdofNumerical::GetResidualIK(const ChVectorDy
     return m_residual;
 }
 
-void ChRobotKinematicsNdofNumerical::NumJacobian(const ChVectorDynamic<>& u) {
+void IndustrialKinematicsNdofNumerical::NumJacobian(const ChVectorDynamic<>& u) {
     for (int i = 0; i < m_num_joints; ++i)
         m_J.col(i) = (GetResidualIK(u + m_HH.col(i)) - GetResidualIK(u)) / m_h;
 }
 
-bool ChRobotKinematicsNdofNumerical::SolveNewtonRaphson(const ChVectorDynamic<>& u0) {
+bool IndustrialKinematicsNdofNumerical::SolveNewtonRaphson(const ChVectorDynamic<>& u0) {
     m_uik = u0;  // initialize solution
     m_iter = 0;  // reset m_iter counter
 
@@ -110,7 +110,7 @@ bool ChRobotKinematicsNdofNumerical::SolveNewtonRaphson(const ChVectorDynamic<>&
         return true;  // converged
 }
 
-ChVectorDynamic<> ChRobotKinematicsNdofNumerical::GetIK(const ChCoordsysd& targetcoord, const ChVectorDynamic<>& u0) {
+ChVectorDynamic<> IndustrialKinematicsNdofNumerical::GetIK(const ChCoordsysd& targetcoord, const ChVectorDynamic<>& u0) {
     m_targetcoord = targetcoord;              // initialize target coordinates
     bool converged = SolveNewtonRaphson(u0);  // solve target (direct attempt)
 

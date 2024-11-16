@@ -14,7 +14,7 @@
 # - Do *not* use GLEW from its GitHub repository. It is not properly set up to work with CMake. Use instead
 #   the source archive available on SourceForge.
 # - The sources for GLM and GLFW can be obtained either from GitHub or from SourceForge.
-# - This was tested with the following versions of VSG libraries:
+# - This was tested with the following versions of GL libraries:
 #      GLEW (glew.sourceforge.net/):     Version 2.1.0
 #      GLFW (github.com/glfw/glfw):      Commit (#8f470597)
 #      GLM (github.com/g-truc/glm.git):  Commit (#efec5db0)                  

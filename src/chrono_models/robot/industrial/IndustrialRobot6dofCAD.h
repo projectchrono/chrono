@@ -16,21 +16,24 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_6DOF_CAD_H
-#define CH_INDUSTRIAL_ROBOT_6DOF_CAD_H
+#ifndef INDUSTRIAL_ROBOT_6DOF_CAD_H
+#define INDUSTRIAL_ROBOT_6DOF_CAD_H
 
-#include "ChRobot6dof.h"
+#include "IndustrialRobot6dof.h"
 
 namespace chrono {
 namespace industrial {
 
-class CH_MODELS_API ChRobot6dofCAD : public ChRobot6dof {
+/// @addtogroup robot_models_industrial
+/// @{
+
+class CH_MODELS_API IndustrialRobot6dofCAD : public IndustrialRobot6dof {
   public:
     /// Default constructor.
-    ChRobot6dofCAD(){};
+    IndustrialRobot6dofCAD(){};
 
     /// Build 6dof articulated robot model from CAD bodies already imported in sys.
-    ChRobot6dofCAD(
+    IndustrialRobot6dofCAD(
         ChSystem* sys,                            ///< containing sys
         const ChFramed& base_frame = ChFramed(),  ///< place robot base in these coordinates
         unsigned int id = 0,  ///< give robot a unique identifier (useful to import multiple instances of same CAD robot
@@ -60,12 +63,14 @@ class CH_MODELS_API ChRobot6dofCAD : public ChRobot6dof {
     /// Search it by name in system, rename it, and attach it to given body.
     virtual std::shared_ptr<ChMarker> PreprocessMarker(const std::string& name, std::shared_ptr<ChBody> body);
 
-    unsigned int m_id = 0;                   ///< robot model unique identifier
-    std::vector<std::string> m_bodynames;    ///< name of bodies to search in sys for building robot model
-    std::shared_ptr<ChBodyAuxRef> m_ground;  ///< robot 'ground' virtual body
+    unsigned int m_id = 0;                 ///< robot model unique identifier
+    std::vector<std::string> m_bodynames;  ///< name of bodies to search in sys for building robot model
+    std::shared_ptr<ChBody> m_ground;      ///< robot 'ground' virtual body
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_6DOF_CAD_H
+#endif  // end INDUSTRIAL_ROBOT_6DOF_CAD_H

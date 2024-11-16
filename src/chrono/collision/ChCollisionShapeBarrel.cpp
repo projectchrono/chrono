@@ -36,6 +36,12 @@ ChCollisionShapeBarrel::ChCollisionShapeBarrel(std::shared_ptr<ChContactMaterial
     this->R_offset = R_offset;
 }
 
+ChAABB ChCollisionShapeBarrel::GetBoundingBox() const {
+    double y_min = std::min(Y_low, -axis_vert / 2);
+    double y_max = std::max(Y_high, +axis_vert/2);
+    return ChAABB(ChVector3d(-axis_hor / 2, y_min, -axis_hor / 2), ChVector3d(+axis_hor / 2, y_max, +axis_hor / 2));
+}
+
 void ChCollisionShapeBarrel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChCollisionShapeBarrel>();
