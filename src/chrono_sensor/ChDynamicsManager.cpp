@@ -45,7 +45,7 @@ CH_SENSOR_API void ChDynamicsManager::UpdateSensors() {
                 for (auto filter : pSen->GetFilterList()) {
                     filter->Apply();
                 }
-                pSen->ClearKeyFrames();
+                // pSen->ClearKeyFrames();
             }
         }
     }
