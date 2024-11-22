@@ -73,11 +73,11 @@ int main(int argc, char* argv[]) {
     std::vector<ChCoordsysd> keys = {key_0, key_1, key_2, key_0};
 
     // Create a trajectory interpolator from given keyframes
-    industrial::TrajectoryInterpolator interpolator;
-    interpolator.Setup(keys, motion_cycle_time, industrial::TrajectoryInterpolator::PosfunType::LINE,
-                       industrial::TrajectoryInterpolator::SpacefunType::PW_POLY345,
-                       industrial::TrajectoryInterpolator::RotfunType::BSPLINE1,
-                       industrial::TrajectoryInterpolator::SpacefunType::PW_POLY345, nullptr);
+    industrial::TrajectoryInterpolatorOperationSpace interpolator;
+    interpolator.Setup(keys, motion_cycle_time, industrial::TrajectoryInterpolatorOperationSpace::PosfunType::LINE,
+                       industrial::TrajectoryInterpolatorOperationSpace::SpacefunType::PW_POLY345,
+                       industrial::TrajectoryInterpolatorOperationSpace::RotfunType::BSPLINE1,
+                       industrial::TrajectoryInterpolatorOperationSpace::SpacefunType::PW_POLY345, nullptr);
 
     auto posfun = interpolator.GetPositionFunction();
     auto rotfun = interpolator.GetRotationFunction();
