@@ -56,6 +56,9 @@ void ChVisualMaterial::SetMetallicTexture(const std::string& filename) {
 void ChVisualMaterial::SetRoughnessTexture(const std::string& filename) {
     roughness_texture.SetFilename(filename);
 }
+void ChVisualMaterial::SetMrMapTexture(const std::string& filename) {
+    mrmap_texture.SetFilename(filename);
+}
 void ChVisualMaterial::SetOpacityTexture(const std::string& filename) {
     opacity_texture.SetFilename(filename);
 }
@@ -76,6 +79,7 @@ void ChVisualMaterial::SetTextureScale(float scale_x, float scale_y) {
     normal_texture.SetScale(scale_x, scale_y);
     metallic_texture.SetScale(scale_x, scale_y);
     roughness_texture.SetScale(scale_x, scale_y);
+    mrmap_texture.SetScale(scale_x, scale_y);
     opacity_texture.SetScale(scale_x, scale_y);
     weight_texture.SetScale(scale_x, scale_y);
     disp_texture.SetScale(scale_x, scale_y);
@@ -154,7 +158,7 @@ void ChVisualMaterial::SetMetallic(float m) {
     metallic = std::max(0.001f, std::min(m, 1.f));
 }
 
-void ChVisualMaterial::SetAnisotropy(float a){
+void ChVisualMaterial::SetAnisotropy(float a) {
     anisotropy = std::max(0.f, std::min(a, 1.f));
 }
 
@@ -190,6 +194,7 @@ void ChVisualMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(normal_texture);
     archive_out << CHNVP(metallic_texture);
     archive_out << CHNVP(roughness_texture);
+    archive_out << CHNVP(mrmap_texture);
     archive_out << CHNVP(opacity_texture);
     archive_out << CHNVP(weight_texture);
     archive_out << CHNVP(disp_texture);
@@ -218,6 +223,7 @@ void ChVisualMaterial::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(normal_texture);
     archive_in >> CHNVP(metallic_texture);
     archive_in >> CHNVP(roughness_texture);
+    archive_in >> CHNVP(mrmap_texture);
     archive_in >> CHNVP(opacity_texture);
     archive_in >> CHNVP(weight_texture);
     archive_in >> CHNVP(disp_texture);

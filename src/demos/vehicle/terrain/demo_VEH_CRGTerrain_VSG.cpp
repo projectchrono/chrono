@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
     // bright concrete
     terrain.SetRoadDiffuseTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Color.jpg");
     terrain.SetRoadNormalTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_NormalGL.jpg");
-    terrain.SetRoadRoughnessTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_Roughness.jpg");
+    terrain.SetRoadMrMapTextureFile("vehicle/terrain/textures/Concrete002_2K-JPG/Concrete002_2K_MetalRoughness.jpg");
     terrain.Initialize(crg_road_file);
 
     // Get the vehicle path (middle of the road)

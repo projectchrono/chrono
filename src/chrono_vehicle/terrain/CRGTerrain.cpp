@@ -107,12 +107,13 @@ void CRGTerrain::SetRoadNormalTextureFile(std::string texFile) {
     }
 }
 
-void CRGTerrain::SetRoadRoughnessTextureFile(std::string texFile) {
-    m_rough_texture_filename = GetChronoDataFile(texFile);
-    filesystem::path path(m_rough_texture_filename);
+void CRGTerrain::SetRoadMrMapTextureFile(std::string texFile) {
+    m_mrmap_texture_filename = GetChronoDataFile(texFile);
+    filesystem::path path(m_mrmap_texture_filename);
     if (path.is_file() && path.exists()) {
-        m_use_roughTexture = true;
-        ////std::cout << "Roughness Texture file " << m_rough_texture_filename << " can be used.\n";
+        m_use_mrmapTexture = true;
+    } else {
+        std::cout << "MrMap Texture file " << m_mrmap_texture_filename << " not found.\n";
     }
 }
 
@@ -524,8 +525,8 @@ void CRGTerrain::SetupMeshGraphics() {
             material->SetKdTexture(m_diffuse_texture_filename);
         if (m_use_normalTexture)
             material->SetNormalMapTexture(m_normal_texture_filename);
-        if (m_use_roughTexture)
-            material->SetRoughnessTexture(m_rough_texture_filename);
+        if (m_use_mrmapTexture)
+            material->SetMrMapTexture(m_mrmap_texture_filename);
         vmesh->SetMaterial(0, material);
         m_ground->AddVisualShape(vmesh);
     } else {
@@ -533,7 +534,6 @@ void CRGTerrain::SetupMeshGraphics() {
         vmesh->SetMesh(m_mesh);
         vmesh->SetName(m_mesh_name);
         vmesh->SetColor(ChColor(1.0f, 1.0f, 1.0f));
-
         m_ground->AddVisualShape(vmesh);
     }
 }

@@ -210,6 +210,7 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
 
     bool use_blending = (material->GetOpacity() < 1.0) || (!material->GetOpacityTexture().empty());
 
+    // std::cout << __FUNCTION__ << "(): RoughTex = " << material->GetRoughnessTexture() << std::endl;
     if (!sharedObjects) {
         if (options)
             sharedObjects = options->sharedObjects;
@@ -304,7 +305,23 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
                       << std::endl;
         }
     }
+    if (!material->GetMrMapTexture().empty()) {
+        auto image = vsg::read_cast<vsg::Data>(material->GetMrMapTexture(), options);
+        if (image) {
+            auto sampler = vsg::Sampler::create();
+            sampler->maxLod =
+                static_cast<uint32_t>(std::floor(std::log2(std::max(image->width(), image->height())))) + 1;
+            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
+            if (sharedObjects)
+                sharedObjects->share(sampler);
+
+            graphicsPipelineConfig->assignTexture("mrMap", image, sampler);
+        } else {
+            std::cerr << "createPbrStateGroup: could not read mrMap file <" << material->GetMrMapTexture() << std::endl;
+        }
+    }
     if (!material->GetOpacityTexture().empty()) {
         auto image = vsg::read_cast<vsg::Data>(material->GetOpacityTexture(), options);
         if (image) {
@@ -360,56 +377,6 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
             std::cerr << "createPbrStateGroup: could not read ambient occlusion map file <"
                       << material->GetAmbientOcclusionTexture() << std::endl;
         }
-    }
-
-    if (!material->GetMetallicTexture().empty() && !material->GetRoughnessTexture().empty()) {
-        /*
-        int wM, hM, nM;
-        unsigned char* metalData = stbi_load(material->GetMetallicTexture().c_str(), &wM, &hM, &nM, 1);
-        int wR, hR, nR;
-        unsigned char* roughData = stbi_load(material->GetRoughnessTexture().c_str(), &wR, &hR, &nR, 1);
-        if (metalData && roughData) {
-            if ((wM != wR) || (hM != hR)) {
-                vsg::error("Metalness and Roughness Textures must have the same size!");
-                return {};
-            }
-        }
-
-        auto texData = vsg::vec3Array2D::create(wR, hR, vsg::Data::Layout{VK_FORMAT_R32G32B32_SFLOAT});
-        if (!texData) {
-            vsg::error("Could not create texture data!");
-            return {};
-        }
-        int k = 0;
-        for (int j = 0; j < hR; j++) {
-            for (int i = 0; i < wR; i++) {
-                vsg::vec3 color(0.0f, 0.0f, 0.0f);
-                float red = 0.0f;
-                float green = 0.0f;
-                float blue = 0.0f;
-                if (roughData) {
-                    green = float(roughData[k]) / 255.0f;
-                }
-                if (metalData) {
-                    blue = float(metalData[k]) / 255.0f;
-                }
-                texData->set(i, j, vsg::vec3(0.0f, green, blue));
-                k++;
-            }
-        }
-        if (texData) {
-            auto sampler = vsg::Sampler::create();
-            sampler->maxLod =
-                static_cast<uint32_t>(std::floor(std::log2(std::max(texData->width(), texData->height())))) + 1;
-            sampler->addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            sampler->addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-            if (sharedObjects)
-                sharedObjects->share(sampler);
-
-            graphicsPipelineConfig->assignTexture("mrMap", texData, sampler);
-        }
-         */
     }
 
     /*

@@ -55,6 +55,7 @@ class ChApi ChVisualMaterial {
     void SetNormalMapTexture(const std::string& filename);
     void SetMetallicTexture(const std::string& filename);
     void SetRoughnessTexture(const std::string& filename);
+    void SetMrMapTexture(const std::string& filename);
     void SetOpacityTexture(const std::string& filename);
     void SetWeightTexture(const std::string& filename);
     void SetDisplacementTexture(const std::string& filename);
@@ -70,13 +71,15 @@ class ChApi ChVisualMaterial {
     void SetMetallic(float m);
     void SetAnisotropy(float a);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
-    /// @brief Enable or disable the use of the Hapke material model. We implement the modern hapke model descried in  https://doi.org/10.1002/2013JE004580
-    void SetUseHapke(bool h) {use_hapke = h;}
+    /// @brief Enable or disable the use of the Hapke material model. We implement the modern hapke model descried in
+    /// https://doi.org/10.1002/2013JE004580
+    void SetUseHapke(bool h) { use_hapke = h; }
 
     void SetClassID(unsigned short int id) { class_id = id; }
     void SetInstanceID(unsigned short int id) { instance_id = id; }
 
-    /// @brief  Set the Hapke material parameters. Note that in our implementation, we ignore the impact of coherent backscatter. 
+    /// @brief  Set the Hapke material parameters. Note that in our implementation, we ignore the impact of coherent
+    /// backscatter.
     /// @param w  single scattering albedo
     /// @param b  shape controlling parameter for the amplitude of backward and forward scatter of particles
     /// @param c  weighting factor that controls the contribution of backward and forward scatter.
@@ -92,7 +95,7 @@ class ChApi ChVisualMaterial {
     const ChColor& GetDiffuseColor() const { return Kd; }
     const ChColor& GetSpecularColor() const { return Ks; }
     const ChColor& GetEmissiveColor() const { return Ke; }
-    const float& GetEmissivePower() const {return emissive_power;}
+    const float& GetEmissivePower() const { return emissive_power; }
     float GetSpecularExponent() const { return Ns; }
     float GetOpacity() const { return d; }
     int GetIllumination() const { return illum; }
@@ -103,6 +106,7 @@ class ChApi ChVisualMaterial {
     const std::string& GetNormalMapTexture() const { return normal_texture.GetFilename(); }
     const std::string& GetMetallicTexture() const { return metallic_texture.GetFilename(); }
     const std::string& GetRoughnessTexture() const { return roughness_texture.GetFilename(); }
+    const std::string& GetMrMapTexture() const { return mrmap_texture.GetFilename(); }
     const std::string& GetOpacityTexture() const { return opacity_texture.GetFilename(); }
     const std::string& GetWeightTexture() const { return weight_texture.GetFilename(); }
     const std::string& GetDisplacementTexture() const { return disp_texture.GetFilename(); }
@@ -115,16 +119,16 @@ class ChApi ChVisualMaterial {
     float GetFresnelMin() const { return fresnel_min; }
     float GetRoughness() const { return roughness; }
     float GetMetallic() const { return metallic; }
-    float GetAnisotropy() const {return anisotropy; }
+    float GetAnisotropy() const { return anisotropy; }
     bool GetUseSpecularWorkflow() const { return use_specular_workflow; }
-    bool GetUseHapke() const {return use_hapke;}
-    float GetHapkeW() const {return hapke_w;}
-    float GetHapkeB() const {return hapke_b;}
-    float GetHapkeC() const {return hapke_c;}
-    float GetHapkeBs0() const {return hapke_B_s0;}
-    float GetHapkeHs() const {return hapke_h_s;}
-    float GetHapkePhi() const {return hapke_phi;}
-    float GetHapkeRoughness() const {return hapke_theta_p;}
+    bool GetUseHapke() const { return use_hapke; }
+    float GetHapkeW() const { return hapke_w; }
+    float GetHapkeB() const { return hapke_b; }
+    float GetHapkeC() const { return hapke_c; }
+    float GetHapkeBs0() const { return hapke_B_s0; }
+    float GetHapkeHs() const { return hapke_h_s; }
+    float GetHapkePhi() const { return hapke_phi; }
+    float GetHapkeRoughness() const { return hapke_theta_p; }
 
     unsigned short int GetClassID() const { return class_id; }
     unsigned short int GetInstanceID() const { return instance_id; }
@@ -167,6 +171,7 @@ class ChApi ChVisualMaterial {
     ChTexture normal_texture;     ///< normal texture map
     ChTexture metallic_texture;   ///< metallic texture map
     ChTexture roughness_texture;  ///< roughness texture map
+    ChTexture mrmap_texture;      ///< roughness texture map
     ChTexture opacity_texture;    ///< opacity texture map
     ChTexture weight_texture;     ///< weight texture map
     ChTexture disp_texture;       ///< displacement map
@@ -175,16 +180,14 @@ class ChApi ChVisualMaterial {
     unsigned short int class_id;
     unsigned short int instance_id;
 
-
     // Hapke material parameters
-    float hapke_w; // single scattering albedo
-    float hapke_b; // shape controlling parameter for the amplitude of backward and forward scatter of particles
-    float hapke_c; // weighting factor that controls the contribution of backward and forward scatter.
+    float hapke_w;  // single scattering albedo
+    float hapke_b;  // shape controlling parameter for the amplitude of backward and forward scatter of particles
+    float hapke_c;  // weighting factor that controls the contribution of backward and forward scatter.
     float hapke_B_s0;
     float hapke_h_s;
     float hapke_phi;
     float hapke_theta_p;
-    
 };
 
 typedef std::shared_ptr<ChVisualMaterial> ChVisualMaterialSharedPtr;
