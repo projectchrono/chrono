@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     unsigned char *metal_data = NULL;
     int width = 0, height = 0, numChannel = 0;
     size_t numBytes = 0;
-    cxxopts::Options options("MetalRoughness", "Generate VSG compatible Metalness/Roughness file.\n"
+    cxxopts::Options options("vsgMrMap", "Generate VSG compatible Metalness/Roughness file.\n"
                                                "Allowed image formats: png jpg tga bmp\n"
                                                "Output file = MetalRoughness.jpg\n"
                                                "At least roughness file must be present!\n");
