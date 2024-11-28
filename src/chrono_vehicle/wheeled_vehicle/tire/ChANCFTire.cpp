@@ -48,14 +48,14 @@ void ChANCFTire::CreateContactSurface() {
     switch (m_contact_surface_type) {
         case ContactSurfaceType::NODE_CLOUD: {
             auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_mat);
+            contact_surf->AddAllNodes(*m_mesh, m_contact_surface_dim);
             m_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddAllNodes(m_contact_surface_dim);
             break;
         }
         case ContactSurfaceType::TRIANGLE_MESH: {
             auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_mat);
+            contact_surf->AddFacesFromBoundary(*m_mesh, m_contact_surface_dim, false);
             m_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddFacesFromBoundary(m_contact_surface_dim, false);
             break;
         }
     }

@@ -911,7 +911,7 @@ endif()
 
 if(ENABLE_MODULE_FSI)
   include_directories(${CH_FSI_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_fsi)
+  list(APPEND LIBRARIES ChronoEngine_fsi_sph)
 endif()
 
 add_library(ChronoEngine_vehicle
