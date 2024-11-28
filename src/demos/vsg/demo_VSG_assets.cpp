@@ -386,7 +386,7 @@ int main(int argc, char* argv[]) {
         double time = sys.GetChTime();
         if (frame_number > 2) {
             std::string imgName("/assets-");
-            imgName.append(std::to_string(frame_number) + ".shit");
+            imgName.append(std::to_string(frame_number) + ".png");
             vis->WriteImageToFile(out_dir + imgName);  // does not work with frame == 0!
         }
 
