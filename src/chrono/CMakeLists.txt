@@ -163,7 +163,7 @@ source_group(physics FILES
     ${ChronoEngine_physics_SOURCES}
     ${ChronoEngine_physics_HEADERS})
 
-# PHYSICS sub-groups
+# Physics sub-groups
 
 set(ChronoEngine_physics_contact_SOURCES
     physics/ChContactContainer.cpp
@@ -365,6 +365,14 @@ set(ChronoEngine_physics_shafts_HEADERS
 source_group(physics\\shafts FILES
     ${ChronoEngine_physics_shafts_SOURCES}
     ${ChronoEngine_physics_shafts_HEADERS})
+
+# SOA group
+
+set(ChronoEngine_soa_FILES
+    soa/ChSpatial.h
+)
+
+source_group(soa FILES ${ChronoEngine_soa_FILES})
 
 # FEA group
 
@@ -1339,6 +1347,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_physics_hydraulics_HEADERS}
     ${ChronoEngine_physics_shafts_SOURCES}
     ${ChronoEngine_physics_shafts_HEADERS}
+    ${ChronoEngine_soa_FILES}
     ${ChronoEngine_fea_FILES}
     ${ChronoEngine_fea_nodes_FILES}
     ${ChronoEngine_fea_elements_FILES}

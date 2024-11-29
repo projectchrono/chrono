@@ -20,6 +20,7 @@
     @brief Core Functionality
     @{
         @defgroup chrono_physics Physics objects
+        @defgroup chrono_soa SOA rel. coordinates
         @defgroup chrono_geometry Geometric objects
         @defgroup chrono_collision Collision detection
         @{
@@ -54,6 +55,8 @@
 namespace chrono {
 /// Namespace for FEA classes.
 namespace fea {}
+/// Namespace for SOA classes.
+namespace soa {}
 }  // namespace chrono
 
 /// @} chrono
