@@ -373,9 +373,13 @@ set(ChronoEngine_soa_FILES
     soa/ChSpatial.h
     soa/ChMassProps.h
     soa/ChMobilizedBody.h
+    soa/ChMobilizedBodyT.h
     soa/ChMobilityForce.h
+    soa/ChRevoluteBody.h
+    #
     soa/ChMassProps.cpp
     soa/ChMobilizedBody.cpp
+    soa/ChRevoluteBody.cpp
 )
 
 source_group(soa FILES ${ChronoEngine_soa_FILES})
