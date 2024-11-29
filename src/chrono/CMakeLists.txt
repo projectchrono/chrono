@@ -369,7 +369,13 @@ source_group(physics\\shafts FILES
 # SOA group
 
 set(ChronoEngine_soa_FILES
+    soa/ChSoaAssembly.h
     soa/ChSpatial.h
+    soa/ChMassProps.h
+    soa/ChMobilizedBody.h
+    soa/ChMobilityForce.h
+    soa/ChMassProps.cpp
+    soa/ChMobilizedBody.cpp
 )
 
 source_group(soa FILES ${ChronoEngine_soa_FILES})
