@@ -37,6 +37,7 @@ if(BUILD_TESTING_BASE)
   ADD_SUBDIRECTORY(collision)
   ADD_SUBDIRECTORY(physics)
   ADD_SUBDIRECTORY(joints)
+  ADD_SUBDIRECTORY(soa)
   ADD_SUBDIRECTORY(smc_contact/sequential)
 endif()
 
