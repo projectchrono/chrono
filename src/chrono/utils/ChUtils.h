@@ -13,6 +13,8 @@
 #ifndef CH_UTILS_H
 #define CH_UTILS_H
 
+#include <cstdio>
+#include <stdexcept>
 #include <algorithm>
 #include <cmath>
 
@@ -20,6 +22,15 @@
 #include "chrono/utils/ChConstants.h"
 
 namespace chrono {
+
+#define ChAssertAlways(exp)                                                                                    \
+    {                                                                                                          \
+        if (!(exp)) {                                                                                          \
+            char msg[100];                                                                                     \
+            std::sprintf(msg, "Expression '%s' returned false - file %s, line %d.", #exp, __FILE__, __LINE__); \
+            throw std::runtime_error(msg);                                                                     \
+        }                                                                                                      \
+    }
 
 /// Clamp and modify the specified value to lie within the given limits.
 template <typename T>

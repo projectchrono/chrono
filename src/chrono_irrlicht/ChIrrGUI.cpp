@@ -247,7 +247,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
         guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), g_tab1, 9914, L"Draw AABB");
 
     g_plot_cogs =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9915, L"Draw COGs");
+        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9915, L"Draw COMs");
 
     g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), g_tab1, 9920,
                                             L"Draw link frames");

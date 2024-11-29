@@ -197,8 +197,8 @@ void DPCapPress(const std::string& out_dir) {
     my_surfacematerial->SetGt(32);    // (10e3);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
+    my_contactsurface->AddAllNodes(*my_mesh, 0.005);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddAllNodes(0.005);
 
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
@@ -590,8 +590,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface->AddFacesFromBoundary(*my_mesh, 0.005);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.005);
 
     for (int ii = 0; ii < SnumDiv_x * SnumDiv_y; ii++) {
         int node0 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x;
@@ -615,8 +615,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.Add(my_shell_mesh);
 
     auto my_contactsurface_shell = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface_shell->AddFacesFromBoundary(*my_shell_mesh, 0.005);
     my_shell_mesh->AddContactSurface(my_contactsurface_shell);
-    my_contactsurface_shell->AddFacesFromBoundary(0.005);
 
     sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     // Turn off gravity for only the shell elements
@@ -935,8 +935,8 @@ void SimpleBoxContact(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface->AddFacesFromBoundary(*my_mesh, 0.0);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.0);
 
     double plate_w = 0.1;
     double plate_l = 0.1;
@@ -1221,8 +1221,8 @@ void SoilBin(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
+    my_contactsurface->AddAllNodes(*my_mesh, 0.006);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddAllNodes(0.006);  // 0.001///node cloud
 
     // Creat punch
     double plate_w = 0.2;  // 0.15

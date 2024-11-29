@@ -67,16 +67,16 @@ class ChApi ChMesh : public ChIndexedNodes {
     const std::vector<std::shared_ptr<ChElementBase>>& GetElements() const { return velements; }
 
     /// Access the N-th node
-    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) override { return vnodes[n]; }
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) const override { return vnodes[n]; }
 
     /// Access the N-th element
-    std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; }
+    std::shared_ptr<ChElementBase> GetElement(unsigned int n) const { return velements[n]; }
 
     /// Get the number of nodes in the mesh.
     virtual unsigned int GetNumNodes() const override { return (unsigned int)vnodes.size(); }
 
     /// Get the number of elements in the mesh.
-    unsigned int GetNumElements() { return (unsigned int)velements.size(); }
+    unsigned int GetNumElements() const { return (unsigned int)velements.size(); }
 
     virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
     virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }

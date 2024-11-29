@@ -8,19 +8,23 @@ set(DEMOS ${DEMOS}
    demo_FSI_Poiseuille_flow
    demo_FSI_SingleWheelTest
    demo_FSI_BCE
-   demo_FSI_CylinderDrop
-   demo_FSI_SphereBounce
+   demo_FSI_Kernels
+   demo_FSI_ObjectDrop
    demo_FSI_CylindricalTank
    demo_FSI_WaveTank
-   demo_FSI_EmbeddedObstacle
+   demo_FSI_EmbeddedObject
    demo_FSI_BaffleFlow
    demo_FSI_CouetteFlow
+   demo_FSI_Flap
+   demo_FSI_AngleRepose
+   demo_FSI_Cratering
 )
 
 if(ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
-      demo_FSI_Flexible_Flat_Plate
+      demo_FSI_Flexible_Plate
       demo_FSI_Flexible_Cable
+      demo_FSI_Flexible_Cable2
       demo_FSI_Flexible_Toroidal_Tire
    )
 endif()
@@ -49,7 +53,7 @@ if(ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-list(APPEND LIBS "ChronoEngine_fsi")
+list(APPEND LIBS "ChronoEngine_fsi_sph")
 
 #--------------------------------------------------------------
 
