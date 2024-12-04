@@ -189,11 +189,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             break;
     }
 
-    /*
-    //// TODO
     // Add all rigid obstacles
     for (auto& b : m_obstacles) {
-        auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
+        // Estimate obstacle inertial properties
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
@@ -201,6 +199,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
+        // Create obstacle body
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");
         body->SetTag(tag_obstacles);
@@ -211,26 +210,21 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetFixed(false);
         body->EnableCollision(true);
 
-        auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh,
-                                                                                    false, false, m_radius_g);
-        body->AddCollisionShape(trimesh_shape); body->GetCollisionModel()->SetFamily(2);
+        // Set obstacle geometry
+        double thickness = 0.01;
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(b.m_contact_mat);
+        geometry.coll_meshes.push_back(
+            utils::ChBodyGeometry::TrimeshShape(VNULL, GetChronoDataFile(b.m_mesh_filename), VNULL, thickness));
 
-        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        body->AddVisualShape(trimesh_shape, ChFrame<>());
+        // Create visualization and collision shapes
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry.CreateCollisionShapes(body, 2, m_method);
 
+        // Add the obstacle body to the underlying Chrono and FSI systems (obstacles may be embedded)
         m_system->AddBody(body);
-
-        // Add this body to the FSI system
-        m_systemFSI->AddFsiBody(body);
-
-        // Create BCE markers associated with trimesh
-        std::vector<ChVector3d> point_cloud;
-        m_systemFSI->CreateMeshPoints(*trimesh, (double)initSpace0, point_cloud);
-        m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(), true);
+        m_terrain->AddRigidBody(body, geometry, true);
     }
-    */
 
     // Write file with terrain node settings
     std::ofstream outf;
@@ -271,7 +265,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
     } else {
-        body->EnableCollision(false);    
+        body->EnableCollision(false);
     }
 
     // Add this body to the underlying Chrono and FSI systems
