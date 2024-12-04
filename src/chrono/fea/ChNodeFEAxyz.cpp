@@ -195,6 +195,7 @@ void ChNodeFEAxyz::ArchiveOut(ChArchiveOut& archive) {
     // serialize all member data:
     archive << CHNVP(X0);
     archive << CHNVP(Force);
+    archive << CHNVP(variables);
 }
 
 void ChNodeFEAxyz::ArchiveIn(ChArchiveIn& archive) {
@@ -207,6 +208,7 @@ void ChNodeFEAxyz::ArchiveIn(ChArchiveIn& archive) {
     // stream in all member data:
     archive >> CHNVP(X0);
     archive >> CHNVP(Force);
+    archive >> CHNVP(variables);
 }
 
 }  // end namespace fea

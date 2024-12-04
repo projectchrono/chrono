@@ -67,6 +67,12 @@ class ChApi ChVariablesGeneric : public ChVariables {
                                unsigned int start_col,
                                const double ca) const override;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   private:
     ChMatrixDynamic<double> Mmass;
     ChMatrixDynamic<double> inv_Mmass;

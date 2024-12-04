@@ -66,4 +66,22 @@ void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& mat,
     }
 }
 
+void ChVariablesGenericDiagonalMass::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChVariablesGenericDiagonalMass>();
+    // serialize parent class
+    ChVariables::ArchiveOut(archive_out);
+    // serialize all member data:
+    archive_out << CHNVP(this->MmassDiag);
+}
+
+void ChVariablesGenericDiagonalMass::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChVariablesGenericDiagonalMass>();
+    // deserialize parent class
+    ChVariables::ArchiveIn(archive_in);
+    // stream in all member data:
+    archive_in >> CHNVP(this->MmassDiag);
+}
+
 }  // end namespace chrono

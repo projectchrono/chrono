@@ -327,6 +327,7 @@ void ChNodeFEAxyzDD::ArchiveOut(ChArchiveOut& archive) {
     archive << CHNVP(DD);
     archive << CHNVP(DD_dt);
     archive << CHNVP(DD_dtdt);
+    archive << CHNVP(variables_DD);
 }
 
 void ChNodeFEAxyzDD::ArchiveIn(ChArchiveIn& archive) {
@@ -338,6 +339,7 @@ void ChNodeFEAxyzDD::ArchiveIn(ChArchiveIn& archive) {
     archive >> CHNVP(DD);
     archive >> CHNVP(DD_dt);
     archive >> CHNVP(DD_dtdt);
+    archive >> CHNVP(variables_DD);
 }
 
 }  // end namespace fea

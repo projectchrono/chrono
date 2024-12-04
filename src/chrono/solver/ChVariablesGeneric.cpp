@@ -66,4 +66,25 @@ void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& mat,
             mat.SetElement(offset + start_row + row, offset + start_col + col, ca * Mmass(row, col));
 }
 
+void ChVariablesGeneric::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChVariablesGeneric>();
+    // serialize parent class
+    ChVariables::ArchiveOut(archive_out);
+    // serialize all member data:
+    archive_out << CHNVP(this->Mmass);
+    archive_out << CHNVP(this->inv_Mmass);
+}
+
+void ChVariablesGeneric::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChVariablesGeneric>();
+    // deserialize parent class
+    ChVariables::ArchiveIn(archive_in);
+    // stream in all member data:
+    archive_in >> CHNVP(this->Mmass);
+    archive_in >> CHNVP(this->inv_Mmass);
+}
+
+
 }  // end namespace chrono

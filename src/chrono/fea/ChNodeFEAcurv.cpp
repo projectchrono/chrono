@@ -270,6 +270,7 @@ void ChNodeFEAcurv::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(m_rxx_dtdt);
     archive_out << CHNVP(m_ryy_dtdt);
     archive_out << CHNVP(m_rzz_dtdt);
+    archive_out << CHNVP(m_variables);
 }
 
 void ChNodeFEAcurv::ArchiveIn(ChArchiveIn& archive_in) {

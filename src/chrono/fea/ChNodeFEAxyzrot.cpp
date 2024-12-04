@@ -319,6 +319,7 @@ void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(X0);
     archive_out << CHNVP(Force);
     archive_out << CHNVP(Torque);
+    archive_out << CHNVP(variables);
 }
 
 void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& archive_in) {
@@ -332,6 +333,7 @@ void ChNodeFEAxyzrot::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(X0);
     archive_in >> CHNVP(Force);
     archive_in >> CHNVP(Torque);
+    archive_in >> CHNVP(variables);
 }
 
 }  // end namespace fea
