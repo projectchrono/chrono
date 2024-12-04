@@ -89,10 +89,19 @@ void ChVehicleCosimTerrainNode::Initialize() {
             cout << "[Terrain node] Send: terrain width = " << init_dim[2] << endl;
         }
 
-        // 2. Receive number of interacting object from MBS node
+        // 2. Receive number of interacting object from MBS node and then their initial locations
 
         MPI_Status status;
         MPI_Recv(&m_num_objects, 1, MPI_INT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+        std::vector<double> all_locations(3 * m_num_objects);
+        MPI_Recv(all_locations.data(), 3 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        unsigned int start_idx = 0;
+        for (int i = 0; i < m_num_objects; i++) {
+            ChVector3d loc(all_locations[start_idx + 0], all_locations[start_idx + 1], all_locations[start_idx + 2]);
+            m_init_loc.push_back(loc);
+            start_idx += 3;
+        }
 
         // 3. Receive expected communication interface type
 
