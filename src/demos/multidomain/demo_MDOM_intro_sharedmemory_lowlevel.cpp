@@ -14,6 +14,14 @@
 //
 //  Demo code about splitting a system into domains using the MULTIDOMAIN module
 //  using shared memory (just OpenMP multithreading, no MPI).
+// 
+//  It shows "low level" initializiation: in fact here we do not use a master 
+//  domain that takes care of splitting the system at the beginning: it is up to 
+//  the user to create objects in the corresponding system in already split way.
+//  This low-level initialization can be more dangerous if one does not know
+//  the rules about how to split/share bodies,nodes,elements etc., but the positive
+//  aspect is that for extremely large systems one does not need to create a huge
+//  master system at the beginning, that could not fit into a single node memory.
 //
 // =============================================================================
 
@@ -70,58 +78,59 @@ int main(int argc, char* argv[]) {
 
     // For debugging/logging:
     domain_manager.verbose_partition = true; // will print partitioning in std::cout ?
-    domain_manager.verbose_serialization = false; // will print serialization buffers in std::cout ?
+    domain_manager.verbose_serialization = true; // will print serialization buffers in std::cout ?
     domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
     domain_manager.serializer_type = DomainSerializerFormat::JSON; 
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
-    // ChdomainBuilder classes help you to do this. 
+    // ChdomainBuilder classes help you to do this. We do NOT need the master domain.
     // Here we split it using parallel planes like in sliced bread:
 
     ChDomainBuilderSlices       domain_builder(
                                         std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
                                         ChAxis::X,  // axis about whom one needs the space slicing
-                                        true);      // build also master domain, interfacing to all slices, for initial injection of objects
+                                        false);     // false: we do not create a master domain for initial injection  
     
 
     // 3- create the ChDomain objects and their distinct ChSystem physical systems.
-    // Now one can know how many domains are expected to build, using domain_builder.GetTotSlices();
+    // Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
+    // But in this case we already know we split into 2 domains. So we build them as:
+
+    ChSystemNSC sys_0;
+    sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     
-    std::vector<ChSystemNSC*> sys_slices(domain_builder.GetTotSlices());
+    domain_manager.AddDomain(domain_builder.BuildDomain(
+                                        &sys_0, // physical system of this domain
+                                        0       // rank of this domain 
+                                       ));
+    sys_0.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
+    auto explicit_timestepper = chrono_types::make_shared<ChTimestepperHeun>(&sys_0);
+    explicit_timestepper->SetDiagonalLumpingON(); // use diagonal mass lumping, skip linear systems completely
+    sys_0.SetTimestepper(explicit_timestepper);
 
-    for (int i = 0; i < domain_builder.GetTotSlices(); ++i) {
-        sys_slices[i] = new ChSystemNSC;
-        sys_slices[i]->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    ChSystemNSC sys_1;
+    sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-        domain_manager.AddDomain(domain_builder.BuildDomain(
-            sys_slices[i], // physical system of this domain
-            i       // rank of this domain, must be unique and starting from 0! 
-        ));
-        sys_slices[i]->GetSolver()->AsIterative()->SetMaxIterations(12);
-        sys_slices[i]->GetSolver()->AsIterative()->SetTolerance(1e-6);
-    }
+    domain_manager.AddDomain(domain_builder.BuildDomain(
+                                        &sys_1, // physical system of this domain
+                                        1       // rank of this domain 
+                                       ));
+    sys_1.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys_1.GetSolver()->AsIterative()->SetTolerance(1e-6);
+    auto explicit_timestepper2 = chrono_types::make_shared<ChTimestepperHeun>(&sys_1);
+    explicit_timestepper2->SetDiagonalLumpingON(); // use diagonal mass lumping, skip linear systems completely
+    sys_1.SetTimestepper(explicit_timestepper2);
 
-
-
-    // 4- we create and populate the MASTER domain with bodies, links, meshes, nodes, etc. 
-    //    At the beginning of the simulation, the master domain will break into 
-    //    multiple data structures and will serialize them into the proper subdomains.
-    //    (Note that there is a "low level" version of this demo that shows how
-    //    to bypass the use of the master domain, in case of extremely large systems
-    //    where you might want to create objects directly split in the n-th computing node.)
-
-    // First we create the master domain and add it to the domain manager:
-    ChSystemNSC sys_master;
-    sys_master.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
-    domain_manager.AddDomain(domain_builder.BuildMasterDomain(
-        &sys_master // physical system of the master domain (its rank automatically set to last domain+1)
-    ));
-    sys_master.GetSolver()->AsIterative()->SetMaxIterations(12);
-    sys_master.GetSolver()->AsIterative()->SetTolerance(1e-6);
-
-    // Ok, now we proceed as usual in Chrono, adding items into the system :-)
+    // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
+    // - Each "node" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
+    //   the AABB of item overlaps with. Even added into multiple domains, then, becoming shared. 
+    // - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
+    //   domain where the reference point (1st node of fea element, master body in links) is inside.
+    //   Hence edges are always into a single domain, and never shared among domains.
+    // - If an edge is in the domain and references a node that is not overlapping with domain, 
+    //   then such node(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
 
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.1);
@@ -131,7 +140,7 @@ int main(int argc, char* argv[]) {
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_master.AddBody(mrigidBody);
+    sys_0.AddBody(mrigidBody);
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
     mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
     // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
@@ -145,7 +154,7 @@ int main(int argc, char* argv[]) {
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_master.AddBody(mrigidBodyb);
+    sys_1.AddBody(mrigidBodyb);
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
     mrigidBodyb->SetFixed(true);
     mrigidBodyb->SetTag(unique_ID); unique_ID++;
@@ -155,7 +164,7 @@ int main(int argc, char* argv[]) {
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_master.AddBody(mrigidBodyc);
+    sys_0.AddBody(mrigidBodyc);
     mrigidBodyc->SetPos(ChVector3d(0, -1.15, 0));
     mrigidBodyc->SetFixed(true);
     mrigidBodyc->SetTag(unique_ID); unique_ID++;
@@ -166,19 +175,19 @@ int main(int argc, char* argv[]) {
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_master.AddBody(mrigidBodyd);
+    sys_0.AddBody(mrigidBodyd);
     mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
     mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
     mrigidBodyd->SetTag(unique_ID); unique_ID++;
 
     auto linkdistance = chrono_types::make_shared<ChLinkDistance>();
-    sys_master.Add(linkdistance);
+    sys_0.Add(linkdistance);
     linkdistance->Initialize(mrigidBody, mrigidBodyd, true, ChVector3d(0,1,0), ChVector3d(0,0,0));
     linkdistance->SetTag(unique_ID); unique_ID++;
 
     // add a FEA beam to test migration of meshes too
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    sys_master.Add(my_mesh);
+    sys_0.Add(my_mesh);
     my_mesh->SetTag(unique_ID); unique_ID++;
 
     auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
@@ -187,13 +196,15 @@ int main(int argc, char* argv[]) {
     msection->SetAsRectangularSection(beam_wy, beam_wz);
     msection->SetYoungModulus(0.01e9);
     msection->SetShearModulus(0.01e9 * 0.3);
-
-    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(-0.8, 1.3, 0)));
-    hnode1->SetPosDt(ChVector3d(20, 0, 0));
+    
+    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(-1.2, 1.3, 0)));
+    hnode1->SetMass(0.1); hnode1->GetInertia().fillDiagonal(0.1);
+    hnode1->SetPosDt(ChVector3d(10, 0, 0));
     hnode1->SetTag(unique_ID); unique_ID++;
     my_mesh->AddNode(hnode1);
-    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d( 0.2, 1.3, 0)));
-    hnode2->SetPosDt(ChVector3d(20, 0, 0));
+    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d( -0.2, 1.3, 0)));
+    hnode2->SetMass(0.1); hnode2->GetInertia().fillDiagonal(0.1);
+    hnode2->SetPosDt(ChVector3d(10, 0, 0));
     hnode2->SetTag(unique_ID); unique_ID++;
     my_mesh->AddNode(hnode2);
     auto belement1 = chrono_types::make_shared<ChElementBeamEuler>();
@@ -201,7 +212,7 @@ int main(int argc, char* argv[]) {
     belement1->SetSection(msection);
     belement1->SetRestLength(1.0);
     my_mesh->AddElement(belement1);
-
+    my_mesh->SetAutomaticGravity(false);
 
     // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
     // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
@@ -216,7 +227,7 @@ int main(int argc, char* argv[]) {
     // For debugging: open two 3D realtime view windows, each per domain:
     
     auto vis_irr_0 = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis_irr_0->AttachSystem(sys_slices[0]);
+    vis_irr_0->AttachSystem(&sys_0);
     vis_irr_0->SetWindowTitle("Domain 0");
     vis_irr_0->Initialize();
     vis_irr_0->AddSkyBox();
@@ -224,7 +235,7 @@ int main(int argc, char* argv[]) {
     vis_irr_0->AddTypicalLights();
     //vis_irr_0->BindAll();
     auto vis_irr_1 = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis_irr_1->AttachSystem(sys_slices[1]);
+    vis_irr_1->AttachSystem(&sys_1);
     vis_irr_1->SetWindowTitle("Domain 1");
     vis_irr_1->Initialize();
     vis_irr_1->AddSkyBox();
@@ -263,10 +274,9 @@ int main(int argc, char* argv[]) {
         system("pause");
     }
    
+   
 
-    for (auto sys_i : sys_slices) {
-        delete sys_i;
-    }
+
 
 
     return 0;

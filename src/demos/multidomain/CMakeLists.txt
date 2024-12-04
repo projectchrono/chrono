@@ -8,6 +8,7 @@ set(MULTIDOMAIN_DEMOS
 # List of demos requiring the Chrono::Irrlicht module
 set(MULTIDOMAIN_DEMOS_IRR
     demo_MDOM_intro_sharedmemory
+    demo_MDOM_intro_sharedmemory_lowlevel
 	)
 
 #--------------------------------------------------------------
