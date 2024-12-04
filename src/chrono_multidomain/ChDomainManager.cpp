@@ -59,12 +59,22 @@ void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
 	for (auto mesh : domain->GetSystem()->GetMeshes()) {
 		std::cout << "  ChMesh " << mesh->GetTag() << std::endl;
 		for (auto node : mesh->GetNodes()) {
-			std::cout << "      ChNodeFEAbase " << node->GetTag() << std::endl;
+			bool printed = false;
+			if (auto mnod = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(node)) {
+				std::cout << "          ChNodeFEAxyzrot " << node->GetTag() << "    " << mnod->GetPos() << std::endl;
+				printed = true;
+			}
+			if (auto mnod = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(node)) {
+				std::cout << "          ChNodeFEAxyz " << node->GetTag() << "    " << mnod->GetPos() << std::endl;
+				printed = true;
+			}
+			if (!printed)
+				std::cout << "          ChNodeFEAbase " << node->GetTag() << std::endl;
 		}
 		for (auto el : mesh->GetElements()) {
 			std::cout << "      ChElementBase " << std::endl;
 			for (int i = 0; i < el->GetNumNodes(); ++i) {
-				std::cout << "          ChNodeFEABase " << el->GetNode(i)->GetTag() << std::endl;
+				std::cout << "          ChNodeFEAbase " << el->GetNode(i)->GetTag() << std::endl;
 			}
 		}
 	}
@@ -92,21 +102,25 @@ void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
 
 
 ChDomainBuilderSlices::ChDomainBuilderSlices(
-											int tot_ranks,
+											int tot_domains,
 											double mmin,
 											double mmax,
-											ChAxis maxis) {
+											ChAxis maxis,
+											bool build_master) {
 	this->axis = maxis;
 	domains_bounds.push_back(-1e34);
-	for (int islice = 0; islice < (tot_ranks - 1); ++islice) {
-		domains_bounds.push_back(mmin + (islice + 1.0) * (mmax - mmin) / (double)tot_ranks);
+	for (int islice = 0; islice < (tot_domains - 1); ++islice) {
+		domains_bounds.push_back(mmin + (islice + 1.0) * (mmax - mmin) / (double)tot_domains);
 	}
 	domains_bounds.push_back(1e34);
+
+	m_build_master = build_master;
 };
 
 ChDomainBuilderSlices::ChDomainBuilderSlices(
 											std::vector<double> axis_cuts,
-											ChAxis maxis) {
+											ChAxis maxis,
+											bool build_master) {
 	this->axis = maxis;
 	domains_bounds.push_back(-1e34);
 	for (double dcut : axis_cuts) {
@@ -114,12 +128,16 @@ ChDomainBuilderSlices::ChDomainBuilderSlices(
 	}
 	domains_bounds.push_back(1e34);
 
+	m_build_master = build_master;
 }
 
 
 std::shared_ptr<ChDomain> ChDomainBuilderSlices::BuildDomain(
 	ChSystem* msys,
 	int this_rank) {
+	
+	assert(this_rank >= 0);
+	assert(this_rank < GetTotSlices());
 
 	auto domain = chrono_types::make_shared<ChDomainSlice>(msys, this_rank, domains_bounds[this_rank], domains_bounds[this_rank + 1], axis);
 
@@ -137,39 +155,34 @@ std::shared_ptr<ChDomain> ChDomainBuilderSlices::BuildDomain(
 		hi_interf.side_IN = domain.get();
 		hi_interf.side_OUT = hi_domain;
 	}
+	
+	if (this->m_build_master) {
+		int imaster_rank = this->GetTotRanks() - 1;
+		auto master_dom = chrono_types::make_shared<ChDomainMaster>(nullptr, imaster_rank);
+		ChDomainInterface& master_interf = domain->GetInterfaces()[imaster_rank];  // insert domain interface in unordered map
+		master_interf.side_IN = domain.get();
+		master_interf.side_OUT = master_dom;
+	}
 
-	/// Process collision pairs found by the narrow-phase collision step.
-	/// Filter out the contacts that are not inside the domain (it can happen
-	/// that two bodies are partially overlapping with this domain, ex. leaning out
-	/// to the right side: the collision engine of this domain would create contacts also 
-	/// between the geometry features that are outside, and at the same time the domain 
-	/// on the right would generate them as well, ending with duplicated contacts on a global level.
-	/// This filtering discards contacts whose main reference is not exactly contained in this 
-	/// domain. A NarrowphaseCallback is used for such filtering.
-	class ContactDomainFilter : public ChCollisionSystem::NarrowphaseCallback {
-	public:
-		virtual ~ContactDomainFilter() {}
+	return domain;
+}
 
-		virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) {
-			// Trick: in the neighbour domain, vpA and vpB might be swapped, so
-			// here make the reference unique 
-			ChVector3d reference;
-			if (contactinfo.vpA.x() < contactinfo.vpB.x()) 
-				reference = contactinfo.vpA.x();
-			else
-				reference = contactinfo.vpB.x();
-			
-			// test if reference is inside domain
-			if (mdomain->IsInto(contactinfo.vpA))
-				return true;
-			else
-				return false;
-		}
-		ChDomain* mdomain;
-	};
-	auto mfilter = chrono_types::make_shared<ContactDomainFilter>();
-	mfilter->mdomain = domain.get();
-	msys->GetCollisionSystem()->RegisterNarrowphaseCallback(mfilter);
+
+std::shared_ptr<ChDomain> ChDomainBuilderSlices::BuildMasterDomain(
+	ChSystem* msys) {
+
+	assert(this->m_build_master);
+	int this_rank = this->GetTotRanks() - 1;
+
+	auto domain = chrono_types::make_shared<ChDomainMaster>(msys, this_rank);
+	
+	for (int i = 0; i < this->GetTotSlices(); ++i) {
+		int in_domain_rank = i;
+		auto in_domain = chrono_types::make_shared<ChDomainSlice>(nullptr, in_domain_rank, domains_bounds[i], domains_bounds[i + 1], axis);
+		ChDomainInterface& hi_interf = domain->GetInterfaces()[in_domain_rank];  // insert domain interface in unordered map
+		hi_interf.side_IN = domain.get();
+		hi_interf.side_OUT = in_domain;
+	}
 
 	return domain;
 }
@@ -286,9 +299,11 @@ void ChDomain::DoUpdateSharedLeaving() {
 		   serializer->CutPointers().insert(this->system);  //NO - better, assuming all domains already contain a ChSystem with same GetTag:
 		//serializer->UnbindExternalPointer(this->system, this->system->GetTag());
 
+		/*
 		std::cout << "           domain << " << this->rank << " ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
 		for (auto& m : rebinding_pointers.pointer_map_ptr_id)
 			std::cout << "            tags: " << m.second << "\n";
+		*/
 
 		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
 		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;
@@ -576,10 +591,11 @@ void  ChDomain::DoUpdateSharedReceived() {
 		//deserializer->RebindExternalPointer(this->system, this->system->GetTag()); // assuming all domains have ChSystem with same tag
 
 		//***TEST
+		/*
 		std::cout << "           deserializer ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
 		for (auto& m : rebinding_pointers.pointer_map_id_ptr)
 			std::cout << "             tag: " << m.first << "   ptr: " << (int)m.second << "\n";
-
+		*/
 
 		// Deserialize inbound bodies
 		*deserializer >> CHNVP(bodies_migrating);

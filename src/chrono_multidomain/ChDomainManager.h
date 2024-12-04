@@ -122,28 +122,41 @@ class ChApiMultiDomain ChDomainBuilder {
   private:
 };
 
-class ChApiMultiDomain ChDomainBuilderSlices {
+class ChApiMultiDomain ChDomainBuilderSlices : ChDomainBuilder {
 public:
     ChDomainBuilderSlices(
-        int tot_ranks,
+        int tot_slices,
         double mmin,
         double mmax,
-        ChAxis maxis);
+        ChAxis maxis, 
+        bool build_master = false);
 
     ChDomainBuilderSlices(
         std::vector<double> axis_cuts,
-        ChAxis maxis);
+        ChAxis maxis,
+        bool build_master = false);
+
     virtual ~ChDomainBuilderSlices() {}
 
-    virtual int GetTotRanks() { return (int)(domains_bounds.size() - 1); };
+    virtual int GetTotRanks() override { return GetTotSlices() + (int)m_build_master; };
+    
+    virtual int GetTotSlices() { return (int)(domains_bounds.size() - 1); };
 
     std::shared_ptr<ChDomain> BuildDomain(
         ChSystem* msys,
         int this_rank);
 
+    /// Build the master domain that encloses everything, and that can be populated 
+    /// with all elements, nodes, bodies etc. at the beginning. It will migrate all items into
+    /// the sliced domains at the first update. You need to create ChDomainBuilderSlices with build_master as true.
+    /// The master domain, if used, corresponds to the last rank, ie. GetTotRanks()-1.
+    std::shared_ptr<ChDomain> BuildMasterDomain(
+        ChSystem* msys);
+
 private:
     std::vector<double> domains_bounds;
     ChAxis axis = ChAxis::X;
+    bool m_build_master = false;
 };
 
 
@@ -193,6 +206,8 @@ public:
     /// make it equal to  ChDomainManager::serializer_type.
     DomainSerializerFormat serializer_type = DomainSerializerFormat::XML; 
 
+    ChDomainManager* domain_manager = nullptr;
+
 private:
     int rank = 0;
     ChSystem* system = nullptr;
@@ -203,6 +218,26 @@ private:
 };
 
 
+/// Specialization of ChDomain that can be used for initially populating the scene. It wraps all
+/// other domains and contained items will spill into the regular domains at the first time step.
+class ChApiMultiDomain ChDomainMaster : public ChDomain {
+public:
+    ChDomainMaster(ChSystem* msystem, int mrank) : ChDomain(msystem, mrank) {
+    }
+    virtual ~ChDomainMaster() {}
+
+    /// Test if some item, with axis-aligned bounding box, must be included in this domain
+    virtual bool IsOverlap(const ChAABB& abox) const override {
+            return false;
+    }
+
+    /// Test if some item, represented by a single point, must be included in this domain.
+    virtual bool IsInto(const ChVector3d& apoint) const override {
+            return false;
+    }
+
+private:
+};
 
 
 /// Specialization of ChDomain: sliced space.
