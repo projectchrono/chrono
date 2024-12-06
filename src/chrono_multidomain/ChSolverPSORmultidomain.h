@@ -56,6 +56,8 @@ class ChApiMultiDomain ChSolverPSORmultidomain : public ChIterativeSolverVI {
     int    communication_each;
 };
 
+
+
 /// @} chrono_solver
 
 }  // end namespace multidomain
