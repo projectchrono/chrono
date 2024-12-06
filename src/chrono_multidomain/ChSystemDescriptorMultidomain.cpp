@@ -150,7 +150,7 @@ void ChSystemDescriptorMultidomain::globalSystemProduct(ChVectorDynamic<>& resul
 
     result.setZero(x.size());
 
-    // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
+    // 1) First row: result.q part =  [M + H]*x.q + [Cq']*x.l
 
     // 1.1)  do  M*x.q
     for (const auto& var : m_variables) {
@@ -159,7 +159,7 @@ void ChSystemDescriptorMultidomain::globalSystemProduct(ChVectorDynamic<>& resul
         }
     }
 
-    // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
+    // 1.2)  add also H*x.q  (NON straight parallelizable - risk of concurrency in writing)
     for (const auto& krm_block : m_KRMblocks) {
         krm_block->AddMatrixTimesVectorInto(result, x);
     }
@@ -351,6 +351,12 @@ void ChSystemDescriptorMultidomain::SharedVectsSum() {
 
         this->shared_vects[nrank] += incoming_vect;
     }
+}
+
+void ChSystemDescriptorMultidomain::VectAdditiveToDistributed(ChVectorDynamic<>& vect) {
+    this->SharedVectsFromDomainVector(vect);
+    this->SharedVectsSum();                        // *** COMM + MULTITHREAD BARRIER ***
+    this->SharedVectsToDomainVector(vect);
 }
 
 

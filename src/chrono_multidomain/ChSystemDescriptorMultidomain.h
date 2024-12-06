@@ -269,7 +269,8 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// the global problem; output vector "result" is assumed a domain-relative slice of 
     /// result of the global problem.
     /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
-    /// operation, so thay may need to be backed up via FromVariablesToVector()
+    /// operation, so thay may need to be backed up via FromVariablesToVector().
+    /// Note that both x and result are assumed in 'distributed' format, not 'additive'; matrices are assumed additive.
     virtual void globalSystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
         const ChVectorDynamic<>& x  ///< vector to be multiplied
     );
@@ -381,33 +382,42 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     // MULTIDOMAIN-SPECIFIC FUNCTIONS
     
 
-    // Set vectors of shared_vects to zero. Each interface of domain has a vector. 
+    /// Set vectors of shared_vects to zero. Each interface of domain has a vector. 
     virtual void SharedVectsToZero();
 
-    // Set vectors of shared_vects to the current variables State() value. 
+    /// Set vectors of shared_vects to the current variables State() value. 
     virtual void SharedVectsSyncToCurrentDomainStates();
 
-    // SEND the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
-    // where the delta is ADDED to the corresponding variables State(). 
-    // This operation requires a network-expensive SEND and RECEIVE operation.
-    // It is expected that all domains will execute this operation, otherwise deadlock.
-    // Finally, set vectors of shared_vects to the current variables State() value.
+    /// SEND the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
+    /// where the delta is ADDED to the corresponding variables State(). 
+    /// This operation requires a network-expensive SEND and RECEIVE operation.
+    /// It is expected that all domains will execute this operation, otherwise deadlock.
+    /// Finally, set vectors of shared_vects to the current variables State() value.
     virtual void SharedStatesDeltaAddToMultidomainAndSync();
 
-    // Takes a vector vect and spreads it the vectors of this->shared_vects, depending on the
-    // offsets of shared variables of this domain.
+    /// Takes a vector vect and spreads it the vectors of this->shared_vects, depending on the
+    /// offsets of shared variables of this domain.
+    /// Note, vect has size and indexing as domain's coordinates.
     virtual void SharedVectsFromDomainVector(const ChVectorDynamic<>& vect);
 
-    // Writes vectors of this->shared_vects into corresponding slots of vector vect, depending on the
-    // offsets of shared variables of this domain.
+    /// Writes vectors of this->shared_vects into corresponding slots of vector vect, depending on the
+    /// offsets of shared variables of this domain.
+    /// Note, vect has size and indexing as domain's coordinates.
     virtual void SharedVectsToDomainVector(ChVectorDynamic<>& vect);
 
-    // The current shared vectors in shared_vects are summed across all domains, 
-    // with contributions from all the interfaces. Results overwritten in shared_vects.
-    // This operation requires a network-expensive SEND and RECEIVE operation.
+    /// The current shared vectors in shared_vects are summed across all domains, 
+    /// with contributions from all the interfaces. Results overwritten in shared_vects.
+    /// This operation requires a network-expensive SEND and RECEIVE operation.
     virtual void SharedVectsSum();
 
-    
+    /// Takes a vector "vect" in additive form and converts it to distributed form. 
+    /// Overwrites "vect". Note, vect has size and indexing as domain's coordinates.
+    /// Shared coordinates in additive form are different among domains, whereas
+    /// in distributed form are the same, ex. in j-th domain with neighbours k and  
+    ///    v_distr_j = v_additive_j + \sum R_j R_k' v_additive_k
+    /// where we used restriction matrices R as  v_distr_j =  R_j v_global.
+    /// This operation requires a network-expensive SEND and RECEIVE operation.
+    virtual void VectAdditiveToDistributed(ChVectorDynamic<>& vect);
 
 
     /// Get domain
