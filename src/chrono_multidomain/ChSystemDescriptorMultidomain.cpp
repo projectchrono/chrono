@@ -314,9 +314,19 @@ void ChSystemDescriptorMultidomain::SharedVectsSum() {
         interf.second.buffer_receiving.str("");
         interf.second.buffer_receiving.clear();
 
-        ChArchiveOutJSON serializer(interf.second.buffer_sending);  //**TO DO** use ChArchiveOutBinary
+        std::shared_ptr<ChArchiveOut> serializer;
+        switch (this->domain_manager->serializer_type) {
+        case DomainSerializerFormat::BINARY:
+            serializer = chrono_types::make_shared<ChArchiveOutBinary>(interf.second.buffer_sending); break;
+        case DomainSerializerFormat::JSON:
+            serializer = chrono_types::make_shared<ChArchiveOutJSON>(interf.second.buffer_sending); break;
+        case DomainSerializerFormat::XML:
+            serializer = chrono_types::make_shared<ChArchiveOutXML>(interf.second.buffer_sending); break;
+        default: break;
+        }
+
         int nrank = interf.second.side_OUT->GetRank();
-        serializer << CHNVP(this->shared_vects[nrank]);
+        *serializer << CHNVP(this->shared_vects[nrank],"v");
     }
 
     this->domain_manager->DoDomainSendReceive(this->domain->GetRank());   // *** COMM + MULTITHREAD BARRIER ***
@@ -324,8 +334,20 @@ void ChSystemDescriptorMultidomain::SharedVectsSum() {
     for (auto& interf : this->domain->GetInterfaces()) {
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> incoming_vect(shared_vects[nrank].size());
-        ChArchiveInJSON deserializer(interf.second.buffer_receiving);  //**TO DO** use ChArchiveInBinary
-        deserializer >> CHNVP(incoming_vect);
+
+        // prepare the deserializer
+        std::shared_ptr<ChArchiveIn> deserializer;
+        switch (this->domain_manager->serializer_type) {
+        case DomainSerializerFormat::BINARY:
+            deserializer = chrono_types::make_shared<ChArchiveInBinary>(interf.second.buffer_receiving); break;
+        case DomainSerializerFormat::JSON:
+            deserializer = chrono_types::make_shared<ChArchiveInJSON>(interf.second.buffer_receiving); break;
+        case DomainSerializerFormat::XML:
+            deserializer = chrono_types::make_shared<ChArchiveInXML>(interf.second.buffer_receiving); break;
+        default: break;
+        }
+
+        *deserializer >> CHNVP(incoming_vect,"v");
 
         this->shared_vects[nrank] += incoming_vect;
     }
