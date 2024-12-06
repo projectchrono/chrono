@@ -31,9 +31,9 @@
 ////#define RUN_TIME_VISUALIZATION
 
 #ifdef RUN_TIME_VISUALIZATION
-    #include "chrono_fsi/visualization/ChFsiVisualization.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
     #ifdef CHRONO_VSG
-        #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+        #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
     #endif
 #endif
 
@@ -92,11 +92,11 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChFluidSystem
 // Callback for setting initial SPH particle velocity
 class InitialVelocityCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    InitialVelocityCallback(const ChFluidSystemSPH& sysSPH, double fluid_height, double time)
-        : ParticlePropertiesCallback(sysSPH), height(fluid_height), time(time) {
+    InitialVelocityCallback(double fluid_height, double time)
+        : ParticlePropertiesCallback(), height(fluid_height), time(time) {
     }
 
-    virtual void set(const ChVector3d& pos) override {
+    virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double v_x = PoiseuilleAnalytical(pos.z(), height, time, sysSPH);
         p0 = 0;
         rho0 = sysSPH.GetDensity();
@@ -121,7 +121,7 @@ std::shared_ptr<ChFsiVisualization> CreateVisSys(ChFsiSystemSPH& sysFSI) {
 
     if (render) {
         // Estimate max particle velocity over entire simulation
-        auto v_max = PoiseuilleAnalytical(bzDim / 2, bzDim, t_start + num_steps * dt, sysFSI);
+        auto v_max = PoiseuilleAnalytical(bzDim / 2, bzDim, t_start + num_steps * dt, sysFSI.GetFluidSystemSPH());
 
     #ifdef CHRONO_VSG
         visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
@@ -133,7 +133,7 @@ std::shared_ptr<ChFsiVisualization> CreateVisSys(ChFsiSystemSPH& sysFSI) {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, v_max));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleVelocityColorCallback>(0, v_max));
         visFSI->Initialize();
     }
 
@@ -153,14 +153,13 @@ int main(int argc, char* argv[]) {
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, 0);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(gravity);
 
     // Set CFD fluid properties
     ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
-    sysSPH.SetCfdSPH(fluid_props);
+    fsi.SetCfdSPH(fluid_props);
 
     // Set forcing term
     sysSPH.SetBodyForce(ChVector3d(force, 0, 0));
@@ -180,10 +179,10 @@ int main(int argc, char* argv[]) {
     sph_params.eos_type = EosType::ISOTHERMAL;
     sph_params.consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity
     sph_params.consistent_laplacian_discretization = true;
-    sysSPH.SetSPHParameters(sph_params);
+    fsi.SetSPHParameters(sph_params);
 
-    sysFSI.SetStepSizeCFD(dt);
-    sysFSI.SetStepsizeMBD(dt);
+    fsi.SetStepSizeCFD(dt);
+    fsi.SetStepsizeMBD(dt);
 
     // Create SPH material (do not create boundary BCEs)
     // Add box container (only bottom and top walls)
@@ -199,7 +198,7 @@ int main(int argc, char* argv[]) {
     fsi.SetComputationalDomainSize(ChAABB(c_min, c_max));
 
     // Set particle initial velocity
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<InitialVelocityCallback>(sysSPH, bzDim, t_start));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<InitialVelocityCallback>(bzDim, t_start));
 
     // Initialize FSI problem
     fsi.Initialize();
@@ -222,7 +221,7 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     for (int step = 0; step < num_steps; step++) {
-        sysFSI.DoStepDynamics(dt);
+        fsi.DoStepDynamics(dt);
 
 #ifdef RUN_TIME_VISUALIZATION
         if (render && !visFSI->Render())

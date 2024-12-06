@@ -135,17 +135,15 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(gravity);
 
     // Set integration step size
     double step_size = (problem_type == PhysicsProblem::CFD) ? 2e-5 : 2.5e-4;
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
     // Set fluid phase properties
     switch (problem_type) {
@@ -154,7 +152,7 @@ int main(int argc, char* argv[]) {
             fluid_props.density = 1000;
             fluid_props.viscosity = 5.0;
 
-            sysSPH.SetCfdSPH(fluid_props);
+            fsi.SetCfdSPH(fluid_props);
 
             break;
         }
@@ -169,7 +167,7 @@ int main(int argc, char* argv[]) {
             mat_props.average_diam = 0.005;
             mat_props.cohesion_coeff = 0;
 
-            sysSPH.SetElasticSPH(mat_props);
+            fsi.SetElasticSPH(mat_props);
 
             break;
         }
@@ -207,29 +205,25 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    // Set boundary type
-    if (boundary_type == "holmes") {
-        sysSPH.SetBoundaryType(BoundaryType::HOLMES);
-    } else {
-        sysSPH.SetBoundaryType(BoundaryType::ADAMI);
-    }
+    if (boundary_type == "holmes")
+        sph_params.boundary_type = BoundaryType::HOLMES;
+    else
+        sph_params.boundary_type = BoundaryType::ADAMI;
 
-    // Set viscosity type
-    if (viscosity_type == "laminar") {
-        sysSPH.SetViscosityType(ViscosityType::LAMINAR);
-    } else if (viscosity_type == "artificial_bilateral") {
-        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
-    } else {
-        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
-    }
+    if (viscosity_type == "laminar")
+        sph_params.viscosity_type = ViscosityType::LAMINAR;
+    else if (viscosity_type == "artificial_bilateral")
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    else
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
 
-    sysSPH.SetSPHParameters(sph_params);
+    fsi.SetSPHParameters(sph_params);
 
     // Create FSI solid bodies
     auto mesh = CreateSolidPhase(fsi);
 
     // Enable depth-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, fzDim));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(fzDim));
 
     // Create SPH material (do not create any boundary BCEs)
     fsi.Construct({fxDim, fyDim, fzDim},           // box dimensions
@@ -258,7 +252,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString() + "/";
+    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString() + "/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -357,16 +351,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Simulation loop
-    double dT = sysFSI.GetStepSizeCFD();
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
     int render_frame = 0;
-
-    double timer_CFD = 0;
-    double timer_MBD = 0;
-    double timer_FSI = 0;
-    double timer_step = 0;
 
     // Initial position of top most node
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
@@ -383,9 +371,7 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles",out_dir + "/fsi");
 
             std::ostringstream filename;
             filename << out_dir << "/vtk/flex_body." << std::setw(5) << std::setfill('0') << out_frame + 1 << ".vtk";
@@ -415,21 +401,9 @@ int main(int argc, char* argv[]) {
         double displacement = (pos - init_pos).Length();
         ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\t" << displacement << "\n";
 
-        sysFSI.DoStepDynamics(dT);
+        fsi.DoStepDynamics(step_size);
 
-        timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBD += sysFSI.GetTimerMBD();
-        timer_FSI += sysFSI.GetTimerFSI();
-        timer_step += sysFSI.GetTimerStep();
-        if (verbose && sim_frame == 2000) {
-            cout << "Cummulative timers at time: " << time << endl;
-            cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBD:  " << timer_MBD << endl;
-            cout << "   timer FSI:  " << timer_FSI << endl;
-            cout << "   timer step: " << timer_step << endl;
-        }
-
-        time += dT;
+        time += step_size;
         sim_frame++;
     }
     timer.stop();

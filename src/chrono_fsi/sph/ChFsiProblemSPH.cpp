@@ -66,6 +66,18 @@ void ChFsiProblemSPH::SetVerbose(bool verbose) {
     m_verbose = verbose;
 }
 
+void ChFsiProblemSPH::SetCfdSPH(const ChFluidSystemSPH::FluidProperties& fluid_props) {
+    m_sysSPH.SetCfdSPH(fluid_props);
+}
+
+void ChFsiProblemSPH::SetElasticSPH(const ChFluidSystemSPH::ElasticMaterialProperties& mat_props) {
+    m_sysSPH.SetElasticSPH(mat_props);
+}
+
+void ChFsiProblemSPH::SetSPHParameters(const ChFluidSystemSPH::SPHParameters& sph_params) {
+    m_sysSPH.SetSPHParameters(sph_params);
+}
+
 // ----------------------------------------------------------------------------
 
 size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
@@ -256,13 +268,13 @@ void ChFsiProblemSPH::Initialize() {
 
     // Callback for setting initial particle properties
     if (!m_props_cb)
-        m_props_cb = chrono_types::make_shared<ParticlePropertiesCallback>(m_sysSPH);
+        m_props_cb = chrono_types::make_shared<ParticlePropertiesCallback>();
 
     // Create SPH particles
     switch (m_sysSPH.GetPhysicsProblem()) {
         case PhysicsProblem::CFD: {
             for (const auto& pos : sph_points) {
-                m_props_cb->set(pos);
+                m_props_cb->set(m_sysSPH, pos);
                 m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
             }
             break;
@@ -270,7 +282,7 @@ void ChFsiProblemSPH::Initialize() {
         case PhysicsProblem::CRM: {
             ChVector3d tau_offdiag(0);
             for (const auto& pos : sph_points) {
-                m_props_cb->set(pos);
+                m_props_cb->set(m_sysSPH, pos);
                 ChVector3d tau_diag(-m_props_cb->p0);
                 m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
                                         tau_diag, tau_offdiag);
@@ -463,6 +475,17 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
     return num_removed;
 }
 
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::SetOutputLevel(OutputLevel output_level) {
+    m_sysSPH.SetOutputLevel(output_level);
+}
+
+void ChFsiProblemSPH::SaveOutputData(double time, const std::string& sph_dir, const std::string& fsi_dir) {
+    m_sysSPH.SaveParticleData(sph_dir);
+    m_sysSPH.SaveSolidData(fsi_dir, time);
+}
+
 void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
     // SPH particle grid locations
     std::ofstream sph_grid(out_dir + "/sph_grid.txt", std::ios_base::out);
@@ -482,6 +505,14 @@ void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
     }
 }
 
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::DoStepDynamics(double step) {
+    m_sysFSI.DoStepDynamics(step);
+}
+
+// ----------------------------------------------------------------------------
+
 const ChVector3d& ChFsiProblemSPH::GetFsiBodyForce(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
     return m_sysFSI.GetFsiBodyForce(index);
@@ -492,7 +523,7 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body
     return m_sysFSI.GetFsiBodyTorque(index);
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
     if (m_verbose) {
@@ -1041,7 +1072,7 @@ ChVector3d ChFsiProblemCartesian::Grid2Point(const ChVector3i& p) {
     return ChVector3d(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 void ChFsiProblemCylindrical::Construct(double radius_inner,
                                         double radius_outer,

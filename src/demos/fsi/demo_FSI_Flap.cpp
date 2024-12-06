@@ -289,7 +289,6 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -300,12 +299,13 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
-    sysSPH.SetCfdSPH(fluid_props);
+    fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 8;
     sph_params.xsph_coefficient = 0.5;
@@ -319,16 +319,16 @@ int main(int argc, char* argv[]) {
     sph_params.eos_type = EosType::TAIT;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
-    sysSPH.SetSPHParameters(sph_params);
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
-    sysSPH.SetNumBCELayers(5);
+    fsi.SetSPHParameters(sph_params);
+
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
     // Create WEC device
     auto revolute = CreateFlap(fsi);
 
     // Enable depth-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, depth));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(depth));
 
     // Create a wave tank
     double stroke = 0.1;
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + fsi.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -451,8 +451,7 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             out_frame++;
         }
 
