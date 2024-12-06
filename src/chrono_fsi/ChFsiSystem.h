@@ -128,6 +128,11 @@ class CH_FSI_API ChFsiSystem {
     /// Get current estimated RTF (real time factor) for the coupled problem.
     double GetRtf() const { return m_RTF; }
 
+    /// Set RTF value for the coupled problem.
+    /// This is necessary for correct reporting if automatic integration of the multibody system dynamics is disabled
+    /// and performed externally.
+    void SetRtf(double rtf) { m_RTF = rtf; }
+
     /// Get current estimated RTF (real time factor) for the fluid system.
     double GetRtfCFD() const { return m_sysCFD.GetRtf(); }
 

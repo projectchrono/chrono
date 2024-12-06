@@ -251,6 +251,7 @@ int main(int argc, char* argv[]) {
 
     cout << "Start simulation..." << endl;
 
+    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -293,6 +294,8 @@ int main(int argc, char* argv[]) {
 
         // Advance system state
         driver.Advance(step_size);
+        timer.reset();
+        timer.start();
         // (a) Sequential integration of terrain and vehicle systems
         ////terrain.Advance(step_size);
         ////vehicle->Advance(step_size);
@@ -304,6 +307,10 @@ int main(int argc, char* argv[]) {
         std::thread th(&ChWheeledVehicle::Advance, vehicle.get(), step_size);
         terrain.Advance(step_size);
         th.join();
+
+        // Set correct overall RTF for the FSI problem
+        timer.stop();
+        sysFSI.SetRtf(timer() / step_size);
 
         time += step_size;
         sim_frame++;

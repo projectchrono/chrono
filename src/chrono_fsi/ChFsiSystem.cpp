@@ -251,17 +251,16 @@ void ChFsiSystem::DoStepDynamics(double step) {
         AdvanceCFD(step, threshold_CFD);
         th.join();
     } else {
-        AdvanceCFD(step, threshold_CFD);    
+        AdvanceCFD(step, threshold_CFD);
     }
 
     m_timer_step.stop();
 
-    // Calculate RTF
-    m_RTF = m_timer_step() / step;
-    if (m_MBD_enabled)
+    // Calculate RTF and MBD/CFD timer ratio
+    if (m_MBD_enabled) {
+        m_RTF = m_timer_step() / step;
         m_ratio_MBD = m_timer_MBD / m_timer_CFD;
-    else
-        m_ratio_MBD = -1;
+    }
 
     // Update simulation time
     m_time += step;

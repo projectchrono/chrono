@@ -20,6 +20,7 @@
 #include <string>
 #include <stdexcept>
 #include <iomanip>
+#include <thread>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -230,6 +231,7 @@ int main(int argc, char* argv[]) {
     TerrainForces shoe_forces_left(vehicle->GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle->GetNumTrackShoes(RIGHT));
 
+    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -269,9 +271,15 @@ int main(int argc, char* argv[]) {
 
         // Advance system state
         driver.Advance(step_size);
+        timer.reset();
+        timer.start();
         std::thread th(&ChTrackedVehicle::Advance, vehicle.get(), step_size);
         terrain.Advance(step_size);
         th.join();
+
+        // Set correct overall RTF for the FSI problem
+        timer.stop();
+        sysFSI.SetRtf(timer() / step_size);
 
         time += step_size;
         sim_frame++;
