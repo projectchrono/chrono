@@ -454,7 +454,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 				if (is_referencein_OUT) {
 
 					// Serialize the element. Elements are never shared.
-					elements_migrating.push_back(ChIncrementalObj<ChElementBase>{system->GetAssembly().GetTag(), element});
+					elements_migrating.push_back(ChIncrementalObj<ChElementBase>{mmesh->GetTag(), element});
 
 				}
 
