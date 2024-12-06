@@ -48,8 +48,8 @@ ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
       m_step_MBD(-1),
       m_step_CFD(-1),
       m_time(0),
-      m_RTF(0),
-      m_ratio_MBS(0) {}
+      m_RTF(-1),
+      m_ratio_MBD(-1) {}
 
 ChFsiSystem::~ChFsiSystem() {}
 
@@ -213,7 +213,7 @@ void ChFsiSystem::AdvanceMBS(double step, double threshold) {
             t += h;
         }
     }
-    m_timer_MBS = m_sysMBS.GetTimerStep();
+    m_timer_MBD = m_sysMBS.GetTimerStep();
 }
 
 void ChFsiSystem::DoStepDynamics(double step) {
@@ -258,7 +258,10 @@ void ChFsiSystem::DoStepDynamics(double step) {
 
     // Calculate RTF
     m_RTF = m_timer_step() / step;
-    m_ratio_MBS = m_timer_MBS / m_timer_CFD;
+    if (m_MBD_enabled)
+        m_ratio_MBD = m_timer_MBD / m_timer_CFD;
+    else
+        m_ratio_MBD = -1;
 
     // Update simulation time
     m_time += step;

@@ -91,7 +91,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted("RTF (solid):");
                 ImGui::TableNextColumn();
-                ImGui::Text("%8.3f", m_vsysFSI->m_sysFSI->GetRtfMBS());
+                ImGui::Text("%8.3f", m_vsysFSI->m_sysFSI->GetRtfMBD());
             }
 
             if (m_vsysFSI->m_sysFSI) {
@@ -99,7 +99,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted("MBS/CFD ratio:");
                 ImGui::TableNextColumn();
-                ImGui::Text("%8.3f", m_vsysFSI->m_sysFSI->GetRatioMBS());
+                ImGui::Text("%8.3f", m_vsysFSI->m_sysFSI->GetRatioMBD());
             }
 
             ImGui::EndTable();

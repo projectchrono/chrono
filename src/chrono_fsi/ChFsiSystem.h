@@ -132,10 +132,10 @@ class CH_FSI_API ChFsiSystem {
     double GetRtfCFD() const { return m_sysCFD.GetRtf(); }
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBS() const { return m_sysMBS.GetRTF(); }
+    double GetRtfMBD() const { return m_sysMBS.GetRTF(); }
 
     /// Get ratio of simulation time spent in MBS integration.
-    double GetRatioMBS() const { return m_ratio_MBS; }
+    double GetRatioMBD() const { return m_ratio_MBD; }
 
     // ----------
 
@@ -146,7 +146,7 @@ class CH_FSI_API ChFsiSystem {
     double GetTimerCFD() const { return m_timer_CFD; }
 
     /// Return the time in seconds for multibody dynamics over the last step.
-    double GetTimerMBS() const { return m_timer_MBS; }
+    double GetTimerMBD() const { return m_timer_MBD; }
 
     /// Return the time in seconds for data exchange between phases over the last step.
     double GetTimerFSI() const { return m_timer_FSI(); }
@@ -195,9 +195,9 @@ class CH_FSI_API ChFsiSystem {
     ChTimer m_timer_step;  ///< timer for integration step
     ChTimer m_timer_FSI;   ///< timer for FSI data exchange
     double m_timer_CFD;    ///< timer for fluid dynamics integration
-    double m_timer_MBS;    ///< timer for multibody dynamics integration
+    double m_timer_MBD;    ///< timer for multibody dynamics integration
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration
+    double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
 };
 
 /// @} fsi_physics

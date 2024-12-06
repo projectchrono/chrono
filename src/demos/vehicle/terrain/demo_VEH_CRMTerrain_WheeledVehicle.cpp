@@ -251,11 +251,6 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    double timer_CFD = 0;
-    double timer_MBS = 0;
-    double timer_FSI = 0;
-    double timer_step = 0;
-
     cout << "Start simulation..." << endl;
 
     while (time < tend) {
@@ -301,17 +296,6 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         sysFSI.DoStepDynamics(step_size);
 
-        timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBS += sysFSI.GetTimerMBS();
-        timer_FSI += sysFSI.GetTimerFSI();
-        timer_step += sysFSI.GetTimerStep();
-        if (sim_frame == 2000) {
-            cout << "Cummulative timers at time: " << time << endl;
-            cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBS:  " << timer_MBS << endl;
-            cout << "   timer FSI:  " << timer_FSI << endl;
-            cout << "   timer step: " << timer_step << endl;
-        }
 
         time += step_size;
         sim_frame++;
