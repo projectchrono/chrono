@@ -33,18 +33,18 @@ class ChApi ChTimestepper {
   public:
     /// Available methods for time integration (time steppers).
     enum class Type {
-        EULER_IMPLICIT_LINEARIZED = 0,
-        EULER_IMPLICIT_PROJECTED = 1,
-        EULER_IMPLICIT = 2,
-        TRAPEZOIDAL = 3,
-        TRAPEZOIDAL_LINEARIZED = 4,
-        HHT = 5,
-        HEUN = 6,
-        RUNGEKUTTA45 = 7,
-        EULER_EXPLICIT = 8,
-        LEAPFROG = 9,
-        NEWMARK = 10,
-        CUSTOM = 20
+        EULER_IMPLICIT_LINEARIZED,
+        EULER_IMPLICIT_PROJECTED,
+        EULER_IMPLICIT,
+        TRAPEZOIDAL,
+        TRAPEZOIDAL_LINEARIZED,
+        HHT,
+        HEUN,
+        RUNGEKUTTA45,
+        EULER_EXPLICIT,
+        LEAPFROG,
+        NEWMARK,
+        CUSTOM
     };
 
     /// Constructor
@@ -85,6 +85,9 @@ class ChApi ChTimestepper {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive);
+
+    /// Return the integrator type as a string.
+    static std::string GetTypeAsString(Type type); 
 
   protected:
     ChIntegrable* integrable;
