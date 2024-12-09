@@ -83,8 +83,8 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
     L.setZero(GetIntegrable()->GetNumConstraints());
 
     GetIntegrable()->StateGather(Y, T);  // state <- system
-
-    GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false, false, lumping_parameters);  // dY/dt = f(Y,T)
+    
+    GetIntegrable()->StateSolve(dYdt, L, Y, T, dt, false, false, penalty_parameters);  // dY/dt = f(Y,T)
 
     // Euler formula!
     //   y_new= y + dy/dt * dt
@@ -141,7 +141,7 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
-    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false, lumping_parameters);  // Dv/dt = f(x,v,T)
+    mintegrable->StateSolveA(A, L, X, V, T, dt, false, false, penalty_parameters);  // Dv/dt = f(x,v,T)
 
     // Euler formula!
 
@@ -196,7 +196,7 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
     mintegrable->StateGather(X, V, T);  // state <- system
 
     mintegrable->StateSolveA(A, L, X, V, T, dt, false, false,
-                             lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+        penalty_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
 
@@ -254,17 +254,17 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt,
                                 false,              // no need to scatter state before computation
                                 false,              // full update? (not used since no scatter)
-                                lumping_parameters  // optional lumping?
+                                penalty_parameters  // optional 
     );
 
     y_new = Y + Dydt1 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
-    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, true, lumping_parameters);
+    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, true, penalty_parameters);
 
     y_new = Y + Dydt2 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
-    GetIntegrable()->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, true, lumping_parameters);
+    GetIntegrable()->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, true, penalty_parameters);
 
     y_new = Y + Dydt3 * dt;  // integrable.StateIncrement(y_new, Y, Dydt3*dt);
-    GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true, lumping_parameters);
+    GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true, penalty_parameters);
 
     Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * (1. / 6.) * dt;  // integrable.StateIncrement(...);
     dYdt = Dydt4;                                                          // to check
@@ -316,10 +316,10 @@ void ChTimestepperHeun::Advance(const double dt) {
     GetIntegrable()->StateSolve(Dydt1, L, Y, T, dt,
                                 false,              // no need to scatter state before computation
                                 false,              // full update? ( not used, since no scatter)
-                                lumping_parameters  // optional lumping?
+                                penalty_parameters  // optional 
     );
     y_new = Y + Dydt1 * dt;
-    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt, dt, true, true, lumping_parameters);
+    GetIntegrable()->StateSolve(Dydt2, L, y_new, T + dt, dt, true, true, penalty_parameters);
 
     Y = Y + (Dydt1 + Dydt2) * (dt / 2.);
     dYdt = Dydt2;
@@ -377,7 +377,7 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
     X = X + V * dt + Aold * (0.5 * dt * dt);
 
     // computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-    mintegrable->StateSolveA(A, L, X, V, T, dt, true, true, lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    mintegrable->StateSolveA(A, L, X, V, T, dt, true, true, penalty_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // advance V
 

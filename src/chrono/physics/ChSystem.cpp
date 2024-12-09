@@ -29,6 +29,7 @@
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChSolverPSSOR.h"
+#include "chrono/solver/ChSolverLumped.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/core/ChMatrix.h"
@@ -1086,6 +1087,13 @@ bool ChSystem::StateSolveCorrection(
         setupcount++;
         if (!success)
             return false;
+    }
+
+    // If using a lumped diagonal solver, the diagonal must be provided
+    if (auto mlumpsolver = std::dynamic_pointer_cast<ChSolverLumped>(this->solver)) {
+        double lumping_mass_error = 0;
+        mlumpsolver->diagonal_M.setZero(this->GetNumCoordsVelLevel());
+        this->LoadLumpedMass_Md(mlumpsolver->diagonal_M, lumping_mass_error, c_a);
     }
 
     // Solve the problem

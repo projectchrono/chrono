@@ -25,10 +25,10 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
-/// Helper class for lumping parameters
-class ChLumpingParms {
+/// Helper class for constraint penalty parameters 
+class ChPenaltyParms {
   public:
-    ChLumpingParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0){};
+    ChPenaltyParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0){};
     double Ck_penalty;  // stiffness penalty for constraints if any
     double Cr_penalty;  // damping penalty for constraints if any
     double error;       // store here the error done when trying lumping masses
@@ -121,8 +121,8 @@ class ChApi ChIntegrable {
                             const double dt,                   ///< timestep (if needed, ex. in DVI)
                             bool force_state_scatter,          ///< if false, y and T are not scattered to the system
                             bool full_update,                  ///< if true, perform a full update during scatter
-                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a
-                                                               ///< mass matrix, and uses penalty for constraints.
+                            ChPenaltyParms* lumping = nullptr  ///< if not null, deal with constraints via penalty to avoid a
+                                                               ///< saddle matrix. If so, a fast lumped mass can be used to invert 
                             ) = 0;
 
     /// Increment state array: y_new = y + Dy.
@@ -291,8 +291,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                              const double dt,                   ///< timestep (if needed)
                              bool force_state_scatter,          ///< if false, x,v and T are not scattered to the system
                              bool full_update,                  ///< if true, perform a full update during scatter
-                             ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting
-                                                                ///< a mass matrix, and uses penalty for constraints.
+                             ChPenaltyParms* lumping = nullptr  ///< if not null, deal with constraints via penalty to avoid a
+                                                                ///< saddle matrix. If so, a fast lumped mass can be used to invert 
     );
 
     /// Increment state array:  x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -485,8 +485,8 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                             const double dt,                   ///< timestep (if needed, ex. in DVI)
                             bool force_state_scatter,          ///< if false, y and T are not scattered to the system
                             bool full_update,                  ///< if true, perform a full update during scatter
-                            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a
-                                                               ///< mass matrix, and uses penalty for constraints.
+                            ChPenaltyParms* lumping = nullptr  ///< if not null, deal with constraints via penalty to avoid a
+                                                               ///< saddle matrix. If so, a fast lumped mass can be used to invert 
                             ) override;
 
     /// Override of method for Ist order implicit integrators.

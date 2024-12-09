@@ -167,52 +167,37 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
 /// Base properties for explicit solvers.
 /// Such integrators might require solution of a nonlinear problem if constraints
 /// are added, otherwise they can use penalty in constraints and lumped masses to avoid the linear system.
-/// Diagonal lumping is off by default.
-/// Note that if you apply this
 class ChApi ChExplicitTimestepper {
   protected:
-    ChLumpingParms* lumping_parameters;
+    ChPenaltyParms* penalty_parameters;
 
   public:
-    ChExplicitTimestepper() : lumping_parameters(nullptr) {}
+    ChExplicitTimestepper() : penalty_parameters(nullptr) {}
     virtual ~ChExplicitTimestepper() {
-        if (lumping_parameters)
-            delete (lumping_parameters);
+        if (penalty_parameters)
+            delete (penalty_parameters);
     }
 
-    /// Turn on the diagonal lumping. This can achieve a large speedup because no linear system is needeed
-    /// to compute the derivative (i.e. acceleration in II order systems), but not all Chintegrable might
-    /// support the diagonal lumping.
-    /// If lumping not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception.
-    /// If lumping introduces some approximation, you'll get nonzero in GetLumpingError().
-    /// Optionally paramters: the stiffness penalty for constraints, and damping penalty for constraints.
-    void SetDiagonalLumpingON(double Ck = 1000, double Cr = 0) { lumping_parameters = new ChLumpingParms(Ck, Cr); }
+    /// If turned ON, constraints are not added via jacobians in the linear system, but rather
+    /// as penalty force terms. This can achieve a large speedup when paired with a solver of ChSolverLumped type,
+    /// and an explicit solver, because no linear system is needeed to compute the derivative 
+    /// (i.e. acceleration in II order systems) when the mass matrix is diagonal.
+    /// Parameters: the stiffness penalty for constraints, and damping penalty for constraints.
+    void SetConstraintsAsPenaltyON(double Ck = 1000, double Cr = 0) { penalty_parameters = new ChPenaltyParms(Ck, Cr); }
 
-    /// Turn off the diagonal lumping (default is off)
-    void SetDiagonalLumpingOFF() {
-        if (lumping_parameters)
-            delete (lumping_parameters);
+    /// Turn off the constraint penalty and go back to the default constraints via jacobians. 
+    void SetConstraintsAsPenaltyOFF() {
+        if (penalty_parameters)
+            delete (penalty_parameters);
     }
 
-    /// Gets the diagonal lumping error done last time the integrator has been called
-    double GetLumpingError() {
-        if (this->lumping_parameters)
-            return lumping_parameters->error;
-        else
-            return 0;
-    }
-    /// Resets the diagonal lumping error.
-    void ResetLumpingError() {
-        if (this->lumping_parameters)
-            lumping_parameters->error = 0;
-    }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) {
         // version number
         archive.VersionWrite(1);
         // serialize all member data:
-        archive << CHNVP(lumping_parameters);
+        archive << CHNVP(penalty_parameters);
     }
 
     /// Method to allow de-serialization of transient data from archives.
@@ -220,7 +205,7 @@ class ChApi ChExplicitTimestepper {
         // version number
         /*int version =*/archive.VersionRead();
         // stream in all member data:
-        archive >> CHNVP(lumping_parameters);
+        archive >> CHNVP(penalty_parameters);
     }
 };
 

@@ -12,25 +12,32 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHSOLVER_LUMPED_MULTIDOMAIN_H
-#define CHSOLVER_LUMPED_MULTIDOMAIN_H
+#ifndef CHSOLVER_LUMPED_H
+#define CHSOLVER_LUMPED_H
 
-#include "chrono/solver/ChSolverLumped.h"
-#include "chrono_multidomain/ChApiMultiDomain.h"
+#include "chrono/solver/ChSolver.h"
 
 namespace chrono {
-namespace multidomain {
 
 
-/// A solver for explicit methods, based on constraint regularization and diagonal mass lumping.
-/// This is the easiest to map on MPI distributed memory architectures.
-/// Assumes masses are lumped and available as stencil (clipped) format, not in additive format.
+/// A solver for explicit methods, based on constraint regularization 
+/// and diagonal mass lumping.
 
-class ChApiMultiDomain ChSolverLumpedMultidomain : public ChSolverLumped {
+class ChApi ChSolverLumped : public ChSolver {
 public:
-    ChSolverLumpedMultidomain();
+    ChSolverLumped();
 
-    ~ChSolverLumpedMultidomain() {}
+    ~ChSolverLumped() {}
+
+    virtual bool IsIterative() const {
+        return false;
+    }
+    virtual bool IsDirect() const {
+        return false;
+    }
+    virtual bool SolveRequiresMatrix() const {
+        return false;
+    }
 
 
     /// Performs the solution of the problem.
@@ -38,8 +45,8 @@ public:
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) override;
 
-    double C_penalty_k = 100.0;
-    double C_penalty_r = 1.0;
+    /// Diagonal mass. To be set before calling Solve()
+    ChVectorDynamic<> diagonal_M;
 
 //private:
 
@@ -47,7 +54,6 @@ public:
 
 /// @} chrono_solver
 
-}  // end namespace multidomain
 }  // end namespace chrono
 
 #endif

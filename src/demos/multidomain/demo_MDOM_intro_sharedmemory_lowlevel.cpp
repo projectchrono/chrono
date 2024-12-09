@@ -111,10 +111,9 @@ int main(int argc, char* argv[]) {
     sys_0.GetSolver()->AsIterative()->SetMaxIterations(12);
     sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
     auto explicit_timestepper0 = chrono_types::make_shared<ChTimestepperHeun>(&sys_0);
-    //explicit_timestepper0->SetDiagonalLumpingON(1000); // use diagonal mass lumping, skip linear systems completely
+    explicit_timestepper0->SetConstraintsAsPenaltyON(1000); // use penalty for constraints, skip linear systems completely
     sys_0.SetTimestepper(explicit_timestepper0);
     auto lumped_solver0 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
-    lumped_solver0->C_penalty_k = 1000;
     sys_0.SetSolver(lumped_solver0);
 
     ChSystemNSC sys_1;
@@ -127,10 +126,9 @@ int main(int argc, char* argv[]) {
     sys_1.GetSolver()->AsIterative()->SetMaxIterations(12);
     sys_1.GetSolver()->AsIterative()->SetTolerance(1e-6);
     auto explicit_timestepper1 = chrono_types::make_shared<ChTimestepperHeun>(&sys_1);
-    //explicit_timestepper1->SetDiagonalLumpingON(1000); // use diagonal mass lumping, skip linear systems completely
+    explicit_timestepper1->SetConstraintsAsPenaltyON(1000); // use penalty for constraints, skip linear systems completely
     sys_1.SetTimestepper(explicit_timestepper1);
     auto lumped_solver1 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
-    lumped_solver1->C_penalty_k = 1000;
     sys_1.SetSolver(lumped_solver1);
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 

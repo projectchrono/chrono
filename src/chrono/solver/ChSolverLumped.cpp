@@ -12,22 +12,17 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono_multidomain/ChSolverLumpedMultidomain.h"
-#include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
-#include "chrono/serialization/ChArchiveBinary.h"
+#include "chrono/solver/ChSolverLumped.h"
 
 namespace chrono {
-namespace multidomain {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSolverLumpedMultidomain)
-CH_UPCASTING(ChSolverLumpedMultidomain, ChSolver)
+CH_FACTORY_REGISTER(ChSolverLumped)
+CH_UPCASTING(ChSolverLumped, ChSolver)
 
-ChSolverLumpedMultidomain::ChSolverLumpedMultidomain() {}
+ChSolverLumped::ChSolverLumped() {}
 
-double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
-
-    ChSystemDescriptorMultidomain& sysdMD = dynamic_cast<ChSystemDescriptorMultidomain&>(sysd);
+double ChSolverLumped::Solve(ChSystemDescriptor& sysd) {
 
     // Allocate auxiliary vectors;
 
@@ -35,7 +30,8 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
     int nv = sysd.CountActiveVariables();
 
     if (verbose)
-        std::cout << "\n-----ChSolverLumpedMultidomain, nv=" << nv << " vars, nc=" << nc << " penalty constraints." << std::endl;
+        std::cout << "\n-----ChSolverLumped, nv=" << nv << " vars, nc=" << nc << " penalty constraints." << std::endl;
+
 
     ChVectorDynamic<> R(nv);
     ChVectorDynamic<> a(nv);
@@ -45,15 +41,12 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
     R.setZero(nv);
     //L.setZero(nc);
     
-    sysdMD.BuildFbVector(R); // rhs, applied forces (plus the penalty terms of constraints if timestepper in penalty ON mode)
+    sysd.BuildFbVector(R); // rhs, applied forces, or...
+
 
     // compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
     a.array() = R.array() / this->diagonal_M.array();  //  a = Md^-1 * F
 
-    // MULTIDOMAIN******************
-    // Sum the contribution to acceleration from other domains. Alternatively we could have summed R. 
-    // That's all. Lucky situation because we assume that the Md array is in distributed, not additive format.
-    sysdMD.VectAdditiveToDistributed(a);  
 
     // Resulting dual variables:
     //sysd.FromVectorToConstraints(L);
@@ -68,6 +61,4 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
 }
 
 
-
-}  // end namespace multidomain
 }  // end namespace chrono
