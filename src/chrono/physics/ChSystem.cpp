@@ -58,6 +58,7 @@ ChSystem::ChSystem()
       stepcount(0),
       setupcount(0),
       solvecount(0),
+      output_dir("."),
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChContactMaterialCompositionStrategy),
