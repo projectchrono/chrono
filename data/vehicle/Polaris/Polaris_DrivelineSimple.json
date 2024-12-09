@@ -1,0 +1,10 @@
+{
+  "Name":                       "Polaris simple driveline",
+  "Type":                       "Driveline",
+  "Template":                   "SimpleDriveline",
+
+  "Front Torque Fraction":       0.5,
+
+  "Front Differential Max Bias": 2.0,
+  "Rear Differential Max Bias":  2.0
+}
