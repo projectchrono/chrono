@@ -67,8 +67,7 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
     ChVectorDynamic<> R(GetNumCoordsVelLevel());
     R.setZero();
     
-    ChVectorDynamic<> Qc(GetNumConstraints());
-    Qc.setZero();
+    ChVectorDynamic<> Qc;
 
     LoadResidual_F(R, 1.0);  // rhs, applied forces
 
@@ -93,6 +92,8 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
 
         StateScatter(x, v, T, full_update);  // back to original state
 
+        Qc.setZero(GetNumConstraints());
+
     } else {
 
         // penalty terms from constraints
@@ -103,6 +104,8 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
                                                         // k=cpenalty->Ck_penalty*Ck_i
             LoadResidual_CqL(R, L, 1.0);                // Fc =  Cq' * (-k*C)    = Cq' * L
             // to do: add c_penalty for speed proportional damping, as   Fc = - Cq' * (k*C + c*(dC/dt))
+
+            Qc.setZero(0); // resize to empty: tell to StateSolveCorrection() that we are not using constraint as algebraic equations.
         }
     }
 

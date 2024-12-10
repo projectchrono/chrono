@@ -636,6 +636,17 @@ void example5(const std::string& out_dir) {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
 
+            if (!Qc.size()) {
+                // User has enabled SetConstraintsAsPenaltyON(), do not use constraint jacobians
+                // and moreover use lumped mass matrix
+                ChVectorDynamic<> b_(2);
+                b_(0) = R(0);
+                b_(1) = R(1);
+                ChVectorDynamic<> Md_(2); double errd;
+                LoadLumpedMass_Md(Md_, errd, 1.0);
+                Dv.array() = b_.array() / Md_.array();  //  a = Md^-1 * F
+                return true;
+            }
             ChVector3d dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
             ChVectorDynamic<> b(3);
@@ -890,10 +901,11 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-
+/*
     example1(out_dir);
     example2(out_dir);
     example3(out_dir);
     example4(out_dir);
+*/
     example5(out_dir);
 }
