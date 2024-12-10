@@ -340,12 +340,96 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, Te
 }
 
 // -----------------------------------------------------------------------------
+// Create bodies with triangular contact geometry as proxies for the mesh faces.
+// Used for flexible bodies.
+// Assign to each body an identifier equal to the index of its corresponding mesh face.
+// Maintain a list of all bodies associated with the object.
+// Add all proxy bodies to the same collision family and disable collision between any
+// two members of this family.
+void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
-void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {}
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyMesh>();
 
-void ChVehicleCosimTerrainNodeGranularSPH::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {}
+    // Note: it is assumed that there is one and only one mesh defined!
+    const auto& trimesh_shape = m_geometry[i_shape].coll_meshes[0];
+    const auto& trimesh = trimesh_shape.trimesh;
+    auto material = m_geometry[i_shape].materials[trimesh_shape.matID].CreateMaterial(m_method);
 
-void ChVehicleCosimTerrainNodeGranularSPH::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {}
+    // Create a contact surface mesh constructed from the provided trimesh
+    auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);
+    surface->ConstructFromTrimesh(trimesh, m_radius);
+
+    // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
+    // Note that here, the contact surface includes all faces in the geometry trimesh..
+    int vertex_index = 0;
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
+        if (proxy->ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
+            ++vertex_index;
+        }
+        if (proxy->ptr2ind_map.insert({tri->GetNode(1), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(1)});
+            ++vertex_index;
+        }
+        if (proxy->ptr2ind_map.insert({tri->GetNode(2), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(2)});
+            ++vertex_index;
+        }
+    }
+
+    assert(proxy->ptr2ind_map.size() == surface->GetNumVertices());
+    assert(proxy->ind2ptr_map.size() == surface->GetNumVertices());
+
+    // Construct the FEA mesh and add to it the contact surface.
+    // Do not add nodes to the mesh, else they will be polluted during integration
+    proxy->mesh = chrono_types::make_shared<fea::ChMesh>();
+    proxy->mesh->AddContactSurface(surface);
+
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(proxy->mesh);
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
+    vis_mesh->SetWireframe(true);
+    proxy->mesh->AddVisualShapeFEA(vis_mesh);
+
+    // Somehow, the system should not do fea on this mesh.
+    m_system->AddMesh(proxy->mesh);
+    m_system->GetCollisionSystem()->BindItem(proxy->mesh);
+
+    // Add the mesh to the SPH terrain
+    m_terrain->AddFeaMesh(proxy->mesh, false);
+
+    m_proxies[i] = proxy;
+}
+
+// Set position, orientation, and velocity of proxy bodies based on mesh faces.
+void ChVehicleCosimTerrainNodeGranularSPH::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
+    // Get the proxy (contact surface) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
+
+    int num_vertices = (int)mesh_state.vpos.size();
+
+    for (int in = 0; in < num_vertices; in++) {
+        auto& node = proxy->ind2ptr_map[in];
+        node->SetPos(mesh_state.vpos[in]);
+        node->SetPosDt(mesh_state.vvel[in]);
+    }
+}
+
+// Collect forces on the nodes
+// TODO: Do we need to check for contact like in SCM?
+void ChVehicleCosimTerrainNodeGranularSPH::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
+    auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
+
+    ChVector3d force;
+    mesh_contact.nv = 0;
+    for (const auto& node : proxy->ptr2ind_map) {
+        mesh_contact.vidx.push_back(node.second);
+        mesh_contact.vforce.push_back(node.first->GetForce());
+        mesh_contact.nv++;
+    }
+}
 
 // -----------------------------------------------------------------------------
 
