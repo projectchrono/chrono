@@ -24,9 +24,16 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+// -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
 const double Generic_SimpleDriveline::m_front_torque_frac = 0.5;
 const double Generic_SimpleDriveline::m_front_diff_bias = 2.0;
 const double Generic_SimpleDriveline::m_rear_diff_bias = 2.0;
+const double Generic_SimpleDriveline::m_front_conicalgear_ratio = 0.25;
+const double Generic_SimpleDriveline::m_rear_conicalgear_ratio = 0.25;
+
+// -----------------------------------------------------------------------------
 
 Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChSimpleDriveline(name) {}
 

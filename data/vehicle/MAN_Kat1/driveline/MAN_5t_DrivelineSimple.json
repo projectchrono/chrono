@@ -1,10 +1,13 @@
 {
-  "Name":                       "MAN 5t 4WD Driveline",
-  "Type":                       "Driveline",
-  "Template":                   "SimpleDriveline",
+  "Name": "MAN 5t 4WD Driveline",
+  "Type": "Driveline",
+  "Template": "SimpleDriveline",
 
-  "Front Torque Fraction":       0.33,
+  "Front Torque Fraction": 0.33,
 
   "Front Differential Max Bias": 2.0,
-  "Rear Differential Max Bias":  2.0
+  "Rear Differential Max Bias": 2.0,
+
+  "Front Conical Gear Ratio": 0.25,
+  "Rear Conical Gear Ratio": 0.25
 }

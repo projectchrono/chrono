@@ -28,10 +28,11 @@ namespace man {
 const double MAN_5t_SimpleDriveline::m_front_torque_frac = 0.5;
 const double MAN_5t_SimpleDriveline::m_front_diff_bias = 2.0;
 const double MAN_5t_SimpleDriveline::m_rear_diff_bias = 2.0;
+const double MAN_5t_SimpleDriveline::m_front_conicalgear_ratio = 0.25;
+const double MAN_5t_SimpleDriveline::m_rear_conicalgear_ratio = 0.25;
 
 // -----------------------------------------------------------------------------
-// Constructor of MAN_5t_SimpleDriveline.
-// -----------------------------------------------------------------------------
+
 MAN_5t_SimpleDriveline::MAN_5t_SimpleDriveline(const std::string& name) : ChSimpleDriveline(name) {}
 
 }  // namespace man
