@@ -1,4 +1,5 @@
 #include "chrono/serialization/ChArchiveJSON.h"
+#include <limits>
 
 namespace chrono {
 ChArchiveOutJSON::ChArchiveOutJSON(std::ostream& stream_out) : m_ostream(stream_out) {
@@ -47,19 +48,33 @@ void ChArchiveOutJSON::out(ChNameValue<char> bVal) {
 void ChArchiveOutJSON::out(ChNameValue<float> bVal) {
     comma_cr();
     indent();
+    float mval = bVal.value();
     if (is_array.top() == false)
         m_ostream << "\"" << bVal.name() << "\""
                   << "\t: ";
-    m_ostream << bVal.value();
+    // +/- "Inf" not officially supported in JSON, so clamp:
+    if (mval < -std::numeric_limits<float>::max())
+        m_ostream << std::numeric_limits<float>::max(); // -Inf  
+    else if(mval > std::numeric_limits<float>::max())
+        m_ostream << std::numeric_limits<float>::max(); // +Inf 
+    else
+        m_ostream << mval;
     ++nitems.top();
 }
 void ChArchiveOutJSON::out(ChNameValue<double> bVal) {
     comma_cr();
     indent();
+    double mval = bVal.value();
     if (is_array.top() == false)
         m_ostream << "\"" << bVal.name() << "\""
                   << "\t: ";
-    m_ostream << bVal.value();
+    // +/- "Inf" not officially supported in JSON, so clamp:
+    if (mval < -std::numeric_limits<double>::max())
+        m_ostream << -std::numeric_limits<double>::max();
+    else if (mval > std::numeric_limits<double>::max())
+        m_ostream << std::numeric_limits<double>::max();
+    else
+        m_ostream << mval;
     ++nitems.top();
 }
 void ChArchiveOutJSON::out(ChNameValue<int> bVal) {
