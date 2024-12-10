@@ -134,11 +134,13 @@ int main(int argc, char* argv[]) {
     sys_master.AddBody(mrigidBody);
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
     mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
-    // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
+    //mrigidBody->SetTag(unique_ID); unique_ID++;
+    // A very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
     // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
-    // Note: an alternative to using SetTag() one by one, at the end you can use the helper 
+    // One way to do this: for each created item, do    
+    //    mrigidBody->SetTag(unique_ID); unique_ID++; 
+    // However an easier alternative to using SetTag() one by one is that at the end you use the helper 
     // ChArchiveSetUniqueTags (see snippet later)
-    mrigidBody->SetTag(unique_ID); unique_ID++; 
 
     auto mrigidBodyb = chrono_types::make_shared<ChBodyEasyBox>(0.7, 0.7, 0.7,  // x,y,z size
         400,         // density
@@ -148,7 +150,6 @@ int main(int argc, char* argv[]) {
     sys_master.AddBody(mrigidBodyb);
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
     mrigidBodyb->SetFixed(true);
-    mrigidBodyb->SetTag(unique_ID); unique_ID++;
 
     auto mrigidBodyc = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
         400,         // density
@@ -158,9 +159,7 @@ int main(int argc, char* argv[]) {
     sys_master.AddBody(mrigidBodyc);
     mrigidBodyc->SetPos(ChVector3d(0, -1.15, 0));
     mrigidBodyc->SetFixed(true);
-    mrigidBodyc->SetTag(unique_ID); unique_ID++;
     
-
     auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
         400,         // density
         true,        // visualization?
@@ -169,38 +168,11 @@ int main(int argc, char* argv[]) {
     sys_master.AddBody(mrigidBodyd);
     mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
     mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
-    mrigidBodyd->SetTag(unique_ID); unique_ID++;
 
     auto linkdistance = chrono_types::make_shared<ChLinkDistance>();
     sys_master.Add(linkdistance);
     linkdistance->Initialize(mrigidBody, mrigidBodyd, true, ChVector3d(0,1,0), ChVector3d(0,0,0));
-    linkdistance->SetTag(unique_ID); unique_ID++;
 
-    // add a FEA beam to test migration of meshes too
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    sys_master.Add(my_mesh);
-    my_mesh->SetTag(unique_ID); unique_ID++;
-
-    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
-    double beam_wy = 0.012;
-    double beam_wz = 0.025;
-    msection->SetAsRectangularSection(beam_wy, beam_wz);
-    msection->SetYoungModulus(0.01e9);
-    msection->SetShearModulus(0.01e9 * 0.3);
-
-    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(-0.8, 1.3, 0)));
-    hnode1->SetPosDt(ChVector3d(20, 0, 0));
-    hnode1->SetTag(unique_ID); unique_ID++;
-    my_mesh->AddNode(hnode1);
-    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d( 0.2, 1.3, 0)));
-    hnode2->SetPosDt(ChVector3d(20, 0, 0));
-    hnode2->SetTag(unique_ID); unique_ID++;
-    my_mesh->AddNode(hnode2);
-    auto belement1 = chrono_types::make_shared<ChElementBeamEuler>();
-    belement1->SetNodes(hnode1, hnode2);
-    belement1->SetSection(msection);
-    belement1->SetRestLength(1.0);
-    my_mesh->AddElement(belement1);
 
 
     // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
@@ -208,9 +180,9 @@ int main(int argc, char* argv[]) {
     // a SetTag function in sub objects, ans sets the ID incrementally. More hassle-free, but
     // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
     // Call this after you finished adding items to systems.
-    //   ChArchiveSetUniqueTags tagger;
-    //   tagger << CHNVP(sys_0);
-    //   tagger << CHNVP(sys_1);
+    ChArchiveSetUniqueTags tagger;
+    tagger.skip_already_tagged = false;
+    tagger << CHNVP(sys_master);
 
 
     // For debugging: open two 3D realtime view windows, each per domain:
