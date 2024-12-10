@@ -614,6 +614,8 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		for (const auto& ibody : bodies_migrating) {
 			std::shared_ptr<ChBody> body = ibody.obj;
+			if (rebinding_pointers.pointer_map_id_ptr.find(body->GetTag()) != rebinding_pointers.pointer_map_id_ptr.end())
+				continue;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ibody.container_ID]);
 			system->AddBody(body);
 			system->GetCollisionSystem()->BindItem(body);
@@ -623,6 +625,8 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		for (const auto& ilink : links_migrating) {
 			std::shared_ptr<ChLinkBase> link = ilink.obj;
+			if (rebinding_pointers.pointer_map_id_ptr.find(link->GetTag()) != rebinding_pointers.pointer_map_id_ptr.end())
+				continue;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ilink.container_ID]);
 			system->AddLink(link);
 		}
@@ -631,6 +635,8 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		for (const auto& iitem : items_migrating) {
 			std::shared_ptr<ChPhysicsItem> oitem = iitem.obj;
+			if (rebinding_pointers.pointer_map_id_ptr.find(oitem->GetTag()) != rebinding_pointers.pointer_map_id_ptr.end())
+				continue;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ilink.container_ID]);
 			system->AddOtherPhysicsItem(oitem);
 			system->GetCollisionSystem()->BindItem(oitem);
@@ -640,6 +646,8 @@ void  ChDomain::DoUpdateSharedReceived() {
 
 		for (const auto& imesh : meshes_migrating) {
 			std::shared_ptr<ChMesh> omesh = imesh.obj;
+			if (rebinding_pointers.pointer_map_id_ptr.find(omesh->GetTag()) != rebinding_pointers.pointer_map_id_ptr.end())
+				continue;
 			//std::shared_ptr<ChAssembly> assembly = std::dynamic_pointer_cast<ChAssembly>(interf.second.shared_items[ilink.container_ID]);
 			system->AddMesh(omesh);
 			system->GetCollisionSystem()->BindItem(omesh);
@@ -648,7 +656,8 @@ void  ChDomain::DoUpdateSharedReceived() {
 		// 5-NODES
 		for (const auto& inode : nodes_migrating) {
 			std::shared_ptr<ChNodeBase> onode = inode.obj;
-
+			if (rebinding_pointers.pointer_map_id_ptr.find(onode->GetTag()) != rebinding_pointers.pointer_map_id_ptr.end())
+				continue;
 			for (const auto& imesh : system->GetMeshes()) {
 				if (imesh->GetTag() == inode.container_ID) {
 					if (auto feanode = std::dynamic_pointer_cast<ChNodeFEAbase>(onode))
