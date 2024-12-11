@@ -101,33 +101,33 @@ int main(int argc, char* argv[]) {
     // Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
     // But in this case we already know we split into 2 domains. So we build them as:
 
-    ChSystemNSC sys_0;
+    ChSystemSMC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_0, // physical system of this domain
                                         0       // rank of this domain 
                                        ));
-    sys_0.GetSolver()->AsIterative()->SetMaxIterations(12);
-    sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
-    auto explicit_timestepper0 = chrono_types::make_shared<ChTimestepperHeun>(&sys_0);
-    explicit_timestepper0->SetConstraintsAsPenaltyON(1000); // use penalty for constraints, skip linear systems completely
+    // Set the time stepper: we have FEA, use an explicit time stepper. 
+    auto explicit_timestepper0 = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys_0);
+    explicit_timestepper0->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
     sys_0.SetTimestepper(explicit_timestepper0);
+    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
     auto lumped_solver0 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
     sys_0.SetSolver(lumped_solver0);
 
-    ChSystemNSC sys_1;
+    ChSystemSMC sys_1;
     sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_1, // physical system of this domain
                                         1       // rank of this domain 
                                        ));
-    sys_1.GetSolver()->AsIterative()->SetMaxIterations(12);
-    sys_1.GetSolver()->AsIterative()->SetTolerance(1e-6);
-    auto explicit_timestepper1 = chrono_types::make_shared<ChTimestepperHeun>(&sys_1);
-    explicit_timestepper1->SetConstraintsAsPenaltyON(1000); // use penalty for constraints, skip linear systems completely
+    // Set the time stepper: we have FEA, use an explicit time stepper.
+    auto explicit_timestepper1 = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys_1);
+    explicit_timestepper1->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
     sys_1.SetTimestepper(explicit_timestepper1);
+    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
     auto lumped_solver1 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
     sys_1.SetSolver(lumped_solver1);
 
@@ -140,9 +140,10 @@ int main(int argc, char* argv[]) {
     // - If an edge is in the domain and references a node that is not overlapping with domain, 
     //   then such node(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
 
-    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetFriction(0.1);
- 
+    mat->SetYoungModulus(2e7);
+
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
         100,         // density
         true,        // visualization?
@@ -256,7 +257,7 @@ int main(int argc, char* argv[]) {
     // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
     domain_manager.DoAllDomainInitialize();
 
-    for (int i = 0; i < 25; ++i) {
+    for (int i = 0; i < 200; ++i) {
         std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
        
         // For debugging: open two 3D realtime view windows, each per domain:
@@ -277,9 +278,9 @@ int main(int argc, char* argv[]) {
         domain_manager.DoAllDomainPartitionUpdate();
 
         // MULTIDOMAIN TIME INTEGRATION
-        domain_manager.DoAllStepDynamics(0.01);
+        domain_manager.DoAllStepDynamics(0.002);
 
-        system("pause");
+        //system("pause");
     }
    
    

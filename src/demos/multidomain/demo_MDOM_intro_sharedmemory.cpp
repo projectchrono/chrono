@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     sys_master.AddBody(mrigidBody);
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
     mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
-    //mrigidBody->SetTag(unique_ID); unique_ID++;
+
     // A very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
     // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
     // One way to do this: for each created item, do    
