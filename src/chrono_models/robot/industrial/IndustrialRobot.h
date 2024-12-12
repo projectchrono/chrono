@@ -49,7 +49,7 @@ class CH_MODELS_API IndustrialRobot {
     std::vector<std::shared_ptr<ChMarker>> GetMarkers() { return m_markerlist; }
 
     /// Get the list of motor functions in robot model.
-    std::vector<std::shared_ptr<ChFunctionSetpoint>> GetMotfuns() { return m_motfunlist; }
+    std::vector<std::shared_ptr<ChFunctionSetpoint>> GetMotionFunctions() { return m_motfunlist; }
 
     /// Get the list of motors in robot model.
     std::vector<std::shared_ptr<ChLinkMotor>> GetMotors() { return m_motorlist; }

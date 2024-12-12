@@ -22,8 +22,15 @@ namespace chrono {
 namespace industrial {
 
 void IndustrialRobot::SetSetpoints(const ChVectorDynamic<>& setpoints, double t) {
-    for (int i = 0; i < m_motfunlist.size(); ++i)
+    size_t num_setpoints = setpoints.size();
+    if (num_setpoints != m_motfunlist.size()) {
+        std::cerr << "Invalid setpoints size" << std::endl;
+        throw std::invalid_argument("Invalid setpoints size");
+    }
+
+    for (auto i = 0; i < num_setpoints; ++i) {
         m_motfunlist[i]->SetSetpoint(setpoints[i], t);
+    }
 }
 
 void IndustrialRobot::SetSetpoints(double setpoint, double t) {
