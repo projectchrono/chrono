@@ -2,7 +2,7 @@
 {
     "Type": "GRANULAR_SPH",
     "Patch dimensions": {
-        "Length": 8,
+        "Length": 20,
         "Width": 4,
         "Depth": 0.5
     },
@@ -11,7 +11,6 @@
         "Density": 1700,
         "Cohesion": 5e3
     },
-    "Output Folder": "demo_tire_rig",
     "SPH Parameters": {
         "Method": "WCSPH",
         "Epsilon": 0.001,

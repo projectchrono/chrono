@@ -10,7 +10,6 @@
         "Density": 1700,
         "Cohesion": 5e3
     },
-    "Output Folder": "demo_tire_rig",
     "SPH Parameters": {
         "Method": "WCSPH",
         "Epsilon": 0.001,
