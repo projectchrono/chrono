@@ -22,6 +22,7 @@
 #include <algorithm>
 
 #include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtils.h"
@@ -78,6 +79,9 @@ void ChClosedLoopDriver::Initialize() {
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
 
     road->AddVisualShape(path_asset);
+    if (m_vehicle.GetSystem()->GetVisualSystem()) {
+        m_vehicle.GetSystem()->GetVisualSystem()->BindItem(road);
+    }
 }
 
 void ChClosedLoopDriver::Reset() {
