@@ -33,7 +33,7 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -72,9 +72,13 @@ double Lx_fluid = 1.0;
 double Ly_fluid = Ly_bndry;
 double Lz_fluid = 0.75;
 
+// Create additional solids
+bool create_flex_plate2 = true;
+bool create_cylinder_post = true;
+bool create_cylinder_free = false;
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbose);
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose);
 bool GetProblemSpecs(int argc,
                      char** argv,
                      std::string& inputJSON,
@@ -93,6 +97,7 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
+    PhysicsProblem problem_type = PhysicsProblem::CFD;
     std::string inputJSON = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Flat_Plate_Explicit.json");
     double t_end = 4.0;
     bool verbose = true;
@@ -111,61 +116,119 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
-    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
+    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    sysFSI.SetVerbose(verbose);
+    // Create the FSI problem
+    double initial_spacing = (problem_type == PhysicsProblem::CFD) ? 0.02 : 0.01;
 
-    // Use the specified input JSON file
-    sysSPH.ReadParametersFromFile(inputJSON);
+    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    fsi.SetVerbose(verbose);
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
-    // Set boundary type
-    if (boundary_type == "holmes") {
-        sysSPH.SetBoundaryType(BoundaryType::HOLMES);
-    } else {
-        sysSPH.SetBoundaryType(BoundaryType::ADAMI);
+    // Set gravitational acceleration
+    const ChVector3d gravity(0, 0, -9.81);
+    fsi.SetGravitationalAcceleration(gravity);
+
+    // Set integration step size
+    double step_size = (problem_type == PhysicsProblem::CFD) ? 2e-5 : 2.5e-4;
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
+
+    // Set fluid phase properties
+    switch (problem_type) {
+        case PhysicsProblem::CFD: {
+            ChFluidSystemSPH::FluidProperties fluid_props;
+            fluid_props.density = 1000;
+            fluid_props.viscosity = 5.0;
+
+            fsi.SetCfdSPH(fluid_props);
+
+            break;
+        }
+        case PhysicsProblem::CRM: {
+            ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+            mat_props.density = 1700;
+            mat_props.Young_modulus = 1e6;
+            mat_props.Poisson_ratio = 0.3;
+            mat_props.mu_I0 = 0.03;
+            mat_props.mu_fric_s = 0.5;
+            mat_props.mu_fric_2 = 0.5;
+            mat_props.average_diam = 0.005;
+            mat_props.cohesion_coeff = 0;
+
+            fsi.SetElasticSPH(mat_props);
+
+            break;
+        }
     }
 
-    // Set viscosity type
-    if (viscosity_type == "laminar") {
-        sysSPH.SetViscosityType(ViscosityType::LAMINAR);
-    } else if (viscosity_type == "artificial_bilateral") {
-        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
-        sysSPH.SetArtificialViscosityCoefficient(0.2);
-    } else {
-        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
-        sysSPH.SetArtificialViscosityCoefficient(0.2);
+    // Set SPH solution parameters
+    ChFluidSystemSPH::SPHParameters sph_params;
+
+    switch (problem_type) {
+        case PhysicsProblem::CFD:
+            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.initial_spacing = initial_spacing;
+            sph_params.d0_multiplier = 1.2;
+            sph_params.max_velocity = 10;
+            sph_params.kernel_threshold = 0.8;
+            sph_params.xsph_coefficient = 0.5;
+            sph_params.shifting_coefficient = 0.0;
+            sph_params.artificial_viscosity = 0.2;
+            sph_params.use_delta_sph = true;
+            sph_params.delta_sph_coefficient = 0.1;
+            sph_params.num_proximity_search_steps = ps_freq;
+
+            break;
+
+        case PhysicsProblem::CRM:
+            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.initial_spacing = initial_spacing;
+            sph_params.d0_multiplier = 1.2;
+            sph_params.xsph_coefficient = 0.5;
+            sph_params.shifting_coefficient = 1.0;
+            sph_params.kernel_threshold = 0.8;
+            sph_params.artificial_viscosity = 0.5;
+            sph_params.num_proximity_search_steps = ps_freq;
+
+            break;
     }
 
-    // Set frequency of proximity search
-    sysSPH.SetNumProximitySearchSteps(ps_freq);
+    if (boundary_type == "holmes")
+        sph_params.boundary_type = BoundaryType::HOLMES;
+    else
+        sph_params.boundary_type = BoundaryType::ADAMI;
 
-    // Set simulation domain
-    sysSPH.SetContainerDim(ChVector3d(Lx_bndry, Ly_bndry, Lz_bndry));
-
-    auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin = ChVector3d(-5 * Lx_bndry, -Ly_bndry / 2 - initSpace0 / 2, -5 * Lz_bndry);
-    ChVector3d cMax = ChVector3d(+5 * Lx_bndry, +Ly_bndry / 2 + initSpace0 / 2, +5 * Lz_bndry);
-    sysSPH.SetBoundaries(cMin, cMax);
-
-    // Set SPH discretization type, consistent or inconsistent
-    sysSPH.SetConsistentDerivativeDiscretization(false, false);
-
-    // Create SPH particles of fluid region
-    chrono::utils::ChGridSampler<> sampler(initSpace0);
-    ChVector3d boxCenter(-Lx_bndry / 2 + Lx_fluid / 2, 0, Lz_fluid / 2);
-    ChVector3d boxHalfDim(Lx_fluid / 2 - initSpace0, Ly_fluid / 2, Lz_fluid / 2 - initSpace0);
-    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
-    size_t numPart = points.size();
-    for (int i = 0; i < numPart; i++) {
-        sysSPH.AddSPHParticle(points[i]);
-    }
+    if (viscosity_type == "laminar")
+        sph_params.viscosity_type = ViscosityType::LAMINAR;
+    else if (viscosity_type == "artificial_bilateral")
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    else
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
 
     // Create solids
-    auto mesh = CreateSolidPhase(sysFSI, verbose);
+    auto mesh = CreateSolidPhase(fsi, verbose);
 
-    // Initialize FSI system
-    sysFSI.Initialize();
+    // Enable depth-based initial pressure for SPH particles
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(Lz_fluid));
+    // Create SPH material (do not create any boundary BCEs)
+    fsi.Construct({Lx_fluid, Ly_fluid, Lz_fluid},        // box dimensions
+                  {-Lx_bndry / 2 + Lx_fluid / 2, 0, 0},  // reference location
+                  BoxSide::NONE                          // no boundary BCEs
+    );
+
+    // Create container (with bottom and left/right boundaries)
+    fsi.AddBoxContainer({Lx_bndry, Ly_bndry, Lz_bndry},                   // length x width x height
+                        ChVector3d(0, 0, 0),                              // reference location
+                        BoxSide::Z_NEG | BoxSide::X_NEG | BoxSide::X_POS  // bottom and left/right walls
+    );
+
+    ChVector3d cMin = ChVector3d(-5 * Lx_bndry, -Ly_bndry / 2 - initial_spacing / 2, -5 * Lz_bndry);
+    ChVector3d cMax = ChVector3d(+5 * Lx_bndry, +Ly_bndry / 2 + initial_spacing / 2, +5 * Lz_bndry);
+    fsi.SetComputationalDomainSize(ChAABB(cMin, cMax));
+
+    // Initialize FSI problem
+    fsi.Initialize();
 
     // Create output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Plate/";
@@ -174,7 +237,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString() + "/";
+    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString() + "/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -247,6 +310,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableFlexBodyMarkers(false);
+        visFSI->EnableRigidBodyMarkers(false);
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
@@ -270,7 +334,6 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Simulation loop
-    double dT = sysFSI.GetStepSizeCFD();
     double time = 0.0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -296,9 +359,7 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
 
             std::ostringstream filename;
             filename << out_dir << "/vtk/flex_body." << std::setw(5) << std::setfill('0') << out_frame + 1 << ".vtk";
@@ -306,7 +367,6 @@ int main(int argc, char* argv[]) {
 
             out_frame++;
         }
-
         // Render FSI system
         if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
@@ -320,6 +380,7 @@ int main(int argc, char* argv[]) {
                          << ".bmp";
                 visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
             }
+
             render_frame++;
         }
 
@@ -327,7 +388,7 @@ int main(int argc, char* argv[]) {
         double displacement = (pos - init_pos).Length();
         ofile << time << "\t" << pos.x() << "\t" << pos.y() << "\t" << pos.z() << "\t" << displacement << "\n";
 
-        sysFSI.DoStepDynamics(dT);
+        fsi.DoStepDynamics(step_size);
 
         timer_CFD += sysFSI.GetTimerCFD();
         timer_MBD += sysFSI.GetTimerMBD();
@@ -341,7 +402,7 @@ int main(int argc, char* argv[]) {
             cout << "   timer step: " << timer_step << endl;
         }
 
-        time += dT;
+        time += step_size;
         sim_frame++;
     }
     timer.stop();
@@ -361,40 +422,12 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
-// -----------------------------------------------------------------------------
-// Create the solid objects in the MBD system and their counterparts in the FSI system
-
-std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbose) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
-    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
-
-    sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
-    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
-    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
-
-    auto initSpace0 = sysSPH.GetInitialSpacing();
-
-    // Contact material (default properties)
-    auto contact_material_info = ChContactMaterialData();
-    auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
-
-    // Create ground body with a collision box
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    ground->EnableCollision(true);
-    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(Lx_bndry, Ly_bndry + 2 * initSpace0, 0.1),
-                          ChVector3d(0, 0, -0.05));
-    sysMBS.AddBody(ground);
-
-    // FSI representation of walls
-    sysSPH.AddBoxContainerBCE(ground,                                            //
-                              ChFrame<>(ChVector3d(0, 0, Lz_bndry / 2), QUNIT),  //
-                              ChVector3d(Lx_bndry, Ly_bndry, Lz_bndry),          //
-                              ChVector3i(2, 0, -1));
-
-
+std::shared_ptr<fea::ChMesh> CreateFlexiblePlate(ChSystem& sysMBS,
+                                                 double plate_x,
+                                                 double E,
+                                                 double initSpace0,
+                                                 std::shared_ptr<ChBody> ground,
+                                                 bool verbose) {
     // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
@@ -403,8 +436,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
     double y_plate = Ly_fluid;
     double z_plate = Lz_fluid;
 
-    ChVector3d center_plate(0.0, 0.0, z_plate / 2 + initSpace0);
-    ////ChVector3d center_plate(-0.25, 0.0, z_plate / 2 + initSpace0);
+    ChVector3d center_plate(plate_x, 0.0, z_plate / 2);
 
     // Specification of the mesh
     int numDiv_x = 1;
@@ -440,7 +472,6 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
 
     // Create an isotropic material; all layers for all elements share the same material
     double rho = 8000;
-    double E = 2e7;
     double nu = 0.3;
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
 
@@ -480,11 +511,6 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
         }
     }
 
-    // Create the FEA contact surface
-    auto contact_surface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
-    contact_surface->AddAllNodes(*mesh, sysSPH.GetInitialSpacing());
-    mesh->AddContactSurface(contact_surface);
-
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
@@ -495,10 +521,99 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI, bool verbo
     vis_mesh->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(vis_mesh);
 
-    // Add the mesh to the FSI system (only these meshes interact with the fluid)
-    sysFSI.AddFsiMesh(mesh);
-
     return mesh;
+}
+
+// -----------------------------------------------------------------------------
+// Create the solid objects in the MBD system and their counterparts in the FSI system
+
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose) {
+    ChSystem& sysMBS = fsi.GetMultibodySystem();
+
+    // Downstream locations
+    double plate1_x = 0.0;
+    double post_x = +0.6;
+    double plate2_x = +0.8;
+    double cyl_x = 1.2;
+
+    double initSpace0 = fsi.GetSystemFSI().GetFluidSystemSPH().GetInitialSpacing();
+    // Contact material (default properties)
+    auto contact_material_info = ChContactMaterialData();
+    contact_material_info.mu = 0.1f;
+    auto contact_material = contact_material_info.CreateMaterial(sysMBS.GetContactMethod());
+
+    // Create ground body with a collision box
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    ground->EnableCollision(true);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(Lx_bndry, Ly_bndry, 0.1), ChVector3d(0, 0, -0.05));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, Ly_bndry, Lz_bndry + 0.2),
+                          ChVector3d(+Lx_bndry / 2 + 0.05, 0, Lz_bndry / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(0.1, Ly_bndry, Lz_bndry + 0.2),
+                          ChVector3d(-Lx_bndry / 2 - 0.05, 0, Lz_bndry / 2));
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(Lx_bndry + 0.2, 0.1, Lz_bndry + 0.2),
+                          ChVector3d(0, +Ly_bndry / 2 + 0.05, Lz_bndry / 2), QUNIT, false);
+    utils::AddBoxGeometry(ground.get(), contact_material, ChVector3d(Lx_bndry + 0.2, 0.1, Lz_bndry + 0.2),
+                          ChVector3d(0, -Ly_bndry / 2 - 0.05, Lz_bndry / 2), QUNIT, false);
+    sysMBS.AddBody(ground);
+
+    // Create a fixed cylindrical post
+    if (create_cylinder_post) {
+        double length = 0.8;
+        double radius = 0.02;
+
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(contact_material_info);
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
+
+        auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetPos(ChVector3d(post_x, 0, length / 2));
+        cylinder->SetFixed(true);
+        cylinder->EnableCollision(false);
+        sysMBS.AddBody(cylinder);
+
+        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+
+        fsi.AddRigidBody(cylinder, geometry, false);
+    }
+
+    // Create a free cylindrical rigid body
+    if (create_cylinder_free) {
+        double length = 0.1;
+        double radius = 0.05;
+        double density = 200;
+        double volume = ChCylinder::GetVolume(radius, length);
+        double mass = density * volume;
+        auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
+
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(contact_material_info);
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length));
+
+        auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetMass(mass);
+        cylinder->SetInertiaXX(mass * gyration);
+        cylinder->SetPos(ChVector3d(cyl_x, 0, 0.1 + radius));
+        cylinder->SetFixed(false);
+        cylinder->EnableCollision(true);
+        sysMBS.AddBody(cylinder);
+
+        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+
+        fsi.AddRigidBody(cylinder, geometry, false);
+    }
+
+    // Create the first flexible cable and add to FSI system
+    auto mesh1 = CreateFlexiblePlate(sysMBS, plate1_x, 2e7, initSpace0, ground, verbose);
+    fsi.AddFeaMesh(mesh1, false);
+
+    // Create second flexible cable
+    if (create_flex_plate2) {
+        auto mesh2 = CreateFlexiblePlate(sysMBS, plate2_x, 5e8, initSpace0, ground, verbose);
+        fsi.AddFeaMesh(mesh2, false);
+    }
+
+    return mesh1;
 }
 
 // -----------------------------------------------------------------------------
