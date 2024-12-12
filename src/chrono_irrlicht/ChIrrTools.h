@@ -257,14 +257,21 @@ ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis,
                            bool use_Zbuffer = false);
 
 /// Draw a line arrow in 3D space with given color.
-ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual system
-                        ChVector3d start,                      ///< arrow start point
-                        ChVector3d end,                        ///< arrow end point
-                        ChVector3d plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
-                        bool sharp = false,                    ///< set arrow shape as 'sharp' or 'wide'
-                        ChColor col = ChColor(1.f, 1.f, 1.f),  ///< color
-                        bool use_Zbuffer = false               ///< use Z buffer
+ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,                  ///< visual system
+                        const ChVector3d& start,                      ///< arrow start point
+                        const ChVector3d& end,                        ///< arrow end point
+                        const ChVector3d& plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
+                        bool sharp = false,                           ///< set arrow shape as 'sharp' or 'wide'
+                        const ChColor& col = ChColor(1.f, 1.f, 1.f),  ///< color
+                        bool use_Zbuffer = false                      ///< use Z buffer
 );
+
+/// Draw a label in 3D scene at given position.
+ChApiIrr void drawLabel3D(ChVisualSystemIrrlicht* vis,
+                        const std::string& text,
+                        const ChVector3d& position,
+                        const ChColor& color = ChColor(0.f, 0.f, 0.f),
+                        bool use_Zbuffer = false);
 
 }  // end namespace tools
 
