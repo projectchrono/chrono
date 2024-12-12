@@ -347,6 +347,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, Te
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
 void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
+    if (m_verbose) {
+        cout << "[Terrain node] Create mesh proxy " << i << endl;
+    }
+
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
@@ -393,13 +397,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
     vis_mesh->SetWireframe(true);
     proxy->mesh->AddVisualShapeFEA(vis_mesh);
 
-    // Somehow, the system should not do fea on this mesh.
+    // Add mesh to MBS and FSI systems
     m_system->AddMesh(proxy->mesh);
-    m_system->GetCollisionSystem()->BindItem(proxy->mesh);
-
-    // Add the mesh to the SPH terrain
     m_terrain->AddFeaMesh(proxy->mesh, false);
-
+    
     m_proxies[i] = proxy;
 }
 
