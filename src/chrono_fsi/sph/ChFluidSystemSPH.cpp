@@ -962,9 +962,9 @@ void ChFluidSystemSPH::OnAddFsiMesh1D(unsigned int index, FsiMesh1D& fsi_mesh) {
 void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& tri : fsi_mesh.contact_surface->GetTrianglesXYZ()) {
-        auto node0_index = m_num_flex2D_elements + fsi_mesh.ptr2ind_map[tri->GetNode(0)];
-        auto node1_index = m_num_flex2D_elements + fsi_mesh.ptr2ind_map[tri->GetNode(1)];
-        auto node2_index = m_num_flex2D_elements + fsi_mesh.ptr2ind_map[tri->GetNode(2)];
+        auto node0_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map[tri->GetNode(0)];
+        auto node1_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map[tri->GetNode(1)];
+        auto node2_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map[tri->GetNode(2)];
         m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
     }
 
