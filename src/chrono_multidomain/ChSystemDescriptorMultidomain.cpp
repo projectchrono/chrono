@@ -237,6 +237,7 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
             serializer = chrono_types::make_shared<ChArchiveOutXML>(interf.second.buffer_sending); break;
         default: break;
         }
+        serializer->SetUseVersions(false);
 
         *serializer << CHNVP(Dv_shared);
         //std::cout << "\nVAR SERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
@@ -262,6 +263,7 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
             deserializer = chrono_types::make_shared<ChArchiveInXML>(interf.second.buffer_receiving); break;
         default: break;
         }
+        deserializer->SetUseVersions(false);
 
         *deserializer >> CHNVP(Dv_shared);
 

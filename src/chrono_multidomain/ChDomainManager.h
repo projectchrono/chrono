@@ -117,7 +117,12 @@ class ChApiMultiDomain ChDomainBuilder {
     ChDomainBuilder() {};
     virtual ~ChDomainBuilder() {}
 
+    /// Get the number of ranks needed for this domain splitting 
     virtual int GetTotRanks() = 0;
+    
+    /// If there is a master rank, for global coarse operations or other needs, return its rank 
+    /// (if master not supported or not enabled, children classes must break via assert)
+    virtual int GetMasterRank() = 0;
 
   private:
 };
@@ -140,6 +145,8 @@ public:
 
     virtual int GetTotRanks() override { return GetTotSlices() + (int)m_build_master; };
     
+    virtual int GetMasterRank() override { assert(m_build_master);  return GetTotSlices(); };
+
     virtual int GetTotSlices() { return (int)(domains_bounds.size() - 1); };
 
     std::shared_ptr<ChDomain> BuildDomain(
