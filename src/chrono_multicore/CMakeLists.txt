@@ -52,6 +52,10 @@ mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
 cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CMAKE_CUDA_COMPILER" OFF)
 
 if(USE_MULTICORE_CUDA)
+
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+
   set(CHRONO_MULTICORE_USE_CUDA "#define CHRONO_MULTICORE_USE_CUDA")
 else()
   set(CHRONO_MULTICORE_USE_CUDA "#undef CHRONO_MULTICORE_USE_CUDA")
@@ -184,20 +188,22 @@ add_library(ChronoEngine_multicore
 )
 
 if(USE_MULTICORE_CUDA)
-  target_sources(ChronoEngine_multicore PRIVATE ${ChronoEngine_Multicore_CUDA}) 
+  target_sources(ChronoEngine_multicore PRIVATE ${ChronoEngine_Multicore_CUDA})
+  target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::cudart_static)
+  target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::nvrtc)
+  target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::cuda_driver)
 endif()
 
 set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 
-# PUBLIC|PRIVATE|INTERFACE keywords cannot be used yet since the FindCUDA is using the plain version (without keywords) thus forcing all the remaining target_link_libraries on the same target to be plain as well
-target_link_libraries(ChronoEngine_multicore ChronoEngine)
+target_link_libraries(ChronoEngine_multicore PRIVATE ChronoEngine)
 if(ENABLE_OPENMP)
-  target_link_libraries(ChronoEngine_multicore OpenMP::OpenMP_CXX)
+  target_link_libraries(ChronoEngine_multicore PRIVATE OpenMP::OpenMP_CXX)
 elseif(ENABLE_TBB)
-  target_link_libraries(ChronoEngine_multicore ${TBB_LIBRARIES})
+  target_link_libraries(ChronoEngine_multicore PRIVATE ${TBB_LIBRARIES})
 endif()
-target_link_libraries(ChronoEngine_multicore Thrust::Thrust) # here Thrust is available for sure
-target_link_libraries(ChronoEngine_multicore Blaze::Blaze)
+target_link_libraries(ChronoEngine_multicore PRIVATE Thrust::Thrust) # here Thrust is available for sure
+target_link_libraries(ChronoEngine_multicore PRIVATE Blaze::Blaze)
 if(BOOST_REQUIRED)
   target_include_directories(ChronoEngine_multicore PRIVATE "${Boost_INCLUDE_DIRS}")
 endif()

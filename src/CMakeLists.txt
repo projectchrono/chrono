@@ -117,25 +117,25 @@ endif()
 
 
 
-# #-----------------------------------------------------------------------------
-# # CUDA support
-# #-----------------------------------------------------------------------------
+# # #-----------------------------------------------------------------------------
+# # # CUDA support
+# # #-----------------------------------------------------------------------------
 
-include(CheckLanguage)
-check_language(CUDA)
+# include(CheckLanguage)
+# check_language(CUDA)
 
-# If CUDA was found, enable the CUDA language
-if(CMAKE_CUDA_COMPILER)
-    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "  CUDA toolkit root dir: ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
-    enable_language(CUDA)
-    set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
-    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
-    message(STATUS "CUDA found and enabled.")
-else()
-    mark_as_advanced(FORCE CUDA_ARCHITECTURES)
-    message(WARNING "CUDA not found. CUDA features will be disabled.")
-endif()
+# # If CUDA was found, enable the CUDA language
+# if(CMAKE_CUDA_COMPILER)
+#     message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
+#     message(STATUS "  CUDA toolkit root dir: ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
+#     enable_language(CUDA)
+#     set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
+#     mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
+#     message(STATUS "CUDA found and enabled.")
+# else()
+#     mark_as_advanced(FORCE CUDA_ARCHITECTURES)
+#     message(WARNING "CUDA not found. CUDA features will be disabled.")
+# endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CUDA_SEPARABLE_COMPILATION OFF)

@@ -17,8 +17,12 @@
 
 #pragma once
 
+#include <vector_functions.hpp>
+#include <vector_types.h>
+#include "chrono/multicore_math/real.h"
 #include "chrono/multicore_math/ChCudaDefines.h"
 #include <iostream>
+
 
 namespace chrono {
 
@@ -26,48 +30,6 @@ namespace chrono {
     #define FLT_EPSILON 1.19209290E-07F
     #define FLT_MAX 3.40282347E+38F
 #endif
-
-#define OPERATOR_EQUALSALT(op, tin, tout)                           \
-    static inline tout& operator op##=(tout& a, const tin& scale) { \
-        a = a op scale;                                             \
-        return a;                                                   \
-    }
-
-template <typename T>
-CUDA_HOST_DEVICE static inline T Sign(const T& x) {
-    if (x < 0) {
-        return T(-1.0f);
-    } else if (x > 0.0f) {
-        return T(1.0f);
-    } else {
-        return T(0.0f);
-    }
-}
-template <typename T>
-CUDA_HOST_DEVICE static inline T Sqr(const T x) {
-    return x * x;
-}
-template <typename T>
-CUDA_HOST_DEVICE static inline T Cube(const T x) {
-    return x * x * x;
-}
-
-template <typename T>
-CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
-    T temp = a;
-    a = b;
-    b = temp;
-}
-
-template <typename T>
-CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
-    if (a > b)
-        Swap(a, b);
-    if (b > c)
-        Swap(b, c);
-    if (a > b)
-        Swap(a, b);
-}
 
 CUDA_HOST_DEVICE static inline float3 operator+(const float3& a, float b) {
     return make_float3(a.x + b, a.y + b, a.z + b);
@@ -167,7 +129,7 @@ CUDA_HOST_DEVICE static inline float2 Normalize(const float2& v) {
     return v / sqrtf(Dot(v));
 }
 
-CUDA_HOST_DEVICE inline float Clamp(float x, float low, float high) {
+CUDA_HOST_DEVICE inline float Clampf(float x, float low, float high) {
     if (low > high) {
         Swap(low, high);
     }
