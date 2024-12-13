@@ -3,6 +3,7 @@
 # List of demos with no additional dependencies 
 set(MULTIDOMAIN_DEMOS
     demo_MDOM_intro_distributedMPI
+    demo_MDOM_intro_distributedMPI_lowlevel
 	)
 
 # List of demos requiring the Chrono::Irrlicht module
@@ -28,8 +29,9 @@ foreach(PROGRAM ${MULTIDOMAIN_DEMOS})
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")    
     target_link_libraries(${PROGRAM} 
 		ChronoEngine 
-		ChronoEngine_multidomain)
-    add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_multidomain)
+		ChronoEngine_postprocess
+        ChronoEngine_multidomain)
+    add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_postprocess ChronoEngine_multidomain)
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
