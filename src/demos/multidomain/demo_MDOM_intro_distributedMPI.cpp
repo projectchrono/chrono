@@ -16,19 +16,28 @@
 //  using distributed memory. This needs MPI, as many executables will be spawn
 //  on different computing nodes. 
 //
+//  We add all objects into a "master domain" that wraps all the scene, then we
+//  let that  DoAllDomainInitialize() will split all the items automatically into
+//  the corresponding domains. (This is easy and almost error-proof, but if you
+//  need to avoid a master domain for efficiency/space reasons, look at the
+//  alternative model creation mode in ...lowlevel.cpp demos.)
+// 
 // =============================================================================
 
-#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
+#include "chrono/serialization/ChArchiveUtils.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
 #include "chrono_multidomain/ChDomainManagerMPI.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
+#include "chrono_postprocess/ChBlender.h"
 
 using namespace chrono;
 using namespace multidomain;
+using namespace postprocess;
 
 // For multi domain simulations, each item (body, link, fea element or node, etc.) must have
 // an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
@@ -55,9 +64,6 @@ int main(int argc, char* argv[]) {
     //   mpiexec -n 2 demo_MDOM_intro_distributedMPI.exe  
 
 
-    // EXAMPLE A
-    //
-    // Basic functionality of the multidomain module: a body traveling through two domains.
 
     // 1- first you need a domain manager. This will use MPI distributed computing
     // as a method for parallelism (spreading processes on multiple computing nodes)
@@ -65,9 +71,10 @@ int main(int argc, char* argv[]) {
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
     // For debugging/logging:
-    domain_manager.verbose_partition = false; // will print  partitioning in std::cout?
-    domain_manager.verbose_serialization = true; // will print serialization buffers in std::cout?
-    domain_manager.verbose_variable_updates = true; // will print all messages in std::cout?
+    domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
+    domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
+    domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
+    domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -75,52 +82,117 @@ int main(int argc, char* argv[]) {
     // Here we split it using parallel planes like in sliced bread:
 
     ChDomainBuilderSlices       domain_builder(
-                                        std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
-                                        ChAxis::X);     // axis about whom one needs the space slicing
+                                        std::vector<double>{0}, // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
+                                        ChAxis::X,              // axis about whom one needs the space slicing
+                                        true);      // build also master domain, interfacing to all slices, for initial injection of objects   
     
 
     // 3- create the ChDomain object and its ChSystem physical system.
     // Only a single system is created, because this is already one of n 
-    // parallel processes.
+    // parallel processes. One must be the master domain.
 
-    ChSystemSMC sys;
+    ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     
-    domain_manager.SetDomain(domain_builder.BuildDomain(
-                                        &sys, // physical system of this domain
-                                        domain_manager.GetMPIrank()     // rank of this domain 
-                                       ));
-    sys.GetSolver()->AsIterative()->SetMaxIterations(5);
+    if (domain_manager.GetMPIrank() == domain_builder.GetMasterRank()) {
+        domain_manager.SetDomain(domain_builder.BuildMasterDomain(
+            &sys // physical system of this domain
+        ));
+    }
+    else {
+        domain_manager.SetDomain(domain_builder.BuildDomain(
+            &sys,  // physical system of this domain
+            domain_manager.GetMPIrank()  // rank of this domain, must be unique and starting from 0 
+        ));
+    }
+
+    // set solver, timestepper, etc. Do this after SetDomain(). 
+    sys.GetSolver()->AsIterative()->SetMaxIterations(10);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
+    sys.SetMaxPenetrationRecoverySpeed(1.0);
  
 
-    // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
-    // Each item must be added to the ChSystem of the domain that the item overlaps with. 
+    // 4- we create and populate the MASTER domain with bodies, links, meshes, nodes, etc. 
+    //    At the beginning of the simulation, the master domain will break into 
+    //    multiple data structures and will serialize them into the proper subdomains.
+    //    (Note that there is a "low level" version of this demo that shows how
+    //    to bypass the use of the master domain, in case of extremely large systems
+    //    where you might want to create objects directly split in the n-th computing node.)
 
-    // In this example, the body initially is in the first domain, rank=0, not in the second, rank=1.
-    // So check the rank of this process and see which item to create. 
-    if (domain_manager.GetMPIrank() == 0) {
+
+    if (domain_manager.GetMPIrank() == domain_builder.GetMasterRank()) {
         
-        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
-        mat->SetFriction(0.1);
+        auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
+        mat->SetFriction(0.4f);
 
-        auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
-            100,         // density
-            true,        // visualization?
-            true,        // collision?
-            mat);        // contact material
-        sys.AddBody(mrigidBody);
-        mrigidBody->SetPos(ChVector3d(-1.5, 0, 0));
-        mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
-        // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
-        // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
-        mrigidBody->SetTag(unique_ID); unique_ID++;
+        // Create bricks
+        for (int ai = 0; ai < 1; ai++) {           // N. of walls
+            for (int bi = 0; bi < 10; bi++) {      // N. of vert. bricks
+                for (int ui = 0; ui < 15; ui++) {  // N. of hor. bricks
+
+                    auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(3.96, 2, 4,  // x,y,z size
+                        100,         // density
+                        true,        // visualization?
+                        true,        // collision?
+                        mat);        // contact material
+                    mrigidBody->SetPos(ChVector3d(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, ai * 9));
+                    mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_borders.png"));
+                    sys.Add(mrigidBody);
+                }
+            }
+        }
+
+        // Create the floor using fixed rigid body of 'box' type:
+        auto mrigidFloor = chrono_types::make_shared<ChBodyEasyBox>(250, 4, 250,  // x,y,z size
+            1000,         // density
+            true,         // visulization?
+            true,         // collision?
+            mat);         // contact material
+        mrigidFloor->SetPos(ChVector3d(0, -2, 0));
+        mrigidFloor->SetFixed(true);
+
+        sys.Add(mrigidFloor);
+
+        // Create a ball that will collide with wall
+        auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,     // radius
+            8000,  // density
+            true,  // visualization?
+            true,  // collision?
+            mat);  // contact material
+        mrigidBall->SetPos(ChVector3d(0, -2, 0));
+        mrigidBall->SetPos(ChVector3d(0, 3, -8));
+        mrigidBall->SetPosDt(ChVector3d(0, 0, 16));  // set initial speed
+        mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+        sys.Add(mrigidBall);
+
+        // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
+        // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
+        // a SetTag function in sub objects, ans sets the ID incrementally. More hassle-free, but
+        // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
+        // Call this after you finished adding items to systems.
+        ChArchiveSetUniqueTags tagger;
+        tagger.skip_already_tagged = false;
+        tagger << CHNVP(sys);
     }
+ 
+
+    // OPTIONAL: POSTPROCESSING VIA BLENDER3D
+   
+    // Create an exporter to Blender
+    ChBlender blender_exporter = ChBlender(&sys);
+
+    // Set the path where it will save all files, a directory will be created if not existing. 
+    // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
+    blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
+
+    // Initial script, save once at the beginning
+    blender_exporter.ExportScript();
+
 
     // INITIAL SETUP OF COLLISION AABBs 
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < 25; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
@@ -134,7 +206,14 @@ int main(int argc, char* argv[]) {
         // has been defaulted to ChSolverPSORmultidomain when we did domain_manager.SetDomain(),
         // and this type of solver is aware that MPI intercommunication must be done while doing
         // its iterations.
-        sys.DoStepDynamics(0.01);
+        sys.DoStepDynamics(0.02);
+
+        // OPTIONAL POSTPROCESSING FOR 3D RENDERING
+        // Before ExportData(), we must do a remove-add trick as an easy way to handle the fact
+        // that objects are constantly added and removed from the i-th domain when crossing boundaries.
+        blender_exporter.RemoveAll();  
+        blender_exporter.AddAll();
+        blender_exporter.ExportData();
 
     }
    

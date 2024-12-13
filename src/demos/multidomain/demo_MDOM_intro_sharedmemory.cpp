@@ -15,6 +15,16 @@
 //  Demo code about splitting a system into domains using the MULTIDOMAIN module
 //  using shared memory (just OpenMP multithreading, no MPI).
 //
+//  This demo shows basic functionality of the module: a body traveling through 
+//  two domains with a sphere connected to its top via a link, and hitting another 
+//  domain.
+// 
+//  We add all objects into a "master domain" that wraps all the scene, then we
+//  let that  DoAllDomainInitialize() will split all the items automatically into
+//  the corresponding domains. (This is easy and almost error-proof, but if you
+//  need to avoid a master domain for efficiency/space reasons, look at the
+//  alternative model creation mode in ...lowlevel.cpp demos.)
+//
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
@@ -59,10 +69,6 @@ int main(int argc, char* argv[]) {
     // then more advanced stuff must run usnig the MPI domain manager, shown in other demos.
 
 
-    // EXAMPLE A
-    //
-    // Basic functionality of the multidomain module: a body traveling through two domains.
-
     // 1- first you need a domain manager. This will use the OpenMP multithreading 
     // as a method for parallelism:
 
@@ -70,9 +76,9 @@ int main(int argc, char* argv[]) {
 
     // For debugging/logging:
     domain_manager.verbose_partition = true; // will print partitioning in std::cout ?
-    domain_manager.verbose_serialization = false; // will print serialization buffers in std::cout ?
+    domain_manager.verbose_serialization = true; // will print serialization buffers in std::cout ?
     domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
-    domain_manager.serializer_type = DomainSerializerFormat::JSON; 
+    domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -118,8 +124,10 @@ int main(int argc, char* argv[]) {
     domain_manager.AddDomain(domain_builder.BuildMasterDomain(
         &sys_master // physical system of the master domain (its rank automatically set to last domain+1)
     ));
+    
     sys_master.GetSolver()->AsIterative()->SetMaxIterations(12);
     sys_master.GetSolver()->AsIterative()->SetTolerance(1e-6);
+
 
     // Ok, now we proceed as usual in Chrono, adding items into the system :-)
 

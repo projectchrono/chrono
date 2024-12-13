@@ -15,6 +15,14 @@
 //  Demo code about splitting a system into domains using the MULTIDOMAIN module
 //  using shared memory (just OpenMP multithreading, no MPI).
 // 
+//  This demo shows basic functionality of the module: a body traveling through 
+//  two domains with a sphere connected to its top via a link, and hitting another 
+//  domain. A FEA element is added too.
+// 
+//  Because of the presence of FEA, the timestepper is switched to explicit 
+//  integration with diagonal lumped mass solver, ChSolverLumpedMultidomain 
+//  (the easiest scenario for a distributed memory solver).
+// 
 //  It shows "low level" initializiation: in fact here we do not use a master 
 //  domain that takes care of splitting the system at the beginning: it is up to 
 //  the user to create objects in the corresponding system in already split way.
@@ -23,9 +31,6 @@
 //  aspect is that for extremely large systems one does not need to create a huge
 //  master system at the beginning, that could not fit into a single node memory.
 // 
-//  Also, it shows the case of FEA with implicit integration with diagonal lumped mass 
-//  solver (the easiest scenario for a distributed memory solver)
-//
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
@@ -71,10 +76,6 @@ int main(int argc, char* argv[]) {
     // then more advanced stuff must run usnig the MPI domain manager, shown in other demos.
 
 
-    // EXAMPLE A
-    //
-    // Basic functionality of the multidomain module: a body traveling through two domains.
-
     // 1- first you need a domain manager. This will use the OpenMP multithreading 
     // as a method for parallelism:
 
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
     domain_manager.verbose_partition = true; // will print partitioning in std::cout ?
     domain_manager.verbose_serialization = true; // will print serialization buffers in std::cout ?
     domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
-    domain_manager.serializer_type = DomainSerializerFormat::JSON; 
+    domain_manager.serializer_type = DomainSerializerFormat::JSON; // default BINARY, use JSON or XML for readable verbose
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -144,12 +145,13 @@ int main(int argc, char* argv[]) {
     mat->SetFriction(0.1);
     mat->SetYoungModulus(2e7);
 
+    // A moving box, initially contained in domain 0 
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
         100,         // density
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_0.AddBody(mrigidBody);
+    sys_0.AddBody(mrigidBody);              // note "sys_0", cause it starts in domain 0
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
     mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
     // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
@@ -158,27 +160,42 @@ int main(int argc, char* argv[]) {
     // ChArchiveSetUniqueTags (see snippet later)
     mrigidBody->SetTag(unique_ID); unique_ID++; 
 
+    // A box, initially contained in domain 1 
     auto mrigidBodyb = chrono_types::make_shared<ChBodyEasyBox>(0.7, 0.7, 0.7,  // x,y,z size
         400,         // density
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_1.AddBody(mrigidBodyb);
+    sys_1.AddBody(mrigidBodyb);             // note "sys_1", cause it starts in domain 1
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
     mrigidBodyb->SetFixed(true);
     mrigidBodyb->SetTag(unique_ID); unique_ID++;
 
-    auto mrigidBodyc = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
+    // A floor
+    auto mrigidBody_floor_0 = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
         400,         // density
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
-    sys_0.AddBody(mrigidBodyc);
-    mrigidBodyc->SetPos(ChVector3d(0, -1.15, 0));
-    mrigidBodyc->SetFixed(true);
-    mrigidBodyc->SetTag(unique_ID); unique_ID++;
+    sys_0.AddBody(mrigidBody_floor_0);
+    mrigidBody_floor_0->SetPos(ChVector3d(0, -1.15, 0));
+    mrigidBody_floor_0->SetFixed(true);
+    mrigidBody_floor_0->SetTag(unique_ID); unique_ID++;
     
+    // Note, the floor starts overlapped betwen domains 0 and 1, so add the previous stuff also to 
+    // domain 1, but WITH THE SAME TAG identifier! (note that this could be optional because at 1st
+    // time step the DoAllDomainInitialize(); would copy the floor from 0 to 1 anyway)
+    auto mrigidBody_floor_1 = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
+        400,         // density
+        true,        // visualization?
+        true,        // collision?
+        mat);        // contact material
+    sys_1.AddBody(mrigidBody_floor_1); 
+    mrigidBody_floor_1->SetPos(ChVector3d(0, -1.15, 0));
+    mrigidBody_floor_1->SetFixed(true);
+    mrigidBody_floor_1->SetTag(unique_ID); 
 
+    // A small sphere to connect via a constraint
     auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
         400,         // density
         true,        // visualization?
@@ -189,12 +206,13 @@ int main(int argc, char* argv[]) {
     mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
     mrigidBodyd->SetTag(unique_ID); unique_ID++;
 
+    // A constraint. Add to domain 0 because the link reference is mrigidBodyd, now in domain 0
     auto linkdistance = chrono_types::make_shared<ChLinkDistance>();
     sys_0.Add(linkdistance);
     linkdistance->Initialize(mrigidBody, mrigidBodyd, true, ChVector3d(0,1,0), ChVector3d(0,0,0));
     linkdistance->SetTag(unique_ID); unique_ID++;
 
-    // add a FEA beam to test migration of meshes too
+    // Add a FEA beam to test migration of meshes too
     auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
     sys_0.Add(my_mesh);
     my_mesh->SetTag(unique_ID); unique_ID++;
@@ -229,6 +247,7 @@ int main(int argc, char* argv[]) {
     // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
     // Call this after you finished adding items to systems.
     //   ChArchiveSetUniqueTags tagger;
+    //   tagger.skip_already_tagged = false;
     //   tagger << CHNVP(sys_0);
     //   tagger << CHNVP(sys_1);
 
@@ -280,7 +299,7 @@ int main(int argc, char* argv[]) {
         // MULTIDOMAIN TIME INTEGRATION
         domain_manager.DoAllStepDynamics(0.002);
 
-        //system("pause");
+        system("pause");
     }
    
    
