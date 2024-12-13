@@ -1233,10 +1233,8 @@ unsigned int ChSystem::GetNumContacts() {
     return contact_container->GetNumContacts();
 }
 
-double ChSystem::ComputeCollisions() {
+unsigned int ChSystem::ComputeCollisions() {
     CH_PROFILE("ComputeCollisions");
-
-    double mretC = 0.0;
 
     timer_collision.start();
 
@@ -1278,7 +1276,7 @@ double ChSystem::ComputeCollisions() {
 
     timer_collision.stop();
 
-    return mretC;
+    return ncontacts;
 }
 
 // -----------------------------------------------------------------------------
