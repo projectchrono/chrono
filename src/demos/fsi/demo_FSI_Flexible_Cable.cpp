@@ -61,6 +61,9 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
+// Physics problem type
+PhysicsProblem problem_type = PhysicsProblem::CFD;
+
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
@@ -73,6 +76,14 @@ double czDim = 2.0;
 bool create_flex_cable2 = false;
 bool create_cylinder_post = false;
 bool create_cylinder_free = false;
+
+// Visibility flags
+bool show_rigid = true;
+bool show_rigid_bce = false;
+bool show_mesh = true;
+bool show_mesh_bce = true;
+bool show_boundary_bce = true;
+bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
@@ -103,7 +114,6 @@ class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibi
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    PhysicsProblem problem_type = PhysicsProblem::CFD;
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
@@ -113,9 +123,10 @@ int main(int argc, char* argv[]) {
     bool snapshots = false;
     int ps_freq = 1;
     std::string boundary_type = "adami";
-    std::string viscosity_type = "artificial_unilateral";
-    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots,
-                         ps_freq, boundary_type, viscosity_type)) {
+    std::string viscosity_type =
+        (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
+                         boundary_type, viscosity_type)) {
         return 1;
     }
 
@@ -323,9 +334,10 @@ int main(int argc, char* argv[]) {
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->SetLightIntensity(0.9);
         visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
-        visFSI->EnableBoundaryMarkers(true);
-        visFSI->EnableFlexBodyMarkers(true);
-        visFSI->EnableRigidBodyMarkers(false);
+        visFSI->EnableFluidMarkers(show_particles_sph);
+        visFSI->EnableBoundaryMarkers(show_boundary_bce);
+        visFSI->EnableFlexBodyMarkers(show_mesh_bce);
+        visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
@@ -466,6 +478,15 @@ std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, doub
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
+    if (show_mesh) {
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+        vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
+        vis_mesh->SetSmoothFaces(true);
+        vis_mesh->SetWireframe(false);
+        mesh->AddVisualShapeFEA(vis_mesh);
+    }
+
     return mesh;
 }
 
@@ -513,7 +534,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(false);
         sysMBS.AddBody(cylinder);
 
-        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        if (show_rigid)
+            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -539,7 +561,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(true);
         sysMBS.AddBody(cylinder);
 
-        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        if (show_rigid)
+            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -587,10 +610,9 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", boundary_type);
     cli.AddOption<std::string>("Physics", "viscosity_type",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)",
-                               "artificial_unilateral");
+                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_type);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
