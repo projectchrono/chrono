@@ -231,7 +231,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_sysSPH->GetNumRigidBodyMarkers(); i++) {
             m_rigid_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 2);
+        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 4);
         sphere->SetColor(m_rigid_bce_color);
         m_rigid_bce_cloud->AddVisualShape(sphere);
         m_sysMBS->Add(m_rigid_bce_cloud);
@@ -244,7 +244,7 @@ void ChFsiVisualizationVSG::Initialize() {
         for (int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
             m_flex_bce_cloud->AddParticle(CSYSNULL);
         }
-        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 2);
+        auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(m_sysSPH->GetInitialSpacing() / 4);
         sphere->SetColor(m_flex_bce_color);
         m_flex_bce_cloud->AddVisualShape(sphere);
         m_sysMBS->Add(m_flex_bce_cloud);
