@@ -270,7 +270,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 			serializer = chrono_types::make_shared<ChArchiveOutXML>(interf.second.buffer_sending); break;
 		default: break;
 		}
-
+		serializer->SetUseVersions(false);
 		serializer->SetEmptyShallowContainers(true);	// we will take care of contained items one by one
 		serializer->SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
 	
@@ -589,6 +589,7 @@ void  ChDomain::DoUpdateSharedReceived() {
 		deserializer->ExternalPointersMap() = rebinding_pointers.pointer_map_id_ptr; // will rebuild all pointers between objects with GetTag()
 		deserializer->SharedPointersMap() = rebinding_pointers.shared_ptr_map;
 		//deserializer->RebindExternalPointer(this->system, this->system->GetTag()); // assuming all domains have ChSystem with same tag
+		deserializer->SetUseVersions(false);
 
 		//***TEST
 		/*

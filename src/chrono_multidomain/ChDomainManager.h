@@ -77,7 +77,7 @@ public:
     /// For serializing-deserializing objects that cross domain boundaries, domains
     /// will convert transient objects into buffers to be exchanged. The serialization in BINARY 
     /// format is the fastest, whereas XML or JSON are slow and large but useful for debugging.
-    DomainSerializerFormat serializer_type = DomainSerializerFormat::XML;
+    DomainSerializerFormat serializer_type = DomainSerializerFormat::BINARY;
 
 
     // FOR MATH 
