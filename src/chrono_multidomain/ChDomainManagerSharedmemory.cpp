@@ -98,6 +98,8 @@ int ChDomainManagerSharedmemory::ReduceAll(int mrank, double send, double& recei
 
 	this->domain_sends[mrank] = send;
 
+#pragma omp barrier
+
 	if (mrank == 0) {
 		for (int i = 0; i < this->domains.size(); ++i) {
 			switch (operation) {
