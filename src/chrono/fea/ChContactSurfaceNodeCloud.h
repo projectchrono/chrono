@@ -37,6 +37,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// Set the FEA node to whom this is a proxy.
     void SetNode(ChNodeFEAxyz* node) { m_node = node; }
 
+    /// Get the current position.
+    const ChVector3d& GetPos() const { return m_node->GetPos(); }
+
     /// Get the contact surface container.
     ChContactSurface* GetContactSurface() const { return m_container; }
 
@@ -158,6 +161,9 @@ class ChApi ChContactNodeXYZRot : public ChContactable_1vars<6> {
 
     /// Set the FEA node to whom this is a proxy
     void SetNode(ChNodeFEAxyzrot* node) { m_node = node; }
+
+    /// Get the current position.
+    const ChVector3d& GetPos() const { return m_node->GetPos(); }
 
     /// Get the contact surface container
     ChContactSurface* GetContactSurface() const { return m_container; }
@@ -288,6 +294,9 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     /// Utility function to add nodes of the associated mesh belonging to the given node_set, to this collision cloud.
     void AddNodesFromNodeSet(const std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set,
                              const double point_radius = 0.001);
+
+    /// Get the current axis-aligned bounding box.
+    virtual ChAABB GetAABB() const override;
 
     /// Get the list of nodes.
     std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodes() { return m_nodes; }

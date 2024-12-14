@@ -184,5 +184,16 @@ void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSyste
     }
 }
 
+ChAABB ChContactSurfaceNodeCloud::GetAABB() const {
+    ChAABB aabb;
+    for (const auto& node : m_nodes) {
+        aabb += node->GetPos();
+    }
+    for (const auto& node : m_nodes_rot) {
+        aabb += node->GetPos();
+    }
+    return aabb;
+}
+
 }  // end namespace fea
 }  // end namespace chrono
