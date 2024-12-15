@@ -106,6 +106,7 @@ int main(int argc, char* argv[]) {
                                         domain_manager.GetMPIrank()     // rank of this domain 
                                        ));
     sys.GetSolver()->AsIterative()->SetMaxIterations(20);
+    sys.GetSolver()->AsIterative()->EnableWarmStart(true);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
  
 

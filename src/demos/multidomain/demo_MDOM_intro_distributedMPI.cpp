@@ -75,10 +75,10 @@ int main(int argc, char* argv[]) {
 
 
     // For debugging/logging:
-    domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
+    domain_manager.verbose_partition = false; // will print  partitioning in std::cout?
     domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
-    domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
+    domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -111,7 +111,8 @@ int main(int argc, char* argv[]) {
     }
 
     // set solver, timestepper, etc. Do this after SetDomain(). 
-    sys.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(25);
+    sys.GetSolver()->AsIterative()->EnableWarmStart(true);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
     sys.SetMaxPenetrationRecoverySpeed(1.0);
  
@@ -131,8 +132,8 @@ int main(int argc, char* argv[]) {
 
         // Create some bricks placed as walls, for benchmark purposes
         int n_walls = 1;
-        int n_vertical    = 4;
-        int n_horizontal  = 5;
+        int n_vertical    = 5;
+        int n_horizontal  = 7;
         double size_x = 4;
         double size_y = 2;
         double size_z = 4;
@@ -166,19 +167,18 @@ int main(int argc, char* argv[]) {
         mrigidFloor->SetFixed(true);
 
         sys.Add(mrigidFloor);
-        /*
+        
         // Create a ball that will collide with wall
-        auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,     // radius
+        auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(3.5,     // radius
             8000,  // density
             true,  // visualization?
             true,  // collision?
             mat);  // contact material
-        mrigidBall->SetPos(ChVector3d(0, -2, 0));
-        mrigidBall->SetPos(ChVector3d(0, 3, -8));
+        mrigidBall->SetPos(ChVector3d(0, 3.5, -8));
         mrigidBall->SetPosDt(ChVector3d(0, 0, 16));  // set initial speed
         mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
         sys.Add(mrigidBall);
-        */
+        
 
         // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
         // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
     // INITIAL SETUP OF COLLISION AABBs 
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
-    for (int i = 0; i < 25; ++i) {
+    for (int i = 0; i < 180; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;

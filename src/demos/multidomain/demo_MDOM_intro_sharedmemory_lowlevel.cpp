@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
                                         0       // rank of this domain 
                                        ));
     
-    sys_0.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys_0.GetSolver()->AsIterative()->SetMaxIterations(30);
     sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
 
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
                                         1       // rank of this domain 
                                        ));
     
-    sys_1.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys_1.GetSolver()->AsIterative()->SetMaxIterations(30);
     sys_1.GetSolver()->AsIterative()->SetTolerance(1e-6);
 
 
