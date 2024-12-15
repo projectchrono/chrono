@@ -269,7 +269,7 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// the global problem; output vector "result" is assumed a domain-relative slice of 
     /// result of the global problem.
     /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
-    /// operation, so thay may need to be backed up via FromVariablesToVector().
+    /// operation, so they may need to be backed up via FromVariablesToVector().
     /// Note that both x and result are assumed in 'distributed' format, not 'additive'; matrices are assumed additive.
     virtual void globalSystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
         const ChVectorDynamic<>& x  ///< vector to be multiplied
@@ -389,26 +389,29 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     virtual void SharedVectsSyncToCurrentDomainStates();
 
     /// SEND the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
-    /// where the delta is ADDED to the corresponding variables State(). 
+    /// and finally all deltas are ADDED to the corresponding variables State() as State()+=deltas;
+    /// The omega parameter can be =1 for default sum, or lower for relaxation State()+=omega*deltas. 
     /// This operation requires a network-expensive SEND and RECEIVE operation.
     /// It is expected that all domains will execute this operation, otherwise deadlock.
     /// Finally, set vectors of shared_vects to the current variables State() value.
-    virtual void SharedStatesDeltaAddToMultidomainAndSync();
+    virtual void SharedStatesDeltaAddToMultidomainAndSync(double omega);
 
     /// Takes a vector vect and spreads it the vectors of this->shared_vects, depending on the
     /// offsets of shared variables of this domain.
     /// Note, vect has size and indexing as domain's coordinates.
     virtual void SharedVectsFromDomainVector(const ChVectorDynamic<>& vect);
 
-    /// Writes vectors of this->shared_vects into corresponding slots of vector vect, depending on the
+    /// Add vectors of this->shared_vects into corresponding slots of vector vect, depending on the
     /// offsets of shared variables of this domain.
+    /// If use_average = 0, simply sum all contributions, if =1, shared contributions 
+    /// are averaged, if >0 multiply the average.
     /// Note, vect has size and indexing as domain's coordinates.
-    virtual void SharedVectsToDomainVector(ChVectorDynamic<>& vect);
+    virtual void SharedVectsAddToDomainVector(ChVectorDynamic<>& vect, double use_average = 0);
 
-    /// The current shared vectors in shared_vects are summed across all domains, 
+    /// The current shared vectors in shared_vects are swapped across all domains, 
     /// with contributions from all the interfaces. Results overwritten in shared_vects.
     /// This operation requires a network-expensive SEND and RECEIVE operation.
-    virtual void SharedVectsSum();
+    virtual void SharedVectsSwap();
 
     /// Takes a vector "vect" in additive form and converts it to distributed form. 
     /// Overwrites "vect". Note, vect has size and indexing as domain's coordinates.
@@ -417,8 +420,14 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     ///    v_distr_j = v_additive_j + \sum R_j R_k' v_additive_k
     /// where we used restriction matrices R as  v_distr_j =  R_j v_global.
     /// This operation requires a network-expensive SEND and RECEIVE operation.
-    virtual void VectAdditiveToDistributed(ChVectorDynamic<>& vect);
+    virtual void VectAdditiveToDistributed(ChVectorDynamic<>& vect, double use_average = 0);
 
+    /// Sync the State() of ChVariables across the domains. Depending on numerical
+    /// roundoff issues, solvers might not guarantee that the values in distributed
+    /// state vectors are exactly the same (although they should be in theory). This
+    /// function can be called once in a while to fix the small glitches. In case of 
+    /// conflict from different state values, it keeps the element-wise min values. 
+    virtual double SyncSharedStates(bool return_max_correction_error);
 
     /// Get domain
     std::shared_ptr<ChDomain> GetDomain() { return domain; }

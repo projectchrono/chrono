@@ -120,7 +120,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
 
     // MULTIDOMAIN******************
     descriptor.SharedVectsToZero(); 
-    descriptor.SharedStatesDeltaAddToMultidomainAndSync();
+    descriptor.SharedStatesDeltaAddToMultidomainAndSync(1.);
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     mb.setZero();
@@ -333,7 +333,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
     }
 
     // MULTIDOMAIN******************
-    descriptor.SharedStatesDeltaAddToMultidomainAndSync();
+    descriptor.SharedStatesDeltaAddToMultidomainAndSync(1.);
 
     if (verbose)
         std::cout << "-----" << std::endl;
