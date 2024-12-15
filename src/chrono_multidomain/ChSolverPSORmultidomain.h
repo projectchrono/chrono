@@ -22,8 +22,12 @@ namespace chrono {
 namespace multidomain {
 
 
+/// Projected SOR (PSOR) for multidomain.
 /// An iterative solver based on projective fixed point method, with overrelaxation and immediate variable update as in
 /// SOR methods. At each iteration is shares data with multidomain domain decomposition. \n
+/// Inside domains, this works like projected SOR, hence sequentially applying constraints, but at the 
+/// coarse level at each iteration the solution is exchanged between all domains at once at the interfaces,
+/// so for the interfaces it is similar to a projected Jacobi. \n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures passed to the
 /// solver.
 
@@ -51,9 +55,17 @@ class ChApiMultiDomain ChSolverPSORmultidomain : public ChIterativeSolverVI {
         this->communication_each = mi;
     }
 
+    /// For the nodes at the interfaces this method is similar to a projected Jacobi. Its convergence is a bit worse than
+    /// SOR, and it also might require a lower relaxation factor to avoid divergence. This interface-specific omega 
+    /// can be set here. Default is 0.25.
+    void SetOmegaInterface(double omega) {
+        this->omega_interface = omega;
+    }
+
   private:
     double maxviolation;
     int    communication_each;
+    double omega_interface;
 };
 
 

@@ -24,8 +24,13 @@ CH_FACTORY_REGISTER(ChSolverPSORmultidomain)
 CH_UPCASTING(ChSolverPSORmultidomain, ChIterativeSolverVI)
 
 ChSolverPSORmultidomain::ChSolverPSORmultidomain() 
-    : maxviolation(0), communication_each(1)
-{}
+    : maxviolation(0), communication_each(1), omega_interface(1.0) 
+{
+    // Because inter-domain works as Jacobi, if there are shared objects with many contacts on both sizes 
+    // Jacobi-like iteration may lead to divergent iterations, so setting a low default omega relaxation
+    // reduces this risk (at the cost of slower convergence).
+    this->SetOmega(0.5);
+}
 
 double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
@@ -41,8 +46,14 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
 
     // MULTIDOMAIN******************
     // aux data for multidomain
-    //descriptor.SharedVectsToZero();
     descriptor.SharedVectsSyncToCurrentDomainStates();
+    /*
+    int nv = descriptor.CountActiveVariables();
+    ChVectorDynamic<> state_old(nv); 
+    ChVectorDynamic<> state(nv);
+    ChVectorDynamic<> Dstate(nv);
+    descriptor.FromVariablesToVector(state_old);
+    */
 
     // 1)  Update auxiliary data in all constraints before starting,
     //     that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
@@ -89,8 +100,16 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
 
     // MULTIDOMAIN******************
     // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
-    descriptor.SharedStatesDeltaAddToMultidomainAndSync();
-
+    descriptor.SharedStatesDeltaAddToMultidomainAndSync(this->omega_interface);
+    /*
+    // following stuff should be equivalent to descriptor.SharedStates.. stuff, but not exactly - discover why
+    descriptor.FromVariablesToVector(state);
+    Dstate = state - state_old;
+    descriptor.VectAdditiveToDistributed(Dstate);
+    state += Dstate;
+    descriptor.FromVectorToVariables(state);
+    state_old = state;
+    */
 
     // 4)  Perform the iteration loops
     //
@@ -226,9 +245,18 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
 
         // MULTIDOMAIN******************
         // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
-        if ((iter % communication_each == 0) || (iter == m_max_iterations-1))
-            descriptor.SharedStatesDeltaAddToMultidomainAndSync();
-
+        if ((iter % communication_each == 0) || (iter == m_max_iterations - 1)) {
+            descriptor.SharedStatesDeltaAddToMultidomainAndSync(this->omega_interface);
+            /*
+            // following stuff should be equivalent to descriptor.SharedStates.. stuff, but not exactly - discover why
+            descriptor.FromVariablesToVector(state);
+            Dstate = state - state_old;
+            descriptor.VectAdditiveToDistributed(Dstate);
+            state += Dstate;
+            descriptor.FromVectorToVariables(state);
+            state_old = state;
+            */
+        }
 
     }  // end iteration loop
 
