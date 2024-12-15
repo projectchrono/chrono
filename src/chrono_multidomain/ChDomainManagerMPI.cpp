@@ -200,6 +200,17 @@ int ChDomainManagerMPI::GetMPItotranks() {
 
 
 
+void ChDomainManagerMPI::ConsoleOutSerialized(std::string out_msg) {
+	for (int i = 0; i < GetMPItotranks(); i++) {
+		this->mpi_engine.Barrier(); // trick to force sequential std::cout if MPI on same shell
+		if (i == GetMPIrank()) {
+			std::cout << out_msg;
+			std::cout.flush();
+		}
+		std::cout.flush();
+		this->mpi_engine.Barrier();
+	}
+}
 
 
 }  // end namespace multidomain

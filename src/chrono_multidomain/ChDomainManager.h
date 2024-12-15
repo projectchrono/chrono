@@ -103,6 +103,8 @@ public:
     bool verbose_state_matching = false;
 
     void PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain);
+
+    virtual void ConsoleOutSerialized(std::string out_msg) {};
 };
 
 

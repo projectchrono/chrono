@@ -81,6 +81,8 @@ public:
     virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum);
 
 
+    virtual void ConsoleOutSerialized(std::string out_msg);
+
     // OTHER
 
     int GetMPIrank();

@@ -95,6 +95,8 @@ public:
 
     std::unordered_map<int, std::shared_ptr<ChDomain>> domains;
 
+    virtual void ConsoleOutSerialized(std::string out_msg);
+
 private:
     // buffers for reduce operations to mimic MPI functions
     std::vector<double> domain_sends;

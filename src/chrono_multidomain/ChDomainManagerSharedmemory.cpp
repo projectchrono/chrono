@@ -243,6 +243,18 @@ void ChDomainManagerSharedmemory::AddDomain(std::shared_ptr<ChDomain> mdomain) {
 
 
 
+void ChDomainManagerSharedmemory::ConsoleOutSerialized(std::string out_msg) {
+	for (int i = 0; i < this->domains.size(); i++) {
+#pragma omp barrier
+		if (i == omp_get_thread_num()) {
+			std::cout << out_msg;
+			std::cout.flush();
+		}
+		std::cout.flush();
+#pragma omp barrier
+	}
+}
+
 
 
 }  // end namespace multidomain
