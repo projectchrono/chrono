@@ -23,6 +23,10 @@
 //  integration with diagonal lumped mass solver, ChSolverLumpedMultidomain 
 //  (the easiest scenario for a distributed memory solver).
 // 
+//  This also means that this solver is not capable of solving nonsmooth DVI, 
+//  so here  contacts if any are handled using smooth contact, via  ChSystemSMC
+//  and ChContactMaterialSMC.
+// 
 //  It shows "low level" initializiation: in fact here we do not use a master 
 //  domain that takes care of splitting the system at the beginning: it is up to 
 //  the user to create objects in the corresponding system in already split way.
@@ -33,12 +37,18 @@
 // 
 // =============================================================================
 
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveUtils.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_multidomain/ChDomainManagerSharedmemory.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
@@ -48,7 +58,7 @@
 using namespace chrono;
 using namespace multidomain;
 using namespace chrono::irrlicht;
-
+using namespace chrono::fea;
 
 // For multi domain simulations, each item (body, link, fea element or node, etc.) must have
 // an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
@@ -77,7 +87,7 @@ int main(int argc, char* argv[]) {
 
     // For debugging/logging:
     domain_manager.verbose_partition = true; // will print partitioning in std::cout ?
-    domain_manager.verbose_serialization = false; // will print serialization buffers in std::cout ?
+    domain_manager.verbose_serialization = true; // will print serialization buffers in std::cout ?
     domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
     domain_manager.serializer_type = DomainSerializerFormat::JSON; // default BINARY, use JSON or XML for readable verbose
 
@@ -96,29 +106,35 @@ int main(int argc, char* argv[]) {
     // Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
     // But in this case we already know we split into 2 domains. So we build them as:
 
-    ChSystemNSC sys_0;
+    ChSystemSMC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_0, // physical system of this domain
                                         0       // rank of this domain 
                                        ));
-    
-    sys_0.GetSolver()->AsIterative()->SetMaxIterations(12);
-    sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
+    // Set the time stepper: we have FEA, use an explicit time stepper. 
+    auto explicit_timestepper0 = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys_0);
+    explicit_timestepper0->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
+    sys_0.SetTimestepper(explicit_timestepper0);
+    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
+    auto lumped_solver0 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
+    sys_0.SetSolver(lumped_solver0);
 
-
-    ChSystemNSC sys_1;
+    ChSystemSMC sys_1;
     sys_1.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     domain_manager.AddDomain(domain_builder.BuildDomain(
                                         &sys_1, // physical system of this domain
                                         1       // rank of this domain 
                                        ));
-    
-    sys_1.GetSolver()->AsIterative()->SetMaxIterations(12);
-    sys_1.GetSolver()->AsIterative()->SetTolerance(1e-6);
-
+    // Set the time stepper: we have FEA, use an explicit time stepper.
+    auto explicit_timestepper1 = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys_1);
+    explicit_timestepper1->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
+    sys_1.SetTimestepper(explicit_timestepper1);
+    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
+    auto lumped_solver1 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
+    sys_1.SetSolver(lumped_solver1);
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
     // Each item must be added to the ChSystem of the domain that the item overlaps with. 
@@ -134,8 +150,9 @@ int main(int argc, char* argv[]) {
     //   For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
     //   otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
 
-    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
-    mat->SetFriction(0.0);
+    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
+    mat->SetFriction(0.1);
+    mat->SetYoungModulus(2e7);
 
     // A moving box, initially contained in domain 0 
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
@@ -145,25 +162,13 @@ int main(int argc, char* argv[]) {
         mat);        // contact material
     sys_0.AddBody(mrigidBody);              // note "sys_0", cause it starts in domain 0
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
-    mrigidBody->SetPosDt(ChVector3d(2, 0, 0));
+    mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
     // 5- a very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
     // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
     // Note: an alternative to using SetTag() one by one, at the end you can use the helper 
     // ChArchiveSetUniqueTags (see snippet later)
     mrigidBody->SetTag(unique_ID); unique_ID++; 
-/*
-    auto mrigidBodyx = chrono_types::make_shared<ChBodyEasyBox>(1.8, 0.2, 1.8,  // x,y,z size
-        100,         // density
-        true,        // visualization?
-        true,        // collision?
-        mat);        // contact material
-    sys_0.AddBody(mrigidBodyx);
-    mrigidBodyx->SetPos(ChVector3d(-1.5, 1.1, 0));
-    mrigidBodyx->SetPosDt(ChVector3d(2, 0, 0));
-    // A very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
-    // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
-    mrigidBodyx->SetTag(unique_ID); unique_ID++;
-*/
+
     // A box, initially contained in domain 1 
     auto mrigidBodyb = chrono_types::make_shared<ChBodyEasyBox>(0.7, 0.7, 0.7,  // x,y,z size
         400,         // density
@@ -177,17 +182,17 @@ int main(int argc, char* argv[]) {
 
     // A floor
     // Note, the floor starts overlapped betwen domains 0 and 1, but here we add only to domain 0
-    // because at the first step the DoAllDomainInitialize()  would copy the floor from 0 to 1 anyway
+    // because for the first step the DoAllDomainInitialize()  would copy the floor from 0 to 1 anyway
     auto mrigidBody_floor_0 = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
         400,         // density
         true,        // visualization?
         true,        // collision?
         mat);        // contact material
     sys_0.AddBody(mrigidBody_floor_0);
-    mrigidBody_floor_0->SetPos(ChVector3d(0, -1.35, 0));
+    mrigidBody_floor_0->SetPos(ChVector3d(0, -1.15, 0));
     mrigidBody_floor_0->SetFixed(true);
-    mrigidBody_floor_0->SetTag(unique_ID);  unique_ID++;
-
+    mrigidBody_floor_0->SetTag(unique_ID);  unique_ID++; 
+    
     // A small sphere to connect via a constraint
     auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
         400,         // density
@@ -196,7 +201,7 @@ int main(int argc, char* argv[]) {
         mat);        // contact material
     sys_0.AddBody(mrigidBodyd);
     mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
-    mrigidBodyd->SetPosDt(ChVector3d(2, 0, 0));
+    mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
     mrigidBodyd->SetTag(unique_ID); unique_ID++;
 
     // A constraint. Add to domain 0 because the link reference is mrigidBodyd, now in domain 0
@@ -205,6 +210,34 @@ int main(int argc, char* argv[]) {
     linkdistance->Initialize(mrigidBody, mrigidBodyd, true, ChVector3d(0,1,0), ChVector3d(0,0,0));
     linkdistance->SetTag(unique_ID); unique_ID++;
 
+    // Add a FEA beam to test migration of meshes too
+    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
+    sys_0.Add(my_mesh);
+    my_mesh->SetTag(unique_ID); unique_ID++;
+
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    double beam_wy = 0.012;
+    double beam_wz = 0.025;
+    msection->SetAsRectangularSection(beam_wy, beam_wz);
+    msection->SetYoungModulus(0.01e9);
+    msection->SetShearModulus(0.01e9 * 0.3);
+    
+    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(-1.2, 1.3, 0)));
+    hnode1->SetMass(0.1); hnode1->GetInertia().fillDiagonal(0.1);
+    hnode1->SetPosDt(ChVector3d(10, 0, 0));
+    hnode1->SetTag(unique_ID); unique_ID++;
+    my_mesh->AddNode(hnode1);
+    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d( -0.2, 1.3, 0)));
+    hnode2->SetMass(0.1); hnode2->GetInertia().fillDiagonal(0.1);
+    hnode2->SetPosDt(ChVector3d(10, 0, 0));
+    hnode2->SetTag(unique_ID); unique_ID++;
+    my_mesh->AddNode(hnode2);
+    auto belement1 = chrono_types::make_shared<ChElementBeamEuler>();
+    belement1->SetNodes(hnode1, hnode2);
+    belement1->SetSection(msection);
+    belement1->SetRestLength(1.0);
+    my_mesh->AddElement(belement1);
+    my_mesh->SetAutomaticGravity(false);
 
     // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
     // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
@@ -241,7 +274,7 @@ int main(int argc, char* argv[]) {
     // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
     domain_manager.DoAllDomainInitialize();
 
-    for (int i = 0; i < 180; ++i) {
+    for (int i = 0; i < 200; ++i) {
         std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
        
         // For debugging: open two 3D realtime view windows, each per domain:
@@ -262,7 +295,7 @@ int main(int argc, char* argv[]) {
         domain_manager.DoAllDomainPartitionUpdate();
 
         // MULTIDOMAIN TIME INTEGRATION
-        domain_manager.DoAllStepDynamics(0.01);
+        domain_manager.DoAllStepDynamics(0.002);
 
         system("pause");
     }

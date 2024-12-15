@@ -204,6 +204,13 @@ void ChSystemDescriptorMultidomain::SharedVectsSyncToCurrentDomainStates() {
                 offset += avar->GetDOF();
             }
         }
+        //***DEBUG**
+        std::stringstream msg;
+        msg << std::string("\nVAR SYNC shared_vect domain ") << this->domain->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n";
+        for (int i = 0; i < shared_vects[nrank].size(); ++i)
+            msg << "    " << shared_vects[nrank][i] << "\n";
+        this->domain_manager->ConsoleOutSerialized(msg.str());
+        
     }
 }
 
@@ -240,8 +247,12 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
         serializer->SetUseVersions(false);
 
         *serializer << CHNVP(Dv_shared);
-        //std::cout << "\nVAR SERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
-        //std::cout << interf.second.buffer_sending.str(); //***DEBUG
+
+        //***DEBUG***
+        std::stringstream msg;
+        msg << "\nVAR SERIALIZE from domain " << this->domain->GetRank() << " to interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+        msg << interf.second.buffer_sending.str(); //***DEBUG
+        this->domain_manager->ConsoleOutSerialized(msg.str());
     }
 
     this->domain_manager->DoDomainSendReceive(this->domain->GetRank());   // *** COMM + MULTITHREAD BARRIER ***
@@ -249,8 +260,8 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync() {
     for (auto& interf : this->domain->GetInterfaces()) {
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> Dv_shared(shared_vects[nrank].size());
-        //std::cout << "\nVAR DESERIALIZE domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
-        //std::cout << interf.second.buffer_receiving.str(); //***DEBUG
+//        std::cout << "\nVAR DESERIALIZE to domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
+//        std::cout << interf.second.buffer_receiving.str(); //***DEBUG
         
         // prepare the deserializer
         std::shared_ptr<ChArchiveIn> deserializer;

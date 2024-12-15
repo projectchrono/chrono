@@ -73,16 +73,21 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
+    // This demo assumes 2 domains, i.e. "mpiexec -n 2 ..." etc.
+    assert(domain_manager.GetMPItotranks() == 2);
+
     // For debugging/logging:
     domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
     domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
-    domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
+    domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
+
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
     // ChdomainBuilder classes help you to do this. 
-    // Here we split it using parallel planes like in sliced bread:
+    // Here we split it using parallel planes like in sliced bread.
+    
 
     ChDomainBuilderSlices       domain_builder(
                                         std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
@@ -100,24 +105,28 @@ int main(int argc, char* argv[]) {
                                         &sys, // physical system of this domain
                                         domain_manager.GetMPIrank()     // rank of this domain 
                                        ));
-    sys.GetSolver()->AsIterative()->SetMaxIterations(12);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
  
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
     // Each item must be added to the ChSystem of the domain that the item overlaps with. 
     // The rules are:
-    // - Each "node" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
-    //   the AABB of item overlaps with. Even added into multiple domains, then, becoming shared. 
+    // - Each "vertex" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
+    //   its 3d position is into. If its AABB is overlapping with multiple domains, do not
+    //   worry: the first time DoAllDomainInitialize() is called, it will spread copies to surrounding domains.
     // - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
-    //   domain where the reference point (1st node of fea element, master body in links) is inside.
-    //   Hence edges are always into a single domain, and never shared among domains.
-    // - If an edge is in the domain and references a node that is not overlapping with domain, 
-    //   then such node(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
+    //   domain where the reference point (1st node of fea element, master body in links) is into.
+    //   Note edges are always into a single domain, and never shared among domains.
+    // - IMPORTANT: if an edge is in the domain and references a vertex that is not overlapping with domain, 
+    //   then such vertex(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
+    //   For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
+    //   otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
  
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.1);
 
+    // domain slice up to  x<=0
     if (domain_manager.GetMPIrank() == 0) {
         
         auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
@@ -127,10 +136,34 @@ int main(int argc, char* argv[]) {
             mat);        // contact material
         sys.AddBody(mrigidBody);
         mrigidBody->SetPos(ChVector3d(-1.5, 0, 0));
-        mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
+        mrigidBody->SetPosDt(ChVector3d(2, 0, 0));
         // A very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
         // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
         mrigidBody->SetTag(unique_ID); unique_ID++;
+
+        auto mrigidBodyx = chrono_types::make_shared<ChBodyEasyBox>(1.4, 0.2,1.4,  // x,y,z size
+            100,         // density
+            true,        // visualization?
+            true,        // collision?
+            mat);        // contact material
+        sys.AddBody(mrigidBodyx);
+        mrigidBodyx->SetPos(ChVector3d(-1.5, 1.1, 0));
+        mrigidBodyx->SetPosDt(ChVector3d(2, 0, 0));
+        mrigidBodyx->SetTag(unique_ID); unique_ID++;
+
+        // A floor
+        // Note, the floor starts overlapped betwen domains 0 and 1, but here we add only to domain 0
+        // because for the first step the DoAllDomainInitialize()  would copy the floor from 0 to 1 anyway
+        // making it shared. 
+        auto mrigidBody_floor_1 = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
+            400,         // density
+            true,        // visualization?
+            true,        // collision?
+            mat);        // contact material
+        sys.AddBody(mrigidBody_floor_1);
+        mrigidBody_floor_1->SetPos(ChVector3d(0, -1.15, 0));
+        mrigidBody_floor_1->SetFixed(true);
+        mrigidBody_floor_1->SetTag(20000);
 
         // A small sphere to connect via linkdistance constraint
         auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
@@ -140,7 +173,7 @@ int main(int argc, char* argv[]) {
             mat);        // contact material
         sys.AddBody(mrigidBodyd);
         mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
-        mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
+        mrigidBodyd->SetPosDt(ChVector3d(2, 0, 0));
         mrigidBodyd->SetTag(unique_ID); unique_ID++;
 
         // A constraint. Add to domain 0 because the link reference is mrigidBodyd, now in domain 0
@@ -150,6 +183,7 @@ int main(int argc, char* argv[]) {
         linkdistance->SetTag(unique_ID); unique_ID++;
     }
 
+    // domain slice from x>0 
     if (domain_manager.GetMPIrank() == 1) {
         
         unique_ID = 10000; // quick tip: id of all objects starting in domain n.1 start from 10000 offset
@@ -165,19 +199,6 @@ int main(int argc, char* argv[]) {
         mrigidBodyb->SetTag(unique_ID); unique_ID++;
     }
 
-    // Note, the floor starts overlapped betwen domains 0 and 1, so add to domain anyway regardless if MPI rank is
-    // 0 or 1. That is, in this example we create it outside the previous switches if (domain_manager.GetMPIrank() == ..) 
-    // but WITH THE SAME TAG identifier! (btw. this could be optional because at 1st
-    // time step the DoAllDomainInitialize(); would copy the floor from 0 to 1 anyway)
-    auto mrigidBody_floor_1 = chrono_types::make_shared<ChBodyEasyBox>(5, 0.5, 5,  // x,y,z size
-        400,         // density
-        true,        // visualization?
-        true,        // collision?
-        mat);        // contact material
-    sys.AddBody(mrigidBody_floor_1);
-    mrigidBody_floor_1->SetPos(ChVector3d(0, -1.15, 0));
-    mrigidBody_floor_1->SetFixed(true);
-    mrigidBody_floor_1->SetTag(20000); // note unique ID
 
     // Ok, we completed the definition of the multibody system.
 
@@ -199,7 +220,7 @@ int main(int argc, char* argv[]) {
     // INITIAL SETUP OF COLLISION AABBs 
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < 150; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;

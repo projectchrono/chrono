@@ -59,9 +59,9 @@ int main(int argc, char* argv[]) {
     // NOTE! in MPI architectures, the executable cannot be started in a single copy as all other
     // chrono demos: now you must open a shell where you can access "mpiexec" (or other commands
     // depending on the MPI version that you installed, it could be "mpirun" or such) and type
-    // the command to start parallel computation, for example spawning 2 processes:
+    // the command to start parallel computation, for example spawning 3 processes:
     // 
-    //   mpiexec -n 2 demo_MDOM_intro_distributedMPI.exe  
+    //   mpiexec -n 3 demo_MDOM_intro_distributedMPI.exe  
 
 
 
@@ -70,11 +70,15 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
+    // This demo assumes 3 domains (2 slices + 1 master domain), i.e. "mpiexec -n 3 ..." etc.
+    assert(domain_manager.GetMPItotranks() == 3);
+
+
     // For debugging/logging:
     domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
     domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
-    domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
+    domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
 
     // 2- the domain builder.
     // You must define how the 3D space is divided in domains. 
@@ -107,12 +111,12 @@ int main(int argc, char* argv[]) {
     }
 
     // set solver, timestepper, etc. Do this after SetDomain(). 
-    sys.GetSolver()->AsIterative()->SetMaxIterations(10);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(12);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
     sys.SetMaxPenetrationRecoverySpeed(1.0);
  
 
-    // 4- we create and populate the MASTER domain with bodies, links, meshes, nodes, etc. 
+    // 4- we create and populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
     //    At the beginning of the simulation, the master domain will break into 
     //    multiple data structures and will serialize them into the proper subdomains.
     //    (Note that there is a "low level" version of this demo that shows how
@@ -125,17 +129,27 @@ int main(int argc, char* argv[]) {
         auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
         mat->SetFriction(0.4f);
 
-        // Create bricks
-        for (int ai = 0; ai < 1; ai++) {           // N. of walls
-            for (int bi = 0; bi < 10; bi++) {      // N. of vert. bricks
-                for (int ui = 0; ui < 15; ui++) {  // N. of hor. bricks
+        // Create some bricks placed as walls, for benchmark purposes
+        int n_walls = 1;
+        int n_vertical    = 4;
+        int n_horizontal  = 5;
+        double size_x = 4;
+        double size_y = 2;
+        double size_z = 4;
+        double walls_space = 9;
+        double wall_corner_x = -0.5 * (size_x * n_horizontal) - 0.1;
+        for (int ai = 0; ai < n_walls; ai++) {               // loop of walls
+            for (int bi = 0; bi < n_vertical; bi++) {        // loop of vert. bricks
+                for (int ui = 0; ui < n_horizontal; ui++) {  // loop of hor. bricks
 
-                    auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(3.96, 2, 4,  // x,y,z size
+                    auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(size_x*0.9, size_y, size_z,
                         100,         // density
                         true,        // visualization?
                         true,        // collision?
                         mat);        // contact material
-                    mrigidBody->SetPos(ChVector3d(-8 + ui * 4.0 + 2 * (bi % 2), 1.0 + bi * 2.0, ai * 9));
+                    mrigidBody->SetPos(ChVector3d(wall_corner_x + size_x*(ui + 0.5 * (1+bi % 2)), 
+                                                  size_y*(0.5 + bi), 
+                                                  ai * walls_space));
                     mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_borders.png"));
                     sys.Add(mrigidBody);
                 }
@@ -152,7 +166,7 @@ int main(int argc, char* argv[]) {
         mrigidFloor->SetFixed(true);
 
         sys.Add(mrigidFloor);
-
+        /*
         // Create a ball that will collide with wall
         auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(4,     // radius
             8000,  // density
@@ -164,6 +178,7 @@ int main(int argc, char* argv[]) {
         mrigidBall->SetPosDt(ChVector3d(0, 0, 16));  // set initial speed
         mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
         sys.Add(mrigidBall);
+        */
 
         // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
         // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
@@ -174,7 +189,7 @@ int main(int argc, char* argv[]) {
         tagger.skip_already_tagged = false;
         tagger << CHNVP(sys);
     }
- 
+
 
     // OPTIONAL: POSTPROCESSING VIA BLENDER3D
    

@@ -10,6 +10,7 @@ set(MULTIDOMAIN_DEMOS
 set(MULTIDOMAIN_DEMOS_IRR
     demo_MDOM_intro_sharedmemory
     demo_MDOM_intro_sharedmemory_lowlevel
+    demo_MDOM_intro_sharedmemory_lowlevel_fea
 	)
 
 #--------------------------------------------------------------
