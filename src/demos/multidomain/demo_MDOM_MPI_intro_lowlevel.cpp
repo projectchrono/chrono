@@ -26,6 +26,24 @@
 // aspect is that for extremely large systems one does not need to create a huge
 // master system at the beginning, that could not fit into a single node memory.
 //
+// NOTE! in MPI architectures, the executable cannot be started in a single copy as all other
+// chrono demos: now you must open a shell where you can access "mpiexec" (or other commands
+// depending on the MPI version that you installed, it could be "mpirun" or such) and type
+// the command to start parallel computation, for example spawning 2 processes:
+// 
+//   mpiexec -n 2 demo_MDOM_MPI_intro_lowlevel.exe 
+// 
+// After running, it produces postprocessing files ready for rendering in Blender3D
+// To see the result in Blender3D, you must install the add-in for loading Chrono files,
+// that is  chrono\src\importer_blender\chrono_import.py. So you can do:
+// - menu  file/Import/Chrono import... 
+// - browse to  chrono\bin\Release\DEMO_OUTPUT\MDOM_MPI_0  and press the 
+//   "Import Chrono simulation" button.
+// - repeat the two steps above but select  ..\MDOM_MPI_1 and check "Merge" in
+//   the top right panel before pressing the import button. 
+// - that's al, now just press the spacebar and you see the animation that you can 
+//   customize, render etc.
+// 
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -58,14 +76,6 @@ int main(int argc, char* argv[]) {
     // All the examples herein are based on the ChDomainManagerMPI domain manager, that
     // allows using MPI to communicate between processes distributed on a computer cluster
     // with many nodes connected by ethernet, or Mellanox, or similar supercomputing architectures.
-    // 
-    // NOTE! in MPI architectures, the executable cannot be started in a single copy as all other
-    // chrono demos: now you must open a shell where you can access "mpiexec" (or other commands
-    // depending on the MPI version that you installed, it could be "mpirun" or such) and type
-    // the command to start parallel computation, for example spawning 2 processes:
-    // 
-    //   mpiexec -n 2 demo_MDOM_intro_distributedMPI_lowlevel.exe  
-
 
 
     // 1- first you need a domain manager. This will use MPI distributed computing
