@@ -42,18 +42,16 @@ else()
 endif()
 
 
-set(HAVE_ROS FALSE)
-
-find_package(ROS2 QUIET)
+find_package(ROS2 QUIET
+  COMPONENTS ament_index_cpp
+)
 if (ROS2_FOUND)
-  find_package(ament_index_cpp QUIET)
-  if (ament_index_cpp_FOUND)
     set(HAVE_ROS TRUE)
     message(STATUS "Found ROS 2.")
     message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
-  endif()
 else()
-  message(STATUS "Package ROS2 NOT found. ROS support disabled.")
+    set(HAVE_ROS FALSE)
+    message(STATUS "Package ROS2 NOT found. ROS support disabled.")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -122,12 +120,7 @@ if(HAVE_URDF)
     set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${urdfdom_INCLUDE_DIRS}")
 endif()
 if (HAVE_ROS)
-  # Update the includes directories to point to ROS includes
-  set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
-  foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
-      string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
-      set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${_ros2_packages_path}/include")
-  endforeach()
+  set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${ROS2_INCLUDE_DIRS}")
   add_definitions(-DHAVE_ROS)
 endif()
 if(HAVE_PYTHON)
