@@ -72,7 +72,7 @@ class WheeledVehicleDBPDriver : public ChDriver {
 ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(const std::string& vehicle_json,
                                                                    const std::string& engine_json,
                                                                    const std::string& transmission_json)
-    : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
+    : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0) {
     m_vehicle = chrono_types::make_shared<WheeledVehicle>(m_system, vehicle_json);
     auto engine = ReadEngineJSON(engine_json);
     auto transmission = ReadTransmissionJSON(transmission_json);
@@ -82,7 +82,7 @@ ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(const std::st
 
 ChVehicleCosimWheeledVehicleNode::ChVehicleCosimWheeledVehicleNode(std::shared_ptr<ChWheeledVehicle> vehicle,
                                                                    std::shared_ptr<ChPowertrainAssembly> powertrain)
-    : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0), m_chassis_fixed(false) {
+    : ChVehicleCosimWheeledMBSNode(), m_num_spindles(0), m_init_yaw(0) {
     // Ensure the vehicle system has a null ChSystem
     if (vehicle->GetSystem())
         return;
@@ -104,7 +104,6 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2d& terrain_s
     ChCoordsys<> init_pos(m_init_loc + ChVector3d(0, 0, terrain_height), QuatFromAngleZ(m_init_yaw));
 
     m_vehicle->Initialize(init_pos);
-    m_vehicle->GetChassis()->SetFixed(m_chassis_fixed);
     m_vehicle->SetChassisVisualizationType(VisualizationType::MESH);
     m_vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     m_vehicle->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
