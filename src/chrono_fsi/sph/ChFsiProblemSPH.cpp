@@ -212,7 +212,8 @@ void ChFsiProblemSPH::Initialize() {
             cout << "  Num. SPH particles: " << m_sph.size() << endl;
     }
 
-    // Convert SPH and boundary BCE grid points to real coordinates and apply patch transformation
+    // Convert SPH grid points to real coordinates and apply position offset
+    // Include SPH particles in AABB
     ChAABB aabb;
     RealPoints sph_points;
     sph_points.reserve(m_sph.size());
@@ -220,12 +221,12 @@ void ChFsiProblemSPH::Initialize() {
         ChVector3d point = Grid2Point(p);
         point += m_offset_sph;
         sph_points.push_back(point);
-        aabb.min = Vmin(aabb.min, point);
-        aabb.max = Vmax(aabb.max, point);
+        aabb += point;
     }
 
     m_sph_aabb = aabb;
 
+    // Convert boundary grid points to real coordinates and apply position offset
     // Include boundary BCE markers in AABB
     RealPoints bce_points;
     bce_points.reserve(m_bce.size());
@@ -233,37 +234,7 @@ void ChFsiProblemSPH::Initialize() {
         ChVector3d point = Grid2Point(p);
         point += m_offset_bce;
         bce_points.push_back(point);
-        aabb.min = Vmin(aabb.min, point);
-        aabb.max = Vmax(aabb.max, point);
-    }
-
-    // Include body BCE markers in AABB
-    for (auto& b : m_bodies) {
-        for (const auto& p : b.bce) {
-            auto point = b.body->TransformPointLocalToParent(p);
-            aabb.min = Vmin(aabb.min, point);
-            aabb.max = Vmax(aabb.max, point);
-        }
-    }
-
-    if (m_verbose) {
-        cout << "AABB of SPH particles:" << endl;
-        cout << "  min: " << m_sph_aabb.min << endl;
-        cout << "  max: " << m_sph_aabb.max << endl;
-        cout << "AABB of SPH particles + BCE markers" << endl;
-        cout << "  min: " << aabb.min << endl;
-        cout << "  max: " << aabb.max << endl;
-    }
-
-    // Set computational domain
-    if (!m_domain_aabb.IsInverted()) {
-        // Use provided computational domain
-        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
-    } else {
-        // Set computational domain based on actual AABB of all markers
-        int bce_layers = m_sysSPH.GetNumBCELayers();
-        m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
-        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
+        aabb += point;
     }
 
     // Callback for setting initial particle properties
@@ -295,18 +266,45 @@ void ChFsiProblemSPH::Initialize() {
     // (ATTENTION: BCE markers must be created after the SPH particles!)
     m_sysSPH.AddPointsBCE(m_ground, bce_points, ChFrame<>(), false);
 
-    // Create the body BCE markers
+    // Create the body BCE markers and update AABB
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& b : m_bodies) {
         auto body_index = m_sysFSI.AddFsiBody(b.body);
         m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
         m_fsi_bodies[b.body] = body_index;
+        for (const auto& p : b.bce) {
+            aabb += b.body->TransformPointLocalToParent(p);
+        }
     }
 
-    // Create the mesh BCE markers
+    // Create the mesh BCE markers and update AABB
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& m : m_meshes) {
         m_sysFSI.AddFsiMesh(m.mesh);
+        assert(m.mesh->GetNumContactSurfaces() > 0);
+        for (const auto& surf : m.mesh->GetContactSurfaces()) {
+            aabb += surf->GetAABB();
+        }
+    }
+
+    if (m_verbose) {
+        cout << "AABB of SPH particles:" << endl;
+        cout << "  min: " << m_sph_aabb.min << endl;
+        cout << "  max: " << m_sph_aabb.max << endl;
+        cout << "AABB of SPH particles + BCE markers" << endl;
+        cout << "  min: " << aabb.min << endl;
+        cout << "  max: " << aabb.max << endl;
+    }
+
+    // Set computational domain
+    if (!m_domain_aabb.IsInverted()) {
+        // Use provided computational domain
+        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
+    } else {
+        // Set computational domain based on actual AABB of all markers
+        int bce_layers = m_sysSPH.GetNumBCELayers();
+        m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
+        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
     }
 
     // Initialize the underlying FSI system
