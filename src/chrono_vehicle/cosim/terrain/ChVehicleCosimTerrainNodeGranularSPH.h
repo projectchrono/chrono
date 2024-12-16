@@ -66,6 +66,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
                              double cohesion  ///< particle material cohesion (default: 0)
     );
 
+    /// Set solid visualization.
+    void SetSolidVisualization(bool show_geometry = true, bool show_bce = true);
+
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system and the proxy bodies, then finalize the underlying FSI system.
     virtual void OnInitialize(unsigned int num_objects) override;
@@ -91,6 +94,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_cohesion;  ///< granular material cohesion
 
     double m_active_box_size;  ///< size of FSI active domain
+
+    bool m_show_geometry;  ///< show 3D geometry of interacting solids
+    bool m_show_bce;       ///< show BCE markers on interacting solids
 
     virtual ChSystem* GetSystemPostprocess() const override {
         if (m_vsys)

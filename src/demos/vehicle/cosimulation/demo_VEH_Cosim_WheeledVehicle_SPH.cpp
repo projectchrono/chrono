@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <limits>
 
@@ -42,6 +43,7 @@
 using std::cout;
 using std::cin;
 using std::endl;
+using std::flush;
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -81,7 +83,7 @@ int main(int argc, char** argv) {
     // Simulation parameters
     double sim_time = 20.0;
 
-    double step_cosim = 1e-4;
+    double step_cosim = 1e-3;
     double step_mbs = 1e-4;
     double step_terrain = 1e-4;
     double step_rigid_tire = 1e-4;
@@ -95,20 +97,20 @@ int main(int argc, char** argv) {
     bool output = false;
     bool renderRT = true;
     bool renderPP = false;
-    bool writeRT = true;
+    bool writeRT = false;
     bool verbose = false;
 
     std::string path_specfile = "terrain/sph/S-lane_RMS/path.txt";
     std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
-    ChVector3d init_loc(4.0, 0, 0.25);
-
-    double target_speed = 4.0;
     std::string vehicle_specfile = "Polaris/Polaris.json";
     std::string engine_specfile = "Polaris/Polaris_EngineSimpleMap.json";
     std::string transmission_specfile = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
     std::string tire_specfile = "Polaris/Polaris_RigidMeshTire.json";
     ////std::string tire_specfile = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+
+    ChVector3d init_loc(3.0, 0, 0.20);
+    double target_speed = 4.0;
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_SPH_COSIM";
@@ -183,6 +185,8 @@ int main(int argc, char** argv) {
         terrain->SetOutDir(out_dir);
         if (verbose)
             cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+
+        terrain->SetSolidVisualization(true, false);
 
         if (renderRT)
             terrain->EnableRuntimeVisualization(render_fps, writeRT);
@@ -269,6 +273,7 @@ int main(int argc, char** argv) {
     double time = 0.0;
 
     double t_start = MPI_Wtime();
+    double t_total;
     while (time < sim_time) {
         if (verbose && rank == 0)
             cout << cosim_frame << " ---------------------------- " << endl;
@@ -288,8 +293,13 @@ int main(int argc, char** argv) {
 
         cosim_frame++;
         time += step_cosim;
+
+        if (!verbose && rank == 0) {
+            t_total = MPI_Wtime() - t_start;
+            cout << "\rRTF: " << t_total / time << flush;
+        }
     }
-    double t_total = MPI_Wtime() - t_start;
+    t_total = MPI_Wtime() - t_start;
 
     cout << "Node" << rank << " sim time: " << node->GetTotalExecutionTime() << " total time: " << t_total << endl;
 
