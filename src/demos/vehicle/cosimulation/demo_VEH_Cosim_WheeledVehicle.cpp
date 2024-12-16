@@ -234,7 +234,6 @@ int main(int argc, char** argv) {
         vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
         vehicle->SetStepSize(step_size);
-        vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
@@ -325,7 +324,6 @@ int main(int argc, char** argv) {
         auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(vehicle_model.TireJSON()));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
         tire->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
         node = tire;

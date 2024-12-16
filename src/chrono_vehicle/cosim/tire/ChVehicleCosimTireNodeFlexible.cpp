@@ -21,7 +21,18 @@
 //
 // =============================================================================
 
+#include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/timestepper/ChTimestepperHHT.h"
+
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
+
+#ifdef CHRONO_MUMPS
+    #include "chrono_mumps/ChSolverMumps.h"
+#endif
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -42,17 +53,32 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
     assert(m_tire);
     m_tire_def = std::static_pointer_cast<ChDeformableTire>(m_tire);  // cache tire as ChDeformableTire
 
-    // Overwrite default integrator and solver types
-    ////m_int_type = ChTimestepper::Type::HHT;
-    m_int_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-
+    // Overwrite default solver and integrator
 #if defined(CHRONO_PARDISO_MKL)
-    m_slv_type = ChSolver::Type::PARDISO_MKL;
+    auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    solver->LockSparsityPattern(true);
+    m_system->SetSolver(solver);
 #elif defined(CHRONO_MUMPS)
-    m_slv_type = ChSolver::Type::MUMPS;
+    auto solver = chrono_types::make_shared<ChSolverMumps>();
+    solver->LockSparsityPattern(true);
+    m_system->SetSolver(solver);
 #else
-    m_slv_type = ChSolver::Type::SPARSE_QR;
+    auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+    solver->LockSparsityPattern(true);
+    m_system->SetSolver(solver);
 #endif
+
+    auto integrator = chrono_types::make_shared<ChTimestepperHHT>();
+    integrator->SetAlpha(-0.2);
+    integrator->SetMaxIters(50);
+    integrator->SetAbsTolerances(1e-04, 1e2);
+    integrator->SetStepControl(false);
+    integrator->SetModifiedNewton(false);
+    integrator->SetVerbose(false);
+    m_system->SetTimestepper(integrator);
+
+    // Overwrite default number of threads
+    m_system->SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, std::min(4, ChOMP::GetNumProcs()));
 }
 
 void ChVehicleCosimTireNodeFlexible::Advance(double step_size) {
@@ -63,6 +89,8 @@ void ChVehicleCosimTireNodeFlexible::Advance(double step_size) {
         m_tire_def->GetMesh()->ResetCounters();
         m_tire_def->GetMesh()->ResetTimers();
         double h = std::min<>(m_step_size, step_size - t);
+        if (h < 1e-8)
+            break;
         m_system->DoStepDynamics(h);
         t += h;
     }
@@ -207,8 +235,20 @@ void ChVehicleCosimTireNodeFlexible::ApplySpindleState(const BodyState& spindle_
 void ChVehicleCosimTireNodeFlexible::ApplyMeshForces(const MeshContact& mesh_contact) {
     m_contact_load->InputSimpleForces(mesh_contact.vforce, mesh_contact.vidx);
 
-    if (m_verbose)
-        PrintContactData(mesh_contact.vforce, mesh_contact.vidx);
+    if (m_verbose) {
+        ////PrintContactData(mesh_contact.vforce, mesh_contact.vidx);
+        
+        ////if (m_index == 0) {
+        ////    if (mesh_contact.vforce.size() > 0) {
+        ////        double sum = 0;
+        ////        for (auto f : mesh_contact.vforce)
+        ////            sum += f.Length();
+        ////        std::cout << " vforce size = " << mesh_contact.vforce.size() << "   sum = " << sum << std::endl;
+        ////    }
+        ////    if (mesh_contact.vidx.size() > 0)
+        ////        std::cout << " vidx size   = " << mesh_contact.vidx.size() << std::endl;
+        ////}
+    }
 }
 
 void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {

@@ -234,7 +234,6 @@ int main(int argc, char** argv) {
         vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
         vehicle->SetStepSize(step_size);
-        vehicle->SetNumThreads(1);
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);

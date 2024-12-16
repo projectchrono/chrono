@@ -37,6 +37,8 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
+#include "demos/SetChronoSolver.h"
+
 using std::cout;
 using std::cin;
 using std::endl;
@@ -77,8 +79,15 @@ int main(int argc, char** argv) {
     }
 
     // Simulation parameters
-    double step_size = 5e-4;
     double sim_time = 20.0;
+
+    double step_cosim = 1e-4;
+    double step_mbs = 1e-4;
+    double step_terrain = 1e-4;
+    double step_rigid_tire = 1e-4;
+    double step_fea_tire = 1e-4;
+
+    bool fix_chassis = false;
 
     double output_fps = 100;
     double render_fps = 100;
@@ -112,10 +121,6 @@ int main(int argc, char** argv) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // Number of simulation steps between miscellaneous events.
-    int sim_steps = (int)std::ceil(sim_time / step_size);
-    int output_steps = (int)std::ceil(1 / (output_fps * step_size));
-
     // Initialize co-simulation framework (specify 4 tire nodes).
     cosim::InitializeFramework(4);
 
@@ -145,15 +150,13 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
-        ChVehicleCosimWheeledVehicleNode* vehicle;
-        vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_specfile),
-                                                       vehicle::GetDataFile(engine_specfile),
-                                                       vehicle::GetDataFile(transmission_specfile));
+        auto vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_specfile),
+                                                            vehicle::GetDataFile(engine_specfile),
+                                                            vehicle::GetDataFile(transmission_specfile));
         vehicle->SetVerbose(verbose);
         vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
-        vehicle->SetStepSize(step_size);
-        vehicle->SetNumThreads(1);
+        vehicle->SetStepSize(step_mbs);
         vehicle->SetOutDir(out_dir);
         if (verbose)
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
@@ -163,6 +166,8 @@ int main(int argc, char** argv) {
         if (renderPP)
             vehicle->EnablePostprocessVisualization(render_fps);
         vehicle->SetCameraPosition(ChVector3d(20, 6, 2));
+
+        vehicle->SetChassisFixed(fix_chassis);
 
         node = vehicle;
     }
@@ -174,7 +179,7 @@ int main(int argc, char** argv) {
 
         auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(vehicle::GetDataFile(terrain_specfile));
         terrain->SetVerbose(verbose);
-        terrain->SetStepSize(step_size);
+        terrain->SetStepSize(step_terrain);
         terrain->SetOutDir(out_dir);
         if (verbose)
             cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
@@ -183,7 +188,7 @@ int main(int argc, char** argv) {
             terrain->EnableRuntimeVisualization(render_fps, writeRT);
         if (renderPP)
             terrain->EnablePostprocessVisualization(render_fps);
-        terrain->SetCameraPosition(ChVector3d(4, 6, 1.5));
+        terrain->SetCameraPosition(ChVector3d(4, 6, 2.5));
 
         node = terrain;
     }
@@ -197,9 +202,11 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTireNode::TireType::RIGID: {
                 auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
                 tire->SetVerbose(verbose);
-                tire->SetStepSize(step_size);
-                tire->SetNumThreads(1);
+                tire->SetStepSize(step_rigid_tire);
                 tire->SetOutDir(out_dir);
+
+                tire->GetSystem().SetNumThreads(1);
+
                 node = tire;
                 break;
             }
@@ -207,13 +214,26 @@ int main(int argc, char** argv) {
                 auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, vehicle::GetDataFile(tire_specfile));
                 tire->EnableTirePressure(true);
                 tire->SetVerbose(verbose);
-                tire->SetStepSize(step_size);
-                tire->SetNumThreads(6);
+                tire->SetStepSize(step_fea_tire);
                 tire->SetOutDir(out_dir);
                 if (renderRT)
-                    tire->EnableRuntimeVisualization(render_fps, writeRT);
+                    tire->EnableRuntimeVisualization(render_fps * 10, writeRT);
                 if (renderPP)
                     tire->EnablePostprocessVisualization(render_fps);
+
+                auto& sys = tire->GetSystem();
+                sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 4);
+                auto solver_type = ChSolver::Type::PARDISO_MKL;
+                auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+                SetChronoSolver(sys, solver_type, integrator_type);
+                if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
+                    hht->SetAlpha(-0.2);
+                    hht->SetMaxIters(5);
+                    hht->SetAbsTolerances(1e-2);
+                    hht->SetStepControl(false);
+                    hht->SetMinStepSize(1e-4);
+                    ////hht->SetVerbose(true);
+                }
 
                 node = tire;
                 break;
@@ -244,33 +264,36 @@ int main(int argc, char** argv) {
 
     // Perform co-simulation
     // (perform synchronization inter-node data exchange)
+    int cosim_frame = 0;
     int output_frame = 0;
+    double time = 0.0;
 
     double t_start = MPI_Wtime();
-    for (int is = 0; is < sim_steps; is++) {
-        double time = is * step_size;
-
+    while (time < sim_time) {
         if (verbose && rank == 0)
-            cout << is << " ---------------------------- " << endl;
+            cout << cosim_frame << " ---------------------------- " << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
-        node->Synchronize(is, time);
-        node->Advance(step_size);
+        node->Synchronize(cosim_frame, time);
+        node->Advance(step_cosim);
         if (verbose)
             cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
                  << node->GetTotalExecutionTime() << "]" << endl;
 
-        if (output && is % output_steps == 0) {
+        if (output && time > output_frame / output_fps) {
             node->OutputData(output_frame);
             node->OutputVisualizationData(output_frame);
             output_frame++;
         }
+
+        cosim_frame++;
+        time += step_cosim;
     }
     double t_total = MPI_Wtime() - t_start;
 
     cout << "Node" << rank << " sim time: " << node->GetTotalExecutionTime() << " total time: " << t_total << endl;
 
-    // Cleanup.
+    // Cleanup
     delete node;
     MPI_Finalize();
     return 0;

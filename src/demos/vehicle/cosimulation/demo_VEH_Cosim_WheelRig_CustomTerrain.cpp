@@ -295,7 +295,6 @@ int main(int argc, char** argv) {
         mbs->SetVerbose(verbose);
         mbs->SetInitialLocation(init_loc);
         mbs->SetStepSize(step_size);
-        mbs->SetNumThreads(1);
         mbs->SetTotalMass(100);
         mbs->SetOutDir(out_dir, suffix);
         mbs->AttachDrawbarPullRig(dbp_rig);
@@ -305,7 +304,6 @@ int main(int argc, char** argv) {
         auto tire = new ChVehicleCosimTireNodeBypass(0, 37.6, 0.47, 0.25);
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
 
         node = tire;

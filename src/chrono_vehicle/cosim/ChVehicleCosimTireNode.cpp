@@ -19,19 +19,7 @@
 //
 // =============================================================================
 
-//// TODO allow changing the collision system
-
-#include "chrono/ChConfig.h"
-#include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/solver/ChDirectSolverLS.h"
-
-#ifdef CHRONO_PARDISO_MKL
-    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_MUMPS
-    #include "chrono_mumps/ChSolverMumps.h"
-#endif
+#include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
@@ -66,11 +54,7 @@ class DummyWheel : public ChWheel {
 
 ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tire_json)
     : ChVehicleCosimBaseNode("TIRE_" + std::to_string(index)), m_index(index), m_tire_pressure(true) {
-    // Default integrator and solver types
-    m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-
-    // Create the (sequential) SMC system
+    // Create the (sequential) SMC system with default collision system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
@@ -78,6 +62,17 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tir
     // Create a tire subsystem from JSON specification file (if provided)
     if (!tire_json.empty())
         m_tire = ReadTireJSON(tire_json);
+
+    // Set default solver and integrator
+    auto solver = chrono_types::make_shared<ChSolverBB>();
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-10);
+    m_system->SetSolver(solver);
+
+    m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+
+    // Set default number of threads
+    m_system->SetNumThreads(1);
 }
 
 // -----------------------------------------------------------------------------
@@ -148,29 +143,14 @@ void ChVehicleCosimTireNode::EnableTirePressure(bool val) {
     m_tire_pressure = val;
 }
 
-void ChVehicleCosimTireNode::SetNumThreads(int num_threads) {
-    m_system->SetNumThreads(num_threads, 1, 1);
-}
-
-void ChVehicleCosimTireNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
-    m_int_type = int_type;
-    m_slv_type = slv_type;
-#ifndef CHRONO_PARDISO_MKL
-    if (m_slv_type == ChSolver::Type::PARDISO_MKL)
-        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-#endif
-#ifndef CHRONO_MUMPS
-    if (m_slv_type == ChSolver::Type::MUMPS)
-        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-#endif
-}
-
 void ChVehicleCosimTireNode::Initialize() {
+    if (m_verbose && m_index == 0) {
+        cout << "[Tire node]  Solver type: " << ChSolver::GetTypeAsString(m_system->GetSolver()->GetType())
+             << "  Integrator type: " << ChTimestepper::GetTypeAsString(m_system->GetTimestepper()->GetType()) << endl;
+    }
+
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
-
-    // Complete setup of the underlying ChSystem
-    InitializeSystem();
 
     MPI_Status status;
 
@@ -221,77 +201,6 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Send(&load_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
         cout << "[Tire node " << m_index << " ] Send: load mass = " << load_mass << endl;
-}
-
-void ChVehicleCosimTireNode::InitializeSystem() {
-    // Change solver
-    switch (m_slv_type) {
-        case ChSolver::Type::PARDISO_MKL: {
-#ifdef CHRONO_PARDISO_MKL
-            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case ChSolver::Type::MUMPS: {
-#ifdef CHRONO_MUMPS
-            auto solver = chrono_types::make_shared<ChSolverMumps>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case ChSolver::Type::SPARSE_LU: {
-            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-            break;
-        }
-        case ChSolver::Type::SPARSE_QR: {
-            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-            break;
-        }
-        case ChSolver::Type::PSOR:
-        case ChSolver::Type::PSSOR:
-        case ChSolver::Type::PJACOBI:
-        case ChSolver::Type::PMINRES:
-        case ChSolver::Type::BARZILAIBORWEIN:
-        case ChSolver::Type::APGD:
-        case ChSolver::Type::GMRES:
-        case ChSolver::Type::MINRES:
-        case ChSolver::Type::BICGSTAB: {
-            m_system->SetSolverType(m_slv_type);
-            auto solver = std::dynamic_pointer_cast<ChIterativeSolver>(m_system->GetSolver());
-            assert(solver);
-            solver->SetMaxIterations(100);
-            solver->SetTolerance(1e-10);
-            break;
-        }
-        default: {
-            cout << "Solver type not supported!" << endl;
-            return;
-        }
-    }
-
-    // Change integrator
-    switch (m_int_type) {
-        case ChTimestepper::Type::HHT:
-            m_system->SetTimestepperType(ChTimestepper::Type::HHT);
-            m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
-            m_integrator->SetAlpha(-0.2);
-            m_integrator->SetMaxIters(50);
-            m_integrator->SetAbsTolerances(1e-04, 1e2);
-            m_integrator->SetStepControl(false);
-            m_integrator->SetModifiedNewton(false);
-            m_integrator->SetVerbose(false);
-            break;
-
-        default:
-            break;
-    }
 }
 
 void ChVehicleCosimTireNode::Synchronize(int step_number, double time) {
