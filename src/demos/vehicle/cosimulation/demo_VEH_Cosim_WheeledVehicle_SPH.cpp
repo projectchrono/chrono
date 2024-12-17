@@ -34,6 +34,7 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
 using std::cout;
@@ -44,38 +45,6 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
-
-// =============================================================================
-
-class DriverWrapper : public ChPathFollowerDriver {
-  public:
-    DriverWrapper(ChVehicle& vehicle,                   // associated vehicle
-                  std::shared_ptr<ChBezierCurve> path,  // Bezier curve with target path
-                  const std::string& path_name,         // name of the path curve
-                  double target_speed,                  // constant target speed
-                  double delay = 0.5                    // delay in applying driver inputs
-                  )
-        : ChPathFollowerDriver(vehicle, path, path_name, target_speed), m_delay(delay) {}
-
-    virtual void Advance(double step) {
-        ChPathFollowerDriver::Advance(step);
-        double t = m_vehicle.GetChTime();
-
-        // Override ChPathFollowerDriver calculated driver inputs in initial transision phase.
-        // Zero inputs for m_delay, then increase linearly to desired throttle.
-        if (t < m_delay) {
-            m_steering = 0;
-            m_throttle = 0;
-            m_braking = 1;
-        } else {
-            ChClampValue(m_throttle, m_throttle, 0.2 * (t - m_delay) / m_delay);
-        }
-        m_throttle *= 0.7;
-    }
-
-  private:
-    double m_delay;
-};
 
 // =============================================================================
 
@@ -121,17 +90,16 @@ int main(int argc, char** argv) {
     bool verbose = false;
 
     std::string path_specfile = "terrain/sph/S-lane_RMS/path.txt";
-    std::string terrain_specfile = "cosim/terrain/granular_sph_markers.json";
+    std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
-    double terrain_length = 60;
-    double terrain_width = 8;
     ChVector3d init_loc(4.0, 0, 0.25);
 
     double target_speed = 4.0;
     std::string vehicle_specfile = "Polaris/Polaris.json";
-    std::string tire_specfile = "Polaris/Polaris_RigidMeshTire.json";
     std::string engine_specfile = "Polaris/Polaris_EngineSimpleMap.json";
     std::string transmission_specfile = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
+    std::string tire_specfile = "Polaris/Polaris_RigidMeshTire.json";
+    ////std::string tire_specfile = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_SPH_COSIM";
@@ -154,6 +122,17 @@ int main(int argc, char** argv) {
     // Peek in spec file and check terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
     if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH) {
+        if (rank == 0)
+            std::cout << "Incorrect terrain type" << std::endl;
+        MPI_Finalize();
+        return 1;
+    }
+
+    // Peek in spec file and extract tire type
+    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(vehicle::GetDataFile(tire_specfile));
+    if (tire_type == ChVehicleCosimTireNode::TireType::UNKNOWN) {
+        if (rank == 0)
+            std::cout << "Unsupported tire type" << std::endl;
         MPI_Finalize();
         return 1;
     }
@@ -194,7 +173,6 @@ int main(int argc, char** argv) {
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
         auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(vehicle::GetDataFile(terrain_specfile));
-        terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir);
@@ -215,12 +193,34 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
-        tire->SetVerbose(verbose);
-        tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
-        tire->SetOutDir(out_dir);
-        node = tire;
+        switch (tire_type) {
+            case ChVehicleCosimTireNode::TireType::RIGID: {
+                auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
+                tire->SetVerbose(verbose);
+                tire->SetStepSize(step_size);
+                tire->SetNumThreads(1);
+                tire->SetOutDir(out_dir);
+                node = tire;
+                break;
+            }
+            case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
+                auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, vehicle::GetDataFile(tire_specfile));
+                tire->EnableTirePressure(true);
+                tire->SetVerbose(verbose);
+                tire->SetStepSize(step_size);
+                tire->SetNumThreads(6);
+                tire->SetOutDir(out_dir);
+                if (renderRT)
+                    tire->EnableRuntimeVisualization(render_fps, writeRT);
+                if (renderPP)
+                    tire->EnablePostprocessVisualization(render_fps);
+
+                node = tire;
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     // Initialize systems
@@ -232,7 +232,8 @@ int main(int argc, char** argv) {
         auto vehicle = static_cast<ChVehicleCosimWheeledVehicleNode*>(node);
         auto path = CreatePath(vehicle::GetDataFile(path_specfile));
         ////double x_max = path->GetPoint(path->GetNumPoints() - 2).x() - 3.0;
-        auto driver = chrono_types::make_shared<DriverWrapper>(*vehicle->GetVehicle(), path, "path", target_speed, 0.5);
+        auto driver = chrono_types::make_shared<ChPathFollowerDriver>(*vehicle->GetVehicle(), path, "path",
+                                                                      target_speed, 0.5, 0.5);
         driver->GetSteeringController().SetLookAheadDistance(2.0);
         driver->GetSteeringController().SetGains(1.0, 0, 0);
         driver->GetSpeedController().SetGains(0.6, 0.05, 0);

@@ -282,7 +282,7 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     ChVector3d mini_window_size;
     // mini window size all the same! 0 angle is when the windows are closed 
     if (mini_window_angle > 0 && mini_window_angle < CH_PI_2)
-        mini_window_size = ChVector3d(mini_window_rb * 2, window_width - 2 * initial_spacing, mini_window_height - 3*initial_spacing);
+        mini_window_size = ChVector3d(mini_window_rb * 2, window_width - 2 * initial_spacing, mini_window_height - 4*initial_spacing);
     else 
         mini_window_size = ChVector3d(mini_window_rb * 2, window_width - 2 * initial_spacing, mini_window_height - initial_spacing);
 
@@ -374,7 +374,6 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
@@ -385,12 +384,13 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
-    sysSPH.SetCfdSPH(fluid_props);
+    fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 4;
     sph_params.xsph_coefficient = 0.5;
@@ -404,16 +404,25 @@ int main(int argc, char* argv[]) {
     sph_params.eos_type = EosType::TAIT;
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
+//<<<<<<< HEAD
+//    sph_params.num_bce_layers = 5;
+//    sysSPH.SetSPHParameters(sph_params);
+//    sysFSI.SetStepSizeCFD(step_size);
+//    sysFSI.SetStepsizeMBD(step_size);
+//======= 
+
     sph_params.num_bce_layers = 5;
-    sysSPH.SetSPHParameters(sph_params);
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    fsi.SetSPHParameters(sph_params);
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
+
+//>>>>>>> 90d0d22daa5fbc2d2ec052ac24ca4b89f1ff1320
 
     // Create WEC device
     std::shared_ptr<ChLinkLockRevolute> revolute = CreateFlap(fsi, mini_window_angle);
 
     // Enable depth-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, depth));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(depth));
 
     // Create a wave tank
     //double stroke = 0.1;  // 
@@ -441,7 +450,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + fsi.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -534,7 +543,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     double timer_CFD = 0;
-    double timer_MBS = 0;
+    double timer_MBD = 0;
     double timer_FSI = 0;
     double timer_step = 0;
 
@@ -555,9 +564,15 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+//<<<<<<< HEAD
+            //sysSPH.SaveParticleData(out_dir + "/particles");
+            //sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            //printf("write file: %s\n", (out_dir + "/fsi").c_str());
+//=======
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             printf("write file: %s\n", (out_dir + "/fsi").c_str());
+
+//>>>>>>> 90d0d22daa5fbc2d2ec052ac24ca4b89f1ff1320
             out_frame++;
         }
 
@@ -592,13 +607,13 @@ int main(int argc, char* argv[]) {
         sysFSI.DoStepDynamics(step_size);
 
         timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBS += sysFSI.GetTimerMBS();
+        timer_MBD += sysFSI.GetTimerMBD();
         timer_FSI += sysFSI.GetTimerFSI();
         timer_step += sysFSI.GetTimerStep();
         if (verbose && sim_frame == 2000) {
             cout << "Cummulative timers at time: " << time << endl;
             cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBS:  " << timer_MBS << endl;
+            cout << "   timer MBD:  " << timer_MBD << endl;
             cout << "   timer FSI:  " << timer_FSI << endl;
             cout << "   timer step: " << timer_step << endl;
         }

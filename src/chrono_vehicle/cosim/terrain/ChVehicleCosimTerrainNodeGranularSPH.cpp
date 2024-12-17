@@ -162,7 +162,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_terrain = new CRMTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
     ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFluidSystemSPH& sysSPH = m_terrain->GetFluidSystemSPH();
 
     // Let the FSI system read its parameters
     if (!m_specfile.empty())
@@ -171,17 +171,15 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Reload simulation parameters to FSI system
     sysFSI.SetStepSizeCFD(m_step_size);
     sysFSI.SetStepsizeMBD(m_step_size);
+
+    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
     sysSPH.SetConsistentDerivativeDiscretization(false, false);
     sysSPH.SetOutputLevel(OutputLevel::STATE);
-
     sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     sysSPH.SetDensity(m_density);
     sysSPH.SetCohesionForce(m_cohesion);
 
-    // Set the SPH method
-    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
-
-    // Construct the CRMTerrain (generate SPH particles and boundary BCE markers)
+    // Construct the CRMTerrain (generate SPH boundary BCE points)
     switch (m_terrain_type) {
         case ConstructionMethod::PATCH:
             m_terrain->Construct({m_dimX, m_dimY, m_depth}, VNULL, BoxSide::ALL & ~BoxSide::Z_POS);
@@ -190,14 +188,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
             m_terrain->Construct(m_sph_filename, m_bce_filename, VNULL);
             break;
     }
-    m_aabb_particles = m_terrain->GetSPHBoundingBox();
 
-    /*
-    //// TODO
     // Add all rigid obstacles
-    // (ATTENTION: BCE markers for moving objects must be created after the SPH particles and after fixed BCE markers!)
     for (auto& b : m_obstacles) {
-        auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
+        // Estimate obstacle inertial properties
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
@@ -205,6 +199,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
+        // Create obstacle body
         auto body = chrono_types::make_shared<ChBody>();
         body->SetName("obstacle");
         body->SetTag(tag_obstacles);
@@ -215,26 +210,21 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetFixed(false);
         body->EnableCollision(true);
 
-        auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh,
-                                                                                    false, false, m_radius_g);
-        body->AddCollisionShape(trimesh_shape); body->GetCollisionModel()->SetFamily(2);
+        // Set obstacle geometry
+        double thickness = 0.01;
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(b.m_contact_mat);
+        geometry.coll_meshes.push_back(
+            utils::ChBodyGeometry::TrimeshShape(VNULL, GetChronoDataFile(b.m_mesh_filename), VNULL, thickness));
 
-        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
-        body->AddVisualShape(trimesh_shape, ChFrame<>());
+        // Create visualization and collision shapes
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry.CreateCollisionShapes(body, 2, m_method);
 
+        // Add the obstacle body to the underlying Chrono and FSI systems (obstacles may be embedded)
         m_system->AddBody(body);
-
-        // Add this body to the FSI system
-        m_systemFSI->AddFsiBody(body);
-
-        // Create BCE markers associated with trimesh
-        std::vector<ChVector3d> point_cloud;
-        m_systemFSI->CreateMeshPoints(*trimesh, (double)initSpace0, point_cloud);
-        m_systemFSI->AddPointsBCE(body, point_cloud, ChFrame<>(), true);
+        m_terrain->AddRigidBody(body, geometry, true);
     }
-    */
 
     // Write file with terrain node settings
     std::ofstream outf;
@@ -249,21 +239,18 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
-    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
-
     // Get shape associated with the given object
     int i_shape = m_obj_map[i];
 
     // Create the proxy associated with the given object
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
-    // Create wheel proxy body
+    // Create proxy body
     auto body = chrono_types::make_shared<ChBody>();
     body->SetTag(0);
+    body->SetPos(m_init_loc[i]);
     body->SetMass(m_load_mass[i]);
     body->SetFixed(true);  // proxy body always fixed
-    body->EnableCollision(false);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
@@ -274,32 +261,19 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
         for (auto& mesh : m_geometry[i_shape].coll_meshes)
             mesh.radius = m_radius;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
+        body->EnableCollision(true);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
+    } else {
+        body->EnableCollision(false);
     }
 
-    // Add this body to the Chrono and FSI systems
+    // Add this body to the underlying Chrono and FSI systems
     m_system->AddBody(body);
-    sysFSI.AddFsiBody(body);
+    m_terrain->AddRigidBody(body, m_geometry[i_shape], false);
+
     proxy->AddBody(body, 0);
-
     m_proxies[i] = proxy;
-
-    // Create BCE markers associated with collision shapes
-    for (const auto& box : m_geometry[i_shape].coll_boxes) {
-        sysSPH.AddBoxBCE(body, ChFrame<>(box.pos, box.rot), box.dims, true);
-    }
-    for (const auto& sphere : m_geometry[i_shape].coll_spheres) {
-        sysSPH.AddSphereBCE(body, ChFrame<>(sphere.pos, QUNIT), sphere.radius, true);
-    }
-    for (const auto& cyl : m_geometry[i_shape].coll_cylinders) {
-        sysSPH.AddCylinderBCE(body, ChFrame<>(cyl.pos, cyl.rot), cyl.radius, cyl.length, true);
-    }
-    for (const auto& mesh : m_geometry[i_shape].coll_meshes) {
-        std::vector<ChVector3d> point_cloud;
-        sysSPH.CreatePoints_Mesh(*mesh.trimesh, (double)sysSPH.GetInitialSpacing(), point_cloud);
-        sysSPH.AddPointsBCE(body, point_cloud, ChFrame<>(VNULL, QUNIT), true);
-    }
 
     // Update dimension of FSI active domain based on shape AABB
     m_active_box_size = std::max(m_active_box_size, m_aabb[i_shape].Size().Length());
@@ -310,19 +284,23 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     ChVehicleCosimTerrainNodeChrono::OnInitialize(num_objects);
 
     // Initialize the SPH terrain
-    ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
     m_terrain->Initialize();
 
     // Initialize run-time visualization
     if (m_renderRT) {
+        ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
+
 #if defined(CHRONO_VSG)
         auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         vsys_VSG->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         m_vsys = vsys_VSG;
 #elif defined(CHRONO_OPENGL)
-        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(sysFSI);
+        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
+
         if (m_vsys) {
+            const auto& aabb_particles = m_terrain->GetSPHBoundingBox();
+
             m_vsys->SetTitle("Terrain Node (GranularSPH)");
             m_vsys->SetVerbose(false);
             m_vsys->SetSize(1280, 720);
@@ -334,7 +312,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
             m_vsys->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(
-                ChColor(0.10f, 0.40f, 0.65f), m_aabb_particles.min.z(), m_aabb_particles.max.z()));
+                ChColor(0.10f, 0.40f, 0.65f), aabb_particles.min.z(), aabb_particles.max.z()));
             m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
             m_vsys->SetImageOutput(m_writeRT);
             m_vsys->AttachSystem(m_system);
@@ -362,12 +340,97 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, Te
 }
 
 // -----------------------------------------------------------------------------
+// Create bodies with triangular contact geometry as proxies for the mesh faces.
+// Used for flexible bodies.
+// Assign to each body an identifier equal to the index of its corresponding mesh face.
+// Maintain a list of all bodies associated with the object.
+// Add all proxy bodies to the same collision family and disable collision between any
+// two members of this family.
+void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
+    if (m_verbose) {
+        cout << "[Terrain node] Create mesh proxy " << i << endl;
+    }
 
-void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {}
+    // Get shape associated with the given object
+    int i_shape = m_obj_map[i];
 
-void ChVehicleCosimTerrainNodeGranularSPH::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {}
+    // Create the proxy associated with the given object
+    auto proxy = chrono_types::make_shared<ProxyMesh>();
 
-void ChVehicleCosimTerrainNodeGranularSPH::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {}
+    // Note: it is assumed that there is one and only one mesh defined!
+    const auto& trimesh_shape = m_geometry[i_shape].coll_meshes[0];
+    const auto& trimesh = trimesh_shape.trimesh;
+    auto material = m_geometry[i_shape].materials[trimesh_shape.matID].CreateMaterial(m_method);
+
+    // Create a contact surface mesh constructed from the provided trimesh
+    auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);
+    surface->ConstructFromTrimesh(trimesh, m_radius);
+
+    // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
+    // Note that here, the contact surface includes all faces in the geometry trimesh..
+    int vertex_index = 0;
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
+        if (proxy->ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
+            ++vertex_index;
+        }
+        if (proxy->ptr2ind_map.insert({tri->GetNode(1), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(1)});
+            ++vertex_index;
+        }
+        if (proxy->ptr2ind_map.insert({tri->GetNode(2), vertex_index}).second) {
+            proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(2)});
+            ++vertex_index;
+        }
+    }
+
+    assert(proxy->ptr2ind_map.size() == surface->GetNumVertices());
+    assert(proxy->ind2ptr_map.size() == surface->GetNumVertices());
+
+    // Construct the FEA mesh and add to it the contact surface.
+    // Do not add nodes to the mesh, else they will be polluted during integration
+    proxy->mesh = chrono_types::make_shared<fea::ChMesh>();
+    proxy->mesh->AddContactSurface(surface);
+
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(proxy->mesh);
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
+    vis_mesh->SetWireframe(true);
+    proxy->mesh->AddVisualShapeFEA(vis_mesh);
+
+    // Add mesh to MBS and FSI systems
+    m_system->AddMesh(proxy->mesh);
+    m_terrain->AddFeaMesh(proxy->mesh, false);
+    
+    m_proxies[i] = proxy;
+}
+
+// Set position, orientation, and velocity of proxy bodies based on mesh faces.
+void ChVehicleCosimTerrainNodeGranularSPH::UpdateMeshProxy(unsigned int i, MeshState& mesh_state) {
+    // Get the proxy (contact surface) associated with this object
+    auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
+
+    int num_vertices = (int)mesh_state.vpos.size();
+
+    for (int in = 0; in < num_vertices; in++) {
+        auto& node = proxy->ind2ptr_map[in];
+        node->SetPos(mesh_state.vpos[in]);
+        node->SetPosDt(mesh_state.vvel[in]);
+    }
+}
+
+// Collect forces on the nodes
+// TODO: Do we need to check for contact like in SCM?
+void ChVehicleCosimTerrainNodeGranularSPH::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
+    auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
+
+    ChVector3d force;
+    mesh_contact.nv = 0;
+    for (const auto& node : proxy->ptr2ind_map) {
+        mesh_contact.vidx.push_back(node.second);
+        mesh_contact.vforce.push_back(node.first->GetForce());
+        mesh_contact.nv++;
+    }
+}
 
 // -----------------------------------------------------------------------------
 

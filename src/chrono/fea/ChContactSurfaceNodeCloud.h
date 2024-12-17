@@ -286,8 +286,8 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     void AddAllNodes(const ChMesh& mesh, double point_radius = 0.001);
 
     /// Utility function to add nodes of the associated mesh belonging to the given node_set, to this collision cloud.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
-    void AddNodesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set, const double point_radius = 0.001);
+    void AddNodesFromNodeSet(const std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set,
+                             const double point_radius = 0.001);
 
     /// Get the list of nodes.
     std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodes() { return m_nodes; }

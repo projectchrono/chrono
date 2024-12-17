@@ -59,6 +59,8 @@ ChFluidSystemSPH::ChFluidSystemSPH()
       m_remove_center1D(false),
       m_remove_center2D(false),
       m_num_rigid_bodies(0),
+      m_num_flex1D_nodes(0),
+      m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
       m_output_level(OutputLevel::STATE_PRESSURE) {
@@ -935,21 +937,23 @@ void ChFluidSystemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_cen
 void ChFluidSystemSPH::OnAddFsiMesh1D(unsigned int index, FsiMesh1D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& seg : fsi_mesh.contact_surface->GetSegmentsXYZ()) {
-        auto node0_index = fsi_mesh.ptr2ind_map[seg->GetNode(0)];
-        auto node1_index = fsi_mesh.ptr2ind_map[seg->GetNode(1)];
+        auto node0_index = m_num_flex1D_nodes + fsi_mesh.ptr2ind_map[seg->GetNode(0)];
+        auto node1_index = m_num_flex1D_nodes + fsi_mesh.ptr2ind_map[seg->GetNode(1)];
         m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
     }
 
     // Create the BCE markers based on the mesh contact segments
     auto num_bce = AddBCE_mesh1D(index, fsi_mesh);
 
-    // Update total number of flex 1-D segments and associated nodes
+    // Update total number of flex 1-D nodes and segments
+    auto num_nodes = fsi_mesh.GetNumNodes();
+    m_num_flex1D_nodes += num_nodes;
     auto num_elements = fsi_mesh.GetNumElements();
     m_num_flex1D_elements += num_elements;
 
     if (m_verbose) {
         cout << "Add mesh1D" << endl;
-        cout << "  Num. nodes:       " << fsi_mesh.GetNumNodes() << endl;
+        cout << "  Num. nodes:       " << num_nodes << endl;
         cout << "  Num. segments:    " << num_elements << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
     }
@@ -958,22 +962,24 @@ void ChFluidSystemSPH::OnAddFsiMesh1D(unsigned int index, FsiMesh1D& fsi_mesh) {
 void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& tri : fsi_mesh.contact_surface->GetTrianglesXYZ()) {
-        auto node0_index = fsi_mesh.ptr2ind_map[tri->GetNode(0)];
-        auto node1_index = fsi_mesh.ptr2ind_map[tri->GetNode(1)];
-        auto node2_index = fsi_mesh.ptr2ind_map[tri->GetNode(2)];
+        auto node0_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map[tri->GetNode(0)];
+        auto node1_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map[tri->GetNode(1)];
+        auto node2_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map[tri->GetNode(2)];
         m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
     }
 
     // Create the BCE markers based on the mesh contact surface
     auto num_bce = AddBCE_mesh2D(index, fsi_mesh);
 
-    // Update total number of flex 2-D faces and associated nodes
+    // Update total number of flex 2-D nodes and faces
+    auto num_nodes = fsi_mesh.GetNumNodes();
+    m_num_flex2D_nodes += num_nodes;
     auto num_elements = fsi_mesh.GetNumElements();
     m_num_flex2D_elements += num_elements;
 
     if (m_verbose) {
         cout << "Add mesh2D" << endl;
-        cout << "  Num. nodes:       " << fsi_mesh.GetNumNodes() << endl;
+        cout << "  Num. nodes:       " << num_nodes << endl;
         cout << "  Num. segments:    " << num_elements << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
     }

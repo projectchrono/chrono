@@ -67,4 +67,41 @@ void ChSolver::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(verbose);
 }
 
+std::string ChSolver::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::PSOR:
+            return "PSOR";
+        case Type::PSSOR:
+            return "PSSOR";
+        case Type::PJACOBI:
+            return "PJACOBI";
+        case Type::PMINRES:
+            return "PMINRES";
+        case Type::BARZILAIBORWEIN:
+            return "BARZILAIBORWEIN";
+        case Type::APGD:
+            return "APGD";
+        case Type::ADMM:
+            return "ADMM";
+        case Type::SPARSE_LU:
+            return "SPARSE_LU";
+        case Type::SPARSE_QR:
+            return "SPARSE_QR";
+        case Type::PARDISO_MKL:
+            return "PARDISO_MKL";
+        case Type::MUMPS:
+            return "MUMPS";
+        case Type::GMRES:
+            return "GMRES";
+        case Type::MINRES:
+            return "MINRES";
+        case Type::BICGSTAB:
+            return "BICGSTAB";
+        case Type::CUSTOM:
+            return "CUSTOM";
+    }
+
+    return "UNKNOWN";
+}
+
 }  // end namespace chrono

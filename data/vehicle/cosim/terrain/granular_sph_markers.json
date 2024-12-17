@@ -8,15 +8,14 @@
     "Granular material": {
         "Radius": 0.01,
         "Density": 1700,
-        "Cohesion": 5000
+        "Cohesion": 5e3
     },
-    "Output Folder": "demo_tire_rig",
     "SPH Parameters": {
         "Method": "WCSPH",
         "Epsilon": 0.001,
         "XSPH Coefficient": 0.5,
         "Shifting Coefficient": 1.0,
-        "Viscosity Treatment Type": "Artificial Oppose Separation",
+        "Viscosity Treatment Type": "Artificial Bilateral",
         "Boundary Treatment Type": "Adami",
         "Artificial viscosity alpha": 0.5
     },

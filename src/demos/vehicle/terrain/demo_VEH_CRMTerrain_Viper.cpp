@@ -103,17 +103,10 @@ int main(int argc, char* argv[]) {
     // Create the CRM terrain system
     double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
-    terrain.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
-
-    // Set SPH parameters and soil material properties
-    const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sys.SetGravitationalAcceleration(gravity);
-
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    terrain.SetVerbose(verbose);
+    terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    terrain.SetStepSizeCFD(step_size);
 
     ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
@@ -124,8 +117,7 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = cohesion;
-
-    sysSPH.SetElasticSPH(mat_props);
+    terrain.SetElasticSPH(mat_props);
 
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
@@ -137,11 +129,10 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
     sph_params.boundary_type = BoundaryType::ADAMI;
-    sysSPH.SetSPHParameters(sph_params);
+    terrain.SetSPHParameters(sph_params);
 
-    sysSPH.SetActiveDomain(ChVector3d(active_box_hdim));
-
-    sysSPH.SetOutputLevel(OutputLevel::STATE);
+    // Set output level from SPH simulation
+    terrain.SetOutputLevel(OutputLevel::STATE);
 
     // Add rover wheels as FSI bodies
     cout << "Create wheel BCE markers..." << endl;
@@ -156,6 +147,8 @@ int main(int argc, char* argv[]) {
         auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;
         terrain.AddRigidBody(wheel_body, geometry, false);
     }
+
+    terrain.SetActiveDomain(ChVector3d(active_box_hdim));
 
     // Construct the terrain
     cout << "Create terrain..." << endl;
@@ -173,8 +166,8 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << sysSPH.GetNumFluidMarkers() << endl;
-    cout << "  Bndry BCE markers: " << sysSPH.GetNumBoundaryMarkers() << endl;
+    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
     cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
@@ -226,11 +219,6 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    double timer_CFD = 0;
-    double timer_MBS = 0;
-    double timer_FSI = 0;
-    double timer_step = 0;
-
     while (time < tend) {
         rover->Update();
 
@@ -241,22 +229,11 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
         if (!render) {
-            std::cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRtf() << std::endl;
+            std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
         }
 
-        sysFSI.DoStepDynamics(step_size);
-
-        timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBS += sysFSI.GetTimerMBS();
-        timer_FSI += sysFSI.GetTimerFSI();
-        timer_step += sysFSI.GetTimerStep();
-        if (sim_frame == 2000) {
-            cout << "Cummulative timers at time: " << time << endl;
-            cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBS:  " << timer_MBS << endl;
-            cout << "   timer FSI:  " << timer_FSI << endl;
-            cout << "   timer step: " << timer_step << endl;
-        }
+        // Advance dynamics of multibody and fluid systems concurrently
+        terrain.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

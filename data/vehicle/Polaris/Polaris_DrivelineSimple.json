@@ -1,9 +1,9 @@
 {
-  "Name": "MAN 5t 4WD Driveline",
+  "Name": "Polaris simple driveline",
   "Type": "Driveline",
   "Template": "SimpleDriveline",
 
-  "Front Torque Fraction": 0.33,
+  "Front Torque Fraction": 0.5,
 
   "Front Differential Max Bias": 2.0,
   "Rear Differential Max Bias": 2.0,

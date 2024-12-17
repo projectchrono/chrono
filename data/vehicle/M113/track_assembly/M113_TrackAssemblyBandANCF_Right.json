@@ -68,7 +68,7 @@
       "G": [ 3.3557e6, 3.3557e6, 3.3557e6 ]
     },
     "Ply Angles": [0, 0, 0],
-    "Structural Damping Coefficient":  0.05
+    "Structural Damping Coefficient":  0.15
   },
 
   "Mesh Contact Material": {
