@@ -314,17 +314,20 @@ void ChFsiProblemSPH::Initialize() {
 
 //// TODO: use some additional "fuzz"?
 // Check if specified point is inside a primitive shape of the given geometry.
-bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p) {
+bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, const double m_spacing) {
     for (const auto& sphere : geometry.coll_spheres) {
         if ((p - sphere.pos).Length2() <= sphere.radius * sphere.radius)
             return true;
     }
+    // Luning i think the shape needs to get inflated slightly .... 
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        if (std::abs(pp.x()) <= box.dims.x() / 2 &&  //
-            std::abs(pp.y()) <= box.dims.y() / 2 &&  //
-            std::abs(pp.z()) <= box.dims.z() / 2)
+        if (std::abs(pp.x()) <= box.dims.x() / 2 + m_spacing &&  //
+            std::abs(pp.y()) <= box.dims.y() / 2 + m_spacing &&  //
+            std::abs(pp.z()) <= box.dims.z() / 2 + m_spacing)
             return true;
+
+
     }
     for (const auto& cyl : geometry.coll_cylinders) {
         auto pp = cyl.rot.RotateBack(p - cyl.pos);
@@ -362,7 +365,7 @@ void ChFsiProblemSPH::ProcessBody(RigidBody& b) {
                 ChVector3d p_abs = p_sph + m_offset_sph;
                 ChVector3d p_loc = b.body->TransformPointParentToLocal(p_abs);
                 // Check if inside a primitive shape
-                if (InsidePoint(b.geometry, p_loc))
+                if (InsidePoint(b.geometry, p_loc, m_spacing))
                     interior.insert(ChVector3i(ix, iy, iz));
             }
         }
