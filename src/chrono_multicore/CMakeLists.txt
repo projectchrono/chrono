@@ -52,10 +52,6 @@ mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
 cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CMAKE_CUDA_COMPILER" OFF)
 
 if(USE_MULTICORE_CUDA)
-
-  enable_language(CUDA)
-  find_package(CUDAToolkit REQUIRED)
-
   set(CHRONO_MULTICORE_USE_CUDA "#define CHRONO_MULTICORE_USE_CUDA")
 else()
   set(CHRONO_MULTICORE_USE_CUDA "#undef CHRONO_MULTICORE_USE_CUDA")
@@ -187,6 +183,8 @@ add_library(ChronoEngine_multicore
   ${ChronoEngine_Multicore_SOLVER}
 )
 
+add_library(ChronoEngine::ChronoEngine_multicore ALIAS ChronoEngine_multicore)
+
 if(USE_MULTICORE_CUDA)
   target_sources(ChronoEngine_multicore PRIVATE ${ChronoEngine_Multicore_CUDA})
   target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::cudart_static)
@@ -264,11 +262,3 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
-
-if(USE_MULTICORE_CUDA)
-	if (DEFINED CUB_INCLUDE_DIR)
-		install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
-			DESTINATION include/chrono_thirdparty
-			FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-	endif()
-endif()

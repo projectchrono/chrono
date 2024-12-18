@@ -1424,9 +1424,9 @@ endif()
 # Add the 'socket' library to the linking, depending on platform.
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	IF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        target_link_libraries(ChronoEngine PUBLIC "Ws2_32.lib")
+        target_link_libraries(ChronoEngine PUBLIC Ws2_32.lib)
 	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        target_link_libraries(ChronoEngine PUBLIC "Ws2_32.lib")
+        target_link_libraries(ChronoEngine PUBLIC Ws2_32.lib)
 	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
 	ELSEIF ("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
 	ENDIF()
@@ -1444,38 +1444,46 @@ endif()
 # Miscellaneous compiler flags
 #-----------------------------------------------------------------------------
 
+## WARNING: with the new CUDA handling flags are not propagated to the host compiler
+# - without generator-expression e.g. $<$<COMPILE_LANGUAGE:CXX>:MYOPTION> the compiler options will end up being propagated to any compiler/language
+# - e.g. the NVCC (device) compiler will also get those flag meant to be to for CXX thus causing errors
+# - however the CXX flags guarded by $<COMPILE_LANGUAGE:CXX> will not be propagated to the NVCC (host) compiler; the only way is to propagate them manually through:
+#       target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="MYOPTION">)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)
-        target_compile_definitions(ChronoEngine PUBLIC "-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-        target_compile_definitions(ChronoEngine PUBLIC "-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-        target_compile_definitions(ChronoEngine PUBLIC "-DNOMINMAX") # do not use MSVC's min/max macros
-        target_compile_options(ChronoEngine PUBLIC "-MP") # perform parallel builds
+        target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:_CRT_SECURE_NO_DEPRECATE>)  # avoids deprecation warnings
+        target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:_SCL_SECURE_NO_DEPRECATE>)  # avoids deprecation warnings
+        target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>) # do not use MSVC's min/max macros
+        target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/MP>) # perform parallel builds
 
-        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>")
-        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/EHsc>") # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model        
+        target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
+        target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler="/Zc:__cplusplus">) # without this flag the memory alignment seems to be broken
+        target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/EHsc>) # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model        
 
         # excluding wrong runtime libraries from the link (LNK4098): https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098
         if(USE_MSVC_STATIC_RUNTIME)
-          target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:msvcrt.lib;/NODEFAULTLIB:msvcrtd.lib;/NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib>")
+          target_link_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:msvcrt.lib;/NODEFAULTLIB:msvcrtd.lib;/NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib>)
         else()
-          target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:libcmt.lib;/NODEFAULTLIB:libcmtd.lib;/NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib>")
+          target_link_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:libcmt.lib;/NODEFAULTLIB:libcmtd.lib;/NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib>)
         endif()
 
     endif(MSVC)
 
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-        target_compile_definitions(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-D_MINGW -D_WINDOWS>")
-        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wl,--enable-runtime-pseudo-reloc>")
-        target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wl,--export-all-symbols;-Wl,--enable-auto-import;-Wl,--enable-runtime-pseudo-reloc>")
+        target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:MINGW>)
+        target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:_WINDOWS>)
+        target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,--enable-runtime-pseudo-reloc>)
+        target_link_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,--export-all-symbols;-Wl,--enable-auto-import;-Wl,--enable-runtime-pseudo-reloc>)
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
-            target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-m64>")
+            target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-m64>)
         endif()
     endif()
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>")
+    target_link_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wl,-no_compact_unwind>)
 endif()
 
 # Compiler warning level and disbaled warnings
@@ -1521,9 +1529,9 @@ endif()
 
 # Globally define debug and NOT-debug macros based on build type 
 target_compile_definitions(ChronoEngine PUBLIC
-	$<$<CONFIG:DEBUG>:DEBUG>
-	$<$<CONFIG:DEBUG>:_DEBUG>
-	$<$<CONFIG:RELEASE>:NDEBUG>
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:DEBUG>:DEBUG>>
+	$<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:DEBUG>:_DEBUG>>
+	$<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:RELEASE>:NDEBUG>>
 )
 
 
@@ -1532,15 +1540,15 @@ target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
 # Set some custom properties of this target
 # set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
-target_compile_definitions(ChronoEngine PRIVATE "CH_API_COMPILE")
-target_compile_definitions(ChronoEngine PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE>)
+target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 target_compile_definitions(ChronoEngine INTERFACE 
-    "$<BUILD_INTERFACE:CHRONO_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/\">"
-    "$<INSTALL_INTERFACE:CHRONO_DATA_DIR=\"$<INSTALL_PREFIX>/data/\">")
+    $<BUILD_INTERFACE:CHRONO_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/\">
+    $<INSTALL_INTERFACE:CHRONO_DATA_DIR=\"$<INSTALL_PREFIX>/data/\">)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_link_directories(ChronoEngine INTERFACE "$<INSTALL_INTERFACE:lib>")
+    target_link_directories(ChronoEngine INTERFACE $<INSTALL_INTERFACE:lib>)
 endif()
 
 
@@ -1554,7 +1562,7 @@ set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUN
 #-----------------------------------------------------------------------------
 if (NOT BUILD_SHARED_LIBS)
   set(CH_STATIC ON)
-  target_compile_definitions(ChronoEngine PUBLIC "CH_STATIC")
+  target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_STATIC>)
   set_target_properties(ChronoEngine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 else()
   set(CH_STATIC OFF)
@@ -1562,15 +1570,15 @@ endif()
 
 
 
-target_compile_definitions(ChronoEngine PRIVATE "BT_THREADSAFE")
-target_compile_definitions(ChronoEngine PRIVATE "BP_USE_FIXEDPOINT_INT_32" )
+target_compile_definitions(ChronoEngine PRIVATE BT_THREADSAFE)
+target_compile_definitions(ChronoEngine PRIVATE BP_USE_FIXEDPOINT_INT_32)
 
 if (USE_BULLET_DOUBLE)
-    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
+    target_compile_definitions(ChronoEngine PRIVATE BT_USE_DOUBLE_PRECISION)
 endif()
 
 if (USE_BULLET_OPENMP)
-    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_OPENMP")
+    target_compile_definitions(ChronoEngine PRIVATE BT_USE_OPENMP)
 endif()
 
 # For Bullet to use 32 bit math
@@ -1580,7 +1588,7 @@ if(XCODE_VERSION)
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
-        target_compile_options(ChronoEngine PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/bigobj>")
+        target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/bigobj>)
     endif()
 endif()
 
@@ -1600,7 +1608,8 @@ install(TARGETS ChronoEngine
     ARCHIVE DESTINATION lib
     INCLUDES DESTINATION include/chrono)
 
-# Install all header files for the main ChronoEngine library
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    DESTINATION include
-    FILES_MATCHING REGEX ".*\\.(h|inl)$")
+# # Install all header files for the main ChronoEngine library
+# # DARIOM: these shouldn't be necessary if all the headers were properly included in the target
+# install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#     DESTINATION include
+#     FILES_MATCHING REGEX ".*\\.(h|inl)$")

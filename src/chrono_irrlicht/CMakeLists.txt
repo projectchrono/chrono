@@ -149,13 +149,12 @@ if(CH_STATIC)
   SET(CH_IRRLICHT_LIB "${IRRLICHT_LIBRARY}" PARENT_SCOPE)
 endif()
 
-file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
 
 #-------------------------------------------------------------------------------
 # Install the ChronoEngine_irrlicht library
 
-INSTALL(TARGETS ChronoEngine_irrlicht
+install(TARGETS ChronoEngine_irrlicht
   EXPORT ChronoEngineTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
@@ -163,8 +162,12 @@ INSTALL(TARGETS ChronoEngine_irrlicht
   INCLUDES DESTINATION include/chrono_irrlicht
 )
 
-INSTALL(FILES ${ChronoEngine_IRRLICHT_HEADERS}
-        DESTINATION include/chrono_irrlicht)
+# # TODO: DARIOM check if this is already covered by the install TARGETS above
+# install(FILES ${ChronoEngine_IRRLICHT_HEADERS}
+#         DESTINATION include/chrono_irrlicht)
+
+file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
+     DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}

@@ -115,33 +115,36 @@ if (MSVC)
   endif()
 endif()
 
+# #-----------------------------------------------------------------------------
+# # CUDA support
+# #-----------------------------------------------------------------------------
 
+include(CheckLanguage)
+check_language(CUDA)
 
-# # #-----------------------------------------------------------------------------
-# # # CUDA support
-# # #-----------------------------------------------------------------------------
-
-# include(CheckLanguage)
-# check_language(CUDA)
-
-# # If CUDA was found, enable the CUDA language
-# if(CMAKE_CUDA_COMPILER)
-#     message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
-#     message(STATUS "  CUDA toolkit root dir: ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
-#     enable_language(CUDA)
-#     set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
-#     mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
-#     message(STATUS "CUDA found and enabled.")
-# else()
-#     mark_as_advanced(FORCE CUDA_ARCHITECTURES)
-#     message(WARNING "CUDA not found. CUDA features will be disabled.")
-# endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CUDA_SEPARABLE_COMPILATION OFF)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+# If CUDA was found, enable the CUDA language
+if(CMAKE_CUDA_COMPILER)
+    set(CUDA_FOUND TRUE)
+    enable_language(CUDA)
+    find_package(CUDAToolkit)
+    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "  CUDAToolkit version:   ${CUDAToolkit_VERSION}")
+    message(STATUS "  CUDA toolkit root dir: ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
+    set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
+    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
+    message(STATUS "CUDA found and enabled.")
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set(CUDA_SEPARABLE_COMPILATION OFF)
+    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+    endif()
+else()
+    set(CUDA_FOUND FALSE)
+    mark_as_advanced(FORCE CUDA_ARCHITECTURES)
+    message(WARNING "CUDA not found. CUDA features will be disabled.")
 endif()
+
+
 
 
 #-----------------------------------------------------------------------------
@@ -371,25 +374,43 @@ else()
   mark_as_advanced(CLEAR THRUST_ROOT)
 endif()
 
-#-----------------------------------------------------------------------------
-# CUB Library
-#-----------------------------------------------------------------------------
+## TODO: DARIOM see if we can use CUB from CUDA>12.3 or if Chrono requires necessariliy some old CUB
+# #-----------------------------------------------------------------------------
+# # CUB Library
+# #-----------------------------------------------------------------------------
+# find_package(CUDAToolkit)
+# if (CUDAToolkit_FOUND AND CUDAToolkit_VERSION_MAJOR LESS 11) # CUB should only be used with CUDA 
+# 	message(STATUS "Searching for CUB...")
+#   message(STATUS "DARIOM: cudatoolkit inside CUB_INCLUDE_DIR: ${CUB_INCLUDE_DIR}")
 
-if (CMAKE_CUDA_COMPILER) # CUB should only be used with CUDA 
-	message(STATUS "Searching for CUB...")
 
-	if (CUDA_VERSION_STRING VERSION_LESS 11.0)
-		find_path(
-			CUB_INCLUDE_DIR 
-			cub.cuh
-			PATHS 
-				"${CUDA_TOOLKIT_ROOT_DIR}/include/cub/"
-				"${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub/cub/"
-			DOC "Path to the CUB include directory" 
-			REQUIRED
-		)
-	endif()
-endif()
+# 	if (CUDAToolkit_VERSION_MAJOR LESS 11)
+# 		find_path(
+# 			CUB_INCLUDE_DIR 
+# 			cub.cuh
+# 			PATHS 
+# 				"${CUDA_TOOLKIT_ROOT_DIR}/include/cub/"
+# 				"${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub/cub/"
+# 			DOC "Path to the CUB include directory" 
+# 			REQUIRED
+# 		)
+#   else ()
+#     set(CUB_INCLUDE_DIR
+# 	endif()
+
+#   message(STATUS "DARIOM: after findpath CUB_INCLUDE_DIR: ${CUB_INCLUDE_DIR}")
+
+
+#   if (CUB_INCLUDE_DIR AND NOT TARGET Cub::Cub)
+#     add_library(Cub::Cub INTERFACE IMPORTED)
+#     set_target_properties(Cub::Cub PROPERTIES
+#                           INTERFACE_INCLUDE_DIRECTORIES "${CUB_INCLUDE_DIR}")
+
+#     install(DIRECTORY "${CUB_INCLUDE_DIR}" DESTINATION include/chrono_thirdparty)
+#   endif()
+
+# endif()
+
 
 #-----------------------------------------------------------------------------
 # HDF5 support (optional)
@@ -555,6 +576,7 @@ endif()
 
 # Add directory for main ChronoEngine library
 add_subdirectory(chrono)
+
 
 # # Let all modules have access to the headers of the main library
 # include_directories(${CH_INCLUDES})
@@ -794,9 +816,10 @@ else()
   set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
 endif()
 
+
 if(CUDA_FOUND)
   set(CHRONO_HAS_CUDA "#define CHRONO_HAS_CUDA")
-  set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDA_VERSION_STRING}\"")
+  set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDAToolkit_VERSION}\"")
 else()
   set(CHRONO_HAS_CUDA "#undef CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
