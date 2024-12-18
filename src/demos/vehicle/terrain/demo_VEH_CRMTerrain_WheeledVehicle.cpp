@@ -66,15 +66,19 @@ PatchType patch_type = PatchType::RECTANGULAR;
 double terrain_length = 20;
 double terrain_width = 3;
 
+// Vehicle specification files
+std::string vehicle_json = "Polaris/Polaris.json";
+std::string engine_json = "Polaris/Polaris_EngineSimpleMap.json";
+std::string transmission_json = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
+std::string tire_json = "Polaris/Polaris_RigidTire.json";
+////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+
 // Suspend vehicle
 bool fix_chassis = false;
 
-// Use rigid or flexible tires
-bool flex_tires = false;
-
 // ===================================================================================================================
 
-std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos);
+std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool& fea_tires);
 void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain);
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
 
@@ -116,7 +120,8 @@ int main(int argc, char* argv[]) {
 
     cout << "Create vehicle..." << endl;
     double vehicle_init_height = 0.25;
-    auto vehicle = CreateVehicle(ChCoordsys<>(ChVector3d(3.5, 0, vehicle_init_height), QUNIT));
+    bool fea_tires;
+    auto vehicle = CreateVehicle(ChCoordsys<>(ChVector3d(3.5, 0, vehicle_init_height), QUNIT), fea_tires);
     vehicle->GetChassis()->SetFixed(fix_chassis);
     auto sysMBS = vehicle->GetSystem();
 
@@ -124,21 +129,27 @@ int main(int argc, char* argv[]) {
     // Set solver and integrator for MBD
     // ---------------------------------
 
-    double step_size = 5e-4;
+    double step_size = 0;
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
-    if (flex_tires) {
+
+    if (fea_tires) {
         step_size = 1e-4;
         solver_type = ChSolver::Type::PARDISO_MKL;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     } else {
+        step_size = 5e-4;
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
-    SetChronoSolver(*sysMBS, solver_type, integrator_type);
 
-    // Set number of OpenMP threads
-    sysMBS->SetNumThreads(6, 1, 6);
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+
+    SetChronoSolver(*sysMBS, solver_type, integrator_type, num_threads_pardiso);
+    sysMBS->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
 
     // Set collision system
     sysMBS->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -376,12 +387,8 @@ int main(int argc, char* argv[]) {
 
 // ===================================================================================================================
 
-std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos) {
-    std::string vehicle_json = "Polaris/Polaris.json";
-    std::string engine_json = "Polaris/Polaris_EngineSimpleMap.json";
-    std::string transmission_json = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
-    std::string rigid_tire_json = "Polaris/Polaris_RigidTire.json";
-    std::string fea_tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool& fea_tires) {
+    fea_tires = false;
 
     // Create and initialize the vehicle
     auto vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(vehicle_json), ChContactMethod::SMC);
@@ -401,37 +408,12 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos) {
     // Create and initialize the tires
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(flex_tires ? fea_tire_json : rigid_tire_json));
+            auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
             vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
+            if (std::dynamic_pointer_cast<ChDeformableTire>(tire))
+                fea_tires = true;
         }
     }
-
-    /*
-    {
-        auto wheel = vehicle->GetWheel(0, LEFT);
-        auto tire = ReadTireJSON(vehicle::GetDataFile(flex_tires ? fea_tire_json : rigid_tire_json));
-        if (auto tire_fea = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-            tire_fea->SetContactSurfaceType(ChTire::ContactSurfaceType::TRIANGLE_MESH);
-            tire_fea->EnableContact(false);
-        }
-        vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
-    }
-    {
-        auto wheel = vehicle->GetWheel(0, RIGHT);
-        auto tire = ReadTireJSON(vehicle::GetDataFile(rigid_tire_json));
-        vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
-    }
-    {
-        auto wheel = vehicle->GetWheel(1, LEFT);
-        auto tire = ReadTireJSON(vehicle::GetDataFile(rigid_tire_json));
-        vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
-    }
-    {
-        auto wheel = vehicle->GetWheel(1, RIGHT);
-        auto tire = ReadTireJSON(vehicle::GetDataFile(rigid_tire_json));
-        vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
-    }
-    */
 
     return vehicle;
 }

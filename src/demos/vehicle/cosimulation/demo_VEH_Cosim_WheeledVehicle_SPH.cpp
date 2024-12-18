@@ -226,10 +226,14 @@ int main(int argc, char** argv) {
                     tire->EnablePostprocessVisualization(render_fps);
 
                 auto& sys = tire->GetSystem();
-                sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 4);
                 auto solver_type = ChSolver::Type::PARDISO_MKL;
                 auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-                SetChronoSolver(sys, solver_type, integrator_type);
+                int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+                int num_threads_collision = 1;
+                int num_threads_eigen = 1;
+                int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+                SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
+                sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
                 if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
                     hht->SetAlpha(-0.2);
                     hht->SetMaxIters(5);

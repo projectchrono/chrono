@@ -92,14 +92,15 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver and integrator settings
-    int nthreads = std::min(6, ChOMP::GetNumProcs());
-    sys.SetNumThreads(nthreads, 1, nthreads);
-    cout << "OpenMP num threads: " << nthreads << endl;
-
     double step_size = 1e-4;
     auto solver_type = ChSolver::Type::PARDISO_MKL;
     auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    SetChronoSolver(sys, solver_type, integrator_type);
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+    SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
+    sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
 
     auto ls_direct = std::dynamic_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
     auto ls_iterative = std::dynamic_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());

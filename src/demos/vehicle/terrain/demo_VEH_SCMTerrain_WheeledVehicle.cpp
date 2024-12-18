@@ -355,8 +355,12 @@ int main(int argc, char* argv[]) {
         solver = ChSolver::Type::PARDISO_MKL;
         integrator = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
-    SetChronoSolver(*sys, solver, integrator);
-    sys->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+    SetChronoSolver(*sys, solver, integrator, num_threads_pardiso);
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
 
     // -----------------
     // Initialize output

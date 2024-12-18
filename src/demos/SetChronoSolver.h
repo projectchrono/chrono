@@ -36,6 +36,7 @@
 bool SetChronoSolver(chrono::ChSystem& sys,
                      const chrono::ChSolver::Type& solver_type,
                      const chrono::ChTimestepper::Type& integrator_type,
+                     int num_threads_mkl = 1,
                      bool verbose = true) {
     auto contact_method = sys.GetContactMethod();
     auto slvr_type = solver_type;
@@ -78,9 +79,10 @@ bool SetChronoSolver(chrono::ChSystem& sys,
 #endif
     }
 
+    // Set solver
     if (slvr_type == chrono::ChSolver::Type::PARDISO_MKL) {
 #ifdef CHRONO_PARDISO_MKL
-        auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>();
+        auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>(num_threads_mkl);
         solver->LockSparsityPattern(true);
         sys.SetSolver(solver);
         if (verbose)
@@ -131,6 +133,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         }
     }
 
+    // Set integrator
     sys.SetTimestepperType(intg_type);
     if (verbose)
         cout << prefix << "Setting integrator " << chrono::ChTimestepper::GetTypeAsString(intg_type) << endl;
