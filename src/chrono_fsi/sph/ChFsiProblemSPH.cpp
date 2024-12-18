@@ -312,28 +312,33 @@ void ChFsiProblemSPH::Initialize() {
     m_initialized = true;
 }
 
-//// TODO: use some additional "fuzz"?
 // Check if specified point is inside a primitive shape of the given geometry.
-bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, const double m_spacing) {
+// Test a shape volume enlarged by the specified envelope.
+bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, double envelope) {
     for (const auto& sphere : geometry.coll_spheres) {
-        if ((p - sphere.pos).Length2() <= sphere.radius * sphere.radius)
+        auto radius = sphere.radius + envelope;
+        if ((p - sphere.pos).Length2() <= radius * radius)
             return true;
     }
-    // Luning i think the shape needs to get inflated slightly .... 
+
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        if (std::abs(pp.x()) <= box.dims.x() / 2 + m_spacing &&  //
-            std::abs(pp.y()) <= box.dims.y() / 2 + m_spacing &&  //
-            std::abs(pp.z()) <= box.dims.z() / 2 + m_spacing)
+        auto hdims = box.dims / 2 + envelope;
+        if (std::abs(pp.x()) <= hdims.x() &&  //
+            std::abs(pp.y()) <= hdims.y() &&  //
+            std::abs(pp.z()) <= hdims.z())
             return true;
-
-
     }
+
     for (const auto& cyl : geometry.coll_cylinders) {
         auto pp = cyl.rot.RotateBack(p - cyl.pos);
-        if (pp.x() * pp.x() + pp.y() * pp.y() <= cyl.radius * cyl.radius && std::abs(pp.z()) <= cyl.length / 2)
+        auto radius = cyl.radius + envelope;
+        auto hlength = cyl.length / 2 + envelope;
+        if (pp.x() * pp.x() + pp.y() * pp.y() <= radius * radius &&  //
+            std::abs(pp.z()) <= hlength)
             return true;
     }
+
     return false;
 }
 
