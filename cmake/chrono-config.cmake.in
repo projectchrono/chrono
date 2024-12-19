@@ -180,21 +180,6 @@ else()
    set(Chrono_VEHICLECOSIM_AVAILABLE FALSE)
 endif()
 
-if(Chrono_GPU_AVAILABLE OR (Chrono_MULTICORE_AVAILABLE AND DEFINED CHRONO_USE_MULTICORE_CUDA) OR Chrono_FSI_AVAILABLE)
-  set(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" CACHE PATH "CUDAToolkit library location (should contain e.g. 'version.json')")
-
-  find_package(CUDAToolkit)
-  enable_language(CUDA)
-
-  if (NOT CMAKE_CUDA_COMPILER OR NOT CUDAToolkit_FOUND)
-    mark_as_advanced(CUDAToolkit_DIR CLEAR)
-    set(CHRONO_CUDA_FOUND FALSE)
-  else()
-    mark_as_advanced(CUDAToolkit_DIR FORCE)
-    set(CHRONO_CUDA_FOUND TRUE)
-  endif()
-endif()
-
 #-------------------------------------------------------------------------------
 # List of requested component flags
 #-------------------------------------------------------------------------------
@@ -245,6 +230,22 @@ if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
   endif()
 endif()
 
+if(Chrono_GPU_REQUESTED OR (Chrono_MULTICORE_REQUESTED AND DEFINED CHRONO_USE_MULTICORE_CUDA) OR Chrono_FSI_REQUESTED)
+  set(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" CACHE PATH "CUDAToolkit library location (should contain e.g. 'version.json')")
+
+  find_package(CUDAToolkit)
+  enable_language(CUDA)
+
+  if (NOT CMAKE_CUDA_COMPILER OR NOT CUDAToolkit_FOUND)
+    mark_as_advanced(CLEAR CUDAToolkit_DIR)
+    set(CHRONO_CUDA_FOUND FALSE)
+  else()
+    mark_as_advanced(FORCE CUDAToolkit_DIR)
+    set(CHRONO_CUDA_FOUND TRUE)
+  endif()
+endif()
+
+
 #-------------------------------------------------------------------------------
 # Rebuild list of requested component flags
 #-------------------------------------------------------------------------------
@@ -290,7 +291,48 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     # The component is available. Set as FOUND.
     set(CHRONO_${COMPONENT_UPPER}_FOUND ON)
 
-    if(${COMPONENT_UPPER} MATCHES "MULTICORE")
+    if(${COMPONENT_UPPER} MATCHES "OPENGL")
+
+      set(GLEW_DIR "@GLEW_DIR@" CACHE PATH "Path to GLEW installation.")
+      set(glfw3_DIR "@glfw3_DIR@" CACHE PATH "Path to glfw3 installation.")
+      set(glm_DIR "@glm_DIR@" CACHE PATH "Path to glm installation.")
+      find_package(OpenGL)
+      find_package(GLEW)
+      find_package(glfw3)
+      find_package(glm)
+
+      if (NOT GLEW_FOUND)
+        message(WARNING "Chrono::OpenGL requires GLEW, but GLEW was not found. Set GLEW_DIR to the GLEW installa directory.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      else()
+        mark_as_advanced(FORCE GLEW_DIR)
+      endif()
+      
+      if (NOT glfw3_FOUND)
+        message(WARNING "Chrono::OpenGL requires glfw3, but glfw3 was not found. Set glfw3_DIR to the glfw install directory.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      else()
+        mark_as_advanced(FORCE glfw3_DIR)
+      endif()
+
+      if (NOT glm_FOUND)
+        message(WARNING "Chrono::OpenGL requires GLM, but GLM was not found. Set glm_DIR to the GLM install directory.")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      else()
+        mark_as_advanced(FORCE glm_DIR)
+      endif()
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+        endif()
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
+      endif()
+
+    elseif(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
       find_dependency(Thrust)
       
@@ -310,7 +352,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
 
       if(CHRONO_USE_MULTICORE_CUDA AND NOT CHRONO_CUDA_FOUND)
-        message(WARNING "Chrono::Multicore requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory")
+        message(WARNING "Chrono::Multicore requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory.")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
       
@@ -328,40 +370,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
-      endif()
-
-    elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
-
-      set(GLEW_DIR "@GLEW_DIR@")
-      set(glfw3_DIR "@glfw3_DIR@")
-      find_package(GLEW)
-      find_package(glfw3)
-
-      if (NOT GLEW_FOUND)
-        message(WARNING "Chrono::OpenGL requires GLEW, but GLEW was not found.")
-        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      endif()
-      
-      if (NOT glfw3_FOUND)
-        message(WARNING "Chrono::OpenGL requires glfw, but glfw was not found.")
-        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      endif()
-
-      if (CHRONO_${COMPONENT_UPPER}_FOUND)
-        list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
-        if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
-        endif()
-        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
-        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
-        if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-          list(APPEND CHRONO_LINKER_FLAGS "-s" "FULL_ES3=1" "-s" "USE_GLFW=3")
-        else()
-          list(APPEND CHRONO_LIBRARIES "GLEW::glew")
-          list(APPEND CHRONO_LIBRARIES "glfw")
-          list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
-        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
@@ -476,6 +484,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
           # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
 
           if (Chrono_OPENGL_AVAILABLE)
+            if (Chrono_MULTICORE_AVAILABLE)
+              list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+            endif()
             list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
           endif()
           if (Chrono_VSG_AVAILABLE)

@@ -150,11 +150,10 @@ target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cusparse)
 # ------------------------------------------------------------------------------
 ## TODO: DARIOM add Modern support for OpenGL
 if(ENABLE_MODULE_OPENGL)
-  target_include_directories(ChronoEngine_gpu PUBLIC ${CH_OPENGL_INCLUDES})
+  target_link_libraries(ChronoEngine_gpu PUBLIC ChronoEngine_opengl)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
      target_link_options(ChronoEngine_gpu PUBLIC "-framework IOKit -framework Cocoa -framework OpenGL")
   endif()
-  target_link_libraries(ChronoEngine_gpu PUBLIC ChronoEngine_opengl)
 endif()
         
 install(TARGETS ChronoEngine_gpu
@@ -209,10 +208,10 @@ mark_as_advanced(FORCE
 # elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 #     # DARIOM: why not enabling CUDA_PROPAGATE_HOST_FLAGS instaed of passing the flags manually to the host compiler?
 #     target_compile_definitions(ChronoEngine_gpu PRIVATE "CHRONO_LINUX")
-#     set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G -Xcompiler -g")
-#     set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG")
-#     set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG")
-#     set(CMAKE_CUDA_FLAGS_MINSIZEREL "${CMAKE_CUDA_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG")
+    # set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G -Xcompiler -g")
+    # set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG")
+    # set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG")
+    # set(CMAKE_CUDA_FLAGS_MINSIZEREL "${CMAKE_CUDA_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG")
 
 #     # message(STATUS "NVCC Release flags are" ${CMAKE_CUDA_FLAGS_RELEASE})
        

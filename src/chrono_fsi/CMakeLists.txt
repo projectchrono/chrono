@@ -71,15 +71,6 @@ endif()
 # Add optional run-time visualization support
 # ------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_OPENGL)
-  include_directories(${CH_OPENGL_INCLUDES})
-  set(CH_FSI_INCLUDES ${CH_FSI_INCLUDES} ${CH_OPENGL_INCLUDES})
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-     set(CH_FSI_LINKER_FLAGS  "${CH_FSI_LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
-  endif()
-  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_opengl)
-endif()
-
 if(ENABLE_MODULE_VSG)
   include_directories(${CH_VSG_INCLUDES})
   list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
@@ -217,6 +208,7 @@ add_library(ChronoEngine_fsi
 )
 
 add_library(ChronoEngine::fsi ALIAS ChronoEngine_fsi)
+
 target_link_libraries(ChronoEngine_fsi PUBLIC ChronoEngine)
 target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cudart_static)
 target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::nvrtc)
@@ -224,14 +216,23 @@ target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cuda_driver)
 target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cublas)
 target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cusparse)
 
+
+if(ENABLE_MODULE_OPENGL)
+  target_link_libraries(ChronoEngine_fsi PUBLIC ChronoEngine_opengl)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+     target_compile_options(ChronoEngine_fsi PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
+  endif()
+endif()
+
+
 # If using MSVC, disable warnings related to missing DLL interface
 if(MSVC)
     target_compile_options(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
 endif()
 
 
-target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_API_COMPILE_FSI")
-target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+target_compile_definitions(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 
 install(TARGETS ChronoEngine_fsi

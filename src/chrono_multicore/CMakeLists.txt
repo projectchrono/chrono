@@ -217,7 +217,7 @@ target_compile_definitions(ChronoEngine_multicore PRIVATE CH_IGNORE_DEPRECATED)
 target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)
 
 # ----- Configure Blaze and Thrust -----
-
+## TODO: DARIOM shall they be guarded for only CXX?
 if(ENABLE_OPENMP)
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")

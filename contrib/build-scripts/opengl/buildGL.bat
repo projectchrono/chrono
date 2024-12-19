@@ -71,6 +71,7 @@ rmdir /S/Q %GL_INSTALL_DIR% 2>nul
 rem --- GLM ----------------------------------------------------------------
 
 xcopy /S/E/I %GLM_SOURCE_DIR%\glm %GL_INSTALL_DIR%\include\glm
+xcopy /S/E/I %GLM_SOURCE_DIR%\cmake %GL_INSTALL_DIR%\lib\cmake
 
 rem --- GLEW ---------------------------------------------------------------
 

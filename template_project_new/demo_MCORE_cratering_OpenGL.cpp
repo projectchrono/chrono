@@ -37,6 +37,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono_opengl/ChVisualSystemOpenGL.h"
+
 using namespace chrono;
 
 using std::cout;
@@ -480,6 +482,16 @@ int main(int argc, char* argv[]) {
     int num_contacts = 0;
     std::ofstream hfile(height_file);
 
+    opengl::ChVisualSystemOpenGL vis;
+    vis.AttachSystem(sys);
+    vis.SetWindowTitle("Crater Test");
+    vis.SetWindowSize(1280, 720);
+    vis.SetRenderMode(opengl::WIREFRAME);
+    vis.Initialize();
+    vis.AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
+    vis.SetCameraVertical(CameraVerticalDir::Z);
+    vis.SetCameraProperties(0.01f);
+
     while (time < time_end) {
         if (sim_frame == next_out_frame) {
             cout << endl;
@@ -520,7 +532,13 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        sys->DoStepDynamics(time_step);
+        // Advance simulation by one step
+        if (vis.Run()) {
+            sys->DoStepDynamics(time_step);
+            vis.Render();
+        } else
+            break;
+
         progressbar(out_steps + sim_frame - next_out_frame + 1, out_steps);
         ////TimingOutput(sys);
 

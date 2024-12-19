@@ -129,7 +129,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   SET(CH_IRRLICHT_DLL "${IRRLICHT_DLL}")
   SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
 
-  ADD_CUSTOM_COMMAND(
+  add_custom_command(
     TARGET ChronoEngine_irrlicht POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"

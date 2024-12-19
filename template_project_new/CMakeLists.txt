@@ -20,7 +20,7 @@ project(my_project)
 
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
-find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU)
+find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL)
 
 
 #--------------------------------------------------------------
@@ -45,14 +45,17 @@ target_link_libraries(demo_FEA_cablesMKL PRIVATE ChronoEngine::ChronoEngine Chro
 add_executable(demo_MCORE_cratering demo_MCORE_cratering.cpp)
 target_link_libraries(demo_MCORE_cratering PRIVATE ChronoEngine::ChronoEngine_multicore) # ChronoEngine::ChronoEngine might be omitted since it is pulled directly by ChronoEngine_multicore
 
+add_executable(demo_MCORE_cratering_OpenGL demo_MCORE_cratering_OpenGL.cpp)
+target_link_libraries(demo_MCORE_cratering_OpenGL PRIVATE ChronoEngine::ChronoEngine_multicore ChronoEngine::ChronoEngine_opengl) # ChronoEngine::ChronoEngine might be omitted since it is pulled directly by ChronoEngine_multicore
+
 add_executable(demo_GPU_mixer demo_GPU_mixer.cpp)
 target_link_libraries(demo_GPU_mixer PRIVATE ChronoEngine::ChronoEngine_gpu)
 
 add_executable(demo_FSI_Poiseuille_flow demo_FSI_Poiseuille_flow.cpp)
 target_link_libraries(demo_FSI_Poiseuille_flow PRIVATE ChronoEngine::ChronoEngine_fsi)
 
-
-
+add_executable(demo_GL_cohesion demo_GL_cohesion.cpp)
+target_link_libraries(demo_GL_cohesion PRIVATE ChronoEngine::ChronoEngine_opengl)
 
 
 
