@@ -22,14 +22,18 @@
 #include <vector>
 #include <algorithm>
 
-#include "gtest/gtest.h"
+#include "chrono/ChConfig.h"
 
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
-#include "chrono/multicore_math/matrix.h"
+#ifdef CHRONO_HAS_THRUST
+    #include "chrono/multicore_math/ChMulticoreMath.h"
+    #include "chrono/multicore_math/matrix.h"
+#endif
+
+#include "gtest/gtest.h"
 
 using namespace chrono;
 
@@ -45,6 +49,8 @@ void Assert_eq(const ChQuaternion<>& a, const ChQuaternion<>& b) {
     ASSERT_EQ(a.e2(), b.e2());
     ASSERT_EQ(a.e3(), b.e3());
 }
+
+#ifdef CHRONO_HAS_THRUST
 
 void Assert_eq(const real3& a, const real3& b) {
     ASSERT_EQ(a.x, b.x);
@@ -72,20 +78,24 @@ void Assert_eq(const Mat33& a, const Mat33& b) {
     Assert_eq(a.col(2), b.col(2));
 }
 
+#endif
+
 // -----------------------------------------------------------------------------
 
-void Assert_near(const ChVector3d& a, const ChVector3d& b, real COMPARE_EPS = C_REAL_EPSILON) {
+void Assert_near(const ChVector3d& a, const ChVector3d& b, double COMPARE_EPS = DBL_EPSILON) {
     ASSERT_NEAR(a.x(), b.x(), COMPARE_EPS);
     ASSERT_NEAR(a.y(), b.y(), COMPARE_EPS);
     ASSERT_NEAR(a.z(), b.z(), COMPARE_EPS);
 }
 
-void Assert_near(const ChQuaternion<>& a, const ChQuaternion<>& b, real COMPARE_EPS = C_REAL_EPSILON) {
+void Assert_near(const ChQuaternion<>& a, const ChQuaternion<>& b, double COMPARE_EPS = DBL_EPSILON) {
     ASSERT_NEAR(a.e0(), b.e0(), COMPARE_EPS);
     ASSERT_NEAR(a.e1(), b.e1(), COMPARE_EPS);
     ASSERT_NEAR(a.e2(), b.e2(), COMPARE_EPS);
     ASSERT_NEAR(a.e3(), b.e3(), COMPARE_EPS);
 }
+
+#ifdef CHRONO_HAS_THRUST
 
 void Assert_near(const real3& a, const real3& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.x, b.x, COMPARE_EPS);
@@ -134,7 +144,11 @@ void Assert_near(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_REAL
     ASSERT_NEAR(a.x22, b.x22, COMPARE_EPS);
 }
 
+#endif
+
 // -----------------------------------------------------------------------------
+
+#ifdef CHRONO_HAS_THRUST
 
 void Assert_near(const real a[], const real b[], int n, real COMPARE_EPS = C_REAL_EPSILON) {
     // Local copies (will be modified)
@@ -183,3 +197,5 @@ void Assert_near(const std::vector<real3>& a, const std::vector<real3>& b, real 
     for (int i = 0; i < av.size(); i++)
         Assert_near(av[i], bv[i], COMPARE_EPS);
 }
+
+#endif

@@ -164,6 +164,19 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     // Send to TERRAIN node the number of interacting objects (here, number of spindles)
     MPI_Send(&num_spindles, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
+    // Send to TERRAIN node the initial locations of all interacting objects (here, tire/spindle initial locations)
+    std::vector<double> all_locations(3 * num_spindles);
+    unsigned int start_idx = 0;
+    for (unsigned int i = 0; i < num_spindles; i++) {
+        // Send wheel state to the tire node
+        BodyState state = GetSpindleState(i);
+        all_locations[start_idx + 0] = state.pos.x();
+        all_locations[start_idx + 1] = state.pos.y();
+        all_locations[start_idx + 2] = state.pos.z();
+        start_idx += 3;
+    }
+    MPI_Send(all_locations.data(), 3 * num_spindles, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
     // For each tire:
     // - cache the spindle body
     // - get the load on the wheel and send to TIRE node

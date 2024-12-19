@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
             std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
-            geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius));
+            geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, 0.01));
             break;
         }
         case ObjectShape::BOX_PRIMITIVE: {
