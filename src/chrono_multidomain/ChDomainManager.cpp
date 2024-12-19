@@ -34,6 +34,10 @@ using namespace fea;
 
 
 void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
+
+	if (domain->IsMaster() && !this->master_domain_enabled)
+		return;
+
 	std::cout << "DOMAIN ---- rank: " << domain->GetRank() << "-----------------------------\n";
 
 	for (auto body : domain->GetSystem()->GetBodies()) {
@@ -83,6 +87,10 @@ void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
 	}
 
 	for (auto& interf : domain->GetInterfaces()) {
+
+		if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+			continue;
+
 		std::cout << " interface to domain rank " << interf.second.side_OUT->GetRank() << " ...... \n";
 		for (auto& item : interf.second.shared_items)
 			std::cout << "  shared item tag " << item.first << std::endl;
@@ -247,9 +255,14 @@ void InterfaceManageNodeSharedLeaving(
 
 void ChDomain::DoUpdateSharedLeaving() {
 
+	if (this->IsMaster() && !this->domain_manager->master_domain_enabled)
+		return;
 
 	// Select objects to sent to surrounding domains 
 	for (auto& interf : this->interfaces) {
+
+		if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+			continue;
 
 		std::unordered_set<int> shared_ids;
 		std::unordered_set<int> sent_ids;
@@ -553,10 +566,16 @@ void ChDomain::DoUpdateSharedLeaving() {
 
 void  ChDomain::DoUpdateSharedReceived() {
 	
+	if (this->IsMaster() && !this->domain_manager->master_domain_enabled)
+		return;
+
 	// This will be populated by all interfaces with all neighbours
 	std::unordered_set<int> set_of_domainshared;
 
 	for (auto& interf : this->interfaces) {
+
+		if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+			continue;
 
 		std::vector<ChIncrementalObj<ChBody>>		bodies_migrating;
 		std::vector<ChIncrementalObj<ChPhysicsItem>>items_migrating;

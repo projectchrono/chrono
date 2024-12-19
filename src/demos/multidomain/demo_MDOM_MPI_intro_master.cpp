@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     sys.SetMaxPenetrationRecoverySpeed(1.0);
  
 
-    // 4- we create and populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
+    // 4- we populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
     //    At the beginning of the simulation, the master domain will break into 
     //    multiple data structures and will serialize them into the proper subdomains.
     //    (Note that there is a "low level" version of this demo that shows how
@@ -225,7 +225,10 @@ int main(int argc, char* argv[]) {
     // INITIAL SETUP OF COLLISION AABBs 
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
-    for (int i = 0; i < 180; ++i) {
+    // The master domain does not need to communicate anymore with the domains so do:
+    domain_manager.master_domain_enabled = false;
+
+    for (int i = 0; i < 18; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;

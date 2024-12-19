@@ -36,6 +36,7 @@ ChSystemDescriptorMultidomain::ChSystemDescriptorMultidomain(std::shared_ptr<ChD
 
 
 void ChSystemDescriptorMultidomain::UpdateCountsAndOffsets() {
+
     // parent class update
     ChSystemDescriptor::UpdateCountsAndOffsets();
 
@@ -192,7 +193,7 @@ void ChSystemDescriptorMultidomain::SharedVectsToZero() {
     }
 }
 
-void ChSystemDescriptorMultidomain::SharedVectsSyncToCurrentDomainStates() {
+void ChSystemDescriptorMultidomain::SharedVectsFromCurrentDomainStates() {
     for (auto& interf : this->domain->GetInterfaces()) {
         int nrank = interf.second.side_OUT->GetRank();
         int offset = 0;
@@ -213,9 +214,55 @@ void ChSystemDescriptorMultidomain::SharedVectsSyncToCurrentDomainStates() {
     }
 }
 
-void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(double omega) {
-    
+void ChSystemDescriptorMultidomain::SharedVectsFromDomainVector(const ChVectorDynamic<>& vect) {
     for (auto& interf : this->domain->GetInterfaces()) {
+        int nrank = interf.second.side_OUT->GetRank();
+        int offset = 0;
+        for (auto avar : interf.second.shared_vars) {
+            if (avar->IsActive()) {
+                shared_vects[nrank].segment(offset, avar->GetDOF()) = vect.segment(avar->GetOffset(), avar->GetDOF());
+                offset += avar->GetDOF();
+            }
+        }
+    }
+}
+
+void ChSystemDescriptorMultidomain::SharedVectsAddToDomainVector(ChVectorDynamic<>& vect, double use_average) {
+    std::unordered_map<ChVariables*, int> sharing_count;
+    if (use_average) {
+        // initialize avg counters to 1
+        for (auto gvar : this->m_variables)
+            sharing_count[gvar] = 1;
+    }
+
+    for (auto& interf : this->domain->GetInterfaces()) {
+        int nrank = interf.second.side_OUT->GetRank();
+        int offset = 0;
+        for (auto avar : interf.second.shared_vars) {
+            if (avar->IsActive()) {
+                if (use_average)
+                    sharing_count[avar] += 1;
+                vect.segment(avar->GetOffset(), avar->GetDOF()) += shared_vects[nrank].segment(offset, avar->GetDOF());
+                offset += avar->GetDOF();
+            }
+        }
+    }
+
+    if (use_average) {
+        // initialize avg counters to 1
+        for (auto gvar : this->m_variables)
+            if (gvar->IsActive()) {
+                vect.segment(gvar->GetOffset(), gvar->GetDOF()) *= (use_average / (double)sharing_count[gvar]);
+            }
+    }
+}
+
+void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(double omega) {
+
+    if (!(domain->IsMaster() && !domain_manager->master_domain_enabled))
+     for (auto& interf : this->domain->GetInterfaces()) {
+        if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+            continue;
         // prepare the serializer
         interf.second.buffer_sending.str("");
         interf.second.buffer_sending.clear();
@@ -258,7 +305,10 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(dou
 
     this->domain_manager->DoDomainSendReceive(this->domain->GetRank());   // *** COMM + MULTITHREAD BARRIER ***
 
-    for (auto& interf : this->domain->GetInterfaces()) {
+    if (!(domain->IsMaster() && !domain_manager->master_domain_enabled))
+     for (auto& interf : this->domain->GetInterfaces()) {
+        if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+            continue;
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> Dv_shared(shared_vects[nrank].size());
 //        std::cout << "\nVAR DESERIALIZE to domain " << this->domain->GetRank() << " from interface " << interf.second.side_OUT->GetRank() << "\n"; //***DEBUG
@@ -292,55 +342,20 @@ void ChSystemDescriptorMultidomain::SharedStatesDeltaAddToMultidomainAndSync(dou
     }
 }
 
-void ChSystemDescriptorMultidomain::SharedVectsFromDomainVector(const ChVectorDynamic<>& vect) {
-    for (auto& interf : this->domain->GetInterfaces()) {
-        int nrank = interf.second.side_OUT->GetRank();
-        int offset = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
-                shared_vects[nrank].segment(offset, avar->GetDOF()) = vect.segment(avar->GetOffset(), avar->GetDOF());
-                offset += avar->GetDOF();
-            }
-        }
-    }
-}
 
 
-void ChSystemDescriptorMultidomain::SharedVectsAddToDomainVector(ChVectorDynamic<>& vect, double use_average) {
-    
-    std::unordered_map<ChVariables*, int> sharing_count;
-    if (use_average) {
-        // initialize avg counters to 1
-        for (auto gvar : this->m_variables)
-            sharing_count[gvar] = 1;
-    }
 
-    for (auto& interf : this->domain->GetInterfaces()) {
-        int nrank = interf.second.side_OUT->GetRank();
-        int offset = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
-                if (use_average)
-                    sharing_count[avar] += 1;
-                vect.segment(avar->GetOffset(), avar->GetDOF()) += shared_vects[nrank].segment(offset, avar->GetDOF());
-                offset += avar->GetDOF();
-            }
-        }
-    }
 
-    if (use_average) {
-        // initialize avg counters to 1
-        for (auto gvar : this->m_variables) 
-            if (gvar->IsActive()) {
-                vect.segment(gvar->GetOffset(), gvar->GetDOF()) *= (use_average / (double)sharing_count[gvar]);
-            }
-    }
-}
 
 
 void ChSystemDescriptorMultidomain::SharedVectsSwap() {
 
-    for (auto& interf : this->domain->GetInterfaces()) {
+    if (!(domain->IsMaster() && !domain_manager->master_domain_enabled))
+     for (auto& interf : this->domain->GetInterfaces()) {
+
+        if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+            continue;
+
         // prepare the serializer
         interf.second.buffer_sending.str("");
         interf.second.buffer_sending.clear();
@@ -364,7 +379,12 @@ void ChSystemDescriptorMultidomain::SharedVectsSwap() {
 
     this->domain_manager->DoDomainSendReceive(this->domain->GetRank());   // *** COMM + MULTITHREAD BARRIER ***
 
-    for (auto& interf : this->domain->GetInterfaces()) {
+    if (!(domain->IsMaster() && !domain_manager->master_domain_enabled))
+     for (auto& interf : this->domain->GetInterfaces()) {
+
+        if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+            continue;
+
         int nrank = interf.second.side_OUT->GetRank();
         ChVectorDynamic<> incoming_vect(shared_vects[nrank].size());
 
@@ -394,18 +414,11 @@ void ChSystemDescriptorMultidomain::VectAdditiveToDistributed(ChVectorDynamic<>&
 
 
 double ChSystemDescriptorMultidomain::SyncSharedStates(bool return_max_correction_error) {
+
     double maxerror = 0;
 
-    for (auto& interf : this->domain->GetInterfaces()) {
-        int nrank = interf.second.side_OUT->GetRank();
-        int offset = 0;
-        for (auto avar : interf.second.shared_vars) {
-            if (avar->IsActive()) {
-                shared_vects[nrank].segment(offset, avar->GetDOF()) = avar->State();
-                offset += avar->GetDOF();
-            }
-        }
-    }
+    this->SharedVectsFromCurrentDomainStates();
+
     this->SharedVectsSwap(); // *** COMM + MULTITHREAD BARRIER ***
 
     for (auto& interf : this->domain->GetInterfaces()) {

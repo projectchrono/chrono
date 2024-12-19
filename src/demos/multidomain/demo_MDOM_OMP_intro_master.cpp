@@ -217,6 +217,9 @@ int main(int argc, char* argv[]) {
     // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
     domain_manager.DoAllDomainInitialize();
 
+    // The master domain does not need to communicate anymore with the domains so do:
+    domain_manager.master_domain_enabled = false;
+
     for (int i = 0; i < 25; ++i) {
         std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
        

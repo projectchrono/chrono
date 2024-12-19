@@ -44,6 +44,8 @@ bool ChDomainManagerSharedmemory::DoDomainSendReceive(int mrank) {
 				if (this->domains.find(mrank) != this->domains.end()) {
 					auto& mdomain = domains[mrank];
 					for (auto& interf : mdomain->GetInterfaces()) {
+						if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+							continue;
 						std::cout << "\nBUFFERS  in domain " << mrank << "\n -> sent to domain " << interf.second.side_OUT->GetRank() << "\n";
 						std::cout << interf.second.buffer_sending.str();
 						std::cout << "\n <- received from domain " << interf.second.side_OUT->GetRank() << "\n";
@@ -165,11 +167,15 @@ bool ChDomainManagerSharedmemory::DoAllDomainPartitionUpdate() {
 			if (this->verbose_partition)
 				PrintDebugDomainInfo(ido.second);
 			if (this->verbose_serialization) {
-				std::cout << "\n\n::::::::::::: Serialization to domain " << ido.second->GetRank() << " :::::::::::\n";
-				for (auto& interf : ido.second->GetInterfaces()) {
-					std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
-					std::cout << interf.second.buffer_receiving.str();
-					std::cout << "\n";
+				if (!(ido.second->IsMaster() && !this->master_domain_enabled)) {
+					std::cout << "\n\n::::::::::::: Serialization to domain " << ido.second->GetRank() << " :::::::::::\n";
+					for (auto& interf : ido.second->GetInterfaces()) {
+						if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+							continue;
+						std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
+						std::cout << interf.second.buffer_receiving.str();
+						std::cout << "\n";
+					}
 				}
 			}
 		}

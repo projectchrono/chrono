@@ -386,15 +386,7 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     virtual void SharedVectsToZero();
 
     /// Set vectors of shared_vects to the current variables State() value. 
-    virtual void SharedVectsSyncToCurrentDomainStates();
-
-    /// SEND the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
-    /// and finally all deltas are ADDED to the corresponding variables State() as State()+=deltas;
-    /// The omega parameter can be =1 for default sum, or lower for relaxation State()+=omega*deltas. 
-    /// This operation requires a network-expensive SEND and RECEIVE operation.
-    /// It is expected that all domains will execute this operation, otherwise deadlock.
-    /// Finally, set vectors of shared_vects to the current variables State() value.
-    virtual void SharedStatesDeltaAddToMultidomainAndSync(double omega);
+    virtual void SharedVectsFromCurrentDomainStates();
 
     /// Takes a vector vect and spreads it the vectors of this->shared_vects, depending on the
     /// offsets of shared variables of this domain.
@@ -408,9 +400,19 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// Note, vect has size and indexing as domain's coordinates.
     virtual void SharedVectsAddToDomainVector(ChVectorDynamic<>& vect, double use_average = 0);
 
+    /// Send the delta ((current variables State) - (last shared_vects)) to the neighbouring domains, 
+    /// and finally all deltas are ADDED to the corresponding variables State() as State()+=deltas;
+    /// The omega parameter can be =1 for default sum, or lower for relaxation State()+=omega*deltas. 
+    /// Finally, set vectors of shared_vects to the current variables State() value.
+    /// Note: use only in solvers that guarantee no changes of shared_vects between calls to this.
+    /// This operation requires a network-expensive SEND and RECEIVE operation!
+    /// It is expected that all domains will execute this operation, otherwise deadlock.
+    virtual void SharedStatesDeltaAddToMultidomainAndSync(double omega);
+
     /// The current shared vectors in shared_vects are swapped across all domains, 
     /// with contributions from all the interfaces. Results overwritten in shared_vects.
-    /// This operation requires a network-expensive SEND and RECEIVE operation.
+    /// This operation requires a network-expensive SEND and RECEIVE operation!
+    /// It is expected that all domains will execute this operation, otherwise deadlock.
     virtual void SharedVectsSwap();
 
     /// Takes a vector "vect" in additive form and converts it to distributed form. 
@@ -419,7 +421,8 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// in distributed form are the same, ex. in j-th domain with neighbours k and  
     ///    v_distr_j = v_additive_j + \sum R_j R_k' v_additive_k
     /// where we used restriction matrices R as  v_distr_j =  R_j v_global.
-    /// This operation requires a network-expensive SEND and RECEIVE operation.
+    /// This operation requires a network-expensive SEND and RECEIVE operation!
+    /// It is expected that all domains will execute this operation, otherwise deadlock.
     virtual void VectAdditiveToDistributed(ChVectorDynamic<>& vect, double use_average = 0);
 
     /// Sync the State() of ChVariables across the domains. Depending on numerical
@@ -427,6 +430,8 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// state vectors are exactly the same (although they should be in theory). This
     /// function can be called once in a while to fix the small glitches. In case of 
     /// conflict from different state values, it keeps the element-wise min values. 
+    /// This operation requires a network-expensive SEND and RECEIVE operation!
+    /// It is expected that all domains will execute this operation, otherwise deadlock.
     virtual double SyncSharedStates(bool return_max_correction_error);
 
     /// Get domain

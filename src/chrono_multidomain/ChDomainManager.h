@@ -94,6 +94,9 @@ public:
     /// NOTE: Depending on the implementation (MPI, OpenMP, etc.) it can contain some barrier.
     virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum) = 0;
 
+    /// If false, the master domain (if any) does not partecipate in sending/receiving buffers 
+    /// for serialization and for distributed vector algebra, making it 'deactivated'.
+    bool master_domain_enabled = true;
 
     // FOR DEBUGGING 
 
@@ -206,6 +209,9 @@ public:
     /// Set rank of this domain
     void SetRank(int mrank) { rank = mrank; };
 
+    /// Tells if this is a "master" domain that talks with all other domains.
+    virtual bool IsMaster() const { return false; }
+
     /// Get system used by this domain
     ChSystem* GetSystem() { return system; }
 
@@ -244,6 +250,8 @@ public:
     virtual bool IsInto(const ChVector3d& apoint) const override {
             return false;
     }
+
+    virtual bool IsMaster() const override { return true; }
 
 private:
 };

@@ -86,41 +86,48 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
 	assert(mrank == domain->GetRank());
 
-	for (auto& minterface : domain->GetInterfaces()) {
-		int other_rank = minterface.second.side_OUT->GetRank();
+	if (!(domain->IsMaster() && !this->master_domain_enabled))
+		for (auto& minterface : domain->GetInterfaces()) {
+			int other_rank = minterface.second.side_OUT->GetRank();
 
-		// A)
-		// non-blocking MPI send from this domain to neighbour domain:
-		// equivalent:   MPI_Isend
-		ChMPIrequest mrequest1;
-		std::string send_string;
-		send_string = minterface.second.buffer_sending.rdbuf()->str();
-		mpi_engine.SendString_nonblocking(other_rank, send_string, ChMPI::eCh_mpiCommMode::MPI_STANDARD, &mrequest1);
+			if (minterface.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+				continue;
 
-		// B)
-		// blocking MPI receive from neighbour domain to this domain:
-		// equivalent:  MPI_Probe+MPI_Recv   WILL BLOCK! at each interface. No need for later MPI_WaitAll
-		ChMPIstatus mstatus2;
-		std::string receive_string;
-		mpi_engine.ReceiveString_blocking(other_rank, receive_string, &mstatus2);
-		minterface.second.buffer_receiving << receive_string;
-	}
+			// A)
+			// non-blocking MPI send from this domain to neighbour domain:
+			// equivalent:   MPI_Isend
+			ChMPIrequest mrequest1;
+			std::string send_string;
+			send_string = minterface.second.buffer_sending.rdbuf()->str();
+			mpi_engine.SendString_nonblocking(other_rank, send_string, ChMPI::eCh_mpiCommMode::MPI_STANDARD, &mrequest1);
+
+			// B)
+			// blocking MPI receive from neighbour domain to this domain:
+			// equivalent:  MPI_Probe+MPI_Recv   WILL BLOCK! at each interface. No need for later MPI_WaitAll
+			ChMPIstatus mstatus2;
+			std::string receive_string;
+			mpi_engine.ReceiveString_blocking(other_rank, receive_string, &mstatus2);
+			minterface.second.buffer_receiving << receive_string;
+		}
 
 	if (this->verbose_variable_updates)
 		for (int i = 0; i < GetMPItotranks(); i++) {
-			this->mpi_engine.Barrier();
+			this->mpi_engine.Barrier();							// WILL BLOCK ALL!
 			if (i == GetMPIrank()) {
-				for (auto& interf : domain->GetInterfaces())
-				{
-					std::cout << "\nBUFFERS  in domain " << this->domain->GetRank() << "\n -> sent to domain " << interf.second.side_OUT->GetRank() << "\n"; 
-					std::cout << interf.second.buffer_sending.str(); 
-					std::cout << "\n <- received from domain " << interf.second.side_OUT->GetRank() << "\n";
-					std::cout << interf.second.buffer_receiving.str();
-					std::cout.flush();
-				}
+				if (!(domain->IsMaster() && !this->master_domain_enabled))
+					for (auto& interf : domain->GetInterfaces())
+					{
+						if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+							continue;
+						std::cout << "\nBUFFERS  in domain " << this->domain->GetRank() << "\n -> sent to domain " << interf.second.side_OUT->GetRank() << "\n"; 
+						std::cout << interf.second.buffer_sending.str(); 
+						std::cout << "\n <- received from domain " << interf.second.side_OUT->GetRank() << "\n";
+						std::cout << interf.second.buffer_receiving.str();
+						std::cout.flush();
+					}
 			}
 			std::cout.flush();
-			this->mpi_engine.Barrier();
+			this->mpi_engine.Barrier();							// WILL BLOCK ALL!
 		}
 
 
@@ -155,22 +162,26 @@ bool ChDomainManagerMPI::DoDomainPartitionUpdate(int mrank) {
 
 	if (this->verbose_partition || this->verbose_serialization)
 		for (int i = 0; i < GetMPItotranks(); i++) {
-			this->mpi_engine.Barrier(); // trick to force sequential std::cout if MPI on same shell
+			this->mpi_engine.Barrier(); // trick to force sequential std::cout if MPI on same shell -  BLOCKS ALL!
 			if (i == GetMPIrank()) {
 				if (this->verbose_partition)
 					PrintDebugDomainInfo(domain);
 				if (this->verbose_serialization) {
-					std::cout << "\n\n::::::::::::: Serialization to domain " << domain->GetRank() << " :::::::::::\n";
-					for (auto& interf : domain->GetInterfaces()) {
-						std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
-						std::cout << interf.second.buffer_receiving.str();
-						std::cout << "\n";
+					if (!(domain->IsMaster() && !this->master_domain_enabled)) {
+						std::cout << "\n\n::::::::::::: Serialization to domain " << domain->GetRank() << " :::::::::::\n";
+						for (auto& interf : domain->GetInterfaces()) {
+							if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+								continue;
+							std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
+							std::cout << interf.second.buffer_receiving.str();
+							std::cout << "\n";
+						}
 					}
 				}
 				std::cout.flush();
 			}
 			std::cout.flush();
-			this->mpi_engine.Barrier();
+			this->mpi_engine.Barrier();															    // -BLOCKS ALL!
 		}
 
 	return true;
