@@ -96,8 +96,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/ChronoEngineTargets.cmake")
 
 include(CMakeFindDependencyMacro)
 
-## Handle MSVC Runtime Library
-set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
+## TODO: should be carried on by ChronoEngine target
+# ## Handle MSVC Runtime Library
+# set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
 ## Handle OpenMP dependency
 if(@ENABLE_OPENMP@)
@@ -147,6 +148,7 @@ list(APPEND CHRONO_DEPENDENCY_DLLS "")
 set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
 set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
+set(CHRONO_USE_MULTICORE_CUDA "@USE_MULTICORE_CUDA@")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are available
@@ -176,6 +178,21 @@ if(Chrono_VEHICLE_AVAILABLE AND ${CHRONO_MPI_FOUND})
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
 else()
    set(Chrono_VEHICLECOSIM_AVAILABLE FALSE)
+endif()
+
+if(Chrono_GPU_AVAILABLE OR (Chrono_MULTICORE_AVAILABLE AND DEFINED CHRONO_USE_MULTICORE_CUDA) OR Chrono_FSI_AVAILABLE)
+  set(CUDAToolkit_DIR "@CUDAToolkit_LIBRARY_ROOT@" CACHE PATH "CUDAToolkit library location (should contain e.g. 'version.json')")
+
+  find_package(CUDAToolkit)
+  enable_language(CUDA)
+
+  if (NOT CMAKE_CUDA_COMPILER OR NOT CUDAToolkit_FOUND)
+    mark_as_advanced(CUDAToolkit_DIR CLEAR)
+    set(CHRONO_CUDA_FOUND FALSE)
+  else()
+    mark_as_advanced(CUDAToolkit_DIR FORCE)
+    set(CHRONO_CUDA_FOUND TRUE)
+  endif()
 endif()
 
 #-------------------------------------------------------------------------------
@@ -290,6 +307,13 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         message(WARNING "Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
+
+
+      if(CHRONO_USE_MULTICORE_CUDA AND NOT CHRONO_CUDA_FOUND)
+        message(WARNING "Chrono::Multicore requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+      
 
       if (CHRONO_${COMPONENT_UPPER}_FOUND)
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
@@ -435,22 +459,28 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_VEHICLE_OPENCRG @HAVE_OPENCRG@)
 
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
+      
+      if(NOT CHRONO_CUDA_FOUND)
+        message(WARNING "Chrono::FSI requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
 
-        # ATTENTION: This is a temporary hack!
-        # We only add to the list of DLLs, when we should fully configure the OpenGL and VSG modules.
-        # However, full configuration of the OpenGL module leads to problems when using in a C# project (because of FindThreads).
-        # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
+          # ATTENTION: This is a temporary hack!
+          # We only add to the list of DLLs, when we should fully configure the OpenGL and VSG modules.
+          # However, full configuration of the OpenGL module leads to problems when using in a C# project (because of FindThreads).
+          # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
 
-        if (Chrono_OPENGL_AVAILABLE)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
-        endif()
-        if (Chrono_VSG_AVAILABLE)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+          if (Chrono_OPENGL_AVAILABLE)
+            list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+          endif()
+          if (Chrono_VSG_AVAILABLE)
+            list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+          endif()
         endif()
       endif()
 
@@ -508,10 +538,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
-      separate_arguments(CH_GPU_CXX_FLAGS NATIVE_COMMAND "@CH_GPU_CXX_FLAGS@")
-      list(APPEND CHRONO_CXX_FLAGS ${CH_GPU_CXX_FLAGS})
+      if(NOT CHRONO_CUDA_FOUND)
+        message(WARNING "Chrono::GPU requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
 
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_GPU_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu.dll")
@@ -883,10 +914,10 @@ function(add_DLL_copy_command)
         )
         if(NOT onedll)
           list(APPEND DLL_MISSING_${config} ${dll})
-          # message("DLL '${dll}' in package Chrono is not installed properly")
+          message(DEBUG "DLL '${dll}' in package Chrono is not installed properly")
         else()
           list(APPEND DLLS_${config} "${onedll}")
-          # message(STATUS "...${DLL}")
+          message(DEBUG "...${DLL}")
         endif()
       endforeach()
     endforeach()  

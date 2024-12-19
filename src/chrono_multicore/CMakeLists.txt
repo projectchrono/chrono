@@ -194,14 +194,14 @@ endif()
 
 set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 
-target_link_libraries(ChronoEngine_multicore PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_multicore PUBLIC ChronoEngine)
 if(ENABLE_OPENMP)
   target_link_libraries(ChronoEngine_multicore PRIVATE OpenMP::OpenMP_CXX)
 elseif(ENABLE_TBB)
   target_link_libraries(ChronoEngine_multicore PRIVATE ${TBB_LIBRARIES})
 endif()
 target_link_libraries(ChronoEngine_multicore PRIVATE Thrust::Thrust) # here Thrust is available for sure
-target_link_libraries(ChronoEngine_multicore PRIVATE Blaze::Blaze)
+target_link_libraries(ChronoEngine_multicore PUBLIC Blaze::Blaze)
 if(BOOST_REQUIRED)
   target_include_directories(ChronoEngine_multicore PRIVATE "${Boost_INCLUDE_DIRS}")
 endif()

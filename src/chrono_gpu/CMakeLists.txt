@@ -136,7 +136,7 @@ add_library(ChronoEngine::gpu ALIAS ChronoEngine_gpu)
 
 target_compile_definitions(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
 
-target_include_directories(ChronoEngine_gpu PUBLIC "${CHRONO_SOURCE_DIR}/src/chrono_thirdparty/cub")
+# target_include_directories(ChronoEngine_gpu PUBLIC "${CHRONO_SOURCE_DIR}/src/chrono_thirdparty/cub")
 
 target_link_libraries(ChronoEngine_gpu PUBLIC ChronoEngine)
 target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cudart_static)
