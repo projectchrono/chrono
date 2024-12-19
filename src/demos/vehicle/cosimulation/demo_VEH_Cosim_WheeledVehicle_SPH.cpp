@@ -221,7 +221,7 @@ int main(int argc, char** argv) {
                 tire->SetStepSize(step_fea_tire);
                 tire->SetOutDir(out_dir);
                 if (renderRT)
-                    tire->EnableRuntimeVisualization(render_fps * 10, writeRT);
+                    tire->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     tire->EnablePostprocessVisualization(render_fps);
 
