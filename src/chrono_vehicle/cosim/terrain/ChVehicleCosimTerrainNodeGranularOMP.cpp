@@ -1046,11 +1046,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnRender() {
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track && !m_proxies.empty()) {
-        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
-        ChVector3d cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
-        m_vsys->UpdateCamera(m_cam_pos, cam_point);
-    }
+    if (m_track)
+        m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
     m_vsys->BeginScene();
     m_vsys->Render();

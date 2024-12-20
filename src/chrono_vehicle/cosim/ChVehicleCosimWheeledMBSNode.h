@@ -141,7 +141,6 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     virtual BodyState GetSpindleState(unsigned int i) const = 0;
 
     /// Get the "chassis" body.
-    /// Only used is a drawbar-pull rig is attached.
     virtual std::shared_ptr<ChBody> GetChassisBody() const = 0;
 
     /// Impose spindle angular speed function.

@@ -207,6 +207,9 @@ void ChVehicleCosimWheeledMBSNode::Synchronize(int step_number, double time) {
         if (m_verbose)
             cout << "[MBS node    ] Recv: spindle force (" << i << ") = " << spindle_force.force << endl;
     }
+
+    // Send vehicle location to terrain node
+    MPI_Send(GetChassisBody()->GetPos().data(), 3, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 }
 
 // -----------------------------------------------------------------------------

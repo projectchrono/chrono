@@ -464,16 +464,8 @@ void ChVehicleCosimTerrainNodeSCM::OnRender() {
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
-        ChVector3d cam_point;
-        if (auto proxy_b = std::dynamic_pointer_cast<ProxyBodySet>(m_proxies[0])) {
-            cam_point = proxy_b->bodies[0]->GetPos();
-        } else if (auto proxy_m = std::dynamic_pointer_cast<ProxyMesh>(m_proxies[0])) {
-            cam_point = proxy_m->ind2ptr_map[0]->GetPos();
-        }
-
-        m_vsys->UpdateCamera(m_cam_pos, cam_point);
-    }
+    if (m_track)
+        m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
     m_vsys->BeginScene();
     m_vsys->Render();

@@ -247,6 +247,10 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
             break;
     }
 
+    // Receive vehicle location
+    MPI_Status status;
+    MPI_Recv(m_chassis_loc.data(), 3, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+
     // Let derived classes perform optional operations
     OnSynchronize(step_number, time);
 }

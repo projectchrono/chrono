@@ -180,6 +180,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     std::vector<MeshContact> m_mesh_contact;    ///< mesh contact forces (used for MESH communication interface)
     std::vector<TerrainForce> m_rigid_contact;  ///< rigid contact force (used for BODY communication interface)
 
+    ChVector3d m_chassis_loc;  ///< current chassis location
+
   private:
     void InitializeTireData();
     void InitializeTrackData();

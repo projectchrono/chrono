@@ -124,7 +124,6 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
     virtual BodyState GetTrackShoeState(int track_id, int shoe_id) const = 0;
 
     /// Get the "chassis" body.
-    /// Only used is a drawbar-pull rig is attached.
     virtual std::shared_ptr<ChBody> GetChassisBody() const = 0;
 
     /// Get the sprocket addendum radius (for slip calculation).

@@ -199,6 +199,9 @@ void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
             start_idx += 6;
         }
     }
+
+    // Send vehicle location to terrain node
+    MPI_Send(GetChassisBody()->GetPos().data(), 3, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 }
 
 // -----------------------------------------------------------------------------
