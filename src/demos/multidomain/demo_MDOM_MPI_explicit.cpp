@@ -12,22 +12,37 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-//  Demo code about splitting a system into domains using the MULTIDOMAIN module
-//  using distributed memory. This needs MPI, as many executables will be spawn
-//  on different computing nodes. 
+// Demo code about splitting a system into domains using the MULTIDOMAIN module
+// using distributed memory. This needs MPI, as many executables will be spawn
+// on different computing nodes. 
 //
-//  We add all objects into a "master domain" that wraps all the scene, then we
-//  let that  DoAllDomainInitialize() will split all the items automatically into
-//  the corresponding domains. (This is easy and almost error-proof, but if you
-//  need to avoid a master domain for efficiency/space reasons, look at the
-//  alternative model creation mode in ...lowlevel.cpp demos.)
+// This demo shows basic functionality for FEA. Some finite elements are used here.
+// 
+// Because of the presence of FEA, the timestepper is switched to explicit 
+// integration with diagonal lumped mass solver, ChSolverLumpedMultidomain 
+// (the easiest scenario for a distributed memory solver).
+// 
+// This also means that this solver is not capable of solving nonsmooth DVI, 
+// so here  contacts if any are handled using smooth contact, via  ChSystemSMC
+// and ChContactMaterialSMC.
+// 
+// We add all objects into a "master domain" that wraps all the scene, then we
+// let that  DoAllDomainInitialize() will split all the items automatically into
+// the corresponding domains. (This is easy and almost error-proof, but if you
+// need to avoid a master domain for efficiency/space reasons, look at the
+// alternative model creation mode in ...lowlevel.cpp demos.)
 // 
 // NOTE! in MPI architectures, the executable cannot be started in a single copy as all other
 // chrono demos: now you must open a shell where you can access "mpiexec" (or other commands
 // depending on the MPI version that you installed, it could be "mpirun" or such) and type
-// the command to start parallel computation, in this example spawn 3 processes:
+// the command to start parallel computation, for example spawning 3 processes:
 // 
-//   mpiexec -n 3 demo_MDOM_MPI_intro_master.exe 
+//   mpiexec -n 3 demo_MDOM_MPI_explicit.exe  
+//
+// This demo can use -n X processes, with X=(ndomains+1master), ex -n 5 builds 4 domain slices, 
+// plus one process that is dedicated to the master domain. Ex:
+//   mpiexec -n 2 demo_MDOM_MPI_explicit.exe   -> reference case of 1 domain
+//   mpiexec -n 3 demo_MDOM_MPI_explicit.exe   -> simplest multidomain: 2 domains
 // 
 // After running, it produces postprocessing files ready for rendering in Blender3D
 // To see the result in Blender3D, you must install the add-in for loading Chrono files,
@@ -36,26 +51,30 @@
 // - browse to  chrono\bin\Release\DEMO_OUTPUT\MDOM_MPI_0  and press the 
 //   "Import Chrono simulation" button.
 // - repeat the two steps above but select  ..\MDOM_MPI_1 and check "Merge" in
-//   the top right panel before pressing the import button. 
-// - that's al, now just press the spacebar and you see the animation that you can 
+//   the top right panel before pressing the import button
+// - same for ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc, depending on how many domains you created
+// - that's all, now just press the spacebar and you see the animation that you can 
 //   customize, render etc.
 // 
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveUtils.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
+#include "chrono_multidomain/ChSolverLumpedMultidomain.h"
 #include "chrono_multidomain/ChDomainManagerMPI.h"
-#include "chrono_multidomain/ChSolverPSORmultidomain.h"
+
 #include "chrono_postprocess/ChBlender.h"
 
 using namespace chrono;
 using namespace multidomain;
 using namespace postprocess;
+
 
 
 int main(int argc, char* argv[]) {
@@ -75,13 +94,13 @@ int main(int argc, char* argv[]) {
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
     // This demo assumes 3 domains (2 slices + 1 master domain), i.e. "mpiexec -n 3 ..." etc.
-    assert(domain_manager.GetMPItotranks() == 3);
-
+    assert(domain_manager.GetMPItotranks() >= 1);
+    assert(domain_manager.GetMPItotranks() < 8);
 
     // For debugging/logging:
     domain_manager.verbose_partition = false; // will print  partitioning in std::cout?
     domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
-    domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
+    domain_manager.verbose_variable_updates = false; // will print all comm including variable updates in std::cout?
     domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
 
     // 2- the domain builder.
@@ -91,16 +110,18 @@ int main(int argc, char* argv[]) {
     // Here we split it using parallel planes like in sliced bread:
 
     ChDomainBuilderSlices       domain_builder(
-                                        std::vector<double>{0}, // pos of cuts along axis, ex {-1,0,2} does 5 domains. Here we do 2 domain slices.
-                                        ChAxis::X,              // axis about whom one needs the space slicing
-                                        true);      // build also master domain, interfacing to all slices, for initial injection of objects   
+                                        domain_manager.GetMPItotranks()-1,  // number of slices
+                                        //-2e307, 2e307,      // min and max along axis to split in slices
+                                        -30,30,
+                                        ChAxis::X,          // axis about whom one needs the space slicing
+                                        true);              // build also master domain, interfacing to all slices, for initial injection of objects   
     
 
     // 3- create the ChDomain object and its ChSystem physical system.
     // Only a single system is created, because this is already one of n 
     // parallel processes. One must be the master domain.
 
-    ChSystemNSC sys;
+    ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     
     if (domain_manager.GetMPIrank() == domain_builder.GetMasterRank()) {
@@ -116,10 +137,13 @@ int main(int argc, char* argv[]) {
     }
 
     // set solver, timestepper, etc. Do this after SetDomain(). 
-    sys.GetSolver()->AsIterative()->SetMaxIterations(25);
-    sys.GetSolver()->AsIterative()->EnableWarmStart(false);
-    sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
-    sys.SetMaxPenetrationRecoverySpeed(1.0);
+    // Set the time stepper: we have FEA, use an explicit time stepper. 
+    auto explicit_timestepper0 = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys);
+    explicit_timestepper0->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
+    sys.SetTimestepper(explicit_timestepper0);
+    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
+    auto lumped_solver0 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
+    sys.SetSolver(lumped_solver0);
  
 
     // 4- we populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
@@ -132,13 +156,14 @@ int main(int argc, char* argv[]) {
 
     if (domain_manager.GetMPIrank() == domain_builder.GetMasterRank()) {
         
-        auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
-        mat->SetFriction(0.4f);
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
+        mat->SetFriction(0.1f);
+        mat->SetYoungModulus(2e8);
 
         // Create some bricks placed as walls, for benchmark purposes
         int n_walls = 1;
         int n_vertical    = 5;
-        int n_horizontal  = 7;
+        int n_horizontal  = 10;
         double size_x = 4;
         double size_y = 2;
         double size_z = 4;
@@ -200,11 +225,23 @@ int main(int argc, char* argv[]) {
    
     // Create an exporter to Blender
     ChBlender blender_exporter = ChBlender(&sys);
-
     // Set the path where it will save all files, a directory will be created if not existing. 
     // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
     blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
-
+    // Show contacts in a nice way, or blender_exporter.SetShowContactsOff() for fast stuff
+    blender_exporter.SetShowContactsVectors(
+        ChBlender::ContactSymbolVectorLength::PROPERTY,  // vector symbol lenght is given by |F|  property (contact force)
+        0.001,  // absolute length of symbol if CONSTANT, or length scaling factor if ATTR
+        "F",    // name of the property to use for lenght if in ATTR mode (currently only option: "F")
+        ChBlender::ContactSymbolVectorWidth::CONSTANT,  // vector symbol lenght is a constant value
+        0.2,    // absolute width of symbol if CONSTANT, or width scaling factor if ATTR
+        "",     // name of the property to use for width if in ATTR mode (currently only option: "F")
+        ChBlender::ContactSymbolColor::CONSTANT,  // vector symbol color is a falsecolor depending on |F| property (contact force)
+        ChColor(1,0,0),                           // absolute constant color if CONSTANT, not used if ATTR
+        "F",      // name of the property to use for falsecolor scale if in ATTR mode (currently only option: "F")
+        0, 1000,  // falsecolor scale min - max values.
+        true      // show a pointed tip on the end of the arrow, otherwise leave a simple cylinder
+    );
     // Initial script, save once at the beginning
     blender_exporter.ExportScript();
 
@@ -213,30 +250,28 @@ int main(int argc, char* argv[]) {
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
     // The master domain does not need to communicate anymore with the domains so do:
-    domain_manager.master_domain_enabled = true;
+    domain_manager.master_domain_enabled = false;
 
-    for (int i = 0; i < 180; ++i) {
+    for (int i = 0; i < 2000; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
-            std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
+            std::cout << "\n\n\n============= Time step (explicit) " << i << std::endl << std::endl;
 
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
         domain_manager.DoDomainPartitionUpdate(domain_manager.GetMPIrank());
 
         // MULTIDOMAIN TIME INTEGRATION
-        // Just call the regular DoStepDynamics() as always done in Chrono.
-        // When a regular DoStepDynamics is called here, it will execute some solver. The solver 
-        // has been defaulted to ChSolverPSORmultidomain when we did domain_manager.SetDomain(),
-        // and this type of solver is aware that MPI intercommunication must be done while doing
-        // its iterations.
-        sys.DoStepDynamics(0.02);
+        sys.DoStepDynamics(0.001);
 
         // OPTIONAL POSTPROCESSING FOR 3D RENDERING
         // Before ExportData(), we must do a remove-add trick as an easy way to handle the fact
         // that objects are constantly added and removed from the i-th domain when crossing boundaries.
-        blender_exporter.RemoveAll();  
-        blender_exporter.AddAll();
-        blender_exporter.ExportData();
+        // Since timestep is small for explicit integration, save only every n-th time steps.
+        if ((i % 10) == 0) {
+            blender_exporter.RemoveAll();
+            blender_exporter.AddAll();
+            blender_exporter.ExportData();
+        }
 
     }
    

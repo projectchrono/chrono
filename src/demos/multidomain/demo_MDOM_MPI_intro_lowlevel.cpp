@@ -29,7 +29,7 @@
 // NOTE! in MPI architectures, the executable cannot be started in a single copy as all other
 // chrono demos: now you must open a shell where you can access "mpiexec" (or other commands
 // depending on the MPI version that you installed, it could be "mpirun" or such) and type
-// the command to start parallel computation, for example spawning 2 processes:
+// the command to start parallel computation, in this example spawn 2 processes:
 // 
 //   mpiexec -n 2 demo_MDOM_MPI_intro_lowlevel.exe 
 // 

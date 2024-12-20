@@ -256,6 +256,7 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
             descriptor.FromVectorToVariables(state);
             state_old = state;
             */
+            //descriptor.SyncSharedStates(true);
         }
 
     }  // end iteration loop
