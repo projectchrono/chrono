@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Huzaifa Unjhawala
 // =============================================================================
 //
 // Demonstration of the single-wheel tire test rig.
@@ -34,10 +34,10 @@
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
-
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
+
 #ifdef CHRONO_POSTPROCESS
     #include "chrono_postprocess/ChGnuPlot.h"
     #include "chrono_postprocess/ChBlender.h"
@@ -56,14 +56,15 @@ using std::cerr;
 using std::endl;
 
 // -----------------------------------------------------------------------------
+
 // Run-time visualization system (OpenGL or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
 // Tire specification file
 std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
-// std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
 // Wheel specification file
-////std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
 double render_fps = 100;
@@ -77,6 +78,7 @@ bool set_slip_angle = false;
 
 double input_time_delay = 0.5;
 bool render = true;
+
 // -----------------------------------------------------------------------------
 
 int main() {
@@ -144,7 +146,7 @@ int main() {
     ChTireTestRig rig(wheel, tire, sys);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(3000);
+    rig.SetNormalLoad(2500);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
@@ -153,7 +155,7 @@ int main() {
 
     ChTireTestRig::TerrainParamsCRM params;
     params.radius = 0.01;
-    params.density = 1000;
+    params.density = 1700;
     params.cohesion = 1e2;
     params.length = 10;
     params.width = 1;
@@ -236,6 +238,7 @@ int main() {
 
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
+        auto& sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI();
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
@@ -244,8 +247,7 @@ int main() {
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(
-                    &std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI());
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
                 break;
             }

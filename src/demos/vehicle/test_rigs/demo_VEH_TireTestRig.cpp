@@ -75,6 +75,7 @@ TerrainType terrain_type = TerrainType::RIGID;
 ////std::string tire_json = "hmmwv/tire/HMMWV_ReissnerTire.json";
 std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
 ////std::string tire_json = "Polaris/Polaris_RigidTire.json";
+////std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
 ////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
 // Wheel specification file
