@@ -21,7 +21,7 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
 endif()
 
 # Return now if CUDA is not available
-if(NOT CUDA_FOUND)
+if(NOT CHRONO_CUDA_FOUND)
     find_package(CUDAToolkit REQUIRED)
     message(WARNING "Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
     set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
@@ -209,16 +209,16 @@ add_library(ChronoEngine_fsi
 
 add_library(ChronoEngine::fsi ALIAS ChronoEngine_fsi)
 
-target_link_libraries(ChronoEngine_fsi PUBLIC ChronoEngine)
-target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cudart_static)
-target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::nvrtc)
-target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cuda_driver)
-target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cublas)
-target_link_libraries(ChronoEngine_fsi PUBLIC CUDA::cusparse)
+target_link_libraries(ChronoEngine_fsi PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_fsi PRIVATE CUDA::cudart_static)
+target_link_libraries(ChronoEngine_fsi PRIVATE CUDA::nvrtc)
+target_link_libraries(ChronoEngine_fsi PRIVATE CUDA::cuda_driver)
+target_link_libraries(ChronoEngine_fsi PRIVATE CUDA::cublas)
+target_link_libraries(ChronoEngine_fsi PRIVATE CUDA::cusparse)
 
 
 if(ENABLE_MODULE_OPENGL)
-  target_link_libraries(ChronoEngine_fsi PUBLIC ChronoEngine_opengl)
+  target_link_libraries(ChronoEngine_fsi PRIVATE ChronoEngine_opengl)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
      target_compile_options(ChronoEngine_fsi PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
   endif()
@@ -233,6 +233,8 @@ endif()
 
 target_compile_definitions(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
 target_compile_definitions(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
+
+set_target_properties(ChronoEngine_fsi PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
 
 install(TARGETS ChronoEngine_fsi

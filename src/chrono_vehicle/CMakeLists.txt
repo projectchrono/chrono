@@ -33,44 +33,36 @@ cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
 # Find the OpenCRG library
 # ----------------------------------------------------------------------------
 if (ENABLE_OPENCRG)
-   
-   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(OpenCRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
-      set(OpenCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
-      set(OpenCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
-   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      find_path(OpenCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
-      find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
-   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-      find_path(OpenCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
-      find_library(OpenCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
-   endif()
 
-   mark_as_advanced(CLEAR OpenCRG_INCLUDE_DIR)
-   mark_as_advanced(CLEAR OpenCRG_LIBRARY)
-   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-     mark_as_advanced(CLEAR OpenCRG_DLL)
-   endif()
+  find_package(OpenCRG)
 
-   if(EXISTS "${OpenCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OpenCRG_LIBRARY}")
-     set(HAVE_OPENCRG ON)
-   else()
-     set(HAVE_OPENCRG OFF)
-   endif()
+  if (OpenCRG_FOUND)
+    message(STATUS "OpenCRG include dir: ${OpenCRG_INCLUDE_DIR}")
+    message(STATUS "OpenCRG library:     ${OpenCRG_LIBRARY}")  
+    mark_as_advanced(FORCE OpenCRG_INCLUDE_DIR)
+    mark_as_advanced(FORCE OpenCRG_LIBRARY)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        mark_as_advanced(FORCE OpenCRG_DLL)
+    endif()
 
-   message(STATUS "OpenCRG include dir: ${OpenCRG_INCLUDE_DIR}")
-   message(STATUS "OpenCRG library:     ${OpenCRG_LIBRARY}")
+    set(HAVE_OPENCRG ON)
 
-else()
+  else()
 
-   mark_as_advanced(FORCE OpenCRG_INCLUDE_DIR)
-   mark_as_advanced(FORCE OpenCRG_LIBRARY)
-   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-     mark_as_advanced(FORCE OpenCRG_DLL)
-   endif()
+    set(OpenCRG_INCLUDE_DIR "" CACHE PATH "Directory containing OpenCRG include files")
+    set(OpenCRG_LIBRARY "" CACHE FILEPATH "OpenCRG library")
 
-   set(HAVE_OPENCRG OFF)
+    mark_as_advanced(CLEAR OpenCRG_INCLUDE_DIR)
+    mark_as_advanced(CLEAR OpenCRG_LIBRARY)
 
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set(OpenCRG_DLL "" CACHE FILEPATH "OpenCRG DLL (Windows only)")
+        mark_as_advanced(CLEAR OpenCRG_DLL)
+    endif()
+
+    set(HAVE_OPENCRG OFF)
+
+  endif()
 endif()
 
 SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
@@ -865,8 +857,7 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 # Add the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
 
-set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
-set(LIBRARIES ChronoEngine)
+set(LIBRARIES)
 
 if(HDF5_FOUND)
     set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
@@ -874,16 +865,6 @@ if(HDF5_FOUND)
     list(APPEND LIBRARIES ${HDF5_CXX_LIBRARIES})
 endif()
 
-if(HAVE_OPENCRG)
-    include_directories(${OpenCRG_INCLUDE_DIR})
-    list(APPEND LIBRARIES ${OpenCRG_LIBRARY})
-    set(CHRONO_OPENCRG_INCLUDES "${OpenCRG_INCLUDE_DIR}" PARENT_SCOPE)
-endif()
-
-if(ENABLE_MODULE_FSI)
-  include_directories(${CH_FSI_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_fsi)
-endif()
 
 add_library(ChronoEngine_vehicle
 #
@@ -924,15 +905,30 @@ add_library(ChronoEngine_vehicle
     ${CV_STB_FILES}
 )
 
+add_library(ChronoEngine::vehicle ALIAS ChronoEngine_vehicle)
+
 message(STATUS "Add ChronoEngine_vehicle library")
 
-target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_API_COMPILE_VEHICLE")
-target_compile_definitions(ChronoEngine_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
+if(HAVE_OPENCRG)
+  target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine_opencrg)
+endif()
+
+if(ENABLE_MODULE_FSI)
+  target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine_fsi)
+endif()
+
+target_compile_definitions(ChronoEngine INTERFACE 
+    $<BUILD_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/vehicle/\">
+    $<INSTALL_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"$<INSTALL_PREFIX>/data/vehicle/\">)
+
+target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 if(HDF5_FOUND)
   target_compile_definitions(ChronoEngine_vehicle PRIVATE ${HDF5_COMPILE_DEFS})
 endif()
 
-target_link_libraries(ChronoEngine_vehicle PUBLIC ${LIBRARIES})
+target_link_libraries(ChronoEngine_vehicle PUBLIC ${LIBRARIES}) ## TODO: DARIOM remove it 
+target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine)
 
 install(TARGETS ChronoEngine_vehicle
         EXPORT ChronoEngineTargets
@@ -954,6 +950,8 @@ if(ENABLE_MODULE_IRRLICHT)
         ${CVIRR_TV_FILES}
     )
 
+    add_library(ChronoEngine::vehicle_irrlicht ALIAS ChronoEngine_vehicle_irrlicht)
+
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_irrlicht)
     
@@ -961,8 +959,8 @@ if(ENABLE_MODULE_IRRLICHT)
         target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
     endif()
     
-    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
-    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
+    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
     
     install(TARGETS ChronoEngine_vehicle_irrlicht
@@ -985,9 +983,10 @@ if(ENABLE_MODULE_VSG)
         ${CVVSG_WV_FILES}
         ${CVVSG_TV_FILES}
     )
+    add_library(ChronoEngine::vehicle_vsg ALIAS ChronoEngine_vehicle_vsg)
     
-    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_API_COMPILE_VEHICLE")
-    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE "CH_IGNORE_DEPRECATED")
+    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
     target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine_vehicle ChronoEngine_vsg)
     
@@ -1006,22 +1005,16 @@ endif()
 
 if(ENABLE_MODULE_OPENGL)
 
-    include_directories(${CH_OPENGL_INCLUDES})
-    list(APPEND LIBRARIES ChronoEngine_vehicle)
-    list(APPEND LIBRARIES ChronoEngine_opengl) 
-    
     add_library(ChronoEngine_vehicle_opengl
         ${CVGL_FILES}
     )
+    add_library(ChronoEngine::vehicle_opengl ALIAS ChronoEngine_vehicle_opengl)
+
     
-    set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES
-                          COMPILE_FLAGS "${CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_LIB}")
+    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
-    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_API_COMPILE_VEHICLE")
-    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE "CH_IGNORE_DEPRECATED")
-    
-    target_link_libraries(ChronoEngine_vehicle_opengl ${LIBRARIES})
+    target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine_vehicle ChronoEngine_opengl)
     
     install(TARGETS ChronoEngine_vehicle_opengl
             EXPORT ChronoEngineTargets

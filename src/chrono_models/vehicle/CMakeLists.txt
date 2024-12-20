@@ -998,9 +998,6 @@ source_group("kraz" FILES ${CVM_KRAZ_FILES})
 # Add the Chrono_vehicle_models library
 # ----------------------------------------------------------------------------
 
-set(CXX_FLAGS ${CH_CXX_FLAGS})
-set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
-
 add_library(ChronoModels_vehicle
     ${CVM_COMMON_FILES}
     ${CVM_JEEP_FILES}     
@@ -1024,19 +1021,21 @@ add_library(ChronoModels_vehicle
     ${CVM_KRAZ_FILES}
  )
 
-set_target_properties(ChronoModels_vehicle PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
+add_library(ChronoEngine::ModelsVehicle ALIAS ChronoModels_vehicle)
 
-target_compile_definitions(ChronoModels_vehicle PRIVATE "CH_API_COMPILE_MODELS")
-target_compile_definitions(ChronoModels_vehicle PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
+target_compile_definitions(ChronoModels_vehicle PRIVATE CH_IGNORE_DEPRECATED)
 
-target_link_libraries(ChronoModels_vehicle ${LIBRARIES})
+target_link_libraries(ChronoModels_vehicle PRIVATE ChronoEngine ChronoEngine_vehicle)
 
 install(TARGETS ChronoModels_vehicle
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_models/vehicle)
+
+
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/vehicle

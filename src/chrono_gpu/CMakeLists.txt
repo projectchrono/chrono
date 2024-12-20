@@ -138,12 +138,15 @@ target_compile_definitions(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH
 
 # target_include_directories(ChronoEngine_gpu PUBLIC "${CHRONO_SOURCE_DIR}/src/chrono_thirdparty/cub")
 
-target_link_libraries(ChronoEngine_gpu PUBLIC ChronoEngine)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cudart_static)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::nvrtc)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cuda_driver)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cublas)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cusparse)
+target_link_libraries(ChronoEngine_gpu PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cudart_static)
+target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::nvrtc)
+target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cuda_driver)
+target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cublas)
+target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cusparse)
+
+set_target_properties(ChronoEngine_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+
 
 # ------------------------------------------------------------------------------
 # Add optional run-time visualization support

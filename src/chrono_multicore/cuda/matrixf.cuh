@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include <vector_functions.hpp>
-#include <vector_types.h>
+
 #include "chrono/multicore_math/real.h"
 #include "chrono/multicore_math/ChCudaDefines.h"
 #include <iostream>
+#include <vector_functions.hpp>
 
 
 namespace chrono {

@@ -187,14 +187,16 @@ add_library(ChronoEngine::ChronoEngine_multicore ALIAS ChronoEngine_multicore)
 
 if(USE_MULTICORE_CUDA)
   target_sources(ChronoEngine_multicore PRIVATE ${ChronoEngine_Multicore_CUDA})
-  target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::cudart_static)
-  target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::nvrtc)
-  target_link_libraries(ChronoEngine_multicore PUBLIC CUDA::cuda_driver)
+  target_link_libraries(ChronoEngine_multicore PRIVATE CUDA::cudart_static)
+  target_link_libraries(ChronoEngine_multicore PRIVATE CUDA::nvrtc)
+  target_link_libraries(ChronoEngine_multicore PRIVATE CUDA::cuda_driver)
 endif()
 
 set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+set_target_properties(ChronoEngine_multicore PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
-target_link_libraries(ChronoEngine_multicore PUBLIC ChronoEngine)
+
+target_link_libraries(ChronoEngine_multicore PRIVATE ChronoEngine)
 if(ENABLE_OPENMP)
   target_link_libraries(ChronoEngine_multicore PRIVATE OpenMP::OpenMP_CXX)
 elseif(ENABLE_TBB)

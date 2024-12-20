@@ -19,12 +19,9 @@
 #include <vector>
 #include <cmath>
 
-#include "unit_testing.h"
-
-#include "chrono/multicore_math/matrix.h"
 #include "chrono_multicore/cuda/svd.h"
+#include "unit_testing.h" // do not move before svd.h since it redefines short2
 
-using namespace chrono;
 
 void Assert_near(const float3& a, const float3& b, float COMPARE_EPS = FLT_EPSILON) {
     ASSERT_NEAR(a.x, b.x, COMPARE_EPS);
@@ -52,6 +49,7 @@ void Assert_near(const Mat33f& a, const Mat33f& b, float COMPARE_EPS = FLT_EPSIL
     ASSERT_NEAR(a[7], b[7], COMPARE_EPS);
     ASSERT_NEAR(a[8], b[8], COMPARE_EPS);
 }
+
 
 // Note that the values in this test were generated using PhysBAM, Matlab/Maple will return different answers (usually
 // opposite signs or some columns switched)

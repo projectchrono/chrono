@@ -85,17 +85,6 @@ source_group("industrial" FILES ${INDUSTRIAL_FILES})
 
 #-----------------------------------------------------------------------------
 
-set(CXX_FLAGS ${CH_CXX_FLAGS})
-set(LIBRARIES "ChronoEngine")
-
-if(ENABLE_MODULE_IRRLICHT)
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-endif()
-
-#-----------------------------------------------------------------------------
-
 add_library(ChronoModels_robot 
             ${CRM_COMMON_FILES}
             ${CRM_ROBOSIMIAN_FILES}
@@ -106,14 +95,13 @@ add_library(ChronoModels_robot
 			${INDUSTRIAL_FILES}
             )
 
-set_target_properties(ChronoModels_robot PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
+target_compile_definitions(ChronoModels_robot PRIVATE CH_API_COMPILE_MODELS)
+target_compile_definitions(ChronoModels_robot PRIVATE CH_IGNORE_DEPRECATED)
 
-target_compile_definitions(ChronoModels_robot PRIVATE "CH_API_COMPILE_MODELS")
-target_compile_definitions(ChronoModels_robot PRIVATE "CH_IGNORE_DEPRECATED")
-
-target_link_libraries(ChronoModels_robot ${LIBRARIES})
+if(ENABLE_MODULE_IRRLICHT)
+    target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine_irrlicht)
+    include_directories(${CH_IRRLICHT_INCLUDES})
+endif()
 
 install(TARGETS ChronoModels_robot
         RUNTIME DESTINATION bin

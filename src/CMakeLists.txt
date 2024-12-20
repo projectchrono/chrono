@@ -118,28 +118,32 @@ endif()
 # # CUDA support
 # #-----------------------------------------------------------------------------
 
+set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "all-major")
+endif()
+
 include(CheckLanguage)
 check_language(CUDA)
 
 # If CUDA was found, enable the CUDA language
 if(CMAKE_CUDA_COMPILER)
-    set(CUDA_FOUND TRUE)
+    set(CHRONO_CUDA_FOUND TRUE)
     enable_language(CUDA)
     find_package(CUDAToolkit)
     message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
     message(STATUS "  CUDAToolkit version:   ${CUDAToolkit_VERSION}")
     message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
-    set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
+    set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
     mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
     message(STATUS "CUDA found and enabled.")
+    ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       set(CUDA_SEPARABLE_COMPILATION OFF)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      set(CUDA_PROPAGATE_HOST_FLAGS OFF)
     endif()
 else()
-    set(CUDA_FOUND FALSE)
-    mark_as_advanced(FORCE CUDA_ARCHITECTURES)
+    set(CHRONO_CUDA_FOUND FALSE)
+    mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
     message(WARNING "CUDA not found. CUDA features will be disabled.")
 endif()
 
@@ -816,7 +820,7 @@ else()
 endif()
 
 
-if(CUDA_FOUND)
+if(CHRONO_CUDA_FOUND)
   set(CHRONO_HAS_CUDA "#define CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDAToolkit_VERSION}\"")
 else()
