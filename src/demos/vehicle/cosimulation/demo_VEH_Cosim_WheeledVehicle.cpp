@@ -32,13 +32,12 @@
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_FSI
     #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
-#include "demos/SetChronoSolver.h"
+
 using std::cout;
 using std::cin;
 using std::endl;
@@ -75,8 +74,7 @@ class Polaris_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "Polaris"; }
     virtual std::string VehicleJSON() const override { return "Polaris/Polaris.json"; }
-    // virtual std::string TireJSON() const override { return "Polaris/Polaris_RigidMeshTire.json"; }
-    virtual std::string TireJSON() const override { return "Polaris/Polaris_ANCF4Tire_Lumped.json"; }
+    virtual std::string TireJSON() const override { return "Polaris/Polaris_RigidMeshTire.json"; }
     virtual std::string EngineJSON() const override { return "Polaris/Polaris_EngineSimpleMap.json"; }
     virtual std::string TransmissionJSON() const override {
         return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
@@ -85,10 +83,11 @@ class Polaris_Model : public Vehicle_Model {
 };
 
 auto vehicle_model = Polaris_Model();
+
 // =============================================================================
 // Specification of a terrain model from JSON file
-std::string tire_specfile = "Polaris/Polaris_ANCF4Tire_Lumped.json";
-// std::string terrain_specfile = "cosim/terrain/rigid.json";
+
+////std::string terrain_specfile = "cosim/terrain/rigid.json";
 std::string terrain_specfile = "cosim/terrain/scm_soft.json";
 ////std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
@@ -157,8 +156,6 @@ int main(int argc, char** argv) {
 
     // Simulation parameters
     double step_size = 1e-3;
-    double step_rigid_tire = 1e-4;
-    double step_fea_tire = 1e-5;
     int nthreads_terrain = 4;
     double sim_time = 8.0;
 
@@ -206,13 +203,6 @@ int main(int argc, char** argv) {
     // Peek in spec file and extract terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
     if (terrain_type == ChVehicleCosimTerrainNodeChrono::Type::UNKNOWN) {
-        MPI_Finalize();
-        return 1;
-    }
-    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(vehicle::GetDataFile(tire_specfile));
-    if (tire_type == ChVehicleCosimTireNode::TireType::UNKNOWN) {
-        if (rank == 0)
-            std::cout << "Unsupported tire type" << std::endl;
         MPI_Finalize();
         return 1;
     }
@@ -331,53 +321,12 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        switch (tire_type) {
-            case ChVehicleCosimTireNode::TireType::RIGID: {
-                auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
-                tire->SetVerbose(verbose);
-                tire->SetStepSize(step_rigid_tire);
-                tire->SetOutDir(out_dir);
-
-                tire->GetSystem().SetNumThreads(1);
-
-                node = tire;
-                break;
-            }
-            case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
-                auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, vehicle::GetDataFile(tire_specfile));
-                tire->EnableTirePressure(true);
-                tire->SetVerbose(verbose);
-                tire->SetStepSize(step_fea_tire);
-                tire->SetOutDir(out_dir);
-                if (renderRT)
-                    tire->EnableRuntimeVisualization(render_fps * 10, writeRT);
-                if (renderPP)
-                    tire->EnablePostprocessVisualization(render_fps);
-
-                auto& sys = tire->GetSystem();
-                auto solver_type = ChSolver::Type::PARDISO_MKL;
-                auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-                int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
-                int num_threads_collision = 1;
-                int num_threads_eigen = 1;
-                int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
-                SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
-                sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
-                if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
-                    hht->SetAlpha(-0.2);
-                    hht->SetMaxIters(5);
-                    hht->SetAbsTolerances(1e-2);
-                    hht->SetStepControl(false);
-                    hht->SetMinStepSize(1e-4);
-                    ////hht->SetVerbose(true);
-                }
-
-                node = tire;
-                break;
-            }
-            default:
-                break;
-        }
+        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(vehicle_model.TireJSON()));
+        tire->SetVerbose(verbose);
+        tire->SetStepSize(step_size);
+        tire->SetOutDir(out_dir, suffix);
+        tire->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
+        node = tire;
     }
 
     // Initialize systems
