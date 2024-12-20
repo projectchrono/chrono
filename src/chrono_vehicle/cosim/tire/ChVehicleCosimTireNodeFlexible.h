@@ -52,6 +52,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Return the tire type.
     virtual TireType GetTireType() const override { return TireType::FLEXIBLE; }
 
+    /// Attach FEA visual shape for run-time visualization.
+    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape);
+
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance
     /// its state by the specified time step.  A node is allowed to take as many internal

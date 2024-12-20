@@ -53,7 +53,7 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
 // =============================================================================
 
 int main(int argc, char** argv) {
-    // Initialize MPI.
+    // Initialize MPI
     int num_procs;
     int rank;
     int name_len;
@@ -81,6 +81,12 @@ int main(int argc, char** argv) {
     }
 
     // Simulation parameters
+    // - sim_time:        total simulation time
+    // - step_cosim:      co-simulation meta-step (controls frequency of data exchange)
+    // - step_mbs:        step size for vehicle dynamics
+    // - step_terrain:    step size for FSI terrain simulation
+    // - step_rigid_tire: step size for rigid tire dynamics
+    // - step_fea_tire:   step size for flexible tire dynamics
     double sim_time = 20.0;
 
     double step_cosim = 1e-3;
@@ -91,14 +97,23 @@ int main(int argc, char** argv) {
 
     bool fix_chassis = false;
 
+    // Output and rendering frequency (in FPS)
     double output_fps = 100;
     double render_fps = 100;
 
+    // Visualization flags
+    // - verbose:      enable verbose terminal output
+    // - output:       generate output files
+    // - renderRT:     enable run-time visualization
+    // - writeRT:      save snapshots from run-time visualization
+    // - writePP:      save data files for Blender post-processing
+    // - render_tires: enable run-time and post-processing for individual tires
+    bool verbose = false;
     bool output = false;
     bool renderRT = true;
-    bool renderPP = false;
     bool writeRT = false;
-    bool verbose = false;
+    bool writePP = false;
+    bool render_tire[4] = {true, false, true, false};
 
     std::string path_specfile = "terrain/sph/S-lane_RMS/path.txt";
     std::string terrain_specfile = "cosim/terrain/granular_sph.json";
@@ -165,7 +180,7 @@ int main(int argc, char** argv) {
 
         if (renderRT)
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
-        if (renderPP)
+        if (writePP)
             vehicle->EnablePostprocessVisualization(render_fps);
         vehicle->SetCameraPosition(ChVector3d(20, 6, 2));
 
@@ -190,7 +205,7 @@ int main(int argc, char** argv) {
 
         if (renderRT)
             terrain->EnableRuntimeVisualization(render_fps, writeRT);
-        if (renderPP)
+        if (writePP)
             terrain->EnablePostprocessVisualization(render_fps);
         terrain->SetCameraPosition(ChVector3d(4, 6, 2.5));
 
@@ -220,10 +235,21 @@ int main(int argc, char** argv) {
                 tire->SetVerbose(verbose);
                 tire->SetStepSize(step_fea_tire);
                 tire->SetOutDir(out_dir);
-                if (renderRT)
-                    tire->EnableRuntimeVisualization(render_fps, writeRT);
-                if (renderPP)
-                    tire->EnablePostprocessVisualization(render_fps);
+
+                int tire_index = rank - TERRAIN_NODE_RANK - 1;
+                if (render_tire[tire_index]) {
+                    auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
+                    visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+                    visFEA->SetShellResolution(3);
+                    visFEA->SetWireframe(false);
+                    visFEA->SetColorscaleMinMax(0.0, 12.0);
+                    visFEA->SetSmoothFaces(true);
+                    tire->AddVisualShapeFEA(visFEA);
+                    if (renderRT)
+                        tire->EnableRuntimeVisualization(render_fps, writeRT);
+                    if (writePP)
+                        tire->EnablePostprocessVisualization(render_fps);
+                }
 
                 auto& sys = tire->GetSystem();
                 auto solver_type = ChSolver::Type::PARDISO_MKL;

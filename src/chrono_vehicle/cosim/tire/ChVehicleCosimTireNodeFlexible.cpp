@@ -101,6 +101,10 @@ void ChVehicleCosimTireNodeFlexible::Advance(double step_size) {
     Render(step_size);
 }
 
+void ChVehicleCosimTireNodeFlexible::AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape) {
+    m_tire_def->AddVisualShapeFEA(shape);
+}
+
 void ChVehicleCosimTireNodeFlexible::OnRender() {
     if (!m_vsys)
         return;
@@ -173,12 +177,14 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
         }
     }
 
-    // Create the visualization window (only for the first tire)
-    if (m_renderRT && m_index == 0) {
+    // Create the visualization window
+    if (m_renderRT) {
+        std::string title = "Tire " + std::to_string(m_index) + " Node";
+
 #if defined(CHRONO_VSG)
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
-        vsys_vsg->SetWindowTitle("Tire 0 Node");
+        vsys_vsg->SetWindowTitle(title);
         vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
         vsys_vsg->SetUseSkyBox(false);
@@ -197,7 +203,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
 #elif defined(CHRONO_IRRLICHT)
         auto vsys_irr = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
         vsys_irr->AttachSystem(m_system);
-        vsys_irr->SetWindowTitle("Tire 0 Node");
+        vsys_irr->SetWindowTitle(title);
         vsys_irr->SetCameraVertical(CameraVerticalDir::Z);
         vsys_irr->SetWindowSize(1280, 720);
         vsys_irr->Initialize();
