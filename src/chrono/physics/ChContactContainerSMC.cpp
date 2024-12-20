@@ -459,19 +459,15 @@ void ChContactContainerSMC::IntLoadResidual_F(const unsigned int off, ChVectorDy
     _IntLoadResidual_F(contactlist_666_333, R, c);
     _IntLoadResidual_F(contactlist_666_666, R, c);
 }
-/// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
-///    R += c*M*w
-/// This is a filtered version of IntLoadResidual_Mv, where some items are skipped if not inside a volume.
-void ChContactContainerSMC::IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
-    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-    const ChVectorDynamic<>& w,  ///< the w vector
-    const double c,               ///< a scaling factor
+void ChContactContainerSMC::IntLoadResidual_F_domain(const unsigned int off,  ///< offset in R residual
+    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+    const double c,          ///< a scaling factor
     const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
 ) {
     // NO NEED TO FILTER BY DOMAIN BECAUSE WE ASSUME THE CONTACT CONTAINER IS FILLED ONLY WITH 
     // CONTACTS INSIDE THE DOMAIN (see the MULTIDOMAIN module, in domain managers: at SetDomain() they 
     // apply a "class ContactDomainFilter : public ChCollisionSystem::NarrowphaseCallback {..}" to the system)
-    this->IntLoadResidual_Mv(off, R, w, c);
+    this->IntLoadResidual_F(off, R, c);
 }
 
 

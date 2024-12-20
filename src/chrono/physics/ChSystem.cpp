@@ -1192,7 +1192,7 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w,
     unsigned int displ_v = off - assembly.offset_w;
     contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
 
-    /*
+    
     if (!this->limit_residuals_Mv_F_to_domain) {
         // Operate on assembly sub-objects (bodies, links, etc.)
         assembly.IntLoadResidual_Mv(off, R, w, c);
@@ -1209,7 +1209,6 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w,
         unsigned int displ_v = off - assembly.offset_w;
         contact_container->IntLoadResidual_Mv_domain(displ_v + contact_container->GetOffset_w(), R, w, c, *this->overlap_domain_test);
     }
-    */
 }
 
 // Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.

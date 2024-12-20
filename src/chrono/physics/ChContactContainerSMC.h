@@ -136,12 +136,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     // STATE FUNCTIONS
 
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-    virtual void IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
-        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-        const ChVectorDynamic<>& w,  ///< the w vector
-        const double c,               ///< a scaling factor
-        const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
-    );
+    virtual void IntLoadResidual_F_domain(const unsigned int off, ChVectorDynamic<>& R, const double c, const ChOverlapTest& filter) override;
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
