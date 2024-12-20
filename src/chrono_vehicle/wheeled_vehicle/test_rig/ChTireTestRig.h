@@ -27,6 +27,7 @@
 #ifndef CH_TIRE_TEST_RIG_H
 #define CH_TIRE_TEST_RIG_H
 
+#include "chrono/ChConfig.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -80,6 +81,15 @@ class CH_VEHICLE_API ChTireTestRig {
         double cohesion;          ///< inter-particle cohesion pressure (Pa)
         double Young_modulus;     ///< particle contact material Young's modulus (Pa)
         double width;             ///< patch width
+    };
+
+    struct TerrainParamsCRM {
+        double radius;    ///< particle radius
+        double density;   ///< Terrain bulk density (kg/m3)
+        double cohesion;  ///< Terrain artificial cohesion (Pa)
+        double length;    ///< patch length
+        double width;     ///< patch width
+        double depth;     ///< patch depth
     };
 
     /// Construct a tire test rig within the specified system.
@@ -174,6 +184,20 @@ class CH_VEHICLE_API ChTireTestRig {
                             double terrain_width = 1  ///< width of terrain patch
     );
 
+    /// Enable use of CRM terrain.
+    // The terrain subsystem is modelled through continuum with CRM.
+    // Other material and SPH parameters are left to CRM defaults
+    void SetTerrainCRM(const TerrainParamsCRM& params);
+
+    // Enable use of CRM terrain.
+    // The radius here is the radius of the SPH markers (SPH is the underlying solver for the continuum PDEs)
+    void SetTerrainCRM(double radius,
+                       double density,
+                       double cohesion,
+                       double terrain_length = 10,
+                       double terrain_width = 1,
+                       double terrain_depth = 0.2);
+
     /// Set time delay before applying motion functions (default: 0 s).
     void SetTimeDelay(double delay) { m_time_delay = delay; }
 
@@ -208,7 +232,7 @@ class CH_VEHICLE_API ChTireTestRig {
     double GetDBP() const;
 
   private:
-    enum class TerrainType { SCM, RIGID, CRG, GRANULAR, NONE };
+    enum class TerrainType { SCM, RIGID, CRG, GRANULAR, CRM, NONE };
 
     void CreateMechanism(Mode mode);
 
@@ -216,6 +240,7 @@ class CH_VEHICLE_API ChTireTestRig {
     void CreateTerrainSCM();
     void CreateTerrainRigid();
     void CreateTerrainGranular();
+    void CreateTerrainCRM();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
@@ -235,9 +260,9 @@ class CH_VEHICLE_API ChTireTestRig {
     TerrainParamsSCM m_params_SCM;            ///< SCM soil parameters
     TerrainParamsRigid m_params_rigid;        ///< rigid terrain contact material properties
     TerrainParamsGranular m_params_granular;  ///< granular terrain parameters
-
-    double m_terrain_offset;  ///< Y coordinate of tire center
-    double m_terrain_height;  ///< height coordinate for terrain subsystem
+    TerrainParamsCRM m_params_crm;            ///< granular terrain parameters
+    double m_terrain_offset;                  ///< Y coordinate of tire center
+    double m_terrain_height;                  ///< height coordinate for terrain subsystem
 
     std::shared_ptr<ChBody> m_ground_body;   ///< ground body
     std::shared_ptr<ChBody> m_carrier_body;  ///< rig carrier body
