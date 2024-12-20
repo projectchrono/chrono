@@ -362,7 +362,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateMeshProxy(unsigned int i) {
     proxy->mesh->AddContactSurface(surface);
 
     if (m_show_geometry) {
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(proxy->mesh);
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
         vis_mesh->SetWireframe(true);
         proxy->mesh->AddVisualShapeFEA(vis_mesh);

@@ -23,6 +23,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -230,8 +231,13 @@ int main() {
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        if (tire_def->GetMeshVisualization())
-            tire_def->GetMeshVisualization()->SetColorscaleMinMax(0.0, 5.0);  // range for nodal speed norm
+        auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
+        visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        visFEA->SetShellResolution(3);
+        visFEA->SetWireframe(false);
+        visFEA->SetColorscaleMinMax(0.0, 5.0);
+        visFEA->SetSmoothFaces(true);
+        tire_def->AddVisualShapeFEA(visFEA);
     }
 
     // -----------------

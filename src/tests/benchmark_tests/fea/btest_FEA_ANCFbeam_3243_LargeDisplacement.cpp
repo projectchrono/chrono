@@ -188,13 +188,13 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_system->Add(mesh);
 
     // Setup visualization
-    auto vis_surf = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_surf = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_surf->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     vis_surf->SetWireframe(true);
     vis_surf->SetDrawInUndeformedReference(true);
     mesh->AddVisualShapeFEA(vis_surf);
 
-    auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_node->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_node->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_node->SetSymbolsThickness(0.01);

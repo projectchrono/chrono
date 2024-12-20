@@ -209,20 +209,20 @@ int main(int argc, char* argv[]) {
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     /*
-        auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         mvisualizemeshB->SetWireframe(true);
         my_mesh->AddVisualShapeFEA(mvisualizemeshB);
     */
     /*
-        auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
         mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         mvisualizemeshC->SetSymbolsThickness(0.006);

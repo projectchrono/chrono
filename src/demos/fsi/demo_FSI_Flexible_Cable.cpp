@@ -479,7 +479,7 @@ std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, doub
     sysMBS.Add(mesh);
 
     if (show_mesh) {
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
         vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
         vis_mesh->SetSmoothFaces(true);
