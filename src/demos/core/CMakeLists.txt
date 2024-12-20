@@ -33,6 +33,13 @@ if(ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
+if(ENABLE_MODULE_MUMPS)
+    include_directories(${CH_MUMPS_INCLUDES})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${MUMPS_CXX_COMPILE_FLAGS}")
+    set(LINKER_FLAGS "${LINKER_FLAGS} ${MUMPS_CXX_LINK_FLAGS}")
+    list(APPEND LIBS "ChronoEngine_mumps")
+endif()
+
 #--------------------------------------------------------------
 
 message(STATUS "Demo programs for CORE module...")
