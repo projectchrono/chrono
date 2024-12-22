@@ -75,9 +75,9 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     // Set associated path
-    m_path_points.push_back({-m_dimX / 2, 0, 0});
     m_path_points.push_back({0, 0, 0});
-    m_path_points.push_back({+m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
@@ -100,9 +100,9 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
     SetFromSpecfile(specfile);
 
     // Set associated path
-    m_path_points.push_back({-m_dimX / 2, 0, 0});
     m_path_points.push_back({0, 0, 0});
-    m_path_points.push_back({+m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
@@ -186,6 +186,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, max_sinkage);
     m_terrain->SetMeshWireframe(false);
     m_terrain->SetCosimulationMode(true);
+    m_terrain->SetPlane(ChCoordsysd({m_dimX / 2, 0, 0}, QUNIT));
     m_terrain->Initialize(m_dimX, m_dimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file

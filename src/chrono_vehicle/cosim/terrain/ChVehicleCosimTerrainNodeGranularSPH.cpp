@@ -82,9 +82,9 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     m_init_height = depth;
 
     // Set associated path
-    m_path_points.push_back({-m_dimX / 2, 0, m_depth});
     m_path_points.push_back({0, 0, m_depth});
-    m_path_points.push_back({+m_dimX / 2, 0, m_depth});
+    m_path_points.push_back({m_dimX / 2, 0, m_depth});
+    m_path_points.push_back({m_dimX, 0, m_depth});
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
@@ -171,9 +171,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
         m_dimX = d["Patch dimensions"]["Length"].GetDouble();
         m_dimY = d["Patch dimensions"]["Width"].GetDouble();
         m_depth = d["Patch dimensions"]["Depth"].GetDouble();
-        m_path_points.push_back({-m_dimX / 2, 0, m_depth});
         m_path_points.push_back({0, 0, m_depth});
-        m_path_points.push_back({+m_dimX / 2, 0, m_depth});
+        m_path_points.push_back({m_dimX / 2, 0, m_depth});
+        m_path_points.push_back({m_dimX, 0, m_depth});
         m_terrain_type = ConstructionMethod::PATCH;
     }
 
@@ -238,7 +238,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Construct the CRMTerrain (generate SPH boundary BCE points)
     switch (m_terrain_type) {
         case ConstructionMethod::PATCH:
-            m_terrain->Construct({m_dimX, m_dimY, m_depth}, VNULL, BoxSide::ALL & ~BoxSide::Z_POS);
+            m_terrain->Construct({m_dimX, m_dimY, m_depth}, {m_dimX / 2, 0, 0}, BoxSide::ALL & ~BoxSide::Z_POS);
             break;
         case ConstructionMethod::FILES:
             m_terrain->Construct(m_sph_filename, m_bce_filename, VNULL);

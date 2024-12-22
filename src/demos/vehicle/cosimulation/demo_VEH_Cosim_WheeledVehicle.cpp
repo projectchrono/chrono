@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Demo for wheeled vehicle cosimulation on SCM or rigid terrain.
-// The vehicle (specified through JSON files, for the vehicle, engine,
-// and transmission, is co-simulated with a terrain node and a number of rigid
+// The vehicle (specified through JSON files, for the vehicle, engine, and
+// transmission) is co-simulated with a terrain node and a number of rigid
 // tire nodes equal to the number of wheels.
 //
 // Global reference frame: Z up, X towards the front, and Y pointing to the left
@@ -34,9 +34,6 @@
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
-#ifdef CHRONO_FSI
-    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
-#endif
 
 using std::cout;
 using std::cin;
@@ -89,7 +86,6 @@ auto vehicle_model = Polaris_Model();
 
 ////std::string terrain_specfile = "cosim/terrain/rigid.json";
 std::string terrain_specfile = "cosim/terrain/scm_soft.json";
-////std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
 // =============================================================================
 
@@ -164,7 +160,7 @@ int main(int argc, char** argv) {
 
     bool output = false;
     bool renderRT = true;
-    bool renderPP = false;
+    bool writePP = false;
     bool writeRT = false;
     std::string suffix = "";
     bool verbose = false;
@@ -174,13 +170,12 @@ int main(int argc, char** argv) {
 
     double terrain_length = 40;
     double terrain_width = 20;
-    double init_height = vehicle_model.InitHeight();
-    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, init_height);
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector3d(-5, 0, init_height);
     }
+
+    ChVector3d init_loc(3.5, 0, vehicle_model.InitHeight());
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_COSIM";
@@ -237,7 +232,7 @@ int main(int argc, char** argv) {
         vehicle->SetOutDir(out_dir, suffix);
         if (renderRT)
             vehicle->EnableRuntimeVisualization(render_fps, writeRT);
-        if (renderPP)
+        if (writePP)
             vehicle->EnablePostprocessVisualization(render_fps);
         vehicle->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
         if (verbose)
@@ -265,7 +260,7 @@ int main(int argc, char** argv) {
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps);
-                if (renderPP)
+                if (writePP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
@@ -284,33 +279,13 @@ int main(int argc, char** argv) {
                 terrain->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     terrain->EnableRuntimeVisualization(render_fps, writeRT);
-                if (renderPP)
+                if (writePP)
                     terrain->EnablePostprocessVisualization(render_fps);
                 terrain->SetCameraPosition(ChVector3d(terrain_length / 2, 0, 2));
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 node = terrain;
-                break;
-            }
-
-            case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
-#ifdef CHRONO_FSI
-                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(vehicle::GetDataFile(terrain_specfile));
-                terrain->SetDimensions(terrain_length, terrain_width);
-                terrain->SetVerbose(verbose);
-                terrain->SetStepSize(step_size);
-                terrain->SetOutDir(out_dir, suffix);
-                if (renderRT)
-                    terrain->EnableRuntimeVisualization(render_fps, writeRT);
-                if (renderPP)
-                    terrain->EnablePostprocessVisualization(render_fps);
-                terrain->SetCameraPosition(ChVector3d(0, 2 * terrain_width, 1.0));
-                if (verbose)
-                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
-
-                node = terrain;
-#endif
                 break;
             }
         }
