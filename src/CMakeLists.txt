@@ -114,42 +114,6 @@ if (MSVC)
   endif()
 endif()
 
-# #-----------------------------------------------------------------------------
-# # CUDA support
-# #-----------------------------------------------------------------------------
-
-set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
-if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES "all-major")
-endif()
-
-include(CheckLanguage)
-check_language(CUDA)
-
-# If CUDA was found, enable the CUDA language
-if(CMAKE_CUDA_COMPILER)
-    set(CHRONO_CUDA_FOUND TRUE)
-    enable_language(CUDA)
-    find_package(CUDAToolkit)
-    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "  CUDAToolkit version:   ${CUDAToolkit_VERSION}")
-    message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
-    set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
-    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
-    message(STATUS "CUDA found and enabled.")
-    ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(CUDA_SEPARABLE_COMPILATION OFF)
-    endif()
-else()
-    set(CHRONO_CUDA_FOUND FALSE)
-    mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
-    message(WARNING "CUDA not found. CUDA features will be disabled.")
-endif()
-
-
-
-
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
@@ -170,12 +134,13 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
 message(STATUS "Searching for OpenMP...")
+# WARNING: TODO: OpenMP must be looked for before CUDA, since it cannot find OpenMP_CUDA; should it?
 find_package(OpenMP)
 
 # Determine OpenMP version. Prepare substitution variables that can be used in
 # generating configuration header files.
 
-if(OPENMP_FOUND)
+if(OpenMP_FOUND)
   include(CheckOpenMPVersion)
   message(STATUS "  OpenMP version:   ${OMP_VERSION}")
   set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
@@ -224,6 +189,41 @@ else()
 	find_package("TBB")
 	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
+
+
+# #-----------------------------------------------------------------------------
+# # CUDA support
+# #-----------------------------------------------------------------------------
+
+set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "all-major")
+endif()
+
+include(CheckLanguage)
+check_language(CUDA)
+
+# If CUDA was found, enable the CUDA language
+if(CMAKE_CUDA_COMPILER)
+    set(CHRONO_CUDA_FOUND TRUE)
+    enable_language(CUDA)
+    find_package(CUDAToolkit)
+    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "  CUDAToolkit version:   ${CUDAToolkit_VERSION}")
+    message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
+    set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
+    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
+    message(STATUS "CUDA found and enabled.")
+    ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set(CUDA_SEPARABLE_COMPILATION OFF)
+    endif()
+else()
+    set(CHRONO_CUDA_FOUND FALSE)
+    mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
+    message(WARNING "CUDA not found. CUDA features will be disabled.")
+endif()
+
 
 #-----------------------------------------------------------------------------
 # SSE / AVX / FMA / NEON support
