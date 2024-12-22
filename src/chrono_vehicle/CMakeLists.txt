@@ -47,6 +47,13 @@ if (ENABLE_OPENCRG)
 
     set(HAVE_OPENCRG ON)
 
+    file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+
+    install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )
+
   else()
 
     set(OpenCRG_INCLUDE_DIR "" CACHE PATH "Directory containing OpenCRG include files")
@@ -910,11 +917,11 @@ add_library(ChronoEngine::vehicle ALIAS ChronoEngine_vehicle)
 message(STATUS "Add ChronoEngine_vehicle library")
 
 if(HAVE_OPENCRG)
-  target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine_opencrg)
+  target_link_libraries(ChronoEngine_vehicle PRIVATE OpenCRG::OpenCRG)
 endif()
 
 if(ENABLE_MODULE_FSI)
-  target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine_fsi)
+  target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsi)
 endif()
 
 target_compile_definitions(ChronoEngine INTERFACE 

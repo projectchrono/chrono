@@ -19,7 +19,7 @@ cmake_policy(SET CMP0091 NEW)
 project(my_project)
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
-find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL)
+find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle)
 
 
 #--------------------------------------------------------------
@@ -60,9 +60,15 @@ add_executable(demo_GL_cohesion demo_GL_cohesion.cpp)
 target_link_libraries(demo_GL_cohesion PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_opengl)
 
 add_executable(demo_VEH_TrackTestRig demo_VEH_TrackTestRig.cpp)
-#target_link_libraries(demo_VEH_TrackTestRig PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ModelsVehicle)
 target_link_libraries(demo_VEH_TrackTestRig PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ChronoModels_vehicle)
 
+if (CHRONO_VEHICLE_OPENCRG)
+  add_executable(demo_VEH_CRGTerrain_IRR demo_VEH_CRGTerrain_IRR.cpp)
+  target_link_libraries(demo_VEH_CRGTerrain_IRR PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ChronoModels_vehicle)
+  message(STATUS "OpenCRG support enabled")
+else()
+  message(STATUS "OpenCRG support disabled")
+endif()
 
 
 

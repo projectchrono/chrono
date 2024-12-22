@@ -9,6 +9,8 @@
 #-----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.18)
+# Features achievable with later versions of CMake:
+# - install(IMPORTED_RUNTIME_ARTIFACTS) CMake 3.21
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
