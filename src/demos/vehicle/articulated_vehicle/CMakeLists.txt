@@ -47,7 +47,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
 #--------------------------------------------------------------
 # Create the executable
 
-MESSAGE(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})

@@ -46,10 +46,10 @@ ELSE()
   SET(BULLET_FILES "")
 ENDIF()
 
-message(STATUS "Unit test programs for COLLISION...")
+# MESSAGE(STATUS "Unit test programs for COLLISION...")
 
 foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  ${PROGRAM}.cpp ${BULLET_FILES})
     source_group(""  FILES "${PROGRAM}.cpp")

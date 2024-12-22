@@ -49,7 +49,7 @@ endif()
 set(MODELS ../WheeledVehicleModels.h)
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} ${PROGRAM}.cpp ${MODELS})
     source_group("" FILES ${PROGRAM}.cpp ${MODELS})

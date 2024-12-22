@@ -1,4 +1,4 @@
-message(STATUS "Unit test programs for Vehicle module...")
+# MESSAGE(STATUS "Unit test programs for Vehicle module...")
 
 set(TESTS
     utest_VEH_destructors
@@ -25,7 +25,7 @@ list(APPEND LIBS "ChronoEngine_vehicle")
 # Add executables
 
 foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

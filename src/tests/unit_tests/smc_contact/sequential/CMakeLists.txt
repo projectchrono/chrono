@@ -14,10 +14,10 @@ SET(TESTS
     utest_SMC_sphere_sphere
 )
 
-MESSAGE(STATUS "Unit test programs for SMC contact in core module...")
+# MESSAGE(STATUS "Unit test programs for SMC contact in core module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp" ../utest_SMC.h)
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp" ../utest_SMC.h)

@@ -27,7 +27,7 @@ endif()
 message(STATUS "Test programs for FSI module...")
 
 foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

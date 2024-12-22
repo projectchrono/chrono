@@ -26,7 +26,7 @@ endif()
 
 set(PROGRAM demo_FMI2_hydraulic_crane_cosim)
 
-message(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 add_executable(${PROGRAM})
 source_group("" FILES ${PROGRAM}.cpp)

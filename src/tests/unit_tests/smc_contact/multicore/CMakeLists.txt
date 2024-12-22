@@ -23,10 +23,10 @@ SET(TESTS
     utest_SMCm_stacking
 )
 
-MESSAGE(STATUS "Unit test programs for SMC contact in MULTICORE module...")
+# MESSAGE(STATUS "Unit test programs for SMC contact in MULTICORE module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp" ../utest_SMC.h)
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp" ../utest_SMC.h)

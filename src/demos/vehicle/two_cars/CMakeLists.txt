@@ -33,7 +33,7 @@ endif()
 #--------------------------------------------------------------
 # Create the executable
 
-message(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 add_executable(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
 source_group("" FILES ${PROGRAM}.cpp)

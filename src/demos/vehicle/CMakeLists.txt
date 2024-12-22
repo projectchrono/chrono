@@ -1,6 +1,6 @@
 #--------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for VEHICLE module...")
+# MESSAGE(STATUS "Demo programs for VEHICLE module...")
 
 add_subdirectory(wheeled_models)
 add_subdirectory(wheeled_tests)

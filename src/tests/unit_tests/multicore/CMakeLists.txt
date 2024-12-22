@@ -30,10 +30,10 @@ if(USE_MULTICORE_CUDA)
    )
 endif()
 
-MESSAGE(STATUS "Unit test programs for MULTICORE module...")
+# MESSAGE(STATUS "Unit test programs for MULTICORE module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
@@ -67,7 +67,7 @@ SET(TESTS_G
 )
 
 FOREACH(PROGRAM ${TESTS_G})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

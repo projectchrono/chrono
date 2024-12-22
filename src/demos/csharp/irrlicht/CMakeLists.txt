@@ -20,6 +20,6 @@ set(ALL_DEPENDENCY_DLLS "${ALL_DEPENDENCY_DLLS}" PARENT_SCOPE)
 
 # Add C# executables
 foreach(PROGRAM ${DEMOS})
-  message(STATUS "...add ${PROGRAM}")
+  # MESSAGE(STATUS "...add ${PROGRAM}")
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
 endforeach()

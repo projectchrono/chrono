@@ -10,10 +10,10 @@ SET(TESTS
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
 
-MESSAGE(STATUS "Unit test programs for ROS module...")
+# MESSAGE(STATUS "Unit test programs for ROS module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

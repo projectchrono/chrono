@@ -17,10 +17,10 @@ set(POST_DEMOS_IRR
 
 #--------------------------------------------------------------
 
-message(STATUS "Demo programs for POSTPROCESS module...")
+# MESSAGE(STATUS "Demo programs for POSTPROCESS module...")
 
 foreach(PROGRAM ${POST_DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES  "${PROGRAM}.cpp")
@@ -41,7 +41,7 @@ if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHT_INCLUDES})
 
     foreach(PROGRAM ${POST_DEMOS_IRR})
-        message(STATUS "...add ${PROGRAM}")
+        # MESSAGE(STATUS "...add ${PROGRAM}")
 
         add_executable(${PROGRAM}  "${PROGRAM}.cpp")
         source_group(""  FILES  "${PROGRAM}.cpp")

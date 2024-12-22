@@ -1,4 +1,4 @@
-message(STATUS "Unit test programs for Parsers module...")
+# MESSAGE(STATUS "Unit test programs for Parsers module...")
 
 set(TESTS "")
 
@@ -36,7 +36,7 @@ set(LIBRARIES ChronoEngine ChronoEngine_parsers)
 # Add executables
 
 foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

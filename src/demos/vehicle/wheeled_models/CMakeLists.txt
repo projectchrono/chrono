@@ -60,7 +60,7 @@ endif()
 # Create the executables
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     if(PROGRAM STREQUAL "demo_VEH_Wheeled")
       set(MODELS ../WheeledVehicleModels.h)

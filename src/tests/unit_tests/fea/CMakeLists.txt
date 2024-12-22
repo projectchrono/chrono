@@ -30,7 +30,7 @@ set(TESTS_MKL
     utest_FEA_constraints
 )
 
-MESSAGE(STATUS "Unit test programs for FEA module...")
+# MESSAGE(STATUS "Unit test programs for FEA module...")
 
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data
@@ -54,7 +54,7 @@ if(ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

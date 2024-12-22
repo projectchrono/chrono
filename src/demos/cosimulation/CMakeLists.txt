@@ -7,10 +7,10 @@ SET(DEMOS
   demo_COSIM_hydraulics
 )
 
-MESSAGE(STATUS "Demo programs for SOCKET COMMUNICATION module...")
+# MESSAGE(STATUS "Demo programs for SOCKET COMMUNICATION module...")
 
 FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

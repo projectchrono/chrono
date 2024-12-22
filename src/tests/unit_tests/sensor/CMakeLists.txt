@@ -11,10 +11,10 @@ SET(TESTS
     utest_SEN_radar
 )
 
-MESSAGE(STATUS "Unit test programs for SENSOR module...")
+# MESSAGE(STATUS "Unit test programs for SENSOR module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

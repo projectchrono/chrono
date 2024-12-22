@@ -7,7 +7,7 @@ ENDIF()
 
 #--------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for SynChrono module...")
+# MESSAGE(STATUS "Demo programs for SynChrono module...")
 
 add_subdirectory(mpi)
 

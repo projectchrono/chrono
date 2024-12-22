@@ -1,7 +1,7 @@
 # Demo programs for simulations with models from the Chrono::Robots library
 # ------------------------------------------------------------------------------
 
-message(STATUS "Demo programs for ROBOT models...")
+# MESSAGE(STATUS "Demo programs for ROBOT models...")
 
 set(DEMOS "")
 
@@ -96,7 +96,7 @@ endif()
 # ------------------------------------------------------------------------------
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)

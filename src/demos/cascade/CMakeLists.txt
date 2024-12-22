@@ -45,13 +45,13 @@ set(DEMOS_CAS
 	demo_CAS_profile
 )
 
-message(STATUS "Demo programs for OpenCASCADE module...")
+# MESSAGE(STATUS "Demo programs for OpenCASCADE module...")
 
 #--------------------------------------------------------------
 # Add demo executables
 
 foreach(PROGRAM ${DEMOS_CAS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

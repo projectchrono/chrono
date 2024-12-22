@@ -16,10 +16,10 @@ SET(DEMOS
 )
 
 
-MESSAGE(STATUS "Demo programs for CORE module...")
+# MESSAGE(STATUS "Demo programs for CORE module...")
 
 FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

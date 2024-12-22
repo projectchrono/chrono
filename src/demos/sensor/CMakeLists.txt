@@ -59,10 +59,10 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-message(STATUS "Demo programs for Sensor module...")
+# MESSAGE(STATUS "Demo programs for Sensor module...")
 
 foreach(PROGRAM ${DEMOS})
-  message(STATUS "...add ${PROGRAM}")
+  # MESSAGE(STATUS "...add ${PROGRAM}")
 
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")

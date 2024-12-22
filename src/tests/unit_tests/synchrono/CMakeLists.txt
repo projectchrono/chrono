@@ -6,10 +6,10 @@ SET(TESTS
     utest_SYN_agent_initialization
 )
 
-MESSAGE(STATUS "Unit test programs for SYNCHRONO module...")
+# MESSAGE(STATUS "Unit test programs for SYNCHRONO module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

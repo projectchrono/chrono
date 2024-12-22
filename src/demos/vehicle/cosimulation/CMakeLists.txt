@@ -45,7 +45,7 @@ if(ENABLE_MODULE_VEHICLE_MODELS)
 endif()
 
 FOREACH(PROGRAM ${PROGRAMS})
-  message(STATUS "...add ${PROGRAM}")
+  # MESSAGE(STATUS "...add ${PROGRAM}")
 
   add_executable(${PROGRAM} ${PROGRAM}.cpp)
   source_group("" FILES ${PROGRAM}.cpp)

@@ -36,7 +36,7 @@ include_directories(${SYN_INCLUDES})
 message(STATUS "Benchmark test programs for SCM scaling...")
 
 foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

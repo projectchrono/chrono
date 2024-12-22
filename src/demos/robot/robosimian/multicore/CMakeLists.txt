@@ -29,7 +29,7 @@ set(UTILITIES
 # ------------------------------------------------------------------------------
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
     add_executable(${PROGRAM} "${PROGRAM}.cpp" ${UTILITIES})
     source_group(""  FILES "${PROGRAM}.cpp" ${UTILITIES})
 

@@ -12,7 +12,7 @@ set(PROGRAM demo_VEH_paths)
 #--------------------------------------------------------------
 # Add executable
 
-MESSAGE(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
 SOURCE_GROUP("" FILES ${PROGRAM}.cpp)

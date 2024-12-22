@@ -16,7 +16,7 @@ endif()
 
 set(PROGRAM demo_FMI_VdP_modex)
 
-message(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 add_executable(${PROGRAM})
 source_group("" FILES ${PROGRAM}.cpp)

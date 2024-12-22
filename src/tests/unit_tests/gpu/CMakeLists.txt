@@ -40,7 +40,7 @@ endif()
 MESSAGE(STATUS "Test programs for Gpu module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     set(FILES ${PROGRAM}.cpp unit_testing.h)
     ADD_EXECUTABLE(${PROGRAM}  ${FILES})

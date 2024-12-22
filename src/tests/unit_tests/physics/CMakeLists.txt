@@ -10,10 +10,10 @@ SET(TESTS
     utest_CH_composite_inertia
 )
 
-MESSAGE(STATUS "Unit test programs for PHYSICS module...")
+# MESSAGE(STATUS "Unit test programs for PHYSICS module...")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

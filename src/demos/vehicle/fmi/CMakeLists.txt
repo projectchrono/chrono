@@ -22,7 +22,7 @@ set(DEMOS
 
 foreach(PROGRAM ${DEMOS})
 
-  message(STATUS "...add ${PROGRAM}")
+  # MESSAGE(STATUS "...add ${PROGRAM}")
 
   #message("FMU_TOOLS_DIR = ${FMU_TOOLS_DIR}")
   #message("FMI2_PLATFORM = ${FMI2_PLATFORM}")

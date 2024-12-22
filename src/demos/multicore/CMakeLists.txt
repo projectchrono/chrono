@@ -56,10 +56,10 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for MULTICORE module...")
+# MESSAGE(STATUS "Demo programs for MULTICORE module...")
 
 FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")

@@ -5,12 +5,12 @@ set(MUMPS_DEMOS
 # Additional include paths
 INCLUDE_DIRECTORIES( ${CH_MUMPS_INCLUDES} )
  
-MESSAGE(STATUS "Demo programs for Mumps module...")
+# MESSAGE(STATUS "Demo programs for Mumps module...")
 
 # ---------------------------------------------------------------------
 
 FOREACH(PROGRAM ${MUMPS_DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
     SOURCE_GROUP("" FILES ${PROGRAM}.cpp)
 
     ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp)
