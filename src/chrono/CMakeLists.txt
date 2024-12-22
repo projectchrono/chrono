@@ -1510,9 +1510,11 @@ elseif(MSVC)
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)   # class needs to have dll-interface
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)   # non dll-interface class used as base class
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4324>)   # structure padded due to alignment specifier
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4324>) # structure padded due to alignment specifier (CUDA)
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4505>)   # unreferenced local function
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4458>)   # declaration hides class member
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4515>)   # namespace uses itself
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>) # WARNING: TODO: DARIOM: CUDA Deprecation: The type will be removed in the next major release
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd5038>)   # order of initialization
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd26451>)  # arithmetic overflow
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd26495>)  # uninitialized member variable

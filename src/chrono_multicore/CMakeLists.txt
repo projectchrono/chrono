@@ -208,15 +208,15 @@ if(BOOST_REQUIRED)
   target_include_directories(ChronoEngine_multicore PRIVATE "${Boost_INCLUDE_DIRS}")
 endif()
 
-# On Visual Studio, disable warning C4146 from Blaze
-# ("unary minus operator applied to unsigned type, result still unsigned")
 if(MSVC)
-  target_compile_options(ChronoEngine_multicore PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4146>)
+  target_compile_options(ChronoEngine_multicore PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4146>) # for Blaze, unary minus operator applied to unsigned type, result still unsigned
 endif()
+
 
 target_compile_definitions(ChronoEngine_multicore PRIVATE CH_API_COMPILE_MULTICORE)
 target_compile_definitions(ChronoEngine_multicore PRIVATE CH_IGNORE_DEPRECATED)
 target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)
+
 
 # ----- Configure Blaze and Thrust -----
 ## TODO: DARIOM shall they be guarded for only CXX?
