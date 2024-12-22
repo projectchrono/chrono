@@ -369,7 +369,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_compile_definitions(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>)
 endif()
 
-target_link_libraries(ChronoEngine_sensor PUBLIC OptiX::OptiX)
+target_link_libraries(ChronoEngine_sensor PUBLIC OptiX::OptiX) # needs to be exposed to consumers
 target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::cudart_static)
 target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::nppc)
 target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::nppig)
@@ -381,7 +381,7 @@ if(USE_NVDB)
 endif()
 
 # print cxx compiler flags\
-## TODO: DARIOM isn't this already there?
+## TODO: DARIOM need to be passed to the host compiler?
 # if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)
 #   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
 # endif()

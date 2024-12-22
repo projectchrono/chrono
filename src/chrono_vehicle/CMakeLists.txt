@@ -868,16 +868,6 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
-
-set(LIBRARIES)
-
-if(HDF5_FOUND)
-    set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
-    include_directories(${HDF5_INCLUDE_DIRS})
-    list(APPEND LIBRARIES ${HDF5_CXX_LIBRARIES})
-endif()
-
-
 add_library(ChronoEngine_vehicle
 #
     ${CV_BASE_FILES}
@@ -917,9 +907,12 @@ add_library(ChronoEngine_vehicle
     ${CV_STB_FILES}
 )
 
+message(STATUS "Add ChronoEngine_vehicle library")
+
 add_library(ChronoEngine::vehicle ALIAS ChronoEngine_vehicle)
 
-message(STATUS "Add ChronoEngine_vehicle library")
+target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine)
+
 
 if(HAVE_OPENCRG)
   target_link_libraries(ChronoEngine_vehicle PRIVATE OpenCRG::OpenCRG)
@@ -935,12 +928,13 @@ target_compile_definitions(ChronoEngine INTERFACE
 
 target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
-if(HDF5_FOUND)
-  target_compile_definitions(ChronoEngine_vehicle PRIVATE ${HDF5_COMPILE_DEFS})
-endif()
 
-target_link_libraries(ChronoEngine_vehicle PUBLIC ${LIBRARIES}) ## TODO: DARIOM remove it 
-target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine)
+
+if(HDF5_FOUND)
+    target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${HDF5_COMPILE_DEFS}>)
+    target_include_directories(ChronoEngine_vehicle PUBLIC ${HDF5_INCLUDE_DIRS})
+    target_link_libraries(ChronoEngine_vehicle PUBLIC ${HDF5_CXX_LIBRARIES})
+endif()
 
 install(TARGETS ChronoEngine_vehicle
         EXPORT ChronoEngineTargets

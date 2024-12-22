@@ -500,15 +500,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
-
-      separate_arguments(CH_SENSOR_CXX_FLAGS NATIVE_COMMAND "@CH_SENSOR_CXX_FLAGS@")
-      separate_arguments(CH_SENSOR_C_FLAGS NATIVE_COMMAND "@CH_SENSOR_C_FLAGS@")
-      list(APPEND CHRONO_CXX_FLAGS ${CH_SENSOR_CXX_FLAGS})
-      list(APPEND CHRONO_C_FLAGS ${CH_SENSOR_C_FLAGS})
-
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_SENSOR_INCLUDES@")
+    
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
-      list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
       endif()
