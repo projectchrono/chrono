@@ -115,7 +115,6 @@ int main(int argc, char** argv) {
     bool writePP = false;
     bool render_tire[4] = {true, false, true, false};
 
-    std::string path_specfile = "terrain/sph/S-lane_RMS/path.txt";
     std::string terrain_specfile = "cosim/terrain/granular_sph.json";
 
     std::string vehicle_specfile = "Polaris/Polaris.json";
@@ -284,7 +283,12 @@ int main(int argc, char** argv) {
     // Defer creation and initialization of the driver system until after the vehicle is initialized on the MBS node.
     if (rank == MBS_NODE_RANK) {
         auto vehicle = static_cast<ChVehicleCosimWheeledVehicleNode*>(node);
-        auto path = CreatePath(vehicle::GetDataFile(path_specfile));
+        auto path = vehicle->GetPath();
+        if (!path) {
+            cout << "Error: no vehicle path provided." << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+            return 1;
+        }
         ////double x_max = path->GetPoint(path->GetNumPoints() - 2).x() - 3.0;
         auto driver = chrono_types::make_shared<ChPathFollowerDriver>(*vehicle->GetVehicle(), path, "path",
                                                                       target_speed, 0.5, 0.5);

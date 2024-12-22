@@ -94,6 +94,24 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
     double terrain_height = init_dim[0];
     ChVector2d terrain_size(init_dim[1], init_dim[2]);
 
+    // Receive from terrain node path information
+    unsigned int num_path_points;
+    MPI_Recv(&num_path_points, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    if (num_path_points > 0) {
+        std::vector<double> all_points(3 * num_path_points);
+        MPI_Recv(all_points.data(), 3 * num_path_points, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        std::vector<ChVector3d> path_points;
+        unsigned int start_idx = 0;
+        for (unsigned int i = 0; i < num_path_points; i++) {
+            path_points.push_back({all_points[start_idx + 0], all_points[start_idx + 1], all_points[start_idx + 2]});
+            start_idx += 3;
+        }
+        m_path = chrono_types::make_shared<ChBezierCurve>(path_points);
+    }
+
+    if (m_verbose) 
+        cout << "[MBS node    ] Recv: num. path points =  " << num_path_points << endl;
+
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(terrain_size, terrain_height);
     auto num_spindles = GetNumSpindles();

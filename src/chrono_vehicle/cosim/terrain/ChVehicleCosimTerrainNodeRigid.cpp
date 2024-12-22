@@ -81,6 +81,11 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, 0});
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({+m_dimX / 2, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method)
@@ -105,6 +110,11 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string
 
     // Read rigid terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, 0});
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({+m_dimX / 2, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {

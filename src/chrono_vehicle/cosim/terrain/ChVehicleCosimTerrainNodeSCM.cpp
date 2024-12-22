@@ -72,7 +72,12 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
-    m_system->SetNumThreads(1, 1, 1);
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, 0});
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({+m_dimX / 2, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
@@ -89,10 +94,15 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
-    m_system->SetNumThreads(1, 1, 1);
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     // Read SCM parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, 0});
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({+m_dimX / 2, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {

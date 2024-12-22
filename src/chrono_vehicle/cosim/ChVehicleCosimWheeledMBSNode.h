@@ -24,6 +24,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChBezierCurve.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 
@@ -77,6 +78,11 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
     /// other node.
     virtual void Initialize() override final;
+
+    /// Get vehicle path.
+    /// This may be empty (nullptr) if the terrain subsystem did not provide path information.
+    /// Note: If available, the vehicle path can be queried only after initialization.
+    std::shared_ptr<ChBezierCurve> GetPath() const { return m_path; }
 
     /// Synchronize this node.
     /// This function is called at every co-simulation synchronization time to
@@ -158,6 +164,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
 
     bool m_fix_chassis;
+    std::shared_ptr<ChBezierCurve> m_path;
 };
 
 /// @} vehicle_cosim

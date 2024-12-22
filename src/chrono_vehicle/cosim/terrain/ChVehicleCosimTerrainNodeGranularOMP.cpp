@@ -124,7 +124,12 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
     m_system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Set default number of threads
-    m_system->SetNumThreads(1);
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, 0});
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({+m_dimX / 2, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
@@ -171,10 +176,15 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     m_system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Set default number of threads
-    m_system->SetNumThreads(1);
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
     // Read granular OMP terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, 0});
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({+m_dimX / 2, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {}

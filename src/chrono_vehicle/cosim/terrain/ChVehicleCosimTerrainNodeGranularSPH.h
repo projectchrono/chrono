@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
   public:
     /// Create a Chrono::FSI granular SPH terrain node.
     /// No SPH parameters are set.
-    ChVehicleCosimTerrainNodeGranularSPH(double length, double width);
+    ChVehicleCosimTerrainNodeGranularSPH(double length, double width, double depth);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
     /// See SetFromSpecfile.
@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     void SetFromSpecfile(const std::string& specfile);
 
     /// Specify the SPH terrain properties.
-    void SetPropertiesSPH(const std::string& specfile, double depth);
+    void SetPropertiesSPH(const std::string& specfile);
 
     /// Set properties of granular material.
     void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)

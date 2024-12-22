@@ -58,10 +58,10 @@ static constexpr int tag_obstacles = 100;
 // - create the Chrono system and set solver parameters
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length, double width)
+ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length, double width, double depth)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
       m_terrain(nullptr),
-      m_depth(0),
+      m_depth(depth),
       m_active_box_size(0),
       m_show_geometry(true),
       m_show_bce(true) {
@@ -78,6 +78,13 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     m_radius = 0.01;
     m_density = 2000;
     m_cohesion = 0;
+
+    m_init_height = depth;
+
+    // Set associated path
+    m_path_points.push_back({-m_dimX / 2, 0, m_depth});
+    m_path_points.push_back({0, 0, m_depth});
+    m_path_points.push_back({+m_dimX / 2, 0, m_depth});
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
@@ -106,6 +113,45 @@ ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {
 
 // -----------------------------------------------------------------------------
 
+static std::vector<ChVector3d> SetPathFromSpecfile(const std::string& path_file) {
+    // Open input file
+    std::ifstream ifile(path_file);
+    std::string line;
+
+    // Read number of knots and type of curve
+    size_t numPoints;
+    size_t numCols;
+
+    std::getline(ifile, line);
+    std::istringstream iss(line);
+    iss >> numPoints >> numCols;
+
+    assert(numCols == 3);
+
+    // Read path points
+    std::vector<ChVector3d> points;
+
+    for (size_t i = 0; i < numPoints; i++) {
+        double x, y, z;
+        std::getline(ifile, line);
+        std::istringstream jss(line);
+        jss >> x >> y >> z;
+        points.push_back(ChVector3d(x, y, z));
+    }
+
+    // Include point beyond CRM patch
+    {
+        auto np = points.size();
+        points.push_back(2.0 * points[np - 1] - points[np - 2]);
+    }
+
+    // Raise all path points
+    for (auto& p : points)
+        p.z() += 0.1;
+
+    return points;
+}
+
 //// TODO: error checking
 void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& specfile) {
     Document d;
@@ -114,8 +160,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
     if (d.HasMember("Patch data files")) {
         auto sph_filename = d["Patch data files"]["SPH particles file"].GetString();
         auto bce_filename = d["Patch data files"]["BCE markers file"].GetString();
+        auto path_filename = d["Patch data files"]["Path file"].GetString();
         m_sph_filename = vehicle::GetDataFile(sph_filename);
         m_bce_filename = vehicle::GetDataFile(bce_filename);
+        m_path_points = SetPathFromSpecfile(vehicle::GetDataFile(path_filename));
         m_depth = 0;
         m_terrain_type = ConstructionMethod::FILES;
     } else {
@@ -123,6 +171,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
         m_dimX = d["Patch dimensions"]["Length"].GetDouble();
         m_dimY = d["Patch dimensions"]["Width"].GetDouble();
         m_depth = d["Patch dimensions"]["Depth"].GetDouble();
+        m_path_points.push_back({-m_dimX / 2, 0, m_depth});
+        m_path_points.push_back({0, 0, m_depth});
+        m_path_points.push_back({+m_dimX / 2, 0, m_depth});
         m_terrain_type = ConstructionMethod::PATCH;
     }
 
@@ -141,11 +192,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetGranularMaterial(double radius, do
     m_cohesion = cohesion;
 }
 
-void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& specfile, double depth) {
-    m_depth = depth;
-    m_init_height = m_depth;
-
-    // Cache the name of the specfile (used when the CRMTerrain is actually constructed)
+void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& specfile) {
     m_specfile = specfile;
 }
 
