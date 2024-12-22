@@ -38,7 +38,7 @@ endif()
 cmake_policy(SET CMP0072 NEW)
 
 find_package(OpenGL)
-find_package(glm REQUIRED)
+find_package(glm REQUIRED) # TODO: DARIOM is glm actually required?
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
 

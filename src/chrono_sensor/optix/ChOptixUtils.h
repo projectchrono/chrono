@@ -19,12 +19,6 @@
 #ifndef CHOPTIXUTILS_H
 #define CHOPTIXUTILS_H
 
-#ifdef _WIN32
-    #ifndef NOMINMAX
-        #define NOMINMAX
-    #endif
-#endif
-
 #include <optix.h>
 #include <cuda_runtime_api.h>
 #include <nvrtc.h>
@@ -195,7 +189,7 @@ const std::string ptx_pre = "ChronoEngine_sensor_generated_";
 /// suffix for ptx file
 const std::string ptx_suff = ".cu.ptx";
 
-extern std::string SENSOR_SHADER_DIR;// = "test"; //std::string(CMAKE_SHADER_OUTPUT_PATH);
+extern std::string SENSOR_SHADER_DIR;// = "test"; //std::string(SHADER_OUTPUT_PATH);
 */
 
 /// @} sensor_optix
