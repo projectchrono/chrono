@@ -95,8 +95,10 @@ add_library(ChronoModels_robot
 			${INDUSTRIAL_FILES}
             )
 
-target_compile_definitions(ChronoModels_robot PRIVATE CH_API_COMPILE_MODELS)
-target_compile_definitions(ChronoModels_robot PRIVATE CH_IGNORE_DEPRECATED)
+target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
+target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
+
+target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine)
 
 if(ENABLE_MODULE_IRRLICHT)
     target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine_irrlicht)

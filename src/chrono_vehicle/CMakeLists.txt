@@ -79,18 +79,23 @@ SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 # ----------------------------------------------------------------------------
 if(ENABLE_IRRKLANG)
 
+  set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
+  set(IRRKLANG_LIBDIR "" CACHE PATH "IrrKlang SDK library directory")
   find_package(IRRKLANG)
 
   if (NOT IRRKLANG_FOUND)
-    set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
-    set(IRRKLANG_LIBDIR "" CACHE PATH "IrrKlang SDK library directory")
     mark_as_advanced(CLEAR IRRKLANG_ROOT)
     mark_as_advanced(CLEAR IRRKLANG_LIBDIR)
   else()
+    set(IRRKLANG_LIBDIR ${IRRKLANG_LIBRARY_DIR} CACHE STRING "IrrKlang SDK library directory" FORCE)
     mark_as_advanced(FORCE IRRKLANG_ROOT)
     mark_as_advanced(FORCE IRRKLANG_LIBDIR)
   endif()
-  
+
+  message(STATUS "IrrKlang include dir: ${IRRKLANG_INCLUDE_DIR}")
+  message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
+    
+
   set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
 
 endif()
@@ -959,6 +964,7 @@ if(ENABLE_MODULE_IRRLICHT)
 
     add_library(ChronoEngine::vehicle_irrlicht ALIAS ChronoEngine_vehicle_irrlicht)
 
+    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_irrlicht)
     
@@ -995,7 +1001,7 @@ if(ENABLE_MODULE_VSG)
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
-    target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine_vehicle ChronoEngine_vsg)
+    target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle ChronoEngine_vsg)
     
     install(TARGETS ChronoEngine_vehicle_vsg
             EXPORT ChronoEngineTargets
@@ -1021,7 +1027,7 @@ if(ENABLE_MODULE_OPENGL)
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
-    target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine_vehicle ChronoEngine_opengl)
+    target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle ChronoEngine_opengl)
     
     install(TARGETS ChronoEngine_vehicle_opengl
             EXPORT ChronoEngineTargets

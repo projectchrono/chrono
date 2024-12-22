@@ -71,10 +71,6 @@ endif()
 # Add optional run-time visualization support
 # ------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
-  list(APPEND CH_FSI_LINKED_LIBRARIES ChronoEngine_vsg)
-endif()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -224,6 +220,9 @@ if(ENABLE_MODULE_OPENGL)
   endif()
 endif()
 
+if(ENABLE_MODULE_VSG)
+  target_link_libraries(ChronoEngine_fsi PRIVATE ChronoEngine_vsg)
+endif()
 
 # If using MSVC, disable warnings related to missing DLL interface
 if(MSVC)

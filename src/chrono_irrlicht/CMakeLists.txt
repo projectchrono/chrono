@@ -55,29 +55,8 @@ else()
     message(ERROR "IRRLICHT not found. Please set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
 endif()
 
-# Let some variables be visible also from outside this directory
-set(CH_IRRLICHT_INCLUDES  "${IRRLICHT_INCLUDE_DIR}" PARENT_SCOPE)
-set(CH_IRRLICHT_CXX_FLAGS "${IRRLICHT_CXX_FLAGS}"   PARENT_SCOPE)
-set(CH_IRRLICHT_C_FLAGS   "${IRRLICHT_C_FLAGS}"     PARENT_SCOPE)
-
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_irrlicht library
-
-include_directories(${IRRLICHT_INCLUDE_DIR})
-
-# set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${IRRLICHT_CXX_FLAGS}")
-# set(LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
-set(LIBRARIES 
-    ChronoEngine
-    Irrlicht::Irrlicht
-    )
-
-if (ENABLE_MODULE_POSTPROCESS)
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
-endif()
-if (ENABLE_MODULE_MODAL)
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_modal)
-endif()
 
 add_library(ChronoEngine_irrlicht
   ${ChronoEngine_IRRLICHT_SOURCES}
@@ -86,35 +65,26 @@ add_library(ChronoEngine_irrlicht
 
 add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
 
-#-----------------------------------------------------------------------------
-# Select proper MSVC Runtime Library
-#-----------------------------------------------------------------------------
+target_include_directories(ChronoEngine_irrlicht PUBLIC ${IRRLICHT_INCLUDE_DIR})
 set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 
-target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
-target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
-target_compile_definitions(ChronoEngine_irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_IRRLICHT>)
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
+target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:IGNORE_DEPRECATED_WARNING>)
 
-target_link_libraries(ChronoEngine_irrlicht PUBLIC
-  ${LIBRARIES}
-)
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(ChronoEngine_irrlicht
-    ${MAC_LIBS}
-  )
-ENDIF()
-
-ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine)
+target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine Irrlicht::Irrlicht)
 
 if (ENABLE_MODULE_POSTPROCESS)
-    ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine_postprocess)
+    target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine_postprocess)
 endif()
-
 if (ENABLE_MODULE_MODAL)
-    ADD_DEPENDENCIES(ChronoEngine_irrlicht ChronoEngine_modal)
+    target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine_modal)
 endif()
 
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  target_link_libraries(ChronoEngine_irrlicht PRIVATE ${MAC_LIBS})
+ENDIF()
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the Irrlicht DLL to the bin/ directory
@@ -136,7 +106,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRLICHT_DLL}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    MAIN_DEPENDENCY ChronoEngine_irrlicht
     COMMENT "Copying Irrlicht DLL..."
   )
 
@@ -144,11 +113,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
 
 ENDIF()
-
-if(CH_STATIC)
-  SET(CH_IRRLICHT_LIB "${IRRLICHT_LIBRARY}" PARENT_SCOPE)
-endif()
-
 
 
 #-------------------------------------------------------------------------------

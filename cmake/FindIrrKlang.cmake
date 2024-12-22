@@ -24,23 +24,23 @@ if (NOT IRRKLANG_INCLUDE_DIR)
   return()
 endif()
 
-if (NOT IRRKLANG_LIBDIR OR IRRKLANG_LIBDIR MATCHES "")
+if (NOT IRRKLANG_LIBDIR OR IRRKLANG_LIBDIR STREQUAL "")
   if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-    set(IRRKLANG_LIBDIR "${IRRKLANG_INCLUDE_DIR}/../lib/Win32-VisualStudio/")
+    set(IRRKLANG_LIBRARY_DIR "${IRRKLANG_INCLUDE_DIR}/../lib/Win32-VisualStudio/")
   elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-    set(IRRKLANG_LIBDIR "${IRRKLANG_INCLUDE_DIR}/../lib/Winx64-VisualStudio/")
+    set(IRRKLANG_LIBRARY_DIR "${IRRKLANG_INCLUDE_DIR}/../lib/Winx64-VisualStudio/")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(IRRKLANG_LIBDIR "${IRRKLANG_INCLUDE_DIR}/../lib/Linux/")
+    set(IRRKLANG_LIBRARY_DIR "${IRRKLANG_INCLUDE_DIR}/../lib/Linux/")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(IRRKLANG_LIBDIR "${IRRKLANG_INCLUDE_DIR}/../lib/MacOSX/")
+    set(IRRKLANG_LIBRARY_DIR "${IRRKLANG_INCLUDE_DIR}/../lib/MacOSX/")
   endif()
-endif(NOT IRRKLANG_LIBDIR OR IRRKLANG_LIBDIR MATCHES "")
-
-message(STATUS "IRRKLANG_LIBDIR: ${IRRKLANG_LIBDIR}")
+else()
+  set(IRRKLANG_LIBRARY_DIR "${IRRKLANG_LIBDIR}")
+endif()
 
 find_library(IRRKLANG_LIBRARY
              NAMES "Irrklang" "irrKlang"
-             PATHS ${IRRKLANG_LIBDIR} "/usr/local/lib")
+             PATHS ${IRRKLANG_LIBRARY_DIR} "/usr/local/lib")
 
 if (NOT IRRKLANG_LIBRARY)
   message(SEND_ERROR "Cannot find IrrKlang library. Set IRRKLANG_LIBDIR to the appropriate irrKlang library directory.")
@@ -59,11 +59,7 @@ endif()
 mark_as_advanced(CLEAR IRRKLANG_INCLUDE_DIR)
 mark_as_advanced(CLEAR IRRKLANG_LIBRARY)
 
-message(STATUS "IrrKlang include dir: ${IRRKLANG_INCLUDE_DIR}")
-message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
-
 set(IRRKLANG_FOUND TRUE)
-
 
 
 if(IRRKLANG_FOUND AND NOT TARGET IrrKlang::IrrKlang)

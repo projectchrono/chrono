@@ -19,7 +19,7 @@ cmake_policy(SET CMP0091 NEW)
 project(my_project)
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
-find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle)
+find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg)
 
 
 #--------------------------------------------------------------
@@ -56,6 +56,9 @@ target_link_libraries(demo_GPU_mixer PRIVATE ChronoEngine::ChronoEngine ChronoEn
 add_executable(demo_FSI_Poiseuille_flow demo_FSI_Poiseuille_flow.cpp)
 target_link_libraries(demo_FSI_Poiseuille_flow PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsi ChronoEngine::ChronoEngine_opengl)
 
+add_executable(demo_FSI_WaveTank demo_FSI_WaveTank.cpp)
+target_link_libraries(demo_FSI_WaveTank PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsi ChronoEngine::ChronoEngine_vsg)
+
 add_executable(demo_GL_cohesion demo_GL_cohesion.cpp)
 target_link_libraries(demo_GL_cohesion PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_opengl)
 
@@ -69,6 +72,10 @@ if (CHRONO_VEHICLE_OPENCRG)
 else()
   message(STATUS "OpenCRG support disabled")
 endif()
+
+add_executable(demo_VEH_RenderJSON_VSG demo_VEH_RenderJSON_VSG.cpp)
+target_link_libraries(demo_VEH_RenderJSON_VSG PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_vsg ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_vsg ChronoEngine::ChronoModels_vehicle)
+
 
 
 

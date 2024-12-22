@@ -124,10 +124,10 @@ add_library(ChronoEngine_vsg
             ${CE_VSG_UTILS_FILES}
             ${CE_VSG_STB_FILES})
 
-target_compile_definitions(ChronoEngine_vsg PRIVATE "CH_API_COMPILE_VSG")
+target_compile_definitions(ChronoEngine_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VSG>)
 
+target_link_libraries(ChronoEngine_vsg PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_vsg PUBLIC
-                      ChronoEngine
                       vsg::vsg
                       vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
