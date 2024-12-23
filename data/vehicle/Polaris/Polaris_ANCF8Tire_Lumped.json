@@ -1,5 +1,5 @@
 {
-  "Name":            "Polaris ANCF 4-Node Tire",
+  "Name":            "Polaris ANCF 8-Node Tire",
   "Type":            "Tire",
   "Template":        "ANCFTire",
 
@@ -7,7 +7,7 @@
   "Rim Radius":      0.13,
   "Rim Width":       0.12,
 
-  "8-Node Elements":  false,
+  "8-Node Elements":  true,
 
   "Contact Material":
   {
@@ -73,7 +73,7 @@
       "Layer Thickness":   [ 3.1e-03],
       "Ply Angle":         [ 0 ],
       "Material ID":       [ 1 ],
-      "Number Elements":   2
+      "Number Elements":   1
   },
 
   "Tread Section":
@@ -81,10 +81,10 @@
       "Layer Thickness":   [ 8.1e-03 ],
       "Ply Angle":         [ 0 ],
       "Material ID":       [ 2 ],
-      "Number Elements":   3
+      "Number Elements":   2
  },
 
-  "Number Elements Circumference":  40,
+  "Number Elements Circumference":  20,
 
   "Profile": 
   [

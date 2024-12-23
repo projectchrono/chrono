@@ -120,6 +120,7 @@ int main(int argc, char** argv) {
     std::string transmission_specfile = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
     std::string tire_specfile = "Polaris/Polaris_RigidMeshTire.json";
     ////std::string tire_specfile = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+    ////std::string tire_specfile = "Polaris/Polaris_ANCF8Tire_Lumped.json";
 
     ChVector3d init_loc(3.5, 0, 0.20);
     double target_speed = 4.0;
