@@ -367,9 +367,9 @@ find_package(OptiX REQUIRED)
 
 message(STATUS "OptiX include directory: ${OptiX_INCLUDE_DIR}")
 
-file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOptix.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOptiX.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOptix.cmake"
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOptiX.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 

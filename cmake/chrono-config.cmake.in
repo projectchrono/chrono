@@ -239,10 +239,10 @@ if(Chrono_GPU_REQUESTED OR (Chrono_MULTICORE_REQUESTED AND DEFINED CHRONO_USE_MU
 
   if (NOT CMAKE_CUDA_COMPILER OR NOT CUDAToolkit_FOUND)
     mark_as_advanced(CLEAR CUDAToolkit_DIR)
-    set(CHRONO_CHRONO_CUDA_FOUND FALSE)
+    set(CHRONO_CUDA_FOUND FALSE)
   else()
     mark_as_advanced(FORCE CUDAToolkit_DIR)
-    set(CHRONO_CHRONO_CUDA_FOUND TRUE)
+    set(CHRONO_CUDA_FOUND TRUE)
   endif()
 endif()
 
@@ -324,7 +324,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
       if (CHRONO_${COMPONENT_UPPER}_FOUND)
-        list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
         if (NOT CHRONO_STATIC)
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
@@ -355,7 +354,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
 
-      if(CHRONO_USE_MULTICORE_CUDA AND NOT CHRONO_CHRONO_CUDA_FOUND)
+      if(CHRONO_USE_MULTICORE_CUDA AND NOT CHRONO_CUDA_FOUND)
         message(WARNING "Chrono::Multicore requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory.")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
@@ -396,7 +395,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       # list(APPEND CHRONO_C_FLAGS ${IRRLICHT_C_FLAGS})
 
       if (CHRONO_${COMPONENT_UPPER}_FOUND)
-        # list(APPEND CHRONO_INCLUDE_DIRS "${IRRLICHT_INCLUDE_DIR}")
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
         list(APPEND CHRONO_DEPENDENCY_DLLS "${IRRLICHT_DLL}")
 
@@ -472,7 +470,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
       
-      if(NOT CHRONO_CHRONO_CUDA_FOUND)
+      if(NOT CHRONO_CUDA_FOUND)
         message(WARNING "Chrono::FSI requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
@@ -550,7 +548,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
-      if(NOT CHRONO_CHRONO_CUDA_FOUND)
+      if(NOT CHRONO_CUDA_FOUND)
         message(WARNING "Chrono::GPU requires CUDA<=12.3, but CUDA<12.3 was not found; set CUDAToolkit_DIR to the CUDA installation directory")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
@@ -562,7 +560,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOMKL")
 
-      # not sure if we should force the consumer to link against MKL using exactly the same settings as the main Chrono library
+      # TODO: DARIOM not sure if we should force the consumer to link against MKL using exactly the same settings as the main Chrono library
       if(NOT MKL_ROOT)
         set(MKL_ROOT "@MKL_ROOT@")
       endif()

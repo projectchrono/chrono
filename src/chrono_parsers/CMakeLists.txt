@@ -20,7 +20,34 @@ mark_as_advanced(CLEAR urdfdom_headers_DIR)
 mark_as_advanced(CLEAR console_bridge_DIR)
 mark_as_advanced(CLEAR tinyxml2_DIR)
 
-#-----------------------------------------------------------------------------
+
+# Create target
+
+set(ChronoEngine_PARSERS_SOURCES 
+    ChParserAdams.cpp
+    ChParserAdamsTokenizer.yy.cpp
+    ChParserOpenSim.cpp
+    ChRobotActuation.cpp
+)
+
+set(ChronoEngine_PARSERS_HEADERS
+    ChApiParsers.h
+    ChParserAdams.h 
+    ChParserOpenSim.h
+    ChRobotActuation.h
+)
+
+add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
+
+add_library(ChronoEngine::ChronoEngine_parsers ALIAS ChronoEngine_parsers)
+
+target_compile_definitions(ChronoEngine_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_PARSERS>)
+target_compile_definitions(ChronoEngine_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
+
+target_link_libraries(ChronoEngine_parsers PRIVATE ChronoEngine)
+
+
+# Include URDF parser if found --------------------------------------------
 
 set(HAVE_URDF FALSE)
 
@@ -37,10 +64,19 @@ if(urdfdom_FOUND)
     else()
         message(STATUS "A dependency of the package urdfdom NOT found. The Chrono URDF parser will NOT be built.")
     endif()
+
+    target_sources(ChronoEngine_parsers PRIVATE ChParserURDF.h ChParserURDF.cpp)
+    target_link_libraries(ChronoEngine_parsers PUBLIC urdfdom::urdfdom_model)
+    target_link_libraries(ChronoEngine_parsers PUBLIC urdfdom::urdfdom_sensor)
+    target_link_libraries(ChronoEngine_parsers PUBLIC tinyxml2::tinyxml2)
 else()
     message(STATUS "Package urdfdom NOT found. The Chrono URDF parser will NOT be built.")
 endif()
 
+SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
+
+
+# Include ROS parser if found --------------------------------------------
 
 set(HAVE_ROS FALSE)
 
@@ -51,117 +87,53 @@ if (ROS2_FOUND)
     set(HAVE_ROS TRUE)
     message(STATUS "Found ROS 2.")
     message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
+
+    set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
+    foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
+        string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
+        target_include_directories(ChronoEngine_parsers PRIVATE "${_ros2_packages_path}/include")
+    endforeach()
+    target_compile_definitions(ChronoEngine_parsers PUBLIC $<$<COMPILE_LANGUAGE:CXX>:HAVE_ROS>)
+    target_link_libraries(ChronoEngine_parsers PRIVATE ament_index_cpp::ament_index_cpp)
   endif()
 else()
   message(STATUS "Package ROS2 NOT found. ROS support disabled.")
 endif()
 
-#-----------------------------------------------------------------------------
+SET(HAVE_ROS "${HAVE_ROS}" PARENT_SCOPE)
+
+
+# Include Python parser if found -----------------------------------------------
 
 set(HAVE_PYTHON FALSE)
 
 set(Python_ADDITIONAL_VERSIONS 3.4)
-find_package(PythonInterp QUIET)
-find_package(PythonLibs QUIET)
+find_package(Python3 QUIET COMPONENTS Interpreter Development)
 
-if(PythonInterp_FOUND AND PythonLibs_FOUND)
+if(Python3_Interpreter_FOUND AND Python3_Development_FOUND)
     set(HAVE_PYTHON TRUE)
     message(STATUS "Found Python and dependencies.")
-    get_filename_component(CH_PYTHONDIR "${PYTHON_EXECUTABLE}" PATH)
-    set(CH_PYTHONINC "${PYTHON_INCLUDE_DIR}")
-    set(CH_PYTHONLIB "${PYTHON_LIBRARIES}")
-    set(CH_PYTHONDIR  "${CH_PYTHONDIR}"  PARENT_SCOPE)
-    set(CH_PYTHONINC  "${CH_PYTHONINC}"  PARENT_SCOPE)
-    set(CH_PYTHONLIB  "${CH_PYTHONLIB}"  PARENT_SCOPE)
-    message(STATUS "  Python directory:   ${CH_PYTHONDIR}")
-    message(STATUS "  Python include dir: ${CH_PYTHONINC}")
-    message(STATUS "  Python libraries:   ${PYTHON_LIBRARIES}")
+    message(STATUS "Python3_Interpreter_FOUND: ${Python3_Interpreter_FOUND}")
+    message(STATUS "Python3_Development_FOUND: ${Python3_Development_FOUND}")
+
+    target_sources(ChronoEngine_parsers PRIVATE ChParserPython.h ChParserPython.cpp)
+    target_link_libraries(ChronoEngine_parsers PRIVATE Python3::Python)
+    # target_link_libraries(ChronoEngine_parsers PRIVATE Python3::Module)
+
 else()
     message(STATUS "Package Python NOT found. The Chrono Python parser will NOT be built.")
 endif()
 
-#-----------------------------------------------------------------------------
-
-set(ChronoEngine_PARSERS_SOURCES 
-    ChParserAdams.cpp
-    ChParserAdamsTokenizer.yy.cpp
-    ChParserOpenSim.cpp
-    ChRobotActuation.cpp
-)
-
-set(ChronoEngine_PARSERS_HEADERS
-    ChApiParsers.h
-    ChParserAdams.h 
-    ChParserOpenSim.h
-    ChRobotActuation.h
-)
-
-if(HAVE_URDF)
-    set(ChronoEngine_PARSERS_SOURCES ${ChronoEngine_PARSERS_SOURCES} ChParserURDF.cpp)
-    set(ChronoEngine_PARSERS_HEADERS ${ChronoEngine_PARSERS_HEADERS} ChParserURDF.h)
-endif()
-
-if(HAVE_PYTHON)
-   set(ChronoEngine_PARSERS_SOURCES ${ChronoEngine_PARSERS_SOURCES} ChParserPython.cpp)
-   set(ChronoEngine_PARSERS_HEADERS ${ChronoEngine_PARSERS_HEADERS} ChParserPython.h)
-endif()
-
-source_group("" FILES ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
-
-#-----------------------------------------------------------------------------
-
 SET(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
-SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
-SET(HAVE_ROS "${HAVE_ROS}" PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-
-set(CH_PARSERS_INCLUDES "")
-if(HAVE_URDF)
-    include_directories(${urdfdom_INCLUDE_DIRS})
-    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${urdfdom_INCLUDE_DIRS}")
-endif()
-if (HAVE_ROS)
-  # Update the includes directories to point to ROS includes
-  set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
-  foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
-      string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
-      set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${_ros2_packages_path}/include")
-  endforeach()
-  add_definitions(-DHAVE_ROS)
-endif()
-if(HAVE_PYTHON)
-    include_directories(${CH_PYTHONINC})
-    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${CH_PYTHONINC}")
-endif()
-set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES}" PARENT_SCOPE)
-
-add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
-
-set_target_properties(ChronoEngine_parsers PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-
-target_compile_definitions(ChronoEngine_parsers PRIVATE "CH_API_COMPILE_PARSERS")
-target_compile_definitions(ChronoEngine_parsers PRIVATE "CH_IGNORE_DEPRECATED")
-
-target_link_libraries(ChronoEngine_parsers ChronoEngine)
-if(HAVE_URDF)
-    target_link_libraries(ChronoEngine_parsers urdfdom::urdfdom_model)
-    target_link_libraries(ChronoEngine_parsers urdfdom::urdfdom_sensor)
-    target_link_libraries(ChronoEngine_parsers tinyxml2::tinyxml2)
-endif()
-if(HAVE_ROS)
-    target_link_libraries(ChronoEngine_parsers ament_index_cpp::ament_index_cpp)
-endif()
-if(HAVE_PYTHON)
-    target_link_libraries(ChronoEngine_parsers ${CH_PYTHONLIB})
-endif()
 
 install(TARGETS ChronoEngine_parsers
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_parsers)
 
 install(FILES ${ChronoEngine_PARSERS_HEADERS}
         DESTINATION include/chrono_parsers)

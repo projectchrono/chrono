@@ -19,7 +19,7 @@ cmake_policy(SET CMP0091 NEW)
 project(my_project)
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
-find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg sensor)
+find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg sensor parsers)
 
 
 #--------------------------------------------------------------
@@ -81,6 +81,9 @@ target_link_libraries(demo_ROBOT_RoboSimian_Granular PRIVATE ChronoEngine::Chron
 
 add_executable(demo_SEN_Gator demo_SEN_Gator.cpp)
 target_link_libraries(demo_SEN_Gator PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ChronoModels_vehicle ChronoEngine::ChronoEngine_sensor)
+
+add_executable(demo_PARSER_Python demo_PARSER_Python.cpp)
+target_link_libraries(demo_PARSER_Python PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_parsers)
 
 
 
