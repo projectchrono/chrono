@@ -68,7 +68,7 @@ endif()
 # TODO: DARIOM glfw3 have both debug and release and I didn't check if they are copied properly both in buildtree and installtree
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(GLEW_DLL "${GLEW_DIR}/../../../bin/glew32d.dll" CACHE FILEPATH "Path to GLEW DLL")
-    set(GLFW_DLL "${glfw3_DIR}/../../../bin/glfw3.dll;${glfw3_DIR}/../../../bin/glfw3d.dll" CACHE FILEPATH "Path to GLFW DLL")
+    set(GLFW_DLL "${glfw3_DIR}/../../../bin/glfw3.dll;${glfw3_DIR}/../../../bin/glfw3_d.dll" CACHE FILEPATH "Path to GLFW DLL")
 endif()
 
 # ------------------------------------------------------------------------------

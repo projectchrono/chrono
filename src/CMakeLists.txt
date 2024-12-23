@@ -951,17 +951,31 @@ include(CMakePackageConfigHelpers)
 #   COMPATIBILITY AnyNewerVersion
 # )
 
-# create config file
+
+set(CH_INSTALL_TREE TRUE)
+# create config file to be later copied to install tree
+configure_package_config_file(
+  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
+  INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
+
+
+set(CH_INSTALL_TREE FALSE)
+# create config file for build tree
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
   INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
+unset(CH_INSTALL_TREE)
+
 # install config files
 install(FILES
-        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
         # "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
+        RENAME "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
 
