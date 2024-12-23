@@ -95,6 +95,8 @@ add_library(ChronoModels_robot
 			${INDUSTRIAL_FILES}
             )
 
+add_library(ChronoEngine::ChronoModels_robot ALIAS ChronoModels_robot)
+
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
@@ -106,9 +108,11 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 install(TARGETS ChronoModels_robot
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_models/robot)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/robot

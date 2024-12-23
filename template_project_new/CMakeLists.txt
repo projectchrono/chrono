@@ -76,11 +76,11 @@ endif()
 add_executable(demo_VEH_RenderJSON_VSG demo_VEH_RenderJSON_VSG.cpp)
 target_link_libraries(demo_VEH_RenderJSON_VSG PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_vsg ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_vsg ChronoEngine::ChronoModels_vehicle)
 
-add_executable(demo_ROBOT_RoboSimian_Granular demo_ROBOT_RoboSimian_Granular.cpp)
-target_link_libraries(demo_ROBOT_RoboSimian_Granular PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ChronoModels_vehicle)
+add_executable(demo_ROBOT_RoboSimian_Granular demo_ROBOT_RoboSimian_Granular.cpp granular.h granular.cpp)
+target_link_libraries(demo_ROBOT_RoboSimian_Granular PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_opengl ChronoEngine::ChronoModels_robot ChronoEngine::ChronoEngine_multicore)
 
 add_executable(demo_SEN_Gator demo_SEN_Gator.cpp)
-target_link_libraries(demo_SEN_Gator PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ChronoModels_vehicle)
+target_link_libraries(demo_SEN_Gator PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_vehicle_irrlicht ChronoEngine::ChronoModels_vehicle ChronoEngine::ChronoEngine_sensor)
 
 
 

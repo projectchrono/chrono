@@ -356,6 +356,8 @@ endif()
 add_library(ChronoEngine_sensor ${ALL_CH_SENSOR_FILES}
                                 ${ChronoEngine_sensor_CUDA_SOURCES})
 
+add_library(ChronoEngine::ChronoEngine_sensor ALIAS ChronoEngine_sensor)
+
 
 # ------------------------------------------------------------------------------
 # Find and set everything needed for OptiX
@@ -364,6 +366,12 @@ add_library(ChronoEngine_sensor ${ALL_CH_SENSOR_FILES}
 find_package(OptiX REQUIRED)
 
 message(STATUS "OptiX include directory: ${OptiX_INCLUDE_DIR}")
+
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOptix.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOptix.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_compile_definitions(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:NOMINMAX>)
@@ -568,9 +576,11 @@ ENDIF()
 #-------------------------------------------------------------------------------
 
 install(TARGETS ChronoEngine_sensor
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_sensor)
 
 install(FILES ${ChronoEngine_sensor_HEADERS}
 		DESTINATION include/chrono_sensor)

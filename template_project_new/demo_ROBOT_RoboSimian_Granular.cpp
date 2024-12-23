@@ -80,6 +80,8 @@ int main(int argc, char* argv[]) {
     // Parse command line arguments
     // ----------------------------
 
+    SetChronoDataPath(CHRONO_DATA_DIR);
+
     robosimian::LocomotionMode mode = robosimian::LocomotionMode::WALK;
     ChContactMethod contact_method = ChContactMethod::NSC;
     double step_size = 1e-4;
@@ -270,9 +272,9 @@ int main(int argc, char* argv[]) {
     switch (mode) {
         case robosimian::LocomotionMode::WALK: {
             auto drv = chrono_types::make_shared<robosimian::RS_Driver>(
-                "",                                                           // start input file
+                "",                                                                 // start input file
                 GetChronoDataFile("robot/robosimian/actuation/walking_cycle.txt"),  // cycle input file
-                "",                                                           // stop input file
+                "",                                                                 // stop input file
                 true);
             driver = drv;
             cout << "Locomotion mode: WALK" << endl;
@@ -390,7 +392,8 @@ int main(int argc, char* argv[]) {
 
                 cout << "Time: " << time << "  TRANSLATE & RELEASE ROBOT" << endl;
                 cout << "  Terrain bottom: " << terrain_bottom_height << endl;
-                cout << "  Terrain top:    " << terrain_settled_height.first << " " << terrain_settled_height.second << endl;
+                cout << "  Terrain top:    " << terrain_settled_height.first << " " << terrain_settled_height.second
+                     << endl;
 
                 robot.Translate(ChVector3d(0, 0, terrain_settled_height.first - terrain_init_height.first));
                 robot.GetChassisBody()->SetFixed(false);
@@ -529,9 +532,9 @@ bool GetProblemSpecs(int argc,
     step_size = cli.GetAsType<double>("step_size");
     out_fps = cli.GetAsType<double>("out_fps");
     pov_fps = cli.GetAsType<double>("pov_fps");
-    drop = cli.GetAsType<bool>("drop");    
+    drop = cli.GetAsType<bool>("drop");
     render = cli.GetAsType<bool>("render");
-    output = cli.GetAsType<bool>("output");    
+    output = cli.GetAsType<bool>("output");
     pov_output = cli.GetAsType<bool>("pov_output");
     suffix = cli.GetAsType<std::string>("suffix");
     nthreads = cli.GetAsType<int>("threads");

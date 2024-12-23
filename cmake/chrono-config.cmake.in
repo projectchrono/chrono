@@ -500,7 +500,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
-    
+
+      set(OptiX_INSTALL_DIR "@OptiX_ROOT_DIR@" CACHE PATH "Path to the installed location of the OptiX SDK.")
+
+      find_dependency(OptiX REQUIRED)
+
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")

@@ -176,6 +176,10 @@ ChVector3d gps_reference(-89.400, 43.070, 260.0);
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    SetChronoDataPath(CHRONO_DATA_DIR);
+    vehicle::SetDataPath(CHRONO_VEHICLE_DATA_DIR);
+
+
     // --------------
     // Create vehicle
     // --------------
