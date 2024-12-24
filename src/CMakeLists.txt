@@ -186,7 +186,7 @@ if(ENABLE_OPENMP)
   # set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 else()
 	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
-	find_package("TBB")
+	find_package(TBB)
 	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
 
