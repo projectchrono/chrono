@@ -165,7 +165,6 @@ set_target_properties(ChronoEngine_mumps PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_LIB} ${CH_MUMPS_LINK_FLAGS}")
 
 target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")
 target_link_libraries(ChronoEngine_mumps ChronoEngine ${CH_MUMPS_LIBRARIES})		  
 target_include_directories(ChronoEngine_mumps PUBLIC ${CH_MUMPS_INCLUDES})
                             

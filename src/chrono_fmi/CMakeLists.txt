@@ -154,7 +154,6 @@ set_target_properties(ChronoEngine_fmi PROPERTIES
 target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
 
 target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
-target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")

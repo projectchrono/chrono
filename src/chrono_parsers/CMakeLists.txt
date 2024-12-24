@@ -42,7 +42,6 @@ add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_
 add_library(ChronoEngine::ChronoEngine_parsers ALIAS ChronoEngine_parsers)
 
 target_compile_definitions(ChronoEngine_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_PARSERS>)
-target_compile_definitions(ChronoEngine_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 target_link_libraries(ChronoEngine_parsers PRIVATE ChronoEngine)
 

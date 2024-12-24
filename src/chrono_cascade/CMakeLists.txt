@@ -104,7 +104,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
-target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoEngine_cascade
         ${OpenCASCADE_LIBRARIES} 

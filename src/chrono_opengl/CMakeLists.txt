@@ -279,7 +279,6 @@ endif()
 
 target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_OPENGL>)
 target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:GLM_ENABLE_EXPERIMENTAL>)
-target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 target_link_libraries(ChronoEngine_opengl PUBLIC ChronoEngine)
 target_link_libraries(ChronoEngine_opengl PUBLIC glm::glm)

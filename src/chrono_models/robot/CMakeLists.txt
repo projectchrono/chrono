@@ -98,7 +98,6 @@ add_library(ChronoModels_robot
 add_library(ChronoEngine::ChronoModels_robot ALIAS ChronoModels_robot)
 
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
-target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine)
 

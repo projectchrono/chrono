@@ -69,7 +69,6 @@ target_include_directories(ChronoEngine_irrlicht PUBLIC ${IRRLICHT_INCLUDE_DIR})
 set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_IRRLICHT>)
-target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:IGNORE_DEPRECATED_WARNING>)
 
 target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine Irrlicht::Irrlicht)

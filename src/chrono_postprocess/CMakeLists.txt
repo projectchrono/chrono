@@ -41,7 +41,6 @@ ADD_LIBRARY(ChronoEngine_postprocess
 			${ChronoEngine_POSTPROCESS_HEADERS})
                           
 target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
-target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 target_link_libraries(ChronoEngine_postprocess PRIVATE ChronoEngine)
 	

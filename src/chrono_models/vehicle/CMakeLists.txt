@@ -1024,7 +1024,6 @@ add_library(ChronoModels_vehicle
 add_library(ChronoEngine::ModelsVehicle ALIAS ChronoModels_vehicle)
 
 target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
-target_compile_definitions(ChronoModels_vehicle PRIVATE CH_IGNORE_DEPRECATED)
 
 target_link_libraries(ChronoModels_vehicle PRIVATE ChronoEngine ChronoEngine_vehicle)
 

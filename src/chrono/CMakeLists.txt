@@ -1543,7 +1543,7 @@ target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
 # set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE>)
-target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
+target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 target_compile_definitions(ChronoEngine INTERFACE 
     $<BUILD_INTERFACE:CHRONO_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/\">

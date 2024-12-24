@@ -214,7 +214,6 @@ endif()
 
 
 target_compile_definitions(ChronoEngine_multicore PRIVATE CH_API_COMPILE_MULTICORE)
-target_compile_definitions(ChronoEngine_multicore PRIVATE CH_IGNORE_DEPRECATED)
 target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)
 
 

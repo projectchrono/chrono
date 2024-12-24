@@ -231,7 +231,6 @@ endif()
 
 
 target_compile_definitions(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
-target_compile_definitions(ChronoEngine_fsi PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 set_target_properties(ChronoEngine_fsi PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 

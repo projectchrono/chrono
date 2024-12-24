@@ -140,7 +140,6 @@ add_library(ChronoEngine_vehicle_cosim
 add_library(ChronoEngine::ChronoEngine_vehicle_cosim ALIAS ChronoEngine_vehicle_cosim)
 
 target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
-target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoEngine_vehicle_cosim ${LIBRARIES})
 

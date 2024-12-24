@@ -927,7 +927,6 @@ target_compile_definitions(ChronoEngine INTERFACE
     $<INSTALL_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"$<INSTALL_PREFIX>/data/vehicle/\">)
 
 target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
 
 if(HDF5_FOUND)
@@ -967,7 +966,6 @@ if(ENABLE_MODULE_IRRLICHT)
     endif()
     
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
     
     install(TARGETS ChronoEngine_vehicle_irrlicht
@@ -993,7 +991,6 @@ if(ENABLE_MODULE_VSG)
     add_library(ChronoEngine::vehicle_vsg ALIAS ChronoEngine_vehicle_vsg)
     
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
     target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle ChronoEngine_vsg)
     
@@ -1019,7 +1016,6 @@ if(ENABLE_MODULE_OPENGL)
 
     
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
     
     target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle ChronoEngine_opengl)
     

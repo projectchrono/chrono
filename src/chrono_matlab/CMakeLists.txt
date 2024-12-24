@@ -72,7 +72,6 @@ SET_TARGET_PROPERTIES(ChronoEngine_matlab PROPERTIES
             LINK_FLAGS "${CH_LINKERFLAG_LIB}")
                           
 target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_API_COMPILE_MATLAB")
-target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_IGNORE_DEPRECATED")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_matlab 
                       ChronoEngine
