@@ -233,11 +233,6 @@ else()
 endif()
 
 
-
-
-file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-
 install(TARGETS ChronoEngine_multicore
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
@@ -259,6 +254,9 @@ endif()
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+# Provide required find
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}

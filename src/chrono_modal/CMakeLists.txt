@@ -8,13 +8,13 @@ option(ENABLE_MODULE_MODAL "Enable the Chrono Modal module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_MODULE_MODAL)
-	MARK_AS_ADVANCED(FORCE SPECTRA_INCLUDE_DIR)
+	MARK_AS_ADVANCED(FORCE Spectra_INCLUDE_DIR)
 	RETURN()
 ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono Modal module ====\n")
 
-MARK_AS_ADVANCED(CLEAR SPECTRA_INCLUDE_DIR)
+MARK_AS_ADVANCED(CLEAR Spectra_INCLUDE_DIR)
 
 #-----------------------------------------------------------------------------
 
@@ -50,41 +50,36 @@ SOURCE_GROUP("" FILES
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
-SET(SPECTRA_INCLUDE_DIR "" CACHE PATH "Path to the SPECTRA include dir, ex. C:/foo/Spectra/includes.")
+set(Spectra_INCLUDE_DIR "spectra/include" CACHE PATH "Path to Spectra include directory, shall contain the subdirectory named 'Spectra'.")
 
-INCLUDE_DIRECTORIES(${SPECTRA_INCLUDE_DIR})
-set(CH_MODAL_INCLUDES "${SPECTRA_INCLUDE_DIR}" PARENT_SCOPE)
+find_package(Spectra REQUIRED)
 
-# The MODAL library is added to the project,
-# and some custom properties of this target are set.
-
-# The generated .cxx wrapper can be so huge that the /bigobj flag is required in VC++
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
-endif()
-
-ADD_LIBRARY(ChronoEngine_modal 
+add_library(ChronoEngine_modal 
 			${ChronoEngine_MODAL_SOURCES}
 			${ChronoEngine_MODAL_HEADERS})
 
-SET_TARGET_PROPERTIES(ChronoEngine_modal PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
+add_library(ChronoEngine::ChronoEngine_modal ALIAS ChronoEngine_modal)
                           
-target_compile_definitions(ChronoEngine_modal PRIVATE "CH_API_COMPILE_MODAL")
-target_compile_definitions(ChronoEngine_modal PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODAL>)
 
-TARGET_LINK_LIBRARIES(ChronoEngine_modal 
-	                  ChronoEngine)
+target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
 	
-ADD_DEPENDENCIES(ChronoEngine_modal ChronoEngine)
 	
-INSTALL(TARGETS ChronoEngine_modal
+install(TARGETS ChronoEngine_modal
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)		
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_modal
+        )		
 
-INSTALL(FILES ${ChronoEngine_MODAL_HEADERS}
+install(FILES ${ChronoEngine_MODAL_HEADERS}
         DESTINATION include/chrono_modal)
+
+# Provide required find
+file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )

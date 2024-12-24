@@ -19,7 +19,7 @@ cmake_policy(SET CMP0091 NEW)
 project(my_project)
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
-find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg sensor parsers synchrono)
+find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg sensor parsers synchrono modal)
 
 
 #--------------------------------------------------------------
@@ -87,6 +87,26 @@ target_link_libraries(demo_PARSER_Python PRIVATE ChronoEngine::ChronoEngine Chro
 
 add_executable(demo_SYN_copter demo_SYN_copter.cpp)
 target_link_libraries(demo_SYN_copter PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_vehicle ChronoEngine::ChronoEngine_synchrono ChronoEngine::ChronoEngine_irrlicht ChronoEngine::ChronoModels_vehicle ChronoEngine::ChronoModels_robot)
+
+add_executable(demo_MOD_slewing_beam demo_MOD_slewing_beam.cpp)
+target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_modal)
+
+if(CHRONO_IRRLICHT_FOUND)
+  target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_irrlicht)
+endif()
+
+if(CHRONO_PARDISOMKL_FOUND)
+  target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_pardisomkl)
+endif()
+
+if(CHRONO_MATLAB_FOUND)
+  target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_matlab)
+endif()
+
+if(CHRONO_POSTPROCESS_FOUND)
+  target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_postprocess)
+endif()
+
 
 
 add_DLL_copy_command()
