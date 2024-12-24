@@ -1,5 +1,4 @@
 SET(LIBRARIES ChronoEngine)
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
     utest_CH_slider_pend

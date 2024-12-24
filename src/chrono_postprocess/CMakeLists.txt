@@ -36,31 +36,23 @@ SOURCE_GROUP("" FILES
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
-# The POSTPROCESS library is added to the project,
-# and some custom properties of this target are set.
-
 ADD_LIBRARY(ChronoEngine_postprocess 
 			${ChronoEngine_POSTPROCESS_SOURCES}
 			${ChronoEngine_POSTPROCESS_HEADERS})
-
-SET_TARGET_PROPERTIES(ChronoEngine_postprocess PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
                           
-target_compile_definitions(ChronoEngine_postprocess PRIVATE "CH_API_COMPILE_POSTPROCESS")
-target_compile_definitions(ChronoEngine_postprocess PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
+target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
-TARGET_LINK_LIBRARIES(ChronoEngine_postprocess 
-	                  ChronoEngine)
+target_link_libraries(ChronoEngine_postprocess PRIVATE ChronoEngine)
 	
-ADD_DEPENDENCIES(ChronoEngine_postprocess ChronoEngine)
-	
-INSTALL(TARGETS ChronoEngine_postprocess
+install(TARGETS ChronoEngine_postprocess
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)		
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_vehicle)		
 
-INSTALL(FILES ${ChronoEngine_POSTPROCESS_HEADERS}
+install(FILES ${ChronoEngine_POSTPROCESS_HEADERS}
         DESTINATION include/chrono_postprocess)
 
 
