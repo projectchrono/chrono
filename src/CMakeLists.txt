@@ -340,9 +340,9 @@ endif()
 # MPI support
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for MPI...")
+message(STATUS "Searching for MPI for C++")
 find_package(MPI)
-if(MPI_FOUND)
+if(MPI_CXX_FOUND)
   message(STATUS "  MPI compiler:      ${MPI_CXX_COMPILER}")
   message(STATUS "  MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
   message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")

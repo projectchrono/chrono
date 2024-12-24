@@ -53,13 +53,10 @@
 # Other variables:
 # CHRONO_SSE_FOUND
 #       set to true if SSE support is available;
-#       CHRONO_CXX_FLAGS includes all required flags.
 # CHRONO_AVX_FOUND
 #       set to true if AVX support is available;
-#       CHRONO_CXX_FLAGS includes all required flags.
-# CHRONO_MPI_FOUND
+# CHRONO_MPI_CXX_FOUND
 #       set to true if MPI support is available;
-#       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI.
 #
 # Certain Chrono modules can be configured with optional support. The following
 # variables (meaningful only if the corresponding Chrono module is requested)
@@ -149,7 +146,7 @@ list(APPEND CHRONO_DEPENDENCY_DLLS "")
 
 set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
-set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
+set(CHRONO_MPI_CXX_FOUND "@MPI_CXX_FOUND@")
 set(CHRONO_USE_MULTICORE_CUDA "@USE_MULTICORE_CUDA@")
 set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 
@@ -177,7 +174,7 @@ set(Chrono_CSHARP_AVAILABLE         @ENABLE_MODULE_CSHARP@)
 set(Chrono_FMI_AVAILABLE            @ENABLE_MODULE_FMI@)
 set(Chrono_ROS_AVAILABLE            @ENABLE_MODULE_ROS@)
 
-if(Chrono_VEHICLE_AVAILABLE AND ${CHRONO_MPI_FOUND})
+if(Chrono_VEHICLE_AVAILABLE AND ${CHRONO_MPI_CXX_FOUND})
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
 else()
    set(Chrono_VEHICLECOSIM_AVAILABLE FALSE)
@@ -453,13 +450,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
       if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
-        separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
-        separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
-        list(APPEND CHRONO_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
-        list(APPEND CHRONO_LINKER_FLAGS ${MPI_CXX_LINK_FLAGS})
-    
-        list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
-        list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
+        
+        find_dependency(MPI)
 
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
         if (NOT CHRONO_STATIC)
@@ -520,16 +512,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
          find_package(fastrtps REQUIRED)
       endif()
 
-      separate_arguments(MPI_CXX_COMPILE_FLAGS NATIVE_COMMAND "@MPI_CXX_COMPILE_FLAGS@")
-      separate_arguments(MPI_CXX_LINK_FLAGS NATIVE_COMMAND "@MPI_CXX_LINK_FLAGS@")
-      list(APPEND CHRONO_CXX_FLAGS ${MPI_CXX_COMPILE_FLAGS})
-      list(APPEND CHRONO_LINKER_FLAGS ${MPI_CXX_LINK_FLAGS})
-
-      list(APPEND CHRONO_INCLUDE_DIRS "@SYN_INCLUDES@")
-      list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
-      list(APPEND CHRONO_INCLUDE_DIRS "@CH_THIRDPARTY_INCLUDE_DIR@/flatbuffers/include")
-      list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
-      list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
+      find_dependency(MPI)
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
       if (NOT CHRONO_STATIC)
@@ -846,15 +829,11 @@ set(CHRONO_PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../")
 # Report the exported variables
 #-------------------------------------------------------------------------------
 
-# message(STATUS "   CHRONO_CXX_FLAGS         (Compiler flags): ${CHRONO_CXX_FLAGS}")
-# message(STATUS "   CHRONO_C_FLAGS           (Compiler flags): ${CHRONO_C_FLAGS}")
-# message(STATUS "   CHRONO_LINKER_FLAGS      (Linker flags): ${CHRONO_LINKER_FLAGS}")
-# message(STATUS "   CHRONO_INCLUDE_DIRS      (Chrono include directories): ${CHRONO_INCLUDE_DIRS}")
 message(STATUS "   CHRONO_LIB_NAMES         (Chrono library names): ${CHRONO_LIB_NAMES}")
 message(STATUS "   CHRONO_LIBRARIES         (Chrono libraries): ${CHRONO_LIBRARIES}")
-# message(STATUS "   CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
-# message(STATUS "   CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
-# message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): ${CHRONO_FSI_DATA_DIR}")
+message(STATUS "   CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
+message(STATUS "   CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
+message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): ${CHRONO_FSI_DATA_DIR}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   message(STATUS "   CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAMES}")
