@@ -49,10 +49,6 @@ if(ENABLE_MODULE_VEHICLE)
    endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(LINKER_FLAGS  "${LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
-endif()
-
 #--------------------------------------------------------------
 # Add executables
 

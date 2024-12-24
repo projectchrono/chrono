@@ -17,11 +17,6 @@ set(DEMOS
 )
 
 #--------------------------------------------------------------
-# Additional include directories
-
-include_directories(${CH_OPENGL_INCLUDES})
-
-#--------------------------------------------------------------
 # Create the executables
 
 foreach(PROGRAM ${DEMOS})

@@ -55,9 +55,7 @@ foreach(PROGRAM ${TESTS})
     source_group(""  FILES "${PROGRAM}.cpp")
 
     set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+        FOLDER tests)
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 

@@ -37,10 +37,6 @@ if(ENABLE_MODULE_VSG)
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-		set (EM_GL_LINKERFLAGS "-s FULL_ES3=1 -s USE_GLFW=3")
-    endif()
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 

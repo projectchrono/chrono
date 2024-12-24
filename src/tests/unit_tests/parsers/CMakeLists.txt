@@ -27,9 +27,6 @@ endif()
 
 #--------------------------------------------------------------
 
-include_directories( ${CH_INCLUDES} ${CH_PARSERS_INCLUDES} )
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES ChronoEngine ChronoEngine_parsers)
 
 #--------------------------------------------------------------
@@ -41,11 +38,7 @@ foreach(PROGRAM ${TESTS})
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-    )
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 

@@ -45,8 +45,6 @@ endif()
 # ------------------------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoModels_robot")
 if(ENABLE_MODULE_VEHICLE)
@@ -54,8 +52,6 @@ if(ENABLE_MODULE_VEHICLE)
 endif()
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
     if(ENABLE_MODULE_VEHICLE)
       list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
@@ -70,25 +66,15 @@ if(ENABLE_MODULE_VSG)
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 
 if(ENABLE_MODULE_SENSOR)
-  include_directories(${CH_SENSOR_INCLUDES})
   list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
 if(ENABLE_MODULE_FSI)
-  include_directories(${CH_FSI_INCLUDES})
   list(APPEND LIBS "ChronoEngine_fsi")
-endif()
-
-#--------------------------------------------------------------
-# OS-specific settings
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 endif()
 
 # ------------------------------------------------------------------------------
@@ -101,7 +87,7 @@ foreach(PROGRAM ${DEMOS})
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
 
-    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()

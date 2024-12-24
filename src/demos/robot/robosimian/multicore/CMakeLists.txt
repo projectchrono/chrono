@@ -25,7 +25,7 @@ foreach(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")
     add_executable(${PROGRAM} "${PROGRAM}.cpp" ${UTILITIES})
     source_group(""  FILES "${PROGRAM}.cpp" ${UTILITIES})
-
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
     target_link_libraries(${PROGRAM}

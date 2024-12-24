@@ -80,7 +80,6 @@ if(ENABLE_MODULE_MULTICORE)
 endif()
 
 if(ENABLE_MODULE_FSI)
-    include_directories(${CH_FSI_INCLUDES})
     list(APPEND LIBS "ChronoEngine_fsi")
 endif()
 
@@ -94,7 +93,6 @@ if(ENABLE_MODULE_MUMPS)
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 

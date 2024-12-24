@@ -1,11 +1,6 @@
 
 IF(USE_TENSOR_RT AND ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
-#--------------------------------------------------------------
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-  ENDIF()
-
   #--------------------------------------------------------------
 
   # Add executables
@@ -26,7 +21,7 @@ IF(USE_TENSOR_RT AND ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE AND ENABLE
   # Visual Studio needs to have the debugger working directory set explicitly to the output directory
   # (specifically, so that the data directory is found when running demos in the debugger)
   IF(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-  set_property(TARGET demo_SEN_rl_infer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$(OutputPath)")
+    set_property(TARGET demo_SEN_rl_infer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$(OutputPath)")
   ENDIF()
 
   TARGET_LINK_LIBRARIES(demo_SEN_rl_infer
