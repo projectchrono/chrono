@@ -980,7 +980,7 @@ void ChFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) {
     if (m_verbose) {
         cout << "Add mesh2D" << endl;
         cout << "  Num. nodes:       " << num_nodes << endl;
-        cout << "  Num. segments:    " << num_elements << endl;
+        cout << "  Num. faces:       " << num_elements << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
     }
 }

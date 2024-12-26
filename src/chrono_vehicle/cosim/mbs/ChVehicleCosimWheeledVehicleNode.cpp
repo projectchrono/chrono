@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 #include <set>
 #include <vector>
 
@@ -265,15 +266,31 @@ void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector3d& pos = m_vehicle->GetPos();
+        m_outf << m_system->GetChTime() << endl;
 
-        m_outf << m_system->GetChTime() << del;
-        // Body states
-        m_outf << pos.x() << del << pos.y() << del << pos.z() << del;
+        // Chassis location and heading
+        const auto& c_frame = m_vehicle->GetRefFrame();
+        const auto& c_pos = c_frame.GetPos();
+        auto c_dir = c_frame.GetRotMat().GetAxisX();
+        auto c_u = ChVector2d(c_dir.x(), c_dir.y()).GetNormalized();
+        auto c_heading = std::atan2(c_u.y(), c_u.x());
+        m_outf << c_pos.x() << del << c_pos.y() << del << c_pos.z() << del << c_heading * CH_RAD_TO_DEG << endl;
+
+        // Spindle locations and headings
+        for (auto& axle : m_vehicle->GetAxles()) {
+            for (auto& wheel : axle->GetWheels()) {
+                auto spindle_body = wheel->GetSpindle();
+                const auto& s_pos = spindle_body->GetPos();
+                auto s_dir = spindle_body->GetRotMat().GetAxisY();
+                auto s_u = ChVector2d(s_dir.y(), -s_dir.x()).GetNormalized();
+                auto s_heading = std::atan2(s_u.y(), s_u.x());
+                m_outf << s_pos.x() << del << s_pos.y() << del << s_pos.z() << del << s_heading * CH_RAD_TO_DEG << endl;
+            }
+        }
+
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
-               << del << m_system->GetTimerUpdate() << del;
-        m_outf << endl;
+               << del << m_system->GetTimerUpdate() << endl;
     }
 
     // Create and write frame output file.

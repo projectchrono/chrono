@@ -239,6 +239,10 @@ void ChVehicleCosimTireNodeFlexible::ApplySpindleState(const BodyState& spindle_
 }
 
 void ChVehicleCosimTireNodeFlexible::ApplyMeshForces(const MeshContact& mesh_contact) {
+    // Cache mesh nodal contact forces for reporting
+    m_forces = mesh_contact;  
+
+    // Load contact forces
     m_contact_load->InputSimpleForces(mesh_contact.vforce, mesh_contact.vidx);
 
     if (m_verbose) {
@@ -258,21 +262,53 @@ void ChVehicleCosimTireNodeFlexible::ApplyMeshForces(const MeshContact& mesh_con
 }
 
 void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {
-    // Create and write frame output file.
-    utils::ChWriterCSV csv(" ");
-    csv << m_system->GetChTime() << endl;
-    WriteTireStateInformation(csv);
-    WriteTireMeshInformation(csv);
 
-    std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.WriteToFile(filename);
+    // Write fixed mesh information
+    if (frame == 0) {
+        utils::ChWriterCSV csv(" ");
+        WriteTireMeshInformation(csv);
+        std::string filename = m_node_out_dir + "/mesh_info.dat";
+        csv.WriteToFile(filename);
+    }
 
-    if (m_verbose)
-        cout << "[Tire node   ] write output file ==> " << filename << endl;
+    // Write current mesh state
+    {
+        utils::ChWriterCSV csv(" ");
+        csv << m_system->GetChTime() << endl;
+        WriteTireStateInformation(csv);
+        std::string filename = OutputFilename(m_node_out_dir + "/simulation", "mesh_state", "dat", frame + 1, 5);
+        csv.WriteToFile(filename);
+        if (m_verbose)
+            cout << "[Tire node   ] write output file ==> " << filename << endl;
+    }
+
+    // Write current terrain forces
+    {
+        utils::ChWriterCSV csv(" ");
+        csv << m_system->GetChTime() << endl;
+        WriteTireTerrainForces(csv);
+        std::string filename = OutputFilename(m_node_out_dir + "/simulation", "terrain_force", "dat", frame + 1, 5);
+        csv.WriteToFile(filename);
+    }
 }
 
 void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
     //// TODO (format?)
+}
+
+void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV& csv) {
+    // Extract mesh
+    auto mesh = m_tire_def->GetMesh();
+
+    // Print tire mesh connectivity
+    csv << "\n Connectivity " << mesh->GetNumElements() << 5 * mesh->GetNumElements() << endl;
+
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ie++) {
+        for (unsigned int in = 0; in < m_adjVertices[ie].size(); in++) {
+            csv << m_adjVertices[ie][in];
+        }
+        csv << endl;
+    }
 }
 
 void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::ChWriterCSV& csv) {
@@ -298,21 +334,6 @@ void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::ChWriterCS
         csv << x(ix) << endl;
     for (int iv = 0; iv < v.size(); iv++)
         csv << v(iv) << endl;
-}
-
-void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV& csv) {
-    // Extract mesh
-    auto mesh = m_tire_def->GetMesh();
-
-    // Print tire mesh connectivity
-    csv << "\n Connectivity " << mesh->GetNumElements() << 5 * mesh->GetNumElements() << endl;
-
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ie++) {
-        for (unsigned int in = 0; in < m_adjVertices[ie].size(); in++) {
-            csv << m_adjVertices[ie][in];
-        }
-        csv << endl;
-    }
 
     // Print strain information: eps_xx, eps_yy, eps_xy averaged over surrounding elements
     /*
@@ -335,6 +356,20 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV
         csv << areaX / area << " " << areaY / area << " " << areaZ / area << endl;
     }
     */
+}
+
+void ChVehicleCosimTireNodeFlexible::WriteTireTerrainForces(utils::ChWriterCSV& csv) {
+    // Write forces reduced to the spindle body
+    auto s_force = m_tire_def->ReportTireForce(nullptr);
+    csv << s_force.point << endl;
+    csv << s_force.force << endl;
+    csv << s_force.moment << endl;
+
+    // Write mesh nodal forces
+    csv << m_forces.nv << endl;
+    for (int i = 0; i < m_forces.nv; i++) {
+        csv << m_forces.vidx[i] << m_forces.vforce[i] << endl;
+    }
 }
 
 void ChVehicleCosimTireNodeFlexible::PrintLowestNode() {

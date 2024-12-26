@@ -328,6 +328,34 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
 }
 
 void ChVehicleCosimTireNode::OutputData(int frame) {
+    // Append to results output file
+    if (m_outf.is_open()) {
+        std::string del("  ");
+
+        m_outf << m_system->GetChTime() << endl;
+
+        // Spindle location and heading
+        const auto& s_pos = m_spindle->GetPos();
+        auto s_dir = m_spindle->GetRotMat().GetAxisY();
+        auto s_u = ChVector2d(s_dir.y(), -s_dir.x()).GetNormalized();
+        auto s_heading = std::atan2(s_u.y(), s_u.x());
+        m_outf << s_pos.x() << del << s_pos.y() << del << s_pos.z() << del << s_heading * CH_RAD_TO_DEG << endl;
+
+        // Extract spindle velocities and calculate longitudinal slip
+        // (assumes horizontal terrain!)
+        auto s_linvel_abs = m_spindle->GetPosDt();
+        auto s_linvel_loc = m_spindle->TransformDirectionParentToLocal(s_linvel_abs);
+        auto s_angvel_abs = m_spindle->GetAngVelParent();
+        auto s_angvel_loc = m_spindle->GetAngVelLocal();
+        auto sign = Vdot(Vcross(s_linvel_abs, s_angvel_abs), VECT_Z) > 0 ? +1 : -1;
+        auto va = std::max(1e-4, ChVector2d(s_linvel_loc.x(), s_linvel_loc.z()).Length());
+        auto v = sign * va;
+        auto o = s_angvel_loc.y();
+        auto longitudinal_slip = (o * m_tire->GetRadius() - v) / v;
+        m_outf << v << del << o << del << longitudinal_slip << endl;
+    }
+
+    // Let concrete tire classes output additional data
     OnOutputData(frame);
 }
 
