@@ -22,8 +22,7 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
     - A version is included in chrono_thirdparty as a submodule, for general development either that version or an externally built one can be used.
 - The following are optional:
   * [FastDDS](https://fast-dds.docs.eprosima.com/en/latest/)
-    - Please use the [latest binaries](https://www.eprosima.com/index.php/component/ars/repository/eprosima-fast-dds) for installation.
-    - Versions provided by package managers will likely work as well if they are reasonably up to date.
+    - Please use the [FastDDS Version 2.14](https://www.eprosima.com/product-download) for installation.
 
 ## Building instructions
 
