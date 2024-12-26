@@ -28,7 +28,7 @@
 
 #include "SynDDSMessage.h"
 
-#if !defined(GEN_API_VER) || (GEN_API_VER != 1)
+#if !defined(GEN_API_VER) || (GEN_API_VER != 2)
 #error Generated SynDDSMessage is not compatible with current installed Fast DDS. Please, regenerate it with fastddsgen.
 #endif  // GEN_API_VER
 
