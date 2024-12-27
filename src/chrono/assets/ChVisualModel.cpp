@@ -55,6 +55,7 @@ void ChVisualModel::ArchiveOut(ChArchiveOut& archive_out) {
 
     archive_out << CHNVP(m_shapes);
     archive_out << CHNVP(m_shapesFEA); 
+    archive_out << CHNVP(m_tag);
 }
 
 void ChVisualModel::ArchiveIn(ChArchiveIn& archive_in) {
@@ -62,6 +63,7 @@ void ChVisualModel::ArchiveIn(ChArchiveIn& archive_in) {
 
     archive_in >> CHNVP(m_shapes);
     archive_in >> CHNVP(m_shapesFEA);
+    archive_in >> CHNVP(m_tag);
 }
 
 // -----------------------------------------------------------------------------

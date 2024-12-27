@@ -1268,6 +1268,7 @@ void ChVisualShapeFEA::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(m_trimesh_shape);
     archive_out << CHNVP(m_glyphs_shape);
     archive_out << CHNVP(normal_accumulators);
+    archive_out << CHNVP(m_tag);
 }
 
 void ChVisualShapeFEA::ArchiveIn(ChArchiveIn& archive_in) {
@@ -1297,6 +1298,7 @@ void ChVisualShapeFEA::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(m_trimesh_shape);
     archive_in >> CHNVP(m_glyphs_shape);
     archive_in >> CHNVP(normal_accumulators);
+    archive_in >> CHNVP(m_tag);
 }
 
 

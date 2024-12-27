@@ -63,6 +63,7 @@ void ChElasticityKirchhoff::ArchiveOut(ChArchiveOut& archive_out) {
 
     // serialize all member data:
     archive_out << CHNVP(this->section);
+    archive_out << CHNVP(this->m_tag);
 }
 
 void ChElasticityKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
@@ -71,6 +72,7 @@ void ChElasticityKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize all member data:
     archive_in >> CHNVP(this->section);
+    archive_in >> CHNVP(this->m_tag);
 }
 
 
@@ -501,6 +503,7 @@ void ChDampingKirchhoff::ArchiveOut(ChArchiveOut& archive_out) {
 
     // serialize all member data:
     archive_out << CHNVP(this->section);
+    archive_out << CHNVP(this->m_tag);
 }
 
 void ChDampingKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
@@ -509,6 +512,7 @@ void ChDampingKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize all member data:
     archive_in >> CHNVP(this->section);
+    archive_in >> CHNVP(this->m_tag);
 }
 
 
@@ -668,6 +672,7 @@ void ChMaterialShellKirchhoff::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(this->damping);
     archive_out << CHNVP(this->plasticity);
     archive_out << CHNVP(this->density);
+    archive_out << CHNVP(this->m_tag);
 }
 
 void ChMaterialShellKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
@@ -679,6 +684,7 @@ void ChMaterialShellKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(this->damping);
     archive_in >> CHNVP(this->plasticity);
     archive_in >> CHNVP(this->density);
+    archive_in >> CHNVP(this->m_tag);
 }
 
 
