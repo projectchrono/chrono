@@ -63,6 +63,8 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     /// Definition of a layer
     class Layer {
       public:
+        Layer() {}; // default constructor only for archiving in containers
+
         /// Return the layer thickness.
         double GetThickness() const { return m_thickness; }
 
@@ -91,6 +93,16 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
         friend class ChElementShellBST;
         friend class MyForce;
         friend class MyJacobian;
+
+      public:
+        // SERIALIZATION
+        virtual void ArchiveOut(ChArchiveOut& archive_out);
+        virtual void ArchiveIn(ChArchiveIn& archive_in);
+        virtual void ArchiveOutConstructor(ChArchiveOut& archive_out);
+        static void* ArchiveInConstructor(ChArchiveIn& archive_in);
+        void SetTag(int tag) { m_tag = tag; }
+        int  GetTag() const { return m_tag; }
+        int  m_tag = -1;
     };
 
     /// Specify the nodes of this element.
@@ -380,6 +392,16 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
     virtual bool IsTrianglePrismIntegrationNeeded() override { return true; }
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// @} fea_elements

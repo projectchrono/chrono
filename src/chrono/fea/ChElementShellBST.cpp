@@ -734,6 +734,8 @@ ChVector3d ChElementShellBST::ComputeNormal(const double U, const double V) {
     return mnorm.GetNormalized();
 }
 
+
+
 // Private constructor (a layer can be created only by adding it to an element)
 ChElementShellBST::Layer::Layer(ChElementShellBST* element,
                                 double thickness,
@@ -743,6 +745,153 @@ ChElementShellBST::Layer::Layer(ChElementShellBST* element,
 
 // Initial setup for this layer:
 void ChElementShellBST::Layer::SetupInitial() {}
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER_CUSTOMNAME(ChElementShellBST::Layer, ChElementShellBST_Layer)
+
+void ChElementShellBST::Layer::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElementShellBST::Layer>();
+
+    // serialize all member data:
+    archive_out << CHNVP(m_element);
+    archive_out << CHNVP(m_material);
+    archive_out << CHNVP(m_theta);
+    archive_out << CHNVP(m_thickness);
+}
+
+inline void ChElementShellBST::Layer::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElementShellBST::Layer>();
+
+    // deserialize all member data:
+    // serialize all member data:
+    archive_in >> CHNVP(m_element);
+    archive_in >> CHNVP(m_material);
+    archive_in >> CHNVP(m_theta);
+    archive_in >> CHNVP(m_thickness);
+}
+
+void ChElementShellBST::Layer::ArchiveOutConstructor(ChArchiveOut& archive_out) {
+    // suggested: use versioning
+    archive_out.VersionWrite<ChElementShellBST::Layer>();
+
+    // serialize the parameters of the constructor:
+    archive_out << CHNVP(m_element);
+    archive_out << CHNVP(m_material);
+    archive_out << CHNVP(m_theta);
+    archive_out << CHNVP(m_thickness);
+}
+
+void* ChElementShellBST::Layer::ArchiveInConstructor(ChArchiveIn& archive_in) {
+    // suggested: use versioning
+    /*int version =*/archive_in.VersionRead<ChElementShellBST::Layer>();
+
+    // 1) Deserialize the parameters of the constructor:
+    // you need some auxiliary variables because this method is static
+    // (the object will be created right after the >> parsing)
+    // Note, be sure that the names of those auxiliary vars are the same of member
+    // variables of your class, or use  CHNVP(..., "myname") tags.
+    
+    ChElementShellBST* m_element;                
+    std::shared_ptr<ChMaterialShellKirchhoff> m_material;
+    double m_theta;
+    double m_thickness;
+
+    archive_in >> CHNVP(m_element);
+    archive_in >> CHNVP(m_material);
+    archive_in >> CHNVP(m_theta);
+    archive_in >> CHNVP(m_thickness);
+
+    // 2) Important!!! Finally you MUST return an object of this class
+    return new ChElementShellBST::Layer(m_element, m_thickness, m_theta, m_material);
+}
+
+
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElementShellBST)
+CH_UPCASTING(ChElementShellBST, ChElementShell)
+CH_UPCASTING(ChElementShellBST, ChElementGeneric)
+CH_UPCASTING(ChElementShellBST, ChElementBase)
+
+void ChElementShellBST::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElementShell>();
+
+    // serialize parent class
+    ChElementGeneric::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->n_usednodes);
+    archive_out << CHNVP(this->nodes_used_to_six);
+    archive_out << CHNVP(this->m_nodes);
+    archive_out << CHNVP(this->m_layers);
+    archive_out << CHNVP(this->m_layers_z);
+    archive_out << CHNVP(this->tot_thickness);
+    archive_out << CHNVP(this->Jux);  
+    archive_out << CHNVP(this->area);
+    archive_out << CHNVP(this->l0);
+    archive_out << CHNVP(this->cM);
+    archive_out << CHNVP(this->cI);
+    archive_out << CHNVP(this->rI);
+    archive_out << CHNVP(this->phi0);
+    archive_out << CHNVP(this->phi);
+    archive_out << CHNVP(this->k0);
+    archive_out << CHNVP(this->e0);
+    //archive_out << CHNVP(this->k); // computed when needed
+    //archive_out << CHNVP(this->e); // computed when needed
+    //archive_out << CHNVP(this->n); // computed when needed
+    //archive_out << CHNVP(this->m); // computed when needed
+}
+
+/// Method to allow deserialization of transient data from archives.
+
+inline void ChElementShellBST::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElementShell>();
+
+    // deserialize parent class
+    ChElementGeneric::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->n_usednodes);
+    archive_in >> CHNVP(this->nodes_used_to_six);
+    archive_in >> CHNVP(this->m_nodes);
+    archive_in >> CHNVP(this->m_layers);
+    archive_in >> CHNVP(this->m_layers_z);
+    archive_in >> CHNVP(this->tot_thickness);
+    archive_in >> CHNVP(this->Jux);
+    archive_in >> CHNVP(this->area);
+    archive_in >> CHNVP(this->l0);
+    archive_in >> CHNVP(this->cM);
+    archive_in >> CHNVP(this->cI);
+    archive_in >> CHNVP(this->rI);
+    archive_in >> CHNVP(this->phi0);
+    archive_in >> CHNVP(this->phi);
+    archive_in >> CHNVP(this->k0);
+    archive_in >> CHNVP(this->e0);
+    //archive_in >> CHNVP(this->k); // computed when needed
+    //archive_in >> CHNVP(this->e); // computed when needed
+    //archive_in >> CHNVP(this->n); // computed when needed
+    //archive_in >> CHNVP(this->m); // computed when needed
+
+    // The following because parent ChElementGeneric does not serialize Kmatr for better performance
+    std::vector<ChVariables*> mvars;
+    mvars.push_back(&m_nodes[0]->Variables());
+    mvars.push_back(&m_nodes[1]->Variables());
+    mvars.push_back(&m_nodes[2]->Variables());
+    if (m_nodes[3] != nullptr)
+        mvars.push_back(&m_nodes[3]->Variables());
+    if (m_nodes[4] != nullptr)
+        mvars.push_back(&m_nodes[4]->Variables());
+    if (m_nodes[5] != nullptr)
+        mvars.push_back(&m_nodes[5]->Variables());
+    Kmatr.SetVariables(mvars);
+
+}
+
 
 }  // end namespace fea
 }  // end namespace chrono

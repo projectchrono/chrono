@@ -76,6 +76,30 @@ class ChApi ChElementShell : public ChElementGeneric {
     /// return true if triangular shell - hence u,v are triangle natural coordinates assumed in 0..+1
     virtual bool IsTriangleShell() { return false; }
 
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override { 
+        // version number
+        archive_out.VersionWrite<ChElementShell>();
+        // serialize parent class
+        ChElementGeneric::ArchiveOut(archive_out);
+        // serialize all member data:
+        archive_out << CHNVP(this->mass);
+    };
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override { 
+        // version number
+        /*int version =*/archive_in.VersionRead<ChElementShell>();
+        // deserialize parent class
+        ChElementGeneric::ArchiveIn(archive_in);
+        // deserialize all member data:
+        archive_in >> CHNVP(this->mass);
+    };
+
   protected:
     double mass;
 };
