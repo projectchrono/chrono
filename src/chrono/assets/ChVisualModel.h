@@ -80,6 +80,10 @@ class ChApi ChVisualModel {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
+    
+    /// Tagging supported to allow sharing in distributed memory serialization
+    void SetTag(int tag) { m_tag = tag; }
+    int  GetTag() const { return m_tag; }
 
   private:
     /// Update this visual model with information for the owning physical object.
@@ -88,6 +92,7 @@ class ChApi ChVisualModel {
 
     std::vector<ShapeInstance> m_shapes;
     std::vector<std::shared_ptr<ChVisualShapeFEA>> m_shapesFEA;
+    int m_tag=-1;
 
     friend class ChVisualModelInstance;
 };
