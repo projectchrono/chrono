@@ -69,6 +69,13 @@ class ChApi ChElasticityKirchhoff {
                                         const double angle      ///< layer angle respect to x (if needed)
     );
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+    void SetTag(int tag) { m_tag = tag; }
+    int  GetTag() const  { return m_tag; }
+    int m_tag = -1;
+
     ChMaterialShellKirchhoff* section;
 };
 
@@ -111,6 +118,10 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
                                         const double z_sup,     ///< layer upper z value (along thickness coord)
                                         const double angle      ///< layer angle respect to x (if needed)
                                         ) override;
+
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     double m_E;   ///< elasticity moduli
@@ -171,6 +182,10 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
                                         const double angle      ///< layer angle respect to x (if needed)
                                         ) override;
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   private:
     double E_x;    ///< elasticity moduli
     double E_y;    ///< elasticity moduli
@@ -221,6 +236,10 @@ class ChApi ChElasticityKirchhoffGeneric : public ChElasticityKirchhoff {
                                         const double z_sup,     ///< layer upper z value (along thickness coord)
                                         const double angle      ///< layer angle respect to x (if needed)
                                         ) override;
+
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     ChMatrix66d mE;
@@ -305,6 +324,17 @@ class ChApi ChPlasticityKirchhoff {
     virtual void CreatePlasticityData(int numpoints,
                                       std::vector<std::unique_ptr<ChShellKirchhoffInternalData>>& plastic_data);
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) {
+        assert(false); // TODO serialization not yet implemented 
+    }
+    virtual void ArchiveIn(ChArchiveIn& archive_in) {
+        assert(false); // TODO serialization not yet implemented 
+    }
+    void SetTag(int tag) { m_tag = tag; }
+    int  GetTag() const { return m_tag; }
+    int m_tag = -1;
+
     ChMaterialShellKirchhoff* section;
 
     double nr_yeld_tolerance;
@@ -349,6 +379,13 @@ class ChApi ChDampingKirchhoff {
         const double z_sup,      ///< layer upper z value (along thickness coord)
         const double angle       ///< layer angle respect to x (if needed) -not used in this, isotropic
     );
+
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+    void SetTag(int tag) { m_tag = tag; }
+    int  GetTag() const { return m_tag; }
+    int m_tag = -1;
 
     ChMaterialShellKirchhoff* section;
 };
@@ -407,6 +444,10 @@ class ChApi ChDampingKirchhoffRayleigh : public ChDampingKirchhoff {
     /// Set the beta Rayleigh parameter (stiffness proportional damping)
     void SetBeta(const double mbeta) { beta = mbeta; }
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
   private:
     std::shared_ptr<ChElasticityKirchhoff> section_elasticity;
     ChMatrix66d E_const;  // to store the precomputed stiffness matrix at undeformed unstressed initial state
@@ -445,6 +486,7 @@ class ChApi ChMaterialShellKirchhoff {
                              std::shared_ptr<ChPlasticityKirchhoff> mplasticity,  ///< plasticity model, if any
                              std::shared_ptr<ChDampingKirchhoff> mdamping         ///< damping model, if any
     );
+    ChMaterialShellKirchhoff() {}  // default constructor - use only for serialization 
 
     virtual ~ChMaterialShellKirchhoff() {}
 
@@ -513,6 +555,13 @@ class ChApi ChMaterialShellKirchhoff {
     /// Set the density of the shell (kg/m^3)
     void SetDensity(double md) { this->density = md; }
     double GetDensity() const { return this->density; }
+
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
+    void SetTag(int tag) { m_tag = tag; }
+    int  GetTag() const { return m_tag; }
+    int  m_tag = -1;
 
   private:
     std::shared_ptr<ChElasticityKirchhoff> elasticity;

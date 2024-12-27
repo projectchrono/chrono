@@ -54,6 +54,26 @@ void ChElasticityKirchhoff::ComputeStiffnessMatrix(ChMatrixRef mC,
     }
 }
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElasticityKirchhoff)
+
+void ChElasticityKirchhoff::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElasticityKirchhoff>();
+
+    // serialize all member data:
+    archive_out << CHNVP(this->section);
+}
+
+void ChElasticityKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElasticityKirchhoff>();
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->section);
+}
+
+
 //--------------------------------------------------------------
 
 ChElasticityKirchhoffIsothropic::ChElasticityKirchhoffIsothropic(double E, double nu) {
@@ -153,6 +173,36 @@ void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     }
 }
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElasticityKirchhoffIsothropic)
+CH_UPCASTING(ChElasticityKirchhoffIsothropic, ChElasticityKirchhoff)
+
+void ChElasticityKirchhoffIsothropic::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElasticityKirchhoffIsothropic>();
+
+    // serialize parent class
+    ChElasticityKirchhoff::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->m_nu);
+    archive_out << CHNVP(this->m_E);
+}
+
+void ChElasticityKirchhoffIsothropic::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElasticityKirchhoffIsothropic>();
+
+    // deserialize parent class
+    ChElasticityKirchhoff::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->m_nu);
+    archive_in >> CHNVP(this->m_E);
+}
+
+
+
 //--------------------------------------------------------------
 
 /// Construct an orthotropic material
@@ -238,6 +288,40 @@ void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     mC.block<3, 3>(3, 3) = Q * h3;
 }
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElasticityKirchhoffOrthotropic)
+CH_UPCASTING(ChElasticityKirchhoffOrthotropic, ChElasticityKirchhoff)
+
+void ChElasticityKirchhoffOrthotropic::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElasticityKirchhoffOrthotropic>();
+
+    // serialize parent class
+    ChElasticityKirchhoff::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->E_x);
+    archive_out << CHNVP(this->E_y);
+    archive_out << CHNVP(this->nu_xy);
+    archive_out << CHNVP(this->G_xy);
+}
+
+void ChElasticityKirchhoffOrthotropic::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElasticityKirchhoffOrthotropic>();
+
+    // deserialize parent class
+    ChElasticityKirchhoff::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->E_x);
+    archive_in >> CHNVP(this->E_y);
+    archive_in >> CHNVP(this->nu_xy);
+    archive_in >> CHNVP(this->G_xy);
+}
+
+
+
 //--------------------------------------------------------------
 
 ChElasticityKirchhoffGeneric::ChElasticityKirchhoffGeneric() {
@@ -272,6 +356,34 @@ void ChElasticityKirchhoffGeneric::ComputeStiffnessMatrix(
 ) {
     mC = this->mE;
 }
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChElasticityKirchhoffGeneric)
+CH_UPCASTING(ChElasticityKirchhoffGeneric, ChElasticityKirchhoff)
+
+void ChElasticityKirchhoffGeneric::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChElasticityKirchhoffGeneric>();
+
+    // serialize parent class
+    ChElasticityKirchhoff::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->mE);
+}
+
+void ChElasticityKirchhoffGeneric::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChElasticityKirchhoffGeneric>();
+
+    // deserialize parent class
+    ChElasticityKirchhoff::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->mE);
+}
+
 
 //----------------------------------------------------------------
 
@@ -380,6 +492,26 @@ void ChDampingKirchhoff::ComputeDampingMatrix(
     }
 }
 
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChDampingKirchhoff)
+
+void ChDampingKirchhoff::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChDampingKirchhoff>();
+
+    // serialize all member data:
+    archive_out << CHNVP(this->section);
+}
+
+void ChDampingKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChDampingKirchhoff>();
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->section);
+}
+
+
 // -----------------------------------------------------------------------------
 
 ChDampingKirchhoffRayleigh::ChDampingKirchhoffRayleigh(std::shared_ptr<ChElasticityKirchhoff> melasticity,
@@ -421,6 +553,37 @@ void ChDampingKirchhoffRayleigh::ComputeDampingMatrix(
 ) {
     R = this->beta * this->E_const;
 }
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChDampingKirchhoffRayleigh)
+CH_UPCASTING(ChDampingKirchhoffRayleigh, ChDampingKirchhoff)
+
+void ChDampingKirchhoffRayleigh::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChDampingKirchhoffRayleigh>();
+
+    // serialize parent class
+    ChDampingKirchhoff::ArchiveOut(archive_out);
+
+    // serialize all member data:
+    archive_out << CHNVP(this->beta);
+    archive_out << CHNVP(this->section_elasticity);
+}
+
+void ChDampingKirchhoffRayleigh::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChDampingKirchhoffRayleigh>();
+
+    // deserialize parent class
+    ChDampingKirchhoff::ArchiveIn(archive_in);
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->beta);
+    archive_in >> CHNVP(this->section_elasticity);
+}
+
+
 
 // -----------------------------------------------------------------------------
 
@@ -490,6 +653,34 @@ void ChMaterialShellKirchhoff::SetDamping(std::shared_ptr<ChDampingKirchhoff> md
     damping = mdamping;
     damping->section = this;
 }
+
+
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChMaterialShellKirchhoff)
+
+void ChMaterialShellKirchhoff::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChMaterialShellKirchhoff>();
+
+    // serialize all member data:
+    archive_out << CHNVP(this->elasticity);
+    archive_out << CHNVP(this->damping);
+    archive_out << CHNVP(this->plasticity);
+    archive_out << CHNVP(this->density);
+}
+
+void ChMaterialShellKirchhoff::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChMaterialShellKirchhoff>();
+
+    // deserialize all member data:
+    archive_in >> CHNVP(this->elasticity);
+    archive_in >> CHNVP(this->damping);
+    archive_in >> CHNVP(this->plasticity);
+    archive_in >> CHNVP(this->density);
+}
+
 
 }  // end of namespace fea
 }  // end of namespace chrono
