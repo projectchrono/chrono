@@ -91,6 +91,7 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
     ChElasticityKirchhoffIsothropic(double E,  ///< Young's modulus
                                     double nu  ///< Poisson ratio
     );
+    ChElasticityKirchhoffIsothropic() {}; // default constructor - used only for serialization
 
     /// Return the elasticity moduli
     double GetYoungModulus() const { return m_E; }
@@ -148,6 +149,7 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
     ChElasticityKirchhoffOrthotropic(double m_E,  ///< Young's modulus on x
                                      double m_nu  ///< Poisson ratio
     );
+    ChElasticityKirchhoffOrthotropic() {}; // default constructor - used only for serialization
 
     /// Return the elasticity moduli, on x
     double GetYoungModulusX() const { return E_x; }
