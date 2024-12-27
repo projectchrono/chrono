@@ -1215,4 +1215,89 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         }
 }
 
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChVisualShapeFEA)
+
+class ChVisualShapeFEA_DataType_enum_mapper : public ChVisualShapeFEA {
+public:
+    CH_ENUM_MAPPER_BEGIN(DataType);
+    CH_ENUM_MAPPER_END(DataType);
+};
+class ChVisualShapeFEA_GlyphType_enum_mapper : public ChVisualShapeFEA {
+public:
+    CH_ENUM_MAPPER_BEGIN(GlyphType);
+    CH_ENUM_VAL(GlyphType::NONE);
+    CH_ENUM_VAL(GlyphType::NODE_DOT_POS);
+    CH_ENUM_VAL(GlyphType::NODE_CSYS);
+    CH_ENUM_VAL(GlyphType::NODE_VECT_SPEED);
+    CH_ENUM_VAL(GlyphType::NODE_VECT_ACCEL);
+    CH_ENUM_VAL(GlyphType::ELEM_TENS_STRAIN);
+    CH_ENUM_VAL(GlyphType::ELEM_TENS_STRESS);
+    CH_ENUM_VAL(GlyphType::ELEM_VECT_DP);
+    CH_ENUM_MAPPER_END(GlyphType);
+};
+
+void ChVisualShapeFEA::ArchiveOut(ChArchiveOut& archive_out) {
+    // version number
+    archive_out.VersionWrite<ChVisualShapeFEA>();
+
+    // serialize all member data:
+    archive_out << CHNVP(FEMmesh);
+    ChVisualShapeFEA_DataType_enum_mapper::DataType_mapper datatypemapper;
+    archive_out << CHNVP(datatypemapper(fem_data_type), "fem_data_type");
+    ChVisualShapeFEA_GlyphType_enum_mapper::GlyphType_mapper glyphtypemapper;
+    archive_out << CHNVP(glyphtypemapper(fem_glyph), "fem_data_type");
+    archive_out << CHNVP(fem_glyph);
+    archive_out << CHNVP(colorscale_min);
+    archive_out << CHNVP(colorscale_max);
+    archive_out << CHNVP(symbols_scale);
+    archive_out << CHNVP(symbols_thickness);
+    archive_out << CHNVP(shrink_elements);
+    archive_out << CHNVP(shrink_factor);
+    archive_out << CHNVP(wireframe);
+    archive_out << CHNVP(backface_cull);
+    archive_out << CHNVP(zbuffer_hide);
+    archive_out << CHNVP(smooth_faces);
+    archive_out << CHNVP(undeformed_reference);
+    archive_out << CHNVP(beam_resolution);
+    archive_out << CHNVP(beam_resolution_section);
+    archive_out << CHNVP(shell_resolution);
+    archive_out << CHNVP(meshcolor);
+    archive_out << CHNVP(symbolscolor);
+    archive_out << CHNVP(m_trimesh_shape);
+    archive_out << CHNVP(m_glyphs_shape);
+    archive_out << CHNVP(normal_accumulators);
+}
+
+void ChVisualShapeFEA::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChVisualShapeFEA>();
+
+    // deserialize all member data:
+    archive_in >> CHNVP(FEMmesh);
+    archive_in >> CHNVP(fem_data_type);
+    archive_in >> CHNVP(fem_glyph);
+    archive_in >> CHNVP(colorscale_min);
+    archive_in >> CHNVP(colorscale_max);
+    archive_in >> CHNVP(symbols_scale);
+    archive_in >> CHNVP(symbols_thickness);
+    archive_in >> CHNVP(shrink_elements);
+    archive_in >> CHNVP(shrink_factor);
+    archive_in >> CHNVP(wireframe);
+    archive_in >> CHNVP(backface_cull);
+    archive_in >> CHNVP(zbuffer_hide);
+    archive_in >> CHNVP(smooth_faces);
+    archive_in >> CHNVP(undeformed_reference);
+    archive_in >> CHNVP(beam_resolution);
+    archive_in >> CHNVP(beam_resolution_section);
+    archive_in >> CHNVP(shell_resolution);
+    archive_in >> CHNVP(meshcolor);
+    archive_in >> CHNVP(symbolscolor);
+    archive_in >> CHNVP(m_trimesh_shape);
+    archive_in >> CHNVP(m_glyphs_shape);
+    archive_in >> CHNVP(normal_accumulators);
+}
+
+
 }  // end namespace chrono
