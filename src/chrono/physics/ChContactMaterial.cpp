@@ -54,6 +54,7 @@ void ChContactMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(rolling_friction);
     archive_out << CHNVP(spinning_friction);
     archive_out << CHNVP(restitution);
+    archive_out << CHNVP(m_tag);
 }
 
 void ChContactMaterial::ArchiveIn(ChArchiveIn& archive_in) {
@@ -66,6 +67,7 @@ void ChContactMaterial::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(rolling_friction);
     archive_in >> CHNVP(spinning_friction);
     archive_in >> CHNVP(restitution);
+    archive_in >> CHNVP(m_tag);
 }
 
 std::shared_ptr<ChContactMaterial> ChContactMaterial::DefaultMaterial(ChContactMethod contact_method) {

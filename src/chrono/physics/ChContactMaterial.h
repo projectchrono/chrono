@@ -87,6 +87,10 @@ class ChApi ChContactMaterial {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
+    /// Tagging supported to allow sharing in distributed memory serialization
+    void SetTag(int tag) { m_tag = tag; }
+    int  GetTag() const { return m_tag; }
+
     /// Construct and return a contact material of the specified type with default properties.
     static std::shared_ptr<ChContactMaterial> DefaultMaterial(ChContactMethod contact_method);
 
@@ -96,6 +100,7 @@ class ChApi ChContactMaterial {
     float rolling_friction;   ///< rolling coefficient of friction
     float spinning_friction;  ///< spinning coefficient of friction
     float restitution;        ///< coefficient of restitution
+    int m_tag = -1;
 
   protected:
     ChContactMaterial();
