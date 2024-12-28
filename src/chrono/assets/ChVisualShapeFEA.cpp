@@ -1277,8 +1277,10 @@ void ChVisualShapeFEA::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize all member data:
     archive_in >> CHNVP(FEMmesh);
-    archive_in >> CHNVP(fem_data_type);
-    archive_in >> CHNVP(fem_glyph);
+    ChVisualShapeFEA_DataType_enum_mapper::DataType_mapper datatypemapper;
+    archive_in >> CHNVP(datatypemapper(fem_data_type), "fem_data_type");
+    ChVisualShapeFEA_GlyphType_enum_mapper::GlyphType_mapper glyphtypemapper;
+    archive_in >> CHNVP(glyphtypemapper(fem_glyph), "fem_data_type");
     archive_in >> CHNVP(colorscale_min);
     archive_in >> CHNVP(colorscale_max);
     archive_in >> CHNVP(symbols_scale);
