@@ -1184,14 +1184,6 @@ void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
 //    R += c*M*w
 void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
     unsigned int off = 0;
-
-    // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.IntLoadResidual_Mv(off, R, w, c);
-
-    // Use also on contact container:
-    unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadResidual_Mv(displ_v + contact_container->GetOffset_w(), R, w, c);
-
     
     if (!this->limit_residuals_Mv_F_to_domain) {
         // Operate on assembly sub-objects (bodies, links, etc.)
