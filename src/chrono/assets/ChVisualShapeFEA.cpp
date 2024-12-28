@@ -42,7 +42,7 @@ namespace chrono {
 using namespace fea;
 
 ChVisualShapeFEA::ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh) {
-    FEMmesh = fea_mesh;
+    FEMmesh = fea_mesh.get();
     fem_data_type = DataType::SURFACE;
     fem_glyph = GlyphType::NONE;
 

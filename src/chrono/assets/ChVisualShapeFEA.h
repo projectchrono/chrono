@@ -88,6 +88,8 @@ class ChApi ChVisualShapeFEA {
 
     ~ChVisualShapeFEA() {}
 
+    ChVisualShapeFEA() {} // default constructor, use only for simplify serialization
+
     /// Access the referenced FEM mesh.
     fea::ChMesh& GetMesh() { return *FEMmesh; }
 
@@ -233,7 +235,7 @@ class ChApi ChVisualShapeFEA {
                                           unsigned int& i_triindex,
                                           bool& need_automatic_smoothing);
 
-    std::shared_ptr<fea::ChMesh> FEMmesh;
+    fea::ChMesh* FEMmesh;
 
     DataType fem_data_type;
     GlyphType fem_glyph;
