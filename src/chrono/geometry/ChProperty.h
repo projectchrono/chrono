@@ -78,14 +78,14 @@ class ChApi ChPropertyT : public ChProperty {
 
     virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         ChProperty::ArchiveOut(archive_out);
-        archive_out << CHNVP(data);
+        //archive_out << CHNVP(data);
         archive_out << CHNVP(min);
         archive_out << CHNVP(max);
     }
 
     virtual void ArchiveIn(ChArchiveIn& archive_in) override {
         ChProperty::ArchiveIn(archive_in);
-        archive_in >> CHNVP(data);
+        //archive_in >> CHNVP(data);
         archive_in >> CHNVP(min);
         archive_in >> CHNVP(max);
     }
@@ -98,16 +98,16 @@ class ChApi ChPropertyT : public ChProperty {
 };
 
 /// Data is an array of floats
-class ChApi ChPropertyScalar : public ChPropertyT<double> {};
+class ChApi ChPropertyScalar : public ChPropertyT<double> { void foo() {}; };
 
 /// Data is an array of vectors
-class ChApi ChPropertyVector : public ChPropertyT<ChVector3d> {};
+class ChApi ChPropertyVector : public ChPropertyT<ChVector3d> { void foo() {}; };
 
 /// Data is an array of quaternions (for rotations)
-class ChApi ChPropertyQuaternion : public ChPropertyT<ChQuaternion<>> {};
+class ChApi ChPropertyQuaternion : public ChPropertyT<ChQuaternion<>> { void foo() {}; };
 
 /// Data is an array of colors
-class ChApi ChPropertyColor : public ChPropertyT<ChColor> {};
+class ChApi ChPropertyColor : public ChPropertyT<ChColor> { void foo() {}; };
 
 /// @} chrono_geometry
 

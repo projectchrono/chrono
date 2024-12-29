@@ -20,10 +20,10 @@
 
 namespace chrono {
 	
-/// Helper class that simply builds a map of pointers-tags for all pointers
-/// and custom c++ objects embedded in an object (mostly the ChSystem), that is traversed like in a serialization. 
+/// Helper class that simply builds a map of pointers-tags for all objects that implement a int GetTag() function,
+/// i.e. custom c++ objects embedded in an object (mostly the ChSystem), that is traversed like in a serialization. 
 /// The map can be used for debugging or to be used as a ExternalPointersMap()
-/// of an ChArchiveIn, for transplanting data to be re-bind incrementally.
+/// of an ChArchiveIn, for transplanting data to be re-bind incrementally assuming that tags from GetTag() are unique.
 
 class ChArchivePointerMap : public ChArchiveOut {
 public:
