@@ -48,11 +48,14 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
     // aux data for multidomain
     descriptor.SharedVectsToZero();
     /*
+    // ALTERNATIVE: following stuff to setup an alternative to descriptor.Shared.. stuff. See also below. 
+    // This alternative way for multidomain intercom is more verbose (see below) but more intuitive and
+    // because it is based on VectAdditiveToDistributed() and other things that are less obscure than 
+    // SharedStatesDeltaAddToMultidomainAndSync() used here. Todo: see if this alternative way adds cpu overhead.
     int nv = descriptor.CountActiveVariables();
     ChVectorDynamic<> state_old(nv); 
     ChVectorDynamic<> state(nv);
     ChVectorDynamic<> Dstate(nv);
-    descriptor.FromVariablesToVector(state_old);
     */
 
     // 1)  Update auxiliary data in all constraints before starting,
@@ -102,11 +105,9 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
     // fetch and add the Dv = [M]'*fb  that was computed by neighbouring domains and add it to shared vars
     descriptor.SharedStatesDeltaAddToMultidomainAndSync(this->omega_interface);
     /*
-    // following stuff should be equivalent to descriptor.SharedStates.. stuff, but not exactly - discover why
+    // ALTERNATIVE: following stuff is equivalent to descriptor.SharedStates.. line above. 
     descriptor.FromVariablesToVector(state);
-    Dstate = state - state_old;
-    descriptor.VectAdditiveToDistributed(Dstate);
-    state += Dstate;
+    descriptor.VectAdditiveToDistributed(state);
     descriptor.FromVectorToVariables(state);
     state_old = state;
     */
@@ -248,11 +249,11 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
         if ((iter % communication_each == 0) || (iter == m_max_iterations - 1)) {
             descriptor.SharedStatesDeltaAddToMultidomainAndSync(this->omega_interface);
             /*
-            // following stuff should be equivalent to descriptor.SharedStates.. stuff, but not exactly - discover why
+            // ALTERNATIVE: following stuff is equivalent to descriptor.SharedStates.. line above.
             descriptor.FromVariablesToVector(state);
             Dstate = state - state_old;
             descriptor.VectAdditiveToDistributed(Dstate);
-            state += Dstate;
+            state = state_old + Dstate;
             descriptor.FromVectorToVariables(state);
             state_old = state;
             */
