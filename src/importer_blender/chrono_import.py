@@ -1320,7 +1320,7 @@ def rotate_cube_UVs(mcube):
     for loop in mcube.data.loops :  
         mswapU = mcube.data.uv_layers.active.data[loop.index].uv[0]
         mcube.data.uv_layers.active.data[loop.index].uv[0] = 1-mcube.data.uv_layers.active.data[loop.index].uv[1]
-        mcube.data.uv_layers.active.data[loop.index].uv[1] = mswapU*1.333 - 0.125
+        mcube.data.uv_layers.active.data[loop.index].uv[1] = ((mswapU-0.5)*1.333) +0.5
 
 
 #
@@ -1603,6 +1603,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cube = bpy.context.object
         chrono_cube.name = 'chrono_cube'
         bpy.context.scene.collection.objects.unlink(chrono_cube)
+        rotate_cube_UVs(chrono_cube)
 
     chrono_cylinder = bpy.data.objects.get('chrono_cylinder')
     if not chrono_cylinder:
@@ -2206,7 +2207,7 @@ def unregister():
 
     # sidebar UI:
     
-register()
+    
 
 # The following is executed all times one runs this chrono_import.py script in Blender
 # scripting editor: it effectively register the add-on "by hand".
