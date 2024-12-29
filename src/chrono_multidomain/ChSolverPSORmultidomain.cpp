@@ -46,7 +46,7 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
 
     // MULTIDOMAIN******************
     // aux data for multidomain
-    descriptor.SharedVectsFromCurrentDomainStates();
+    descriptor.SharedVectsToZero();
     /*
     int nv = descriptor.CountActiveVariables();
     ChVectorDynamic<> state_old(nv); 
