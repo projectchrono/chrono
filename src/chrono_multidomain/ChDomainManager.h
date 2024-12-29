@@ -71,7 +71,7 @@ public:
     /// - deserialize incoming items and delete outgoing, via DoUpdateSharedLeaving
     /// NOTE: This function is expected to be called in parallel by all domains.
     /// NOTE: Depending on the implementation (MPI, OpenMP, etc.) it can contain some barrier.
-    virtual bool DoDomainPartitionUpdate(int mrank) = 0;
+    virtual bool DoDomainPartitionUpdate(int mrank, bool delete_outsiders = true) = 0;
 
 
     /// For serializing-deserializing objects that cross domain boundaries, domains
@@ -198,7 +198,7 @@ public:
     /// the buffer_receiving  of the domain interfaces. Creates items in ChSystem if needed.
     /// This is usually preceded by a DoUpdateSharedLeaving() and a 
     /// global MPI send/receive operations.
-    virtual void DoUpdateSharedReceived();
+    virtual void DoUpdateSharedReceived(bool delete_outsiders = true);
 
     /// Get map of interfaces
     std::unordered_map<int, ChDomainInterface>& GetInterfaces()  { return interfaces; };

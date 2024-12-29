@@ -52,7 +52,7 @@ public:
     /// NOTE: This function is expected to be called in OpenMP parallelism by all domains, by code
     /// running inside a #pragma omp parallel where each thread handles one domain.
     /// NOTE: it contains two OpenMP synchronization barriers.
-    virtual bool DoDomainSendReceive(int mrank);
+    virtual bool DoDomainSendReceive(int mrank) override;
 
     /// For a given domain, 
     /// - prepare outgoing serialization calling DoUpdateSharedLeaving()
@@ -60,7 +60,7 @@ public:
     /// - deserialize incoming items and delete outgoing, via DoUpdateSharedLeaving()
     /// NOTE: This function is expected to be called in parallel by all domains.
     /// NOTE: it contains two OpenMP synchronization barriers.
-    virtual bool DoDomainPartitionUpdate(int mrank);
+    virtual bool DoDomainPartitionUpdate(int mrank, bool delete_outsiders = true) override;
 
     // FOR MATH 
 
@@ -68,7 +68,7 @@ public:
     /// to all processes)
     /// NOTE: This function is expected to be called in parallel by all domains.
     /// NOTE: it contains an OpenMP synchronization barrier.
-    virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum);
+    virtual int ReduceAll(int mrank, double send, double& received_result, eCh_domainsReduceOperation operation = eCh_domainsReduceOperation::sum) override;
 
     // GLOBAL FUNCTIONS
     // 
@@ -95,7 +95,7 @@ public:
 
     std::unordered_map<int, std::shared_ptr<ChDomain>> domains;
 
-    virtual void ConsoleOutSerialized(std::string out_msg);
+    virtual void ConsoleOutSerialized(std::string out_msg) override;
 
 private:
     // buffers for reduce operations to mimic MPI functions

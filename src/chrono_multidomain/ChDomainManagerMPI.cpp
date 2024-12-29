@@ -144,40 +144,62 @@ bool ChDomainManagerMPI::DoDomainInitialize(int mrank) {
 	domain->GetSystem()->Setup();
 	domain->GetSystem()->Update();
 
-	// Run the partitioning setup for the first run
-	DoDomainPartitionUpdate(mrank);					//***COMM+BARRIER***
+	// Run the partitioning setup for the first run.
+	// Note that delete_outsiders = fase, so we do not run the cleanup stage because 
+	// the master could have injected finite elements that are spilling over the interfaces
+	// but the two domains on the interface still do not know that they have to share the outside nodes, 
+	// they will get to know this at the next DoDomainPartitionUpdate(), and if we run the delete outsiders 
+	// stage right now, those outside nodes would be incorrectly deleted prematurely.
+	DoDomainPartitionUpdate(mrank, false);					//***COMM+BARRIER***
+	
+	if (domain->IsMaster())
+		domain->GetSystem()->Clear();
+
+	// This can be needed for updating visual assets and other things
+	domain->GetSystem()->Setup();
+	domain->GetSystem()->ForceUpdate();
+	domain->GetSystem()->Update();
 
 	return true;
 }
 
-bool ChDomainManagerMPI::DoDomainPartitionUpdate(int mrank) {
+bool ChDomainManagerMPI::DoDomainPartitionUpdate(int mrank, bool delete_outsiders) {
 	assert(mrank == domain->GetRank());
 
 	// 1 serialize outgoing items, update shared items
 	domain->DoUpdateSharedLeaving();
-	// 2 send/receive buffers 
-	this->DoDomainSendReceive(mrank); //***COMM+BARRIER***
-	// 3 deserialize incoming items, update shared items
-	domain->DoUpdateSharedReceived();
 
-	if (this->verbose_partition || this->verbose_serialization)
+	if (this->verbose_serialization)
 		for (int i = 0; i < GetMPItotranks(); i++) {
 			this->mpi_engine.Barrier(); // trick to force sequential std::cout if MPI on same shell -  BLOCKS ALL!
 			if (i == GetMPIrank()) {
-				if (this->verbose_partition)
-					PrintDebugDomainInfo(domain);
-				if (this->verbose_serialization) {
-					if (!(domain->IsMaster() && !this->master_domain_enabled)) {
-						std::cout << "\n\n::::::::::::: Serialization to domain " << domain->GetRank() << " :::::::::::\n";
-						for (auto& interf : domain->GetInterfaces()) {
-							if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
-								continue;
-							std::cout << "\n\n::::::::::::: ....from interface " << interf.second.side_OUT->GetRank() << " ........\n";
-							std::cout << interf.second.buffer_receiving.str();
-							std::cout << "\n";
-						}
+				if (!(domain->IsMaster() && !this->master_domain_enabled)) {
+					std::cout << "\n\n::::::::::::: Serialization from domain " << domain->GetRank() << " :::::::::::\n";
+					for (auto& interf : domain->GetInterfaces()) {
+						if (interf.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+							continue;
+						std::cout << "\n\n::::::::::::: ....to domain " << interf.second.side_OUT->GetRank() << " ........\n";
+						std::cout << interf.second.buffer_sending.str();
+						std::cout << "\n";
 					}
 				}
+				std::cout.flush();
+			}
+			std::cout.flush();
+			this->mpi_engine.Barrier();															    // -BLOCKS ALL!
+		}
+
+	// 2 send/receive buffers 
+	this->DoDomainSendReceive(mrank); //***COMM+BARRIER***
+
+	// 3 deserialize incoming items, update shared items
+	domain->DoUpdateSharedReceived(delete_outsiders);
+
+	if (this->verbose_partition)
+		for (int i = 0; i < GetMPItotranks(); i++) {
+			this->mpi_engine.Barrier(); // trick to force sequential std::cout if MPI on same shell -  BLOCKS ALL!
+			if (i == GetMPIrank()) {
+				PrintDebugDomainInfo(domain);
 				std::cout.flush();
 			}
 			std::cout.flush();

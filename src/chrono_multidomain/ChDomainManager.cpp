@@ -564,7 +564,7 @@ void ChDomain::DoUpdateSharedLeaving() {
 }
 
 
-void  ChDomain::DoUpdateSharedReceived() {
+void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 	
 	if (this->IsMaster() && !this->domain_manager->master_domain_enabled)
 		return;
@@ -764,99 +764,101 @@ void  ChDomain::DoUpdateSharedReceived() {
 	// Removal of objects that are not anymore overlapping this domain
 	//
 
-	std::vector<std::shared_ptr<chrono::fea::ChMesh>> meshes_to_remove;
-	for (const auto& mmesh : system->GetMeshes()) {
+	if (delete_outsiders) {
+		std::vector<std::shared_ptr<chrono::fea::ChMesh>> meshes_to_remove;
+		for (const auto& mmesh : system->GetMeshes()) {
 
-		// remove nodes spilling outside
-		std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> nodes_to_remove;
-		for (const auto& node : mmesh->GetNodes()) {
-			ChVector3d node_pos = node->GetCenter();
-			bool is_overlapping_IN = this->IsInto(node_pos);
-			bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
-			if (!is_overlapping_IN && !is_sharing){
-				nodes_to_remove.push_back(node);
+			// remove nodes spilling outside
+			std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> nodes_to_remove;
+			for (const auto& node : mmesh->GetNodes()) {
+				ChVector3d node_pos = node->GetCenter();
+				bool is_overlapping_IN = this->IsInto(node_pos);
+				bool is_sharing = (set_of_domainshared.find(node->GetTag()) != set_of_domainshared.end());
+				if (!is_overlapping_IN && !is_sharing) {
+					nodes_to_remove.push_back(node);
+				}
+			}
+			for (const auto& delnode : nodes_to_remove)
+				mmesh->RemoveNode(delnode); // can be made more efficient - this require N searches in vector container
+
+			// remove elements spilling outside
+			std::vector<std::shared_ptr<chrono::fea::ChElementBase>> elements_to_remove;
+			for (const auto& element : mmesh->GetElements()) {
+				ChVector3d reference = element->GetNode(0)->GetCenter();
+				bool is_reference_IN = this->IsInto(reference);
+				//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
+				if (!is_reference_IN) {
+					elements_to_remove.push_back(element);
+				}
+			}
+			for (const auto& delelement : elements_to_remove)
+				mmesh->RemoveElement(delelement); // can be made more efficient - this require N searches in vector container
+
+			// remove the mesh container fully spilling outside 
+			auto mabb = mmesh->GetTotalAABB();
+			bool is_overlapping_IN = this->IsOverlap(mabb);
+			bool is_sharing = (set_of_domainshared.find(mmesh->GetTag()) != set_of_domainshared.end());
+			if (!is_overlapping_IN && !is_sharing)
+			{
+				meshes_to_remove.push_back(mmesh);
+				// unneeded?
+				for (auto& interf : this->interfaces) {
+					interf.second.shared_items.erase(mmesh->GetTag());
+				}
 			}
 		}
-		for (const auto& delnode : nodes_to_remove)
-			mmesh->RemoveNode(delnode); // can be made more efficient - this require N searches in vector container
+		for (const auto& delmesh : meshes_to_remove)
+			system->RemoveMesh(delmesh); // can be made more efficient - this require N searches in vector container
 
-		// remove elements spilling outside
-		std::vector<std::shared_ptr<chrono::fea::ChElementBase>> elements_to_remove;
-		for (const auto& element : mmesh->GetElements()) {
-			ChVector3d reference = element->GetNode(0)->GetCenter();
-			bool is_reference_IN = this->IsInto(reference);
-			//bool is_sharing = (set_of_domainshared.find(element->GetTag()) != set_of_domainshared.end());
-			if (!is_reference_IN) {
-				elements_to_remove.push_back(element);
+		std::vector<std::shared_ptr<chrono::ChPhysicsItem>> items_to_remove;
+		for (const auto& oitem : system->GetOtherPhysicsItems()) {
+			// remove the generic physics item spilling outside (could be a ChMesh container)
+			auto mabb = oitem->GetTotalAABB();
+			bool is_overlapping_IN = this->IsOverlap(mabb);
+			bool is_sharing = (set_of_domainshared.find(oitem->GetTag()) != set_of_domainshared.end());
+			if (!is_overlapping_IN && !is_sharing)
+			{
+				items_to_remove.push_back(oitem);
+				// unneeded?
+				for (auto& interf : this->interfaces) {
+					interf.second.shared_items.erase(oitem->GetTag());
+				}
 			}
 		}
-		for (const auto& delelement : elements_to_remove)
-			mmesh->RemoveElement(delelement); // can be made more efficient - this require N searches in vector container
+		for (const auto& delitem : items_to_remove)
+			system->RemoveOtherPhysicsItem(delitem); // can be made more efficient - this require N searches in vector container
 
-		// remove the mesh container fully spilling outside 
-		auto mabb = mmesh->GetTotalAABB();
-		bool is_overlapping_IN = this->IsOverlap(mabb); 
-		bool is_sharing = (set_of_domainshared.find(mmesh->GetTag()) != set_of_domainshared.end());
-		if (!is_overlapping_IN && !is_sharing)
-		{
-			meshes_to_remove.push_back(mmesh);
-			// unneeded?
-			for (auto& interf : this->interfaces) {
-				interf.second.shared_items.erase(mmesh->GetTag());
+		std::vector<std::shared_ptr<chrono::ChBody>> bodies_to_remove;
+		for (const auto& body : system->GetBodies()) {
+			auto mabb = body->GetTotalAABB();
+			bool is_overlapping_IN = this->IsOverlap(mabb) || this->IsInto(body->GetPos()); // if aabb is empty (reversed) use center
+			bool is_sharing = (set_of_domainshared.find(body->GetTag()) != set_of_domainshared.end());
+			if (!is_overlapping_IN && !is_sharing)
+			{
+				bodies_to_remove.push_back(body);
+				// unneeded?
+				for (auto& interf : this->interfaces) {
+					interf.second.shared_items.erase(body->GetTag());
+				}
 			}
 		}
+		for (const auto& delbody : bodies_to_remove)
+			system->RemoveBody(delbody); // can be made more efficient - this require N searches in vector container
+
+		std::vector<std::shared_ptr<chrono::ChLinkBase>> links_to_remove;
+		for (const auto& link : system->GetLinks()) {
+			if (auto blink = std::dynamic_pointer_cast<ChLink>(link)) {
+				ChVector3d reference = blink->GetBody2()->GetPos();
+				bool is_referencein_IN = this->IsInto(reference);
+				// Delete the link if outside. Links are never shared.
+				if (!is_referencein_IN) {
+					links_to_remove.push_back(link);
+				}
+			}
+		}
+		for (const auto& dellink : links_to_remove)
+			system->RemoveLink(dellink); // can be made more efficient - this require N searches in vector container
 	}
-	for (const auto& delmesh : meshes_to_remove)
-		system->RemoveMesh(delmesh); // can be made more efficient - this require N searches in vector container
-
-	std::vector<std::shared_ptr<chrono::ChPhysicsItem>> items_to_remove;
-	for (const auto& oitem : system->GetOtherPhysicsItems()) {
-		// remove the generic physics item spilling outside (could be a ChMesh container)
-		auto mabb = oitem->GetTotalAABB();
-		bool is_overlapping_IN = this->IsOverlap(mabb);
-		bool is_sharing = (set_of_domainshared.find(oitem->GetTag()) != set_of_domainshared.end());
-		if (!is_overlapping_IN && !is_sharing)
-		{
-			items_to_remove.push_back(oitem);
-			// unneeded?
-			for (auto& interf : this->interfaces) {
-				interf.second.shared_items.erase(oitem->GetTag());
-			}
-		}
-	}
-	for (const auto& delitem : items_to_remove)
-		system->RemoveOtherPhysicsItem(delitem); // can be made more efficient - this require N searches in vector container
-
-	std::vector<std::shared_ptr<chrono::ChBody>> bodies_to_remove;
-	for (const auto& body : system->GetBodies()) {
-		auto mabb = body->GetTotalAABB();
-		bool is_overlapping_IN = this->IsOverlap(mabb) || this->IsInto(body->GetPos()); // if aabb is empty (reversed) use center
-		bool is_sharing = (set_of_domainshared.find(body->GetTag()) != set_of_domainshared.end());
-		if (!is_overlapping_IN && !is_sharing)
-		{
-			bodies_to_remove.push_back(body);
-			// unneeded?
-			for (auto& interf : this->interfaces) {
-				interf.second.shared_items.erase(body->GetTag());
-			}
-		}
-	}
-	for (const auto& delbody : bodies_to_remove)
-		system->RemoveBody(delbody); // can be made more efficient - this require N searches in vector container
-
-	std::vector<std::shared_ptr<chrono::ChLinkBase>> links_to_remove;
-	for (const auto& link : system->GetLinks()) {
-		if (auto blink = std::dynamic_pointer_cast<ChLink>(link)) {
-			ChVector3d reference = blink->GetBody2()->GetPos();
-			bool is_referencein_IN = this->IsInto(reference);
-			// Delete the link if outside. Links are never shared.
-			if (!is_referencein_IN) {
-				links_to_remove.push_back(link);
-			}
-		}
-	}
-	for (const auto& dellink : links_to_remove)
-		system->RemoveLink(dellink); // can be made more efficient - this require N searches in vector container
 
 }
 

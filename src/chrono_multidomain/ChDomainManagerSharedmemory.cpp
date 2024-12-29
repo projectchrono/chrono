@@ -62,7 +62,7 @@ bool ChDomainManagerSharedmemory::DoDomainSendReceive(int mrank) {
 	return true;
 }
 
-bool ChDomainManagerSharedmemory::DoDomainPartitionUpdate(int mrank) {
+bool ChDomainManagerSharedmemory::DoDomainPartitionUpdate(int mrank, bool delete_outsiders) {
 	if (this->domains.find(mrank) != this->domains.end()) {
 		auto& mdomain = domains[mrank];
 		// 1 serialize outgoing items, update shared items
@@ -70,7 +70,7 @@ bool ChDomainManagerSharedmemory::DoDomainPartitionUpdate(int mrank) {
 		// 2 send/receive buffers 
 		this->DoDomainSendReceive(mrank); //***COMM+BARRIER***
 		// 3 serialize outgoing items, update shared items
-		mdomain->DoUpdateSharedReceived();
+		mdomain->DoUpdateSharedReceived(delete_outsiders);
 	}
 	return true;
 }
@@ -160,6 +160,11 @@ bool ChDomainManagerSharedmemory::DoAllDomainPartitionUpdate() {
 	{
 			int i = omp_get_thread_num();
 			this->DoDomainPartitionUpdate(vdomains[i]->GetRank()); //***COMM+BARRIER***
+
+			// This can be needed for updating visual assets and other things
+			vdomains[i]->GetSystem()->Setup();
+			vdomains[i]->GetSystem()->ForceUpdate();
+			vdomains[i]->GetSystem()->Update();
 	}
 
 	if (this->verbose_partition || this->verbose_serialization)
