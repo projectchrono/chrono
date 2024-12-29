@@ -471,6 +471,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << "new_object = bpy.context.object\n"
                    << "new_object.name = '" << shapename << "'\n"
                    << "new_object.data.materials.append(None)\n"
+                   << "rotate_cube_UVs(new_object)\n"
                    << collection << ".objects.link(new_object)\n"
                    << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << std::endl;

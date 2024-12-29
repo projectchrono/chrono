@@ -1315,7 +1315,13 @@ def update_camera_coordinates(mname,mpos,mrot):
     cameraasset.rotation_quaternion = mrot
     cameraasset.location = mpos
 
- 
+# utility to rotate cube texture UVs 90° to match other chrono postprocessors
+def rotate_cube_UVs(mcube):
+    for loop in mcube.data.loops :  
+        mswapU = mcube.data.uv_layers.active.data[loop.index].uv[0]
+        mcube.data.uv_layers.active.data[loop.index].uv[0] = 1-mcube.data.uv_layers.active.data[loop.index].uv[1]
+        mcube.data.uv_layers.active.data[loop.index].uv[1] = mswapU*1.333 - 0.125
+
 
 #
 # On file selected: 
