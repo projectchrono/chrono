@@ -208,7 +208,9 @@ int main(int argc, char* argv[]) {
     
     system("pause");
 
-    // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
+    // INITIAL SETUP AND OBJECT INITIAL MIGRATION!
+    // Moves all the objects in master domain to all domains, slicing the system.
+    // Also does some initializations, like collision detection AABBs.
     domain_manager.DoAllDomainInitialize();
 
     // The master domain does not need to communicate anymore with the domains so do:

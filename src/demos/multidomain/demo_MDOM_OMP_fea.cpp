@@ -149,16 +149,23 @@ int main(int argc, char* argv[]) {
     //   For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
     //   otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
 
-    auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
-    mat->SetFriction(0.1);
-    mat->SetYoungModulus(2e7);
+    // Create two collision materials, one for each domain. 
+    // Note that they have the same tag ID so that they are not transported through domain interfaces, and just referenced.
+    auto mat0 = chrono_types::make_shared<ChContactMaterialSMC>();
+    mat0->SetFriction(0.1);
+    mat0->SetYoungModulus(2e7);
+    mat0->SetTag(unique_ID);
+    auto mat1 = chrono_types::make_shared<ChContactMaterialSMC>();
+    mat1->SetFriction(0.1);
+    mat1->SetYoungModulus(2e7);
+    mat1->SetTag(unique_ID); unique_ID++;
 
     // A moving box, initially contained in domain 0 
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
         100,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat0);       // contact material
     sys_0.AddBody(mrigidBody);              // note "sys_0", cause it starts in domain 0
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
     mrigidBody->SetPosDt(ChVector3d(20, 0, 0));
@@ -173,7 +180,7 @@ int main(int argc, char* argv[]) {
         400,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat1);       // contact material
     sys_1.AddBody(mrigidBodyb);             // note "sys_1", cause it starts in domain 1
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
     mrigidBodyb->SetFixed(true);
@@ -186,7 +193,7 @@ int main(int argc, char* argv[]) {
         400,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat0);       // contact material
     sys_0.AddBody(mrigidBody_floor_0);
     mrigidBody_floor_0->SetPos(ChVector3d(0, -1.15, 0));
     mrigidBody_floor_0->SetFixed(true);
@@ -197,7 +204,7 @@ int main(int argc, char* argv[]) {
         400,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat0);       // contact material
     sys_0.AddBody(mrigidBodyd);
     mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
     mrigidBodyd->SetPosDt(ChVector3d(20, 0, 0));
@@ -270,7 +277,9 @@ int main(int argc, char* argv[]) {
     
     system("pause");
 
-    // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
+    // INITIAL SETUP AND OBJECT INITIAL MIGRATION!
+    // Moves all the objects in master domain to all domains, slicing the system.
+    // Also does some initializations, like collision detection AABBs.
     domain_manager.DoAllDomainInitialize();
 
     // The master domain does not need to communicate anymore with the domains so do:

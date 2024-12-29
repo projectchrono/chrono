@@ -134,15 +134,21 @@ int main(int argc, char* argv[]) {
     //   For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
     //   otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
 
-    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
-    mat->SetFriction(0.0);
+    // Create two collision materials, one for each domain. 
+    // Note that they have the same tag ID so that they are not transported through domain interfaces, and just referenced.
+    auto mat0 = chrono_types::make_shared<ChContactMaterialNSC>();
+    mat0->SetFriction(0.0);
+    mat0->SetTag(unique_ID); 
+    auto mat1 = chrono_types::make_shared<ChContactMaterialNSC>();
+    mat1->SetFriction(0.0);
+    mat1->SetTag(unique_ID); unique_ID++;
 
     // A moving box, initially contained in domain 0 
     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 2,  // x,y,z size
         100,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat0);       // contact material
     sys_0.AddBody(mrigidBody);              // note "sys_0", cause it starts in domain 0
     mrigidBody->SetPos(ChVector3d(-1.5,0,0));
     mrigidBody->SetPosDt(ChVector3d(2, 0, 0));
@@ -151,25 +157,13 @@ int main(int argc, char* argv[]) {
     // Note: an alternative to using SetTag() one by one, at the end you can use the helper 
     // ChArchiveSetUniqueTags (see snippet later)
     mrigidBody->SetTag(unique_ID); unique_ID++; 
-/*
-    auto mrigidBodyx = chrono_types::make_shared<ChBodyEasyBox>(1.8, 0.2, 1.8,  // x,y,z size
-        100,         // density
-        true,        // visualization?
-        true,        // collision?
-        mat);        // contact material
-    sys_0.AddBody(mrigidBodyx);
-    mrigidBodyx->SetPos(ChVector3d(-1.5, 1.1, 0));
-    mrigidBodyx->SetPosDt(ChVector3d(2, 0, 0));
-    // A very important thing: for multidomain, each item (body, mesh, link, node, FEA element)
-    // must have an unique tag! This SetTag() is needed because items might be shared between neighbouring domains. 
-    mrigidBodyx->SetTag(unique_ID); unique_ID++;
-*/
+
     // A box, initially contained in domain 1 
     auto mrigidBodyb = chrono_types::make_shared<ChBodyEasyBox>(0.7, 0.7, 0.7,  // x,y,z size
         400,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat1);       // contact material
     sys_1.AddBody(mrigidBodyb);             // note "sys_1", cause it starts in domain 1
     mrigidBodyb->SetPos(ChVector3d(1.5, 0, 0));
     mrigidBodyb->SetFixed(true);
@@ -182,18 +176,18 @@ int main(int argc, char* argv[]) {
         400,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat0);       // contact material
     sys_0.AddBody(mrigidBody_floor_0);
     mrigidBody_floor_0->SetPos(ChVector3d(0, -1.35, 0));
     mrigidBody_floor_0->SetFixed(true);
     mrigidBody_floor_0->SetTag(unique_ID);  unique_ID++;
 
-    // A small sphere to connect via a constraint
+    // A small sphere to connect via a constraint, initially contained in domain 0 
     auto mrigidBodyd = chrono_types::make_shared<ChBodyEasySphere>(0.6,  // rad
         400,         // density
         true,        // visualization?
         true,        // collision?
-        mat);        // contact material
+        mat0);       // contact material
     sys_0.AddBody(mrigidBodyd);
     mrigidBodyd->SetPos(ChVector3d(-1.5, 2, 0));
     mrigidBodyd->SetPosDt(ChVector3d(2, 0, 0));
