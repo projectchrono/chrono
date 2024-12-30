@@ -15,8 +15,8 @@
 #   PyChrono, the postprocess module is always available in the AnaConda installation)
 # - write a Chrono app that uses instructions like my_blender_exporter.AddAll(); 
 #   my_blender_exporter.ExportScript(); and my_blender_exporter.ExportData(); (the latter
-#   in the while() simulation loop). See demo_POST_blender.cpp for an example.
-# - run the chrono app, this will generate files on disk: a single
+#   in the while() simulation loop). See demo_POST_blender1.cpp for an example.
+# - run the chrono app,  this will generate files on disk: a single
 #   xxx.assets.py file and many state00001.py, state00002.py, ..., in an output/ dir.
 # - Open Blender, use menu "File/Import/Chrono import" to load the xxx.assets.py file.
 #
@@ -71,6 +71,7 @@ from bpy.props import (IntProperty,
                        EnumProperty,
                        PointerProperty,
                        CollectionProperty)
+from datetime import datetime
 
 #
 # Globals, to keep things simple with callbacks
@@ -1315,7 +1316,7 @@ def update_camera_coordinates(mname,mpos,mrot):
     cameraasset.rotation_quaternion = mrot
     cameraasset.location = mpos
 
-# utility to rotate cube texture UVs 90° to match other chrono postprocessors
+# utility to rotate cube texture UVs 90Â° to match other chrono postprocessors
 def rotate_cube_UVs(mcube):
     for loop in mcube.data.loops :  
         mswapU = mcube.data.uv_layers.active.data[loop.index].uv[0]
@@ -2071,6 +2072,11 @@ class ImportChrono(Operator, ImportHelper):
         description="If true, does not delete last imported Chrono simulation. Useful for merging results from parallel simulations, or cosimulations.",
         default=False,
     )
+    setting_automerge: BoolProperty(
+        name="Automatic merge",
+        description="If true, you load the 0th .asset.py file from a parallel simulation in a set of directories <yy>_0,<yy>_1,<yy>_2 etc, and all others are load and merged.",
+        default=False,
+    )
     #    setting_from: IntProperty(
     #        name="from",
     #        description="Initial frame",
@@ -2085,7 +2091,29 @@ class ImportChrono(Operator, ImportHelper):
     #    )
     
     def execute(self, context):
-        return read_chrono_simulation(context, self.filepath, self.setting_materials, self.setting_merge)
+        # load the chrono simulation:
+        read_chrono_simulation(context, self.filepath, self.setting_materials, self.setting_merge)
+        
+        # in case of automatic merge of multiple simulations, as in MPI multidomain, each in a directory:
+        myfiledir = os.path.dirname(os.path.abspath(self.filepath))
+        if self.setting_automerge and myfiledir.endswith("_0"):
+            myfiledirbase = myfiledir[:-2]
+            myfilename = os.path.basename(self.filepath)
+            creation_time0 = os.path.getctime(os.path.abspath(self.filepath))
+            domainnumber = 1
+            while True:
+                domainfilename = os.path.join(myfiledirbase + '_'+'{:d}'.format(domainnumber), myfilename)
+                if os.path.exists(domainfilename):
+                    creation_time1 = os.path.getctime(domainfilename)
+                    if abs(creation_time1 - creation_time0) > 2:
+                        break   # do not load further domains if created in a previous moment, 2 seconds tolerance
+                    print ("Loading auto-merging: " + domainfilename)
+                    read_chrono_simulation(context, domainfilename, self.setting_materials, True)
+                    domainnumber = domainnumber+1
+                else:
+                    break
+        return {'FINISHED'}
+            
 
 
 # Only needed if you want to add into a dynamic menu.
