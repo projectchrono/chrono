@@ -250,6 +250,11 @@ void ChDomainManagerSharedmemory::AddDomain(std::shared_ptr<ChDomain> mdomain) {
 	mdomain->GetSystem()->EnableResidualFilteringByDomain(true, mdomain.get());
 
 	mdomain->serializer_type = this->serializer_type;
+
+	// Set the tag ID of all ChSystem objects to 1, i.e assume shared ID of system as shared across all domains 
+	mdomain->GetSystem()->SetTag(1);
+	// Set the tag ID of all ChAssembly objects to 2, i.e assume shared ID of assembly containers as shared across all domains
+	const_cast<ChAssembly&>(mdomain->GetSystem()->GetAssembly()).SetTag(2);
 }
 
 

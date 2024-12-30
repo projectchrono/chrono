@@ -62,8 +62,8 @@ using namespace postprocess;
 
 // For multi domain simulations, each item (body, link, fea element or node, etc.) must have
 // an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
-// of unique IDs.
-static int unique_ID = 1;
+// of unique IDs, starting from 3 because 1,2 are reserved for all ChSystem and ChAssembly in all domains.
+static int unique_ID = 3;
 
 
 
@@ -136,6 +136,7 @@ int main(int argc, char* argv[]) {
  
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.1);
+    mat->SetTag(unique_ID); unique_ID++;
 
     // domain slice up to  x<=0
     if (domain_manager.GetMPIrank() == 0) {

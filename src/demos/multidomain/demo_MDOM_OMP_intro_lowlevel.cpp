@@ -52,8 +52,8 @@ using namespace chrono::irrlicht;
 
 // For multi domain simulations, each item (body, link, fea element or node, etc.) must have
 // an unique ID, to be set via SetTag(). Here we use a static counter to help with the generation
-// of unique IDs.
-static int unique_ID = 1;
+// of unique IDs, starting from 3 because 1,2 are reserved for all ChSystem and ChAssembly in all domains.
+static int unique_ID = 3;
 
 
 

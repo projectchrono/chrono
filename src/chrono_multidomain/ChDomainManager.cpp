@@ -288,7 +288,10 @@ void ChDomain::DoUpdateSharedLeaving() {
 		serializer->SetUseGetTagAsID(true);				// GetTag of items, when available, will be used to generate unique IDs in serialization
 	
 		// Prepare a map of pointers to shared items so that they are not serialized but just referenced
-		// by tag. For this reason we traverse all the pointers in the shared items.
+		// by tag. For this reason we traverse all the pointers in the shared items, and ChArchivePointerMap will capture their tags.
+		// Note that these shared items might contain pointers to auxiliary structures like visual models,
+		// contact materials etc.; if these structures have a GetTag(), the ChArchivePointerMap will capture these IDs too,
+		// which is good because if the shared nodes are also in the neighbouring domain, so will be also those aux structures
 		ChArchivePointerMap rebinding_pointers;
 		rebinding_pointers.SetEmptyShallowContainers(true);	// we will take care of contained items one by one
 		for (const auto& body : system->GetBodies()) {
@@ -308,9 +311,10 @@ void ChDomain::DoUpdateSharedLeaving() {
 				rebinding_pointers << CHNVP(oitem);
 		}
 		serializer->ExternalPointersMap() = rebinding_pointers.pointer_map_ptr_id;
-		// Avoid propagation of serialization to parent ChSystem when back pointers to system are found:
-		   serializer->CutPointers().insert(this->system);  //NO - better, assuming all domains already contain a ChSystem with same GetTag:
-		//serializer->UnbindExternalPointer(this->system, this->system->GetTag());
+		// Also assume that there is a shared system across all domains, ie. 
+		// assuming *all* domains already contain a ChSystem with same GetTag. 
+		// (and avoids propagation of serialization to parent ChSystem when back pointers to system are found).
+		serializer->UnbindExternalPointer(this->system, this->system->GetTag());
 
 		/*
 		std::cout << "           domain << " << this->rank << " ExternalPointersMap size: " << rebinding_pointers.pointer_map_ptr_id.size() << "\n";
