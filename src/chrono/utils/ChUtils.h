@@ -13,11 +13,24 @@
 #ifndef CH_UTILS_H
 #define CH_UTILS_H
 
+#include <cstdio>
+#include <stdexcept>
 #include <algorithm>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
+
+#define ChAssertAlways(exp)                                                                                    \
+    {                                                                                                          \
+        if (!(exp)) {                                                                                          \
+            char msg[100];                                                                                     \
+            std::sprintf(msg, "Expression '%s' returned false - file %s, line %d.", #exp, __FILE__, __LINE__); \
+            throw std::runtime_error(msg);                                                                     \
+        }                                                                                                      \
+    }
 
 /// Clamp and modify the specified value to lie within the given limits.
 template <typename T>
@@ -43,6 +56,23 @@ T ChClamp(T value, T limitMin, T limitMax) {
 template <typename T>
 int ChSignum(T x) {
     return (x > T(0)) - (x < T(0));
+}
+
+/// Wrap angle in range.
+/// If symmetric, wrap in [-PI; PI).
+/// If not symmetric, wrap in [0; 2PI).
+template <typename T>
+T ChWrapAngle(T angle, bool symmetric = true) {
+    T wangle = angle;
+    if (symmetric) {  // [-PI; +PI)
+        wangle = std::fmod(wangle + CH_PI, CH_2PI);
+        wangle < 0 ? wangle += CH_PI : wangle -= CH_PI;
+    } else {  // [0; 2PI)
+        wangle = std::fmod(wangle, CH_2PI);
+        if (wangle < 0)
+            wangle += CH_2PI;
+    }
+    return wangle;
 }
 
 }  // end namespace chrono

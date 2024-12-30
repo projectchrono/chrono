@@ -326,6 +326,12 @@ bool ChParticleCloud::UseDynamicColors() const {
     return m_color_fun != nullptr;
 }
 
+bool ChParticleCloud::IsVisible(unsigned int n) const {
+    if (m_vis_fun)
+        return m_vis_fun->get(n, *this);
+    return true;
+}
+
 // STATE BOOKKEEPING FUNCTIONS
 
 void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x state vector

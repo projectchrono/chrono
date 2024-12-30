@@ -176,7 +176,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
-    ChVehicleGeometry::AddVisualizationCylinder(
+    utils::ChBodyGeometry::AddVisualizationCylinder(
         m_shoe,                                                                     //
         ChVector3d(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0),  //
         ChVector3d(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0),  //

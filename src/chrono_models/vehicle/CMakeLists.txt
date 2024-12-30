@@ -83,6 +83,10 @@ set(CVM_BMW_FILES
     bmw/BMW_E90_TMsimpleTireFront.h
     bmw/BMW_E90_TMsimpleTireRear.cpp
     bmw/BMW_E90_TMsimpleTireRear.h
+        bmw/BMW_E90_TMeasyTireFront.cpp
+        bmw/BMW_E90_TMeasyTireFront.h
+        bmw/BMW_E90_TMeasyTireRear.cpp
+        bmw/BMW_E90_TMeasyTireRear.h
 )
 source_group("bmw" FILES ${CVM_BMW_FILES})
 
@@ -157,6 +161,8 @@ set(CVM_HMMWV_POWERTRAIN_FILES
     hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.cpp
     hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.h
     hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleMap.cpp
+        hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleCVT.cpp
+        hmmwv/powertrain/HMMWV_AutomaticTransmissionSimpleCVT.h
 )
 set(CVM_HMMWV_TIRE_FILES
     hmmwv/tire/HMMWV_RigidTire.cpp

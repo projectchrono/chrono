@@ -69,7 +69,8 @@ double ChPac02Tire::GetNormalStiffnessForce(double depth) const {
     double gamma = m_states.gamma;
     double dpi = m_states.dpi;
     double Fc = (1.0) *
-                (m_par.QFZ1 * depth / R0 + m_par.QFZ2 * pow(depth / R0, 2) + m_par.QFZ3 * pow(gamma, 2) * depth / R0) *
+                (m_par.QFZ1 * depth / R0 + m_par.QFZ2 * std::pow(depth / R0, 2) +
+                 m_par.QFZ3 * std::pow(gamma, 2) * depth / R0) *
                 (1.0 + m_par.QPFZ1 * dpi) * m_par.LCZ * m_par.FNOMIN;
     double Fb = 0;
     if (m_bottoming_table_found)
@@ -115,9 +116,24 @@ void ChPac02Tire::CombinedCoulombForces(double& fx, double& fy, double fz) {
     // Lateral Friction Force
     double bry_dot = m_states.vsy - m_par.sigma0 * m_states.bry * fabs(m_states.vsy) / fc;  // dz/dt
     F.y() = -(m_par.sigma0 * m_states.bry + m_par.sigma1 * bry_dot);
-    // Calculate the new ODE states (implicit Euler)
-    m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
-    m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    if (m_use_bdf1) {
+        // Calculate the new ODE states (Backward Euler / BDF1 / Gear1)
+        // implicit, A-stable
+        // Integration error ~ h
+        m_states.brx = (fc * m_states.brx + fc * h * m_states.vsx) / (fc + h * m_par.sigma0 * fabs(m_states.vsx));
+        m_states.bry = (fc * m_states.bry + fc * h * m_states.vsy) / (fc + h * m_par.sigma0 * fabs(m_states.vsy));
+    } else {
+        // Calculate the new ODE states (Trapezoidal Rule)
+        // implicit, A-stable
+        // Integration error ~ h^2
+        m_states.brx = (2.0 * m_states.brx * fc + 2.0 * fc * h * m_states.vsx -
+                        m_states.brx * h * m_par.sigma0 * std::abs(m_states.vsx)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsx));
+        m_states.bry = (2.0 * m_states.bry * fc + 2.0 * fc * h * m_states.vsy -
+                        m_states.bry * h * m_par.sigma0 * std::abs(m_states.vsy)) /
+                       (2.0 * fc + h * m_par.sigma0 * std::abs(m_states.vsy));
+    }
+
     // combine forces (friction circle)
     if (F.Length() > fz * muscale) {
         F.Normalize();
@@ -135,27 +151,27 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     double Svx = Fz * (m_par.PVX1 + m_par.PVX2 * m_states.dfz0) * m_par.LVX * m_par.LMUX;
     double kappa_x = kappa + Shx;
     double gamma_x = gamma * m_par.LGAX;
-    double Ex = (m_par.PEX1 + m_par.PEX2 * m_states.dfz0 + m_par.PEX3 * pow(m_states.dfz0, 2)) *
+    double Ex = (m_par.PEX1 + m_par.PEX2 * m_states.dfz0 + m_par.PEX3 * std::pow(m_states.dfz0, 2)) *
                 (1.0 - m_par.PEX4 * ChSignum(kappa_x)) * m_par.LEX;
     if (Ex > 1.0)
         Ex = 1.0;
     double mu_x = std::abs(m_states.mu_scale * (m_par.PDX1 + m_par.PDX2 * m_states.dfz0) *
-                           (1.0 + m_par.PPX3 * m_states.dpi + m_par.PPX4 * pow(m_states.dpi, 2)) *
-                           (1.0 - m_par.PDX3 * pow(gamma_x, 2)) * m_par.LMUX);
+                           (1.0 + m_par.PPX3 * m_states.dpi + m_par.PPX4 * std::pow(m_states.dpi, 2)) *
+                           (1.0 - m_par.PDX3 * std::pow(gamma_x, 2)) * m_par.LMUX);
     double Dx = mu_x * Fz;
-    double Kx = Fz * (m_par.PKX1 + m_par.PKX2 * m_states.dfz0) * exp(m_par.PKX3 * m_states.dfz0) *
-                (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
+    double Kx = Fz * (m_par.PKX1 + m_par.PKX2 * m_states.dfz0) * std::exp(m_par.PKX3 * m_states.dfz0) *
+                (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * std::pow(m_states.dpi, 2)) * m_par.LKX;
     double Bx = Kx / (Cx * Dx + 0.1);
     double X1 = Bx * kappa_x;
     ChClampValue(X1, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
     // Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
-    Fx0 = Dx * sin(Cx * atan(X1 - Ex * (X1 - atan(X1)))) + Svx;
+    Fx0 = Dx * std::sin(Cx * std::atan(X1 - Ex * (X1 - std::atan(X1)))) + Svx;
 
     double Fy0 = 0;  // lateral steady state force
     double gamma_y = gamma * m_par.LGAY;
     double Cy = m_par.PCY1 * m_par.LCY;
     double Ky0 = m_par.PKY1 * m_par.FNOMIN * (1 + m_par.PPY1 * m_states.dpi) *
-                 sin(2.0 * atan(Fz / (m_par.PKY2 * m_states.Fz0_prime * (1.0 + m_par.PPY2 * m_states.dpi)))) *
+                 std::sin(2.0 * std::atan(Fz / (m_par.PKY2 * m_states.Fz0_prime * (1.0 + m_par.PPY2 * m_states.dpi)))) *
                  m_par.LFZO * m_par.LMUY;
     double Ky = Ky0 * (1.0 - m_par.PKY3 * fabs(gamma_y));
     double Shy = (m_par.PHY1 + m_par.PHY2 * m_states.dfz0) * m_par.LHY + m_par.PHY3 * gamma_y * m_par.LKYG;
@@ -169,14 +185,14 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     if (Ey > 1.0)
         Ey = 1.0;
     double mu_y = std::abs(m_states.mu_scale * (m_par.PDY1 + m_par.PDY2 * m_states.dfz0) *
-                           (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * pow(m_states.dpi, 2)) *
-                           (1.0 + m_par.PDY3 * pow(gamma_y, 2)) * m_par.LMUY);
+                           (1.0 + m_par.PPY3 * m_states.dpi + m_par.PPY4 * std::pow(m_states.dpi, 2)) *
+                           (1.0 + m_par.PDY3 * std::pow(gamma_y, 2)) * m_par.LMUY);
     double Dy = mu_y * Fz;
     double By = Ky / (Cy * Dy + 0.1);
     double Y1 = By * alpha_y;
     ChClampValue(Y1, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
-    // Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
-    Fy0 = Dy * sin(Cy * atan(Y1 - Ey * (Y1 - atan(Y1)))) + Svy;
+    // Fy0 = Dy * std::sin(Cy * std::atan(By * alpha_y - Ey * (By * alpha_y - std::atan(By * alpha_y)))) + Svy;
+    Fy0 = Dy * std::sin(Cy * std::atan(Y1 - Ey * (Y1 - std::atan(Y1)))) + Svy;
 
     // not Pacejka: grip saturation longitudinal ------------------------
     m_states.grip_sat_x = std::abs((Fx0 - Svx) / Fz) / std::abs(Dx / Fz);
@@ -195,16 +211,17 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     double alpha_r = alpha + Shf;
     double alpha_t = alpha + Sht;
     double Ct = m_par.QCZ1;
-    double Bt = std::abs((m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
+    double Bt = std::abs((m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * std::pow(m_states.dfz0, 2)) *
                          (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY);
-    double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
-                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_PI) * atan(Bt * Ct * alpha_t)));
+    double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * std::pow(m_states.dfz0, 2)) *
+                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_PI) * std::atan(Bt * Ct * alpha_t)));
     if (Et > 1.0)
         Et = 1.0;
     double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
-                (1.0 + m_par.QDZ3 * gamma_z + m_par.QDZ4 * pow(gamma_z, 2)) * R0 / m_states.Fz0_prime * m_par.LTR;
+                (1.0 + m_par.QDZ3 * gamma_z + m_par.QDZ4 * std::pow(gamma_z, 2)) * R0 / m_states.Fz0_prime * m_par.LTR;
     // trail, uncombined forces
-    double t = Dt * (cos(Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))))) * cos(alpha);
+    double t =
+        Dt * (std::cos(Ct * std::atan(Bt * alpha_t - Et * (Bt * alpha_t - std::atan(Bt * alpha_t))))) * std::cos(alpha);
     // residual moment
     double Br = (m_par.QBZ9 * m_par.LKY / m_par.LMUY + m_par.QBZ10 * By * Cy);
     double Dr = Fz *
@@ -213,7 +230,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
                 R0 * m_par.LMUY;
     // residual moment, uncombined forces
     const double Cr = 1.0;
-    double Mzr = Dr * cos(Cr * atan(Br * alpha_r)) * cos(alpha);
+    double Mzr = Dr * std::cos(Cr * std::atan(Br * alpha_r)) * std::cos(alpha);
 
     switch (m_use_mode) {
         case 1:
@@ -240,14 +257,14 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
                 // combining without rsp. Pacejka coefficients, ADAMs
                 double kappa_c = kappa + Shx + Svx / Kx;
                 double alpha_c = alpha + Shy + Svy / Ky;
-                double alpha_s = sin(alpha_c);
-                double beta = acos(std::abs(kappa_c) / hypot(kappa_c, alpha_s));
+                double alpha_s = std::sin(alpha_c);
+                double beta = std::acos(std::abs(kappa_c) / hypot(kappa_c, alpha_s));
                 double mu_x_act = std::abs((Fx0 - Svx) / Fz);
                 double mu_y_act = std::abs((Fy0 - Svy) / Fz);
                 double mu_x_max = Dx / Fz;
                 double mu_y_max = Dy / Fz;
-                double mu_x_c = 1.0 / hypot(1.0 / mu_x_act, tan(beta) / mu_y_max);
-                double mu_y_c = tan(beta) / hypot(1.0 / mu_x_max, tan(beta) / mu_y_act);
+                double mu_x_c = 1.0 / hypot(1.0 / mu_x_act, std::tan(beta) / mu_y_max);
+                double mu_y_c = std::tan(beta) / hypot(1.0 / mu_x_max, std::tan(beta) / mu_y_act);
                 Fx = Fx0 * mu_x_c / mu_x_act;
                 Fy = Fy0 * mu_y_c / mu_y_act;
                 Mz = -t * Fy + Mzr;
@@ -259,10 +276,11 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
                 double Exa = m_par.REX1 + m_par.REX2 * m_states.dfz0;
                 if (Exa > 1.0)
                     Exa = 1.0;
-                double Bxa = std::abs(m_par.RBX1 * cos(atan(m_par.RBX2 * kappa)) * m_par.LXAL);
+                double Bxa = std::abs(m_par.RBX1 * std::cos(std::atan(m_par.RBX2 * kappa)) * m_par.LXAL);
                 ////double Dxa = Fx0 / cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
-                double Gxa = cos(Cxa * atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s)))) /
-                             cos(Cxa * atan(Bxa * Shxa - Exa * (Bxa * Shxa - atan(Bxa * Shxa))));
+                double Gxa =
+                    std::cos(Cxa * std::atan(Bxa * alpha_s - Exa * (Bxa * alpha_s - std::atan(Bxa * alpha_s)))) /
+                    std::cos(Cxa * std::atan(Bxa * Shxa - Exa * (Bxa * Shxa - std::atan(Bxa * Shxa))));
                 Fx = Fx0 * Gxa;
 
                 double Shyk = m_par.RHY1 + m_par.RHY2 * m_states.dfz0;
@@ -271,26 +289,32 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
                 double Eyk = m_par.REY1 + m_par.REY2 * m_states.dfz0;
                 if (Eyk > 1.0)
                     Eyk = 1.0;
-                double Byk = m_par.RBY1 * cos(atan(m_par.RBY2 * (alpha - m_par.RBY3))) * m_par.LYKA;
+                double Byk = m_par.RBY1 * std::cos(std::atan(m_par.RBY2 * (alpha - m_par.RBY3))) * m_par.LYKA;
                 double Dvyk = mu_y * Fz * (m_par.RVY1 + m_par.RVY2 * m_states.dfz0 + m_par.RVY3 * gamma) *
-                              cos(atan(m_par.RVY4 * alpha));
-                double Svyk = Dvyk * sin(m_par.RVY5 * atan(m_par.RVY6 * kappa)) * m_par.LVYKA;
-                double Gyk = cos(Cyk * atan(Byk * kappa_s - Eyk * (Byk * kappa_s - atan(Byk * kappa_s)))) /
-                             cos(Cyk * atan(Byk * Shyk - Eyk * (Byk * Shyk - atan(Byk * Shyk))));
+                              std::cos(std::atan(m_par.RVY4 * alpha));
+                double Svyk = Dvyk * std::sin(m_par.RVY5 * std::atan(m_par.RVY6 * kappa)) * m_par.LVYKA;
+                double Gyk =
+                    std::cos(Cyk * std::atan(Byk * kappa_s - Eyk * (Byk * kappa_s - std::atan(Byk * kappa_s)))) /
+                    std::cos(Cyk * std::atan(Byk * Shyk - Eyk * (Byk * Shyk - std::atan(Byk * Shyk))));
                 Fy = Fy0 * Gyk + Svyk;
 
-                double alpha_teq = atan(sqrt(pow(tan(alpha_t), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(kappa);
+                double alpha_teq =
+                    std::atan(std::sqrt(std::pow(std::tan(alpha_t), 2) + std::pow(Kx / Ky, 2) * std::pow(kappa, 2))) *
+                    ChSignum(kappa);
                 double alpha_req =
-                    atan(sqrt(pow(tan(alpha_r), 2) + pow(Kx / Ky, 2) * pow(kappa, 2))) * ChSignum(alpha_r);
+                    std::atan(std::sqrt(std::pow(std::tan(alpha_r), 2) + std::pow(Kx / Ky, 2) * std::pow(kappa, 2))) *
+                    ChSignum(alpha_r);
                 // trail combined forces
                 double tc =
-                    Dt * (cos(Ct * atan(Bt * alpha_teq - Et * (Bt * alpha_teq - atan(Bt * alpha_teq))))) * cos(alpha);
+                    Dt *
+                    (std::cos(Ct * std::atan(Bt * alpha_teq - Et * (Bt * alpha_teq - std::atan(Bt * alpha_teq))))) *
+                    std::cos(alpha);
                 // residual moment
                 double s = (m_par.SSZ1 + m_par.SSZ2 * Fy / m_states.Fz0_prime +
                             (m_par.SSZ3 + m_par.SSZ4 * m_states.dfz0) * gamma) *
                            R0 * m_par.LS;
                 // residual moment, combined forces
-                double Mzrc = Dr * cos(Cr * atan(Br * alpha_req)) * cos(alpha);
+                double Mzrc = Dr * std::cos(Cr * std::atan(Br * alpha_req)) * std::cos(alpha);
                 double Fy_prime = Fy - Svyk;
                 Mz = -tc * Fy_prime + Mzrc + s * Fx;
             }
@@ -300,37 +324,37 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
 
 double ChPac02Tire::CalcSigmaK(double Fz) {
     double R0 = m_par.UNLOADED_RADIUS;
-    return Fz * (m_par.PTX1 + m_par.PTX2 * m_states.dfz0) * exp(m_par.PTX3 * m_states.dfz0) *
+    return Fz * (m_par.PTX1 + m_par.PTX2 * m_states.dfz0) * std::exp(m_par.PTX3 * m_states.dfz0) *
            (R0 / m_states.Fz0_prime) * m_par.LSGKP;
 }
 
 double ChPac02Tire::CalcSigmaA(double Fz) {
     double R0 = m_par.UNLOADED_RADIUS;
-    return m_par.PTY1 * sin(2.0 * atan(Fz / (m_par.PTY2 * m_par.FNOMIN * m_par.LFZO))) *
-           (1.0 - m_par.PKY3 * fabs(m_states.gamma)) * (R0 * m_par.LFZO) * m_par.LSGAL;
+    return m_par.PTY1 * std::sin(2.0 * std::atan(Fz / (m_par.PTY2 * m_par.FNOMIN * m_par.LFZO))) *
+           (1.0 - m_par.PKY3 * std::fabs(m_states.gamma)) * (R0 * m_par.LFZO) * m_par.LSGAL;
 }
 
 double ChPac02Tire::CalcMx(double Fy, double Fz, double gamma) {
-    double Mx =
-        m_par.UNLOADED_RADIUS * Fz *
-        (m_par.QSX3 * Fy / m_states.Fz0_prime +
-         m_par.QSX4 * cos(m_par.QSX5 * atan(pow(Fz / m_states.Fz0_prime, 2))) *
-             sin(m_par.QSX7 * gamma + m_par.QSX8 * atan(m_par.QSX9 * Fy / m_states.Fz0_prime)) +
-         (m_par.QSX10 * atan(m_par.QSX11 * Fz / m_states.Fz0_prime) - m_par.QSX2 * (1.0 + m_par.QPX1 * m_states.dpi)) *
-             gamma +
-         m_par.QSX1 * m_par.LVMX) *
-        m_par.LMX;
+    double Mx = m_par.UNLOADED_RADIUS * Fz *
+                (m_par.QSX3 * Fy / m_states.Fz0_prime +
+                 m_par.QSX4 * std::cos(m_par.QSX5 * std::atan(std::pow(Fz / m_states.Fz0_prime, 2))) *
+                     std::sin(m_par.QSX7 * gamma + m_par.QSX8 * std::atan(m_par.QSX9 * Fy / m_states.Fz0_prime)) +
+                 (m_par.QSX10 * std::atan(m_par.QSX11 * Fz / m_states.Fz0_prime) -
+                  m_par.QSX2 * (1.0 + m_par.QPX1 * m_states.dpi)) *
+                     gamma +
+                 m_par.QSX1 * m_par.LVMX) *
+                m_par.LMX;
     return Mx;
 }
 
 double ChPac02Tire::CalcMy(double Fx, double Fz, double gamma) {
     // in most cases only QSY1 is used.
-    double V0 = sqrt(m_g * m_par.UNLOADED_RADIUS);
+    double V0 = std::sqrt(m_g * m_par.UNLOADED_RADIUS);
     double My = Fz * m_par.UNLOADED_RADIUS *
                 (m_par.QSY1 + m_par.QSY2 * Fx / m_par.FNOMIN + m_par.QSY3 * fabs(m_states.vx / V0) +
-                 m_par.QSY4 * pow(m_states.vx / V0, 4) + m_par.QSY5 * pow(gamma, 2) +
-                 m_par.QSY6 * pow(gamma, 2) * Fz / m_par.FNOMIN) *
-                (pow(Fz / m_par.FNOMIN, m_par.QSY7) * pow(m_par.IP / m_par.IP_NOM, m_par.QSY8)) * m_par.LMY;
+                 m_par.QSY4 * std::pow(m_states.vx / V0, 4) + m_par.QSY5 * std::pow(gamma, 2) +
+                 m_par.QSY6 * std::pow(gamma, 2) * Fz / m_par.FNOMIN) *
+                (std::pow(Fz / m_par.FNOMIN, m_par.QSY7) * std::pow(m_par.IP / m_par.IP_NOM, m_par.QSY8)) * m_par.LMY;
     return My;
 }
 

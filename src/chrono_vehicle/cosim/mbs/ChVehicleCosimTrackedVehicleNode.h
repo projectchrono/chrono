@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
                                ) override;
 
     /// Return terrain contact geometry and material information for one track shoe.
-    virtual ChVehicleGeometry GetTrackShoeContactGeometry() const override;
+    virtual utils::ChBodyGeometry GetTrackShoeContactGeometry() const override;
 
     /// Return mass of one track shoe.
     virtual double GetTrackShoeMass() const override;

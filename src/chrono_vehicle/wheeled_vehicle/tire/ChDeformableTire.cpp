@@ -29,10 +29,7 @@ using namespace chrono::fea;
 
 // -----------------------------------------------------------------------------
 ChDeformableTire::ChDeformableTire(const std::string& name)
-    : ChTire(name),
-      m_connection_enabled(true),
-      m_pressure_enabled(true),
-      m_contact_enabled(true) {}
+    : ChTire(name), m_connection_enabled(true), m_pressure_enabled(true), m_contact_enabled(true) {}
 
 ChDeformableTire::~ChDeformableTire() {
     if (!m_initialized)
@@ -96,6 +93,8 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         // Let the derived class create the constraints and add them to the system.
         CreateRimConnections(wheel->GetSpindle());
     }
+
+    InitializeInertiaProperties();
 }
 
 void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {

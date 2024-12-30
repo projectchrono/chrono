@@ -51,6 +51,9 @@ class ChApi ChCollisionShapeTriangleMesh : public ChCollisionShape {
     /// Return the mesh thickness as the radius of a sphere-swept mesh.
     double GetRadius() const { return radius; }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return trimesh->GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

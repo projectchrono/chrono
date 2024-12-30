@@ -187,8 +187,6 @@ set(CV_BASE_FILES
     ChTerrain.cpp
     ChVehicle.h
     ChVehicle.cpp
-    ChVehicleGeometry.h
-    ChVehicleGeometry.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
     ChVehicleVisualSystem.h
@@ -207,6 +205,8 @@ set(CV_CHASSIS_FILES
     chassis/ChChassisConnectorArticulated.cpp
     chassis/ChChassisConnectorHitch.h
     chassis/ChChassisConnectorHitch.cpp
+    chassis/ChChassisConnectorFifthWheel.h
+    chassis/ChChassisConnectorFifthWheel.cpp
     chassis/ChChassisConnectorTorsion.h
     chassis/ChChassisConnectorTorsion.cpp
 
@@ -215,6 +215,8 @@ set(CV_CHASSIS_FILES
 
     chassis/ChassisConnectorHitch.h
     chassis/ChassisConnectorHitch.cpp
+    chassis/ChassisConnectorFifthWheel.h
+    chassis/ChassisConnectorFifthWheel.cpp
     chassis/ChassisConnectorArticulated.h
     chassis/ChassisConnectorArticulated.cpp
     chassis/ChassisConnectorTorsion.h
@@ -267,6 +269,10 @@ set(CV_POVERTRAIN_FILES
     powertrain/AutomaticTransmissionShafts.cpp
     powertrain/ManualTransmissionShafts.h
     powertrain/ManualTransmissionShafts.cpp
+        powertrain/ChAutomaticTransmissionSimpleCVT.cpp
+        powertrain/ChAutomaticTransmissionSimpleCVT.h
+        powertrain/AutomaticTransmissionSimpleCVT.cpp
+        powertrain/AutomaticTransmissionSimpleCVT.h
 )
 source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 
@@ -905,7 +911,7 @@ endif()
 
 if(ENABLE_MODULE_FSI)
   include_directories(${CH_FSI_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_fsi)
+  list(APPEND LIBRARIES ChronoEngine_fsi_sph)
 endif()
 
 add_library(ChronoEngine_vehicle

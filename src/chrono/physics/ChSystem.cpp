@@ -59,6 +59,7 @@ ChSystem::ChSystem()
       stepcount(0),
       setupcount(0),
       solvecount(0),
+      output_dir("."),
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChContactMaterialCompositionStrategy),
@@ -629,6 +630,9 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
+    if (!is_initialized)
+        assembly.SetupInitial();
+
     CH_PROFILE("Setup");
 
     timer_setup.start();
@@ -742,8 +746,8 @@ void ChSystem::IntToDescriptor(const unsigned int off_v,
     assembly.IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    unsigned int displ_v = off_v - assembly.offset_w;
+    int displ_L = off_L - assembly.offset_L;
+    int displ_v = off_v - assembly.offset_w;
     contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R,
                                        displ_L + contact_container->GetOffset_L(), L, Qc);
 }
@@ -756,8 +760,8 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
     assembly.IntFromDescriptor(off_v, v, off_L, L);
 
     // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    unsigned int displ_v = off_v - assembly.offset_w;
+    int displ_L = off_L - assembly.offset_L;
+    int displ_v = off_v - assembly.offset_w;
     contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(), v,
                                          displ_L + contact_container->GetOffset_L(), L);
 }
@@ -1268,10 +1272,8 @@ unsigned int ChSystem::GetNumContacts() {
     return contact_container->GetNumContacts();
 }
 
-double ChSystem::ComputeCollisions() {
+unsigned int ChSystem::ComputeCollisions() {
     CH_PROFILE("ComputeCollisions");
-
-    double mretC = 0.0;
 
     timer_collision.start();
 
@@ -1313,7 +1315,7 @@ double ChSystem::ComputeCollisions() {
 
     timer_collision.stop();
 
-    return mretC;
+    return ncontacts;
 }
 
 // -----------------------------------------------------------------------------
@@ -1707,10 +1709,14 @@ bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
 }
 
 // -----------------------------------------------------------------------------
-// System asembly
+// System assembly
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoAssembly(int action, int max_num_iterations) {
+AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
+                                                int max_num_iterationsNR,
+                                                double abstol_residualNR,
+                                                double reltol_updateNR,
+                                                double abstol_updateNR) {
     Initialize();
 
     applied_forces_current = false;
@@ -1721,46 +1727,31 @@ bool ChSystem::DoAssembly(int action, int max_num_iterations) {
     Setup();
     Update();
 
-    // Overwrite solver parameters (only if iterative)
-    int new_max_iters = 300;
-    double new_tolerance = 1e-10;
-    int old_max_iters = 0;
-    double old_tolerance = 0.0;
-    if (solver->IsIterative()) {
-        old_max_iters = solver->AsIterative()->GetMaxIterations();
-        old_tolerance = solver->AsIterative()->GetTolerance();
-        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
-        solver->AsIterative()->SetTolerance(new_tolerance);
-    }
-
     // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
 
-    ChAssemblyAnalysis manalysis(*this);
-    manalysis.SetMaxAssemblyIters(max_num_iterations);
+    ChAssemblyAnalysis assembling(*this);
+    assembling.SetMaxAssemblyIters(max_num_iterationsNR);
 
     // Perform analysis
     step = 1e-6;
-    manalysis.AssemblyAnalysis(action, step);
-
-    // Restore solver parameters
-    if (solver->IsIterative()) {
-        solver->AsIterative()->SetMaxIterations(old_max_iters);
-        solver->AsIterative()->SetTolerance(old_tolerance);
-    }
+    assembling.SetAbsToleranceResidual(abstol_residualNR);
+    assembling.SetRelToleranceUpdate(reltol_updateNR);
+    assembling.SetAbsToleranceUpdate(abstol_updateNR);
+    AssemblyAnalysis::ExitFlag exit_flag = assembling.AssemblyAnalysis(action, step);
 
     // Update any attached visualization system
     if (visual_system)
         visual_system->OnUpdate(this);
 
-    return true;
+    return exit_flag;
 }
 
 // -----------------------------------------------------------------------------
 // Inverse kinematics analysis
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoStepKinematics(double step_size) {
+AssemblyAnalysis::ExitFlag ChSystem::DoStepKinematics(double step_size) {
     Initialize();
 
     applied_forces_current = false;
@@ -1768,17 +1759,18 @@ bool ChSystem::DoStepKinematics(double step_size) {
     ch_time += step_size;
 
     Update();
-    bool success = DoAssembly(AssemblyLevel::FULL);
+    AssemblyAnalysis::ExitFlag exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
-    return success;
+    return exit_flag;
 }
 
-bool ChSystem::DoFrameKinematics(double frame_time, double step_size) {
+AssemblyAnalysis::ExitFlag ChSystem::DoFrameKinematics(double frame_time, double step_size) {
     Initialize();
 
     applied_forces_current = false;
     step = step_size;
-    bool success = true;
+
+    AssemblyAnalysis::ExitFlag exit_flag = AssemblyAnalysis::ExitFlag::SUCCESS;
 
     while (ch_time < frame_time) {
         double left_time = frame_time - ch_time;
@@ -1789,15 +1781,16 @@ bool ChSystem::DoFrameKinematics(double frame_time, double step_size) {
         if (left_time < (1.3 * step))
             step = left_time;
 
-        if (!DoAssembly(AssemblyLevel::FULL)) {
-            success = false;
+        exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
+
+        if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
             break;
         }
 
         ch_time += step;
     }
 
-    return success;
+    return exit_flag;
 }
 
 // -----------------------------------------------------------------------------

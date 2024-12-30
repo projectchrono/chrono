@@ -82,11 +82,11 @@ int main(int argc, char* argv[]) {
     double rho = 0.0;
 
     auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
-    diam = sqrt(1e-6 / CH_PI) * 2.0 * f_const;
+    diam = std::sqrt(1e-6 / CH_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
-    msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
-    msection_cable->SetInertia(CH_PI / 4.0 * pow(diam / 2, 4));
-    rho = 8000 / pow(f_const, 2);
+    msection_cable->SetYoungModulus(1e9 / std::pow(f_const, 4));
+    msection_cable->SetInertia(CH_PI / 4.0 * std::pow(diam / 2, 4));
+    rho = 8000 / std::pow(f_const, 2);
     msection_cable->SetDensity(rho);
 
     // Create the nodes

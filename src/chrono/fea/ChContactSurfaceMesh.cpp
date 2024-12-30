@@ -12,11 +12,17 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/bullet/ChCollisionModelBullet.h"
-#include "chrono/core/ChFrame.h"
-#include "chrono/physics/ChSystem.h"
+#include <unordered_map>
+#include <map>
+#include <set>
+#include <array>
+#include <algorithm>
+#include <cmath>
 
-#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtilsGeometry.h"
+
+#include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellANCF_3443.h"
 #include "chrono/fea/ChElementShellANCF_3833.h"
@@ -28,13 +34,8 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChHexahedronFace.h"
 #include "chrono/fea/ChTetrahedronFace.h"
-#include "chrono/fea/ChMesh.h"
 
-#include <unordered_map>
-#include <map>
-#include <set>
-#include <array>
-#include <algorithm>
+#include "chrono/fea/ChContactSurfaceMesh.h"
 
 namespace chrono {
 namespace fea {
@@ -138,7 +139,7 @@ ChVector3d ChContactTriangleXYZ::GetContactPointSpeed(const ChVector3d& abs_poin
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    return (s1 * m_nodes[0]->pos_dt + s2 * m_nodes[1]->pos_dt + s3 * m_nodes[2]->pos_dt);
+    return s1 * m_nodes[0]->GetPosDt() + s2 * m_nodes[1]->GetPosDt() + s3 * m_nodes[2]->GetPosDt();
 }
 
 void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -148,6 +149,7 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
+
     R.segment(m_nodes[0]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s1;
     R.segment(m_nodes[1]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s2;
     R.segment(m_nodes[2]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s3;
@@ -170,6 +172,7 @@ void ChContactTriangleXYZ::ContactComputeQ(const ChVector3d& F,
     ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
     double s1 = 1 - s2 - s3;
+
     Q.segment(offset + 0, 3) = F.eigen() * s1;
     Q.segment(offset + 3, 3) = F.eigen() * s2;
     Q.segment(offset + 6, 3) = F.eigen() * s3;
@@ -269,7 +272,7 @@ ChVector3d ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
-void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d P, double& u, double& v) {
+void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d& P, double& u, double& v) {
     bool is_into;
     ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->pos, m_nodes[1]->pos, m_nodes[2]->pos, u, v, is_into,
@@ -399,7 +402,7 @@ ChVector3d ChContactTriangleXYZRot::GetContactPointSpeed(const ChVector3d& abs_p
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    return (s1 * m_nodes[0]->GetPosDt() + s2 * m_nodes[1]->GetPosDt() + s3 * m_nodes[2]->GetPosDt());
+    return s1 * m_nodes[0]->GetPosDt() + s2 * m_nodes[1]->GetPosDt() + s3 * m_nodes[2]->GetPosDt();
 }
 
 void ChContactTriangleXYZRot::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -409,6 +412,7 @@ void ChContactTriangleXYZRot::ContactForceLoadResidual_F(const ChVector3d& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
+
     R.segment(m_nodes[0]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s1;
     R.segment(m_nodes[1]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s2;
     R.segment(m_nodes[2]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s3;
@@ -446,7 +450,6 @@ void ChContactTriangleXYZRot::ContactComputeQ(const ChVector3d& F,
 
     // in case also torque is used:
     if (!T.IsNull()) {
-        // Calculate barycentric coordinates
         ChCoordsys<> C1(state_x.segment(0, 7));
         ChCoordsys<> C2(state_x.segment(7, 7));
         ChCoordsys<> C3(state_x.segment(14, 7));
@@ -554,7 +557,7 @@ ChVector3d ChContactTriangleXYZRot::ComputeNormal(const double U, const double V
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
-void ChContactTriangleXYZRot::ComputeUVfromP(const ChVector3d P, double& u, double& v) {
+void ChContactTriangleXYZRot::ComputeUVfromP(const ChVector3d& P, double& u, double& v) {
     bool is_into;
     ChVector3d p_projected;
     /*double dist =*/utils::PointTriangleDistance(P, m_nodes[0]->GetPos(), m_nodes[1]->GetPos(), m_nodes[2]->GetPos(),
@@ -670,21 +673,19 @@ void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshCo
     AddFacesFromTripletsXYZ(triangles_ptrs, sphere_swept);
 }
 
-void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
-    if (!m_physics_item)
-        return;
-    auto mesh = dynamic_cast<ChMesh*>(m_physics_item);
-    if (!mesh)
-        return;
-
+void ChContactSurfaceMesh::AddFacesFromBoundary(const ChMesh& mesh,
+                                                double sphere_swept,
+                                                bool ccw,
+                                                bool include_cable_elements,
+                                                bool include_beam_elements) {
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyz>, 3>> triangles_ptrs;
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>> triangles_rot_ptrs;
 
     // Boundary faces of TETRAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map;
 
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh.GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
@@ -694,8 +695,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh.GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
@@ -712,8 +713,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // Boundary faces of HEXAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_brick;
 
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh.GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
@@ -723,8 +724,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh.GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {   // Each of the 6 faces of a brick
                 ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
@@ -740,8 +741,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // Skin of ANCF SHELLS
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh.GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
@@ -756,8 +757,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3443>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3443>(mesh.GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
@@ -772,8 +773,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3833>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3833>(mesh.GetElement(ie))) {
             auto nA = mshell->GetNodeA();
             auto nB = mshell->GetNodeB();
             auto nC = mshell->GetNodeC();
@@ -801,8 +802,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // Skin of REISSNER SHELLS:
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(mesh.GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyzrot> nC = mshell->GetNodeC();
@@ -818,8 +819,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // Skin of BST shells
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellBST>(mesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellBST>(mesh.GetElement(ie))) {
             auto n0 = mshell->GetNodeMainTriangle(0);
             auto n1 = mshell->GetNodeMainTriangle(1);
             auto n2 = mshell->GetNodeMainTriangle(2);
@@ -831,77 +832,88 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    // EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
+    if (include_beam_elements) {
+        // EULER BEAMS (handled as a skinny triangle, with sphere swept radii, i.e. a capsule)
+        for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+            if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(mesh.GetElement(ie))) {
+                std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
+                std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
 
-            double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
-            if (sphere_swept > 0.0) {
-                capsule_radius = sphere_swept;
-            } else {
-                double ymin, ymax, zmin, zmax;
-                auto mdrawshape = mbeam->GetSection()->GetDrawShape();
-                if (mdrawshape) {
-                    mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+                double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
+                if (sphere_swept > 0.0) {
+                    capsule_radius = sphere_swept;
+                } else {
+                    double ymin, ymax, zmin, zmax;
+                    auto mdrawshape = mbeam->GetSection()->GetDrawShape();
+                    if (mdrawshape) {
+                        mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
 
-                    if (std::dynamic_pointer_cast<ChBeamSectionEulerEasyCircular>(mbeam->GetSection())) {
-                        capsule_radius = 0.5 * std::max(std::abs(ymax - ymin), std::abs(zmax - zmin));
-                    } else {
-                        capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+                        if (std::dynamic_pointer_cast<ChBeamSectionEulerEasyCircular>(mbeam->GetSection())) {
+                            capsule_radius = 0.5 * std::max(std::abs(ymax - ymin), std::abs(zmax - zmin));
+                        } else {
+                            capsule_radius = 0.5 * std::sqrt(std::pow(ymax - ymin, 2) + std::pow(zmax - zmin, 2));
+                        }
                     }
                 }
-            }
 
-            AddFace(nA, nB, nB,                 // vertices
-                    nullptr, nullptr, nullptr,  // no wing vertexes
-                    false, false, false,        // are vertexes owned by this triangle?
-                    true, false, true,          // are edges owned by this triangle?
-                    capsule_radius);
+                AddFace(nA, nB, nB,                 // vertices
+                        nullptr, nullptr, nullptr,  // no wing vertexes
+                        false, false, false,        // are vertexes owned by this triangle?
+                        true, false, true,          // are edges owned by this triangle?
+                        capsule_radius);
+            }
+        }
+
+        // ANCF BEAM (handled as a skinny triangle, with sphere swept radii, i.e. a capsule)
+        for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+            if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mesh.GetElement(ie))) {
+                std::shared_ptr<ChNodeFEAxyzD> nA = beam3243->GetNodeA();
+                std::shared_ptr<ChNodeFEAxyzD> nB = beam3243->GetNodeB();
+
+                double capsule_radius =
+                    0.5 * std::sqrt(std::pow(beam3243->GetThicknessY(), 2) + std::pow(beam3243->GetThicknessZ(), 2));
+
+                AddFace(nA, nB, nB,                 // vertices
+                        nullptr, nullptr, nullptr,  // no wing vertexes
+                        false, false, false,        // are vertexes owned by this triangle?
+                        true, false, true,          // are edges owned by this triangle?
+                        capsule_radius);
+            } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mesh.GetElement(ie))) {
+                std::shared_ptr<ChNodeFEAxyzD> nA = beam3333->GetNodeA();
+                std::shared_ptr<ChNodeFEAxyzD> nB = beam3333->GetNodeB();
+
+                double capsule_radius =
+                    0.5 * std::sqrt(std::pow(beam3333->GetThicknessY(), 2) + std::pow(beam3333->GetThicknessZ(), 2));
+
+                AddFace(nA, nB, nB,                 // vertices
+                        nullptr, nullptr, nullptr,  // no wing vertexes
+                        false, false, false,        // are vertexes owned by this triangle?
+                        true, false, true,          // are edges owned by this triangle?
+                        capsule_radius);
+            }
         }
     }
 
-    // ANCF BEAMS (handled as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
-        if (auto cableANCF = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzD> nA = cableANCF->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzD> nB = cableANCF->GetNodeB();
+    if (include_cable_elements) {
+        // ANCF CABLE (handled as a skinny triangle, with sphere swept radii, i.e. a capsule)
+        for (unsigned int ie = 0; ie < mesh.GetNumElements(); ++ie) {
+            if (auto cableANCF = std::dynamic_pointer_cast<ChElementCableANCF>(mesh.GetElement(ie))) {
+                std::shared_ptr<ChNodeFEAxyzD> nA = cableANCF->GetNodeA();
+                std::shared_ptr<ChNodeFEAxyzD> nB = cableANCF->GetNodeB();
 
-            double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
-            if (auto mdrawshape = cableANCF->GetSection()->GetDrawShape()) {
-                double ymin, ymax, zmin, zmax;
-                mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
-                capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+                double capsule_radius = ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
+                if (auto mdrawshape = cableANCF->GetSection()->GetDrawShape()) {
+                    double ymin, ymax, zmin, zmax;
+                    mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+                    capsule_radius = 0.5 * std::sqrt(std::pow(ymax - ymin, 2) + std::pow(zmax - zmin, 2));
+                }
+
+                AddFace(nA, nB, nB,                 // vertices
+                        nullptr, nullptr, nullptr,  // no wing vertexes
+                        false, false, false,        // are vertexes owned by this triangle?
+                        true, false, true,          // are edges owned by this triangle?
+                        capsule_radius);
             }
-
-            AddFace(nA, nB, nB,                 // vertices
-                    nullptr, nullptr, nullptr,  // no wing vertexes
-                    false, false, false,        // are vertexes owned by this triangle?
-                    true, false, true,          // are edges owned by this triangle?
-                    capsule_radius);
-        } else if (auto beam3243 = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzD> nA = beam3243->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzD> nB = beam3243->GetNodeB();
-
-            double capsule_radius = 0.5 * sqrt(pow(beam3243->GetThicknessY(), 2) + pow(beam3243->GetThicknessZ(), 2));
-
-            AddFace(nA, nB, nB,                 // vertices
-                    nullptr, nullptr, nullptr,  // no wing vertexes
-                    false, false, false,        // are vertexes owned by this triangle?
-                    true, false, true,          // are edges owned by this triangle?
-                    capsule_radius);
-        } else if (auto beam3333 = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzD> nA = beam3333->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzD> nB = beam3333->GetNodeB();
-
-            double capsule_radius = 0.5 * sqrt(pow(beam3333->GetThicknessY(), 2) + pow(beam3333->GetThicknessZ(), 2));
-
-            AddFace(nA, nB, nB,                 // vertices
-                    nullptr, nullptr, nullptr,  // no wing vertexes
-                    false, false, false,        // are vertexes owned by this triangle?
-                    true, false, true,          // are edges owned by this triangle?
-                    capsule_radius);
         }
     }
 

@@ -30,16 +30,32 @@ namespace chrono {
 /// that account also for rolling and spinning resistance), but also for '6dof vs 6dof' contactables.
 class ChApi ChContactContainerNSC : public ChContactContainer {
   public:
+    typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactNSC_3_3;
+
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSC_6_6;
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactNSC_6_3;
-    typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactNSC_3_3;
+
     typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactNSC_333_3;
     typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactNSC_333_6;
     typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactNSC_333_333;
+
     typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactNSC_666_3;
     typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactNSC_666_6;
     typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactNSC_666_333;
     typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactNSC_666_666;
+
+    typedef ChContactNSC<ChContactable_2vars<3, 3>, ChContactable_1vars<3> > ChContactNSC_33_3;
+    typedef ChContactNSC<ChContactable_2vars<3, 3>, ChContactable_1vars<6> > ChContactNSC_33_6;
+    typedef ChContactNSC<ChContactable_2vars<3, 3>, ChContactable_3vars<3, 3, 3> > ChContactNSC_33_333;
+    typedef ChContactNSC<ChContactable_2vars<3, 3>, ChContactable_3vars<6, 6, 6> > ChContactNSC_33_666;
+    typedef ChContactNSC<ChContactable_2vars<3, 3>, ChContactable_2vars<3, 3> > ChContactNSC_33_33;
+
+    typedef ChContactNSC<ChContactable_2vars<6, 6>, ChContactable_1vars<3> > ChContactNSC_66_3;
+    typedef ChContactNSC<ChContactable_2vars<6, 6>, ChContactable_1vars<6> > ChContactNSC_66_6;
+    typedef ChContactNSC<ChContactable_2vars<6, 6>, ChContactable_3vars<3, 3, 3> > ChContactNSC_66_333;
+    typedef ChContactNSC<ChContactable_2vars<6, 6>, ChContactable_3vars<6, 6, 6> > ChContactNSC_66_666;
+    typedef ChContactNSC<ChContactable_2vars<6, 6>, ChContactable_2vars<3, 3> > ChContactNSC_66_33;
+    typedef ChContactNSC<ChContactable_2vars<6, 6>, ChContactable_2vars<6, 6> > ChContactNSC_66_66;
 
     typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
 
@@ -53,8 +69,13 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     /// Report the number of added contacts.
     virtual unsigned int GetNumContacts() const override {
-        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
+        return n_added_3_3 +                                                                                    //
+               n_added_6_3 + n_added_6_6 +                                                                      //
+               n_added_333_3 + n_added_333_6 + n_added_333_333 +                                                //
+               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 +                              //
+               n_added_33_3 + n_added_33_6 + n_added_33_333 + n_added_33_666 + n_added_33_33 +                  //
+               n_added_66_3 + n_added_66_6 + n_added_66_333 + n_added_66_666 + n_added_66_33 + n_added_66_66 +  //
+               n_added_6_6_rolling;                                                                             //
     }
 
     /// Remove (delete) all contained contact data.
@@ -119,9 +140,15 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
     virtual unsigned int GetNumConstraintsUnilateral() override {
-        return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-                    n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
-               6 * (n_added_6_6_rolling);
+        auto n_added_sliding =                                                                              //
+            n_added_3_3 +                                                                                   //
+            n_added_6_3 + n_added_6_6 +                                                                     //
+            n_added_333_3 + n_added_333_6 + n_added_333_333 +                                               //
+            n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 +                             //
+            n_added_33_3 + n_added_33_6 + n_added_33_333 + n_added_33_666 + n_added_33_33 +                 //
+            n_added_66_3 + n_added_66_6 + n_added_66_333 + n_added_66_666 + n_added_66_33 + n_added_66_66;  //
+
+        return 3 * n_added_sliding + 6 * n_added_6_6_rolling;
     }
 
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
@@ -182,41 +209,90 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
+    std::list<ChContactNSC_3_3*> contactlist_3_3;
+
     std::list<ChContactNSC_6_6*> contactlist_6_6;
     std::list<ChContactNSC_6_3*> contactlist_6_3;
-    std::list<ChContactNSC_3_3*> contactlist_3_3;
+
     std::list<ChContactNSC_333_3*> contactlist_333_3;
     std::list<ChContactNSC_333_6*> contactlist_333_6;
     std::list<ChContactNSC_333_333*> contactlist_333_333;
+
     std::list<ChContactNSC_666_3*> contactlist_666_3;
     std::list<ChContactNSC_666_6*> contactlist_666_6;
     std::list<ChContactNSC_666_333*> contactlist_666_333;
     std::list<ChContactNSC_666_666*> contactlist_666_666;
 
+    std::list<ChContactNSC_33_3*> contactlist_33_3;
+    std::list<ChContactNSC_33_6*> contactlist_33_6;
+    std::list<ChContactNSC_33_333*> contactlist_33_333;
+    std::list<ChContactNSC_33_666*> contactlist_33_666;
+    std::list<ChContactNSC_33_33*> contactlist_33_33;
+
+    std::list<ChContactNSC_66_3*> contactlist_66_3;
+    std::list<ChContactNSC_66_6*> contactlist_66_6;
+    std::list<ChContactNSC_66_333*> contactlist_66_333;
+    std::list<ChContactNSC_66_666*> contactlist_66_666;
+    std::list<ChContactNSC_66_33*> contactlist_66_33;
+    std::list<ChContactNSC_66_66*> contactlist_66_66;
+
     std::list<ChContactNSCrolling_6_6*> contactlist_6_6_rolling;
+
+    int n_added_3_3;
 
     int n_added_6_6;
     int n_added_6_3;
-    int n_added_3_3;
+
     int n_added_333_3;
     int n_added_333_6;
     int n_added_333_333;
+
     int n_added_666_3;
     int n_added_666_6;
     int n_added_666_333;
     int n_added_666_666;
+
+    int n_added_33_3;
+    int n_added_33_6;
+    int n_added_33_333;
+    int n_added_33_666;
+    int n_added_33_33;
+
+    int n_added_66_3;
+    int n_added_66_6;
+    int n_added_66_333;
+    int n_added_66_666;
+    int n_added_66_33;
+    int n_added_66_66;
+
     int n_added_6_6_rolling;
+
+    std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
 
     std::list<ChContactNSC_6_6*>::iterator lastcontact_6_6;
     std::list<ChContactNSC_6_3*>::iterator lastcontact_6_3;
-    std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
+
     std::list<ChContactNSC_333_3*>::iterator lastcontact_333_3;
     std::list<ChContactNSC_333_6*>::iterator lastcontact_333_6;
     std::list<ChContactNSC_333_333*>::iterator lastcontact_333_333;
+
     std::list<ChContactNSC_666_3*>::iterator lastcontact_666_3;
     std::list<ChContactNSC_666_6*>::iterator lastcontact_666_6;
     std::list<ChContactNSC_666_333*>::iterator lastcontact_666_333;
     std::list<ChContactNSC_666_666*>::iterator lastcontact_666_666;
+
+    std::list<ChContactNSC_33_3*>::iterator lastcontact_33_3;
+    std::list<ChContactNSC_33_6*>::iterator lastcontact_33_6;
+    std::list<ChContactNSC_33_333*>::iterator lastcontact_33_333;
+    std::list<ChContactNSC_33_666*>::iterator lastcontact_33_666;
+    std::list<ChContactNSC_33_33*>::iterator lastcontact_33_33;
+
+    std::list<ChContactNSC_66_3*>::iterator lastcontact_66_3;
+    std::list<ChContactNSC_66_6*>::iterator lastcontact_66_6;
+    std::list<ChContactNSC_66_333*>::iterator lastcontact_66_333;
+    std::list<ChContactNSC_66_666*>::iterator lastcontact_66_666;
+    std::list<ChContactNSC_66_33*>::iterator lastcontact_66_33;
+    std::list<ChContactNSC_66_66*>::iterator lastcontact_66_66;
 
     std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
 

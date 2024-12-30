@@ -220,7 +220,7 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
             // edge angle
             double mcos_fi = Vdot(t0_3, t0i_3);
             double msin_fi = Vdot(n_i, t0i_3);
-            this->phi0[i] = atan2(msin_fi, mcos_fi);
+            this->phi0[i] = std::atan2(msin_fi, mcos_fi);
             // curvature
             // NOT NEEDED? k here as 'change' of curvature in bent meshes, only phi0 matters.
             // this->k0 += VNULL;
@@ -447,7 +447,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             double mcos_fi = Vdot(t_3, ti_3[i]);
             double msin_fi = Vdot(n_i, ti_3[i]);
             ChVector3d Dphi;
-            phi[i] = atan2(msin_fi, mcos_fi);
+            phi[i] = std::atan2(msin_fi, mcos_fi);
             Dphi[i] = phi[i] - this->phi0[i];
             // curvature
             double lambda = 1.0;

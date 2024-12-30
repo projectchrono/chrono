@@ -18,7 +18,8 @@ set(DEMOS
   demo_MBS_friction
   demo_MBS_motors
   demo_MBS_spring  
-  demo_MBS_external_dynamics
+  demo_MBS_external_ODE
+  demo_MBS_external_DAE  
   demo_MBS_hydraulic_actuator
   demo_MBS_hydraulic_crane
   demo_MBS_hydraulic_crane_cosim
@@ -59,9 +60,22 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_custom_contact
     )
 
+    if(ENABLE_MODULE_MUMPS)
+        include_directories(${CH_MUMPS_INCLUDES})
+        set(COMPILER_FLAGS "${COMPILER_FLAGS} ${MUMPS_CXX_COMPILE_FLAGS}")
+        set(LINKER_FLAGS "${LINKER_FLAGS} ${MUMPS_CXX_LINK_FLAGS}")
+        list(APPEND LIBS "ChronoEngine_mumps")
+    endif()
+
     if(THRUST_FOUND)
       set(DEMOS ${DEMOS}
         demo_MBS_collision_object
+      )
+    endif()
+
+    if(ENABLE_MODULE_PARDISO_MKL)
+      set(DEMOS ${DEMOS}
+        demo_MBS_link_mate
       )
     endif()
 endif()
@@ -114,6 +128,9 @@ foreach(PROGRAM ${DEMOS})
   source_group(""  FILES  "${PROGRAM}.cpp")
 
   set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+  if(MSVC)
+    target_compile_options(${PROGRAM} PRIVATE /bigobj)
+  endif()
   if(APPLE)
     set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
   endif()
@@ -122,23 +139,3 @@ foreach(PROGRAM ${DEMOS})
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
-
-if(ENABLE_MODULE_PARDISO_MKL)
-  set(PROGRAM demo_MBS_link_mate)
-  message(STATUS "...add ${PROGRAM}")
-
-  add_executable(${PROGRAM}  "${PROGRAM}.cpp")
-  source_group(""  FILES  "${PROGRAM}.cpp")
-
-  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
-  if(APPLE)
-    set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
-  endif()
-  set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-  if(MSVC)
-    target_compile_options(${PROGRAM} PRIVATE /bigobj)
-  endif()
-  target_link_libraries(${PROGRAM} ${LIBS})  
-
-  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-endif()

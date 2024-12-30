@@ -46,7 +46,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 double mass = 1;
                 double radius = 1.1;
                 auto body = chrono_types::make_shared<ChBody>();
-                body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector3d(1, 1, 1));
+                body->SetInertiaXX((2.0 / 5.0) * mass * std::pow(radius, 2) * ChVector3d(1, 1, 1));
                 body->SetMass(mass);
                 body->SetPos(ChVector3d(4.0 * ix + 0.1, 4.0, 4.0 * iz));
 

@@ -127,6 +127,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
     virtual unsigned int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
+    /// Return link mask.
+    ChLinkMask& GetLinkMask() { return mask; }
+
     // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
@@ -242,6 +245,8 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
     /// Get the requested distance between the two planes, in normal direction.
     double GetDistance() const { return m_distance; }
 
+    using ChLinkMateGeneric::Initialize;
+
     /// Initialize the link by providing a point and a normal direction on each plane, each expressed in body or abs
     /// reference. Normals can be either aligned or opposed depending on the SetFlipped() method.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
@@ -326,11 +331,11 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateRevolute* Clone() const override { return new ChLinkMateRevolute(*this); }
 
-    using ChLinkMateGeneric::Initialize;
-
     /// Tell if the two axes must be opposed (flipped=true) or must have the same verse (flipped=false)
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for revolute mate, given the two bodies to be connected, two points, two directions
     /// (each expressed in body or abs. coordinates). These two directions are the Z axes of slave frame F1 and master
@@ -378,11 +383,11 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMatePrismatic* Clone() const override { return new ChLinkMatePrismatic(*this); }
 
-    using ChLinkMateGeneric::Initialize;
-
     /// Tell if the two axes must be opposed (flipped=true) or must have the same verse (flipped=false)
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions.
     /// These two directions are the X axes of secondary frame F1 and principal frame F2.
@@ -508,6 +513,8 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
 
+    using ChLinkMateGeneric::Initialize;
+
     /// Specialized initialization for parallel mate, given the two bodies to be connected, two points and two
     /// directions (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
@@ -545,6 +552,8 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateOrthogonal* Clone() const override { return new ChLinkMateOrthogonal(*this); }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for orthogonal mate, given the two bodies to be connected, two points and two
     /// directions (each expressed in body or abs. coordinates).

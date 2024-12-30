@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code for using a hydraulic actuator FMU co-simulated with a simple crane
-// multibody mechanical system FMU.
+// Demo illustrating the co-simulation of 2 FMUs (FMI 2.0), a hydraulic actuator
+// and a simple crane multibody system.
 //
 // =============================================================================
 
@@ -30,6 +30,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
+using namespace chrono::fmi2;
 
 // -----------------------------------------------------------------------------
 
@@ -42,14 +43,18 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     try {
         crane_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
         ////crane_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename); // will go in TEMP/_fmu_temp
-    } catch (std::exception& e) {
-        throw e;
+    } catch (std::exception&) {
+        throw;
     }
     std::cout << "Crane FMU version:  " << crane_fmu.GetVersion() << "\n";
     std::cout << "Crane FMU platform: " << crane_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU: enable visualization
-    crane_fmu.Instantiate("CraneFmuComponent", false, true);
+    try {
+        crane_fmu.Instantiate("CraneFmuComponent", false, true);
+    } catch (std::exception&) {
+        throw;
+    }
 
     // Set debug logging
     if (!logCategories.empty())
@@ -87,14 +92,18 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
     try {
         actuator_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
         ////actuator_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename); // will go in TEMP/_fmu_temp
-    } catch (std::exception& e) {
-        throw e;
+    } catch (std::exception&) {
+        throw;
     }
     std::cout << "Actuator FMU version:  " << actuator_fmu.GetVersion() << "\n";
     std::cout << "Actuator FMU platform: " << actuator_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
-    actuator_fmu.Instantiate("ActuatorFmuComponent");
+    try {
+        actuator_fmu.Instantiate("ActuatorFmuComponent");
+    } catch (std::exception&) {
+        throw;
+    }
 
     // Set debug logging
     if (!logCategories.empty())

@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -125,9 +127,9 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
     auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     wheel_mat->SetFriction(STATIC_wheelfriction);
 
-    double half_length_roller = 0.5 * wheel_width * 1.0 / (cos(roller_angle));
+    double half_length_roller = 0.5 * wheel_width * 1.0 / (std::cos(roller_angle));
     double roller_elliptical_rad_Hor = wheel_radius;
-    double roller_elliptical_rad_Vert = wheel_radius * 1.0 / (cos(roller_angle));
+    double roller_elliptical_rad_Vert = wheel_radius * 1.0 / (std::cos(roller_angle));
 
     for (int iroller = 0; iroller < n_rollers; iroller++) {
         double pitch = CH_2PI * ((double)iroller / (double)n_rollers);
@@ -318,15 +320,15 @@ int main(int argc, char* argv[]) {
         ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCoordsys());
         double wheel_A_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wA.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wA.GetRotMat().transpose() * imposed_speed).x() / std::sin(roller_angle)) / wheel_radius;
         ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCoordsys());
         double wheel_B_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wB.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wB.GetRotMat().transpose() * imposed_speed).x() / std::sin(roller_angle)) / wheel_radius;
         ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCoordsys());
         double wheel_C_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wC.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wC.GetRotMat().transpose() * imposed_speed).x() / std::sin(roller_angle)) / wheel_radius;
 
         if (auto fun = std::dynamic_pointer_cast<ChFunctionConst>(link_shaftA->GetSpeedFunction()))
             fun->SetConstant(wheel_A_rotspeed);

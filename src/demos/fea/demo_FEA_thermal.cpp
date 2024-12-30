@@ -30,16 +30,13 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "FEAvisualization.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -138,17 +135,8 @@ int main(int argc, char* argv[]) {
     mvisualizemeshC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("FEM thermal");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddLight(ChVector3d(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
-    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector3d(0, 0.7, -1), ChVector3d(0, 0.4, 0));
-    vis->AttachSystem(&sys);
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA thermal", ChVector3d(0, 0.7, -1),
+                                         ChVector3d(0, 0.4, 0));
 
     // SIMULATION LOOP
 
@@ -183,6 +171,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Print some node temperatures..
+    std::cout << "time = " << sys.GetChTime() << std::endl;
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().x() < 0.01) {

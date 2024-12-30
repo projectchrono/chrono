@@ -14,6 +14,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -542,8 +544,8 @@ void AddTorusGeometry(ChBody* body,
                       ChVisualMaterialSharedPtr vis_material) {
     for (int i = 0; i < angle; i += angle / segments) {
         double alpha = i * CH_PI / 180.0;
-        double x = cos(alpha) * radius;
-        double z = sin(alpha) * radius;
+        double x = std::cos(alpha) * radius;
+        double z = std::sin(alpha) * radius;
         ChQuaterniond q = chrono::QuatFromAngleY(-alpha) * chrono::QuatFromAngleX(CH_PI_2);
         double outer_circ = 2 * CH_PI * (radius + thickness);
 
@@ -634,6 +636,7 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     auto body = chrono_types::make_shared<ChBody>();
 
     // Set body properties and geometry.
+    body->SetName("container_body");
     body->SetPos(pos);
     body->SetRot(rot);
     body->EnableCollision(collide);
@@ -710,7 +713,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     for (int i = 0; i < numBoxes; i++) {
         double angle = i * delta_angle;
         auto plate_pos =
-            pos + ChVector3d(sin(angle) * (hthick + radius), cos(angle) * (hthick + height / 2), height / 2);
+            pos + ChVector3d(std::sin(angle) * (hthick + radius), std::cos(angle) * (hthick + height / 2), height / 2);
         auto plate_rot = QuatFromAngleZ(angle);
 
         bool visualize = !partialVisualization || angle > CH_PI_2;

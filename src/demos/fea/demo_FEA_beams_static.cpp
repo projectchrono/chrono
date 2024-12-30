@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkLock.h"
 
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]) {
                 ChVector3d(0, nload * y_spacing, i * z_spacing),       // the 'A' point in space (beginning of beam)
                 ChVector3d(beam_L, nload * y_spacing, i * z_spacing),  // the 'B' point in space (end of beam)
                 ChVector3d(0, 1, 0)
-                // ChVector3d(0, cos(rot_rad), sin(rot_rad))
+                // ChVector3d(0, std::cos(rot_rad), std::sin(rot_rad))
             );  // the 'Y' up direction of the section for the beam
 
             // After having used BuildBeam(), you can retrieve the nodes used for the beam,
@@ -109,7 +111,7 @@ int main(int argc, char* argv[]) {
 
             // builder.GetLastBeamNodes().back()->SetForce(ChVector3d (0, load,0));
             builder.GetLastBeamNodes().back()->SetForce(
-                ChVector3d(0, loads(nload) * cos(rot_rad), loads(nload) * sin(rot_rad)));
+                ChVector3d(0, loads(nload) * std::cos(rot_rad), loads(nload) * std::sin(rot_rad)));
 
             endnodes[nload].push_back(builder.GetLastBeamNodes().back());
 
@@ -178,7 +180,8 @@ int main(int argc, char* argv[]) {
         double node_y = endnodes[0][i]->GetPos().y() - 0 * y_spacing;
         double node_z = endnodes[0][i]->GetPos().z() - i * z_spacing;
         double node_a =
-            atan2(endnodes[0][i]->GetRotMat().GetAxisY().y(), endnodes[0][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
+            std::atan2(endnodes[0][i]->GetRotMat().GetAxisY().y(), endnodes[0][i]->GetRotMat().GetAxisY().z()) -
+            CH_PI_2;
         std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]"
                   << std::endl;
         file_out1 << node_y << " " << node_z << " " << node_a << std::endl;
@@ -189,7 +192,8 @@ int main(int argc, char* argv[]) {
         double node_y = endnodes[1][i]->GetPos().y() - 1 * y_spacing;
         double node_z = endnodes[1][i]->GetPos().z() - i * z_spacing;
         double node_a =
-            atan2(endnodes[1][i]->GetRotMat().GetAxisY().y(), endnodes[1][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
+            std::atan2(endnodes[1][i]->GetRotMat().GetAxisY().y(), endnodes[1][i]->GetRotMat().GetAxisY().z()) -
+            CH_PI_2;
         std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]"
                   << std::endl;
         file_out2 << node_y << " " << node_z << " " << node_a << std::endl;
@@ -200,7 +204,8 @@ int main(int argc, char* argv[]) {
         double node_y = endnodes[2][i]->GetPos().y() - 2 * y_spacing;
         double node_z = endnodes[2][i]->GetPos().z() - i * z_spacing;
         double node_a =
-            atan2(endnodes[2][i]->GetRotMat().GetAxisY().y(), endnodes[2][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
+            std::atan2(endnodes[2][i]->GetRotMat().GetAxisY().y(), endnodes[2][i]->GetRotMat().GetAxisY().z()) -
+            CH_PI_2;
         std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]"
                   << std::endl;
         file_out3 << node_y << " " << node_z << " " << node_a << std::endl;

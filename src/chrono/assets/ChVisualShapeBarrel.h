@@ -45,6 +45,9 @@ class ChApi ChVisualShapeBarrel : public ChVisualShape {
     double GetRoffset() { return Roffset; }
     void SetRoffset(double ms) { Roffset = ms; }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

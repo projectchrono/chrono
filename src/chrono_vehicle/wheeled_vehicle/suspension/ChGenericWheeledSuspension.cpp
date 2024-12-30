@@ -69,61 +69,59 @@ ChGenericWheeledSuspension::~ChGenericWheeledSuspension() {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleGeometry TransformVehicleGeometry(const ChVehicleGeometry& geom, int side) {
+utils::ChBodyGeometry TransformVehicleGeometry(const utils::ChBodyGeometry& geom, int side) {
     static const ChColor colorL(0.38f, 0.74f, 0.36f);
     static const ChColor colorR(0.74f, 0.38f, 0.36f);
 
-    ChVehicleGeometry g = geom;
-    g.m_has_colors = true;
+    utils::ChBodyGeometry g = geom;
     if (side == VehicleSide::LEFT) {
-        g.m_color_boxes = colorL;
-        g.m_color_spheres = colorL;
-        g.m_color_cylinders = colorL;
+        g.color_boxes = colorL;
+        g.color_spheres = colorL;
+        g.color_cylinders = colorL;
     } else {
-        g.m_color_boxes = colorR;
-        g.m_color_spheres = colorR;
-        g.m_color_cylinders = colorR;
+        g.color_boxes = colorR;
+        g.color_spheres = colorR;
+        g.color_cylinders = colorR;
 
-        for (auto& s : g.m_vis_spheres) {
-            s.m_pos.y() *= -1;
+        for (auto& s : g.vis_spheres) {
+            s.pos.y() *= -1;
         }
-        for (auto& c : g.m_vis_cylinders) {
-            c.m_pos.y() *= -1;
-            auto rot = c.m_rot;
+        for (auto& c : g.vis_cylinders) {
+            c.pos.y() *= -1;
+            auto rot = c.rot;
             ChVector3d u = rot.GetAxisX();
             ChVector3d w = rot.GetAxisZ();
             u.y() *= -1;
             w.y() *= -1;
             ChVector3d v = Vcross(w, u);
             ChMatrix33<> R(u, v, w);
-            c.m_rot = R.GetQuaternion();
+            c.rot = R.GetQuaternion();
         }
-        for (auto& b : g.m_vis_boxes) {
-            b.m_pos.y() *= -1;
-            auto rot = b.m_rot;
+        for (auto& b : g.vis_boxes) {
+            b.pos.y() *= -1;
+            auto rot = b.rot;
             ChVector3d u = rot.GetAxisX();
             ChVector3d w = rot.GetAxisZ();
             u.y() *= -1;
             w.y() *= -1;
             ChVector3d v = Vcross(w, u);
             ChMatrix33<> R(u, v, w);
-            b.m_rot = R.GetQuaternion();
+            b.rot = R.GetQuaternion();
         }
     }
 
     return g;
 }
 
-ChTSDAGeometry TransformTSDAGeometry(const ChTSDAGeometry& geom, int side) {
+utils::ChTSDAGeometry TransformTSDAGeometry(const utils::ChTSDAGeometry& geom, int side) {
     static const ChColor colorL(0.3f, 0.74f, 0.20f);
     static const ChColor colorR(0.74f, 0.3f, 0.20f);
 
-    ChTSDAGeometry g = geom;
-    g.m_has_color = true;
+    utils::ChTSDAGeometry g = geom;
     if (side == VehicleSide::LEFT) {
-        g.m_color = colorL;
+        g.color = colorL;
     } else {
-        g.m_color = colorR;
+        g.color = colorR;
     }
 
     return g;
@@ -136,7 +134,7 @@ void ChGenericWheeledSuspension::DefineBody(const std::string& name,
                                             double mass,
                                             const ChVector3d& inertia_moments,
                                             const ChVector3d& inertia_products,
-                                            std::shared_ptr<ChVehicleGeometry> geometry) {
+                                            std::shared_ptr<utils::ChBodyGeometry> geometry) {
     Body b;
     b.body = nullptr;
     b.pos = pos;
@@ -213,7 +211,7 @@ void ChGenericWheeledSuspension::DefineTSDA(const std::string& name,
                                             const ChVector3d& point2,
                                             double rest_length,
                                             std::shared_ptr<ChLinkTSDA::ForceFunctor> force,
-                                            std::shared_ptr<ChTSDAGeometry> geometry) {
+                                            std::shared_ptr<utils::ChTSDAGeometry> geometry) {
     TSDA t;
     t.tsda = nullptr;
     t.body1 = body1;
@@ -659,7 +657,7 @@ void ChGenericWheeledSuspension::AddVisualizationAssets(VisualizationType vis) {
     for (auto& item : m_bodies)
         item.second.geometry.CreateVisualizationAssets(item.second.body, vis);
     for (auto& item : m_tsdas)
-        item.second.geometry.CreateVisualizationAssets(item.second.tsda, vis);
+        item.second.geometry.CreateVisualizationAssets(item.second.tsda);
     for (auto& item : m_dists)
         item.second.dist->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 }

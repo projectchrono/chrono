@@ -185,7 +185,7 @@ double SawtoothTestbed::rms() {
         double e = output_signal[i];
         r += e * e;
     }
-    return sqrt(r / double(output_signal.size()));
+    return std::sqrt(r / double(output_signal.size()));
 }
 
 double SawtoothTestbed::sawtooth(double t_ofs, double t) {

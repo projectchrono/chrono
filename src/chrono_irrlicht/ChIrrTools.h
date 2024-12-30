@@ -145,11 +145,13 @@ ChApiIrr int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale = 0.01)
 /// Each vertical red bar of the plot represents the residual during the solver iterations.
 /// The rightmost red bar represents the residual after the latest iteration.
 /// The red horizontal line respresents the tolerance requested to the solver.
-/// The Y axis ranges from zero to four times the requested tolerance (or 4*1e-6 if no tolerance is set).
 /// If the last red bar does not fall below the red line, the solver did not converge.
+/// The Y axis is logarithmic for the error (residual) and ranges from log10(tol)-1 to log10(tol)+2.
+/// If the tolerance is set to 0 the graphics will consider a default tolerance of 1e-6.
 /// It is then recommended to increase the number of iterations, reduce the timestep or consider relaxing the tolerance.
-/// Yellow bars refers to the variation of Lagrange multipliers during the iterations.
-/// For them, the Y axis ranges from zero to the maximum variation observed among all the iterations of the last step.
+/// Yellow bars refer to the variation of Lagrange multipliers during the iterations (VI solvers only).
+/// For them, the Y axis ranges from zero to the maximum variation observed among all the iterations of the last step
+/// (linear scale).
 ChApiIrr void drawHUDviolation(ChVisualSystemIrrlicht* vis,
                                int pos_x = 10,
                                int pos_y = 290,
@@ -255,14 +257,21 @@ ChApiIrr void drawCoordsys(ChVisualSystemIrrlicht* vis,
                            bool use_Zbuffer = false);
 
 /// Draw a line arrow in 3D space with given color.
-ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,           ///< visual system
-                        ChVector3d start,                      ///< arrow start point
-                        ChVector3d end,                        ///< arrow end point
-                        ChVector3d plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
-                        bool sharp = false,                    ///< set arrow shape as 'sharp' or 'wide'
-                        ChColor col = ChColor(1.f, 1.f, 1.f),  ///< color
-                        bool use_Zbuffer = false               ///< use Z buffer
+ChApiIrr void drawArrow(ChVisualSystemIrrlicht* vis,                  ///< visual system
+                        const ChVector3d& start,                      ///< arrow start point
+                        const ChVector3d& end,                        ///< arrow end point
+                        const ChVector3d& plane_normal = VECT_Y,      ///< normal to plane containing arrow segments
+                        bool sharp = false,                           ///< set arrow shape as 'sharp' or 'wide'
+                        const ChColor& col = ChColor(1.f, 1.f, 1.f),  ///< color
+                        bool use_Zbuffer = false                      ///< use Z buffer
 );
+
+/// Draw a label in 3D scene at given position.
+ChApiIrr void drawLabel3D(ChVisualSystemIrrlicht* vis,
+                        const std::string& text,
+                        const ChVector3d& position,
+                        const ChColor& color = ChColor(0.f, 0.f, 0.f),
+                        bool use_Zbuffer = false);
 
 }  // end namespace tools
 

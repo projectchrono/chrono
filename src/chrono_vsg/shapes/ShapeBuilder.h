@@ -26,11 +26,9 @@
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/geometry/ChLinePath.h"
 #include "chrono/assets/ChVisualShapeSurface.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -84,16 +82,14 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
                                              std::shared_ptr<ChVisualShapePath> ps);
 
-    vsg::ref_ptr<vsg::Group> CreateSpringShape(std::shared_ptr<ChLinkBase> link,
-                                               ChVisualModel::ShapeInstance shapeInstance,
+    vsg::ref_ptr<vsg::Group> CreateUnitSegment(ChVisualModel::ShapeInstance shapeInstance,
+                                               std::shared_ptr<ChVisualMaterial> material,
+                                               vsg::ref_ptr<vsg::MatrixTransform> transform);
+
+    vsg::ref_ptr<vsg::Group> CreateSpringShape(ChVisualModel::ShapeInstance shapeInstance,
                                                std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                std::shared_ptr<ChVisualShapeSpring> ss);
-
-    vsg::ref_ptr<vsg::Group> CreateUnitSegment(std::shared_ptr<ChLinkBase> link,
-                                               ChVisualModel::ShapeInstance shapeInstance,
-                                               std::shared_ptr<ChVisualMaterial> material,
-                                               vsg::ref_ptr<vsg::MatrixTransform> transform);
 
     vsg::ref_ptr<vsg::Group> CreateGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 

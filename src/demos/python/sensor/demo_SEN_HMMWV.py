@@ -126,7 +126,7 @@ def main():
     render_frame = 0
 
     if (contact_vis):
-        vis.SetSymbolscale(1e-4)
+        vis.SetSymbolScale(1e-4)
         # vis.EnableContactDrawing(irr.IrrContactsDrawMode_CONTACT_FORCES);
 
     # ---------------------------------------------

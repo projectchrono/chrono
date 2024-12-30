@@ -74,6 +74,10 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const = 0;
 
+    /// Return the reaction torque on the chassis body.
+    /// A concrete model may incorporate a physical connection to the chassis and therefore calculate this reaction.
+    virtual double GetChassisReactionTorque() const { return 0; }
+
     /// Shift up.
     virtual void ShiftUp() = 0;
 

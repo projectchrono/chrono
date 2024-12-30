@@ -38,6 +38,9 @@ class ChApi ChCollisionShapeTriangle : public ChCollisionShape {
     /// Access the triangle geometry.
     ChTriangle& GetGeometry() { return gtriangle; }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return gtriangle.GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

@@ -1008,7 +1008,7 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
 
                             float B_C = 0.0f;
                             if (cos_g < 1.0f)
-                                B_C = (1 + (1 - exp(-tan_ghalf_per_hC)) / tan_ghalf_per_hC) / (2 * pow(1 + tan_ghalf_per_hC, 2));
+                                B_C = (1 + (1 - exp(-tan_ghalf_per_hC)) / tan_ghalf_per_hC) / (2 * pow(1 + tan_ghalf_per_hC, 2.0f));
                             else if (cos_g == 1)
                                 B_C = 1;
                             

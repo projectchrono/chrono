@@ -708,7 +708,7 @@ void ChSAEToeBarLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> bod
     ChVector3d p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector3d p_2 = body->TransformPointParentToLocal(pt_2);
 
-    ChVehicleGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(body, p_1, p_2, radius);
 }
 
 void ChSAEToeBarLeafspringAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
@@ -724,15 +724,15 @@ void ChSAEToeBarLeafspringAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> 
     ChVector3d p_T = knuckle->TransformPointParentToLocal(pt_T);
 
     if (p_L.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_L, VNULL, radius);
     }
 
     if (p_U.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_U, VNULL, radius);
     }
 
     if (p_T.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
+        utils::ChBodyGeometry::AddVisualizationCylinder(knuckle, p_T, VNULL, radius);
     }
 }
 // -----------------------------------------------------------------------------

@@ -20,10 +20,6 @@
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrTools.h"
 
-#ifdef CHRONO_POSTPROCESS
-    #include "chrono_postprocess/ChBlender.h"
-#endif
-
 namespace chrono {
 
 // Forward references
@@ -53,23 +49,8 @@ class ChApiIrr ChIrrGUI {
     /// Perform operations before closing the Irrlicht scene for the current frame.
     void EndScene();
 
-#ifdef CHRONO_POSTPROCESS
-
-    /// If set to true, each frame of the animation will be saved on the disk
-    /// as a sequence of scripts to be rendered via Blender. Only if solution build with ENABLE_MODULE_POSTPROCESS.
-    void SetBlenderSave(bool val);
-    bool GetBlenderSave() { return blender_save; }
-
-    /// Set to 1 if you need to save on disk all simulation steps, set to 2 for
-    /// saving each 2 steps, etc.
-    void SetBlenderSaveInterval(int val) { blender_each = val; }
-    int GetBlenderSaveInterval() { return blender_each; }
-
-    /// Access the internal ChBlender exporter, for advanced tweaking.
-    /// Returns 0 if not yet started (use SetBlenderSave(true) to start it)
-    postprocess::ChBlender* GetBlenderExporter() { return blender_exporter.get(); }
-
-#endif
+    /// Add a new tab to the GUI
+    irr::gui::IGUITab* AddTab(const wchar_t* caption);
 
   private:
     void Initialize(ChVisualSystemIrrlicht* vis);
@@ -90,15 +71,6 @@ class ChApiIrr ChIrrGUI {
     /// Set the active tab on the info panel.
     void SetInfoTab(int ntab) { g_tabbed->setActiveTab(ntab); }
 
-    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
-    void SetModalAmplitude(double val);
-
-    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
-    void SetModalSpeed(double val);
-
-    /// Set the total number of modes available from the scrollbar
-    void SetModalModesMax(int maxModes);
-
     /// Set the label mode for contacts
     void SetContactsLabelMode(ContactsLabelMode mm) { g_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
@@ -117,11 +89,11 @@ class ChApiIrr ChIrrGUI {
     void SetPlotCollisionShapes(bool val) { g_plot_collisionshapes->setChecked(val); }
     /// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { g_plot_linkframes->setChecked(val); }
-    /// Set if the COG frames will be plotted
+    /// Set if the convergence plot will be plotted
     void SetPlotConvergence(bool val) { g_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
-    void SetSymbolscale(double val);
+    void SetSymbolScale(double val);
 
     bool initialized;
 
@@ -132,15 +104,6 @@ class ChApiIrr ChIrrGUI {
     double symbolscale;
 
     double camera_auto_rotate_speed;
-
-    bool modal_show;
-    int modal_mode_n;
-    double modal_amplitude;
-    double modal_speed;
-    double modal_phi;
-    double modal_current_mode_n;
-    double modal_current_freq;
-    double modal_current_dampingfactor;
 
     ChVisualSystemIrrlicht* m_vis;
     ChSystem* m_system;
@@ -168,19 +131,7 @@ class ChApiIrr ChIrrGUI {
     irr::gui::IGUIEditBox* g_symbolscale;
     irr::gui::IGUIStaticText* g_textHelp;
 
-    irr::gui::IGUIScrollBar* g_modal_mode_n;
-    irr::gui::IGUIStaticText* g_modal_mode_n_info;
-    irr::gui::IGUIEditBox* g_modal_amplitude;
-    irr::gui::IGUIEditBox* g_modal_speed;
-
     irr::gui::IGUITreeView* g_treeview;
-
-#ifdef CHRONO_POSTPROCESS
-    bool blender_save;
-    std::unique_ptr<postprocess::ChBlender> blender_exporter;
-    int blender_num;
-    int blender_each;
-#endif
 
     friend class ChIrrEventReceiver;
     friend class ChVisualSystemIrrlicht;

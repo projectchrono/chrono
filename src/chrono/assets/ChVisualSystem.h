@@ -43,6 +43,9 @@ class ChApi ChVisualSystem {
 
     virtual ~ChVisualSystem();
 
+    /// Enable/disable information terminal output during initialization (default: false).
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
     /// Attach a Chrono system to this visualization system.
     virtual void AttachSystem(ChSystem* sys);
 
@@ -163,23 +166,6 @@ class ChApi ChVisualSystem {
     /// Enable/disable writing of frame snapshots to file.
     void SetImageOutput(bool val) { m_write_images = val; }
 
-    /// Enable modal analysis visualization.
-    /// If supported, visualize an oscillatory motion of the n-th mode (if the associated system contains a
-    /// ChModalAssembly).
-    virtual void EnableModalAnalysis(bool val) {}
-
-    /// Set the mode to be shown (only if some ChModalAssembly is found).
-    virtual void SetModalModeNumber(int val) {}
-
-    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
-    virtual void SetModalAmplitude(double val) {}
-
-    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
-    virtual void SetModalSpeed(double val) {}
-
-    /// Set the maximum number of modes selectable (only if some ChModalAssembly is found).
-    virtual void SetModalModesMax(int maxModes) {}
-
     /// Get the list of associated Chrono systems.
     std::vector<ChSystem*> GetSystems() const { return m_systems; }
 
@@ -201,6 +187,7 @@ class ChApi ChVisualSystem {
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
 
+    bool m_verbose;  ///< terminal output
     bool m_initialized;
 
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)

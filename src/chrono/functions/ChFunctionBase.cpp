@@ -118,7 +118,7 @@ double ChFunction::GetSquaredMean(double xmin, double xmax, double sampling_step
     int numpts = 0;
     for (double mx = xmin; mx <= xmax; mx = mx + sampling_step) {
         numpts++;
-        mret += pow(this->GetDerN(mx, derivative), 2.);
+        mret += std::pow(this->GetDerN(mx, derivative), 2.);
     }
     return sqrt(mret / ((double)numpts));
 }

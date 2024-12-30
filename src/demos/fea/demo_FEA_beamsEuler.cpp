@@ -25,15 +25,15 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -179,16 +179,9 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Euler Beams");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.1, 0.2, -0.2));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis =
+        CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Euler Beams", ChVector3d(-0.1, 0.2, -0.2));
 
     // THE SIMULATION LOOP
 

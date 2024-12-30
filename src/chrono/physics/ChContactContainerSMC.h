@@ -30,49 +30,113 @@ namespace chrono {
 class ChApi ChContactContainerSMC : public ChContactContainer {
   public:
     typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactSMC_3_3;
+
     typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactSMC_6_3;
     typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactSMC_6_6;
+    
     typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactSMC_333_3;
     typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactSMC_333_6;
     typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactSMC_333_333;
+    
     typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactSMC_666_3;
     typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactSMC_666_6;
     typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactSMC_666_333;
     typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactSMC_666_666;
 
+    typedef ChContactSMC<ChContactable_2vars<3, 3>, ChContactable_1vars<3> > ChContactSMC_33_3;
+    typedef ChContactSMC<ChContactable_2vars<3, 3>, ChContactable_1vars<6> > ChContactSMC_33_6;
+    typedef ChContactSMC<ChContactable_2vars<3, 3>, ChContactable_3vars<3, 3, 3> > ChContactSMC_33_333;
+    typedef ChContactSMC<ChContactable_2vars<3, 3>, ChContactable_3vars<6, 6, 6> > ChContactSMC_33_666;
+    typedef ChContactSMC<ChContactable_2vars<3, 3>, ChContactable_2vars<3, 3> > ChContactSMC_33_33;
+
+    typedef ChContactSMC<ChContactable_2vars<6, 6>, ChContactable_1vars<3> > ChContactSMC_66_3;
+    typedef ChContactSMC<ChContactable_2vars<6, 6>, ChContactable_1vars<6> > ChContactSMC_66_6;
+    typedef ChContactSMC<ChContactable_2vars<6, 6>, ChContactable_3vars<3, 3, 3> > ChContactSMC_66_333;
+    typedef ChContactSMC<ChContactable_2vars<6, 6>, ChContactable_3vars<6, 6, 6> > ChContactSMC_66_666;
+    typedef ChContactSMC<ChContactable_2vars<6, 6>, ChContactable_2vars<3, 3> > ChContactSMC_66_33;
+    typedef ChContactSMC<ChContactable_2vars<6, 6>, ChContactable_2vars<6, 6> > ChContactSMC_66_66;
+
   protected:
     std::list<ChContactSMC_3_3*> contactlist_3_3;
+
     std::list<ChContactSMC_6_3*> contactlist_6_3;
     std::list<ChContactSMC_6_6*> contactlist_6_6;
+
     std::list<ChContactSMC_333_3*> contactlist_333_3;
     std::list<ChContactSMC_333_6*> contactlist_333_6;
     std::list<ChContactSMC_333_333*> contactlist_333_333;
+
     std::list<ChContactSMC_666_3*> contactlist_666_3;
     std::list<ChContactSMC_666_6*> contactlist_666_6;
     std::list<ChContactSMC_666_333*> contactlist_666_333;
     std::list<ChContactSMC_666_666*> contactlist_666_666;
 
+    std::list<ChContactSMC_33_3*> contactlist_33_3;
+    std::list<ChContactSMC_33_6*> contactlist_33_6;
+    std::list<ChContactSMC_33_333*> contactlist_33_333;
+    std::list<ChContactSMC_33_666*> contactlist_33_666;
+    std::list<ChContactSMC_33_33*> contactlist_33_33;
+
+    std::list<ChContactSMC_66_3*> contactlist_66_3;
+    std::list<ChContactSMC_66_6*> contactlist_66_6;
+    std::list<ChContactSMC_66_333*> contactlist_66_333;
+    std::list<ChContactSMC_66_666*> contactlist_66_666;
+    std::list<ChContactSMC_66_33*> contactlist_66_33;
+    std::list<ChContactSMC_66_66*> contactlist_66_66;
+
     int n_added_3_3;
+
     int n_added_6_3;
     int n_added_6_6;
+    
     int n_added_333_3;
     int n_added_333_6;
     int n_added_333_333;
+    
     int n_added_666_3;
     int n_added_666_6;
     int n_added_666_333;
     int n_added_666_666;
 
+    int n_added_33_3;
+    int n_added_33_6;
+    int n_added_33_333;
+    int n_added_33_666;
+    int n_added_33_33;
+
+    int n_added_66_3;
+    int n_added_66_6;
+    int n_added_66_333;
+    int n_added_66_666;
+    int n_added_66_33;
+    int n_added_66_66;
+
     std::list<ChContactSMC_3_3*>::iterator lastcontact_3_3;
+
     std::list<ChContactSMC_6_3*>::iterator lastcontact_6_3;
     std::list<ChContactSMC_6_6*>::iterator lastcontact_6_6;
+
     std::list<ChContactSMC_333_3*>::iterator lastcontact_333_3;
     std::list<ChContactSMC_333_6*>::iterator lastcontact_333_6;
     std::list<ChContactSMC_333_333*>::iterator lastcontact_333_333;
+
     std::list<ChContactSMC_666_3*>::iterator lastcontact_666_3;
     std::list<ChContactSMC_666_6*>::iterator lastcontact_666_6;
     std::list<ChContactSMC_666_333*>::iterator lastcontact_666_333;
     std::list<ChContactSMC_666_666*>::iterator lastcontact_666_666;
+
+    std::list<ChContactSMC_33_3*>::iterator lastcontact_33_3;
+    std::list<ChContactSMC_33_6*>::iterator lastcontact_33_6;
+    std::list<ChContactSMC_33_333*>::iterator lastcontact_33_333;
+    std::list<ChContactSMC_33_666*>::iterator lastcontact_33_666;
+    std::list<ChContactSMC_33_33*>::iterator lastcontact_33_33;
+
+    std::list<ChContactSMC_66_3*>::iterator lastcontact_66_3;
+    std::list<ChContactSMC_66_6*>::iterator lastcontact_66_6;
+    std::list<ChContactSMC_66_333*>::iterator lastcontact_66_333;
+    std::list<ChContactSMC_66_666*>::iterator lastcontact_66_666;
+    std::list<ChContactSMC_66_33*>::iterator lastcontact_66_33;
+    std::list<ChContactSMC_66_66*>::iterator lastcontact_66_66;
 
     std::unordered_map<ChContactable*, ForceTorque> contact_forces;
 
@@ -86,8 +150,12 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
 
     /// Report the number of added contacts.
     virtual unsigned int GetNumContacts() const override {
-        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666;
+        return n_added_3_3 +                                                                                   //
+               n_added_6_3 + n_added_6_6 +                                                                     //
+               n_added_333_3 + n_added_333_6 + n_added_333_333 +                                               //
+               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 +                             //
+               n_added_33_3 + n_added_33_6 + n_added_33_333 + n_added_33_666 + n_added_33_33 +                 //
+               n_added_66_3 + n_added_66_6 + n_added_66_333 + n_added_66_666 + n_added_66_33 + n_added_66_66;  //
     }
 
     /// Remove (delete) all contained contact data.

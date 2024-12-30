@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
@@ -71,8 +73,8 @@ int main(int argc, char* argv[]) {
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
         double angle = e * (2 * CH_PI / 8.0);
-        hexpos.z() = 0.3 * cos(angle);
-        hexpos.x() = 0.3 * sin(angle);
+        hexpos.z() = 0.3 * std::cos(angle);
+        hexpos.x() = 0.3 * std::sin(angle);
         ChMatrix33<> hexrot(QuatFromAngleY(angle));
 
         std::shared_ptr<ChNodeFEAxyz> hnode1_lower;
@@ -176,6 +178,7 @@ int main(int argc, char* argv[]) {
     vis.SetLightIntensity(1.0f);
     vis.SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis.AddCamera(ChVector3d(0.0, 0.6, -2.0), ChVector3d(0, 0.4, 0));
+    vis.SetLogoVisible(true);
     vis.Initialize();
 
     // Solver settings

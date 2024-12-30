@@ -38,6 +38,9 @@ class ChApi ChVisualShapeSphere : public ChVisualShape {
     /// Get the sphere radius.
     double GetRadius() const { return gsphere.GetRadius(); }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return gsphere.GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

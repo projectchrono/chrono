@@ -26,17 +26,17 @@
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 std::shared_ptr<ChLoadableU> PopulateMesh_beamANCF_3333(std::shared_ptr<ChMesh> mesh,
                                                         std::shared_ptr<ChMaterialBeamANCF> material,
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
             double tc = 2;
             double Fz = Fmax;
             if (t < tc) {
-                Fz = 0.5 * Fmax * (1 - cos(CH_PI * t / tc));
+                Fz = 0.5 * Fmax * (1 - std::cos(CH_PI * t / tc));
             }
 
             F(2) = Fz;  // Apply the force along the global Z axis
@@ -240,24 +240,14 @@ int main(int argc, char* argv[]) {
     vis_node->SetSymbolsThickness(0.01);
     mesh->AddVisualShapeFEA(vis_node);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("ANCF beam " + element_name);
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, 0.4, 0.4), ChVector3d(0.0, 0.0, 0.0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "ANCF beam " + element_name,
+                                         ChVector3d(-0.4, 0.4, 0.4));
 
     // Simulation loop
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         vis->EndScene();
 
         sys.DoStepDynamics(1e-2);

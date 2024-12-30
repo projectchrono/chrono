@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace jeep {
 
-/// @addtogroup vehicle_models_jeep
+/// @addtogroup vehicle_models_cherokee
 /// @{
 
 /// Jeep  simple speed-torque engine map subsystem.
@@ -46,7 +46,7 @@ class CH_MODELS_API Cherokee_EngineSimpleMap : public ChEngineSimpleMap {
                                      ) override;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_cherokee
 
 }  // namespace jeep
 }  // end namespace vehicle

@@ -1,5 +1,4 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_ros ${CH_ROS_LIBRARIES})
-INCLUDE_DIRECTORIES(${CH_INCLUDES} ${CH_ROS_INCLUDES})
+SET(LIBRARIES ChronoEngine ChronoEngine_ros)
 
 SET(TESTS
   utest_ROS_custom_handler_with_manager

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/functions/ChFunctionConstAcc.h"
 
 namespace chrono {
@@ -57,7 +59,7 @@ double ChFunctionConstAcc::GetVal(double x) const {
         ret = A * ev * (x - ev * 0.5);
     }
     if ((x > ew) && (x < m_duration)) {
-        ret = A * ev * (x - ev * 0.5) - B * 0.5 * pow((x - ew), 2);
+        ret = A * ev * (x - ev * 0.5) - B * 0.5 * std::pow((x - ew), 2);
     }
     return ret;
 }

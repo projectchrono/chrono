@@ -26,3 +26,4 @@ add_subdirectory(visualization)
 
 add_subdirectory(cosimulation)
 add_subdirectory(fmi)
+add_subdirectory(fsi)

@@ -36,11 +36,13 @@ ChLinkRevolute::ChLinkRevolute(const ChLinkRevolute& other) : ChLink(other) {
     m_frame1 = other.m_frame1;
     m_frame2 = other.m_frame2;
 
-    m_cnstr_x.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_y.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_z.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_uw.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
-    m_cnstr_vw.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    if (other.m_body1 && other.m_body2) {
+        m_cnstr_x.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_y.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_z.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_uw.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+        m_cnstr_vw.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    }
 
     for (int i = 0; i < 5; i++) {
         m_multipliers[i] = other.m_multipliers[i];

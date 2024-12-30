@@ -13,18 +13,20 @@
 // =============================================================================
 //
 // Co-simulation FMU encapsulating a wheeled vehicle system with 4 wheels.
-// The vehicle includes a powertrain and transmission, but no tires.
+// The vehicle does not include an engine, transmission, or tires.
 //
-// The wrapped Chrono::Vehicle model is defined through JSON specification files
-// for the vehicle, engine, and transmission.
+// The wrapped Chrono::Vehicle model is defined through a JSON specification file
+// for the vehicle.
 //
-// This vehicle FMU must be co-simulated with a driver system which provides
-// vehicle commands and 4 tire systems which provide tire loads for each of the
-// 4 wheels (of type TerrainForce).
+// This vehicle FMU must be co-simulated with a powertrain which provides the
+// torque at the driveshaft, a driver system which provides vehicle commands, and
+// 4 tire systems which provide tire loads for each of the 4 wheels (of type
+// TerrainForce).
 //
 // This vehicle FMU defines continuous output variables for:
 //   - vehicle reference frame (of type ChFrameMoving)
 //   - wheel states (of type WheelState)
+//   - driveshaft speed
 //
 // =============================================================================
 
@@ -43,7 +45,7 @@
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
-class FmuComponent : public chrono::FmuChronoComponentBase {
+class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
   public:
     FmuComponent(fmi2String instanceName,
                  fmi2Type fmuType,
@@ -55,26 +57,26 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     ~FmuComponent() {}
 
     /// Advance dynamics.
-    virtual fmi2Status _doStep(fmi2Real currentCommunicationPoint,
-                               fmi2Real communicationStepSize,
-                               fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
+    virtual fmi2Status doStepIMPL(fmi2Real currentCommunicationPoint,
+                                  fmi2Real communicationStepSize,
+                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) override;
 
   private:
-    virtual void _enterInitializationMode() override;
-    virtual void _exitInitializationMode() override;
+    virtual fmi2Status enterInitializationModeIMPL() override;
+    virtual fmi2Status exitInitializationModeIMPL() override;
 
-    virtual void _preModelDescriptionExport() override;
-    virtual void _postModelDescriptionExport() override;
+    virtual void preModelDescriptionExport() override;
+    virtual void postModelDescriptionExport() override;
 
     virtual bool is_cosimulation_available() const override { return true; }
     virtual bool is_modelexchange_available() const override { return false; }
 
     /// Create the vehicle system.
-    /// This function is invoked in _exitInitializationMode(), once FMU parameters are set.
+    /// This function is invoked in exitInitializationModeIMPL(), once FMU parameters are set.
     void CreateVehicle();
 
     /// Configure the underlying Chrono system.
-    /// This function is invoked in _exitInitializationMode(), once FMU parameters are set.
+    /// This function is invoked in exitInitializationModeIMPL(), once FMU parameters are set.
     void ConfigureSystem();
 
     /// Update vehicle system with current FMU continuous inputs.
@@ -105,33 +107,28 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double fps;            ///< snapshot saving frequency (in FPS)
 
     // FMU parameters
-    std::string data_path;          ///< path to vehicle data
-    std::string vehicle_JSON;       ///< JSON vehicle specification file
-    std::string engine_JSON;        ///< JSON engine specification file
-    std::string transmission_JSON;  ///< JSON transmission specification file
-    fmi2Boolean system_SMC;         ///< use SMC contact formulation (NSC otherwise)
-    chrono::ChVector3d init_loc;    ///< initial vehicle location
-    double init_yaw;                ///< initial vehicle orientation
-    chrono::ChVector3d g_acc;       ///< gravitational acceleration
-    double step_size;               ///< integration step size
+    std::string data_path;                     ///< path to vehicle data
+    std::string vehicle_JSON;                  ///< JSON vehicle specification file
+    fmi2Boolean system_SMC;                    ///< use SMC contact formulation (NSC otherwise)
+    chrono::ChVector3d init_loc;               ///< initial vehicle location
+    double init_yaw;                           ///< initial vehicle orientation
+    chrono::ChVector3d engineblock_dir;        ///< engine block mounting direction
+    chrono::ChVector3d transmissionblock_dir;  ///< transmission block mounting direction
+    chrono::ChVector3d g_acc;                  ///< gravitational acceleration
+    double step_size;                          ///< integration step size
 
-    // FMU continuous inputs and outputs for co-simulation
+    // FMU continuous inputs and outputs for co-simulation (vehicle-terrain)
     chrono::vehicle::DriverInputs driver_inputs;  ///< vehicle control inputs (input)
     std::array<WheelData, 4> wheel_data;          ///< wheel state and applied forces (output/input)
     chrono::ChFrameMoving<> ref_frame;            ///< vehicle reference frame (output)
+
+    // FMU continuous inputs and outputs for co-simulation (vehicle-powertrain)
+    double driveshaft_speed;       ///< driveshaft angular speed (output)
+    double driveshaft_torque;      ///< driveshaft motor torque (input)
+    double engine_reaction;        ///< engine reaction torque on chassis (intput)
+    double transmission_reaction;  ///< transmission reaction torque on chassis (intput)
 
     //// TODO - more outputs
 
     int render_frame;  ///< counter for rendered frames
 };
-
-// Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
-                                             fmi2Type fmuType,
-                                             fmi2String fmuGUID,
-                                             fmi2String fmuResourceLocation,
-                                             const fmi2CallbackFunctions* functions,
-                                             fmi2Boolean visible,
-                                             fmi2Boolean loggingOn) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
-}

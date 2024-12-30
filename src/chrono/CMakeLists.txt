@@ -129,7 +129,8 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainer.cpp
     physics/ChConveyor.cpp
     physics/ChFeeder.cpp
-    physics/ChExternalDynamics.cpp
+    physics/ChExternalDynamicsODE.cpp
+    physics/ChExternalDynamicsDAE.cpp
     physics/ChAssembly.cpp
     )
 
@@ -153,7 +154,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystem.h
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
-    physics/ChExternalDynamics.h
+    physics/ChExternalDynamicsODE.h
+    physics/ChExternalDynamicsDAE.h
     physics/ChAssembly.h
     physics/ChInertiaUtils.h
     )
@@ -377,6 +379,7 @@ set(ChronoEngine_fea_FILES
     fea/ChPolarDecomposition.cpp
     fea/ChMatrixCorotation.cpp
     fea/ChContactSurface.cpp
+    fea/ChContactSurfaceSegmentSet.cpp
     fea/ChContactSurfaceNodeCloud.cpp
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
@@ -395,6 +398,7 @@ set(ChronoEngine_fea_FILES
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChContactSurface.h
+    fea/ChContactSurfaceSegmentSet.h
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
@@ -722,6 +726,7 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionShapeRoundedBox.cpp
     collision/ChCollisionShapeRoundedCylinder.cpp
     collision/ChCollisionShapeSegment2D.cpp
+    collision/ChCollisionShapeSegment.cpp
     collision/ChCollisionShapeSphere.cpp
     collision/ChCollisionShapeTriangle.cpp
     collision/ChCollisionShapeMeshTriangle.cpp
@@ -750,6 +755,7 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionShapeRoundedBox.h
     collision/ChCollisionShapeRoundedCylinder.h
     collision/ChCollisionShapeSegment2D.h
+    collision/ChCollisionShapeSegment.h
     collision/ChCollisionShapeSphere.h
     collision/ChCollisionShapeTriangle.h
     collision/ChCollisionShapeMeshTriangle.h
@@ -842,6 +848,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/cbtBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbt2DShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtCEtriangleShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/cbtSegmentShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/cbtBvhTriangleMeshShape.cpp
@@ -1260,6 +1267,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
+    utils/ChBodyGeometry.cpp
     utils/ChSocket.cpp
     utils/ChSocketCommunication.cpp
     )
@@ -1280,6 +1288,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChFilters.h
     utils/ChCompositeInertia.h
     utils/ChConvexHull.h
+    utils/ChBodyGeometry.h
     utils/ChSocket.h
     utils/ChSocketCommunication.h
 )

@@ -27,7 +27,6 @@
 #include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
-#include "chrono_vehicle/chassis/ChChassisConnectorHitch.h"
 
 namespace chrono {
 namespace vehicle {
@@ -115,9 +114,9 @@ class CH_VEHICLE_API ChWheeledTrailer {
 
     std::string m_name;  ///< trailer system name
 
-    std::shared_ptr<ChChassisRear> m_chassis;              ///< trailer chassis
-    std::shared_ptr<ChChassisConnectorHitch> m_connector;  ///< connector to pulling vehicle
-    chrono::vehicle::ChAxleList m_axles;                   ///< list of axle subsystems
+    std::shared_ptr<ChChassisRear> m_chassis;         ///< trailer chassis
+    std::shared_ptr<ChChassisConnector> m_connector;  ///< connector to pulling vehicle
+    chrono::vehicle::ChAxleList m_axles;              ///< list of axle subsystems
 };
 
 /// @} vehicle_wheeled

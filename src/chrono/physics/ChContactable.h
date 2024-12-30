@@ -118,6 +118,8 @@ class ChApi ChContactable {
         CONTACTABLE_UNKNOWN = 0,  ///< unknown contactable type
         CONTACTABLE_6,            ///< 1 variable with 6 DOFs (e.g., ChBody, ChNodeFEAxyzrot)
         CONTACTABLE_3,            ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChParticle)
+        CONTACTABLE_33,           ///< 2 variables, each with 3DOF (e.g., segments between 2 ChNodeFEAxyz nodes)
+        CONTACTABLE_66,           ///< 2 variables, each with 6 DOFs (e.g., triangle between 2 ChNodeFEAxyzrot nodes)
         CONTACTABLE_333,          ///< 3 variables, each with 3 DOFs (e.g., triangle between 3 ChNodeFEAxyz nodes)
         CONTACTABLE_666           ///< 3 variables, each with 6 DOFs (e.g., triangle between 3 ChNodeFEAxyzrot nodes)
     };

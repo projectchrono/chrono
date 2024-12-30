@@ -34,8 +34,12 @@ const double BMW_E90_AntiRollBarRear::m_arm_width = -0.3;
 const double BMW_E90_AntiRollBarRear::m_droplink_height = -0.27043;
 const double BMW_E90_AntiRollBarRear::m_arm_radius = 0.01;
 // todo!!
+/*
 const double BMW_E90_AntiRollBarRear::m_spring_coef = 44478.71364;
 const double BMW_E90_AntiRollBarRear::m_damping_coef = 2223.935682;
+*/
+const double BMW_E90_AntiRollBarRear::m_spring_coef = 13000.0*0.31; // front/rear 69%/31%
+const double BMW_E90_AntiRollBarRear::m_damping_coef = 0.05 * BMW_E90_AntiRollBarRear::m_spring_coef;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

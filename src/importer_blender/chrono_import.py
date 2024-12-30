@@ -15,8 +15,8 @@
 #   PyChrono, the postprocess module is always available in the AnaConda installation)
 # - write a Chrono app that uses instructions like my_blender_exporter.AddAll(); 
 #   my_blender_exporter.ExportScript(); and my_blender_exporter.ExportData(); (the latter
-#   in the while() simulation loop). See demo_POST_blender1.cpp for an example.
-# - run the chrono app,  this will generate files on disk: a single
+#   in the while() simulation loop). See demo_POST_blender.cpp for an example.
+# - run the chrono app, this will generate files on disk: a single
 #   xxx.assets.py file and many state00001.py, state00002.py, ..., in an output/ dir.
 # - Open Blender, use menu "File/Import/Chrono import" to load the xxx.assets.py file.
 #
@@ -1315,7 +1315,7 @@ def update_camera_coordinates(mname,mpos,mrot):
     cameraasset.rotation_quaternion = mrot
     cameraasset.location = mpos
 
-# utility to rotate cube texture UVs 90Â° to match other chrono postprocessors
+# utility to rotate cube texture UVs 90° to match other chrono postprocessors
 def rotate_cube_UVs(mcube):
     for loop in mcube.data.loops :  
         mswapU = mcube.data.uv_layers.active.data[loop.index].uv[0]
@@ -2206,8 +2206,6 @@ def unregister():
     bpy.app.handlers.frame_change_post.remove(callback_post)
 
     # sidebar UI:
-    
-    
 
 # The following is executed all times one runs this chrono_import.py script in Blender
 # scripting editor: it effectively register the add-on "by hand".

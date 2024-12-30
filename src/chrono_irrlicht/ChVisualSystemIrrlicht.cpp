@@ -30,9 +30,6 @@
 #include "chrono/assets/ChVisualShapeEllipsoid.h"
 #include "chrono/assets/ChVisualShapeBarrel.h"
 #include "chrono/assets/ChVisualShapeCapsule.h"
-#ifdef CHRONO_MODAL
-    #include "chrono_modal/ChModalAssembly.h"
-#endif
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -55,7 +52,6 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
       m_win_title(""),
       m_yup(true),
       m_use_effects(false),
-      m_modal(false),
       m_quality(0) {
     // Set default device parameter values
     m_device_params.AntiAlias = true;
@@ -67,7 +63,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     m_device_params.LoggingLevel = irr::ELL_INFORMATION;
 
     // Create the GUI
-    m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI());
+    m_gui = std::make_unique<ChIrrGUI>();
 
     // Create shared meshes
     sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, 15, 8);
@@ -161,7 +157,7 @@ CameraVerticalDir ChVisualSystemIrrlicht::GetCameraVertical() {
 void ChVisualSystemIrrlicht::SetSymbolScale(double scale) {
     m_gui->symbolscale = scale;
     if (m_gui->initialized)
-        m_gui->SetSymbolscale(scale);
+        m_gui->SetSymbolScale(scale);
 }
 
 // -----------------------------------------------------------------------------
@@ -185,6 +181,9 @@ void ChVisualSystemIrrlicht::AttachSystem(ChSystem* sys) {
 void ChVisualSystemIrrlicht::Initialize() {
     if (m_initialized)
         return;
+
+    if (!m_verbose)
+        m_device_params.LoggingLevel = irr::ELL_NONE;
 
     // Create Irrlicht device using current parameter values.
     m_device = irr::createDeviceEx(m_device_params);
@@ -455,37 +454,6 @@ void ChVisualSystemIrrlicht::AddUserEventReceiver(irr::IEventReceiver* receiver)
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemIrrlicht::EnableModalAnalysis(bool val) {
-    if (!m_modal)
-        m_gui->modal_phi = 0;
-    m_modal = val;
-    m_gui->modal_show = val;
-}
-
-void ChVisualSystemIrrlicht::SetModalModeNumber(int val) {
-    m_gui->modal_mode_n = val;
-    m_gui->modal_phi = 0;
-}
-
-void ChVisualSystemIrrlicht::SetModalAmplitude(double val) {
-    m_gui->modal_amplitude = val;
-    if (m_gui->initialized)
-        m_gui->SetModalAmplitude(val);
-}
-
-void ChVisualSystemIrrlicht::SetModalSpeed(double val) {
-    m_gui->modal_speed = val;
-    if (m_gui->initialized)
-        m_gui->SetModalSpeed(val);
-}
-
-void ChVisualSystemIrrlicht::SetModalModesMax(int maxModes) {
-    if (m_gui->initialized)
-        m_gui->SetModalModesMax(maxModes);
-}
-
-// -----------------------------------------------------------------------------
-
 void ChVisualSystemIrrlicht::EnableShadows(std::shared_ptr<ChPhysicsItem> item) {
     if (!m_device) {
         std::cerr << "EnableShadows - visualization system not initialized" << std::endl;
@@ -577,6 +545,10 @@ void ChVisualSystemIrrlicht::ShowExplorer(bool val) {
     m_gui->show_explorer = val;
 }
 
+void ChVisualSystemIrrlicht::ShowConvergencePlot(bool val) {
+    m_gui->SetPlotConvergence(val);
+}
+
 // -----------------------------------------------------------------------------
 
 // Clean canvas at beginning of scene.
@@ -593,38 +565,6 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
     utils::ChProfileManager::Increment_Frame_Counter();
 
     GetVideoDriver()->beginScene(backBuffer, zBuffer, tools::ToIrrlichtSColor(color));
-
-#ifdef CHRONO_MODAL
-    if (m_modal || m_gui->modal_phi > 0) {
-        if (m_modal)
-            m_gui->modal_phi += m_gui->modal_speed * 0.01;
-        else
-            m_gui->modal_phi = 0;
-
-        // scan for modal assemblies, if any
-        for (const auto& item : m_systems[0]->GetOtherPhysicsItems()) {
-            if (auto modalassembly = std::dynamic_pointer_cast<modal::ChModalAssembly>(item)) {
-                try {
-                    // superposition of modal shape
-                    modalassembly->UpdateFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
-                                                               m_gui->modal_amplitude);
-                    // fetch Hz of this mode
-                    m_gui->modal_current_freq = modalassembly->GetUndampedFrequencies()(m_gui->modal_mode_n);
-                    // fetch damping factor
-                    m_gui->modal_current_dampingfactor = modalassembly->GetDampingRatios()(m_gui->modal_mode_n);
-                    // Force an update of the visual system
-                    OnUpdate(m_systems[0]);
-                } catch (...) {
-                    m_gui->modal_current_freq = 0;
-                    m_gui->modal_current_dampingfactor = 0;
-                    // something failed in SetFullStateWithModeOverlay(), ex. node n was higher than available ones
-                    modalassembly->SetFullStateReset();
-                }
-            }
-        }
-        m_gui->modal_current_mode_n = m_gui->modal_mode_n;
-    }
-#endif
 
     m_gui->BeginScene();
 }
@@ -701,6 +641,7 @@ void ChVisualSystemIrrlicht::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
     if (node != m_nodes.end()) {
         node->second->removeAll();
         node->second->remove();
+        m_nodes.erase(node);
     }
 }
 
@@ -764,28 +705,6 @@ void ChVisualSystemIrrlicht::CreateIrrNodes(const ChAssembly* assembly, std::uno
             CreateIrrNodes(a.get(), trace);
         }
     }
-
-#ifdef CHRONO_MODAL
-    // Modal assemblies contain custom internal items that might be useful to visualize
-    if (auto assy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(assembly)) {
-        for (auto body : assy_modal->GetBodiesInternal()) {
-            CreateIrrNode(body);
-        }
-        for (auto& mesh : assy_modal->GetMeshesInternal()) {
-            CreateIrrNode(mesh);
-        }
-        for (auto ph : assy_modal->GetOtherPhysicsItemsInternal()) {
-            CreateIrrNode(ph);
-            // If the assembly holds another assemblies, also bind their contents.
-            if (auto a = std::dynamic_pointer_cast<ChAssembly>(ph)) {
-                CreateIrrNodes(a.get(), trace);
-            }
-        }
-        for (auto link : assy_modal->GetLinksInternal()) {
-            CreateIrrNode(link);
-        }
-    }
-#endif
 }
 
 void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) {

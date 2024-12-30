@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
@@ -24,9 +26,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "FEAvisualization.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -34,7 +35,8 @@
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -111,7 +113,7 @@ int main(int argc, char* argv[]) {
             if (x > 0.4)
                 return CH_PI;
             else
-                return -CH_PI * (1.0 - cos(CH_PI * x / 0.4)) / 2.0;
+                return -CH_PI * (1.0 - std::cos(CH_PI * x / 0.4)) / 2.0;
         }
     };
 
@@ -251,16 +253,9 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Beams and constraints");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Beams and constraints",
+                                         ChVector3d(0, 0.6, -1.0));
 
     // SIMULATION LOOP
 
@@ -287,9 +282,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-
-        tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_Z), ChColor(0.4f, 0.4f, 0.4f),
-                        true);
 
         sys.DoStepDynamics(0.001);
 

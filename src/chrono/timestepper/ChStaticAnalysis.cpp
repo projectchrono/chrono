@@ -118,24 +118,29 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
     // Set up auxiliary vectors
     ChState Xnew;
     ChStateDelta Dx;
+    ChVectorDynamic<> Dl;
     ChVectorDynamic<> R;
     ChVectorDynamic<> Qc;
     Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
     Dx.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    Dl.setZero(integrable->GetNumConstraints());
     R.setZero(integrable->GetNumCoordsVelLevel());
     Qc.setZero(integrable->GetNumConstraints());
     L.setZero(integrable->GetNumConstraints());
 
     // Use Newton Raphson iteration, solving for the increments
-    //      [ - dF/dx    Cq' ] [ Dx  ] = [ f ]
-    //      [ Cq         0   ] [ L   ] = [-C ]
+    //      [ - dF/dx    Cq' ] [ Dx  ] = [ f + Cq*L ]
+    //      [ Cq         0   ] [-Dl  ] = [-C ]
 
     for (int i = 0; i < m_maxiters; ++i) {
         integrable->StateScatter(X, V, T, true);  // state -> system
         R.setZero();
         Qc.setZero();
         integrable->LoadResidual_F(R, 1.0);
-        integrable->LoadConstraint_C(Qc, 1.0);
+        // integrable->LoadResidual_Mv(R, V, 1.0); // V is zero
+        integrable->LoadResidual_CqL(R, L, 1.0); // update the reaction forces
+        integrable->LoadConstraint_C(Qc, 1.0); // Qc=C (sign flipped later in StateSolveCorrection)
+        // integrable->LoadConstraint_Ct(Qc, 1.0); // do not consider the rheonomic excitation because it constrains the DOFs
 
         double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
         R *= cfactor;
@@ -154,7 +159,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
             // Stopping test
             if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
                 if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations.\n" << std::endl;
+                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations\n" << std::endl;
                 }
                 break;
             }
@@ -162,7 +167,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
 
         // Solve linear system for correction
         integrable->StateSolveCorrection(  //
-            Dx, L, R, Qc,                  //
+            Dx, Dl, R, Qc,                 //
             0,                             // factor for  M
             0,                             // factor for  dF/dv
             -1.0,                          // factor for  dF/dx (the stiffness matrix)
@@ -173,6 +178,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
         );
 
         Xnew = X + Dx;
+        L += Dl;
 
         if (m_use_correction_test) {
             // Calculate actual correction in X
@@ -200,6 +206,9 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
         }
 
         X = Xnew;
+
+        integrable->StateScatter(X, V, T, true);  // state -> system
+        integrable->StateScatterReactions(L);     // -> system auxiliary data
     }
 
     integrable->StateScatter(X, V, T, true);  // state -> system
@@ -804,166 +813,6 @@ void ChStaticNonLinearIncremental::SetNewtonDamping(double damping_factor) {
 
 // -----------------------------------------------------------------------------
 
-ChStaticNonLinearRigidMotion::ChStaticNonLinearRigidMotion()
-    : ChStaticAnalysis(),
-      m_maxiters(20),
-      m_incremental_steps(6),
-      m_use_correction_test(true),
-      m_reltol(1e-4),
-      m_abstol(1e-8),
-      m_verbose(false) {}
 
-void ChStaticNonLinearRigidMotion::StaticAnalysis() {
-    ChIntegrableIIorder* integrable = static_cast<ChIntegrableIIorder*>(m_integrable);
-
-    if (m_verbose) {
-        std::cout << "\nNonlinear statics" << std::endl;
-        std::cout << "   max iterations:     " << m_maxiters << std::endl;
-        std::cout << "   incremental steps:  " << m_incremental_steps << std::endl;
-        if (m_use_correction_test) {
-            std::cout << "   stopping test:      correction" << std::endl;
-            std::cout << "      relative tol:    " << m_reltol << std::endl;
-            std::cout << "      absolute tol:    " << m_abstol << std::endl;
-        } else {
-            std::cout << "   stopping test:      residual" << std::endl;
-            std::cout << "      tolerance:       " << m_abstol << std::endl;
-        }
-        std::cout << std::endl;
-    }
-
-    // Set up main vectors
-    double T;
-    ChStateDelta V(integrable);
-    X.resize(integrable->GetNumCoordsPosLevel());
-    V.resize(integrable->GetNumCoordsVelLevel());
-    integrable->StateGather(X, V, T);  // state <- system
-
-    // Set speed to zero
-    V.setZero(integrable->GetNumCoordsVelLevel(), integrable);
-    integrable->StateScatter(X, V, T, true);  // state -> system
-
-    // Set up auxiliary vectors
-    ChState Xnew;
-    ChStateDelta Dx;
-    ChVectorDynamic<> Dl;
-    ChVectorDynamic<> R;
-    ChVectorDynamic<> Qc;
-    Xnew.setZero(integrable->GetNumCoordsPosLevel(), integrable);
-    Dx.setZero(integrable->GetNumCoordsVelLevel(), integrable);
-    Dl.setZero(integrable->GetNumConstraints());
-    R.setZero(integrable->GetNumCoordsVelLevel());
-    Qc.setZero(integrable->GetNumConstraints());
-    L.setZero(integrable->GetNumConstraints());
-
-    // Use Newton Raphson iteration, solving for the increments
-    //      [ - dF/dx    Cq' ] [ Dx  ] = [ f + Cq*L ]
-    //      [ Cq         0   ] [-Dl  ] = [-C ]
-
-    for (int i = 0; i < m_maxiters; ++i) {
-        integrable->StateScatter(X, V, T, true);  // state -> system
-        R.setZero();
-        Qc.setZero();
-        integrable->LoadResidual_F(R, 1.0);
-        // integrable->LoadResidual_Mv(R, V, 1.0); // V is zero
-        integrable->LoadResidual_CqL(R, L, 1.0);  // Update the reaction forces
-        integrable->LoadConstraint_C(Qc, 1.0);    // Qc= C (sign flipped later in StateSolveCorrection)
-        // Do not consider the rheonomic excitation because it constrains the DOFs in fact.
-        // integrable->LoadConstraint_Ct(Qc, 1.0);
-
-        double cfactor = std::min(1.0, (i + 2.0) / (m_incremental_steps + 1.0));
-        R *= cfactor;
-        Qc *= cfactor;
-
-        if (!m_use_correction_test) {
-            // Evaluate residual norms
-            double R_norm = R.lpNorm<Eigen::Infinity>();
-            double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
-
-            if (m_verbose) {
-                std::cout << "--- Nonlinear statics iteration " << i << "  |R|_inf = " << R_norm
-                          << "  |Qc|_inf = " << Qc_norm << std::endl;
-            }
-
-            // Stopping test
-            if ((R_norm < m_abstol) && (Qc_norm < m_abstol)) {
-                if (m_verbose) {
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations\n" << std::endl;
-                }
-                break;
-            }
-        }
-
-        // Solve linear system for correction
-        integrable->StateSolveCorrection(  //
-            Dx, Dl, R, Qc,                 //
-            0,                             // factor for  M
-            0,                             // factor for  dF/dv
-            -1.0,                          // factor for  dF/dx (the stiffness matrix)
-            X, V, T,                       // not needed here
-            false,                         // do not scatter Xnew Vnew T+dt before computing correction
-            false,                         // full update? (not used, since no scatter)
-            true                           // force a call to the solver's Setup() function
-        );
-
-        Xnew = X + Dx;
-        L += Dl;
-
-        if (m_use_correction_test) {
-            // Calculate actual correction in X
-            ChState correction = Xnew - X;
-
-            // Evaluate weights and correction WRMS norm
-            ChVectorDynamic<> ewt = (m_reltol * Xnew.cwiseAbs() + m_abstol).cwiseInverse();
-            double Dx_norm = correction.wrmsNorm(ewt);
-
-            if (m_verbose) {
-                std::cout << "--- Nonlinear statics iteration " << i << "  |Dx|_wrms = " << Dx_norm << std::endl;
-            }
-
-            // Stopping test
-            if (Dx_norm < 1) {
-                if (m_verbose) {
-                    double R_norm = R.lpNorm<Eigen::Infinity>();
-                    double Qc_norm = Qc.lpNorm<Eigen::Infinity>();
-                    std::cout << "+++ Newton procedure converged in " << i + 1 << " iterations." << std::endl;
-                    std::cout << "    |R|_inf = " << R_norm << "  |Qc|_inf = " << Qc_norm << std::endl << std::endl;
-                }
-                X = Xnew;
-                break;
-            }
-        }
-
-        X = Xnew;
-
-        integrable->StateScatter(X, V, T, true);  // state -> system
-        integrable->StateScatterReactions(L);     // -> system auxiliary data
-    }
-
-    integrable->StateScatter(X, V, T, true);  // state -> system
-    integrable->StateScatterReactions(L);     // -> system auxiliary data
-}
-
-void ChStaticNonLinearRigidMotion::SetCorrectionTolerance(double reltol, double abstol) {
-    m_use_correction_test = true;
-    m_reltol = reltol;
-    m_abstol = abstol;
-}
-
-void ChStaticNonLinearRigidMotion::SetResidualTolerance(double tol) {
-    m_use_correction_test = false;
-    m_abstol = tol;
-}
-
-void ChStaticNonLinearRigidMotion::SetMaxIterations(int max_iters) {
-    m_maxiters = max_iters;
-    if (m_incremental_steps > m_maxiters)
-        m_incremental_steps = m_maxiters;
-}
-
-void ChStaticNonLinearRigidMotion::SetIncrementalSteps(int incr_steps) {
-    m_incremental_steps = incr_steps;
-    if (m_maxiters < m_incremental_steps)
-        m_maxiters = m_incremental_steps;
-}
 
 }  // end namespace chrono

@@ -47,7 +47,7 @@ const ChVector3d M113_TrackShoeSinglePin::m_pin_center(0.045, 0, 0.0375);
 
 M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTrackShoeSinglePin(name) {
     // Contact materials
- 
+
     // Material for cylindrical surfaces (sprocket contact)
     m_shoe_sprk_minfo.mu = 0.8f;
     m_shoe_sprk_minfo.cr = 0.75f;
@@ -59,7 +59,7 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTr
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
-        m_geometry.m_materials.push_back(minfo);
+        m_geometry.materials.push_back(minfo);
     }
 
     // Material 1: pad top (wheel contact)
@@ -68,7 +68,7 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTr
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
-        m_geometry.m_materials.push_back(minfo);
+        m_geometry.materials.push_back(minfo);
     }
 
     // Material 2: guide pin (wheel contact)
@@ -77,62 +77,61 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTr
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
         minfo.Y = 1e7f;
-        m_geometry.m_materials.push_back(minfo);
+        m_geometry.materials.push_back(minfo);
     }
 
     // Geometry
 
     // Collision box: pad bottom (ground contact)
-    ChVehicleGeometry::BoxShape box_bottom(ChVector3d(0, 0, -0.015), QUNIT, ChVector3d(0.11, 0.19, 0.03), 0);
+    utils::ChBodyGeometry::BoxShape box_bottom(ChVector3d(0, 0, -0.015), QUNIT, ChVector3d(0.11, 0.19, 0.03), 0);
 
     // Collision box: pad top (wheel contact)
-    ChVehicleGeometry::BoxShape box_top(ChVector3d(0, 0, +0.015), QUNIT, ChVector3d(0.10, 0.18, 0.03), 1);
+    utils::ChBodyGeometry::BoxShape box_top(ChVector3d(0, 0, +0.015), QUNIT, ChVector3d(0.10, 0.18, 0.03), 1);
 
     // Collision box: guide pin (wheel contact)
-    ChVehicleGeometry::BoxShape box_guide(ChVector3d(0.045, 0, 0.0375), QUNIT, ChVector3d(0.0284, 0.0114, 0.075), 2);
+    utils::ChBodyGeometry::BoxShape box_guide(ChVector3d(0.045, 0, 0.0375), QUNIT, ChVector3d(0.0284, 0.0114, 0.075),
+                                              2);
 
     // Collision box: pad side outer (ground contact)
-    ChVehicleGeometry::BoxShape box_side_outer(ChVector3d(0, +0.16245, 0), QUNIT, ChVector3d(0.1315, 0.0542, 0.02), 0);
+    utils::ChBodyGeometry::BoxShape box_side_outer(ChVector3d(0, +0.16245, 0), QUNIT, ChVector3d(0.1315, 0.0542, 0.02),
+                                                   0);
 
     // Collision box: pad side inner (ground contact)
-    ChVehicleGeometry::BoxShape box_side_inner(ChVector3d(0, -0.16245, 0), QUNIT, ChVector3d(0.1315, 0.0542, 0.02), 0);
+    utils::ChBodyGeometry::BoxShape box_side_inner(ChVector3d(0, -0.16245, 0), QUNIT, ChVector3d(0.1315, 0.0542, 0.02),
+                                                   0);
 
-    m_geometry.m_has_collision = true;
-    m_geometry.m_coll_boxes.push_back(box_bottom);
-    m_geometry.m_coll_boxes.push_back(box_top);
-    m_geometry.m_coll_boxes.push_back(box_guide);
-    m_geometry.m_coll_boxes.push_back(box_side_outer);
-    m_geometry.m_coll_boxes.push_back(box_side_inner);
-    
-    m_ground_geometry.m_has_collision = true;
-    m_ground_geometry.m_materials = m_geometry.m_materials;
-    m_ground_geometry.m_coll_boxes.push_back(box_bottom);
-    m_ground_geometry.m_coll_boxes.push_back(box_side_outer);
-    m_ground_geometry.m_coll_boxes.push_back(box_side_inner);    
+    m_geometry.coll_boxes.push_back(box_bottom);
+    m_geometry.coll_boxes.push_back(box_top);
+    m_geometry.coll_boxes.push_back(box_guide);
+    m_geometry.coll_boxes.push_back(box_side_outer);
+    m_geometry.coll_boxes.push_back(box_side_inner);
 
-    m_geometry.m_has_primitives = true;
-    m_geometry.m_vis_boxes.push_back(box_bottom);
-    m_geometry.m_vis_boxes.push_back(box_top);
-    m_geometry.m_vis_boxes.push_back(box_guide);
-    m_geometry.m_vis_boxes.push_back(box_side_outer);
-    m_geometry.m_vis_boxes.push_back(box_side_inner);
+    m_ground_geometry.materials = m_geometry.materials;
+    m_ground_geometry.coll_boxes.push_back(box_bottom);
+    m_ground_geometry.coll_boxes.push_back(box_side_outer);
+    m_ground_geometry.coll_boxes.push_back(box_side_inner);
+
+    m_geometry.vis_boxes.push_back(box_bottom);
+    m_geometry.vis_boxes.push_back(box_top);
+    m_geometry.vis_boxes.push_back(box_guide);
+    m_geometry.vis_boxes.push_back(box_side_outer);
+    m_geometry.vis_boxes.push_back(box_side_inner);
 
     // Visualization cylinder: pin revolute joint
-    m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector3d(0.077, 0, 0), ChVector3d(0, 1, 0), 0.01, 0.399, -1));
+    m_geometry.vis_cylinders.push_back(
+        utils::ChBodyGeometry::CylinderShape(ChVector3d(0.077, 0, 0), ChVector3d(0, 1, 0), 0.01, 0.399, -1));
 
     // Visualization cylinders: sprocket contact surfaces
-    m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector3d(0.0535, -0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
-    m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector3d(0.0535, +0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
-    m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector3d(-0.061, -0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
-    m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector3d(-0.061, +0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
+    m_geometry.vis_cylinders.push_back(
+        utils::ChBodyGeometry::CylinderShape(ChVector3d(0.0535, -0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
+    m_geometry.vis_cylinders.push_back(
+        utils::ChBodyGeometry::CylinderShape(ChVector3d(0.0535, +0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
+    m_geometry.vis_cylinders.push_back(
+        utils::ChBodyGeometry::CylinderShape(ChVector3d(-0.061, -0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
+    m_geometry.vis_cylinders.push_back(
+        utils::ChBodyGeometry::CylinderShape(ChVector3d(-0.061, +0.095, 0), ChVector3d(0, 1, 0), 0.015, 0.095, -1));
 
-    m_geometry.m_has_mesh = true;
-    m_geometry.m_vis_mesh_file = "M113/meshes/TrackShoeSinglePin.obj";
+    m_geometry.vis_mesh_file = vehicle::GetDataFile("M113/meshes/TrackShoeSinglePin.obj");
 }
 
 }  // end namespace m113

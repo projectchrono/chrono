@@ -36,21 +36,18 @@ void ChTrackShoeSegmented::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    if (!m_geometry.m_has_colors) {
-        if (m_index == 0) {
-            m_geometry.m_color_spheres = {0.4f, 0.1f, 0.1f};
-            m_geometry.m_color_boxes = {0.6f, 0.3f, 0.3f};
-            m_geometry.m_color_cylinders = {0.4f, 0.1f, 0.1f};
-        } else if (m_index % 2 == 0) {
-            m_geometry.m_color_spheres = {0.1f, 0.4f, 0.1f};
-            m_geometry.m_color_boxes = {0.3f, 0.6f, 0.3f};
-            m_geometry.m_color_cylinders = {0.1f, 0.4f, 0.1f};
-        } else {
-            m_geometry.m_color_spheres = {0.1f, 0.1f, 0.4f};
-            m_geometry.m_color_boxes = {0.3f, 0.3f, 0.6f};
-            m_geometry.m_color_cylinders = {0.1f, 0.1f, 0.4f};
-        }
-        m_geometry.m_has_colors = true;
+    if (m_index == 0) {
+        m_geometry.color_spheres = {0.4f, 0.1f, 0.1f};
+        m_geometry.color_boxes = {0.6f, 0.3f, 0.3f};
+        m_geometry.color_cylinders = {0.4f, 0.1f, 0.1f};
+    } else if (m_index % 2 == 0) {
+        m_geometry.color_spheres = {0.1f, 0.4f, 0.1f};
+        m_geometry.color_boxes = {0.3f, 0.6f, 0.3f};
+        m_geometry.color_cylinders = {0.1f, 0.4f, 0.1f};
+    } else {
+        m_geometry.color_spheres = {0.1f, 0.1f, 0.4f};
+        m_geometry.color_boxes = {0.3f, 0.3f, 0.6f};
+        m_geometry.color_cylinders = {0.1f, 0.1f, 0.4f};
     }
 
     m_geometry.CreateVisualizationAssets(m_shoe, vis);

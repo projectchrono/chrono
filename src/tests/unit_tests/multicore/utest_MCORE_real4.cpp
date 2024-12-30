@@ -15,7 +15,7 @@
 // Chrono::Multicore unit test for real class
 // =============================================================================
 
-#include "unit_testing.h"
+#include "../ut_utils.h"
 
 #ifdef CHRONO_MULTICORE_USE_DOUBLE
 const double precision = 1e-10;
@@ -54,10 +54,10 @@ TEST(real4, functions) {
         // quaternion normalize
         quaternion a(11, -2, 0, -2);
         quaternion b = Normalize(a);
-        ASSERT_NEAR(b.w, 11.0 / sqrt(129.0), precision);
-        ASSERT_NEAR(b.x, -2.0 / sqrt(129.0), precision);
+        ASSERT_NEAR(b.w, 11.0 / std::sqrt(129.0), precision);
+        ASSERT_NEAR(b.x, -2.0 / std::sqrt(129.0), precision);
         ASSERT_NEAR(b.y, 0.0, precision);
-        ASSERT_NEAR(b.z, -2.0 / sqrt(129.0), precision);
+        ASSERT_NEAR(b.z, -2.0 / std::sqrt(129.0), precision);
     }
 
     {

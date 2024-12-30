@@ -86,7 +86,7 @@ if(ENABLE_MODULE_FSI)
       terrain/ChVehicleCosimTerrainNodeGranularSPH.h
       terrain/ChVehicleCosimTerrainNodeGranularSPH.cpp)
   set(INCLUDES "${INCLUDES};${CH_FSI_INCLUDES}")
-  list(APPEND LIBRARIES ChronoEngine_fsi)
+  list(APPEND LIBRARIES ChronoEngine_fsi_sph)
 endif()
 
 if(ENABLE_MODULE_GPU)

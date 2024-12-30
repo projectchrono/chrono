@@ -25,6 +25,22 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::fmi2;
+
+// -----------------------------------------------------------------------------
+
+// Create an instance of this FMU
+fmu_tools::fmi2::FmuComponentBase* fmu_tools::fmi2::fmi2InstantiateIMPL(fmi2String instanceName,
+                                                                        fmi2Type fmuType,
+                                                                        fmi2String fmuGUID,
+                                                                        fmi2String fmuResourceLocation,
+                                                                        const fmi2CallbackFunctions* functions,
+                                                                        fmi2Boolean visible,
+                                                                        fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
+}
+
+// -----------------------------------------------------------------------------
 
 FmuComponent::FmuComponent(fmi2String instanceName,
                            fmi2Type fmuType,
@@ -104,9 +120,9 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddPostStepFunction([this]() { this->CalculateTireOutputs(); });
 }
 
-class DummyWheel : public ChWheel {
+class Wheel : public ChWheel {
   public:
-    DummyWheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
+    Wheel() : ChWheel("tire_wheel"), m_inertia(ChVector3d(0)) {}
     virtual double GetWheelMass() const override { return 0; }
     virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return 1; }
@@ -130,7 +146,7 @@ void FmuComponent::CreateTire() {
     auto spindle = chrono_types::make_shared<ChBody>();
     sys.AddBody(spindle);
 
-    wheel = chrono_types::make_shared<DummyWheel>();
+    wheel = chrono_types::make_shared<Wheel>();
     wheel->Initialize(nullptr, spindle, LEFT);
 
     wheel->SetTire(tire);
@@ -162,19 +178,22 @@ void FmuComponent::CalculateTireOutputs() {
     query_point = wheel_state.pos;
 }
 
-void FmuComponent::_preModelDescriptionExport() {}
+void FmuComponent::preModelDescriptionExport() {}
 
-void FmuComponent::_postModelDescriptionExport() {}
+void FmuComponent::postModelDescriptionExport() {}
 
-void FmuComponent::_enterInitializationMode() {}
-
-void FmuComponent::_exitInitializationMode() {
-    CreateTire();
+fmi2Status FmuComponent::enterInitializationModeIMPL() {
+    return fmi2Status::fmi2OK;
 }
 
-fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
-                                 fmi2Real communicationStepSize,
-                                 fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
+fmi2Status FmuComponent::exitInitializationModeIMPL() {
+    CreateTire();
+    return fmi2Status::fmi2OK;
+}
+
+fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
+                                    fmi2Real communicationStepSize,
+                                    fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
     while (m_time < currentCommunicationPoint + communicationStepSize) {
         fmi2Real h = std::min((currentCommunicationPoint + communicationStepSize - m_time),
                               std::min(communicationStepSize, step_size));

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/physics/ChLinkLockPointSpline.h"
 #include "chrono/physics/ChSystem.h"
@@ -103,8 +105,8 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         deltaC_dt.pos = VNULL;
         deltaC_dtdt.pos.x() = 0;  // csys X axis aligned to vdir: just
         deltaC_dtdt.pos.y() = 0;  // impose centripetal acceleration
-        // deltaC_dtdt.pos.z() =   pow(Vdot(this->GetRelCoordsysDt().pos, vdir), 2) / mrad;
-        deltaC_dtdt.pos.z() = pow(GetRelCoordsysDt().pos.x(), 2) / mrad;
+        // deltaC_dtdt.pos.z() =   std::pow(Vdot(this->GetRelCoordsysDt().pos, vdir), 2) / mrad;
+        deltaC_dtdt.pos.z() = std::pow(GetRelCoordsysDt().pos.x(), 2) / mrad;
 
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;

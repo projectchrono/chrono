@@ -26,7 +26,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleGeometry.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimDBPRig.h"
@@ -95,7 +94,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedMBSNode : public ChVehicleCosimBaseNod
                                ) = 0;
 
     /// Return terrain contact geometry and material information for one track shoe.
-    virtual ChVehicleGeometry GetTrackShoeContactGeometry() const = 0;
+    virtual utils::ChBodyGeometry GetTrackShoeContactGeometry() const = 0;
 
     /// Return mass of one track shoe.
     virtual double GetTrackShoeMass() const = 0;

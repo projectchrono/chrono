@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_FMU_TOOLS_EXPORT_H
-#define CH_FMU_TOOLS_EXPORT_H
+#ifndef CH_FMU2_TOOLS_EXPORT_H
+#define CH_FMU2_TOOLS_EXPORT_H
 
 #include <stack>
 #include <fstream>
@@ -27,10 +27,11 @@
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChFrameMoving.h"
-#include <memory>
+#include "chrono/physics/ChAssembly.h"
 
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapes.h"
@@ -40,6 +41,12 @@
 #include "fmi2/FmuToolsExport.h"
 
 namespace chrono {
+namespace fmi2 {
+
+/// @addtogroup chrono_fmi2
+/// @{
+
+using FmuVariable = fmu_tools::fmi2::FmuVariable;
 
 #define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
     _fmucomp->AddFmuVariable(                                                                        \
@@ -75,7 +82,7 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 /// Class for serializing variables to FmuComponentBase.
 class ChOutputFMU : public ChArchiveOut {
   public:
-    ChOutputFMU(FmuComponentBase& fmucomp) {
+    ChOutputFMU(fmu_tools::fmi2::FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -220,7 +227,7 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
     int tablevel;
-    FmuComponentBase* _fmucomp;
+    fmu_tools::fmi2::FmuComponentBase* _fmucomp;
     std::stack<int> nitems;
     std::deque<bool> is_array;
     std::deque<std::string> parent_names;
@@ -229,7 +236,7 @@ class ChOutputFMU : public ChArchiveOut {
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public FmuComponentBase {
+class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
   public:
     FmuChronoComponentBase(fmi2String instanceName,
                            fmi2Type fmuType,
@@ -611,7 +618,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// add variables to the FMU component by leveraging the serialization mechanism
-    chrono::ChOutputFMU variables_serializer;
+    ChOutputFMU variables_serializer;
 
     /// list of supported shapes for visualization, required to provide a memory position to getters of shape type
     static const std::unordered_set<std::string> supported_shape_types;
@@ -831,8 +838,9 @@ const std::unordered_set<std::string> FmuChronoComponentBase::supported_shape_ty
     "ChVisualShapePath",      "ChVisualShapeLine",
     "ChVisualShapeUNKNOWN"};
 
-// -----------------------------------------------------------------------------
+/// @} chrono_fmi2
 
+}  // end namespace fmi2
 }  // end namespace chrono
 
 #endif

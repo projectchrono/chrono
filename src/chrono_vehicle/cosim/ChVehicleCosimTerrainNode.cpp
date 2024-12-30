@@ -89,10 +89,19 @@ void ChVehicleCosimTerrainNode::Initialize() {
             cout << "[Terrain node] Send: terrain width = " << init_dim[2] << endl;
         }
 
-        // 2. Receive number of interacting object from MBS node
+        // 2. Receive number of interacting object from MBS node and then their initial locations
 
         MPI_Status status;
         MPI_Recv(&m_num_objects, 1, MPI_INT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+        std::vector<double> all_locations(3 * m_num_objects);
+        MPI_Recv(all_locations.data(), 3 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        unsigned int start_idx = 0;
+        for (int i = 0; i < m_num_objects; i++) {
+            ChVector3d loc(all_locations[start_idx + 0], all_locations[start_idx + 1], all_locations[start_idx + 2]);
+            m_init_loc.push_back(loc);
+            start_idx += 3;
+        }
 
         // 3. Receive expected communication interface type
 
@@ -155,7 +164,7 @@ void ChVehicleCosimTerrainNode::InitializeTireData() {
         RecvGeometry(m_geometry[i], TIRE_NODE_RANK(i));
 
         // If using MESH interface, there must be one and exactly one mesh
-        if (m_interface_type == InterfaceType::MESH && m_geometry[i].m_coll_meshes.size() != 1) {
+        if (m_interface_type == InterfaceType::MESH && m_geometry[i].coll_meshes.size() != 1) {
             cout << "ERROR: using MESH interface, but tire geometry does not include a mesh!" << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
@@ -165,7 +174,7 @@ void ChVehicleCosimTerrainNode::InitializeTireData() {
 
         // Resize mesh state vectors (if used)
         if (m_interface_type == InterfaceType::MESH) {
-            unsigned int nv = m_geometry[i].m_coll_meshes[0].m_trimesh->GetNumVertices();
+            unsigned int nv = m_geometry[i].coll_meshes[0].trimesh->GetNumVertices();
             m_mesh_state[i].vpos.resize(nv);
             m_mesh_state[i].vvel.resize(nv);
         }
@@ -193,7 +202,7 @@ void ChVehicleCosimTerrainNode::InitializeTrackData() {
     RecvGeometry(m_geometry[0], MBS_NODE_RANK);
 
     // If using MESH interface, there must be one and exactly one mesh
-    if (m_interface_type == InterfaceType::MESH && m_geometry[0].m_coll_meshes.size() != 1) {
+    if (m_interface_type == InterfaceType::MESH && m_geometry[0].coll_meshes.size() != 1) {
         cout << "ERROR: using MESH interface, but shoe geometry does not include a mesh!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
@@ -203,7 +212,7 @@ void ChVehicleCosimTerrainNode::InitializeTrackData() {
 
     // Resize mesh state vectors (if used)
     if (m_interface_type == InterfaceType::MESH) {
-        unsigned int nv = m_geometry[0].m_coll_meshes[0].m_trimesh->GetNumVertices();
+        unsigned int nv = m_geometry[0].coll_meshes[0].trimesh->GetNumVertices();
         m_mesh_state[0].vpos.resize(nv);
         m_mesh_state[0].vvel.resize(nv);
     }
@@ -347,7 +356,7 @@ void ChVehicleCosimTerrainNode::SynchronizeTrackedBody(int step_number, double t
 void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double time) {
     for (int i = 0; i < m_num_objects; i++) {
         if (m_rank == TERRAIN_NODE_RANK) {
-            auto nv = m_geometry[i].m_coll_meshes[0].m_trimesh->GetNumVertices();
+            auto nv = m_geometry[i].coll_meshes[0].trimesh->GetNumVertices();
 
             // Receive mesh state data
             MPI_Status status;

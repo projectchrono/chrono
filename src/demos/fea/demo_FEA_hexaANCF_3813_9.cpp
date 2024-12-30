@@ -37,16 +37,16 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
-#include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "FEAvisualization.h"
+
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+// -----------------------------------------------------------------------------
 
 void AxialDynamics(const std::string& out_dir);
 void BendingQuasiStatic(const std::string& out_dir);
@@ -55,6 +55,10 @@ void SoilBin(const std::string& out_dir);
 void SimpleBoxContact(const std::string& out_dir);
 void ShellBrickContact(const std::string& out_dir);
 void DPCapPress(const std::string& out_dir);
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -182,8 +186,8 @@ void DPCapPress(const std::string& out_dir) {
     }
     // Modified hardening parameter to be consistent with ABAQUS !!!
     for (int i = 0; i < RowN; i++) {
-        m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / tan(51.7848 * 3.141592653589793 / 180.0)) /
-                         (0.5 * tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
+        m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / std::tan(51.7848 * 3.141592653589793 / 180.0)) /
+                         (0.5 * std::tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
     }
 
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
@@ -193,8 +197,8 @@ void DPCapPress(const std::string& out_dir) {
     my_surfacematerial->SetGt(32);    // (10e3);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
+    my_contactsurface->AddAllNodes(*my_mesh, 0.005);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddAllNodes(0.005);
 
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
@@ -267,7 +271,7 @@ void DPCapPress(const std::string& out_dir) {
                     element->SetDPVector1(m_DPVector1);
                     element->SetDPVector2(m_DPVector2);
                     element->SetDPVectorSize(RowN);
-                    element->SetDPCapBeta(0.5 * tan(51.7848 * 3.141592653589793 / 180.0));
+                    element->SetDPCapBeta(0.5 * std::tan(51.7848 * 3.141592653589793 / 180.0));
                 }
             }
         }
@@ -318,16 +322,9 @@ void DPCapPress(const std::string& out_dir) {
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -593,8 +590,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface->AddFacesFromBoundary(*my_mesh, 0.005);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.005);
 
     for (int ii = 0; ii < SnumDiv_x * SnumDiv_y; ii++) {
         int node0 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x;
@@ -618,8 +615,8 @@ void ShellBrickContact(const std::string& out_dir) {
     sys.Add(my_shell_mesh);
 
     auto my_contactsurface_shell = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface_shell->AddFacesFromBoundary(*my_shell_mesh, 0.005);
     my_shell_mesh->AddContactSurface(my_contactsurface_shell);
-    my_contactsurface_shell->AddFacesFromBoundary(0.005);
 
     sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     // Turn off gravity for only the shell elements
@@ -699,16 +696,9 @@ void ShellBrickContact(const std::string& out_dir) {
     mvisualizemeshcoll_shell->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshcoll_shell);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -945,8 +935,8 @@ void SimpleBoxContact(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_contactsurface->AddFacesFromBoundary(*my_mesh, 0.0);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.0);
 
     double plate_w = 0.1;
     double plate_l = 0.1;
@@ -999,16 +989,9 @@ void SimpleBoxContact(const std::string& out_dir) {
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1238,8 +1221,8 @@ void SoilBin(const std::string& out_dir) {
     sys.Add(my_mesh);
 
     auto my_contactsurface = chrono_types::make_shared<ChContactSurfaceNodeCloud>(my_surfacematerial);
+    my_contactsurface->AddAllNodes(*my_mesh, 0.006);
     my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddAllNodes(0.006);  // 0.001///node cloud
 
     // Creat punch
     double plate_w = 0.2;  // 0.15
@@ -1321,17 +1304,9 @@ void SoilBin(const std::string& out_dir) {
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.5, -0.5, 0.75), ChVector3d(0.5, 0.5, 0.5));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // Use the MKL Solver
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -1367,7 +1342,7 @@ void SoilBin(const std::string& out_dir) {
         double time = sys.GetChTime();
         if (time > 1)
             break;
-        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_PI)), false);
+        plate_load->SetForce(ChVector3d(0, 0, -1500 * std::sin(time * CH_PI)), false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
@@ -1814,16 +1789,9 @@ void BendingQuasiStatic(const std::string& out_dir) {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.4, -0.3, 0.0), ChVector3d(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -2041,16 +2009,9 @@ void SwingingShell(const std::string& out_dir) {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("9-Node, Large Deformation Brick Element");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(2, 1, -1), ChVector3d(0, 0, 0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "9-Node, Large Deformation Brick Element",
+                                         ChVector3d(-0.4, -0.3, -0.5), ChVector3d(0.0, 0.5, -0.1));
 
     // ----------------------------------
     // Perform a dynamic time integration

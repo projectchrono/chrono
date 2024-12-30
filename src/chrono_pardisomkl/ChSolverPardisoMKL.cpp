@@ -35,13 +35,13 @@ void ChSolverPardisoMKL::PrintErrorMessage() {
     // There are only three possible return codes (see manageErrorCode in Eigen's PardisoSupport.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            std::cout << "computation was successful" << std::endl;
+            std::cout << "PardisoMKL: computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            std::cout << "provided data did not satisfy the prerequisites" << std::endl;
+            std::cout << "PardisoMKL: provided data did not satisfy the prerequisites" << std::endl;
             break;
         case Eigen::InvalidInput:
-            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
+            std::cout << "PardisoMKL: inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         case Eigen::NoConvergence:
             // Not a possible error for Pardiso
@@ -69,13 +69,13 @@ void ChSolverComplexPardisoMKL::PrintErrorMessage() {
     // There are only three possible return codes (see manageErrorCode in Eigen's PardisoSupport.h)
     switch (m_engine.info()) {
         case Eigen::Success:
-            std::cout << "computation was successful" << std::endl;
+            std::cout << "PardisoMKL: computation was successful" << std::endl;
             break;
         case Eigen::NumericalIssue:
-            std::cout << "provided data did not satisfy the prerequisites" << std::endl;
+            std::cout << "PardisoMKL: provided data did not satisfy the prerequisites" << std::endl;
             break;
         case Eigen::InvalidInput:
-            std::cout << "inputs are invalid, or the algorithm has been improperly called" << std::endl;
+            std::cout << "PardisoMKL: inputs are invalid, or the algorithm has been improperly called" << std::endl;
             break;
         case Eigen::NoConvergence:
             // Not a possible error for Pardiso

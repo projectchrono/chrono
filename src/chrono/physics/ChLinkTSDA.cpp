@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkTSDA)
 
-// Perturbatin for finite-difference Jacobian approximation
+// Perturbation for finite-difference Jacobian approximation
 const double ChLinkTSDA::m_FD_delta = 1e-8;
 
 ChLinkTSDA::ChLinkTSDA()
@@ -39,16 +39,32 @@ ChLinkTSDA::ChLinkTSDA()
       m_jacobians(nullptr) {}
 
 ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
+    m_loc1 = other.m_loc1;
+    m_loc2 = other.m_loc2;
+    m_aloc1 = other.m_aloc1;
+    m_aloc2 = other.m_aloc2;
     m_auto_rest_length = other.m_auto_rest_length;
     m_rest_length = other.m_rest_length;
+    m_length = other.m_length;
+    m_length_dt = other.m_length_dt;
+
+    m_k = other.m_k;
+    m_r = other.m_r;
+    m_f = other.m_f;
+    
     m_force = other.m_force;
     m_force_fun = other.m_force_fun;
-    m_ode_fun = other.m_ode_fun;
-    m_nstates = other.m_nstates;
-    m_states = other.m_states;
-    if (other.m_variables) {
-        m_variables = new ChVariablesGenericDiagonalMass(other.m_variables->GetDOF());
-        (*m_variables) = (*other.m_variables);
+
+    m_stiff = other.m_stiff;
+    m_jacobians = nullptr;
+
+    if (other.m_ode_fun) {
+        RegisterODE(other.m_ode_fun);
+    } else {
+        m_ode_fun = nullptr;
+        m_variables = nullptr;
+        m_nstates = 0;
+        m_Qforce.resize(12);
     }
 }
 
@@ -285,7 +301,6 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
     // TODO: DARIOM double check if correct
     ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
     react_force = -m_force * dir;
-    ;
     react_torque = VNULL;
 }
 
@@ -496,7 +511,18 @@ void ChLinkTSDA::ArchiveOut(ChArchiveOut& archive_out) {
     ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
+    archive_out << CHNVP(m_loc1);
+    archive_out << CHNVP(m_loc2);
+    archive_out << CHNVP(m_aloc1);
+    archive_out << CHNVP(m_aloc2);
+    archive_out << CHNVP(m_auto_rest_length);
     archive_out << CHNVP(m_rest_length);
+    archive_out << CHNVP(m_length);
+    archive_out << CHNVP(m_length_dt);
+    archive_out << CHNVP(m_stiff);
+    archive_out << CHNVP(m_k);
+    archive_out << CHNVP(m_r);
+    archive_out << CHNVP(m_f);
 }
 
 void ChLinkTSDA::ArchiveIn(ChArchiveIn& archive_in) {
@@ -507,7 +533,18 @@ void ChLinkTSDA::ArchiveIn(ChArchiveIn& archive_in) {
     ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
+    archive_in >> CHNVP(m_loc1);
+    archive_in >> CHNVP(m_loc2);
+    archive_in >> CHNVP(m_aloc1);
+    archive_in >> CHNVP(m_aloc2);
+    archive_in >> CHNVP(m_auto_rest_length);
     archive_in >> CHNVP(m_rest_length);
+    archive_in >> CHNVP(m_length);
+    archive_in >> CHNVP(m_length_dt);
+    archive_in >> CHNVP(m_stiff);
+    archive_in >> CHNVP(m_k);
+    archive_in >> CHNVP(m_r);
+    archive_in >> CHNVP(m_f);
 }
 
 }  // end namespace chrono

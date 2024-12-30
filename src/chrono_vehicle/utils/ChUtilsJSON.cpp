@@ -21,15 +21,18 @@
 #include <utility>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
 #include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"
 #include "chrono_vehicle/chassis/ChassisConnectorTorsion.h"
+#include "chrono_vehicle/chassis/ChassisConnectorFifthWheel.h"
 
 #include "chrono_vehicle/powertrain/EngineSimple.h"
 #include "chrono_vehicle/powertrain/EngineSimpleMap.h"
 #include "chrono_vehicle/powertrain/EngineShafts.h"
+#include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleCVT.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionSimpleMap.h"
 #include "chrono_vehicle/powertrain/AutomaticTransmissionShafts.h"
 #include "chrono_vehicle/powertrain/ManualTransmissionShafts.h"
@@ -207,8 +210,8 @@ ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
-    ChVehicleGeometry geometry;
+utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
+    utils::ChBodyGeometry geometry;
 
     // Read contact information
     if (d.HasMember("Contact")) {
@@ -221,7 +224,7 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
 
         for (int i = 0; i < num_mats; i++) {
             ChContactMaterialData minfo = ReadMaterialInfoJSON(d["Contact"]["Materials"][i]);
-            geometry.m_materials.push_back(minfo);
+            geometry.materials.push_back(minfo);
         }
 
         // Read contact shapes
@@ -238,37 +241,38 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
             if (type.compare("SPHERE") == 0) {
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Radius"].GetDouble();
-                geometry.m_coll_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius, matID));
+                geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius, matID));
             } else if (type.compare("BOX") == 0) {
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                 ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
-                geometry.m_coll_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims, matID));
+                geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims, matID));
             } else if (type.compare("CYLINDER") == 0) {
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
-                geometry.m_coll_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length, matID));
+                geometry.coll_cylinders.push_back(
+                    utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
             } else if (type.compare("HULL") == 0) {
                 std::string filename = shape["Filename"].GetString();
-                geometry.m_coll_hulls.push_back(ChVehicleGeometry::ConvexHullsShape(filename, matID));
+                geometry.coll_hulls.push_back(
+                    utils::ChBodyGeometry::ConvexHullsShape(vehicle::GetDataFile(filename), matID));
             } else if (type.compare("MESH") == 0) {
                 std::string filename = shape["Filename"].GetString();
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Contact Radius"].GetDouble();
-                geometry.m_coll_meshes.push_back(ChVehicleGeometry::TrimeshShape(pos, filename, radius, matID));
+                geometry.coll_meshes.push_back(
+                    utils::ChBodyGeometry::TrimeshShape(pos, vehicle::GetDataFile(filename), radius, matID));
             }
         }
-
-        geometry.m_has_collision = true;
     }
 
     // Read visualization
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
-            geometry.m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
-            geometry.m_has_mesh = true;
+            std::string filename = d["Visualization"]["Mesh"].GetString();
+            geometry.vis_mesh_file = vehicle::GetDataFile(filename);
         }
         if (d["Visualization"].HasMember("Primitives")) {
             assert(d["Visualization"]["Primitives"].IsArray());
@@ -279,36 +283,35 @@ ChVehicleGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 if (type.compare("SPHERE") == 0) {
                     ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     double radius = shape["Radius"].GetDouble();
-                    geometry.m_vis_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius));
+                    geometry.vis_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius));
                 } else if (type.compare("BOX") == 0) {
                     ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                     ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
-                    geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
+                    geometry.vis_boxes.push_back(utils::ChBodyGeometry::BoxShape(pos, rot, dims));
                 } else if (type.compare("CYLINDER") == 0) {
                     ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                     double radius = shape["Radius"].GetDouble();
                     double length = shape["Length"].GetDouble();
-                    geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));
+                    geometry.vis_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(pos, axis, radius, length));
                 }
             }
-            geometry.m_has_primitives = (num_shapes > 0);
         }
     }
 
     return geometry;
 }
 
-CH_VEHICLE_API ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
-    ChTSDAGeometry geometry;
+CH_VEHICLE_API utils::ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
+    utils::ChTSDAGeometry geometry;
 
     if (d.HasMember("Visualization") && d["Visualization"].IsObject()) {
         auto& vis = d["Visualization"];
         assert(vis.IsObject());
         std::string type = vis["Type"].GetString();
         if (type == "SEGMENT") {
-            geometry.m_vis_segment = chrono_types::make_shared<ChTSDAGeometry::SegmentShape>();
+            geometry.vis_segment = chrono_types::make_shared<utils::ChTSDAGeometry::SegmentShape>();
         } else if (type == "SPRING") {
             // the default below are copied from the actual class, and since there
             // are no setters I can't just take the default constructor and override
@@ -326,7 +329,8 @@ CH_VEHICLE_API ChTSDAGeometry ReadTSDAGeometryJSON(const rapidjson::Value& d) {
             if (vis.HasMember("Turns") && vis["Turns"].IsNumber()) {
                 turns = vis["Turns"].GetDouble();
             }
-            geometry.m_vis_spring = chrono_types::make_shared<ChTSDAGeometry::SpringShape>(radius, resolution, turns);
+            geometry.vis_spring =
+                chrono_types::make_shared<utils::ChTSDAGeometry::SpringShape>(radius, resolution, turns);
         }
     }
 
@@ -721,8 +725,10 @@ std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& 
         connector = chrono_types::make_shared<ChassisConnectorArticulated>(d);
     } else if (subtype.compare("ChassisConnectorTorsion") == 0) {
         connector = chrono_types::make_shared<ChassisConnectorTorsion>(d);
+    } else if (subtype.compare("ChassisConnectorFifthWheel") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorFifthWheel>(d);
     } else {
-        throw std::invalid_argument("Chassis type not supported in ReadChassisConnectorJSON.");
+        throw std::invalid_argument("Connector type not supported in ReadChassisConnectorJSON.");
     }
 
     return connector;
@@ -779,6 +785,8 @@ std::shared_ptr<ChTransmission> ReadTransmissionJSON(const std::string& filename
     // Create the transmission using the appropriate template.
     if (subtype.compare("AutomaticTransmissionSimpleMap") == 0) {
         transmission = chrono_types::make_shared<AutomaticTransmissionSimpleMap>(d);
+    } else if (subtype.compare("AutomaticTransmissionSimpleCVT") == 0) {
+        transmission = chrono_types::make_shared<AutomaticTransmissionSimpleCVT>(d);
     } else if (subtype.compare("AutomaticTransmissionShafts") == 0) {
         transmission = chrono_types::make_shared<AutomaticTransmissionShafts>(d);
     } else if (subtype.compare("ManualTransmissionShafts") == 0) {
