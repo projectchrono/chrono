@@ -24,6 +24,7 @@ namespace chrono {
 /// i.e. custom c++ objects embedded in an object (mostly the ChSystem), that is traversed like in a serialization. 
 /// The map can be used for debugging or to be used as a ExternalPointersMap()
 /// of an ChArchiveIn, for transplanting data to be re-bind incrementally assuming that tags from GetTag() are unique.
+/// Default tags, i.e. "-1", are skipped because assumed not set.
 
 class ChArchivePointerMap : public ChArchiveOut {
 public:
@@ -48,20 +49,24 @@ public:
 
 	virtual void out(ChValue& bVal, bool tracked, size_t obj_ID) {
 		if (process_objects_byval && bVal.HasGetTag()) {
-			if(build_map_id_ptr)
-				this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
-			if(build_map_ptr_id)
-				this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
+			if (bVal.CallGetTag() != -1) {
+				if (build_map_id_ptr)
+					this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
+				if (build_map_ptr_id)
+					this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
+			}
 		}
 		bVal.CallArchiveOut(*this);
 	}
 	virtual void out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) {
 		if (!already_inserted) {
 			if (process_objects_byref && bVal.HasGetTag()) {
-				if (build_map_id_ptr)
-					this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
-				if (build_map_ptr_id)
-					this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
+				if (bVal.CallGetTag() != -1) {
+					if (build_map_id_ptr)
+						this->pointer_map_id_ptr[bVal.CallGetTag()] = bVal.GetRawPtr();
+					if (build_map_ptr_id)
+						this->pointer_map_ptr_id[bVal.GetRawPtr()] = bVal.CallGetTag();
+				}
 			}
 			bVal.CallArchiveOut(*this);
 		}
@@ -70,15 +75,16 @@ public:
 	virtual void out_ref_sharedptr(ChValue& bVal_wrapped, std::shared_ptr<void> bVal_shptr_wrapper, bool already_inserted, size_t obj_ID, size_t ext_ID) {
 		if (!already_inserted) {
 			if (process_objects_byref && bVal_wrapped.HasGetTag()) {
-				
-				if (build_map_id_ptr)
-					this->pointer_map_id_ptr[bVal_wrapped.CallGetTag()] = bVal_wrapped.GetRawPtr();
-				if (build_map_ptr_id)
-					this->pointer_map_ptr_id[bVal_wrapped.GetRawPtr()] = bVal_wrapped.CallGetTag();
-				
-				this->shared_ptr_map.emplace(
-					std::make_pair(bVal_wrapped.GetRawPtr(), 
-						std::make_pair(bVal_shptr_wrapper, bVal_wrapped.GetClassRegisteredName())));
+				if (bVal_wrapped.CallGetTag() != -1) {
+					if (build_map_id_ptr)
+						this->pointer_map_id_ptr[bVal_wrapped.CallGetTag()] = bVal_wrapped.GetRawPtr();
+					if (build_map_ptr_id)
+						this->pointer_map_ptr_id[bVal_wrapped.GetRawPtr()] = bVal_wrapped.CallGetTag();
+
+					this->shared_ptr_map.emplace(
+						std::make_pair(bVal_wrapped.GetRawPtr(),
+							std::make_pair(bVal_shptr_wrapper, bVal_wrapped.GetClassRegisteredName())));
+				}
 			}
 			bVal_wrapped.CallArchiveOut(*this);
 		}
