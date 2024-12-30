@@ -107,10 +107,17 @@ public:
 
 /// Helper class that simply sets the tag of objects, using unique tag IDs via SetTag() for c++ classes that has
 /// a void SetTag(int) function, traversing the object and sub objects like in a serialization. 
+/// The IDs will be generated starting from "starting_ID", parameter of constructor, or from 1 if not specified. 
+/// Note that the default tag ID, for all objects with a GetTag() SetTag(), when not set, is -1 by default.
+/// If you run this utility over a system that has already set some of the tags that you set manually and
+/// yopu want to keep, then set skip_already_tagged=true and let starting_ID be an integer greater than 
+/// the higher ID you set manually, to avoid reusing an ID.
 
 class ChArchiveSetUniqueTags : public ChArchiveOut {
 public:
-	ChArchiveSetUniqueTags() {}
+	ChArchiveSetUniqueTags(int starting_ID = 1) {
+		currentID = starting_ID;
+	}
 
 	virtual ~ChArchiveSetUniqueTags() {}
 
