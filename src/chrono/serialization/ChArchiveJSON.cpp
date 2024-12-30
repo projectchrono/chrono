@@ -54,9 +54,11 @@ void ChArchiveOutJSON::out(ChNameValue<float> bVal) {
                   << "\t: ";
     // +/- "Inf" not officially supported in JSON, so clamp:
     if (mval < -std::numeric_limits<float>::max())
-        m_ostream << std::numeric_limits<float>::max(); // -Inf  
-    else if(mval > std::numeric_limits<float>::max())
-        m_ostream << std::numeric_limits<float>::max(); // +Inf 
+        m_ostream << "-Inf"; // -Inf  
+    else if (mval > std::numeric_limits<float>::max())
+        m_ostream << "Inf"; // +Inf 
+    else if (std::isnan(mval))
+        m_ostream << "NaN";
     else
         m_ostream << mval;
     ++nitems.top();
@@ -70,9 +72,11 @@ void ChArchiveOutJSON::out(ChNameValue<double> bVal) {
                   << "\t: ";
     // +/- "Inf" not officially supported in JSON, so clamp:
     if (mval < -std::numeric_limits<double>::max())
-        m_ostream << -std::numeric_limits<double>::max();
+        m_ostream << "-Inf";
     else if (mval > std::numeric_limits<double>::max())
-        m_ostream << std::numeric_limits<double>::max();
+        m_ostream << "Inf";
+    else if (std::isnan(mval))
+        m_ostream << "NaN";
     else
         m_ostream << mval;
     ++nitems.top();
@@ -270,7 +274,7 @@ ChArchiveInJSON::ChArchiveInJSON(std::istream& stream_in) : m_istream(stream_in)
     buffer.str().push_back('\0');
     const char* stringbuffer = mstr.c_str();
     
-    document.Parse<0>(stringbuffer);
+    document.Parse<rapidjson::kParseNanAndInfFlag> (stringbuffer);
     if (document.HasParseError()) {
         std::string errstrA((const char*)(&stringbuffer[std::max((int)document.GetErrorOffset() - 10, 0)]));
         errstrA.resize(10);
