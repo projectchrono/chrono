@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
     // then more advanced stuff must run usnig the MPI domain manager, shown in other demos.
 
 
-    // 1- first you need a domain manager. This will use the OpenMP multithreading 
-    // as a method for parallelism:
+    // 1- First you need a ChDomainManagerSharedmemory. This will use OpenMP multithreading
+    //    as a method for parallelism (spreading processes on multiple computing nodes)
 
     ChDomainManagerSharedmemory domain_manager;
 
@@ -74,10 +74,11 @@ int main(int argc, char* argv[]) {
     domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
     domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
 
-    // 2- the domain builder.
-    // You must define how the 3D space is divided in domains. 
-    // ChdomainBuilder classes help you to do this. 
-    // Here we split it using parallel planes like in sliced bread:
+    // 2- Now you need a domain builder.
+    //    You must define how the 3D space is divided in domains. 
+    //    ChdomainBuilder classes help you to do this. 
+    //    Here we split it using parallel planes like in sliced bread.
+    //    Since we use a helper master domain, [n.of threads] = [n.of slices] + 1
 
     ChDomainBuilderSlices       domain_builder(
                                         std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
@@ -85,8 +86,8 @@ int main(int argc, char* argv[]) {
                                         true);      // build also master domain, interfacing to all slices, for initial injection of objects
     
 
-    // 3- create the ChDomain objects and their distinct ChSystem physical systems.
-    // Now one can know how many domains are expected to build, using domain_builder.GetTotSlices();
+    // 3- Create the ChDomain objects and their distinct ChSystem physical systems.
+    //    Now one can know how many domains are expected to build, using domain_builder.GetTotSlices();
     
     std::vector<ChSystemNSC*> sys_slices(domain_builder.GetTotSlices());
 
@@ -98,16 +99,19 @@ int main(int argc, char* argv[]) {
             sys_slices[i], // physical system of this domain
             i       // rank of this domain, must be unique and starting from 0! 
         ));
+
+        // Set solver, timestepper, etc. that can work in multidomain mode. Do this after AddDomain(). 
+        // (The solver has been defaulted to ChSolverPSORmultidomain when we did domain_manager.AddDomain().)
         sys_slices[i]->GetSolver()->AsIterative()->SetMaxIterations(12);
         sys_slices[i]->GetSolver()->AsIterative()->SetTolerance(1e-6);
     }
 
 
 
-    // 4- we create and populate the MASTER domain with bodies, links, meshes, nodes, etc. 
+    // 4- Create and populate the MASTER domain with bodies, links, meshes, nodes, etc. 
     //    At the beginning of the simulation, the master domain will break into 
     //    multiple data structures and will serialize them into the proper subdomains.
-    //    (Note that there is a "low level" version of this demo that shows how
+    //    (Note that there is also a "low level" version of this demo that shows how
     //    to bypass the use of the master domain, in case of extremely large systems
     //    where you might want to create objects directly split in the n-th computing node.)
 
@@ -177,11 +181,12 @@ int main(int argc, char* argv[]) {
 
 
 
-    // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
-    // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
-    // a SetTag function in sub objects, ans sets the ID incrementally. More hassle-free, but
-    // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
-    // Call this after you finished adding items to systems.
+    // 5- Set the tag IDs for all nodes, bodies, etc.
+    //    To do this, use the helper ChArchiveSetUniqueTags, that traverses all the 
+    //    hierarchies, sees if there is a SetTag() function in sub objects, and sets 
+    //    the ID incrementally. More hassle-free than setting all IDs one by one by 
+    //    hand as in ...lowlevel.cpp demos
+    //    Call this after you finished adding items to systems.
     ChArchiveSetUniqueTags tagger;
     tagger.skip_already_tagged = false;
     tagger << CHNVP(sys_master);
@@ -208,9 +213,9 @@ int main(int argc, char* argv[]) {
     
     system("pause");
 
-    // INITIAL SETUP AND OBJECT INITIAL MIGRATION!
-    // Moves all the objects in master domain to all domains, slicing the system.
-    // Also does some initializations, like collision detection AABBs.
+    // 6 - INITIAL SETUP AND OBJECT INITIAL MIGRATION!
+    //     Moves all the objects in master domain to all domains, slicing the system.
+    //     Also does some initializations, like collision detection AABBs.
     domain_manager.DoAllDomainInitialize();
 
     // The master domain does not need to communicate anymore with the domains so do:

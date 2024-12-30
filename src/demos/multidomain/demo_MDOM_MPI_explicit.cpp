@@ -48,13 +48,13 @@
 // To see the result in Blender3D, you must install the add-in for loading Chrono files,
 // that is  chrono\src\importer_blender\chrono_import.py. So you can do:
 // - menu  file/Import/Chrono import... 
+// - check the "Automatic merge" in the top right panel
 // - browse to  chrono\bin\Release\DEMO_OUTPUT\MDOM_MPI_0  and press the 
 //   "Import Chrono simulation" button.
-// - repeat the two steps above but select  ..\MDOM_MPI_1 and check "Merge" in
-//   the top right panel before pressing the import button
-// - same for ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc, depending on how many domains you created
-// - that's all, now just press the spacebar and you see the animation that you can 
-//   customize, render etc.
+// Thanks to the automatic merge, also outputs in ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc
+// will be load automatically; the system will recognize the incremental numbering. 
+// (Alternatively you can load the single domain results one by one, turning on the "Merge" 
+// option while you call the  Chrono import...  menu multiple times.)
 // 
 // =============================================================================
 
@@ -88,8 +88,8 @@ int main(int argc, char* argv[]) {
     // with many nodes connected by ethernet, or Mellanox, or similar supercomputing architectures.
 
 
-    // 1- first you need a domain manager. This will use MPI distributed computing
-    // as a method for parallelism (spreading processes on multiple computing nodes)
+    // 1- First you need a ChDomainManagerMPI. This will use MPI distributed computing
+    //    as a method for parallelism (spreading processes on multiple computing nodes)
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
@@ -103,11 +103,11 @@ int main(int argc, char* argv[]) {
     domain_manager.verbose_variable_updates = false; // will print all comm including variable updates in std::cout?
     domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
 
-    // 2- the domain builder.
-    // You must define how the 3D space is divided in domains. 
-    // ChdomainBuilder classes help you to do this. 
-    // Since we use a helper master domain, [n.of MPI ranks] = [n.of slices] + 1
-    // Here we split it using parallel planes like in sliced bread:
+    // 2- Now you need a domain builder.
+    //    You must define how the 3D space is divided in domains. 
+    //    ChdomainBuilder classes help you to do this. 
+    //    Here we split it using parallel planes like in sliced bread:
+    //    Since we use a helper master domain, [n.of MPI ranks] = [n.of slices] + 1
 
     ChDomainBuilderSlices       domain_builder(
                                         domain_manager.GetMPItotranks()-1,  // number of slices
@@ -117,9 +117,9 @@ int main(int argc, char* argv[]) {
                                         true);              // build also master domain, interfacing to all slices, for initial injection of objects   
     
 
-    // 3- create the ChDomain object and its ChSystem physical system.
-    // Only a single system is created, because this is already one of n 
-    // parallel processes. One must be the master domain.
+    // 3- Create the ChDomain object and its ChSystem physical system.
+    //    Only a single system is created, because this is already one of n 
+    //    parallel processes. One must be the master domain.
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -136,17 +136,17 @@ int main(int argc, char* argv[]) {
         ));
     }
 
-    // set solver, timestepper, etc. Do this after SetDomain(). 
-    // Set the time stepper: we have FEA, use an explicit time stepper. 
+    // 4- Set solver, timestepper, etc. that can work in multidomain mode. Do this after SetDomain(). 
+    //    Set the time stepper: as we demonstrate smooth contacts via ChSystemSMC, we can use an explicit time stepper. 
     auto explicit_timestepper0 = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys);
     explicit_timestepper0->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
     sys.SetTimestepper(explicit_timestepper0);
-    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
+    //    Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
     auto lumped_solver0 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
     sys.SetSolver(lumped_solver0);
  
 
-    // 4- we populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
+    // 5- we populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
     //    At the beginning of the simulation, the master domain will break into 
     //    multiple data structures and will serialize them into the proper subdomains.
     //    (Note that there is a "low level" version of this demo that shows how
@@ -210,11 +210,12 @@ int main(int argc, char* argv[]) {
         sys.Add(mrigidBall);
         
 
-        // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
-        // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
-        // a SetTag function in sub objects, ans sets the ID incrementally. More hassle-free, but
-        // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
-        // Call this after you finished adding items to systems.
+        // 6- Set the tag IDs for all nodes, bodies, etc.
+        //    To do this, use the helper ChArchiveSetUniqueTags, that traverses all the 
+        //    hierarchies, sees if there is a SetTag() function in sub objects, ans sets 
+        //    the ID incrementally. More hassle-free than setting all IDs one by one by 
+        //    hand as in ...lowlevel.cpp demos
+        //    Call this after you finished adding items to systems.
         ChArchiveSetUniqueTags tagger;
         tagger.skip_already_tagged = false;
         tagger << CHNVP(sys);
@@ -246,9 +247,9 @@ int main(int argc, char* argv[]) {
     blender_exporter.ExportScript();
 
 
-    // INITIAL SETUP AND OBJECT INITIAL MIGRATION!
-    // Moves all the objects in master domain to all domains, slicing the system.
-    // Also does some initializations, like collision detection AABBs.
+    // 7 - INITIAL SETUP AND OBJECT INITIAL MIGRATION!
+    //     Moves all the objects in master domain to all domains, slicing the system.
+    //     Also does some initializations, like collision detection AABBs.
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
     // The master domain does not need to communicate anymore with the domains so do:

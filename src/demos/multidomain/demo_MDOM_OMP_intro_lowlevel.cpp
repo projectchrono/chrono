@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     // then more advanced stuff must run usnig the MPI domain manager, shown in other demos.
 
 
-    // 1- first you need a domain manager. This will use the OpenMP multithreading 
-    // as a method for parallelism:
+    // 1- First you need a ChDomainManagerSharedmemory. This will use OpenMP multithreading
+    //    as a method for parallelism (spreading processes on multiple computing nodes)
 
     ChDomainManagerSharedmemory domain_manager;
 
@@ -81,10 +81,10 @@ int main(int argc, char* argv[]) {
     domain_manager.verbose_variable_updates = false; // will print all messages in std::cout ?
     domain_manager.serializer_type = DomainSerializerFormat::JSON; // default BINARY, use JSON or XML for readable verbose
 
-    // 2- the domain builder.
-    // You must define how the 3D space is divided in domains. 
-    // ChdomainBuilder classes help you to do this. We do NOT need the master domain.
-    // Here we split it using parallel planes like in sliced bread:
+    // 2- Now you need a domain builder.
+    //    You must define how the 3D space is divided in domains. 
+    //    ChdomainBuilder classes help you to do this. Here we split as sliced bread.
+    //    Since here we do NOT use a helper master domain, [n.of threads] = [n.of slices]
 
     ChDomainBuilderSlices       domain_builder(
                                         std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
@@ -92,9 +92,12 @@ int main(int argc, char* argv[]) {
                                         false);     // false: we do not create a master domain for initial injection  
     
 
-    // 3- create the ChDomain objects and their distinct ChSystem physical systems.
-    // Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
-    // But in this case we already know we split into 2 domains. So we build them as:
+    // 3- Create the ChDomain objects and their distinct ChSystem physical systems.
+    //    Now one can know how many domains are expected to build, using domain_builder.GetTotRanks();
+    //    But in this case we already know we split into 2 domains. 
+    //    Also, for all ChSystem objects, set solver, timestepper, etc. that can work in multidomain mode; 
+    //    if so, do this after AddDomain(). (Here the solver has been defaulted to ChSolverPSORmultidomain 
+    //    when we did domain_manager.SetDomain() already)
 
     ChSystemNSC sys_0;
     sys_0.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -103,7 +106,7 @@ int main(int argc, char* argv[]) {
                                         &sys_0, // physical system of this domain
                                         0       // rank of this domain 
                                        ));
-    
+
     sys_0.GetSolver()->AsIterative()->SetMaxIterations(30);
     sys_0.GetSolver()->AsIterative()->SetTolerance(1e-6);
 
@@ -121,18 +124,18 @@ int main(int argc, char* argv[]) {
 
 
     // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
-    // Each item must be added to the ChSystem of the domain that the item overlaps with. 
-    // The rules are:
-    // - Each "vertex" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
-    //   its 3d position is into. If its AABB is overlapping with multiple domains, do not
-    //   worry: the first time DoAllDomainInitialize() is called, it will spread copies to surrounding domains.
-    // - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
-    //   domain where the reference point (1st node of fea element, master body in links) is into.
-    //   Note edges are always into a single domain, and never shared among domains.
-    // - IMPORTANT: if an edge is in the domain and references a vertex that is not overlapping with domain, 
-    //   then such vertex(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
-    //   For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
-    //   otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
+    //    Each item must be added to the ChSystem of the domain that the item overlaps with. 
+    //    The rules are:
+    //    - Each "vertex" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
+    //      its 3d position is into. If its AABB is overlapping with multiple domains, do not
+    //      worry: the first time DoAllDomainInitialize() is called, it will spread copies to surrounding domains.
+    //    - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
+    //      domain where the reference point (1st node of fea element, master body in links) is into.
+    //      Note edges are always into a single domain, and never shared among domains.
+    //    - IMPORTANT: if an edge is in the domain and references a vertex that is not overlapping with domain, 
+    //      then such vertex(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
+    //      For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
+    //      otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
 
     // Create two collision materials, one for each domain. 
     // Note that they have the same tag ID so that they are not transported through domain interfaces, and just referenced.
@@ -232,7 +235,9 @@ int main(int argc, char* argv[]) {
     
     system("pause");
 
-    // INITIAL SETUP OF COLLISION AABBs AND INITIAL AUTOMATIC ITEMS MIGRATION!
+    // 5 - INITIAL SETUP 
+    //     Updates AABB of collision shapes etc. (Since we are in low level mode, no initial migration 
+    //     is done here between the not-existing master domain and sliced domains.)
     domain_manager.DoAllDomainInitialize();
 
     for (int i = 0; i < 180; ++i) {

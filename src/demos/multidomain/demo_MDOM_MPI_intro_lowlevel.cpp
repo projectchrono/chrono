@@ -37,12 +37,13 @@
 // To see the result in Blender3D, you must install the add-in for loading Chrono files,
 // that is  chrono\src\importer_blender\chrono_import.py. So you can do:
 // - menu  file/Import/Chrono import... 
+// - check the "Automatic merge" in the top right panel
 // - browse to  chrono\bin\Release\DEMO_OUTPUT\MDOM_MPI_0  and press the 
 //   "Import Chrono simulation" button.
-// - repeat the two steps above but select  ..\MDOM_MPI_1 and check "Merge" in
-//   the top right panel before pressing the import button. 
-// - that's al, now just press the spacebar and you see the animation that you can 
-//   customize, render etc.
+// Thanks to the automatic merge, also outputs in ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc
+// will be load automatically; the system will recognize the incremental numbering. 
+// (Alternatively you can load the single domain results one by one, turning on the "Merge" 
+// option while you call the  Chrono import...  menu multiple times.)
 // 
 // =============================================================================
 
@@ -78,8 +79,8 @@ int main(int argc, char* argv[]) {
     // with many nodes connected by ethernet, or Mellanox, or similar supercomputing architectures.
 
 
-    // 1- first you need a domain manager. This will use MPI distributed computing
-    // as a method for parallelism (spreading processes on multiple computing nodes)
+    // 1- First you need a ChDomainManagerMPI. This will use MPI distributed computing
+    //    as a method for parallelism (spreading processes on multiple computing nodes)
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
@@ -92,21 +93,20 @@ int main(int argc, char* argv[]) {
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
     domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
 
-
-    // 2- the domain builder.
-    // You must define how the 3D space is divided in domains. 
-    // ChdomainBuilder classes help you to do this. 
-    // Here we split it using parallel planes like in sliced bread.
+    // 2- Now you need a domain builder.
+    //    You must define how the 3D space is divided in domains. 
+    //    ChdomainBuilder classes help you to do this. 
+    //    Since here we do NOT use a helper master domain, [n.of MPI ranks] = [n.of slices]
+    //    Here we split it using parallel planes like in sliced bread:
     
-
     ChDomainBuilderSlices       domain_builder(
                                         std::vector<double>{0},  // positions of cuts along axis to slice, ex {-1,0,2} generates 5 domains
                                         ChAxis::X);     // axis about whom one needs the space slicing
     
 
-    // 3- create the ChDomain object and its ChSystem physical system.
-    // Only a single system is created, because this is already one of n 
-    // parallel processes.
+    // 3- Create the ChDomain object and its ChSystem physical system.
+    //    Only a single system is created, because this is already one of n 
+    //    parallel processes.
 
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -115,24 +115,27 @@ int main(int argc, char* argv[]) {
                                         &sys, // physical system of this domain
                                         domain_manager.GetMPIrank()     // rank of this domain 
                                        ));
+
+    // 4- Set solver, timestepper, etc. that can work in multidomain mode. Do this after SetDomain(). 
+    //    (The solver has been defaulted to ChSolverPSORmultidomain when we did domain_manager.SetDomain().)
     sys.GetSolver()->AsIterative()->SetMaxIterations(20);
     sys.GetSolver()->AsIterative()->EnableWarmStart(true);
     sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
  
 
-    // 4- we populate the n domains with bodies, links, meshes, nodes, etc. 
-    // Each item must be added to the ChSystem of the domain that the item overlaps with. 
-    // The rules are:
-    // - Each "vertex" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
-    //   its 3d position is into. If its AABB is overlapping with multiple domains, do not
-    //   worry: the first time DoAllDomainInitialize() is called, it will spread copies to surrounding domains.
-    // - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
-    //   domain where the reference point (1st node of fea element, master body in links) is into.
-    //   Note edges are always into a single domain, and never shared among domains.
-    // - IMPORTANT: if an edge is in the domain and references a vertex that is not overlapping with domain, 
-    //   then such vertex(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
-    //   For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
-    //   otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
+    // 5- we populate the n domains with bodies, links, meshes, nodes, etc. 
+    //    Each item must be added to the ChSystem of the domain that the item overlaps with. 
+    //    The rules are:
+    //    - Each "vertex" item (ChBody, ChNode stuff) must be added to the ChSystem of the domain that 
+    //      its 3d position is into. If its AABB is overlapping with multiple domains, do not
+    //      worry: the first time DoAllDomainInitialize() is called, it will spread copies to surrounding domains.
+    //    - Each "edge" item (ChLink constraints, ChElement finite elements) must be added to the 
+    //      domain where the reference point (1st node of fea element, master body in links) is into.
+    //      Note edges are always into a single domain, and never shared among domains.
+    //    - IMPORTANT: if an edge is in the domain and references a vertex that is not overlapping with domain, 
+    //      then such vertex(s) must be added too to the domain anyway, becoming shared with surrounding domain(s).
+    //      For this reason when you use SetTag() you MUST use the same ID of those shared vertex across domains,
+    //      otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
  
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.1);
@@ -220,16 +223,16 @@ int main(int argc, char* argv[]) {
    
     // Create an exporter to Blender
     ChBlender blender_exporter = ChBlender(&sys);
-
     // Set the path where it will save all files, a directory in DEMO_OUTPUT/.. will be created if not existing. 
     // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
     blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
-
     // Initial script, save once at the beginning
     blender_exporter.ExportScript();
 
 
-    // INITIAL SETUP OF COLLISION AABBs 
+    // 6 - INITIAL SETUP 
+    //     Updates AABB of collision shapes etc. (Since we are in low level mode, no initial migration 
+    //     is done here between the not-existing master domain and sliced domains.)
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
     for (int i = 0; i < 150; ++i) {

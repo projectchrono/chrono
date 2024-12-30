@@ -45,13 +45,13 @@
 // To see the result in Blender3D, you must install the add-in for loading Chrono files,
 // that is  chrono\src\importer_blender\chrono_import.py. So you can do:
 // - menu  file/Import/Chrono import... 
+// - check the "Automatic merge" in the top right panel
 // - browse to  chrono\bin\Release\DEMO_OUTPUT\MDOM_MPI_0  and press the 
 //   "Import Chrono simulation" button.
-// - repeat the two steps above but select  ..\MDOM_MPI_1 and check "Merge" in
-//   the top right panel before pressing the import button
-// - same for ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc, depending on how many domains you created
-// - that's all, now just press the spacebar and you see the animation that you can 
-//   customize, render etc.
+// Thanks to the automatic merge, also outputs in ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc
+// will be load automatically; the system will recognize the incremental numbering. 
+// (Alternatively you can load the single domain results one by one, turning on the "Merge" 
+// option while you call the  Chrono import...  menu multiple times.)
 // 
 // =============================================================================
 
@@ -86,8 +86,8 @@ int main(int argc, char* argv[]) {
     // with many nodes connected by ethernet, or Mellanox, or similar supercomputing architectures.
 
 
-    // 1- first you need a domain manager. This will use MPI distributed computing
-    // as a method for parallelism (spreading processes on multiple computing nodes)
+    // 1- First you need a ChDomainManagerMPI. This will use MPI distributed computing
+    //    as a method for parallelism (spreading processes on multiple computing nodes)
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
@@ -96,15 +96,16 @@ int main(int argc, char* argv[]) {
     assert(domain_manager.GetMPItotranks() < 8);
 
     // For debugging/logging:
-    domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
-    domain_manager.verbose_serialization = true; // will print interdomain serialization in std::cout?
+    domain_manager.verbose_partition = false; // will print  partitioning in std::cout?
+    domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
     domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
 
-    // 2- the domain builder.
-    // You must define how the 3D space is divided in domains. 
-    // ChdomainBuilder classes help you to do this. 
-    // Here we split it using parallel planes like in sliced bread:
+    // 2- Now you need a domain builder.
+    //    You must define how the 3D space is divided in domains. 
+    //    ChdomainBuilder classes help you to do this. 
+    //    Since we use a helper master domain, [n.of MPI ranks] = [n.of slices] + 1
+    //    Here we split it using parallel planes like in sliced bread:
 
     ChDomainBuilderSlices       domain_builder(
                                         domain_manager.GetMPItotranks()-1,  // number of slices
@@ -114,9 +115,9 @@ int main(int argc, char* argv[]) {
                                         true);              // build also master domain, interfacing to all slices, for initial injection of objects   
     
 
-    // 3- create the ChDomain object and its ChSystem physical system.
-    // Only a single system is created, because this is already one of n 
-    // parallel processes. One must be the master domain.
+    // 3- Create the ChDomain object and its ChSystem physical system.
+    //    Only a single system is created, because this is already one of n 
+    //    parallel processes. One must be the master domain.
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -133,17 +134,17 @@ int main(int argc, char* argv[]) {
         ));
     }
 
-    // set solver, timestepper, etc. Do this after SetDomain(). 
-    // Set the time stepper: we have FEA, use an explicit time stepper. 
+    // 4- Set solver, timestepper, etc. that can work in multidomain mode. Do this after SetDomain(). 
+    //    Set the time stepper: we have FEA, use an explicit time stepper. 
     auto explicit_timestepper = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys);
     explicit_timestepper->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
     sys.SetTimestepper(explicit_timestepper);
-    // Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
+    //    Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
     auto lumped_solver = chrono_types::make_shared<ChSolverLumpedMultidomain>();
     sys.SetSolver(lumped_solver);
  
 
-    // 4- we populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
+    // 5- Now populate ONLY THE MASTER domain with bodies, links, meshes, nodes, etc. 
     //    At the beginning of the simulation, the master domain will break into 
     //    multiple data structures and will serialize them into the proper subdomains.
     //    (Note that there is a "low level" version of this demo that shows how
@@ -158,139 +159,91 @@ int main(int argc, char* argv[]) {
         auto mesh = chrono_types::make_shared<ChMesh>();
         sys.Add(mesh);
 
-        // Test 1: a single BST finite element
-        if (false) {
-            double density = 0.1;
-            double E = 1.2e3;
-            double nu = 0.3;
-            double thickness = 0.001;
 
-            auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
-            auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
-            material->SetDensity(density);
+        // Create a material
+        double density = 100;
+        double E = 6e4;
+        double nu = 0.0;
+        double thickness = 0.01;
 
-            // Create nodes
-            double L = 1.0;
+        auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
+        auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
+        material->SetDensity(density);
 
-            ChVector3d p0(0, 0, 0);
-            ChVector3d p1(L, 0, 0);
-            ChVector3d p2(0, L, 0);
-            ChVector3d p3(L, L, 0);
-            ChVector3d p4(-L, L, 0);
-            ChVector3d p5(L, -L, 0);
+        double corner_x = -0.5;
+        double corner_z = -0.5;
+        double size_x = 1;
+        double size_z = 1;
+        size_t nsections_x = 3;
+        size_t nsections_z = 1;
+        size_t fixed_x = 0;
+        size_t fixed_z = 0;
 
-            auto node0 = chrono_types::make_shared<ChNodeFEAxyz>(p0);
-            auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(p1);
-            auto node2 = chrono_types::make_shared<ChNodeFEAxyz>(p2);
-            auto node3 = chrono_types::make_shared<ChNodeFEAxyz>(p3);
-            auto node4 = chrono_types::make_shared<ChNodeFEAxyz>(p4);
-            auto node5 = chrono_types::make_shared<ChNodeFEAxyz>(p5);
-            mesh->AddNode(node0);
-            mesh->AddNode(node1);
-            mesh->AddNode(node2);
-            mesh->AddNode(node3);
-            mesh->AddNode(node4);
-            mesh->AddNode(node5);
+        // Create nodes
+        std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
+        for (size_t iz = 0; iz <= nsections_z; ++iz) {
+            for (size_t ix = 0; ix <= nsections_x; ++ix) {
+                ChVector3d p(corner_x + ix * (size_x / nsections_x), 0, corner_z + iz * (size_z / nsections_z));
 
-            // Create element
+                auto node = chrono_types::make_shared<ChNodeFEAxyz>(p);
 
-            auto element = chrono_types::make_shared<ChElementShellBST>();
-            mesh->AddElement(element);
+                mesh->AddNode(node);
 
-            element->SetNodes(node0, node1, node2, nullptr, nullptr, nullptr);  // node3, node4, node5);
-
-            element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
+                nodes.push_back(node);
+            }
         }
-        
-        // Test 2: a rectangular NxN mesh of BST elements under gravity
-        if (true) {
+        // Create elements
+        for (size_t iz = 0; iz < nsections_z; ++iz) {
+            for (size_t ix = 0; ix < nsections_x; ++ix) {
+                auto elementA = chrono_types::make_shared<ChElementShellBST>();
+                mesh->AddElement(elementA);
 
-            // Create a material
-            double density = 100;
-            double E = 6e4;
-            double nu = 0.0;
-            double thickness = 0.01;
+                std::shared_ptr<ChNodeFEAxyz> boundary_1;
+                std::shared_ptr<ChNodeFEAxyz> boundary_2;
+                std::shared_ptr<ChNodeFEAxyz> boundary_3;
 
-            auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
-            auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
-            material->SetDensity(density);
+                boundary_1 = nodes[(iz + 1) * (nsections_x + 1) + ix + 1];
+                if (ix > 0)
+                    boundary_2 = nodes[(iz + 1) * (nsections_x + 1) + ix - 1];
+                else
+                    boundary_2 = nullptr;
+                if (iz > 0)
+                    boundary_3 = nodes[(iz - 1) * (nsections_x + 1) + ix + 1];
+                else
+                    boundary_3 = nullptr;
 
-            double corner_x = -0.5;
-            double corner_z = -0.5;
-            double size_x = 1;
-            double size_z = 1;
-            size_t nsections_x = 3;
-            size_t nsections_z = 1;
-            size_t fixed_x = 0;
-            size_t fixed_z = 0;
+                elementA->SetNodes(nodes[(iz) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
+                    nodes[(iz + 1) * (nsections_x + 1) + ix], boundary_1, boundary_2, boundary_3);
 
-            // Create nodes
-            std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
-            for (size_t iz = 0; iz <= nsections_z; ++iz) {
-                for (size_t ix = 0; ix <= nsections_x; ++ix) {
-                    ChVector3d p(corner_x + ix * (size_x / nsections_x), 0, corner_z + iz * (size_z / nsections_z));
+                elementA->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
-                    auto node = chrono_types::make_shared<ChNodeFEAxyz>(p);
+                auto melementB = chrono_types::make_shared<ChElementShellBST>();
+                mesh->AddElement(melementB);
 
-                    mesh->AddNode(node);
+                boundary_1 = nodes[(iz) * (nsections_x + 1) + ix];
+                if (ix < nsections_x - 1)
+                    boundary_2 = nodes[(iz) * (nsections_x + 1) + ix + 2];
+                else
+                    boundary_2 = nullptr;
+                if (iz < nsections_z - 1)
+                    boundary_3 = nodes[(iz + 2) * (nsections_x + 1) + ix];
+                else
+                    boundary_3 = nullptr;
 
-                    nodes.push_back(node);
-                }
+                melementB->SetNodes(nodes[(iz + 1) * (nsections_x + 1) + ix + 1],
+                    nodes[(iz + 1) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
+                    boundary_1, boundary_2, boundary_3);
+
+                melementB->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
             }
-            // Create elements
-            for (size_t iz = 0; iz < nsections_z; ++iz) {
-                for (size_t ix = 0; ix < nsections_x; ++ix) {
-                    auto elementA = chrono_types::make_shared<ChElementShellBST>();
-                    mesh->AddElement(elementA);
+        }
 
-                    std::shared_ptr<ChNodeFEAxyz> boundary_1;
-                    std::shared_ptr<ChNodeFEAxyz> boundary_2;
-                    std::shared_ptr<ChNodeFEAxyz> boundary_3;
-
-                    boundary_1 = nodes[(iz + 1) * (nsections_x + 1) + ix + 1];
-                    if (ix > 0)
-                        boundary_2 = nodes[(iz + 1) * (nsections_x + 1) + ix - 1];
-                    else
-                        boundary_2 = nullptr;
-                    if (iz > 0)
-                        boundary_3 = nodes[(iz - 1) * (nsections_x + 1) + ix + 1];
-                    else
-                        boundary_3 = nullptr;
-
-                    elementA->SetNodes(nodes[(iz) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
-                        nodes[(iz + 1) * (nsections_x + 1) + ix], boundary_1, boundary_2, boundary_3);
-
-                    elementA->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
-
-                    auto melementB = chrono_types::make_shared<ChElementShellBST>();
-                    mesh->AddElement(melementB);
-
-                    boundary_1 = nodes[(iz) * (nsections_x + 1) + ix];
-                    if (ix < nsections_x - 1)
-                        boundary_2 = nodes[(iz) * (nsections_x + 1) + ix + 2];
-                    else
-                        boundary_2 = nullptr;
-                    if (iz < nsections_z - 1)
-                        boundary_3 = nodes[(iz + 2) * (nsections_x + 1) + ix];
-                    else
-                        boundary_3 = nullptr;
-
-                    melementB->SetNodes(nodes[(iz + 1) * (nsections_x + 1) + ix + 1],
-                        nodes[(iz + 1) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
-                        boundary_1, boundary_2, boundary_3);
-
-                    melementB->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
-                }
+        // fix some nodes
+        for (int j = 0; j < fixed_x; ++j) {
+            for (int k = 0; k < fixed_z; ++k) {
+                nodes[j * (nsections_x + 1) + k]->SetFixed(true);
             }
-
-            // fix some nodes
-            for (int j = 0; j < fixed_x; ++j) {
-                for (int k = 0; k < fixed_z; ++k) {
-                    nodes[j * (nsections_x + 1) + k]->SetFixed(true);
-                }
-            }
-
-        } // end demo
+        }
 
 
         // Visualization of the FEM mesh. Also this object will migrate from master domain to sliced domains.
@@ -307,11 +260,12 @@ int main(int argc, char* argv[]) {
         vis_shell_nodes->SetSymbolsThickness(0.03);
         mesh->AddVisualShapeFEA(vis_shell_nodes);
 
-        // Alternative of manually setting SetTag() for all nodes, bodies, etc., is to use a
-        // helper ChArchiveSetUniqueTags, that traverses all the hierarchies, sees if there is 
-        // a SetTag() function in sub objects, ans sets the ID incrementally. More hassle-free, but
-        // at the cost that you are not setting the tag values as you like, ex for postprocessing needs.
-        // Call this after you finished adding items to systems.
+        // 6- Set the tag IDs for all nodes, bodies, etc.
+        //    To do this, use the helper ChArchiveSetUniqueTags, that traverses all the 
+        //    hierarchies, sees if there is a SetTag() function in sub objects, ans sets 
+        //    the ID incrementally. More hassle-free than setting all IDs one by one by 
+        //    hand as in ...lowlevel.cpp demos
+        //    Call this after you finished adding items to systems.
         ChArchiveSetUniqueTags tagger;
         tagger.skip_already_tagged = false;
         tagger << CHNVP(sys);
@@ -322,18 +276,16 @@ int main(int argc, char* argv[]) {
    
     // Create an exporter to Blender
     ChBlender blender_exporter = ChBlender(&sys);
-
     // Set the path where it will save all files, a directory will be created if not existing. 
     // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
     blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
-
     // Initial script, save once at the beginning
     blender_exporter.ExportScript();
 
- Sleep(100);
-    // INITIAL SETUP AND OBJECT INITIAL MIGRATION!
-    // Moves all the objects in master domain to all domains, slicing the system.
-    // Also does some initializations, like collision detection AABBs.
+
+    // 7 - INITIAL SETUP AND OBJECT INITIAL MIGRATION!
+    //     Moves all the objects in master domain to all domains, slicing the system.
+    //     Also does some initializations, like collision detection AABBs.
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
     // The master domain does not need to communicate anymore with the domains so do:
