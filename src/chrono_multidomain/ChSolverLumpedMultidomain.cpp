@@ -52,10 +52,10 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
     // It can be done compactly via   a.array() = R.array() / this->diagonal_M.array();   but we rather do:
 
     for (int i = 0; i < R.size(); ++i) {
-        a[i] = R[i] / this->diagonal_M[0];
+        a[i] = R[i] / this->diagonal_M[i];
 
         // Hack to overcome a 0/0=NaN result for FEA like IGA where one node is a domain outlier (hence zero R) but with zero mass M because the element that gives the mass is in the other domain
-        if (this->diagonal_M[0] == 0)
+        if (this->diagonal_M[i] == 0)
             a[i] = 0; 
     }
 
