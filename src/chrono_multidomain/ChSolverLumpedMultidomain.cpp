@@ -47,8 +47,18 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
     
     sysdMD.BuildFbVector(R); // rhs, applied forces (plus the penalty terms of constraints if timestepper in penalty ON mode)
 
-    // compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
-    a.array() = R.array() / this->diagonal_M.array();  //  a = Md^-1 * F
+    // Compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
+    //   a = Md^-1 * F
+    // It can be done compactly via   a.array() = R.array() / this->diagonal_M.array();   but we rather do:
+
+    for (int i = 0; i < R.size(); ++i) {
+        a[i] = R[i] / this->diagonal_M[0];
+
+        // Hack to overcome a 0/0=NaN result for FEA like IGA where one node is a domain outlier (hence zero R) but with zero mass M because the element that gives the mass is in the other domain
+        if (this->diagonal_M[0] == 0)
+            a[i] = 0; 
+    }
+
 
     // MULTIDOMAIN******************
     // Sum the contribution to acceleration from other domains. Alternatively we could have summed R. 
