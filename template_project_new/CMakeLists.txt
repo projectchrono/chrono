@@ -90,19 +90,15 @@ target_link_libraries(demo_SYN_copter PRIVATE ChronoEngine::ChronoEngine ChronoE
 
 add_executable(demo_MOD_slewing_beam demo_MOD_slewing_beam.cpp)
 target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_modal)
-
 if(CHRONO_IRRLICHT_FOUND)
   target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_irrlicht)
 endif()
-
 if(CHRONO_PARDISOMKL_FOUND)
   target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_pardisomkl)
 endif()
-
 if(CHRONO_MATLAB_FOUND)
   target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_matlab)
 endif()
-
 if(CHRONO_POSTPROCESS_FOUND)
   target_link_libraries(demo_MOD_slewing_beam PRIVATE ChronoEngine::ChronoEngine_postprocess)
 endif()

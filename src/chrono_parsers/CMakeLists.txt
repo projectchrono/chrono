@@ -106,7 +106,7 @@ SET(HAVE_ROS "${HAVE_ROS}" PARENT_SCOPE)
 
 set(HAVE_PYTHON FALSE)
 
-set(Python_ADDITIONAL_VERSIONS 3.4)
+set(Python_ADDITIONAL_VERSIONS 3.4) # TODO: DARIOM: is still in use with FindPython3?
 find_package(Python3 QUIET COMPONENTS Interpreter Development)
 
 if(Python3_Interpreter_FOUND AND Python3_Development_FOUND)

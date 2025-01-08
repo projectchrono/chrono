@@ -27,10 +27,10 @@ if(NOT OpenCRG_INCLUDE_DIR_INTERNAL OR NOT EXISTS "${OpenCRG_LIBRARY}")
   return()
 endif()
 
-# Try to locate librarie for multiple configurations
-set(OpenCRG_LIBRARY_RELEASE NAMES OpenCRG_dd PATHS "${OpenCRG_LIBRARY_DIR}")
-
+# Try to locate libraries for multiple configurations
 get_filename_component(OpenCRG_LIBRARY_DIR ${OpenCRG_LIBRARY} DIRECTORY)
+
+find_library(OpenCRG_LIBRARY_RELEASE NAMES OpenCRG PATHS "${OpenCRG_LIBRARY_DIR}")
 find_library(OpenCRG_LIBRARY_DEBUG NAMES OpenCRG_d PATHS "${OpenCRG_LIBRARY_DIR}" PATHS ${OpenCRG_LIBRARY_DIR})
 find_library(OpenCRG_LIBRARY_MINSIZEREL NAMES OpenCRG_s PATHS "${OpenCRG_LIBRARY_DIR}" PATHS ${OpenCRG_LIBRARY_DIR})
 find_library(OpenCRG_LIBRARY_RELWITHDEBINFO NAMES OpenCRG_rd PATHS "${OpenCRG_LIBRARY_DIR}" PATHS ${OpenCRG_LIBRARY_DIR})
