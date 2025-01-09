@@ -90,7 +90,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
 include("${CMAKE_CURRENT_LIST_DIR}/ChronoEngineTargets.cmake")
 
-set(CHRONO_INSTALL_TREE "@CH_INSTALL_TREE@")
+set(CHRONO_INSTALL_TREE @CH_INSTALL_TREE@)
 
 
 include(CMakeFindDependencyMacro)
@@ -99,10 +99,12 @@ include(CMakeFindDependencyMacro)
 # ## Handle MSVC Runtime Library
 # set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
-## Handle OpenMP dependency
-if(@ENABLE_OPENMP@)
+## Handle OpenMP dependency (only if CXX)
+get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
+if(@ENABLE_OPENMP@ AND LANG_INDEX GREATER_EQUAL 0)
   find_dependency(OpenMP)
-endif(@ENABLE_OPENMP@)
+endif(@ENABLE_OPENMP@ AND LANG_INDEX GREATER_EQUAL 0)
 
 ## Handle Eigen3 dependency
 # try finding Eigen3
@@ -139,10 +141,17 @@ list(APPEND CHRONO_DEPENDENCY_DLLS "")
 
 # set(CHRONO_CXX_STANDARD "@CHRONO_CXX_STANDARD@")
 
-# set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
-# set(CHRONO_VEHICLE_DATA_DIR "@CH_DATA_DIR@vehicle/")
-# set(CHRONO_FSI_DATA_DIR "@CH_DATA_DIR@fsi/")
-# set(SYNCHRONO_DATA_DIR "@CH_DATA_DIR@synchrono/")
+if (CHRONO_INSTALL_TREE)
+  set(CHRONO_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../data/")
+  set(CHRONO_VEHICLE_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../data/vehicle/")
+  set(CHRONO_FSI_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../data/fsi/")
+  set(SYNCHRONO_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../data/synchrono/")
+else()
+  set(CHRONO_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../bin/data/")
+  set(CHRONO_VEHICLE_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../bin/data/vehicle/")
+  set(CHRONO_FSI_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../bin/data/fsi/")
+  set(SYNCHRONO_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/../bin/data/synchrono/")
+endif()
 
 set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
@@ -393,12 +402,14 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         set(IRRLICHT_DIR "@IRRLICHT_DIR@")
       endif(NOT IRRLICHT_DIR)
 
-      find_package(Irrlicht MODULE)
+      find_dependency(IRRLICHT QUIET)
 
       if (NOT IRRLICHT_FOUND)
         message(WARNING "Could not find Irrlicht library. Please provide IRRLICHT_DIR.")
         set(IRRLICHT_DIR "@IRRLICHT_DIR@" CACHE PATH "Path to Irrlicht SDK installation.")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      else()
+        mark_as_advanced(FORCE IRRLICHT_DIR)
       endif()
 
       # separate_arguments(IRRLICHT_CXX_FLAGS NATIVE_COMMAND " /wd4275")
@@ -415,7 +426,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         else()
           # when a library is static does not link against the dependencies;
           # the child project thus needs to link itself
-          list(APPEND CHRONO_LIBRARIES "${IRRLICHT_LIBRARY}")
+          list(APPEND CHRONO_LIBRARIES "Irrlicht::Irrlicht")
         endif()
 
       endif()
@@ -654,6 +665,13 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "CSHARP")
 
+      set(CHRONO_VERSION @CHRONO_VERSION@)
+
+      # Create ChChronoGlobals.cs based on current location
+      configure_file("${CMAKE_CURRENT_LIST_DIR}/ChChronoGlobals.cs.in"
+                     "${PROJECT_BINARY_DIR}/ChChronoGlobals.cs"
+                     @ONLY)
+
       function(FindDuplicates ret_list list1 list2)
         # Union of list1 and list2
         list(APPEND union ${list1} ${list2})
@@ -681,8 +699,8 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_core")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_core.dll") # valid also in case of static
 
-      set(CHRONO_CSHARP_SOURCE_DIR "@CH_BINARY_DIR@/chrono_csharp")
-      set(CHRONO_CSHARP_SOURCES "")
+      set(CHRONO_CSHARP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../chrono_csharp")
+      set(CHRONO_CSHARP_SOURCES "${PROJECT_BINARY_DIR}/ChChronoGlobals.cs")
 
       set(Chrono_CSHARP_CORE_DIR "${CHRONO_CSHARP_SOURCE_DIR}/core")
       file(GLOB Chrono_CSHARP_CORE_SOURCES 

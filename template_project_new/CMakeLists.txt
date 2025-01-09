@@ -16,7 +16,7 @@ cmake_policy(SET CMP0091 NEW)
 # Set the project name
 #--------------------------------------------------------------
 
-project(my_project)
+project(my_project CXX)
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
 find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg sensor parsers synchrono modal)

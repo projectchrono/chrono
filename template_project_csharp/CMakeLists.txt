@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
+cmake_policy(SET CMP0091 NEW)
+
 
 project(MyCSharpProject 
         CSharp)
@@ -8,10 +10,10 @@ if(NOT Chrono_DIR)
   return()
 endif()
 
+
 find_package(Chrono
              COMPONENTS CSharp
-             OPTIONAL_COMPONENTS Irrlicht
-             CONFIG)
+             OPTIONAL_COMPONENTS Irrlicht)
 
 # Add C# executable
 add_executable(ChronoDemo

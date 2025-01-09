@@ -39,21 +39,6 @@ if(DEFINED CH_CONDA_INSTALL)
 endif()
 
 #-----------------------------------------------------------------------------
-# CMake policy settings
-# TODO: switch to new behavior
-#-----------------------------------------------------------------------------
-
-# # this to fix warnings about the use of SWIG_MODULE_${mymodulename}_REAL_NAME with CMake version >= 3.13
-# if(POLICY CMP0078)
-#     cmake_policy(SET CMP0078 OLD)
-# endif()
-
-# # UseSWIG honors SWIG_MODULE_NAME via -module flag.
-# if(POLICY CMP0086)
-#     cmake_policy(SET CMP0086 OLD)
-# endif()
-
-#-----------------------------------------------------------------------------
 # Enable debugging CMake output
 #-----------------------------------------------------------------------------
 
@@ -82,25 +67,13 @@ include(${SWIG_USE_FILE})
 set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
 
 # Set SWIG flags.  Disable selected SWIG warnings 
-set(CMAKE_SWIG_FLAGS "-c++;-w302,362,389,401,509")
+set(CHRONO_SWIG_FLAGS "-w302,362,389,401,509")
 
 if(DBG_SCRIPT)
   message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
   message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
   message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
   message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
-endif()
-
-# Disable additional warnings for generated C++ code
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-elseif(MSVC)
-   add_compile_options(/wd4189)  # local variable is initialized but not referenced
-   add_compile_options(/wd4275)  # non-DLL-interface class used as base for DLL-interface class
-   add_compile_options(/wd4456)  # declaration hides previous local declaration
-   add_compile_options(/wd4702)  # unreachable code
-   add_compile_options(/wd4706)  # assignment within conditional expression
-else()
-   add_compile_options(-Wno-unused-variable)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -185,11 +158,26 @@ endif()
 set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 set_source_files_properties(${CHPY_CORE_WRAPPER_FILES} PROPERTIES HEADER_FILE_ONLY ON)
 source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
+if(MSVC)
+  set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+endif()
 
 
 
 swig_add_library(core LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
 target_link_libraries(core PRIVATE Python3::Python ChronoEngine)
+
+# Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif(MSVC)
+   target_compile_options(core PRIVATE "/wd4189")  # local variable is initialized but not referenced
+   target_compile_options(core PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+   target_compile_options(core PRIVATE "/wd4456")  # declaration hides previous local declaration
+   target_compile_options(core PRIVATE "/wd4702")  # unreachable code
+   target_compile_options(core PRIVATE "/wd4706")  # assignment within conditional expression
+else()
+   target_compile_options(core PRIVATE "-Wno-unused-variable")
+endif()
 
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(core PROPERTIES
@@ -265,9 +253,25 @@ if(ENABLE_MODULE_POSTPROCESS)
     set_source_files_properties(${CHPY_POSTPROCESS_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
   set_source_files_properties(${CHPY_POSTPROCESS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_POSTPROCESS_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
+
 
   swig_add_library(postprocess LANGUAGE python SOURCES ${CHPY_POSTPROCESS_MODULE_FILE})
   target_link_libraries(postprocess PRIVATE Python3::Python ChronoEngine ChronoEngine_postprocess)
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(postprocess PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(postprocess PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(postprocess PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(postprocess PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(postprocess PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(postprocess PRIVATE "-Wno-unused-variable")
+  endif()
 
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -330,9 +334,24 @@ endif()
     set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
   set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
   swig_add_library(fea LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
   target_link_libraries(fea PRIVATE Python3::Python ChronoEngine)
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(fea PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(fea PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(fea PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(fea PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(fea PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(fea PRIVATE "-Wno-unused-variable")
+  endif()
 
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -391,12 +410,26 @@ if(ENABLE_MODULE_IRRLICHT)
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
   set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
   find_package(IRRLICHT)
 
   swig_add_library(irrlicht LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
   target_link_libraries(irrlicht PRIVATE Python3::Python ChronoEngine ChronoEngine_irrlicht Irrlicht::Irrlicht)
 
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(irrlicht PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(irrlicht PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(irrlicht PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(irrlicht PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(irrlicht PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(irrlicht PRIVATE "-Wno-unused-variable")
+  endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(irrlicht PROPERTIES
@@ -461,9 +494,24 @@ if(ENABLE_MODULE_PARDISO_MKL)
     set_source_files_properties(${CHPY_MKL_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
   set_source_files_properties(${CHPY_MKL_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_MKL_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
   swig_add_library(pardisomkl LANGUAGE python SOURCES ${CHPY_MKL_MODULE_FILE})
   target_link_libraries(pardisomkl PRIVATE Python3::Python ChronoEngine ChronoEngine_pardisomkl)
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(pardisomkl PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(pardisomkl PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(pardisomkl PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(pardisomkl PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(pardisomkl PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(pardisomkl PRIVATE "-Wno-unused-variable")
+  endif()
 
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -528,6 +576,9 @@ if(ENABLE_MODULE_CASCADE)
 
   swig_add_library(cascade LANGUAGE python SOURCES ${CHPY_CASCADE_MODULE_FILE})
   target_link_libraries(cascade PRIVATE Python3::Python ChronoEngine ChronoEngine_cascade)
+  if(MSVC)
+    set_source_files_properties(${CHPY_CASCADE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -536,6 +587,18 @@ if(ENABLE_MODULE_CASCADE)
     target_compile_definitions(cascade PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(cascade PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(cascade PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(cascade PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(cascade PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(cascade PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(cascade PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(cascade PRIVATE "-Wno-unused-variable")
+  endif()
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(cascade PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
@@ -600,6 +663,9 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   set(CHPY_VEHICLE_MODULE_FILE ChModuleVehicle_python.i)
 
   set_source_files_properties(${CHPY_VEHICLE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_VEHICLE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
 
   # Make sure CHRONO_IRRLICHT is defined for the SWIG processor
@@ -620,6 +686,19 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
     target_compile_definitions(vehicle PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(vehicle PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(vehicle PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(vehicle PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(vehicle PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(vehicle PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(vehicle PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(vehicle PRIVATE "-Wno-unused-variable")
+  endif()
+  
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(vehicle PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
@@ -689,9 +768,24 @@ if(ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
     set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
   endif()
   set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
   swig_add_library(sensor LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
   target_link_libraries(sensor PRIVATE Python3::Python Python3::NumPy ChronoEngine ChronoEngine_sensor)
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(sensor PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(sensor PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(sensor PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(sensor PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(sensor PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(sensor PRIVATE "-Wno-unused-variable")
+  endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(sensor PROPERTIES
@@ -751,6 +845,9 @@ endif()
       )
 
   set_source_files_properties(${CHPY_ROBOT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_ROBOT_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
   swig_add_library(robot LANGUAGE python SOURCES ${CHPY_ROBOT_MODULE_FILE})
   target_link_libraries(robot PRIVATE Python3::Python ChronoEngine ChronoModels_robot)
@@ -761,6 +858,19 @@ endif()
     target_compile_definitions(robot PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(robot PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(robot PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(robot PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(robot PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(robot PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(robot PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(robot PRIVATE "-Wno-unused-variable")
+  endif()
+
 
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(robot PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
@@ -813,6 +923,9 @@ if(ENABLE_MODULE_PARSERS AND HAVE_URDF)
   )
 
   set_source_files_properties(${CHPY_PARSERS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+  if(MSVC)
+    set_source_files_properties(${CHPY_PARSERS_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
+  endif()
 
   swig_add_library(parsers LANGUAGE python SOURCES ${CHPY_PARSERS_MODULE_FILE})
   target_link_libraries(parsers PRIVATE Python3::Python ChronoEngine ChronoEngine_parsers)
@@ -823,6 +936,18 @@ if(ENABLE_MODULE_PARSERS AND HAVE_URDF)
     target_compile_definitions(parsers PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(parsers PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(parsers PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(parsers PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(parsers PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(parsers PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(parsers PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(parsers PRIVATE "-Wno-unused-variable")
+  endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(parsers PROPERTIES
@@ -888,14 +1013,18 @@ if(ENABLE_MODULE_ROS)
 
   # Make sure CHRONO_PARSERS_URDF and/or CHRONO_SENSOR is defined for the SWIG processor
   if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
-    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
+    set(CHRONO_SENSOR_SWIG_FLAGS "${CHRONO_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
   endif()
   if (ENABLE_MODULE_SENSOR)
-    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_SENSOR")
+    set(CHRONO_SENSOR_SWIG_FLAGS "${CHRONO_SENSOR_SWIG_FLAGS};-DCHRONO_SENSOR")
   endif()
 
   if (CH_ROS_HAS_INTERFACES)
-    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_ROS_HAS_INTERFACES")
+    set(CHRONO_SENSOR_SWIG_FLAGS "${CHRONO_SENSOR_SWIG_FLAGS};-DCHRONO_ROS_HAS_INTERFACES")
+  endif()
+
+  if(MSVC)
+    set_source_files_properties(${CHPY_ROS_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SENSOR_SWIG_FLAGS})
   endif()
 
   swig_add_library(ros LANGUAGE python SOURCES ${CHPY_ROS_MODULE_FILE})
@@ -907,6 +1036,18 @@ if(ENABLE_MODULE_ROS)
     target_compile_definitions(ros PRIVATE "-DHAVE_IOSTREAM")
     target_compile_definitions(ros PRIVATE "-DHAVE_LIMITS_H")
   ENDIF()
+
+  # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  elseif(MSVC)
+    target_compile_options(ros PRIVATE "/wd4189")  # local variable is initialized but not referenced
+    target_compile_options(ros PRIVATE "/wd4275")  # non-DLL-interface class used as base for DLL-interface class
+    target_compile_options(ros PRIVATE "/wd4456")  # declaration hides previous local declaration
+    target_compile_options(ros PRIVATE "/wd4702")  # unreachable code
+    target_compile_options(ros PRIVATE "/wd4706")  # assignment within conditional expression
+  else()
+    target_compile_options(ros PRIVATE "-Wno-unused-variable")
+  endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(ros PROPERTIES

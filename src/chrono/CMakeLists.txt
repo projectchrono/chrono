@@ -1545,7 +1545,7 @@ target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
 target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE>)
 target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
-target_compile_definitions(ChronoEngine INTERFACE 
+target_compile_definitions(ChronoEngine INTERFACE
     $<BUILD_INTERFACE:CHRONO_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/\">
     $<INSTALL_INTERFACE:CHRONO_DATA_DIR=\"$<INSTALL_PREFIX>/data/\">)
 

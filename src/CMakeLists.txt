@@ -873,6 +873,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 # set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
 # set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
+# For C# globals
 # set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 # set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
@@ -883,15 +884,6 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 # #                @ONLY)
 
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-
-# Generate the C# file with global constants
-# This must be done here, after replacement variables were set.
-if(ENABLE_MODULE_CSHARP)
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
-                 "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
-                 @ONLY)
-endif()
 
 
 # # For the INSTALL tree
@@ -925,6 +917,20 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
 
 
 ############################################################ NEW INSTALL
+
+# Generate the C# file with global constants
+# This must be done here, after replacement variables were set.
+if(ENABLE_MODULE_CSHARP)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in" DESTINATION "${PROJECT_BINARY_DIR}/cmake")
+
+  # configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
+  #                "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
+  #                @ONLY)
+
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
+  DESTINATION ${CH_CONFIG_INSTALL_PATH}
+  )
+endif()
 
 
 
