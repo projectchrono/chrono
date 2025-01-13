@@ -53,16 +53,18 @@ void ChSystemDescriptorMultidomain::UpdateCountsAndOffsets() {
 }
 
 double ChSystemDescriptorMultidomain::Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector) {
-    double domaindot= avector.dot(bvector);
+    ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
+    double domaindot= avector.dot(bvector.cwiseProduct(Wv));  // s_j = va_j' * (vb_j *. Wv_j) 
     double result = 0;
-    this->domain_manager->ReduceAll(this->domain->GetRank(), domaindot, result);
+    this->domain_manager->ReduceAll(this->domain->GetRank(), domaindot, result); // s = \sum s_j
     return result;
 }
 
 double ChSystemDescriptorMultidomain::Vnorm(const ChVectorDynamic<>& avector) {
-    double domainsqnorm = avector.squaredNorm();
+    ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
+    double domainsqnorm = avector.dot(avector.cwiseProduct(Wv)); // s_j = v_j' * (v_j *. Wv_j) 
     double result = 0;
-    this->domain_manager->ReduceAll(this->domain->GetRank(), domainsqnorm, result);
+    this->domain_manager->ReduceAll(this->domain->GetRank(), domainsqnorm, result); // s = \sum s_j
     return sqrt(result);
 }
 
@@ -81,6 +83,9 @@ void ChSystemDescriptorMultidomain::globalSchurComplementProduct(ChVectorDynamic
     // currently, the case with ChKRMBlock items is not supported (only diagonal M is supported, no K)
     assert(m_KRMblocks.size() == 0);
     assert(lvector.size() == CountActiveConstraints());
+
+    // =====ENTER scaling of masses in ChVariables because of Wv weights
+    this->MassesScaledInPlace_EnterSection();
 
     result.setZero(lvector.size());
 
@@ -139,12 +144,18 @@ void ChSystemDescriptorMultidomain::globalSchurComplementProduct(ChVectorDynamic
                 result(constr->GetOffset()) = 0;  // not enabled constraints, just set to 0 result
         }
     }
+
+    // =====EXIT scaling of masses in ChVariables because of Wv weights, restore to original
+    this->MassesScaledInPlace_ExitSection();
 }
 
 
 void ChSystemDescriptorMultidomain::globalSystemProduct(ChVectorDynamic<>& result, const ChVectorDynamic<>& x) {
 
     assert(x.size() == CountActiveVariables() + CountActiveConstraints());
+
+    // =====ENTER scaling of masses in ChVariables because of Wv weights
+    this->MassesScaledInPlace_EnterSection();
 
     int mn_q = CountActiveVariables();
     //n_c = CountActiveConstraints();
@@ -182,7 +193,10 @@ void ChSystemDescriptorMultidomain::globalSystemProduct(ChVectorDynamic<>& resul
     }
 
     // MULTIDOMAIN******************
-    VectAdditiveToDistributed(result);
+    VectAdditiveToClipped(result);
+
+    // =====EXIT scaling of masses in ChVariables because of Wv weights, restore to original
+    this->MassesScaledInPlace_ExitSection();
 }
 
 
@@ -406,7 +420,7 @@ void ChSystemDescriptorMultidomain::SharedVectsSwap() {
     }
 }
 
-void ChSystemDescriptorMultidomain::VectAdditiveToDistributed(ChVectorDynamic<>& vect, double use_average) {
+void ChSystemDescriptorMultidomain::VectAdditiveToClipped(ChVectorDynamic<>& vect, double use_average) {
     this->SharedVectsFromDomainVector(vect);
     this->SharedVectsSwap();                        // *** COMM + MULTITHREAD BARRIER ***
     this->SharedVectsAddToDomainVector(vect, use_average);
@@ -436,6 +450,38 @@ double ChSystemDescriptorMultidomain::SyncSharedStates(bool return_max_correctio
     }
     return maxerror;
 }
+
+
+void ChSystemDescriptorMultidomain::MassesScaledInPlace_EnterSection() {
+
+    ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
+
+    for (auto avar : this->m_variables) {
+        if (avar->IsActive()) {
+            // optimization, ex if var has 6 dofs, use only 1st of the 6 corresponding 
+            // values on Ws assuming other following 5 values in Ws are the same
+            double weight = Wv(avar->GetOffset());
+            avar->MultiplyMass(weight); 
+        }
+    }
+
+}
+
+void ChSystemDescriptorMultidomain::MassesScaledInPlace_ExitSection() {
+    
+    ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
+
+    for (auto avar : this->m_variables) {
+        if (avar->IsActive()) {
+            // optimization, ex if var has 6 dofs, use only 1st of the 6 corresponding 
+            // values on Ws assuming other following 5 values in Ws are the same
+            double inv_weight = 1.0 / Wv(avar->GetOffset());
+            avar->MultiplyMass(inv_weight);
+        }
+    }
+
+}
+
 
 
 /*

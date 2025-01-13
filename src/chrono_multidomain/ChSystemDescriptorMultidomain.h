@@ -238,11 +238,11 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
    */
     /// Compute the GLOBAL dot product of a vector (in multidomain mode, using MPI_AllReduce)
-    /// Here we assume that avector and bvector are the domain-sliced parts of the entire vectors.
+    /// Here we assume that avector and bvector are both in 'clipped' format
     virtual double Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector);
 
     /// Compute the GLOBAL norm of a vector (in multidomain mode, using MPI_AllReduce)
-    /// Here we assume that avector is the domain-sliced part of the entire vectors.
+    /// Here we assume that avector is in 'clipped' format
     virtual double Vnorm(const ChVectorDynamic<>& avector);
 
     /// Compute the GLOBAL max among values (in multidomain mode, using MPI_AllReduce)
@@ -250,8 +250,10 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
     /// Performs the product of N, the Schur complement of the KKT matrix, 
     /// at the global level considering all the domains. The M,N,Cq,E from 
-    /// this domain are considered sub-matrices of the global problem; output vector
-    /// "result" is assumed a domain-relative slice of result of the global problem.
+    /// this domain are considered sub-matrices of the global problem.
+    /// -Matrices M,N,Cq,E are assumed in 'additive' format.
+    /// -Vector l is assumed in 'clipped' format.
+    /// -Vector result is assumed in 'clipped' format.
     /// <pre>
     ///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
     /// </pre>
@@ -266,11 +268,12 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
     /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}
     /// at the global level. The M,N,Cq,E from this domain are considered sub-matrices of 
-    /// the global problem; output vector "result" is assumed a domain-relative slice of 
-    /// result of the global problem.
+    /// the global problem.
+    /// -Matrices M,N,Cq,E are assumed in 'additive' format.
+    /// -Vector x is assumed in 'clipped' format.
+    /// -Vector result is assumed in 'clipped' format.
     /// Note that the 'q' data in the ChVariables of the system descriptor is changed by this
     /// operation, so they may need to be backed up via FromVariablesToVector().
-    /// Note that both x and result are assumed in 'distributed' format, not 'additive'; matrices are assumed additive.
     virtual void globalSystemProduct(ChVectorDynamic<>& result,  ///< result vector (multiplication of system matrix by x)
         const ChVectorDynamic<>& x  ///< vector to be multiplied
     );
@@ -415,18 +418,18 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// It is expected that all domains will execute this operation, otherwise deadlock.
     virtual void SharedVectsSwap();
 
-    /// Takes a vector "vect" in additive form and converts it to distributed form. 
+    /// Takes vectors "vect" in 'additive' form and merge into 'clipped' form. 
     /// Overwrites "vect". Note, vect has size and indexing as domain's coordinates.
     /// Shared coordinates in additive form are different among domains, whereas
-    /// in distributed form are the same, ex. in j-th domain with neighbours k and  
+    /// in clipped form are the same, ex. in j-th domain with neighbours k and  
     ///    v_distr_j = v_additive_j + \sum R_j R_k' v_additive_k
     /// where we used restriction matrices R as  v_distr_j =  R_j v_global.
     /// This operation requires a network-expensive SEND and RECEIVE operation!
     /// It is expected that all domains will execute this operation, otherwise deadlock.
-    virtual void VectAdditiveToDistributed(ChVectorDynamic<>& vect, double use_average = 0);
+    virtual void VectAdditiveToClipped(ChVectorDynamic<>& vect, double use_average = 0);
 
     /// Sync the State() of ChVariables across the domains. Depending on numerical
-    /// roundoff issues, solvers might not guarantee that the values in distributed
+    /// roundoff issues, solvers might not guarantee that the values in distributed clipped
     /// state vectors are exactly the same (although they should be in theory). This
     /// function can be called once in a while to fix the small glitches. In case of 
     /// conflict from different state values, it keeps the element-wise min values. 
@@ -439,12 +442,25 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// Get domain manager
     ChDomainManager* GetDomainManager() { return domain_manager; }
 
+    // To avoid data duplication and for not being intrusive to other part of the code,
+    // the masses of ChVariable objs are scaled *in place* according to  Wv weight vector in ChSystem,
+    // with multiplication, and after computations are done, these are restored to original 
+    // values with a division. The scheme is
+    //   MassesScaledInPlace_EnterSection()
+    //      do computation involving masses
+    //   MassesScaledInPlace_ExitSection();
+    // Not optimal..  maybe api redesign needed in future.
+    void MassesScaledInPlace_EnterSection();
+    void MassesScaledInPlace_ExitSection();
+
   private:
 
     std::shared_ptr<ChDomain> domain;
     ChDomainManager* domain_manager = nullptr;
 
     std::unordered_map<int, ChVectorDynamic<>> shared_vects;
+
+
 
 };
 
