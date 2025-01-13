@@ -37,6 +37,8 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 
 -   [PYTHON module](@ref module_python_installation)
 
+-   [ROS module](@ref module_ros_installation)
+
 -   [SENSOR module](@ref module_sensor_installation)	
 
 -   [SYNCHRONO module](@ref module_synchrono_installation)

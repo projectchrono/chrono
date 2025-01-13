@@ -55,7 +55,9 @@ void ChTransmission::UpdateInertiaProperties() {}
 
 void ChTransmission::SetGear(int gear) {
     assert(gear >= -1);
-    assert(gear < m_gear_ratios.size());
+    // Note that gear can be -1 and m_gear_ratios.size() returns an unsigned value
+    // which we need to cast to int to do the right assert here.
+    assert(gear < (int) m_gear_ratios.size());
 
     if (m_current_gear == gear)
         return;

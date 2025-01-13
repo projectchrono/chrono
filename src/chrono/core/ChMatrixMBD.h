@@ -214,6 +214,9 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     }
 };
 
+/// Alias for a 3x3 star matrix of doubles.
+using ChStarMatrix33d = ChStarMatrix33<double>;
+
 /// Special MBD 4x4 "star" matrix, representing quaternion cross product.
 /// That is, given two quaternions a and b, a x b= [Astar] * b
 template <typename Real = double>

@@ -66,6 +66,37 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
     archive >> CHNVP(verbose);
 }
 
+std::string ChTimestepper::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::EULER_IMPLICIT_LINEARIZED:
+            return "EULER_IMPLICIT_LINEARIZED";
+        case Type::EULER_IMPLICIT_PROJECTED:
+            return "EULER_IMPLICIT_PROJECTED";
+        case Type::EULER_IMPLICIT:
+            return "EULER_IMPLICIT";
+        case Type::TRAPEZOIDAL:
+            return "TRAPEZOIDAL";
+        case Type::TRAPEZOIDAL_LINEARIZED:
+            return "TRAPEZOIDAL_LINEARIZED";
+        case Type::HHT:
+            return "HHT";
+        case Type::HEUN:
+            return "HEUN";
+        case Type::RUNGEKUTTA45:
+            return "RUNGEKUTTA45";
+        case Type::EULER_EXPLICIT:
+            return "EULER_EXPLICIT";
+        case Type::LEAPFROG:
+            return "LEAPFROG";
+        case Type::NEWMARK:
+            return "NEWMARK";
+        case Type::CUSTOM:
+            return "CUSTOM";
+    }
+
+    return "UNKNOWN";
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence

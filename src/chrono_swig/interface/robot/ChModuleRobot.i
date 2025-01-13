@@ -209,6 +209,8 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::industrial::IndustrialKinematics6dofSpherical)
 %shared_ptr(chrono::industrial::IndustrialKinematicsNdofNumerical)
 %shared_ptr(chrono::industrial::TrajectoryInterpolator)
+%shared_ptr(chrono::industrial::TrajectoryInterpolatorOperationSpace)
+%shared_ptr(chrono::industrial::TrajectoryInterpolatorJointSpace)
 
 //
 // B- INCLUDE HEADERS

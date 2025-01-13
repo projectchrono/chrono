@@ -137,6 +137,20 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
     // Send to TERRAIN node the number of interacting objects (here, total number of track shoes)
     MPI_Send(&num_track_shoes, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
+    // Send to TERRAIN node the initial locations of all interacting objects (here, track shoe initial locations)
+    std::vector<double> all_locations(3 * num_track_shoes);
+    unsigned int start_idx = 0;
+    for (unsigned int i = 0; i < GetNumTracks(); i++) {
+        for (unsigned int j = 0; j < GetNumTrackShoes(i); j++) {
+            BodyState state = GetTrackShoeState(i, j);
+            all_locations[start_idx + 0] = state.pos.x();
+            all_locations[start_idx + 1] = state.pos.y();
+            all_locations[start_idx + 2] = state.pos.z();
+            start_idx += 3;
+        }
+    }
+    MPI_Send(all_locations.data(), 3 * num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
     // Send the communication interface type (rigid body) to the TERRAIN node
     char comm_type = 0;
     MPI_Send(&comm_type, 1, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
@@ -242,10 +256,9 @@ void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
     unsigned int num_shoes = (unsigned int)GetNumTrackShoes();
     std::vector<double> all_states(13 * num_shoes);
     std::vector<double> all_forces(6 * num_shoes);
-    unsigned int start_idx;
 
     // Pack states of all track shoe bodies
-    start_idx = 0;
+    unsigned int start_idx = 0;
     for (unsigned int i = 0; i < GetNumTracks(); i++) {
         for (unsigned int j = 0; j < GetNumTrackShoes(i); j++) {
             BodyState state = GetTrackShoeState(i, j);

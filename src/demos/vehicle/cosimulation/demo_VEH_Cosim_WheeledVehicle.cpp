@@ -55,6 +55,7 @@ class Vehicle_Model {
     virtual std::string TireJSON() const = 0;
     virtual std::string EngineJSON() const = 0;
     virtual std::string TransmissionJSON() const = 0;
+    virtual double InitHeight() const = 0;
 };
 
 class HMMWV_Model : public Vehicle_Model {
@@ -66,6 +67,7 @@ class HMMWV_Model : public Vehicle_Model {
     virtual std::string TransmissionJSON() const override {
         return "hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json";
     }
+    virtual double InitHeight() const override { return 0.75; }
 };
 
 class Polaris_Model : public Vehicle_Model {
@@ -77,6 +79,7 @@ class Polaris_Model : public Vehicle_Model {
     virtual std::string TransmissionJSON() const override {
         return "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
     }
+    virtual double InitHeight() const override { return 0.2; }
 };
 
 auto vehicle_model = Polaris_Model();
@@ -171,11 +174,12 @@ int main(int argc, char** argv) {
 
     double terrain_length = 40;
     double terrain_width = 20;
-    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, 0.5);
+    double init_height = vehicle_model.InitHeight();
+    ChVector3d init_loc(-terrain_length / 2 + 5, -terrain_width / 2 + 2, init_height);
     if (use_DBP_rig) {
         terrain_length = 20;
         terrain_width = 5;
-        init_loc = ChVector3d(-5, 0, 0.5);
+        init_loc = ChVector3d(-5, 0, init_height);
     }
 
     // Prepare output directory.

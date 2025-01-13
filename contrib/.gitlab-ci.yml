@@ -69,7 +69,7 @@ linux:doxygen:deploy:
   tags:
     - linux
   image:
-      name: uwsbel/packages:ubuntu
+      name: uwsbel/packages:test
   before_script:
     # Defining configuration variables
     - export DEBIAN_FRONTEND=noninteractive
@@ -80,13 +80,6 @@ linux:doxygen:deploy:
       freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
       libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-535
       curl software-properties-common
-    - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
-      gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-    - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
-      https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
-    - apt update
-    - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
-      libxcb-shape0-dev libxcb-xkb-dev xorg-dev
     - ldconfig
     # ROS
     - add-apt-repository universe

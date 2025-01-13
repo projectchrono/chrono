@@ -57,13 +57,13 @@ key_2 = chrono.ChCoordsysd(key_1.pos + chrono.ChVector3d(0.2, -0.1, 0.2), chrono
 keys = [key_0, key_1, key_2, key_0]
 
 # Create a trajectory interpolator from given keyframes
-interpolator = chronorob.TrajectoryInterpolator(
+interpolator = chronorob.TrajectoryInterpolatorOperationSpace(
     keys, 
     motion_cycle_time, 
-    chronorob.TrajectoryInterpolator.PosfunType_LINE,
-    chronorob.TrajectoryInterpolator.SpacefunType_PW_POLY345,
-    chronorob.TrajectoryInterpolator.RotfunType_BSPLINE1,
-    chronorob.TrajectoryInterpolator.SpacefunType_PW_POLY345)
+    chronorob.TrajectoryInterpolatorOperationSpace.PosfunType_LINE,
+    chronorob.TrajectoryInterpolatorOperationSpace.SpacefunType_PW_POLY345,
+    chronorob.TrajectoryInterpolatorOperationSpace.RotfunType_BSPLINE1,
+    chronorob.TrajectoryInterpolatorOperationSpace.SpacefunType_PW_POLY345)
 
 posfun = interpolator.GetPositionFunction()
 rotfun = interpolator.GetRotationFunction()

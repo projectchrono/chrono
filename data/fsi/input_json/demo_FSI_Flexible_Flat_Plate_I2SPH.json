@@ -10,8 +10,8 @@
   },
   "SPH Parameters": {
     "Method": "I2SPH",
-    "Kernel h": 0.02,
     "Initial Spacing": 0.02,
+    "Kernel Multiplier": 1.0,
     "Epsilon": 0.001,
     "Maximum Velocity": 10.0,
     "XSPH Coefficient": 0.5,
@@ -21,11 +21,7 @@
     "Time steps per proximity search": 1
   },
   "Time Stepping": {
-    "Adaptive Time stepping": false,
-    "CFL number": 0.2,
-    "Fluid time step": 4e-4,
-    "Solid time step": 4e-4,
-    "Maximum time step": 4e-4
+    "Time step": 4e-4
   },
   "Pressure Equation": {
     "Linear solver": "Jacobi",

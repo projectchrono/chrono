@@ -335,6 +335,8 @@ void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
                                    ChVector3d& com,        // ChMesh center of gravity
                                    ChMatrix33<>& inertia)  // ChMesh inertia tensor
 {
+    SetupInitial();
+
     mass = 0;
     com = ChVector3d(0);
     inertia = ChMatrix33<>(1);

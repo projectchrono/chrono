@@ -196,8 +196,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         switch (m_contact_type) {
             case ContactSurfaceType::NODE_CLOUD: {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_material);
+                contact_surf->AddAllNodes(*m_track_mesh, thickness / 2);
                 m_track_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddAllNodes(thickness / 2);
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& node : contact_surf->GetNodes()) {
@@ -209,8 +209,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             }
             case ContactSurfaceType::TRIANGLE_MESH: {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_material);
+                contact_surf->AddFacesFromBoundary(*m_track_mesh, thickness / 2, false);
                 m_track_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddFacesFromBoundary(thickness / 2, false);
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& face : contact_surf->GetTrianglesXYZ()) {

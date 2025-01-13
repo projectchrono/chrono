@@ -162,17 +162,20 @@ bool cbtCollisionDispatcher::needsCollision(const cbtCollisionObject* body0, con
 
 	bool needsCollision = true;
 
+    /* ***CHRONO***
+	* Comment out misleading Bullet warning
 #ifdef BT_DEBUG
-	if (!(m_dispatcherFlags & cbtCollisionDispatcher::CD_STATIC_STATIC_REPORTED))
-	{
-		//broadphase filtering already deals with this
-		if (body0->isStaticOrKinematicObject() && body1->isStaticOrKinematicObject())
-		{
-			m_dispatcherFlags |= cbtCollisionDispatcher::CD_STATIC_STATIC_REPORTED;
-			printf("warning cbtCollisionDispatcher::needsCollision: static-static collision!\n");
-		}
-	}
+    if (!(m_dispatcherFlags & cbtCollisionDispatcher::CD_STATIC_STATIC_REPORTED))
+    {
+        //broadphase filtering already deals with this
+        if (body0->isStaticOrKinematicObject() && body1->isStaticOrKinematicObject())
+        {
+            m_dispatcherFlags |= cbtCollisionDispatcher::CD_STATIC_STATIC_REPORTED;
+            printf("warning cbtCollisionDispatcher::needsCollision: static-static collision!\n");
+        }
+    }
 #endif  //BT_DEBUG
+*/
 
 	if ((!body0->isActive()) && (!body1->isActive()))
 		needsCollision = false;

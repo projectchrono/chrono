@@ -36,7 +36,8 @@
 bool SetChronoSolver(chrono::ChSystem& sys,
                      const chrono::ChSolver::Type& solver_type,
                      const chrono::ChTimestepper::Type& integrator_type,
-                     bool verbose = false) {
+                     bool verbose = true) {
+    auto contact_method = sys.GetContactMethod();
     auto slvr_type = solver_type;
     auto intg_type = integrator_type;
 
@@ -44,27 +45,27 @@ bool SetChronoSolver(chrono::ChSystem& sys,
     using std::endl;
     std::string prefix = "[SetChronoSolver] ";
 
-    // For NSC systems, use implicit linearized Euler and an iterative VI solver
-    if (sys.GetContactMethod() == chrono::ChContactMethod::NSC) {
-        intg_type = chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-        if (verbose)
-            cout << prefix << "NSC system - setting integrator to EULER_IMPLICIT_LINEARIZED" << endl;
-        if (slvr_type != chrono::ChSolver::Type::BARZILAIBORWEIN &&  //
-            slvr_type != chrono::ChSolver::Type::APGD &&             //
-            slvr_type != chrono::ChSolver::Type::PSOR &&             //
-            slvr_type != chrono::ChSolver::Type::PSSOR) {
-            slvr_type = chrono::ChSolver::Type::BARZILAIBORWEIN;
-            cout << prefix << "NSC system - setting solver to BARZILAIBORWEIN" << endl;
+    // For NSC systems, suggest implicit linearized Euler and an iterative VI solver
+    if (verbose) {
+        if (contact_method == chrono::ChContactMethod::NSC) {
+            if (intg_type != chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED)
+                cout << prefix << "NSC system - recommended integrator: EULER_IMPLICIT_LINEARIZED" << endl;
+
+            if (slvr_type != chrono::ChSolver::Type::BARZILAIBORWEIN &&  //
+                slvr_type != chrono::ChSolver::Type::APGD &&             //
+                slvr_type != chrono::ChSolver::Type::PSOR &&             //
+                slvr_type != chrono::ChSolver::Type::PSSOR)
+                cout << prefix << "NSC system - recommended solver: BARZILAIBORWEIN" << endl;
         }
     }
 
     // Barzilai-Borwein cannot be used with stiffness matrices
     if (slvr_type == chrono::ChSolver::Type::BARZILAIBORWEIN && sys.GetSystemDescriptor()->GetKRMBlocks().size() > 0) {
-        cout << prefix << "BARZILAIBORWEIN cannot be used for a system that includes stiffness matrices!" << endl;
+        cout << prefix << "BARZILAIBORWEIN cannot be used for a system that includes stiffness matrices" << endl;
         return false;
     }
 
-    // If none of the direct sparse solver modules is enabled, default to SPARSE_QR
+    // If the requested direct sparse solver module is not enabled, default to SPARSE_QR
     if (slvr_type == chrono::ChSolver::Type::PARDISO_MKL) {
 #ifndef CHRONO_PARDISO_MKL
         slvr_type = chrono::ChSolver::Type::SPARSE_QR;
@@ -82,6 +83,8 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>();
         solver->LockSparsityPattern(true);
         sys.SetSolver(solver);
+        if (verbose)
+            cout << prefix << "Setting solver PARDISO_MKL with locked sparsity pattern" << endl;
 #endif
     } else if (slvr_type == chrono::ChSolver::Type::MUMPS) {
 #ifdef CHRONO_MUMPS
@@ -90,9 +93,13 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         solver->EnableNullPivotDetection(true);
         solver->GetMumpsEngine().SetICNTL(14, 50);
         sys.SetSolver(solver);
+        if (verbose)
+            cout << prefix << "Setting solver MUMPS with locked sparsity pattern" << endl;
 #endif
     } else {
         sys.SetSolverType(slvr_type);
+        if (verbose)
+            cout << prefix << "Setting solver " << chrono::ChSolver::GetTypeAsString(slvr_type) << endl;
         switch (slvr_type) {
             case chrono::ChSolver::Type::SPARSE_LU:
             case chrono::ChSolver::Type::SPARSE_QR: {
@@ -125,6 +132,8 @@ bool SetChronoSolver(chrono::ChSystem& sys,
     }
 
     sys.SetTimestepperType(intg_type);
+    if (verbose)
+        cout << prefix << "Setting integrator " << chrono::ChTimestepper::GetTypeAsString(intg_type) << endl;
     switch (intg_type) {
         case chrono::ChTimestepper::Type::HHT: {
             auto integrator = std::static_pointer_cast<chrono::ChTimestepperHHT>(sys.GetTimestepper());

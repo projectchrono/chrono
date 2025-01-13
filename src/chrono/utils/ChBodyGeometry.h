@@ -24,6 +24,9 @@
 
 #include "chrono/core/ChApiCE.h"
 
+#include "chrono/geometry/ChBox.h"
+#include "chrono/geometry/ChSphere.h"
+#include "chrono/geometry/ChCylinder.h"
 #include "chrono/geometry/ChLine.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
@@ -63,6 +66,7 @@ class ChApi ChBodyGeometry {
     /// Box shape for visualization and/or collision.
     struct ChApi BoxShape {
         BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID = -1);
+        BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChBox& box, int matID = -1);
         ChVector3d pos;      ///< center position relative to body
         ChQuaternion<> rot;  ///< orientation relative to body
         ChVector3d dims;     ///< box dimensions
@@ -72,6 +76,7 @@ class ChApi ChBodyGeometry {
     /// Sphere shape for visualization and/or collision.
     struct ChApi SphereShape {
         SphereShape(const ChVector3d& pos, double radius, int matID = -1);
+        SphereShape(const ChVector3d& pos, const ChSphere& sphere, int matID = -1);
         ChVector3d pos;  ///< center position relative to body
         double radius;   ///< sphere radius
         int matID;       ///< index in contact material list
@@ -81,6 +86,7 @@ class ChApi ChBodyGeometry {
     struct ChApi CylinderShape {
         CylinderShape(const ChVector3d& pos, const ChVector3d& axis, double radius, double length, int matID = -1);
         CylinderShape(const ChVector3d& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
+        CylinderShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChCylinder& cylinder, int matID = -1);
         ChVector3d pos;      ///< center position relative to body
         ChQuaternion<> rot;  ///< orientation relative to body
         double radius;       ///< cylinder radius
