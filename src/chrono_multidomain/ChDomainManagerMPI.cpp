@@ -14,7 +14,7 @@
 
 #include<array>
 #include "chrono_multidomain/ChDomainManagerMPI.h"
-
+#include "chrono_multidomain/ChDomain.h"
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 

@@ -66,9 +66,11 @@
 
 #include "chrono_multidomain/ChSolverLumpedMultidomain.h"
 #include "chrono_multidomain/ChDomainManagerMPI.h"
+#include "chrono_multidomain/ChDomainBuilder.h"
 
 #include "chrono_postprocess/ChBlender.h"
 #include <Windows.h>
+
 using namespace chrono;
 using namespace multidomain;
 using namespace postprocess;
@@ -174,10 +176,10 @@ int main(int argc, char* argv[]) {
         double corner_z = -0.5;
         double size_x = 1;
         double size_z = 1;
-        size_t nsections_x = 3;
-        size_t nsections_z = 1;
-        size_t fixed_x = 0;
-        size_t fixed_z = 0;
+        size_t nsections_x = 10;
+        size_t nsections_z = 10;
+        size_t fixed_x = 3;
+        size_t fixed_z = 3;
 
         // Create nodes
         std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
@@ -250,7 +252,7 @@ int main(int argc, char* argv[]) {
         auto vis_shell_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
         vis_shell_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         vis_shell_mesh->SetShellResolution(2);
-        ////vis_shell_mesh->SetBackfaceCull(true);
+        vis_shell_mesh->SetBackfaceCull(true);
         mesh->AddVisualShapeFEA(vis_shell_mesh);
 
         // Visualization of the FEM nodes. Also this object will migrate from master domain to sliced domains.
@@ -279,6 +281,9 @@ int main(int argc, char* argv[]) {
     // Set the path where it will save all files, a directory will be created if not existing. 
     // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
     blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
+    // Trick: apply thin domain-specific jitter to all Blender scene, to overcome Blender issue of black artifacts
+    // if rendering engine is Cycles and two surfaces are exactly complanar - as happens with objects shared between domains.
+    blender_exporter.SetBlenderFrame(ChFramed(domain_manager.GetMPIrank() * 2e-5 * ChVector3d(1, 1, 1), Q_ROTATE_Y_TO_Z));
     // Initial script, save once at the beginning
     blender_exporter.ExportScript();
 

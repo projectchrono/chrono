@@ -51,6 +51,7 @@
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
 #include "chrono_multidomain/ChDomainManagerMPI.h"
+#include "chrono_multidomain/ChDomainBuilder.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 #include "chrono_postprocess/ChBlender.h"
 
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
 
 
     // For debugging/logging:
-    domain_manager.verbose_partition = false; // will print  partitioning in std::cout?
+    domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
     domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
     domain_manager.serializer_type = DomainSerializerFormat::BINARY;  // default BINARY, use JSON or XML for readable verbose
@@ -203,11 +204,12 @@ int main(int argc, char* argv[]) {
    
     // Create an exporter to Blender
     ChBlender blender_exporter = ChBlender(&sys);
-
     // Set the path where it will save all files, a directory will be created if not existing. 
     // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
     blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
-
+    // Trick: apply thin domain-specific jitter to all Blender scene, to overcome Blender issue of black artifacts
+    // if rendering engine is Cycles and two surfaces are exactly complanar - as happens with objects shared between domains.
+    blender_exporter.SetBlenderFrame(ChFramed(domain_manager.GetMPIrank() * 2e-5 * ChVector3d(1, 1, 1), Q_ROTATE_Y_TO_Z));
     // Initial script, save once at the beginning
     blender_exporter.ExportScript();
 
@@ -242,13 +244,7 @@ int main(int argc, char* argv[]) {
         blender_exporter.RemoveAll();  
         blender_exporter.AddAll();
         blender_exporter.ExportData();
-
     }
-   
-   
-
-
-
 
     return 0;
 }

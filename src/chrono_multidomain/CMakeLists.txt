@@ -27,6 +27,8 @@ endif()
 
 
 SET(ChronoEngine_MULTIDOMAIN_SOURCES 
+    ChDomain.cpp
+    ChDomainBuilder.cpp
     ChDomainManager.cpp
     ChDomainManagerSharedmemory.cpp
     ChDomainManagerMPI.cpp
@@ -39,6 +41,8 @@ SET(ChronoEngine_MULTIDOMAIN_SOURCES
 
 SET(ChronoEngine_MULTIDOMAIN_HEADERS
     ChApiMultiDomain.h
+    ChDomain.h
+    ChDomainBuilder.h
     ChDomainManager.h
     ChDomainManagerSharedmemory.h
     ChDomainManagerMPI.h

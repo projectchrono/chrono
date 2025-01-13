@@ -455,12 +455,15 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
   private:
 
+    void MassesDoScaleInPlace();
+    void MassesUndoScaleInPlace();
+
     std::shared_ptr<ChDomain> domain;
     ChDomainManager* domain_manager = nullptr;
 
     std::unordered_map<int, ChVectorDynamic<>> shared_vects;
 
-
+    int section_scaledmass_count = 0;
 
 };
 

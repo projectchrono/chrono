@@ -41,6 +41,7 @@
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_multidomain/ChDomainManagerSharedmemory.h"
+#include "chrono_multidomain/ChDomainBuilder.h"
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 

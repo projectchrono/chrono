@@ -21,6 +21,7 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
+#include "chrono_multidomain/ChDomain.h"
 
 namespace chrono {
 namespace multidomain {
@@ -454,6 +455,25 @@ double ChSystemDescriptorMultidomain::SyncSharedStates(bool return_max_correctio
 
 void ChSystemDescriptorMultidomain::MassesScaledInPlace_EnterSection() {
 
+    this->section_scaledmass_count += 1;
+
+    if (this->section_scaledmass_count == 1)
+        MassesDoScaleInPlace();
+}
+
+void ChSystemDescriptorMultidomain::MassesScaledInPlace_ExitSection() {
+    
+    assert(this->section_scaledmass_count > 0);
+
+    this->section_scaledmass_count -= 1;
+
+    if (this->section_scaledmass_count == 0)
+        MassesUndoScaleInPlace();
+}
+
+
+void ChSystemDescriptorMultidomain::MassesDoScaleInPlace() {
+
     ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
 
     for (auto avar : this->m_variables) {
@@ -461,14 +481,14 @@ void ChSystemDescriptorMultidomain::MassesScaledInPlace_EnterSection() {
             // optimization, ex if var has 6 dofs, use only 1st of the 6 corresponding 
             // values on Ws assuming other following 5 values in Ws are the same
             double weight = Wv(avar->GetOffset());
-            avar->MultiplyMass(weight); 
+            avar->MultiplyMass(weight);
         }
     }
 
 }
 
-void ChSystemDescriptorMultidomain::MassesScaledInPlace_ExitSection() {
-    
+void ChSystemDescriptorMultidomain::MassesUndoScaleInPlace() {
+
     ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
 
     for (auto avar : this->m_variables) {
@@ -481,7 +501,6 @@ void ChSystemDescriptorMultidomain::MassesScaledInPlace_ExitSection() {
     }
 
 }
-
 
 
 /*

@@ -121,6 +121,13 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
     // MULTIDOMAIN******************
     descriptor.SharedVectsToZero(); 
     descriptor.SharedStatesDeltaAddToMultidomainAndSync(1.);
+    /*
+    // ALTERNATIVE: following stuff is equivalent to descriptor.SharedStates.. line above.
+    descriptor.FromVariablesToVector(state);
+    descriptor.VectAdditiveToClipped(state);
+    descriptor.FromVectorToVariables(state);
+    state_old = state;
+    */
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     mb.setZero();
