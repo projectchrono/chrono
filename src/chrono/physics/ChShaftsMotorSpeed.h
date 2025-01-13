@@ -116,6 +116,8 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
                                       ChVectorDynamic<>& Md,
                                       double& err,
                                       const double c) override;
+    virtual void IntLoadIndicator(const unsigned int off,
+                                  ChVectorDynamic<>& N) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
                                      ChVectorDynamic<>& R,
                                      const ChVectorDynamic<>& L,

@@ -470,6 +470,18 @@ void ChParticleCloud::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynam
                                particle_mass.GetBodyInertia()(1, 2));
 }
 
+void ChParticleCloud::IntLoadIndicator(const unsigned int off,
+                                        ChVectorDynamic<>& N) {
+    for (unsigned int j = 0; j < particles.size(); j++) {
+        N(off + 6 * j + 0) += 1.0;
+        N(off + 6 * j + 1) += 1.0;
+        N(off + 6 * j + 2) += 1.0;
+        N(off + 6 * j + 3) += 1.0;
+        N(off + 6 * j + 4) += 1.0;
+        N(off + 6 * j + 5) += 1.0;
+    }
+}
+
 void ChParticleCloud::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                       const ChStateDelta& v,
                                       const ChVectorDynamic<>& R,

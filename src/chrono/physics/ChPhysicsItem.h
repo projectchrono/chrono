@@ -282,8 +282,18 @@ class ChApi ChPhysicsItem : public ChObj {
         const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
     );
 
+    /// Takes the F force term, scale by c and scale by i-th weight in Wd at node offset, and adds to R at given offset:
+    ///    R += c*F* Wi
+    /// This is a weighted version of IntLoadResidual_F, where some items are scaled, ex. to simulate splitting a mass.
+    /// Many children classes do not need to implement this: here a default fallback to IntLoadResidual_F is implemented.
+    virtual void IntLoadResidual_F_weighted(const unsigned int off,  ///< offset in R residual
+        ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+        const double c,          ///< a scaling factor
+        ChVectorDynamic<>& Wd    ///< vector with weights, the node force is "scaled".
+    );
+
     /// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
-    ///    R += c*M*w
+    ///    R += c*M*v
     /// This is a filtered version of IntLoadResidual_Mv, where some items are skipped if not inside a volume.
     /// Most children classes do not need to implement this: here a default fallback is implemented.
     virtual void IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
@@ -293,6 +303,19 @@ class ChApi ChPhysicsItem : public ChObj {
         const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
     );
 
+    /// Takes the M*v term,  multiplying mass by a vector, scale by c and and scale by i-th weight in Wd at node offset
+    /// and adds to R at given offset:
+    ///    R += c*M*v * Wi
+    /// This is a weighted version of IntLoadResidual_Mv, where some items are scaled, ex. to simulate splitting a mass.
+    /// Many children classes do not need to implement this: here a default fallback to IntLoadResidual_Mv is implemented.
+    virtual void IntLoadResidual_Mv_weighted(const unsigned int off,  ///< offset in R residual
+        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+        const ChVectorDynamic<>& w,  ///< the w vector
+        const double c,              ///< a scaling factor
+        ChVectorDynamic<>& Wd        ///< vector with weights, the node mass is "scaled".
+    );
+
+
     /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
     /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
     ///    Md += c*diag(M)
@@ -300,6 +323,24 @@ class ChApi ChPhysicsItem : public ChObj {
                                       ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
                                       double& err,    ///< result: not touched if lumping does not introduce errors
                                       const double c  ///< a scaling factor
+    ) {}
+
+    /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
+    /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
+    ///    Md += c*diag(M)* Wi
+    /// This is a weighted version of IntLoadLumpedMass_Md, where some items are scaled, ex. to simulate splitting a mass.
+    virtual void IntLoadLumpedMass_Md_weighted(const unsigned int off,  ///< offset in Md vector
+        ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
+        double& err,            ///< result: not touched if lumping does not introduce errors
+        const double c,         ///< a scaling factor
+        ChVectorDynamic<>& Wd   ///< vector with weights, the node mass is "scaled".
+    );
+
+
+    /// Adds 1 to a N indicator vector, at each DOF referenced by internal ChVariable(s), if any.
+    /// Used for debugging, for counting shared mechanical graph vertexes (bodies, nodes) in parallel solvers, etc.
+    virtual void IntLoadIndicator(const unsigned int off,  ///< offset in N vector
+                                  ChVectorDynamic<>& N     ///< result: N vector, indicating DOF of graph vertexes, 0 or 1 or greater if shared 
     ) {}
 
     /// Takes the term Cq'*L, scale and adds to R at given offset:

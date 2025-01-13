@@ -97,6 +97,12 @@ class ChApi ChVariables {
                                unsigned int start_col,
                                const double ca) const = 0;
 
+    /// In-place multiply the mass in this object by a factor w, and store it in the same place.
+    /// This done, the mass of the ChVariable might not correspond anymore to the mass of the 
+    /// owner ChPhysicsItem or ChNode. Needed for various reasons, ex.distributing the mass across
+    /// multiple shared bodies as in FETI, without affecting the outer ChPhysicsItem.
+    virtual void MultiplyMass(double w) = 0;
+    
     /// Set offset in the global state vector.
     /// This offset if set automatically by the ChSystemDescriptor during set up.
     void SetOffset(unsigned int moff) { offset = moff; }

@@ -172,6 +172,15 @@ void ChExternalDynamicsODE::IntLoadLumpedMass_Md(const unsigned int off,
     Md.segment(off, m_nstates).array() += c * 1.0;
 }
 
+void ChExternalDynamicsODE::IntLoadIndicator(const unsigned int off,
+                                             ChVectorDynamic<>& N) {
+    if (!IsActive())
+        return;
+
+    N.segment(off, m_nstates).array() += 1.0;
+}
+
+
 void ChExternalDynamicsODE::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                          const ChStateDelta& v,
                                          const ChVectorDynamic<>& R,

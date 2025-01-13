@@ -130,6 +130,12 @@ void ChShaftsMotorSpeed::IntLoadLumpedMass_Md(const unsigned int off,
     Md(off) += c * 1.0;
 }
 
+void ChShaftsMotorSpeed::IntLoadIndicator(const unsigned int off,
+                                          ChVectorDynamic<>& N) {
+    N(off) += 1.0;
+}
+
+
 void ChShaftsMotorSpeed::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
                                              ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                              const ChVectorDynamic<>& L,  // the L vector

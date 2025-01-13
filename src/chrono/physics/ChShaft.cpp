@@ -123,6 +123,10 @@ void ChShaft::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md
     Md(off) += c * inertia;
 }
 
+void ChShaft::IntLoadIndicator(const unsigned int off, ChVectorDynamic<>& N) {
+    N(off) += 1.0;
+}
+
 void ChShaft::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                               const ChStateDelta& v,
                               const ChVectorDynamic<>& R,

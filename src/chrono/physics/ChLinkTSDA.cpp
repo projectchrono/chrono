@@ -416,6 +416,16 @@ void ChLinkTSDA::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>&
     }
 }
 
+void ChLinkTSDA::IntLoadIndicator(const unsigned int off,
+                                  ChVectorDynamic<>& N) {
+    if (!IsActive())
+        return;
+
+    if (m_variables) {
+        N.segment(off, m_nstates).array() += 1.0;
+    }
+}
+
 void ChLinkTSDA::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

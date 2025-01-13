@@ -147,6 +147,11 @@ void ChConveyor::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>&
     conveyor_plate->IntLoadLumpedMass_Md(off + 6, Md, err, c);
 }
 
+void ChConveyor::IntLoadIndicator(const unsigned int off, ChVectorDynamic<>& N) {
+    conveyor_truss->IntLoadIndicator(off, N);
+    conveyor_plate->IntLoadIndicator(off + 6, N);
+}
+
 void ChConveyor::IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

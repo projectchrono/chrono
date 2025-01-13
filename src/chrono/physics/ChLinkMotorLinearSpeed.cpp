@@ -133,6 +133,11 @@ void ChLinkMotorLinearSpeed::IntLoadLumpedMass_Md(const unsigned int off,
     Md(off) += c * 1.0;
 }
 
+void ChLinkMotorLinearSpeed::IntLoadIndicator(const unsigned int off,
+                                              ChVectorDynamic<>& N) {
+    N(off) += 1.0;
+}
+
 void ChLinkMotorLinearSpeed::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                              const ChStateDelta& v,
                                              const ChVectorDynamic<>& R,

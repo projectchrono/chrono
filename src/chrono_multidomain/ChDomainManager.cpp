@@ -41,7 +41,10 @@ void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
 	std::cout << "DOMAIN ---- rank: " << domain->GetRank() << "-----------------------------\n";
 
 	for (auto body : domain->GetSystem()->GetBodies()) {
-		std::cout << "  ChBody " << body->GetTag() << std::endl;
+		std::cout << "  ChBody " << body->GetTag();
+		if (body->IsFixed()) 
+			std::cout << " (fixed)";
+		std::cout << std::endl;
 	}
 	for (auto link : domain->GetSystem()->GetLinks()) {
 		std::cout << "  ChLink " << link->GetTag() << std::endl;
@@ -97,6 +100,9 @@ void ChDomainManager::PrintDebugDomainInfo(std::shared_ptr<ChDomain> domain) {
 		for (auto& node : interf.second.shared_nodes)
 			std::cout << "  shared node tag " << node.first << std::endl;
 	}
+
+	//std::cout << "Wv weight vector: \n" << domain->GetSystem()->CoordWeightsWv() << "\n";
+
 	std::cout << std::endl;
 }
 
@@ -806,9 +812,9 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 			{
 				meshes_to_remove.push_back(mmesh);
 				// unneeded?
-				for (auto& interf : this->interfaces) {
-					interf.second.shared_items.erase(mmesh->GetTag());
-				}
+				//for (auto& interf : this->interfaces) {
+				//	interf.second.shared_items.erase(mmesh->GetTag());
+				//}
 			}
 		}
 		for (const auto& delmesh : meshes_to_remove)
@@ -824,9 +830,9 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 			{
 				items_to_remove.push_back(oitem);
 				// unneeded?
-				for (auto& interf : this->interfaces) {
-					interf.second.shared_items.erase(oitem->GetTag());
-				}
+				//for (auto& interf : this->interfaces) {
+				//	interf.second.shared_items.erase(oitem->GetTag());
+				//}
 			}
 		}
 		for (const auto& delitem : items_to_remove)
@@ -864,10 +870,52 @@ void  ChDomain::DoUpdateSharedReceived(bool delete_outsiders) {
 			system->RemoveLink(dellink); // can be made more efficient - this require N searches in vector container
 	}
 
+	
+	// Update the vector with scaling weights for masses of shared variables .
+	// This is used because objects that are shared between N boundaries must 
+	// have their mass splitted too, if a FETI-like domain decomposition approach is used.
+	system->Setup();
+	this->ComputeSharedCoordsWeights(system->CoordWeightsWv());
 }
 
 
 
+
+void ChDomain::ComputeSharedCoordsCounts(ChVectorDynamic<>& N) {
+
+	N.setZero(this->system->GetNumCoordsVelLevel());
+	this->system->IntLoadIndicator(N);
+	
+	for (auto& interf : this->interfaces) {
+
+		if (interf.second.side_OUT->IsMaster() && !this->domain_manager->master_domain_enabled)
+			continue;
+
+		for (auto& mshitem : interf.second.shared_items) {
+
+			if (auto mmesh = std::dynamic_pointer_cast<fea::ChMesh>(mshitem.second))
+				continue; // if mesh, do not share all variables but later InjectVariables of shared nodes only
+
+			if(mshitem.second->IsActive())
+				mshitem.second->IntLoadIndicator(mshitem.second->GetOffset_w(), N);
+		}
+
+		for (auto& mshnode : interf.second.shared_nodes) {
+			if (auto mfeanode = std::dynamic_pointer_cast<ChNodeFEAbase>(mshnode.second))
+				if (mfeanode->IsFixed())
+					continue;
+			mshnode.second->NodeIntLoadIndicator(mshnode.second->NodeGetOffsetVelLevel(), N);
+		}
+
+	}
+}
+
+void ChDomain::ComputeSharedCoordsWeights(ChVectorDynamic<>&N) {
+
+	ComputeSharedCoordsCounts(N);
+	for (int i = 0; i < N.size(); ++i)
+		N(i) = 1.0 / N(i);
+}
 
 }  // end namespace multidomain
 }  // end namespace chrono

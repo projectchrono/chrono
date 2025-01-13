@@ -390,6 +390,10 @@ void ChSystem::EnableResidualFilteringByDomain(bool enable, ChOverlapTest* mtest
         this->limit_residuals_Mv_F_to_domain = false;
 }
 
+void ChSystem::EnableCoordWeightsWv(bool enable) {
+    this->enable_Wv_weights = enable;
+}
+
 
 // -----------------------------------------------------------------------------
 
@@ -1165,6 +1169,19 @@ ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
 void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int off = 0;
 
+    // This in case some topology vertex (body, finite element node) is 
+    // 'scaled' via weight vector Wv, for example because representing a node split among n domains.
+    if (this->enable_Wv_weights) {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadResidual_F_weighted(off, R, c, this->Wv);
+
+        // Use also on contact container:
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadResidual_F_weighted(displ_v + contact_container->GetOffset_w(), R, c, this->Wv);
+
+        return;
+    }
+
     if (!this->limit_residuals_Mv_F_to_domain) {
         // Operate on assembly sub-objects (bodies, links, etc.)
         assembly.IntLoadResidual_F(off, R, c);
@@ -1189,6 +1206,19 @@ void ChSystem::LoadResidual_F(ChVectorDynamic<>& R, const double c) {
 void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
     unsigned int off = 0;
     
+    // This in case some topology vertex (body, finite element node) is 
+    // 'scaled' via weight vector Wv, for example because representing a node split among n domains.
+    if (this->enable_Wv_weights) {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadResidual_Mv_weighted(off, R, w, c, this->Wv);
+
+        // Use also on contact container:
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadResidual_Mv_weighted(displ_v + contact_container->GetOffset_w(), R, w, c, this->Wv);
+
+        return;
+    }
+
     if (!this->limit_residuals_Mv_F_to_domain) {
         // Operate on assembly sub-objects (bodies, links, etc.)
         assembly.IntLoadResidual_Mv(off, R, w, c);
@@ -1213,12 +1243,39 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w,
 void ChSystem::LoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const double c) {
     unsigned int off = 0;
 
+    // This in case some topology vertex (body, finite element node) is 
+    // 'scaled' via weight vector Wv, for example because representing a node split among n domains.
+    if (this->enable_Wv_weights) {
+        // Operate on assembly sub-objects (bodies, links, etc.)
+        assembly.IntLoadLumpedMass_Md_weighted(off, Md, err, c, this->Wv);
+
+        // Use also on contact container: [ does nothing anyway ]
+        unsigned int displ_v = off - assembly.offset_w;
+        contact_container->IntLoadLumpedMass_Md_weighted(displ_v + contact_container->GetOffset_w(), Md, err, c, this->Wv);
+
+        return;
+    }
+
     // Operate on assembly sub-objects (bodies, links, etc.)
     assembly.IntLoadLumpedMass_Md(off, Md, err, c);
 
     // Use also on contact container: [ does nothing anyway ]
     unsigned int displ_v = off - assembly.offset_w;
     contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, err, c);
+}
+
+/// Adds 1 to a N indicator vector, at each DOF referenced by internal ChVariable(s), if any.
+/// Used for debugging, for counting shared mechanical graph vertexes (bodies, nodes) in parallel solvers, etc.
+void ChSystem::IntLoadIndicator(ChVectorDynamic<>& N  ///< result: N vector, indicating DOF of graph vertexes, 0 or 1 or greater if shared 
+) {
+    unsigned int off = 0;
+
+    // Operate on assembly sub-objects (bodies, links, etc.)
+    assembly.IntLoadIndicator(off, N);
+
+    // Use also on contact container: [ does nothing anyway ]
+    unsigned int displ_v = off - assembly.offset_w;
+    contact_container->IntLoadIndicator(displ_v + contact_container->GetOffset_w(), N);
 }
 
 // Increment a vectorR with the term Cq'*L:

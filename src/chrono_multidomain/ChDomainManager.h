@@ -215,6 +215,16 @@ public:
     /// Get system used by this domain
     ChSystem* GetSystem() { return system; }
 
+    /// Compute a vector where each element is 1 if the dof is not 
+    /// shared, or n if shared among n domains
+    void ComputeSharedCoordsCounts(ChVectorDynamic<>& Nv);
+    
+    /// Compute the weighting vector (partition-of-unity) to split 
+    /// shared vectors representing force loads and mass loads at
+    /// graph vertexes (bodies, nodes) as 1/n where n is the n of shared copies
+    void ComputeSharedCoordsWeights(ChVectorDynamic<>& Wv);
+
+    
     /// Set the type of serialization. Binary is the fastest, Json or XML are memory consuming
     /// and slow, but better for debugging. NOTE! must be the same for all domains!
     /// Anyway, ChDomainManager will automatically initialize this when doing SetDomain() to

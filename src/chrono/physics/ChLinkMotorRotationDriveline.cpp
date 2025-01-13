@@ -221,6 +221,16 @@ void ChLinkMotorRotationDriveline::IntLoadLumpedMass_Md(const unsigned int off,
     innershaft2->IntLoadLumpedMass_Md(off + 1, Md, err, c);
 }
 
+void ChLinkMotorRotationDriveline::IntLoadIndicator(const unsigned int off,
+                                                        ChVectorDynamic<>& N) {
+    // First, inherit to parent class
+    ChLinkMotorRotation::IntLoadIndicator(off, N);
+
+    innershaft1->IntLoadIndicator(off + 0, N);
+    innershaft2->IntLoadIndicator(off + 1, N);
+}
+
+
 void ChLinkMotorRotationDriveline::IntLoadResidual_CqL(const unsigned int off_L,
                                                        ChVectorDynamic<>& R,
                                                        const ChVectorDynamic<>& L,

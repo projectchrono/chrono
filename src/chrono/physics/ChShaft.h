@@ -175,6 +175,8 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                       ChVectorDynamic<>& Md,
                                       double& err,
                                       const double c) override;
+    virtual void IntLoadIndicator(const unsigned int off,
+                                  ChVectorDynamic<>& N) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

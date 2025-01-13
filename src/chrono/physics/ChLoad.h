@@ -129,6 +129,11 @@ class ChApi ChLoadBase : public ChObj {
         const double c          ///< a scaling factor
         ) = 0;
 
+    /// Adds 1 to a N vector, at each DOF referenced by internal ChVariable, if any. 
+    /// Until now, ChLoad stuff are not designed not introduce ChVariable stuff, so NOT needed? TODO: REMOVE?
+    /// Used for debugging, for counting shared mechanical graph vertexes (bodies, nodes) in parallel solvers, etc.
+    virtual void LoadIntLoadIndicator(ChVectorDynamic<>& N) {}
+
     /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor);
 

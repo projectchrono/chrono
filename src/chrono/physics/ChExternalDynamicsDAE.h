@@ -240,6 +240,8 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
                                       ChVectorDynamic<>& Md,
                                       double& err,
                                       const double c) override;
+    virtual void IntLoadIndicator(const unsigned int off,
+                                  ChVectorDynamic<>& N) override;
     virtual void IntLoadConstraint_C(const unsigned int off,
                                      ChVectorDynamic<>& Qc,
                                      const double c,

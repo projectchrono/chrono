@@ -144,6 +144,21 @@ void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& mat,
     PasteMatrix(mat, scaledJ, offset + start_row + 3, offset + start_col + 3);
 }
 
+void ChVariablesBodySharedMass::MultiplyMass(double w) {
+    if (!sharedmass->inplace_shrunk && (w <1.0)) {
+        sharedmass->mass *= w;
+        sharedmass->inertia *= w;
+        sharedmass->inv_inertia *= 1.0 / w;
+        sharedmass->inplace_shrunk = true;
+    }
+    if (sharedmass->inplace_shrunk && (w > 1.0)) {
+        sharedmass->mass *= w;
+        sharedmass->inertia *= w;
+        sharedmass->inv_inertia *= 1.0 / w;
+        sharedmass->inplace_shrunk = false;
+    }
+}
+
 void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVariablesBodySharedMass>();

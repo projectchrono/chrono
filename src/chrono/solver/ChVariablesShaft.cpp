@@ -67,4 +67,9 @@ void ChVariablesShaft::PasteMassInto(ChSparseMatrix& mat,
     mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * m_inertia);
 }
 
+void ChVariablesShaft::MultiplyMass(double w) {
+    m_inertia *= w;
+    m_inv_inertia *= (1.0/w);
+}
+
 }  // end namespace chrono

@@ -112,6 +112,11 @@ void ChNodeFEAxyzP::NodeIntLoadLumpedMass_Md(const unsigned int off,
     Md(off) += c * GetMass();
 }
 
+void ChNodeFEAxyzP::NodeIntLoadIndicator(const unsigned int off,
+                                         ChVectorDynamic<>& N) {
+    N(off) += 1.0;
+}
+
 void ChNodeFEAxyzP::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     variables.State()(0) = v(off_v);
     variables.Force()(0) = R(off_v);

@@ -66,6 +66,10 @@ void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& mat,
     }
 }
 
+void ChVariablesGenericDiagonalMass::MultiplyMass(double w) {
+    this->MmassDiag *= w;
+}
+
 void ChVariablesGenericDiagonalMass::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVariablesGenericDiagonalMass>();

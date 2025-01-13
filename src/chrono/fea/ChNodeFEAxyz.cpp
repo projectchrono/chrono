@@ -137,6 +137,13 @@ void ChNodeFEAxyz::NodeIntLoadLumpedMass_Md(const unsigned int off,
     Md(off + 2) += c * GetMass();
 }
 
+void ChNodeFEAxyz::NodeIntLoadIndicator(const unsigned int off,
+                                        ChVectorDynamic<>& N) {
+    N(off + 0) += 1.0;
+    N(off + 1) += 1.0;
+    N(off + 2) += 1.0;
+}
+
 void ChNodeFEAxyz::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     variables.State() = v.segment(off_v, 3);
     variables.Force() = R.segment(off_v, 3);

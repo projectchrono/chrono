@@ -257,6 +257,14 @@ void ChExternalDynamicsDAE::IntLoadLumpedMass_Md(
     }
 }
 
+void ChExternalDynamicsDAE::IntLoadIndicator(const unsigned int off,
+                                             ChVectorDynamic<>& N) {
+    if (!IsActive())
+        return;
+
+    N.segment(off, m_nyd).array() += 1.0;
+}
+
 void ChExternalDynamicsDAE::IntLoadConstraint_C(const unsigned int off,  // offset in Qc residual
                                                 ChVectorDynamic<>& Qc,   // result: the Qc residual, Qc += c*C
                                                 const double c,          // a scaling factor

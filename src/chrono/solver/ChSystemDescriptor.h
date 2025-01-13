@@ -226,7 +226,8 @@ class ChApi ChSystemDescriptor {
     ///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
     /// </pre>
     /// where [Cq] are the jacobians, [M] is the mass matrix, [E] is the matrix
-    /// of the optional cfm 'constraint force mixing' terms for compliant constraints.
+    /// of the optional cfm 'constraint force mixing' compliance terms for compliant constraints
+    /// assuming with minus sign, ie. [E]_i = -compliance_i = -cfm_i.
     /// The N matrix is not built explicitly, to exploit sparsity, it is described by the
     /// inserted constraints and inserted variables.
     /// Optionally, you can pass an 'enabled' vector of bools, that must have the same

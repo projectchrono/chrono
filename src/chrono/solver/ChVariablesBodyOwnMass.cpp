@@ -114,6 +114,12 @@ void ChVariablesBodyOwnMass::PasteMassInto(ChSparseMatrix& mat,
     PasteMatrix(mat, scaledJ, offset + start_row + 3, offset + start_col + 3);
 }
 
+void ChVariablesBodyOwnMass::MultiplyMass(double w) {
+    mass *= w;
+    inertia *= w;
+    inv_inertia *= 1.0 / w;
+}
+
 void ChVariablesBodyOwnMass::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVariablesBodyOwnMass>();

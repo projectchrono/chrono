@@ -418,6 +418,59 @@ void ChMesh::IntLoadResidual_F_domain(const unsigned int off, ChVectorDynamic<>&
     }
 }
 
+void ChMesh::IntLoadResidual_F_weighted(const unsigned int off, ChVectorDynamic<>& R, const double c, ChVectorDynamic<>& Wv) {
+    // nodes applied forces
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadResidual_F(off + local_off_v, R, c * Wv(off + local_off_v)); // entire node weighted by Wv
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
+        }
+    }
+
+    int nthreads = GetSystem()->nthreads_chrono;
+
+    // elements internal forces
+    timer_internal_forces.start();
+    //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
+#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+    for (int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleIntLoadResidual_F(R, c);
+    }
+    timer_internal_forces.stop();
+    ncalls_internal_forces++;
+
+    // elements gravity forces
+    if (automatic_gravity_load) {
+        //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
+#pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+        for (int ie = 0; ie < velements.size(); ie++) {
+            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->GetGravitationalAcceleration(), c);
+        }
+    }
+
+    // nodes gravity forces
+    local_off_v = 0;
+    if (automatic_gravity_load && system) {
+        // #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
+        //// PARALLEL FOR, (no need here to use omp atomic to avoid race condition in writing to R)
+        for (int in = 0; in < vnodes.size(); in++) {
+            if (!vnodes[in]->IsFixed()) {
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
+                    ChVector3d fg = Wv(off + local_off_v) * c * mnode->GetMass() * system->GetGravitationalAcceleration();
+                    R.segment(off + local_off_v, 3) += fg.eigen();
+                }
+                // ChNodeFEAxyzrot is not inherited from ChNodeFEAxyz, so must deal with it too
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[in])) {
+                    ChVector3d fg = Wv(off + local_off_v) * c * mnode->GetMass() * system->GetGravitationalAcceleration();
+                    R.segment(off + local_off_v, 3) += fg.eigen();
+                }
+                local_off_v += vnodes[in]->GetNumCoordsVelLevelActive();
+            }
+        }
+    }
+}
+
 
 
 
@@ -536,6 +589,27 @@ void ChMesh::IntLoadResidual_Mv_domain(const unsigned int off,
     }
 }
 
+void ChMesh::IntLoadResidual_Mv_weighted(const unsigned int off,
+    ChVectorDynamic<>& R,
+    const ChVectorDynamic<>& w,
+    const double c,
+    ChVectorDynamic<>& Wv
+) {
+    // nodal masses
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {  // filter by domain volume
+            vnodes[j]->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c * Wv(off + local_off_v));  // scale entire nodes by Wv
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
+        }
+    }
+
+    // internal masses
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleIntLoadResidual_Mv(R, w, c);
+    }
+}
+
 
 void ChMesh::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     // nodal masses
@@ -547,9 +621,41 @@ void ChMesh::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md,
         }
     }
 
-    // internal masses
+    // elements lumped masses
     for (unsigned int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadLumpedMass_Md(Md, err, c);
+    }
+}
+
+void ChMesh::IntLoadLumpedMass_Md_weighted(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c, ChVectorDynamic<>& Wv) {
+    // nodal masses
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c * Wv(off + local_off_v));  // entire node scaled by Wv
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
+        }
+    }
+
+    // elements lumped masses
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleIntLoadLumpedMass_Md(Md, err, c);
+    }
+}
+
+void ChMesh::IntLoadIndicator(const unsigned int off, ChVectorDynamic<>& N) {
+    // nodal ChVariable indicators
+    unsigned int local_off_v = 0;
+    for (unsigned int j = 0; j < vnodes.size(); j++) {
+        if (!vnodes[j]->IsFixed()) {
+            vnodes[j]->NodeIntLoadIndicator(off + local_off_v, N);
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
+        }
+    }
+
+    // element ChVariable indicators (if any - usually none)
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleIntLoadIndicator(N);
     }
 }
 

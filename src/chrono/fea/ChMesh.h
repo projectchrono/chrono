@@ -222,16 +222,34 @@ class ChApi ChMesh : public ChIndexedNodes {
                                     const double c,       
                                     const ChOverlapTest& filter 
                                 ) override;
+    virtual void IntLoadResidual_F_weighted(const unsigned int off,
+                                    ChVectorDynamic<>& R,
+                                    const double c,
+                                    ChVectorDynamic<>& Wv
+                                ) override;
     virtual void IntLoadResidual_Mv_domain(const unsigned int off,     
                                     ChVectorDynamic<>& R,        
                                     const ChVectorDynamic<>& w,  
                                     const double c,               
                                     const ChOverlapTest& filter 
                                 ) override;
+    virtual void IntLoadResidual_Mv_weighted(const unsigned int off,
+                                    ChVectorDynamic<>& R,
+                                    const ChVectorDynamic<>& w,
+                                    const double c,
+                                    ChVectorDynamic<>& Wv
+                                ) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,
-                                      ChVectorDynamic<>& Md,
-                                      double& err,
-                                      const double c) override;
+                                    ChVectorDynamic<>& Md,
+                                    double& err,
+                                    const double c) override;
+    virtual void IntLoadLumpedMass_Md_weighted(const unsigned int off,
+                                    ChVectorDynamic<>& Md,
+                                    double& err,
+                                    const double c,
+                                    ChVectorDynamic<>& Wv) override;
+    virtual void IntLoadIndicator(  const unsigned int off, 
+                                    ChVectorDynamic<>& N) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

@@ -107,6 +107,8 @@ class ChApi ChNodeBase {
                                           ChVectorDynamic<>& Md,
                                           double& error,
                                           const double c){};
+    virtual void NodeIntLoadIndicator(const unsigned int off, 
+                                      ChVectorDynamic<>& N ){}
     virtual void NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {}
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {}
 

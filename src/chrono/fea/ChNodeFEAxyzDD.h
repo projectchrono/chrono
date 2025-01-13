@@ -128,6 +128,8 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
                                           ChVectorDynamic<>& Md,
                                           double& error,
                                           const double c) override;
+    virtual void NodeIntLoadIndicator(const unsigned int off,
+                                      ChVectorDynamic<>& N ) override;
     virtual void NodeIntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R) override;

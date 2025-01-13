@@ -212,6 +212,15 @@ void ChBody::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md,
     err += GetInertia()(0, 1) + GetInertia()(0, 2) + GetInertia()(1, 2);
 }
 
+void ChBody::IntLoadIndicator(const unsigned int off, ChVectorDynamic<>& N) {
+    N(off + 0) += 1.0;
+    N(off + 1) += 1.0;
+    N(off + 2) += 1.0;
+    N(off + 3) += 1.0;
+    N(off + 4) += 1.0;
+    N(off + 5) += 1.0;
+}
+
 void ChBody::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,

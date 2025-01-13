@@ -66,6 +66,11 @@ void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& mat,
             mat.SetElement(offset + start_row + row, offset + start_col + col, ca * Mmass(row, col));
 }
 
+void ChVariablesGeneric::MultiplyMass(double w) {
+    Mmass *= w;
+    inv_Mmass *= (1.0 / w);
+}
+
 void ChVariablesGeneric::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVariablesGeneric>();

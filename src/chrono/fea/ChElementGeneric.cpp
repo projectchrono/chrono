@@ -66,6 +66,7 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     }
 }
 
+
 void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) {
     ChMatrixDynamic<> Mi(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
     ComputeMmatrixGlobal(Mi);
@@ -82,6 +83,7 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
         stride += GetNodeNumCoordsPosLevel(in);
     }
 }
+
 
 void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) {
     ChVectorDynamic<> Fg(GetNumCoordsPosLevel());

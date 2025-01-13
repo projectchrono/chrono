@@ -203,6 +203,16 @@ void ChNodeFEAxyzDDD::NodeIntLoadLumpedMass_Md(const unsigned int off,
     }
 }
 
+void ChNodeFEAxyzDDD::NodeIntLoadIndicator(const unsigned int off,
+                                           ChVectorDynamic<>& N) {
+    ChNodeFEAxyzDD::NodeIntLoadIndicator(off, N);
+    if (!IsSlope3Fixed()) {
+        N(off + 9)  += 1.0;
+        N(off + 10) += 1.0;
+        N(off + 11) += 1.0;
+    }
+}
+
 void ChNodeFEAxyzDDD::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     ChNodeFEAxyzDD::NodeIntToDescriptor(off_v, v, R);
     if (!IsSlope3Fixed()) {

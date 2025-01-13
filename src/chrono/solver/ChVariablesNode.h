@@ -66,6 +66,11 @@ class ChApi ChVariablesNode : public ChVariables {
                                unsigned int start_col,
                                const double ca) const override;
 
+    /// In-place multiply the mass in this object by a factor w, and store it in the same place.
+    /// This done, the mass of the ChVariable might not correspond anymore to the mass of the 
+    /// owner ChPhysicsItem or ChNode.
+    virtual void MultiplyMass(double w) override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

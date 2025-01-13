@@ -267,6 +267,12 @@ void ChLinkMotorRotationSpeed::IntLoadLumpedMass_Md(const unsigned int off,
     Md(off) += c * 1.0;
 }
 
+void ChLinkMotorRotationSpeed::IntLoadIndicator(const unsigned int off,
+                                                ChVectorDynamic<>& N) {
+    N(off) += 1.0;
+}
+
+
 void ChLinkMotorRotationSpeed::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                                const ChStateDelta& v,
                                                const ChVectorDynamic<>& R,

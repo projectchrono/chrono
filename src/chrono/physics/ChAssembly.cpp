@@ -1018,6 +1018,35 @@ void ChAssembly::IntLoadResidual_F_domain(const unsigned int off,  ///< offset i
     }
 }
 
+void ChAssembly::IntLoadResidual_F_weighted(const unsigned int off,  ///< offset in R residual
+    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
+    const double c,          ///< a scaling factor
+    ChVectorDynamic<>& Wv
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadResidual_F_weighted(displ_v + body->GetOffset_w(), R, c, Wv);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_F_weighted(displ_v + shaft->GetOffset_w(), R, c, Wv);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadResidual_F_weighted(displ_v + link->GetOffset_w(), R, c, Wv);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadResidual_F_weighted(displ_v + mesh->GetOffset_w(), R, c, Wv);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadResidual_F_weighted(displ_v + item->GetOffset_w(), R, c, Wv);
+    }
+}
+
+
 void ChAssembly::IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
     ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
     const ChVectorDynamic<>& w,  ///< the w vector
@@ -1047,6 +1076,35 @@ void ChAssembly::IntLoadResidual_Mv_domain(const unsigned int off,      ///< off
     }
 }
 
+void ChAssembly::IntLoadResidual_Mv_weighted(const unsigned int off,      ///< offset in R residual
+    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+    const ChVectorDynamic<>& w,  ///< the w vector
+    const double c,               ///< a scaling factor
+    ChVectorDynamic<>& Wv         ///< weights
+) {
+    unsigned int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadResidual_Mv_weighted(displ_v + body->GetOffset_w(), R, w, c, Wv);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_Mv_weighted(displ_v + shaft->GetOffset_w(), R, w, c, Wv);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadResidual_Mv_weighted(displ_v + link->GetOffset_w(), R, w, c, Wv);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadResidual_Mv_weighted(displ_v + mesh->GetOffset_w(), R, w, c, Wv);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadResidual_Mv_weighted(displ_v + item->GetOffset_w(), R, w, c, Wv);
+    }
+}
+
 
 void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     int displ_v = off - this->offset_w;
@@ -1069,6 +1127,55 @@ void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>&
     for (auto& item : otherphysicslist) {
         if (item->IsActive())
             item->IntLoadLumpedMass_Md(displ_v + item->GetOffset_w(), Md, err, c);
+    }
+}
+
+void ChAssembly::IntLoadLumpedMass_Md_weighted(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c, ChVectorDynamic<>& Wv) {
+    int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadLumpedMass_Md_weighted(displ_v + body->GetOffset_w(), Md, err, c, Wv);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadLumpedMass_Md_weighted(displ_v + shaft->GetOffset_w(), Md, err, c, Wv);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadLumpedMass_Md_weighted(displ_v + link->GetOffset_w(), Md, err, c, Wv);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadLumpedMass_Md_weighted(displ_v + mesh->GetOffset_w(), Md, err, c, Wv);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadLumpedMass_Md_weighted(displ_v + item->GetOffset_w(), Md, err, c, Wv);
+    }
+}
+
+
+void ChAssembly::IntLoadIndicator(const unsigned int off, ChVectorDynamic<>& N) {
+    int displ_v = off - this->offset_w;
+
+    for (auto& body : bodylist) {
+        if (body->IsActive())
+            body->IntLoadIndicator(displ_v + body->GetOffset_w(), N);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadIndicator(displ_v + shaft->GetOffset_w(), N);
+    }
+    for (auto& link : linklist) {
+        if (link->IsActive())
+            link->IntLoadIndicator(displ_v + link->GetOffset_w(), N);
+    }
+    for (auto& mesh : meshlist) {
+        mesh->IntLoadIndicator(displ_v + mesh->GetOffset_w(), N);
+    }
+    for (auto& item : otherphysicslist) {
+        if (item->IsActive())
+            item->IntLoadIndicator(displ_v + item->GetOffset_w(), N);
     }
 }
 

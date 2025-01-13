@@ -194,6 +194,14 @@ void ChNodeFEAcurv::NodeIntLoadLumpedMass_Md(const unsigned int off,
     }
 }
 
+void ChNodeFEAcurv::NodeIntLoadIndicator(const unsigned int off, 
+                                         ChVectorDynamic<>& N) {
+    for (int i = 0; i < 9; i++) {
+        N(off + i) += 1.0;
+    }
+}
+
+
 void ChNodeFEAcurv::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     m_variables->State().segment(0, 9) = v.segment(off_v, 9);
     m_variables->Force().segment(0, 9) = R.segment(off_v, 9);

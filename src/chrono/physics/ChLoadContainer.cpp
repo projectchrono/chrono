@@ -71,6 +71,15 @@ void ChLoadContainer::IntLoadLumpedMass_Md(
     }
 }
 
+// Maybe TODO remove, as ChLoad are not designed to contain ChVariable components?
+void ChLoadContainer::IntLoadIndicator(const unsigned int off,  ///< offset in N vector
+    ChVectorDynamic<>& N  ///< result: N vector, indicating DOF of graph vertexes, 0 or 1 or greater if shared 
+) {
+    for (size_t i = 0; i < loadlist.size(); ++i) {
+        loadlist[i]->LoadIntLoadIndicator(N);
+    }
+}
+
 void ChLoadContainer::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
         loadlist[i]->InjectKRMMatrices(descriptor);

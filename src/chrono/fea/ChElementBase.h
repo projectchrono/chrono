@@ -114,6 +114,10 @@ class ChApi ChElementBase {
     ///    Md += c*diag(M)    or   Md += c*HRZ(M)    or other lumping heuristics
     virtual void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c){};
 
+    /// Adds 1 to a N vector, at each DOF referenced by internal ChVariable, if any.
+    /// Used for debugging, for counting shared mechanical graph vertexes (bodies, nodes) in parallel solvers, etc.
+    virtual void EleIntLoadIndicator(ChVectorDynamic<>& N) {}
+
     /// Add the contribution of gravity loads, multiplied by a scaling factor c, as:
     ///   R += M * g * c
     /// Note that it is up to the element implementation to build a proper g vector that

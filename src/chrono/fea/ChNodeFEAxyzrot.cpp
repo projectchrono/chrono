@@ -162,18 +162,21 @@ void ChNodeFEAxyzrot::NodeIntLoadResidual_Mv(const unsigned int off,
     R.segment(off + 3, 3) += c * Iw.eigen();
 }
 
+void ChNodeFEAxyzrot::NodeIntLoadIndicator(const unsigned int off,
+                                           ChVectorDynamic<>& N) {
+    N(off + 0) += 1.0;
+    N(off + 1) += 1.0;
+    N(off + 2) += 1.0;
+    N(off + 3) += 1.0;
+    N(off + 4) += 1.0;
+    N(off + 5) += 1.0;
+}
+
 void ChNodeFEAxyzrot::NodeIntLoadLumpedMass_Md(const unsigned int off,
-                                               ChVectorDynamic<>& Md,
-                                               double& error,
-                                               const double c) {
-    Md(off + 0) += c * GetMass();
-    Md(off + 1) += c * GetMass();
-    Md(off + 2) += c * GetMass();
-    Md(off + 3) += c * GetInertia()(0, 0);
-    Md(off + 4) += c * GetInertia()(1, 1);
-    Md(off + 5) += c * GetInertia()(2, 2);
-    // if there is off-diagonal inertia, add to error, as lumping can give inconsistent results
-    error += GetInertia()(0, 1) + GetInertia()(0, 2) + GetInertia()(1, 2);
+    ChVectorDynamic<>& Md,
+    double& error,
+    const double c) {
+    Md(off) += c * GetMass();
 }
 
 void ChNodeFEAxyzrot::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {

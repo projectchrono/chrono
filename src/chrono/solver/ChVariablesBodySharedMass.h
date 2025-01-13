@@ -53,6 +53,11 @@ class ChApi ChSharedMassBody {
     ChMatrix33<double> inv_inertia;  ///< inverse of inertia matrix
     double inv_mass;                 ///< inverse of mass value
 
+    // hack.. flag to avoid that multiple calls to MassMultiply(w) for shared masses will 
+    // shrink n times. Allows only scaling once for w<1 and rescaling once to restore, for w>1,
+    // then w<1, w>1, etc. in a flip flop way. 
+    bool inplace_shrunk = false; 
+
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -113,6 +118,12 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
                                unsigned int start_row,
                                unsigned int start_col,
                                const double ca) const override;
+
+    /// In-place multiply the mass in this object by a factor w, and store it in the same place.
+    /// This done, the mass of the ChVariable might not correspond anymore to the mass of the 
+    /// owner ChPhysicsItem or ChNode. Note, because of sharing, to avoid n repeated shrinking, it
+    /// will compute only alternated shrink-expand-shrink-.. calls, ie. w<1, w>1, w<1, w>1 etc. 
+    virtual void MultiplyMass(double w) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

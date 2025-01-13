@@ -60,6 +60,9 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
                                       double& err,    ///< result: not touched if lumping does not introduce errors
                                       const double c  ///< a scaling factor
                                       ) override;
+    virtual void IntLoadIndicator(const unsigned int off,  ///< offset in N vector
+                                  ChVectorDynamic<>& N  ///< result: N vector, indicating DOF of graph vertexes, 0 or 1 or greater if shared 
+                                  ) override;  // Maybe remove, as ChLoad are not designed to contain ChVariable components? TODO REMOVE?
 
     /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;

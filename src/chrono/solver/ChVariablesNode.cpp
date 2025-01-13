@@ -80,6 +80,10 @@ void ChVariablesNode::PasteMassInto(ChSparseMatrix& mat,
     mat.SetElement(offset + start_row + 2, offset + start_col + 2, scaledmass);
 }
 
+void ChVariablesNode::MultiplyMass(double w) {
+    mass *= w;
+}
+
 void ChVariablesNode::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChVariablesNode>();

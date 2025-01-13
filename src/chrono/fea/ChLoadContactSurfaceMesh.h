@@ -99,6 +99,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) override;
     virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, double c) override {}
     virtual void LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) override {}
+    virtual void LoadIntLoadIndicator(ChVectorDynamic<>& N) override {}
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 

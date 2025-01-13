@@ -407,7 +407,9 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
                 //  NOTE! concurrent update to same q data, risk of collision if parallel.
                 constr->IncrementState(li);  // computationally intensive
 
-                // Add constraint force mixing term  result = cfm * l_i = [E]*l_i
+                // Compute result += -[E]*l  part, ie. add constraint force mixing term. That is
+                //  result_i = cfm_i * l_i;   hence   result = -[E]*l  because we define E diag 
+                // as cfm compliance but with negative sign. 
                 result(s_c) = constr->GetComplianceTerm() * li;
             }
         }
@@ -434,16 +436,21 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
 
     result.setZero(n_q + n_c);
 
-    // 1) First row: result.q part =  [M + K]*x.q + [Cq']*x.l
+    // 1) First row: result.q part =  [H]*x.q + [Cq']*x.l  
+    //                             =  [a*M_vars+ a*M + b*D + c*K]*x.q + [Cq']*x.l
+    //                             =  (a*[M_vars]+[H_blocks])*x.q + [Cq']*x.l
 
-    // 1.1)  do  M*x.q
+    // 1.1)  do  a*[M_vars]*x.q  for the M masses directly embedded in variables:
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
             var->AddMassTimesVectorInto(result, x, c_a);
         }
     }
 
-    // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
+    // 1.2)  add also [H_blocks]*x.q     
+    // By the way here we assume  [H_blocks]=[a*M + b*D + c*K]   where M 
+    // does not contain M_vars, already dealt above in 1.1)
+    // (NON straight parallelizable - risk of concurrency in writing)
     for (const auto& krm_block : m_KRMblocks) {
         krm_block->AddMatrixTimesVectorInto(result, x);
     }

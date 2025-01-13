@@ -47,6 +47,9 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
     
     sysdMD.BuildFbVector(R); // rhs, applied forces (plus the penalty terms of constraints if timestepper in penalty ON mode)
 
+    // MULTIDOMAIN****************** this works only because node masses are split between shared domains with Wv weights. 
+    sysdMD.VectAdditiveToClipped(this->diagonal_M);
+
     // Compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
     //   a = Md^-1 * F
     // It can be done compactly via   a.array() = R.array() / this->diagonal_M.array();   but we rather do:
@@ -62,8 +65,8 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
 
     // MULTIDOMAIN******************
     // Sum the contribution to acceleration from other domains. Alternatively we could have summed R. 
-    // That's all. Lucky situation because we assume that the Md array is in distributed, not additive format.
-    sysdMD.VectAdditiveToDistributed(a);  
+    // That's all. Lucky situation because we assume that the Md array is in clipped, not additive format.
+    sysdMD.VectAdditiveToClipped(a);  
 
     // Resulting dual variables:
     //sysd.FromVectorToConstraints(L);
