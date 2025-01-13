@@ -238,3 +238,6 @@ while vis.Run():
     vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(0.01)
+
+    my_node = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(1)))
+    print(f't:  {sys.GetChTime():.2f}    pos: {my_node.GetPos()}')

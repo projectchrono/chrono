@@ -19,10 +19,10 @@
 #include <vector>
 #include <cmath>
 
-#include "unit_testing.h"
-
 #include "chrono/multicore_math/matrix.h"
 #include "chrono_multicore/cuda/svd.h"
+
+#include "../ut_utils.h"
 
 using namespace chrono;
 

@@ -53,16 +53,19 @@
         in Chrono::FSI module.
 
         @defgroup fsi_solver Linear solvers
-        @brief Class for solving a linear linear system via iterative methods.
+        @brief Classes for solving a linear linear system via iterative methods.
         Only used when I2SPH is set to solve the fluid dynamics.
 
         @defgroup fsi_utils Modeling utilities
-        @brief Handles utilities including creating BCE particles, setting
-        parameters via a JSON file, and output data into files with specified format
+        @brief Utilities for creating BCE particles, setting parameters via a JSON file,
+        and output data into files with specified format
 
         @defgroup fsi_math Math utilities
-        @brief Math utilities for the Chrono::FSI module. These functions
-        can be invoked either on the CPU (host) or on the GPU (device)
+        @brief Math utilities for the Chrono::FSI module.
+
+        @defgroup fsi_visualization Run-time visualization
+        @brief Classes for run-time visualization of SPH-based FSI problems,
+        with VSG or OpenGL back-ends.
     @}
 */
 
@@ -72,7 +75,12 @@ namespace chrono {
 /// @{
 
 /// Namespace with classes for the FSI module.
-namespace fsi {}
+namespace fsi {
+
+/// Namespace with internal classes for the SPH-based FSI submodule.
+namespace sph {}
+
+}  // namespace fsi
 
 /// @}
 }  // namespace chrono

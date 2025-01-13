@@ -88,7 +88,7 @@ endif()
 
 if(ENABLE_MODULE_FSI)
     include_directories(${CH_FSI_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_fsi")
+    list(APPEND LIBS "ChronoEngine_fsi_sph")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)

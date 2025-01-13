@@ -299,9 +299,8 @@ class ChApi ChContactSurfaceSegmentSet : public ChContactSurface {
                     double sphere_swept = 0.0                ///< thickness (radius of sweeping sphere)
     );
 
-    /// Utility function to add segments for all 1D elements of the associated FEA mesh to this collision set.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
-    void AddAllSegments(double sphere_swept = 0.0);
+    /// Utility function to add segments for all 1D elements of the specified FEA mesh to this collision set.
+    void AddAllSegments(const ChMesh& mesh, double sphere_swept = 0.0);
 
     /// Get the list of segments.
     std::vector<std::shared_ptr<ChContactSegmentXYZ>>& GetSegmentsXYZ() { return m_segments; }

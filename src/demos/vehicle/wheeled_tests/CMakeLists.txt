@@ -11,6 +11,7 @@ set(DEMOS
     demo_VEH_Test_ISO2631_Shock
     demo_VEH_Test_Accel
     demo_VEH_Test_FMTV_Ride
+    demo_VEH_Test_TireFEA
 )
 
 if(HAVE_OPENCRG)
@@ -42,6 +43,18 @@ if(ENABLE_MODULE_VSG)
     include_directories(${CH_VSG_INCLUDES})
     list(APPEND LIBS "ChronoEngine_vsg")
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+endif()
+
+if(ENABLE_MODULE_PARDISO_MKL)
+    include_directories(${CH_MKL_INCLUDES})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+    list(APPEND LIBS "ChronoEngine_pardisomkl")
+endif()
+
+if(ENABLE_MODULE_MUMPS)
+    include_directories(${CH_MUMPS_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
 if(ENABLE_MODULE_POSTPROCESS)

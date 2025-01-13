@@ -25,6 +25,7 @@
 #include "FEAcables.h"
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 using namespace fea;
 
 int main(int argc, char* argv[]) {

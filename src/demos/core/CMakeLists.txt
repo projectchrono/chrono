@@ -1,7 +1,7 @@
 #--------------------------------------------------------------
 # Add executables
 
-SET(DEMOS
+set(DEMOS
   demo_CH_coords
   demo_CH_linalg
   demo_CH_matrix_ref
@@ -15,23 +15,45 @@ SET(DEMOS
   demo_CH_filesystem
 )
 
+#--------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for CORE module...")
+# Set include paths, compiler & linker flags, and libraries
 
-FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+include_directories(${CH_INCLUDES})
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+list(APPEND LIBS "ChronoEngine")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine)
-    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine)
+if(ENABLE_MODULE_PARDISO_MKL)
+  include_directories(${CH_MKL_INCLUDES})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_pardisomkl")
+endif()
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH(PROGRAM)
+if(ENABLE_MODULE_MUMPS)
+    include_directories(${CH_MUMPS_INCLUDES})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${MUMPS_CXX_COMPILE_FLAGS}")
+    set(LINKER_FLAGS "${LINKER_FLAGS} ${MUMPS_CXX_LINK_FLAGS}")
+    list(APPEND LIBS "ChronoEngine_mumps")
+endif()
+
+#--------------------------------------------------------------
+
+message(STATUS "Demo programs for CORE module...")
+
+foreach(PROGRAM ${DEMOS})
+    message(STATUS "...add ${PROGRAM}")
+
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
+
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
+
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach(PROGRAM)
 

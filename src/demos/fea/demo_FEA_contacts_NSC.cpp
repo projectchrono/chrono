@@ -159,8 +159,8 @@ int main(int argc, char* argv[]) {
     // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
     auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    mcontactsurf->AddFacesFromBoundary(*my_mesh, sphere_swept_thickness);
     my_mesh->AddContactSurface(mcontactsurf);
-    mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
 
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
         // all nodes to it.
 
         auto mcontactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
+        mcontactcloud->AddAllNodes(*my_mesh_beams, 0.025);  // use larger point size to match beam section radius
         my_mesh_beams->AddContactSurface(mcontactcloud);
-        mcontactcloud->AddAllNodes(0.025);  // use larger point size to match beam section radius
     }
 
     // Remember to add the mesh to the system!

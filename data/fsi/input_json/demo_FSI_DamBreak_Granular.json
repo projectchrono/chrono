@@ -1,0 +1,36 @@
+{
+  "Physical Properties of Fluid": {
+    "Density": 1000,
+    "Viscosity": 30.0,
+    "Gravity": [
+      0.0,
+      0.0,
+      -9.81
+    ]
+  },
+  "SPH Parameters": {
+    "Method": "WCSPH",
+    "Initial Spacing": 0.1,
+    "Kernel Multiplier": 1.0,
+    "Maximum Velocity": 10.0,
+    "XSPH Coefficient": 0.5,
+    "Shifting Coefficient": 1.0,
+    "Density Reinitialization": 1000,
+    "Time steps per proximity search": 1,
+    "Viscosity Treatment Type": "Artificial Bilateral",
+    "Boundary Treatment Type": "Holmes",
+    "Artificial viscosity alpha": 0.5
+  },
+  "Time Stepping": {
+    "Time step": 0.0001
+  },
+  "Elastic SPH": {
+    "Poisson ratio": 0.3,
+    "Young modulus": 1.0e6,
+    "I0": 0.03,
+    "mu_s": 0.5,
+    "mu_2": 0.5,
+    "particle diameter": 0.005,
+    "kernel threshold": 0.8
+  }
+}

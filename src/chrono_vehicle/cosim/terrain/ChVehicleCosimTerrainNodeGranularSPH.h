@@ -24,8 +24,8 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
@@ -90,7 +90,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_density;   ///< particle material density
     double m_cohesion;  ///< granular material cohesion
 
-    ChAABB m_aabb_particles;   ///< particle AABB
     double m_active_box_size;  ///< size of FSI active domain
 
     virtual ChSystem* GetSystemPostprocess() const override {

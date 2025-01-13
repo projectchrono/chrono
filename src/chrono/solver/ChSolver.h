@@ -54,7 +54,7 @@ class ChApi ChSolver {
         MINRES,    ///< MINimum RESidual method
         BICGSTAB,  ///< Bi-conjugate gradient stabilized
         // Other
-        CUSTOM,
+        CUSTOM
     };
 
     virtual ~ChSolver() {}
@@ -102,6 +102,9 @@ class ChApi ChSolver {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in);
+
+    /// Return the solver type as a string.
+    static std::string GetTypeAsString(Type type); 
 
   protected:
     ChSolver() : verbose(false) {}

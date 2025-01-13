@@ -19,9 +19,9 @@
 #include <vector>
 #include <cmath>
 
-#include "unit_testing.h"
-
 #include "chrono_multicore/cuda/ChMPMUtils.h"
+
+#include "../ut_utils.h"
 
 using namespace chrono;
 

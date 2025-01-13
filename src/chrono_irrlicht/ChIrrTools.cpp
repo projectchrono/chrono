@@ -1085,11 +1085,11 @@ void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double
 // Draw a line arrow in 3D space with given color.
 // -----------------------------------------------------------------------------
 void drawArrow(ChVisualSystemIrrlicht* vis,
-               ChVector3d start,
-               ChVector3d end,
-               ChVector3d plane_normal,
+               const ChVector3d& start,
+               const ChVector3d& end,
+               const ChVector3d& plane_normal,
                bool sharp,
-               ChColor col,
+               const ChColor& col,
                bool use_Zbuffer) {
     drawSegment(vis, start, end, col, use_Zbuffer);  // main segment
     ChVector3d dir = (end - start).GetNormalized();
@@ -1105,6 +1105,24 @@ void drawArrow(ChVisualSystemIrrlicht* vis,
     }
     drawSegment(vis, end, p1, col, use_Zbuffer);  // arrow segment 1
     drawSegment(vis, end, p2, col, use_Zbuffer);  // arrow segment 2
+}
+
+// -----------------------------------------------------------------------------
+// Draw a label in 3D scene at given position.
+// -----------------------------------------------------------------------------
+void drawLabel3D(ChVisualSystemIrrlicht* vis,
+               const std::string& text,
+               const ChVector3d& position,
+               const ChColor& color,
+               bool use_Zbuffer) {
+    irr::core::position2di spos =
+        vis->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(
+            irr::core::vector3dfCH(position));
+    auto font = vis->GetGUIEnvironment()->getFont(GetChronoDataFile("fonts/arial8.xml").c_str());
+    if (font) {
+        font->draw(text.c_str(), irr::core::rect<irr::s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10),
+                   tools::ToIrrlichtSColor(color));
+    }
 }
 
 }  // end namespace tools

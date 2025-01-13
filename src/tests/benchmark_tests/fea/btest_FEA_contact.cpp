@@ -183,8 +183,8 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
     }
 
     auto surf = chrono_types::make_shared<ChContactSurfaceMesh>(cmat);
+    surf->AddFacesFromBoundary(*mesh, 0.002);
     mesh->AddContactSurface(surf);
-    surf->AddFacesFromBoundary(0.002);
 
     auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
@@ -207,8 +207,8 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
     builder.BuildBeam(mesh, section, 10, ChVector3d(0, 0.1, -0.5), ChVector3d(0.5, 0.5, -0.5));
 
     auto cloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(cmat);
+    cloud->AddAllNodes(*mesh, 0.025);
     mesh->AddContactSurface(cloud);
-    cloud->AddAllNodes(0.025);
 
     auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
     vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);

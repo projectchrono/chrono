@@ -147,8 +147,8 @@ int main(int argc, char* argv[]) {
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
     // all nodes to it.
     auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
+    mcontactsurf->AddAllNodes(*my_mesh);
     my_mesh->AddContactSurface(mcontactsurf);
-    mcontactsurf->AddAllNodes();
 
     // Apply initial speed and angular speed
     for (unsigned int i = 0; i < my_mesh->GetNumNodes(); ++i) {

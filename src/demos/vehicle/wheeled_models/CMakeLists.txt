@@ -72,6 +72,8 @@ foreach(PROGRAM ${DEMOS})
 
     if(PROGRAM STREQUAL "demo_VEH_Wheeled")
       set(MODELS ../WheeledVehicleModels.h)
+    elseif(PROGRAM STREQUAL "demo_VEH_WheeledJSON")
+      set(MODELS ../WheeledVehicleJSON.h)
     else()
       set(MODELS "")
     endif()

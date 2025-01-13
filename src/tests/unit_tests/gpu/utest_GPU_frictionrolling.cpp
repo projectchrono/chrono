@@ -21,10 +21,10 @@
 #include <iostream>
 #include <string>
 
-#include "unit_testing.h"
-
 #include "chrono/core/ChGlobal.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
+
+#include "ut_gpu_utils.h"
 
 using namespace chrono;
 using namespace chrono::gpu;

@@ -7,7 +7,7 @@ include_directories(${CH_FSI_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_FSI_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_fsi")
+list(APPEND LIBS "ChronoEngine_fsi_sph")
 
 if(ENABLE_MODULE_VSG)
     include_directories(${CH_VSG_INCLUDES})

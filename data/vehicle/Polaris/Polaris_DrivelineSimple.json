@@ -1,0 +1,13 @@
+{
+  "Name": "Polaris simple driveline",
+  "Type": "Driveline",
+  "Template": "SimpleDriveline",
+
+  "Front Torque Fraction": 0.5,
+
+  "Front Differential Max Bias": 2.0,
+  "Rear Differential Max Bias": 2.0,
+
+  "Front Conical Gear Ratio": 0.25,
+  "Rear Conical Gear Ratio": 0.25
+}

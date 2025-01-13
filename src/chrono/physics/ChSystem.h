@@ -431,10 +431,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
-    /// Perform the collision detection.
+    /// Perform the collision detection, returning the number of contacts.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
-    double ComputeCollisions();
+    unsigned int ComputeCollisions();
 
     /// Class to be used as a callback interface for user defined actions performed
     /// at each collision detection step.  For example, additional contact points can
