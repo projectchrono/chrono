@@ -72,14 +72,15 @@ class ChApi ChCollisionShape {
     virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Tagging supported to allow sharing in distributed memory serialization
-    void SetTag(int tag) { m_tag = tag; }
-    int  GetTag() const { return m_tag; }
+    /// (sharing not working - to be fixed, disable tagging for now)
+    //void SetTag(int tag) { m_tag = tag; }
+    //int  GetTag() const { return m_tag; }
 
   protected:
     Type m_type;                                    ///< type of collision shape
     std::shared_ptr<ChContactMaterial> m_material;  ///< surface contact material
 
-    int m_tag = -1;  ///< to allow sharing in distributed memory serialization
+    //int m_tag = -1;  ///< to allow sharing in distributed memory serialization
 
     friend class ChCollisionModel;
 };

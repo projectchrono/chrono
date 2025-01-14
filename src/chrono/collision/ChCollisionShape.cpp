@@ -58,6 +58,7 @@ void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive_out << CHNVP(typemapper(type), "ChCollisionShape__Type");
+    //archive_out << CHNVP(m_tag);
 }
 
 void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
@@ -69,6 +70,7 @@ void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive_in >> CHNVP(typemapper(type), "ChCollisionShape__Type");
+    //archive_in >> CHNVP(m_tag);
 }
 
 }  // namespace chrono
