@@ -24,9 +24,9 @@ void ChArchiveOut::PutPointer(ChValue& val, bool& already_stored, size_t& obj_ID
         return;
     }
     // wasn't in list.. add to it
-    if (val.HasGetTag() && this->use_gettag_as_id) {
+    if (val.HasGetTag() && this->use_gettag_as_id && (val.CallGetTag()!=-1)) {
         obj_ID = val.CallGetTag(); 
-        // to do: should check that tag is unique, and should avoid 0 as tag
+        // to do: should check that tag is unique
     }
     else {
         ++currentID;
