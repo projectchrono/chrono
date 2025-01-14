@@ -238,12 +238,16 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
 
    */
     /// Compute the GLOBAL dot product of a vector (in multidomain mode, using MPI_AllReduce)
-    /// Here we assume that avector and bvector are both in 'clipped' format
-    virtual double Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector);
+    /// Here we assume that avector and bvector are both in 'clipped' format.
+    /// If the clipped vectors overlap at some elements, then a Wv_partition vector with same length
+    /// must be passed, where across domains all the Wv_partition define partition of unity for shared elements.
+    virtual double globalVdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector, ChVectorDynamic<>* Wv_partition = nullptr);
 
     /// Compute the GLOBAL norm of a vector (in multidomain mode, using MPI_AllReduce)
-    /// Here we assume that avector is in 'clipped' format
-    virtual double Vnorm(const ChVectorDynamic<>& avector);
+    /// Here we assume that avector is in 'clipped' format.
+    /// If the clipped vectors overlap at some elements, then a Wv_partition vector with same length
+    /// must be passed, where across domains all the Wv_partition define partition of unity for shared elements.
+    virtual double globalVnorm(const ChVectorDynamic<>& avector, ChVectorDynamic<>* Wv_partition = nullptr);
 
     /// Compute the GLOBAL max among values (in multidomain mode, using MPI_AllReduce)
     virtual double globalMax(const double val);
@@ -252,14 +256,14 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// at the global level considering all the domains. The M,N,Cq,E from 
     /// this domain are considered sub-matrices of the global problem.
     /// -Matrices M,N,Cq,E are assumed in 'additive' format.
-    /// -Vector l is assumed in 'clipped' format.
-    /// -Vector result is assumed in 'clipped' format.
+    /// -Vector l and vector result: for them there is no meaning of 'clipped' 
+    ///  or 'additive' as they do not share elements with other domains.
     /// <pre>
     ///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
     /// </pre>
     /// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
     /// operation, so it may happen that you need to backup them via FromVariablesToVector()
-    /// NOTE! currently this function does NOT support the cases that use also ChKRMBlock
+    /// NOTE! currently this function does NOT support the cases that use also ChKRMBlock, ex. FEA.
     virtual void globalSchurComplementProduct(
         ChVectorDynamic<>& result,            ///< result of  N * l_i
         const ChVectorDynamic<>& lvector,     ///< vector to be multiplied

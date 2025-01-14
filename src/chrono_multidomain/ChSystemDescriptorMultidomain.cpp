@@ -53,17 +53,23 @@ void ChSystemDescriptorMultidomain::UpdateCountsAndOffsets() {
     }
 }
 
-double ChSystemDescriptorMultidomain::Vdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector) {
-    ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
-    double domaindot= avector.dot(bvector.cwiseProduct(Wv));  // s_j = va_j' * (vb_j *. Wv_j) 
+double ChSystemDescriptorMultidomain::globalVdot(const ChVectorDynamic<>& avector, const ChVectorDynamic<>& bvector, ChVectorDynamic<>* Wv_partition) {
+    double domaindot = 0;
+    if (Wv_partition)
+        domaindot= avector.dot(bvector.cwiseProduct(*Wv_partition));  // s_j = va_j' * (vb_j *. Wv_j) 
+    else
+        domaindot = avector.dot(bvector);  // s_j = va_j' * (vb_j) 
     double result = 0;
     this->domain_manager->ReduceAll(this->domain->GetRank(), domaindot, result); // s = \sum s_j
     return result;
 }
 
-double ChSystemDescriptorMultidomain::Vnorm(const ChVectorDynamic<>& avector) {
-    ChVectorDynamic<>& Wv = this->domain->GetSystem()->CoordWeightsWv();
-    double domainsqnorm = avector.dot(avector.cwiseProduct(Wv)); // s_j = v_j' * (v_j *. Wv_j) 
+double ChSystemDescriptorMultidomain::globalVnorm(const ChVectorDynamic<>& avector, ChVectorDynamic<>* Wv_partition) {
+    double domainsqnorm = 0;
+    if (Wv_partition)
+        domainsqnorm = avector.dot(avector.cwiseProduct(*Wv_partition)); // s_j = v_j' * (v_j *. Wv_j) 
+    else
+        domainsqnorm = avector.dot(avector); // s_j = v_j' * (v_j) 
     double result = 0;
     this->domain_manager->ReduceAll(this->domain->GetRank(), domainsqnorm, result); // s = \sum s_j
     return sqrt(result);
@@ -86,7 +92,8 @@ void ChSystemDescriptorMultidomain::globalSchurComplementProduct(ChVectorDynamic
     assert(lvector.size() == CountActiveConstraints());
 
     // =====ENTER scaling of masses in ChVariables because of Wv weights
-    this->MassesScaledInPlace_EnterSection();
+    // ***NO!! THIS ALGO ASSUMES MASS IN CLIPPED FORMAT, CLIPPED M^1_j OK FOR SCHUR COMPLEMENT CAUSE BLOCK PATTERN (NO FEA)
+    //this->MassesScaledInPlace_EnterSection();
 
     result.setZero(lvector.size());
 
@@ -147,7 +154,8 @@ void ChSystemDescriptorMultidomain::globalSchurComplementProduct(ChVectorDynamic
     }
 
     // =====EXIT scaling of masses in ChVariables because of Wv weights, restore to original
-    this->MassesScaledInPlace_ExitSection();
+    // ***NO!! THIS ALGO ASSUMES MASS IN CLIPPED FORMAT, CLIPPED M^1_j OK FOR SCHUR COMPLEMENT CAUSE BLOCK PATTERN (NO FEA)
+    //this->MassesScaledInPlace_ExitSection();
 }
 
 

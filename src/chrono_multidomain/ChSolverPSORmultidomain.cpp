@@ -45,7 +45,8 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
     double old_lambda_friction[3];
 
     // =====ENTER scaling of masses in ChVariables because of Wv weights
-    //descriptor.MassesScaledInPlace_EnterSection(); ***NO!! THIS ALGO ASSUMES MASS IN CLIPPED FORMAT
+    // ***NO!! THIS ALGO ASSUMES MASS IN CLIPPED FORMAT, CLIPPED M^1_j OK FOR SCHUR COMPLEMENT CAUSE BLOCK PATTERN
+    //descriptor.MassesScaledInPlace_EnterSection(); 
 
     // MULTIDOMAIN******************
     // aux data for multidomain
@@ -266,7 +267,8 @@ double ChSolverPSORmultidomain::Solve(ChSystemDescriptor& sysd) {
     }  // end iteration loop
 
     // =====EXIT scaling of masses in ChVariables because of Wv weights, restore to original
-    //descriptor.MassesScaledInPlace_ExitSection(); ***NO!! THIS ALGO ASSUMES MASS IN CLIPPED FORMAT
+    // ***NO!! THIS ALGO ASSUMES MASS IN CLIPPED FORMAT, CLIPPED M^1_j OK FOR SCHUR COMPLEMENT CAUSE BLOCK PATTERN
+    //descriptor.MassesScaledInPlace_ExitSection();
 
     return maxviolation;
 }

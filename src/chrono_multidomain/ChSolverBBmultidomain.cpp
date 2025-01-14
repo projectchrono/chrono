@@ -14,6 +14,7 @@
 
 #include "chrono_multidomain/ChSolverBBmultidomain.h"
 #include "chrono_multidomain/ChSystemDescriptorMultidomain.h"
+#include "chrono_multidomain/ChDomain.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 
 namespace chrono {
@@ -37,6 +38,12 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
         throw std::runtime_error("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");
     }
     
+    // MULTIDOMAIN******************
+    // This Wv could be needed for the globalVdot() operations at global level.
+    // (well, Wv actually NOT used in this algo, in fact here all globalVdot() operate on vectors  
+    // that relate to dual variables, ie lagrangian multipliers; since our domain splitting never share any constraint,
+    // there are no overlaps between dual vars. This Wv would be needed for clipped vectors of primal variables instead.)
+    ChVectorDynamic<>* Wv_partition = &(descriptor.GetDomain()->GetSystem()->CoordWeightsWv());
 
     // Tuning of the spectral gradient search
     double a_min = 1e-13;
@@ -129,6 +136,11 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
     state_old = state;
     */
 
+// UNTIL HERE, IS OK
+// THE REST HAS SOME ISSUE TO FIX, RESULT IS INCREASING q CONSTANTLY UP TO EXPLOSION TIME STEP AFTER STEP
+// ***TODO*** fix
+ assert(false);  // prevent use of solver - not yet usable, work in progress
+
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     mb.setZero();
     int s_i = 0;
@@ -187,7 +199,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
         mdir -= ml;                     // dir = P(l - alpha*Dg) - l
 
         // dTg = dir'*g;
-        double dTg = descriptor.Vdot(mdir,mg); // MULTIDOMAIN******
+        double dTg = descriptor.globalVdot(mdir,mg); // MULTIDOMAIN******
 
         // BB dir backward!? fallback to nonpreconditioned dir
         if (dTg > 1e-8) {
@@ -196,7 +208,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
             sysd.ConstraintsProject(mdir);  // dir = P(l - alpha*g) ...
             mdir -= ml;                     // dir = P(l - alpha*g) - l
             // dTg = d'*g;
-            dTg = descriptor.Vdot(mdir,mg); // MULTIDOMAIN******
+            dTg = descriptor.globalVdot(mdir,mg); // MULTIDOMAIN******
         }
 
         double lambda = 1;
@@ -215,7 +227,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
             mg_p = mb_tmp - mb;
 
             // f_p = 0.5*l_p'*N*l_p - l_p'*b  = l_p'*(0.5*Nl_p - b);
-            mf_p = descriptor.Vdot(ml_p, 0.5 * mb_tmp - mb);    // MULTIDOMAIN*****
+            mf_p = descriptor.globalVdot(ml_p, 0.5 * mb_tmp - mb);    // MULTIDOMAIN*****
 
             f_hist.push_back(mf_p);
 
@@ -253,8 +265,8 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
                 mb_tmp = ms.array() * mD.array();
             else
                 mb_tmp = ms;
-            double sDs = descriptor.Vdot(ms,mb_tmp); // MULTIDOMAIN****
-            double sy = descriptor.Vdot(ms,my); // MULTIDOMAIN****
+            double sDs = descriptor.globalVdot(ms,mb_tmp); // MULTIDOMAIN****
+            double sy = descriptor.globalVdot(ms,my); // MULTIDOMAIN****
             if (sy <= 0) {
                 alpha = neg_BB1_fallback;
             } else {
@@ -264,12 +276,12 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
         }
 
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
-            double sy = descriptor.Vdot(ms,my); // MULTIDOMAIN****
+            double sy = descriptor.globalVdot(ms,my); // MULTIDOMAIN****
             if (m_use_precond)
                 mb_tmp = my.array() / mD.array();
             else
                 mb_tmp = my;
-            double yDy = descriptor.Vdot(my,mb_tmp); // MULTIDOMAIN****
+            double yDy = descriptor.globalVdot(my,mb_tmp); // MULTIDOMAIN****
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
             } else {
@@ -284,7 +296,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
         sysd.ConstraintsProject(mb_tmp);     // mb_tmp = ProjectionOperator(l - gdiff * g)
         mb_tmp = (ml - mb_tmp) / gdiff;      // mb_tmp = [l - ProjectionOperator(l - gdiff * g)] / gdiff
 
-        double g_proj_norm = descriptor.Vnorm(mb_tmp);  // MULTIDOMAIN ****
+        double g_proj_norm = descriptor.globalVnorm(mb_tmp);  // MULTIDOMAIN ****
 
         // Rollback solution: the last best candidate ('l' with lowest projected gradient)
         // in fact the method is not monotone and it is quite 'noisy', if we do not
@@ -296,7 +308,7 @@ double ChSolverBBmultidomain::Solve(ChSystemDescriptor& sysd) {
 
         // METRICS - convergence, plots, etc
 
-        double maxdeltalambda = descriptor.Vnorm(ms);  // MULTIDOMAIN ****   as ms.lpNorm<Eigen::Infinity>();
+        double maxdeltalambda = descriptor.globalVnorm(ms);  // MULTIDOMAIN ****   as ms.lpNorm<Eigen::Infinity>();
         double maxd = lastgoodres;
 
         // For recording into correction/residuals/violation history, if debugging
