@@ -154,6 +154,76 @@ class ChApiMultiDomain ChDomainSlice : public ChDomain {
      ChAxis axis = ChAxis::X; 
 };
 
+
+
+////////////////////////////
+
+
+/// Helper class that setup domains for a "sliced bread" splitting of the
+/// 3D space. The splitting can happen along x or y or z axis, even in non uniform spacing.
+/// The first and last domain will get infinite extent in the outside direction.
+
+class ChApiMultiDomain ChDomainBuilderGrid : ChDomainBuilder {
+public:
+    ChDomainBuilderGrid(
+        int tot_slices_X,
+        double mmin_X,
+        double mmax_X,
+        int tot_slices_Y,
+        double mmin_Y,
+        double mmax_Y,
+        int tot_slices_Z,
+        double mmin_Z,
+        double mmax_Z,
+        bool build_master = false);
+
+    ChDomainBuilderGrid(
+        std::vector<double> axis_cuts_X,
+        std::vector<double> axis_cuts_Y,
+        std::vector<double> axis_cuts_Z,
+        bool build_master = false);
+
+    virtual ~ChDomainBuilderGrid() {}
+
+    virtual int GetTotRanks() override { return GetTotSlices() + (int)m_build_master; };
+
+    virtual int GetMasterRank() override { assert(m_build_master);  return GetTotSlices(); };
+
+    virtual int GetTotSlices() { return (int)(domains_bounds_X.size() - 1)* (domains_bounds_Y.size() - 1)* (domains_bounds_Z.size() - 1); };
+
+    virtual int GetSlicesX() { return (int)(domains_bounds_X.size() - 1); }
+    virtual int GetSlicesY() { return (int)(domains_bounds_Y.size() - 1); }
+    virtual int GetSlicesZ() { return (int)(domains_bounds_Z.size() - 1); }
+
+    virtual int FromIJKindexesToRank(int i, int j, int k) { 
+        return i + j * GetSlicesX() + k * GetSlicesX() * GetSlicesY(); 
+    }
+
+    virtual void FromRankToIJKindexes(const int nrank, int& i, int& j, int& k) {
+        k = nrank / (GetSlicesX() * GetSlicesY());
+        j = (nrank % (GetSlicesX() * GetSlicesY())) / GetSlicesX();
+        i = nrank % GetSlicesX();
+    }
+
+    std::shared_ptr<ChDomain> BuildDomain(
+        ChSystem* msys,
+        int this_rank);
+
+    /// Build the master domain that encloses everything, and that can be populated 
+    /// with all elements, nodes, bodies etc. at the beginning. It will migrate all items into
+    /// the sliced domains at the first update. You need to create ChDomainBuilderSlices with build_master as true.
+    /// The master domain, if used, corresponds to the last rank, ie. GetTotRanks()-1.
+    std::shared_ptr<ChDomain> BuildMasterDomain(
+        ChSystem* msys);
+
+private:
+    std::vector<double> domains_bounds_X;
+    std::vector<double> domains_bounds_Y;
+    std::vector<double> domains_bounds_Z;
+    bool m_build_master = false;
+};
+
+
 /// Specialization of ChDomain for axis-aligned grid space decomposition.
 /// This is like a box. 
 /// 
@@ -176,9 +246,9 @@ public:
 
     /// Test if some item, represented by a single point, must be included in this domain.
     virtual bool IsInto(const ChVector3d& apoint) const override {
-        if ((aabb.min.x() <= apoint.x() && apoint.x() < apoint.x()) &&
-            (aabb.min.y() <= apoint.y() && apoint.y() < apoint.y()) &&
-            (aabb.min.z() <= apoint.z() && apoint.z() < apoint.z()))
+        if ((aabb.min.x() <= apoint.x() && apoint.x() < aabb.max.x()) &&
+            (aabb.min.y() <= apoint.y() && apoint.y() < aabb.max.y()) &&
+            (aabb.min.z() <= apoint.z() && apoint.z() < aabb.max.z()))
             return true;
         else
             return false;
