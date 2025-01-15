@@ -6,6 +6,7 @@ set(MULTIDOMAIN_DEMOS
     demo_MDOM_MPI_intro_lowlevel
     demo_MDOM_MPI_explicit
     demo_MDOM_MPI_fea
+    demo_MDOM_MPI_grid
 	)
 
 # List of demos requiring the Chrono::Irrlicht module
