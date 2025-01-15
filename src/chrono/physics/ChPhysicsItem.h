@@ -264,24 +264,6 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const double c           ///< a scaling factor
     ) {}
 
-    /// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
-    ///    R += c*M*w
-    virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-        const ChVectorDynamic<>& w,  ///< the w vector
-        const double c               ///< a scaling factor
-    ) {}
-
-    /// Takes the F force term, scale and adds to R at given offset:
-    ///    R += c*F
-    /// This is a filtered version of IntLoadResidual_F, where some items are skipped if not inside a volume.
-    /// Most children classes do not need to implement this: here a default fallback is implemented.
-    virtual void IntLoadResidual_F_domain(const unsigned int off,  ///< offset in R residual
-        ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-        const double c,          ///< a scaling factor
-        const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
-    );
-
     /// Takes the F force term, scale by c and scale by i-th weight in Wd at node offset, and adds to R at given offset:
     ///    R += c*F* Wi
     /// This is a weighted version of IntLoadResidual_F, where some items are scaled, ex. to simulate splitting a mass.
@@ -293,15 +275,12 @@ class ChApi ChPhysicsItem : public ChObj {
     );
 
     /// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
-    ///    R += c*M*v
-    /// This is a filtered version of IntLoadResidual_Mv, where some items are skipped if not inside a volume.
-    /// Most children classes do not need to implement this: here a default fallback is implemented.
-    virtual void IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
+    ///    R += c*M*w
+    virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
         ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
         const ChVectorDynamic<>& w,  ///< the w vector
-        const double c,               ///< a scaling factor
-        const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
-    );
+        const double c               ///< a scaling factor
+    ) {}
 
     /// Takes the M*v term,  multiplying mass by a vector, scale by c and and scale by i-th weight in Wd at node offset
     /// and adds to R at given offset:
@@ -314,7 +293,6 @@ class ChApi ChPhysicsItem : public ChObj {
         const double c,              ///< a scaling factor
         ChVectorDynamic<>& Wd        ///< vector with weights, the node mass is "scaled".
     );
-
 
     /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
     /// If mass lumping is impossible or approximate, adds scalar error to "error" parameter.
@@ -335,7 +313,6 @@ class ChApi ChPhysicsItem : public ChObj {
         const double c,         ///< a scaling factor
         ChVectorDynamic<>& Wd   ///< vector with weights, the node mass is "scaled".
     );
-
 
     /// Adds 1 to a N indicator vector, at each DOF referenced by internal ChVariable(s), if any.
     /// Used for debugging, for counting shared mechanical graph vertexes (bodies, nodes) in parallel solvers, etc.

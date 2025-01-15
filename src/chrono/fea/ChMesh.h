@@ -217,21 +217,10 @@ class ChApi ChMesh : public ChIndexedNodes {
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
                                     const double c) override;
-    virtual void IntLoadResidual_F_domain(const unsigned int off,  
-                                    ChVectorDynamic<>& R,  
-                                    const double c,       
-                                    const ChOverlapTest& filter 
-                                ) override;
     virtual void IntLoadResidual_F_weighted(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const double c,
                                     ChVectorDynamic<>& Wv
-                                ) override;
-    virtual void IntLoadResidual_Mv_domain(const unsigned int off,     
-                                    ChVectorDynamic<>& R,        
-                                    const ChVectorDynamic<>& w,  
-                                    const double c,               
-                                    const ChOverlapTest& filter 
                                 ) override;
     virtual void IntLoadResidual_Mv_weighted(const unsigned int off,
                                     ChVectorDynamic<>& R,

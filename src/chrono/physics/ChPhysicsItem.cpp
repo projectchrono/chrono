@@ -89,19 +89,6 @@ ChVector3d ChPhysicsItem::GetCenter() const {
 }
 
 
-/// Takes the F force term, scale and adds to R at given offset:
-///    R += c*F
-/// This is a filtered version of IntLoadResidual_F, where some items are skipped if not inside a volume.
-/// Most children classes do not need to implement this: here a default fallback is implemented.
-void ChPhysicsItem::IntLoadResidual_F_domain(const unsigned int off,  ///< offset in R residual
-    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-    const double c,          ///< a scaling factor
-    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
-) {
-    if (filter.IsInto(this->GetCenter()))
-        this->IntLoadResidual_F(off, R, c);
-}
-
 /// Takes the F force term, scale by c and scale by i-th weight in Wd at node offset, and adds to R at given offset:
 ///    R += c*F* Wi
 /// This is a weighted version of IntLoadResidual_F, where some items are scaled, ex. to simulate splitting a mass.
@@ -119,20 +106,6 @@ void ChPhysicsItem::IntLoadResidual_F_weighted(const unsigned int off,  ///< off
         this->IntLoadResidual_F(off, R, c);
 }
 
-
-/// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
-///    R += c*M*w
-/// This is a filtered version of IntLoadResidual_Mv, where some items are skipped if not inside a volume.
-/// Most children classes do not need to implement this: here a default fallback is implemented.
-void ChPhysicsItem::IntLoadResidual_Mv_domain(const unsigned int off,      ///< offset in R residual
-    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-    const ChVectorDynamic<>& w,  ///< the w vector
-    const double c,               ///< a scaling factor
-    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
-) {
-    if (filter.IsInto(this->GetCenter()))
-        this->IntLoadResidual_Mv(off, R, w, c);
-}
 
 /// Takes the M*v term,  multiplying mass by a vector, scale by c and and scale by i-th weight in Wd at node offset
 /// and adds to R at given offset:

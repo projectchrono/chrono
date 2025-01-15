@@ -723,16 +723,7 @@ void ChContactContainerSMC::IntLoadResidual_F(const unsigned int off, ChVectorDy
     _IntLoadResidual_F(contactlist_66_33, R, c);
     _IntLoadResidual_F(contactlist_66_66, R, c);
 }
-void ChContactContainerSMC::IntLoadResidual_F_domain(const unsigned int off,  ///< offset in R residual
-    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
-    const double c,          ///< a scaling factor
-    const ChOverlapTest& filter ///< only items whose GetCenter() are inside, will add force, otherwise add zero.
-) {
-    // NO NEED TO FILTER BY DOMAIN BECAUSE WE ASSUME THE CONTACT CONTAINER IS FILLED ONLY WITH 
-    // CONTACTS INSIDE THE DOMAIN (see the MULTIDOMAIN module, in domain managers: at SetDomain() they 
-    // apply a "class ContactDomainFilter : public ChCollisionSystem::NarrowphaseCallback {..}" to the system)
-    this->IntLoadResidual_F(off, R, c);
-}
+
 
 
 
