@@ -244,6 +244,13 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// shape_2_149372748349, avoiding potential conflicts. Setting to -1 will disable the .._n_... prefix (default)
     void SetRank(int mrank) { this->rank = mrank; }
 
+    /// By default, Blender object names (as seen in the outliner list window) are taken from GetName() of
+    /// the Chrono ChPhysicsItem object. If you want that Blender object names are taken from GetTag(), set this true.
+    /// This can be useful when doing parallel simulations on multiple computing nodes, each with its own ChBlender 
+    /// exporter, if tags ID are set such that shared bodies,if any, have the same tag (as in the Multidomain module)
+    /// so that you can avoid importing them N times in "Merge" mode in the Blender plugin, by using the "Skip duplicate tags". 
+    void SetUseTagsAsBlenderNames(bool muse_tags) { this->use_tags = muse_tags; }
+
   private:
     void UpdateRenderList();
     void ExportAssets(std::ofstream& assets_file, std::ofstream& state_file);
@@ -335,6 +342,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     bool single_asset_file;
 
     int rank;
+    bool use_tags;
 };
 
 }  // end namespace postprocess

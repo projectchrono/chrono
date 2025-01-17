@@ -87,6 +87,7 @@ ChBlender::ChBlender(ChSystem* system) : ChPostProcessBase(system) {
     wireframe_thickness = 0.001;
     single_asset_file = true;
     rank = -1;
+    use_tags = false;
 
     SetBlenderUp_is_ChronoY();
 }
@@ -270,24 +271,32 @@ void ChBlender::ExportScript(const std::string& filename) {
     m_blender_frame_shapes.clear();
     m_blender_frame_materials.clear();
     m_blender_cameras.clear();
-
-    // Create directories
-    if (base_path != "") {
-        if (!filesystem::create_directory(filesystem::path(base_path))) {
-            std::cout << "Error creating base directory \"" << base_path << "\" for the Blender files." << std::endl;
-            return;
+    {
+        // Create directories
+        if (base_path != "") {
+            if (!filesystem::create_directory(filesystem::path(base_path))) {
+                std::cout << "Error creating base directory \"" << base_path << "\" for the Blender files." << std::endl;
+                return;
+            }
+            base_path = base_path + "/";
         }
-        base_path = base_path + "/";
+        filesystem::create_directory(filesystem::path(base_path + pic_path));
+        filesystem::create_directory(filesystem::path(base_path + out_path));
     }
-    filesystem::create_directory(filesystem::path(base_path + pic_path));
-    filesystem::create_directory(filesystem::path(base_path + out_path));
-
     // Generate the xxx.assets.py script (initial assets, it will be populated later by
     // appending assets as they enter the exporter, only once if shared, using ExportAssets() )
 
     std::string assets_filename = out_script_filename + ".assets.py";
     {
+        // Create asset file
         std::ofstream assets_file(base_path + assets_filename);
+
+        // first line in header is time-date (useful on the Blender side, when "Auto merge" is on, to auto detect
+        // when parallel simulations generated n outputs)
+        std::time_t now = std::time(nullptr); 
+        std::tm* ltm = std::localtime(&now); 
+        assets_file << "# " << std::put_time(ltm, "%Y-%m-%d %H:%M:%S") << "\n";
+
         assets_file << "# File containing meshes and objects for rendering Blender scenes, shared through all frames."
                     << std::endl;
         assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, " << std::endl;
@@ -1019,14 +1028,21 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
     }
 
     if (has_stored_assets) {
+
+        std::string blender_obj_name;
+        if (this->use_tags)
+            blender_obj_name = std::to_string(item->GetTag());
+        else
+            blender_obj_name = item->GetName();
+
         if (auto particleclones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-            state_file << "make_chrono_object_clones('" << item->GetName() << "',"
+            state_file << "make_chrono_object_clones('" << blender_obj_name << "',"
                        << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << ","
                        << parentframe.GetPos().z() << "),"
                        << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << ","
                        << parentframe.GetRot().e2() << "," << parentframe.GetRot().e3() << "), " << std::endl;
         } else {
-            state_file << "make_chrono_object_assetlist('" << item->GetName() << "',"
+            state_file << "make_chrono_object_assetlist('" << blender_obj_name << "',"
                        << "(" << parentframe.GetPos().x() << "," << parentframe.GetPos().y() << ","
                        << parentframe.GetPos().z() << "),"
                        << "(" << parentframe.GetRot().e0() << "," << parentframe.GetRot().e1() << ","
