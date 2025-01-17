@@ -96,6 +96,7 @@ chrono_view_link_csys_size = 0.25
 chrono_view_materials = True
 chrono_view_contacts = False
 chrono_gui_doupdate = True
+chrono_skip_shared_tags = False
 
 #
 # utility functions to be used in assets.py  or   output/statexxxyy.py files
@@ -672,7 +673,10 @@ def make_chrono_csys(mpos,mrot, mparent, symbol_scale=0.1):
 
 def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
 
-    chobject = bpy.data.objects.new(mname, empty_mesh)  
+    if chrono_skip_shared_tags and (mname in chrono_frame_objects.objects): 
+        return
+    
+    chobject = bpy.data.objects.new(mname, None)  
     chobject.rotation_mode = 'QUATERNION'
     chobject.rotation_quaternion = mrot
     chobject.location = mpos
@@ -1356,6 +1360,7 @@ def callback_post(self):
     global chrono_view_materials
     global chrono_view_contacts
     global chrono_gui_doupdate
+    global chrono_skip_shared_tags
     
     chrono_assets = bpy.data.collections.get('chrono_assets')
     chrono_frame_assets = bpy.data.collections.get('chrono_frame_assets')
@@ -1462,6 +1467,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
     global chrono_view_materials
     global chrono_view_contacts
     global chrono_gui_doupdate
+    global chrono_skip_shared_tags
     
     # (this is needed to avoid crashes when pressing F12 for rendering)
     bpy.context.scene.render.use_lock_interface = True
@@ -2045,7 +2051,7 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import Operator
 
-
+        
 class ImportChrono(Operator, ImportHelper):
     """Import a Chrono simulation from files saved by Chrono postprocessing module"""
     bl_idname = "import_chrono.data"  # important since its how bpy.ops.import_chrono.data is constructed
@@ -2077,6 +2083,11 @@ class ImportChrono(Operator, ImportHelper):
         description="If true, you load the 0th .asset.py file from a parallel simulation in a set of directories <yy>_0,<yy>_1,<yy>_2 etc, and all others are load and merged.",
         default=False,
     )
+    setting_skip_shared_tags: BoolProperty(
+        name="Skip shared names",
+        description="If true, if n objects that have the same name, only the 1st will be created. Avoid overlapping shared duplicated. Useful when doing multidomain with SetUseTagsAsBlenderNames(true)",
+        default=False,
+    )
     #    setting_from: IntProperty(
     #        name="from",
     #        description="Initial frame",
@@ -2091,6 +2102,10 @@ class ImportChrono(Operator, ImportHelper):
     #    )
     
     def execute(self, context):
+        global chrono_skip_shared_tags
+        
+        chrono_skip_shared_tags = self.setting_skip_shared_tags
+        
         # load the chrono simulation:
         read_chrono_simulation(context, self.filepath, self.setting_materials, self.setting_merge)
         
@@ -2099,13 +2114,24 @@ class ImportChrono(Operator, ImportHelper):
         if self.setting_automerge and myfiledir.endswith("_0"):
             myfiledirbase = myfiledir[:-2]
             myfilename = os.path.basename(self.filepath)
-            creation_time0 = os.path.getctime(os.path.abspath(self.filepath))
+            #creation_time0 = os.path.getctime(os.path.abspath(self.filepath)) # fails on win, funneled filesys
+            creation_time0 = datetime
+            with open(self.filepath, 'r') as file: 
+                first_line = file.readline().strip() 
+                if first_line.startswith('# '): 
+                    date_str = first_line[2:] 
+                    creation_time0 = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
             domainnumber = 1
             while True:
                 domainfilename = os.path.join(myfiledirbase + '_'+'{:d}'.format(domainnumber), myfilename)
                 if os.path.exists(domainfilename):
-                    creation_time1 = os.path.getctime(domainfilename)
-                    if abs(creation_time1 - creation_time0) > 2:
+                    creation_time1 = datetime
+                    with open(domainfilename, 'r') as file: 
+                        first_line = file.readline().strip() 
+                        if first_line.startswith('# '): 
+                            date_str = first_line[2:] 
+                            creation_time1 = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+                    if abs((creation_time1 - creation_time0).total_seconds()) > 2:
                         break   # do not load further domains if created in a previous moment, 2 seconds tolerance
                     print ("Loading auto-merging: " + domainfilename)
                     read_chrono_simulation(context, domainfilename, self.setting_materials, True)
