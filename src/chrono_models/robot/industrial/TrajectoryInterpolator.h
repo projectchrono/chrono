@@ -62,10 +62,10 @@ class CH_MODELS_API TrajectoryInterpolator {
     /// Auto-compute durations based on weighted average of trajectory length.
     virtual void AutoComputeTrajectoryDurations() = 0;
 
-    double m_motion_time_tot = 0;          ///< total time to travel trajectory
-    std::vector<double> m_durations = {};  ///< individual trajectory parts times
+    double m_motion_time_tot = 0;            ///< total time to travel trajectory
+    std::vector<double> m_durations = {};    ///< individual trajectory parts times
     std::vector<double> m_cumul_times = {};  ///< cumulative trajectory parts times
-    double m_traj_length_tot = 0;          ///< total length of trajectory
+    double m_traj_length_tot = 0;            ///< total length of trajectory
 };
 
 // =============================================================================
@@ -133,6 +133,12 @@ class CH_MODELS_API TrajectoryInterpolatorOperationSpace : public TrajectoryInte
     /// Get geometric rotation function.
     std::shared_ptr<ChFunctionRotation> GetRotationFunction() const { return m_rotfun; }
 
+    /// Get position evaluation function.
+    std::shared_ptr<ChFunctionSequence> GetPositionSpaceFunction() const { return m_pos_spacefun; }
+
+    /// Get rotation evaluation function.
+    std::shared_ptr<ChFunctionSequence> GetRotationSpaceFunction() const { return m_rot_spacefun; }
+
     /// Get input waypoints positions.
     std::vector<ChVector3d> GetPositions() const;
 
@@ -147,17 +153,17 @@ class CH_MODELS_API TrajectoryInterpolatorOperationSpace : public TrajectoryInte
 
     void SetupRotationFunction();
 
-    std::shared_ptr<ChFunction> SetupSpaceFunction(SpacefunType spacefun_type);
+    std::shared_ptr<ChFunctionSequence> SetupSpaceFunction(SpacefunType spacefun_type);
 
-    std::vector<ChCoordsysd> m_waypoints = {};                   ///< input trajectory waypoints to interpolate
-    std::shared_ptr<ChFunctionPositionLine> m_posfun = nullptr;  ///< geometric position function
-    std::shared_ptr<ChFunction> m_pos_spacefun = nullptr;        ///< time function to evaluate position
-    std::shared_ptr<ChFunctionRotation> m_rotfun = nullptr;      ///< geometric rotation function
-    std::shared_ptr<ChFunction> m_rot_spacefun = nullptr;        ///< time function to evaluate rotation
-    PosfunType m_posfun_type = PosfunType::LINE;                 ///< type of geometric position function
-    RotfunType m_rotfun_type = RotfunType::BSPLINE1;             ///< type of geometric rotation function
-    SpacefunType m_pos_spacefun_type = SpacefunType::LINEAR;     ///< type of time evaluation function for position
-    SpacefunType m_rot_spacefun_type = SpacefunType::LINEAR;     ///< type of time evaluation function for rotation
+    std::vector<ChCoordsysd> m_waypoints = {};                     ///< input trajectory waypoints to interpolate
+    std::shared_ptr<ChFunctionPositionLine> m_posfun = nullptr;    ///< geometric position function
+    std::shared_ptr<ChFunctionSequence> m_pos_spacefun = nullptr;  ///< time function to evaluate position
+    std::shared_ptr<ChFunctionRotation> m_rotfun = nullptr;        ///< geometric rotation function
+    std::shared_ptr<ChFunctionSequence> m_rot_spacefun = nullptr;  ///< time function to evaluate rotation
+    PosfunType m_posfun_type = PosfunType::LINE;                   ///< type of geometric position function
+    RotfunType m_rotfun_type = RotfunType::BSPLINE1;               ///< type of geometric rotation function
+    SpacefunType m_pos_spacefun_type = SpacefunType::LINEAR;       ///< type of time evaluation function for position
+    SpacefunType m_rot_spacefun_type = SpacefunType::LINEAR;       ///< type of time evaluation function for rotation
 };
 
 // =============================================================================
@@ -180,9 +186,9 @@ class CH_MODELS_API TrajectoryInterpolatorJointSpace : public TrajectoryInterpol
     /// - can be manually defined by the user: in this case, their sum must equal total motion time parameter
     /// - can be skipped: in this case, durations are automatically computed as weighted average of total path length
     TrajectoryInterpolatorJointSpace(double motion_time_tot,
-                             const std::vector<ChVectorDynamic<>>& waypoints,
-                             SpacefunType spacefun,
-                             std::vector<double>* durations = nullptr);
+                                     const std::vector<ChVectorDynamic<>>& waypoints,
+                                     SpacefunType spacefun,
+                                     std::vector<double>* durations = nullptr);
 
     /// Setup interpolator internal data.
     /// NB: must to be manually called after settings are changed.

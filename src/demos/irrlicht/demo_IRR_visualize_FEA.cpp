@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     // Visualization of the FEM mesh.
     {
         // Mesh visualization - speed
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
         vis_mesh->SetColorscaleMinMax(0.0, 5.50);
         vis_mesh->SetShrinkElements(true, 0.85);
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     {
         // Mesh visualization - reference configuration (wireframe)
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         vis_mesh->SetWireframe(true);
         vis_mesh->SetDrawInUndeformedReference(true);
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
 
     {
         // Node visualization - positions
-        auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+        auto vis_nodes = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
         vis_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         vis_nodes->SetSymbolsThickness(0.006);

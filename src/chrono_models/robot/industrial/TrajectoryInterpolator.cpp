@@ -146,7 +146,7 @@ void TrajectoryInterpolatorOperationSpace::SetupRotationFunction() {
     }
 }
 
-std::shared_ptr<ChFunction> TrajectoryInterpolatorOperationSpace::SetupSpaceFunction(SpacefunType spacefun_type) {
+std::shared_ptr<ChFunctionSequence> TrajectoryInterpolatorOperationSpace::SetupSpaceFunction(SpacefunType spacefun_type) {
     auto spacefun = chrono_types::make_shared<ChFunctionSequence>();
     auto num_motions = m_waypoints.size() - 1;
 
@@ -302,7 +302,7 @@ void TrajectoryInterpolatorJointSpace::Setup(double motion_time_tot,
     }
 
     // Initialize motion functions
-    for (auto i = 0; i < m_num_joints; ++i) {
+    for (unsigned int i = 0; i < m_num_joints; ++i) {
         m_motfuns.push_back(chrono_types::make_shared<ChFunctionSequence>());
     }
 

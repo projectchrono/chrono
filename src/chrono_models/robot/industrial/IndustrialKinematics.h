@@ -41,8 +41,12 @@ class CH_MODELS_API IndustrialKinematics {
     /// Get number of robot joints.
     int GetNumJoints() const { return m_num_joints; }
 
+    /// Toggle verbosity.
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
   protected:
-    int m_num_joints = 0;
+    unsigned int m_num_joints = 0;
+    bool m_verbose = false;
 };
 
 /// @} robot_models_industrial

@@ -208,15 +208,12 @@ inline __host__ __device__ Real3 GradW3h(KernelType type, Real3 d, Real invh) {
 inline __device__ Real Eos(Real rho, EosType eos_type) {
     switch (eos_type) {
         case EosType::TAIT: {
-            // Luning TODO: more testing needed on this one, not sure what to do with
-            // from https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations, it says
-            // it can avoid the particle sticking behavior.
             // Tait EOS with Hughes and Graham Correction
-            // also what do i do with the inverseEos?
-            // if (rho < paramsD.rho0) //
-            //      rho = paramsD.rho0; //
+            // See https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
+            // if (rho < paramsD.rho0)
+            //      rho = paramsD.rho0;
             Real gama = 7;
-            Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
+            Real B = paramsD.rho0 * paramsD.Cs * paramsD.Cs / gama;
             return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.base_pressure;
         }
         case EosType::ISOTHERMAL: {
@@ -231,8 +228,7 @@ inline __device__ Real InvEos(Real pw, EosType eos_type) {
     switch (eos_type) {
         case EosType::TAIT: {
             Real gama = 7;
-            Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;  // 200;//314e6; //c^2 * paramsD.rho0 /
-                                                                                 // gama where c = 1484 m/s for water
+            Real B = paramsD.rho0 * paramsD.Cs * paramsD.Cs / gama;
             Real powerComp = (pw - paramsD.base_pressure) / B + 1.0;
             Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama)
                                        : -paramsD.rho0 * pow(fabs(powerComp), 1.0 / gama);

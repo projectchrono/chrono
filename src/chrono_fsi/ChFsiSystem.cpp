@@ -44,11 +44,12 @@ ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
       m_sysCFD(sysCFD),
       m_is_initialized(false),
       m_verbose(true),
+      m_MBD_enabled(true),
       m_step_MBD(-1),
       m_step_CFD(-1),
       m_time(0),
-      m_RTF(0),
-      m_ratio_MBS(0) {}
+      m_RTF(-1),
+      m_ratio_MBD(-1) {}
 
 ChFsiSystem::~ChFsiSystem() {}
 
@@ -201,14 +202,18 @@ void ChFsiSystem::AdvanceCFD(double step, double threshold) {
 
 void ChFsiSystem::AdvanceMBS(double step, double threshold) {
     double t = 0;
-    while (t < step) {
-        double h = std::min<>(m_step_MBD, step - t);
-        if (h <= threshold)
-            break;
-        m_sysMBS.DoStepDynamics(h);
-        t += h;
+    if (m_MBD_callback) {
+        m_MBD_callback->Advance(step, threshold);
+    } else {
+        while (t < step) {
+            double h = std::min<>(m_step_MBD, step - t);
+            if (h <= threshold)
+                break;
+            m_sysMBS.DoStepDynamics(h);
+            t += h;
+        }
     }
-    m_timer_MBS = m_sysMBS.GetTimerStep();
+    m_timer_MBD = m_sysMBS.GetTimerStep();
 }
 
 void ChFsiSystem::DoStepDynamics(double step) {
@@ -236,19 +241,26 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_sysCFD.OnExchangeSolidStates();
     m_timer_FSI.stop();
 
-    // Advance dynamics of the two phaes:
+    // Advance dynamics of the two phases.
+    // If MBS dynamics is enabled:
     //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
     //   2. Advance the dynamics of the fluid system (in the main thread)
     //   3. Wait for the MBS thread to finish execution.
-    std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
-    AdvanceCFD(step, threshold_CFD);
-    th.join();
+    if (m_MBD_enabled) {
+        std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
+        AdvanceCFD(step, threshold_CFD);
+        th.join();
+    } else {
+        AdvanceCFD(step, threshold_CFD);
+    }
 
     m_timer_step.stop();
 
-    // Calculate RTF
-    m_RTF = m_timer_step() / step;
-    m_ratio_MBS = m_timer_MBS / m_timer_CFD;
+    // Calculate RTF and MBD/CFD timer ratio
+    if (m_MBD_enabled) {
+        m_RTF = m_timer_step() / step;
+        m_ratio_MBD = m_timer_MBD / m_timer_CFD;
+    }
 
     // Update simulation time
     m_time += step;

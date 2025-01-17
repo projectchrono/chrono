@@ -268,12 +268,6 @@ int main() {
     // Initialize the tire test rig
     rig.Initialize(test_mode);
 
-    // Optionally, modify tire visualization (can be done only after initialization)
-    if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        if (tire_def->GetMeshVisualization())
-            tire_def->GetMeshVisualization()->SetColorscaleMinMax(0.0, 5.0);  // range for nodal speed norm
-    }
-
     // ---------------------------------
     // Create the run-time visualization
     // ---------------------------------

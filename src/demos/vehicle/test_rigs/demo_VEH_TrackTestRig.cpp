@@ -77,18 +77,18 @@ double step_size_NSC = 1e-3;
 double step_size_SMC = 5e-4;
 
 // Solver and integrator types
-////ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
+ChSolver::Type slvr_type = ChSolver::Type::BARZILAIBORWEIN;
 ////ChSolver::Type slvr_type = ChSolver::Type::PSOR;
 ////ChSolver::Type slvr_type = ChSolver::Type::MINRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::GMRES;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_LU;
 ////ChSolver::Type slvr_type = ChSolver::Type::SPARSE_QR;
-ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
+////ChSolver::Type slvr_type = ChSolver::Type::PARDISO_MKL;
 ////ChSolver::Type slvr_type = ChSolver::Type::MUMPS;
 
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT;
-ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+////ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+ChTimestepper::Type intgr_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
 ////ChTimestepper::Type intgr_type = ChTimestepper::Type::HHT;
 
 // Verbose output level (solver and integrator)

@@ -61,6 +61,7 @@ std::shared_ptr<ChVisualShape> ChPhysicsItem::GetVisualShape(unsigned int i) con
 }
 
 void ChPhysicsItem::AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape) {
+    shape->physics_item = this;
     if (!vis_model_instance) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         AddVisualModel(model);

@@ -43,8 +43,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(double length, double width)
     : ChVehicleCosimBaseNode("TERRAIN"),
-      m_dimX(length / 2),
-      m_dimY(width / 2),
+      m_dimX(length),
+      m_dimY(width),
       m_load_mass(50),
       m_interface_type(InterfaceType::BODY) {}
 
@@ -89,10 +89,34 @@ void ChVehicleCosimTerrainNode::Initialize() {
             cout << "[Terrain node] Send: terrain width = " << init_dim[2] << endl;
         }
 
-        // 2. Receive number of interacting object from MBS node
+        // Send path information to MBS node
+        unsigned int num_path_points = (unsigned int)m_path_points.size();
+        MPI_Send(&num_path_points, 1, MPI_INT, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
+        if (num_path_points > 0) {
+            std::vector<double> all_points(3 * num_path_points);
+            unsigned int start_idx = 0;
+            for (unsigned int i = 0; i < num_path_points; i++) {
+                all_points[start_idx + 0] = m_path_points[i].x();
+                all_points[start_idx + 1] = m_path_points[i].y();
+                all_points[start_idx + 2] = m_path_points[i].z();
+                start_idx += 3;
+            }
+            MPI_Send(all_points.data(), 3 * num_path_points, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
+        }
+
+        // 2. Receive number of interacting objects from MBS node and then their initial locations
 
         MPI_Status status;
         MPI_Recv(&m_num_objects, 1, MPI_INT, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+        std::vector<double> all_locations(3 * m_num_objects);
+        MPI_Recv(all_locations.data(), 3 * m_num_objects, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        unsigned int start_idx = 0;
+        for (int i = 0; i < m_num_objects; i++) {
+            ChVector3d loc(all_locations[start_idx + 0], all_locations[start_idx + 1], all_locations[start_idx + 2]);
+            m_init_loc.push_back(loc);
+            start_idx += 3;
+        }
 
         // 3. Receive expected communication interface type
 
@@ -237,6 +261,10 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
                 SynchronizeTrackedMesh(step_number, time);
             break;
     }
+
+    // Receive vehicle location
+    MPI_Status status;
+    MPI_Recv(m_chassis_loc.data(), 3, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
     // Let derived classes perform optional operations
     OnSynchronize(step_number, time);

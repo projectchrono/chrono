@@ -63,7 +63,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
     m_device_params.LoggingLevel = irr::ELL_INFORMATION;
 
     // Create the GUI
-    m_gui = std::unique_ptr<ChIrrGUI>(new ChIrrGUI());
+    m_gui = std::make_unique<ChIrrGUI>();
 
     // Create shared meshes
     sphereMesh = createEllipticalMesh(1.0, 1.0, -2, +2, 0, 15, 8);

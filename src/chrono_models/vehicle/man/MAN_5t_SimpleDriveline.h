@@ -41,10 +41,15 @@ class CH_MODELS_API MAN_5t_SimpleDriveline : public ChSimpleDriveline {
     virtual double GetFrontDifferentialMaxBias() const override { return m_front_diff_bias; }
     virtual double GetRearDifferentialMaxBias() const override { return m_rear_diff_bias; }
 
+    virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
+    virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
+
   private:
     static const double m_front_torque_frac;
     static const double m_front_diff_bias;
     static const double m_rear_diff_bias;
+    static const double m_front_conicalgear_ratio;
+    static const double m_rear_conicalgear_ratio;
 };
 
 /// @} vehicle_models_man

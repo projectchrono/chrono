@@ -1362,6 +1362,21 @@ void ChContactSurfaceMesh::RemoveCollisionModelsFromSystem(ChCollisionSystem* co
     }
 }
 
+ChAABB ChContactSurfaceMesh::GetAABB() const {
+    ChAABB aabb;
+    for (const auto& face : m_faces) {
+        aabb += face->GetPos1();
+        aabb += face->GetPos2();
+        aabb += face->GetPos3();
+    }
+    for (const auto& face : m_faces_rot) {
+        aabb += face->GetPos1();
+        aabb += face->GetPos2();
+        aabb += face->GetPos3();
+    }
+    return aabb;
+}
+
 void ChContactSurfaceMesh::OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,
                                             std::vector<ChVector3d>& vert_vel,
                                             std::vector<ChVector3i>& triangles,

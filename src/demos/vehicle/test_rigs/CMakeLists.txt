@@ -16,6 +16,10 @@ set(DEMOS
     demo_VEH_MBTire
 )
 
+if(ENABLE_MODULE_FSI)
+    set(DEMOS ${DEMOS} demo_VEH_TireTestRig_CRM)
+endif()
+
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_VEH_SuspensionTestRig
@@ -54,6 +58,10 @@ if(ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 
+if(ENABLE_MODULE_FSI)
+    include_directories(${CH_FSI_INCLUDES})
+    list(APPEND LIBS "ChronoEngine_fsi_sph")
+endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
     include_directories(${CH_MKL_INCLUDES})

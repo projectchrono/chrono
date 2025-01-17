@@ -81,7 +81,18 @@ int main() {
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
     ////rig.SetTerrainRigid(0.8, 2e7, 0, 10.0);
-    rig.SetTerrainGranular(0.02, 6, 2000.0, 0.9, 10.0e3, 1e7);
+    {
+        ChTireTestRig::TerrainParamsGranular params;
+        params.radius = 0.02;
+        params.num_layers = 6;
+        params.density = 2000;
+        params.friction = 0.9;
+        params.cohesion = 1e4;
+        params.Young_modulus = 1e7;
+        params.width = 1;
+
+        rig.SetTerrainGranular(params);
+    }
 
     rig.SetTimeDelay(0.15);
 
