@@ -277,12 +277,10 @@ int main(int argc, char** argv) {
         }
         auto driver = chrono_types::make_shared<MyDriver>(0.2);
         curiosity->SetDriver(driver);
-        curiosity->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         curiosity->SetVerbose(verbose);
         curiosity->SetInitialLocation(ChVector3d(init_loc.x(), init_loc.y(), 0.1));
         curiosity->SetInitialYaw(0);
         curiosity->SetStepSize(step_size);
-        curiosity->SetNumThreads(1);
         curiosity->SetOutDir(out_dir, suffix);
         if (renderRT)
             curiosity->EnableRuntimeVisualization(render_fps);
@@ -304,7 +302,6 @@ int main(int argc, char** argv) {
             rank - 2, vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
-        tire->SetNumThreads(1);
         tire->SetOutDir(out_dir, suffix);
 
         node = tire;

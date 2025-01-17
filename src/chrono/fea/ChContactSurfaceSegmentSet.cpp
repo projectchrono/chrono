@@ -419,5 +419,18 @@ void ChContactSurfaceSegmentSet::RemoveCollisionModelsFromSystem(ChCollisionSyst
     }
 }
 
+ChAABB ChContactSurfaceSegmentSet::GetAABB() const {
+    ChAABB aabb;
+    for (const auto& seg : m_segments) {
+        aabb += seg->GetPos1();
+        aabb += seg->GetPos2();
+    }
+    for (const auto& seg : m_segments_rot) {
+        aabb += seg->GetPos1();
+        aabb += seg->GetPos2();
+    }
+    return aabb;
+}
+
 }  // end namespace fea
 }  // end namespace chrono

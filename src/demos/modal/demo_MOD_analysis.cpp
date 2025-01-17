@@ -116,14 +116,14 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
 
     // VISUALIZATION ASSETS:
 
-    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizebeamC->SetSymbolsThickness(0.2);
@@ -208,14 +208,14 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
 
     // VISUALIZATION ASSETS:
 
-    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizebeamC->SetSymbolsThickness(0.2);

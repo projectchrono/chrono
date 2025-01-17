@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Polaris wheeled vehicle on CRM terrain (initialized from particle data files)
+// Polaris wheeled vehicle on CRM terrain
 //
 // =============================================================================
 
@@ -20,19 +20,18 @@
 #include <string>
 #include <stdexcept>
 #include <iomanip>
+#include <thread>
 
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtils.h"
-
-#include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -43,6 +42,8 @@
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
+
+#include "demos/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -59,68 +60,114 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // CRM terrain patch type
 enum class PatchType { RECTANGULAR, MARKER_DATA, HEIGHT_MAP };
-PatchType patch_type = PatchType::HEIGHT_MAP;
+PatchType patch_type = PatchType::RECTANGULAR;
+
+// Terrain dimensions (for RECTANGULAR or HEIGHT_MAP patch type)
+double terrain_length = 20;
+double terrain_width = 3;
+
+// Vehicle specification files
+std::string vehicle_json = "Polaris/Polaris.json";
+std::string engine_json = "Polaris/Polaris_EngineSimpleMap.json";
+std::string transmission_json = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
+std::string tire_json = "Polaris/Polaris_RigidTire.json";
+////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+
+// Suspend vehicle
+bool fix_chassis = false;
 
 // ===================================================================================================================
 
-std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystem& sys, const ChCoordsys<>& init_pos);
+std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool& fea_tires);
+void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain);
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file);
-void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain);
 
 // ===================================================================================================================
 
 int main(int argc, char* argv[]) {
-    // Set model and simulation parameters
-    std::string terrain_dir = "terrain/sph/S-lane_RMS";
+    // ---------------- 
+    // Problem settings
+    // ----------------
 
+    double target_speed = 7.0;
+    double tend = 30;
+    bool verbose = true;
+
+    // Visualization settings
+    bool render = true;                    // use run-time visualization
+    double render_fps = 200;               // rendering FPS
+    bool visualization_sph = true;         // render SPH particles
+    bool visualization_bndry_bce = false;  // render boundary BCE markers
+    bool visualization_rigid_bce = true;   // render wheel BCE markers
+    bool chase_cam = true;                 // chase-cam or fixed camera
+
+    // CRM material properties
     double density = 1700;
     double cohesion = 5e3;
     double friction = 0.8;
     double youngs_modulus = 1e6;
     double poisson_ratio = 0.3;
 
-    double target_speed = 7.0;
-    double tend = 30;
-    double step_size = 5e-4;
+    // CRM (moving) active box dimension
     double active_box_hdim = 0.4;
-
-    bool render = true;       // use run-time visualization
-    double render_fps = 200;  // rendering FPS
-
-    bool visualization_sph = true;         // render SPH particles
-    bool visualization_bndry_bce = false;  // render boundary BCE markers
-    bool visualization_rigid_bce = false;  // render wheel BCE markers
-
-    bool chase_cam = true;  // chase-cam or fixed camera
-
-    bool verbose = true;
 
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
 
-    // Create the Chrono system and associated collision system
-    ChSystemNSC sys;
-    sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
+    // --------------
     // Create vehicle
-    cout << "Create vehicle..." << endl;
-    ChVector3d veh_init_pos(3.2, 0, 0.25);
-    auto vehicle = CreateVehicle(sys, ChCoordsys<>(veh_init_pos, QUNIT));
+    // --------------
 
-    // Create the CRM terrain system
-    CRMTerrain terrain(sys, spacing);
-    terrain.SetVerbose(verbose);
+    cout << "Create vehicle..." << endl;
+    double vehicle_init_height = 0.25;
+    bool fea_tires;
+    auto vehicle = CreateVehicle(ChCoordsys<>(ChVector3d(3.5, 0, vehicle_init_height), QUNIT), fea_tires);
+    vehicle->GetChassis()->SetFixed(fix_chassis);
+    auto sysMBS = vehicle->GetSystem();
+
+    // ---------------------------------
+    // Set solver and integrator for MBD
+    // ---------------------------------
+
+    double step_size = 0;
+    ChSolver::Type solver_type;
+    ChTimestepper::Type integrator_type;
+
+    if (fea_tires) {
+        step_size = 1e-4;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    } else {
+        step_size = 5e-4;
+        solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+
+    SetChronoSolver(*sysMBS, solver_type, integrator_type, num_threads_pardiso);
+    sysMBS->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+
+    // Set collision system
+    sysMBS->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    // ----------------------
+    // Create the CRM terrain
+    // ----------------------
+
+    CRMTerrain terrain(*sysMBS, spacing);
     ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    terrain.SetVerbose(verbose);
+    terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    terrain.SetStepSizeCFD(step_size);
+
+    // Disable automatic integration of the (vehicle) multibody system
+    terrain.DisableMBD();
 
     // Set SPH parameters and soil material properties
-    const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sys.SetGravitationalAcceleration(gravity);
-
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
-
     ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
@@ -130,9 +177,9 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = cohesion;
+    terrain.SetElasticSPH(mat_props);
 
-    sysSPH.SetElasticSPH(mat_props);
-
+    // Set SPH solver parameters
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = spacing;
@@ -143,41 +190,50 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
     sph_params.boundary_type = BoundaryType::ADAMI;
-    sysSPH.SetSPHParameters(sph_params);
+    terrain.SetSPHParameters(sph_params);
 
-    sysSPH.SetActiveDomain(ChVector3d(active_box_hdim));
+    // Set output level from SPH simulation
+    terrain.SetOutputLevel(OutputLevel::STATE);
 
-    sysSPH.SetOutputLevel(OutputLevel::STATE);
+    // Add vehicle wheels as FSI solids
+    CreateFSIWheels(vehicle, terrain);
+    terrain.SetActiveDomain(ChVector3d(active_box_hdim));
 
-    // Add rover wheels as FSI bodies
-    CreateWheelBCEMarkers(vehicle, terrain);
-
-    // Construct the terrain
+    // Construct the terrain and associated path
     cout << "Create terrain..." << endl;
+    std::shared_ptr<ChBezierCurve> path;
     switch (patch_type) {
         case PatchType::RECTANGULAR:
             // Create a rectangular terrain patch
-            terrain.Construct({10.0, 3.0, 0.25},              // length X width X height
-                              ChVector3d(5, 0, 0),            // patch center
-                              BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries, except top
+            terrain.Construct({terrain_length, terrain_width, 0.25},  // length X width X height
+                              ChVector3d(terrain_length / 2, 0, 0),   // patch center
+                              BoxSide::ALL & ~BoxSide::Z_POS          // all boundaries, except top
             );
-            break;
-        case PatchType::MARKER_DATA:
-            // Create a patch using SPH particles and BCE markers from files
-            terrain.Construct(vehicle::GetDataFile(terrain_dir + "/sph_particles.txt"),  // SPH marker locations
-                              vehicle::GetDataFile(terrain_dir + "/bce_markers.txt"),    // BCE marker locations
-                              VNULL);
+            // Create straight line path
+            path = StraightLinePath(ChVector3d(0, 0, vehicle_init_height),
+                                    ChVector3d(terrain_length, 0, vehicle_init_height), 1);
             break;
         case PatchType::HEIGHT_MAP:
             // Create a patch from a heigh field map image
             terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
-                              10.0, 3.0,                                               // length (X) and width (Y)
+                              terrain_length, terrain_width,                           // length (X) and width (Y)
                               {0, 0.3},                                                // height range
                               0.25,                                                    // depth
                               true,                                                    // uniform depth
-                              ChVector3d(5, 0, 0),                                     // patch center
+                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
                               BoxSide::Z_NEG                                           // bottom wall
             );
+            // Create straight line path
+            path = StraightLinePath(ChVector3d(0, 0, vehicle_init_height),
+                                    ChVector3d(terrain_length, 0, vehicle_init_height), 1);
+            break;
+        case PatchType::MARKER_DATA:
+            // Create a patch using SPH particles and BCE markers from files
+            terrain.Construct(vehicle::GetDataFile("terrain/sph/S-lane_RMS/sph_particles.txt"),  // SPH marker locations
+                              vehicle::GetDataFile("terrain/sph/S-lane_RMS/bce_markers.txt"),    // BCE marker locations
+                              VNULL);
+            // Create path from data file
+            path = CreatePath("terrain/sph/S-lane_RMS/path.txt");
             break;
     }
 
@@ -185,23 +241,28 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << sysSPH.GetNumFluidMarkers() << endl;
-    cout << "  Bndry BCE markers: " << sysSPH.GetNumBoundaryMarkers() << endl;
+    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
     cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Set maximum vehicle X location (based on CRM patch size)
-    double x_max = aabb.max.x() - 3.0;
+    double x_max = aabb.max.x() - 4.5;
 
-    // Create driver
+    // --------------------------------
+    // Create the path-following driver
+    // --------------------------------
+
     cout << "Create path..." << endl;
-    auto path = CreatePath(terrain_dir + "/path.txt");
     ChPathFollowerDriver driver(*vehicle, path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(2.0);
     driver.GetSteeringController().SetGains(1.0, 0, 0);
     driver.GetSpeedController().SetGains(0.6, 0.05, 0);
     driver.Initialize();
 
+    // -----------------------------
     // Create run-time visualization
+    // -----------------------------
+
 #ifndef CHRONO_OPENGL
     if (vis_type == ChVisualSystem::Type::OpenGL)
         vis_type = ChVisualSystem::Type::VSG;
@@ -241,28 +302,26 @@ int main(int argc, char* argv[]) {
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
                                                                                            aabb.min.z(), aabb.max.z()));
-        visFSI->AttachSystem(&sys);
+        visFSI->AttachSystem(sysMBS);
         visFSI->Initialize();
     }
 
+    // ---------------
     // Simulation loop
-    DriverInputs driver_inputs = {0, 0, 0};
+    // ---------------
+
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
 
-    double timer_CFD = 0;
-    double timer_MBS = 0;
-    double timer_FSI = 0;
-    double timer_step = 0;
-
     cout << "Start simulation..." << endl;
 
+    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
         // Set current driver inputs
-        driver_inputs = driver.GetInputs();
+        auto driver_inputs = driver.GetInputs();
 
         // Ramp up throttle to value requested by the cruise controller
         if (time < 0.5) {
@@ -290,28 +349,34 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
         if (!render) {
-            std::cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRtf() << std::endl;
+            std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
         }
 
         // Synchronize systems
         driver.Synchronize(time);
+        terrain.Synchronize(time);
         vehicle->Synchronize(time, driver_inputs, terrain);
 
         // Advance system state
         driver.Advance(step_size);
-        sysFSI.DoStepDynamics(step_size);
+        timer.reset();
+        timer.start();
+        // (a) Sequential integration of terrain and vehicle systems
+        ////terrain.Advance(step_size);
+        ////vehicle->Advance(step_size);
+        // (b) Concurrent integration (vehicle in main thread)
+        ////std::thread th(&CRMTerrain::Advance, &terrain, step_size);
+        ////vehicle->Advance(step_size);
+        ////th.join();
+        // (c) Concurrent integration (terrain in main thread)
+        std::thread th(&ChWheeledVehicle::Advance, vehicle.get(), step_size);
+        terrain.Advance(step_size);
+        th.join();
 
-        timer_CFD += sysFSI.GetTimerCFD();
-        timer_MBS += sysFSI.GetTimerMBS();
-        timer_FSI += sysFSI.GetTimerFSI();
-        timer_step += sysFSI.GetTimerStep();
-        if (sim_frame == 2000) {
-            cout << "Cummulative timers at time: " << time << endl;
-            cout << "   timer CFD:  " << timer_CFD << endl;
-            cout << "   timer MBS:  " << timer_MBS << endl;
-            cout << "   timer FSI:  " << timer_FSI << endl;
-            cout << "   timer step: " << timer_step << endl;
-        }
+        // Set correct overall RTF for the FSI problem
+        timer.stop();
+        double rtf = timer() / step_size;
+        sysFSI.SetRtf(rtf);
 
         time += step_size;
         sim_frame++;
@@ -322,14 +387,11 @@ int main(int argc, char* argv[]) {
 
 // ===================================================================================================================
 
-std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystem& sys, const ChCoordsys<>& init_pos) {
-    std::string vehicle_json = "Polaris/Polaris.json";
-    std::string engine_json = "Polaris/Polaris_EngineSimpleMap.json";
-    std::string transmission_json = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
-    std::string tire_json = "Polaris/Polaris_RigidTire.json";
+std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool& fea_tires) {
+    fea_tires = false;
 
     // Create and initialize the vehicle
-    auto vehicle = chrono_types::make_shared<WheeledVehicle>(&sys, vehicle::GetDataFile(vehicle_json));
+    auto vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(vehicle_json), ChContactMethod::SMC);
     vehicle->Initialize(init_pos);
     vehicle->GetChassis()->SetFixed(false);
     vehicle->SetChassisVisualizationType(VisualizationType::MESH);
@@ -348,10 +410,41 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystem& sys, const ChCoordsys<>&
         for (auto& wheel : axle->GetWheels()) {
             auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
             vehicle->InitializeTire(tire, wheel, VisualizationType::MESH);
+            if (std::dynamic_pointer_cast<ChDeformableTire>(tire))
+                fea_tires = true;
         }
     }
 
     return vehicle;
+}
+
+void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain) {
+    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
+    utils::ChBodyGeometry geometry;
+    geometry.materials.push_back(ChContactMaterialData());
+    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
+
+    for (auto& axle : vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto tire_fea = std::dynamic_pointer_cast<ChDeformableTire>(wheel->GetTire());
+            if (tire_fea) {
+                auto mesh = tire_fea->GetMesh();
+                if (mesh->GetNumContactSurfaces() > 0) {
+                    auto surf = mesh->GetContactSurface(0);
+                    cout << "FEA tire HAS contact surface: ";
+                    if (std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(surf))
+                        cout << " NODE_CLOUD" << endl;
+                    else
+                        cout << " TRI_MESH" << endl;
+                } else {
+                    cout << "FEA tire DOES NOT HAVE contact surface!" << endl;
+                }
+                terrain.AddFeaMesh(mesh, false);
+            } else {
+                terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
+            }
+        }
+    }
 }
 
 std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
@@ -393,17 +486,4 @@ std::shared_ptr<ChBezierCurve> CreatePath(const std::string& path_file) {
     ifile.close();
 
     return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points));
-}
-
-void CreateWheelBCEMarkers(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain) {
-    std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
-
-    for (auto& axle : vehicle->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            terrain.AddRigidBody(wheel->GetSpindle(), geometry, false);
-        }
-    }
 }

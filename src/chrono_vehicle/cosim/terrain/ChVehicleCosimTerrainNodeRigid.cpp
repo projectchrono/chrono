@@ -81,6 +81,11 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
+
+    // Set associated path
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string& specfile, ChContactMethod method)
@@ -105,6 +110,11 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string
 
     // Read rigid terrain parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Set associated path
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
@@ -211,8 +221,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     vis_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
     vis_mat->SetTextureScale(m_dimX, m_dimY);
 
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, 0.2), ChVector3d(0, 0, -0.1),
-                          ChQuaternion<>(1, 0, 0, 0), true, vis_mat);
+    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector3d(m_dimX, m_dimY, 0.2),
+                          ChVector3d(m_dimX / 2, 0, -0.1), QUNIT, true, vis_mat);
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
@@ -486,11 +496,8 @@ void ChVehicleCosimTerrainNodeRigid::OnRender() {
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
-        auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[0]);  // proxy for first object
-        ChVector3d cam_point = proxy->bodies[0]->GetPos();                  // position of first body in proxy set
-        m_vsys->UpdateCamera(m_cam_pos, cam_point);
-    }
+    if (m_track)
+        m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
     m_vsys->BeginScene();
     m_vsys->Render();

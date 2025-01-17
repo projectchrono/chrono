@@ -25,6 +25,7 @@ set(PROGRAMS
 )
 
 if(ENABLE_MODULE_VEHICLE_MODELS)
+
   set(PROGRAMS ${PROGRAMS}
       demo_VEH_Cosim_WheeledVehicle
       demo_VEH_Cosim_TrackedVehicle
@@ -35,11 +36,17 @@ if(ENABLE_MODULE_VEHICLE_MODELS)
         demo_VEH_Cosim_WheeledVehicle_SPH)
   endif()
 
+  if(ENABLE_MODULE_MULTICORE AND ENABLE_MODULE_OPENGL)
+    set(PROGRAMS ${PROGRAMS}
+        demo_VEH_Cosim_WheeledVehicle_OMP)
+  endif()
+
 endif()
 
 include_directories(${CH_VEHCOSIM_INCLUDES})
 list(APPEND LIBRARIES ChronoEngine_vehicle_cosim)
 list(APPEND LIBRARIES ${CH_VEHCOSIM_LIBRARIES})
+
 if(ENABLE_MODULE_VEHICLE_MODELS)
   list(APPEND LIBRARIES ChronoModels_vehicle)
 endif()

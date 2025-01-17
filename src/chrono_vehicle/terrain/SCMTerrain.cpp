@@ -1494,7 +1494,6 @@ void SCMLoader::ComputeInternalForces() {
         }
 
         for (const auto& f : m_node_forces) {
-            std::cout << f.second << std::endl;
             auto force_load = chrono_types::make_shared<ChLoadNodeXYZ>(f.first, f.second);
             Add(force_load);
         }

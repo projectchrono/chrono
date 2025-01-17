@@ -76,13 +76,13 @@ sys.Add(constraint2)
 sys.Add(constraint3)
 
 # FEA mesh visualization settings
-fea_vis_wireframe = chrono.ChVisualShapeFEA(mesh)
+fea_vis_wireframe = chrono.ChVisualShapeFEA()
 fea_vis_wireframe.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 fea_vis_wireframe.SetWireframe(True)
 fea_vis_wireframe.SetDrawInUndeformedReference(True)
 mesh.AddVisualShapeFEA(fea_vis_wireframe)
 
-fea_vis_surface = chrono.ChVisualShapeFEA(mesh)
+fea_vis_surface = chrono.ChVisualShapeFEA()
 fea_vis_surface.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NONE)
 fea_vis_surface.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 fea_vis_surface.SetZbufferHide(False)

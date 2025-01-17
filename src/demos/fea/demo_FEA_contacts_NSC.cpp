@@ -209,27 +209,27 @@ int main(int argc, char* argv[]) {
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
     /*
-        auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
         mvisualizemeshcoll->SetWireframe(true);
         mvisualizemeshcoll->SetDefaultMeshColor(ChColor(0.2, 0.2, 0.2));
         my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
     */
 
-    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_beams);
+    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
     my_mesh_beams->AddVisualShapeFEA(mvisualizemeshbeam);
 
     /*
-        auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_beams);
+        auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
         mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         mvisualizemeshbeamnodes->SetSymbolsThickness(0.008);

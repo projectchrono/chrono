@@ -288,26 +288,26 @@ void DPCapPress(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -316,7 +316,7 @@ void DPCapPress(const std::string& out_dir) {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -626,26 +626,26 @@ void ShellBrickContact(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -654,7 +654,7 @@ void ShellBrickContact(const std::string& out_dir) {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -662,26 +662,26 @@ void ShellBrickContact(const std::string& out_dir) {
 
     // Duplicate irrlicht settings for the shell mesh
 
-    auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh_shell->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh_shell->SetShrinkElements(true, 0.85);
     mvisualizemesh_shell->SetSmoothFaces(true);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemesh_shell);
 
-    auto mvisualizemeshref_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshref_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref_shell->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref_shell->SetWireframe(true);
     mvisualizemeshref_shell->SetDrawInUndeformedReference(true);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshref_shell);
 
-    auto mvisualizemeshC_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshC_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC_shell->SetSymbolsThickness(0.004);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshC_shell);
 
-    auto mvisualizemeshD_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshD_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -690,7 +690,7 @@ void ShellBrickContact(const std::string& out_dir) {
     mvisualizemeshD_shell->SetZbufferHide(false);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshD_shell);
 
-    auto mvisualizemeshcoll_shell = chrono_types::make_shared<ChVisualShapeFEA>(my_shell_mesh);
+    auto mvisualizemeshcoll_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll_shell->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll_shell->SetWireframe(true);
     mvisualizemeshcoll_shell->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -955,26 +955,26 @@ void SimpleBoxContact(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.99);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -983,7 +983,7 @@ void SimpleBoxContact(const std::string& out_dir) {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -1270,26 +1270,26 @@ void SoilBin(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -1298,7 +1298,7 @@ void SoilBin(const std::string& out_dir) {
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     mvisualizemeshcoll->SetWireframe(true);
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
@@ -1545,26 +1545,26 @@ void AxialDynamics(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    // auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     // mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     // mvisualizemesh->SetShrinkElements(true, 0.85);
     // mvisualizemesh->SetSmoothFaces(true);
     // my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    // auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     // mvisualizemeshref->SetWireframe(true);
     // mvisualizemeshref->SetDrawInUndeformedReference(true);
     // my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    // auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     // mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizemeshC->SetSymbolsThickness(0.004);
     // my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     //// mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     // mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -1761,26 +1761,26 @@ void BendingQuasiStatic(const std::string& out_dir) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
@@ -1981,26 +1981,26 @@ void SwingingShell(const std::string& out_dir) {
 
     sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_STRESS_VONMISES);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_VECT_SPEED);
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);

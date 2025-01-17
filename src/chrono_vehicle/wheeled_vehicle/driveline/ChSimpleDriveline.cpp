@@ -30,7 +30,7 @@ namespace vehicle {
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
 ChSimpleDriveline::ChSimpleDriveline(const std::string& name)
-    : ChDrivelineWV(name), m_connected(true), m_driveshaft_speed(0) {}
+    : ChDrivelineWV(name), m_connected(true), m_driveshaft_speed(0), m_zero_torque(20) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -90,20 +90,31 @@ void differentialSplit(double torque,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
     if (!m_connected)
         return;
 
+    if (std::abs(driveshaft_torque) < m_zero_torque)
+        return;
+
+    double alpha = GetFrontTorqueFraction();
+
     // Set driveshaft speed (output to transmission)
     double speed_front = 0.5 * (m_front_left->GetPosDt() + m_front_right->GetPosDt());
     double speed_rear = 0.5 * (m_rear_left->GetPosDt() + m_rear_right->GetPosDt());
-    double alpha = GetFrontTorqueFraction();
+
+    speed_front *= GetFrontConicalGearRatio();
+    speed_rear *= GetRearConicalGearRatio();
+
     m_driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
 
     // Split the input torque front/back.
-    double torque_front = driveshaft_torque * GetFrontTorqueFraction();
+    double torque_front = driveshaft_torque * alpha;
     double torque_rear = driveshaft_torque - torque_front;
+
+    torque_front /= GetFrontConicalGearRatio();
+    torque_rear /= GetRearConicalGearRatio();
 
     // Split the axle torques for the corresponding left/right wheels and apply
     // them to the suspension wheel shafts.
@@ -122,7 +133,7 @@ void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inpu
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 double ChSimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
     if (!m_connected)
         return 0;

@@ -85,13 +85,35 @@ class CH_FSI_API ChFsiSystem {
     /// integration step size was provided.
     virtual void Initialize();
 
+    /// Class to specify step dynamics for the associated multibody system.
+    class CH_FSI_API MBDCallback {
+      public:
+        virtual ~MBDCallback() {}
+        /// Advance the state of the associated multibody system by the provided step. The MBS integration can take as
+        /// many steps as necessary to reach the final step within the provided threshold.
+        virtual void Advance(double step, double threshold) = 0;
+    };
+
+    /// Set a custom function for advancing the dynamics of the associated multibody system.
+    /// If not provided, the MBS system is integrated with the specified step size (see SetStepsizeMBD).
+    void RegisterMBDCallback(std::shared_ptr<MBDCallback> callback) { m_MBD_callback = callback; }
+
+    /// Disable automatic integration of the associated multibody system.
+    /// Notes:
+    /// - By default, DoStepDynamics integrates both the multibody and fluid systems.
+    /// - If MBD integration is disabled, it is the caller's responsibility to advance the dynamics of the associated
+    /// multibody system, separate from the call to ChFsiSystem::DoStepDynamics (which, in this case, only performs the
+    /// data exchange between the two systems and advances the dynamics of the fluid system).
+    /// - The multibody system dynamics must be advanced **after** the call to ChFsiSystem::DoStepDynamics.
+    void DisableMBD() { m_MBD_enabled = false; }
+
     /// Function to advance the FSI system combined state.
-    /// This implements an explicit force-displacement co-simulation step with given meta-step:
+    /// This implements an explicit force-displacement co-simulation step:
     /// - advance fluid dynamics to new data exchange point
     /// - apply fluid forces on solid objects
     /// - advance multibody dynamics to new data exchange point
     /// - extract new states for FSI solid objects
-    /// The multibody step dynamics is ran in a separate thread and does not block execution.
+    /// If enbaled, the multibody step dynamics is ran in a separate thread and does not block execution.
     void DoStepDynamics(double step);
 
     /// Get current simulation time.
@@ -106,14 +128,19 @@ class CH_FSI_API ChFsiSystem {
     /// Get current estimated RTF (real time factor) for the coupled problem.
     double GetRtf() const { return m_RTF; }
 
+    /// Set RTF value for the coupled problem.
+    /// This is necessary for correct reporting if automatic integration of the multibody system dynamics is disabled
+    /// and performed externally.
+    void SetRtf(double rtf) { m_RTF = rtf; }
+
     /// Get current estimated RTF (real time factor) for the fluid system.
     double GetRtfCFD() const { return m_sysCFD.GetRtf(); }
 
     /// Get current estimated RTF (real time factor) for the multibody system.
-    double GetRtfMBS() const { return m_sysMBS.GetRTF(); }
+    double GetRtfMBD() const { return m_sysMBS.GetRTF(); }
 
     /// Get ratio of simulation time spent in MBS integration.
-    double GetRatioMBS() const { return m_ratio_MBS; }
+    double GetRatioMBD() const { return m_ratio_MBD; }
 
     // ----------
 
@@ -124,7 +151,7 @@ class CH_FSI_API ChFsiSystem {
     double GetTimerCFD() const { return m_timer_CFD; }
 
     /// Return the time in seconds for multibody dynamics over the last step.
-    double GetTimerMBS() const { return m_timer_MBS; }
+    double GetTimerMBD() const { return m_timer_MBD; }
 
     /// Return the time in seconds for data exchange between phases over the last step.
     double GetTimerFSI() const { return m_timer_FSI(); }
@@ -167,12 +194,15 @@ class CH_FSI_API ChFsiSystem {
     double m_step_CFD;  ///< time step for fluid dynamics
     double m_time;      ///< current fluid dynamics simulation time
 
+    bool m_MBD_enabled;                           ///< flag controlling dynamics advance for MBS system
+    std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
+
     ChTimer m_timer_step;  ///< timer for integration step
     ChTimer m_timer_FSI;   ///< timer for FSI data exchange
     double m_timer_CFD;    ///< timer for fluid dynamics integration
-    double m_timer_MBS;    ///< timer for multibody dynamics integration
+    double m_timer_MBD;    ///< timer for multibody dynamics integration
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBS;    ///< fraction of step simulation time for MBS integration
+    double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
 };
 
 /// @} fsi_physics

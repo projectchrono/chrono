@@ -54,6 +54,16 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Access the underlying MBS system.
     ChSystem& GetMultibodySystem() { return m_sysFSI.GetMultibodySystem(); }
 
+    /// Enable solution of a CFD problem.
+    void SetCfdSPH(const ChFluidSystemSPH::FluidProperties& fluid_props);
+
+    /// Enable solution of elastic SPH (for continuum representation of granular dynamics).
+    /// By default, a ChSystemFSI solves an SPH fluid dynamics problem.
+    void SetElasticSPH(const ChFluidSystemSPH::ElasticMaterialProperties& mat_props);
+
+    /// Set SPH method parameters.
+    void SetSPHParameters(const ChFluidSystemSPH::SPHParameters& sph_params);
+
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).
     /// By default, where applicable, BCE markers are created using polar coordinates (in layers starting from the shape
@@ -103,22 +113,20 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
       public:
-        ParticlePropertiesCallback(const ChFluidSystemSPH& sysSPH)
-            : sysSPH(sysSPH), p0(0), rho0(0), mu0(0), v0(VNULL) {}
+        ParticlePropertiesCallback() : p0(0), rho0(0), mu0(0), v0(VNULL) {}
         ParticlePropertiesCallback(const ParticlePropertiesCallback& other) = default;
         virtual ~ParticlePropertiesCallback() {}
 
         /// Set values for particle properties.
         /// The default implementation sets pressure and velocity to zero and constant density and viscosity.
         /// If an override is provided, it must set *all* particle properties.
-        virtual void set(const ChVector3d& pos) {
+        virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) {
             p0 = 0;
             rho0 = sysSPH.GetDensity();
             mu0 = sysSPH.GetViscosity();
             v0 = VNULL;
         }
 
-        const ChFluidSystemSPH& sysSPH;
         double p0;
         double rho0;
         double mu0;
@@ -130,6 +138,21 @@ class CH_FSI_API ChFsiProblemSPH {
         m_props_cb = callback;
     }
 
+    /// Set gravitational acceleration for both multibody and fluid systems.
+    void SetGravitationalAcceleration(const ChVector3d& gravity) { m_sysFSI.SetGravitationalAcceleration(gravity); }
+
+    /// Set integration step size for fluid dynamics.
+    void SetStepSizeCFD(double step) { m_sysFSI.SetStepSizeCFD(step); }
+
+    /// Set integration step size for multibody dynamics.
+    /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
+    void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
+
+    /// Disable automatic integration of the associated multibody system.
+    /// If MBD integration is disabled, it is the caller's responsibility to advance the dynamics of the associated
+    /// multibody system, separate from the call to advance the dynamics of the fluid system.
+    void DisableMBD() { m_sysFSI.DisableMBD(); }
+
     /// Explicitly set the computational domain limits.
     /// By default, this is set so that it encompasses all SPH particles and BCE markers.
     void SetComputationalDomainSize(ChAABB aabb) { m_domain_aabb = aabb; }
@@ -137,6 +160,9 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
     void Initialize();
+
+    /// Advance the dynamics of the underlying FSI system by the specified step.
+    void DoStepDynamics(double step);
 
     /// Get the ground body.
     std::shared_ptr<ChBody> GetGroundBody() const { return m_ground; }
@@ -163,8 +189,32 @@ class CH_FSI_API ChFsiProblemSPH {
     /// An exception is thrown if the given body was not added through AddRigidBody.
     const ChVector3d& GetFsiBodyTorque(std::shared_ptr<ChBody> body) const;
 
+    /// Get current estimated RTF (real time factor) for the fluid system.
+    double GetRtfCFD() const { return m_sysSPH.GetRtf(); }
+
+    /// Get current estimated RTF (real time factor) for the multibody system.
+    double GetRtfMBD() const { return m_sysFSI.GetMultibodySystem().GetRTF(); }
+
+    /// Set SPH simulation data output level (default: STATE_PRESSURE).
+    /// Options:
+    /// - STATE           marker state, velocity, and acceleration
+    /// - STATE_PRESSURE  STATE plus density and pressure
+    /// - CFD_FULL        STATE_PRESSURE plus various CFD parameters
+    /// - CRM_FULL        STATE_PRESSURE plus normal and shear stress
+    void SetOutputLevel(OutputLevel output_level);
+
+    /// Save current SPH and solid data to files.
+    /// This functions creates three CSV files (for SPH particles, boundary BCE markers, and solid BCE markers data) in
+    /// the directory `sph_dir` and two CSV files (for force and torque on rigid bodies and flexible nodes) in the
+    /// directory `fsi_dir`.
+    void SaveOutputData(double time, const std::string& sph_dir, const std::string& fsi_dir);
+
     /// Save the set of initial SPH and BCE grid locations to files in the specified output directory.
     void SaveInitialMarkers(const std::string& out_dir) const;
+
+    PhysicsProblem GetPhysicsProblem() const { return m_sysSPH.GetPhysicsProblem(); }
+    std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
+    std::string GetSphMethodTypeString() const { return m_sysSPH.GetSphMethodTypeString(); }
 
   protected:
     /// Create a ChFsiProblemSPH object.
@@ -364,13 +414,13 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
 /// Predefined SPH particle initial properties callback (depth-based pressure).
 class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    DepthPressurePropertiesCallback(const ChFluidSystemSPH& sysSPH, double zero_height)
-        : ParticlePropertiesCallback(sysSPH), zero_height(zero_height) {
-        gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
-        c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
+    DepthPressurePropertiesCallback(double zero_height)
+        : ParticlePropertiesCallback(), zero_height(zero_height) {
     }
 
-    virtual void set(const ChVector3d& pos) override {
+    virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
         p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
         rho0 = sysSPH.GetDensity() + p0 / c2;
         mu0 = sysSPH.GetViscosity();
@@ -379,8 +429,6 @@ class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::Parti
 
   private:
     double zero_height;
-    double gz;
-    double c2;
 };
 
 // ----------------------------------------------------------------------------

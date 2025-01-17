@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2020 projectchrono.org
+// Copyright (c) 2024 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for Polaris wheeled vehicle cosimulation on CRM terrain.
+// Demo for wheeled vehicle cosimulation on granular (OMP) terrain.
 // The vehicle (specified through JSON files, for the vehicle, engine, and
 // transmission) is co-simulated with a terrain node and a number of tire
 // nodes equal to the number of wheels.
@@ -28,7 +28,6 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -36,9 +35,7 @@
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimWheeledVehicleNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
-#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
-
-#include "demos/SetChronoSolver.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
 using std::cout;
 using std::cin;
@@ -51,7 +48,7 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 int main(int argc, char** argv) {
-    // Initialize MPI
+    // Initialize MPI.
     int num_procs;
     int rank;
     int name_len;
@@ -85,19 +82,21 @@ int main(int argc, char** argv) {
     // - step_terrain:    step size for FSI terrain simulation
     // - step_rigid_tire: step size for rigid tire dynamics
     // - step_fea_tire:   step size for flexible tire dynamics
+
+    auto contact_method = ChContactMethod::SMC;
+
     double sim_time = 20.0;
 
     double step_cosim = 1e-3;
-    double step_mbs = 1e-4;
-    double step_terrain = 1e-4;
-    double step_rigid_tire = 1e-4;
+    double step_mbs = 1e-3;
+    double step_terrain = (contact_method == ChContactMethod::SMC ? 1e-4 : 1e-3);
+    double step_rigid_tire = 1e-3;
     double step_fea_tire = 1e-4;
 
     bool fix_chassis = false;
 
-    // Output and rendering frequency (in FPS)
     double output_fps = 100;
-    double render_fps = 100;
+    double render_fps = 250;
 
     // Visualization flags
     // - verbose:      enable verbose terminal output
@@ -113,20 +112,19 @@ int main(int argc, char** argv) {
     bool writePP = false;
     bool render_tire[4] = {true, false, true, false};
 
-    std::string terrain_specfile = "cosim/terrain/granular_sph.json";
+    std::string terrain_specfile = "cosim/terrain/granular_omp.json";
 
     std::string vehicle_specfile = "Polaris/Polaris.json";
     std::string engine_specfile = "Polaris/Polaris_EngineSimpleMap.json";
     std::string transmission_specfile = "Polaris/Polaris_AutomaticTransmissionSimpleMap.json";
     std::string tire_specfile = "Polaris/Polaris_RigidMeshTire.json";
     ////std::string tire_specfile = "Polaris/Polaris_ANCF4Tire_Lumped.json";
-    ////std::string tire_specfile = "Polaris/Polaris_ANCF8Tire_Lumped.json";
 
     ChVector3d init_loc(3.5, 0, 0.20);
     double target_speed = 4.0;
 
     // Prepare output directory.
-    std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_SPH_COSIM";
+    std::string out_dir = GetChronoOutputPath() + "WHEELED_VEHICLE_COSIM_OMP";
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             cout << "Error creating directory " << out_dir << endl;
@@ -141,7 +139,7 @@ int main(int argc, char** argv) {
 
     // Peek in spec file and check terrain type
     auto terrain_type = ChVehicleCosimTerrainNodeChrono::GetTypeFromSpecfile(vehicle::GetDataFile(terrain_specfile));
-    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH) {
+    if (terrain_type != ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP) {
         if (rank == 0)
             std::cout << "Incorrect terrain type" << std::endl;
         MPI_Finalize();
@@ -165,9 +163,10 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Vehicle node] rank = " << rank << " running on: " << procname << endl;
 
-        auto vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_specfile),
-                                                            vehicle::GetDataFile(engine_specfile),
-                                                            vehicle::GetDataFile(transmission_specfile));
+        ChVehicleCosimWheeledVehicleNode* vehicle;
+        vehicle = new ChVehicleCosimWheeledVehicleNode(vehicle::GetDataFile(vehicle_specfile),
+                                                       vehicle::GetDataFile(engine_specfile),
+                                                       vehicle::GetDataFile(transmission_specfile));
         vehicle->SetVerbose(verbose);
         vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
@@ -192,20 +191,19 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
-        auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(vehicle::GetDataFile(terrain_specfile));
+        auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(contact_method, vehicle::GetDataFile(terrain_specfile));
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_terrain);
         terrain->SetOutDir(out_dir);
         if (verbose)
             cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-        terrain->SetSolidVisualization(true, false);
-
         if (renderRT)
             terrain->EnableRuntimeVisualization(render_fps, writeRT);
         if (writePP)
             terrain->EnablePostprocessVisualization(render_fps);
         terrain->SetCameraPosition(ChVector3d(4, 6, 2.5));
+        terrain->SetCameraTracking(false);
 
         node = terrain;
     }
@@ -215,64 +213,14 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        switch (tire_type) {
-            case ChVehicleCosimTireNode::TireType::RIGID: {
-                auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
-                tire->SetVerbose(verbose);
-                tire->SetStepSize(step_rigid_tire);
-                tire->SetOutDir(out_dir);
+        auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
+        tire->SetVerbose(verbose);
+        tire->SetStepSize(step_rigid_tire);
+        tire->SetOutDir(out_dir);
 
-                tire->GetSystem().SetNumThreads(1);
+        tire->GetSystem().SetNumThreads(1);
 
-                node = tire;
-                break;
-            }
-            case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
-                auto tire = new ChVehicleCosimTireNodeFlexible(rank - 2, vehicle::GetDataFile(tire_specfile));
-                tire->EnableTirePressure(true);
-                tire->SetVerbose(verbose);
-                tire->SetStepSize(step_fea_tire);
-                tire->SetOutDir(out_dir);
-
-                int tire_index = rank - TERRAIN_NODE_RANK - 1;
-                if (render_tire[tire_index]) {
-                    auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
-                    visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-                    visFEA->SetShellResolution(3);
-                    visFEA->SetWireframe(false);
-                    visFEA->SetColorscaleMinMax(0.0, 12.0);
-                    visFEA->SetSmoothFaces(true);
-                    tire->AddVisualShapeFEA(visFEA);
-                    if (renderRT)
-                        tire->EnableRuntimeVisualization(render_fps, writeRT);
-                    if (writePP)
-                        tire->EnablePostprocessVisualization(render_fps);
-                }
-
-                auto& sys = tire->GetSystem();
-                auto solver_type = ChSolver::Type::PARDISO_MKL;
-                auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-                int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
-                int num_threads_collision = 1;
-                int num_threads_eigen = 1;
-                int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
-                SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
-                sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
-                if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
-                    hht->SetAlpha(-0.2);
-                    hht->SetMaxIters(5);
-                    hht->SetAbsTolerances(1e-2);
-                    hht->SetStepControl(false);
-                    hht->SetMinStepSize(1e-4);
-                    ////hht->SetVerbose(true);
-                }
-
-                node = tire;
-                break;
-            }
-            default:
-                break;
-        }
+        node = tire;
     }
 
     // Initialize systems
@@ -336,7 +284,7 @@ int main(int argc, char** argv) {
 
     cout << "Node" << rank << " sim time: " << node->GetTotalExecutionTime() << " total time: " << t_total << endl;
 
-    // Cleanup
+    // Cleanup.
     delete node;
     MPI_Finalize();
     return 0;

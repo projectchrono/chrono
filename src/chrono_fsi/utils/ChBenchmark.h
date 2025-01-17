@@ -73,7 +73,7 @@ inline void ChBenchmarkTest::Simulate(int num_steps) {
         ExecuteStep();
         m_timer_step += GetSystem()->GetTimerStep();
         m_timer_CFD += GetSystem()->GetTimerCFD();
-        m_timer_MBS += GetSystem()->GetTimerMBS();
+        m_timer_MBS += GetSystem()->GetTimerMBD();
         m_timer_collision += GetSystem()->GetMultibodySystem().GetTimerCollision();
         m_timer_collision_broad += GetSystem()->GetMultibodySystem().GetTimerCollisionBroad();
         m_timer_collision_narrow += GetSystem()->GetMultibodySystem().GetTimerCollisionNarrow();

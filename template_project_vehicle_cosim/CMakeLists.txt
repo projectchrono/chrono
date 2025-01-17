@@ -44,6 +44,7 @@ project(vehicle_cosim)
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
 find_package(Chrono
              COMPONENTS VehicleCosim
+             OPTIONAL_COMPONENTS Irrlicht
              CONFIG)
 
 # Return now if Chrono or a required component was not found.

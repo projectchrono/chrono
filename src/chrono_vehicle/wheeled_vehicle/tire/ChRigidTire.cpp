@@ -114,18 +114,35 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
+    if (vis == VisualizationType::COLLISION) {
+        if (m_use_contact_mesh) {
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            trimesh_shape->SetMesh(m_trimesh);
+            m_vis_shape = trimesh_shape;
+            m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, GetOffset(), 0), QUNIT));
+        } else {
+            m_vis_shape =
+                utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
+                                                                ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
+                                                                ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
+                                                                GetRadius());
+        }
+
+        return;
+    }
+
+    m_vis_shape = utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
                                                                   ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
                                                                   ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
                                                                   GetRadius());
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    m_vis_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 }
 
 void ChRigidTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChRigidTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets to the same body (the
     // spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_vis_shape);
 }
 
 // -----------------------------------------------------------------------------

@@ -160,26 +160,26 @@ int main(int argc, char* argv[]) {
 
     // Options for FEA visualization
 
-    auto shapeA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto shapeA = chrono_types::make_shared<ChVisualShapeFEA>();
     shapeA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     shapeA->SetColorscaleMinMax(0.0, 5.50);
     shapeA->SetShrinkElements(true, 0.85);
     shapeA->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(shapeA);
 
-    auto shapeB = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto shapeB = chrono_types::make_shared<ChVisualShapeFEA>();
     shapeB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     shapeB->SetWireframe(true);
     shapeB->SetDrawInUndeformedReference(true);
     mesh->AddVisualShapeFEA(shapeB);
 
-    auto shapeC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto shapeC = chrono_types::make_shared<ChVisualShapeFEA>();
     shapeC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     shapeC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     shapeC->SetSymbolsThickness(0.004);
     mesh->AddVisualShapeFEA(shapeC);
 
-    auto shapeD = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto shapeD = chrono_types::make_shared<ChVisualShapeFEA>();
     shapeD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     shapeD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     shapeD->SetSymbolsScale(1);

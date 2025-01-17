@@ -281,14 +281,14 @@ if (False) :
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
 
-mvisualizeshellA = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellA = chrono.ChVisualShapeFEA()
 #mvisualizeshellA.SetSmoothFaces(True)
 #mvisualizeshellA.SetWireframe(True)
 mvisualizeshellA.SetShellResolution(2)
 #mvisualizeshellA.SetBackfaceCull(True)
 mesh.AddVisualShapeFEA(mvisualizeshellA)
 
-mvisualizeshellB = chrono.ChVisualShapeFEA(mesh)
+mvisualizeshellB = chrono.ChVisualShapeFEA()
 mvisualizeshellB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizeshellB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 mvisualizeshellB.SetSymbolsThickness(0.006)

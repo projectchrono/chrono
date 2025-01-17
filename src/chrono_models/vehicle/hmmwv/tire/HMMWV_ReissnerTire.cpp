@@ -32,7 +32,7 @@ const double HMMWV_ReissnerTire::m_tire_radius = 0.4673;
 const double HMMWV_ReissnerTire::m_rim_radius = 0.2683;
 const double HMMWV_ReissnerTire::m_rim_width = 0.254;
 
-const double HMMWV_ReissnerTire::m_alpha = 0.005;
+const double HMMWV_ReissnerTire::m_alpha = 0.15;
 const double HMMWV_ReissnerTire::m_default_pressure = 200e3;
 
 const double HMMWV_ReissnerTire::m_rho_0 = 0.1e4;

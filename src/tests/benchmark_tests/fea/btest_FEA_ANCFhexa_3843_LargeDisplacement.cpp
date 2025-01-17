@@ -180,19 +180,19 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     m_system->Add(mesh);
 
     // Setup visualization
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto mvisualizemeshlines = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshlines->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshlines->SetWireframe(true);
     mvisualizemeshlines->SetDrawInUndeformedReference(false);
     mesh->AddVisualShapeFEA(mvisualizemeshlines);
 
-    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto mvisualizemeshnode = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshnode->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshnode->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshnode->SetSymbolsThickness(0.004);

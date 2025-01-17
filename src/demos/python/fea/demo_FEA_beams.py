@@ -145,14 +145,14 @@ sys.Add(mesh)
 # asset that is internally managed) by setting  proper
 # coordinates and vertex colors as in the FEM elements.
 
-visualizebeamA = chrono.ChVisualShapeFEA(mesh)
+visualizebeamA = chrono.ChVisualShapeFEA()
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
 visualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
 visualizebeamA.SetSmoothFaces(True)
 visualizebeamA.SetWireframe(False)
 mesh.AddVisualShapeFEA(visualizebeamA)
 
-visualizebeamC = chrono.ChVisualShapeFEA(mesh)
+visualizebeamC = chrono.ChVisualShapeFEA()
 visualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 visualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizebeamC.SetSymbolsThickness(0.006)

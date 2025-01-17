@@ -4,12 +4,12 @@
 
     "Patch dimensions": {
         "Length": 8,
-        "Width": 2
+        "Width": 3
     },
 
     "Granular material": {
         "Radius": 0.02,
-        "Density": 2500
+        "Density": 2000
     },
 
     "Material properties": {
@@ -17,7 +17,7 @@
         "Coefficient of restitution": 0,
         "Young modulus": 8e5,
         "Poisson ratio": 0.3,
-        "Cohesion pressure": 0,
+        "Cohesion pressure": 20,
         "Kn": 1e7,
         "Gn": 1e3,
         "Kt": 1e7,
