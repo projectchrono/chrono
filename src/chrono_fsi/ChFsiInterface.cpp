@@ -118,9 +118,6 @@ FsiMesh1D& ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSeg
         }
     }
 
-    ////assert(fsi_mesh.ptr2ind_map.size() == surface->GetNumVertices());
-    ////assert(fsi_mesh.ind2ptr_map.size() == surface->GetNumVertices());
-
     // Store the mesh contact surface
     m_fsi_meshes1D.push_back(fsi_mesh);
 

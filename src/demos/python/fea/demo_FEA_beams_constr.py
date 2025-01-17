@@ -200,14 +200,14 @@ sys.Add(mesh)
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-mvisualizebeamA = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamA = chrono.ChVisualShapeFEA()
 mvisualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MX)
 mvisualizebeamA.SetColorscaleMinMax(-500, 500)
 mvisualizebeamA.SetSmoothFaces(True)
 mvisualizebeamA.SetWireframe(False)
 mesh.AddVisualShapeFEA(mvisualizebeamA)
 
-mvisualizebeamC = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamC = chrono.ChVisualShapeFEA()
 mvisualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 mvisualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizebeamC.SetSymbolsThickness(0.006)

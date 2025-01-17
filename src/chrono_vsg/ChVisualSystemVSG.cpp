@@ -986,7 +986,7 @@ void ChVisualSystemVSG::Render() {
     if (m_write_images && m_frame_number > 0) {
         // Zero-pad frame numbers in file names for postprocessing
         std::ostringstream filename;
-        filename << m_image_dir << "/img_" << std::setw(4) << std::setfill('0') << m_frame_number << ".png";
+        filename << m_image_dir << "/img_" << std::setw(5) << std::setfill('0') << m_frame_number << ".png";
         WriteImageToFile(filename.str());
     }
 
@@ -1730,8 +1730,6 @@ void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, Ch
 }
 
 void ChVisualSystemVSG::exportScreenImage() {
-    m_write_images = false;
-
     auto width = m_window->extent2D().width;
     auto height = m_window->extent2D().height;
 

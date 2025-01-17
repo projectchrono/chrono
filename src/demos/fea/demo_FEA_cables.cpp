@@ -56,14 +56,14 @@ int main(int argc, char* argv[]) {
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by
     // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
     // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     vis_beam_A->SetColorscaleMinMax(-0.4, 0.4);
     vis_beam_A->SetSmoothFaces(true);
     vis_beam_A->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_beam_A);
 
-    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_beam_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_beam_B->SetSymbolsThickness(0.006);

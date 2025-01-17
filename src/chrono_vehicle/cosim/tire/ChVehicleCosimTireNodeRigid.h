@@ -47,7 +47,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
 
     /// Advance simulation.
     /// A rigid tire node need not advance dynamics.
-    virtual void Advance(double step_size) override final {}
+    virtual void Advance(double step_size) override final;
 
   private:
     /// A rigid tire implements the BODY communication interface.
@@ -69,15 +69,20 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     virtual void OutputVisualizationData(int frame) override;
 
   private:
+    /// Write mesh connectivity (fixed).
+    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
+
     /// Write mesh vertex positions and velocities.
     void WriteTireStateInformation(utils::ChWriterCSV& csv);
-    /// Write mesh connectivity and strain information.
-    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
+
+    /// Write terrain forces applied to this tire.
+    /// For a rigid tire, these are the resultant force and torque on the spindle body.
+    void WriteTireTerrainForces(utils::ChWriterCSV& csv);
 
     std::shared_ptr<ChRigidTire> m_tire_rgd;               ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
     std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
-    TerrainForce m_force;                                  ///< cached force received from Terran node
+    TerrainForce m_force;                                  ///< cached force received from terrain node
 };
 
 /// @} vehicle_cosim_tire

@@ -45,6 +45,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "demos/SetChronoSolver.h"
+
 using std::cout;
 using std::cin;
 using std::endl;
@@ -238,7 +240,6 @@ int main(int argc, char** argv) {
         mbs->SetVerbose(verbose);
         mbs->SetInitialLocation(init_loc);
         mbs->SetStepSize(step_size);
-        mbs->SetNumThreads(1);
         mbs->SetTotalMass(total_mass);
         mbs->SetOutDir(out_dir, suffix);
         mbs->AttachDrawbarPullRig(dbp_rig);
@@ -257,8 +258,9 @@ int main(int argc, char** argv) {
                 auto tire = new ChVehicleCosimTireNodeRigid(0, tire_specfile);
                 tire->SetVerbose(verbose);
                 tire->SetStepSize(step_size);
-                tire->SetNumThreads(1);
                 tire->SetOutDir(out_dir, suffix);
+
+                tire->GetSystem().SetNumThreads(1);
 
                 node = tire;
                 break;
@@ -268,13 +270,30 @@ int main(int argc, char** argv) {
                 tire->EnableTirePressure(true);
                 tire->SetVerbose(verbose);
                 tire->SetStepSize(step_size);
-                tire->SetNumThreads(nthreads_tire);
                 tire->SetOutDir(out_dir, suffix);
                 if (renderRT)
                     tire->EnableRuntimeVisualization(render_fps, writeRT);
                 if (renderPP)
                     tire->EnablePostprocessVisualization(render_fps);
                 tire->SetCameraPosition(ChVector3d(0, 2 * terrain_width, 1.0));
+
+                auto& sys = tire->GetSystem();
+                auto solver_type = ChSolver::Type::PARDISO_MKL;
+                auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+                int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+                int num_threads_collision = 1;
+                int num_threads_eigen = 1;
+                int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+                SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
+                sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+                if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
+                    hht->SetAlpha(-0.2);
+                    hht->SetMaxIters(5);
+                    hht->SetAbsTolerances(1e-2);
+                    hht->SetStepControl(false);
+                    hht->SetMinStepSize(1e-4);
+                    ////hht->SetVerbose(true);
+                }
 
                 node = tire;
                 break;

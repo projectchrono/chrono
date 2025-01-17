@@ -66,6 +66,18 @@ void ChFsiProblemSPH::SetVerbose(bool verbose) {
     m_verbose = verbose;
 }
 
+void ChFsiProblemSPH::SetCfdSPH(const ChFluidSystemSPH::FluidProperties& fluid_props) {
+    m_sysSPH.SetCfdSPH(fluid_props);
+}
+
+void ChFsiProblemSPH::SetElasticSPH(const ChFluidSystemSPH::ElasticMaterialProperties& mat_props) {
+    m_sysSPH.SetElasticSPH(mat_props);
+}
+
+void ChFsiProblemSPH::SetSPHParameters(const ChFluidSystemSPH::SPHParameters& sph_params) {
+    m_sysSPH.SetSPHParameters(sph_params);
+}
+
 // ----------------------------------------------------------------------------
 
 size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
@@ -200,7 +212,8 @@ void ChFsiProblemSPH::Initialize() {
             cout << "  Num. SPH particles: " << m_sph.size() << endl;
     }
 
-    // Convert SPH and boundary BCE grid points to real coordinates and apply patch transformation
+    // Convert SPH grid points to real coordinates and apply position offset
+    // Include SPH particles in AABB
     ChAABB aabb;
     RealPoints sph_points;
     sph_points.reserve(m_sph.size());
@@ -208,12 +221,12 @@ void ChFsiProblemSPH::Initialize() {
         ChVector3d point = Grid2Point(p);
         point += m_offset_sph;
         sph_points.push_back(point);
-        aabb.min = Vmin(aabb.min, point);
-        aabb.max = Vmax(aabb.max, point);
+        aabb += point;
     }
 
     m_sph_aabb = aabb;
 
+    // Convert boundary grid points to real coordinates and apply position offset
     // Include boundary BCE markers in AABB
     RealPoints bce_points;
     bce_points.reserve(m_bce.size());
@@ -221,16 +234,56 @@ void ChFsiProblemSPH::Initialize() {
         ChVector3d point = Grid2Point(p);
         point += m_offset_bce;
         bce_points.push_back(point);
-        aabb.min = Vmin(aabb.min, point);
-        aabb.max = Vmax(aabb.max, point);
+        aabb += point;
     }
 
-    // Include body BCE markers in AABB
-    for (auto& b : m_bodies) {
+    // Callback for setting initial particle properties
+    if (!m_props_cb)
+        m_props_cb = chrono_types::make_shared<ParticlePropertiesCallback>();
+
+    // Create SPH particles
+    switch (m_sysSPH.GetPhysicsProblem()) {
+        case PhysicsProblem::CFD: {
+            for (const auto& pos : sph_points) {
+                m_props_cb->set(m_sysSPH, pos);
+                m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
+            }
+            break;
+        }
+        case PhysicsProblem::CRM: {
+            ChVector3d tau_offdiag(0);
+            for (const auto& pos : sph_points) {
+                m_props_cb->set(m_sysSPH, pos);
+                ChVector3d tau_diag(-m_props_cb->p0);
+                m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
+                                        tau_diag, tau_offdiag);
+            }
+            break;
+        }
+    }
+
+    // Create boundary BCE markers
+    // (ATTENTION: BCE markers must be created after the SPH particles!)
+    m_sysSPH.AddPointsBCE(m_ground, bce_points, ChFrame<>(), false);
+
+    // Create the body BCE markers and update AABB
+    // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
+    for (const auto& b : m_bodies) {
+        auto body_index = m_sysFSI.AddFsiBody(b.body);
+        m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
+        m_fsi_bodies[b.body] = body_index;
         for (const auto& p : b.bce) {
-            auto point = b.body->TransformPointLocalToParent(p);
-            aabb.min = Vmin(aabb.min, point);
-            aabb.max = Vmax(aabb.max, point);
+            aabb += b.body->TransformPointLocalToParent(p);
+        }
+    }
+
+    // Create the mesh BCE markers and update AABB
+    // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
+    for (const auto& m : m_meshes) {
+        m_sysFSI.AddFsiMesh(m.mesh);
+        assert(m.mesh->GetNumContactSurfaces() > 0);
+        for (const auto& surf : m.mesh->GetContactSurfaces()) {
+            aabb += surf->GetAABB();
         }
     }
 
@@ -254,73 +307,38 @@ void ChFsiProblemSPH::Initialize() {
         m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
     }
 
-    // Callback for setting initial particle properties
-    if (!m_props_cb)
-        m_props_cb = chrono_types::make_shared<ParticlePropertiesCallback>(m_sysSPH);
-
-    // Create SPH particles
-    switch (m_sysSPH.GetPhysicsProblem()) {
-        case PhysicsProblem::CFD: {
-            for (const auto& pos : sph_points) {
-                m_props_cb->set(pos);
-                m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0);
-            }
-            break;
-        }
-        case PhysicsProblem::CRM: {
-            ChVector3d tau_offdiag(0);
-            for (const auto& pos : sph_points) {
-                m_props_cb->set(pos);
-                ChVector3d tau_diag(-m_props_cb->p0);
-                m_sysSPH.AddSPHParticle(pos, m_props_cb->rho0, m_props_cb->p0, m_props_cb->mu0, m_props_cb->v0,  //
-                                        tau_diag, tau_offdiag);
-            }
-            break;
-        }
-    }
-
-    // Create boundary BCE markers
-    // (ATTENTION: BCE markers must be created after the SPH particles!)
-    m_sysSPH.AddPointsBCE(m_ground, bce_points, ChFrame<>(), false);
-
-    // Create the body BCE markers
-    // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
-    for (const auto& b : m_bodies) {
-        auto body_index = m_sysFSI.AddFsiBody(b.body);
-        m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
-        m_fsi_bodies[b.body] = body_index;
-    }
-
-    // Create the mesh BCE markers
-    // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
-    for (const auto& m : m_meshes) {
-        m_sysFSI.AddFsiMesh(m.mesh);
-    }
-
     // Initialize the underlying FSI system
     m_sysFSI.Initialize();
     m_initialized = true;
 }
 
-//// TODO: use some additional "fuzz"?
 // Check if specified point is inside a primitive shape of the given geometry.
-bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p) {
+// Test a shape volume enlarged by the specified envelope.
+bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, double envelope) {
     for (const auto& sphere : geometry.coll_spheres) {
-        if ((p - sphere.pos).Length2() <= sphere.radius * sphere.radius)
+        auto radius = sphere.radius + envelope;
+        if ((p - sphere.pos).Length2() <= radius * radius)
             return true;
     }
+
     for (const auto& box : geometry.coll_boxes) {
         auto pp = box.rot.RotateBack(p - box.pos);
-        if (std::abs(pp.x()) <= box.dims.x() / 2 &&  //
-            std::abs(pp.y()) <= box.dims.y() / 2 &&  //
-            std::abs(pp.z()) <= box.dims.z() / 2)
+        auto hdims = box.dims / 2 + envelope;
+        if (std::abs(pp.x()) <= hdims.x() &&  //
+            std::abs(pp.y()) <= hdims.y() &&  //
+            std::abs(pp.z()) <= hdims.z())
             return true;
     }
+
     for (const auto& cyl : geometry.coll_cylinders) {
         auto pp = cyl.rot.RotateBack(p - cyl.pos);
-        if (pp.x() * pp.x() + pp.y() * pp.y() <= cyl.radius * cyl.radius && std::abs(pp.z()) <= cyl.length / 2)
+        auto radius = cyl.radius + envelope;
+        auto hlength = cyl.length / 2 + envelope;
+        if (pp.x() * pp.x() + pp.y() * pp.y() <= radius * radius &&  //
+            std::abs(pp.z()) <= hlength)
             return true;
     }
+
     return false;
 }
 
@@ -352,7 +370,7 @@ void ChFsiProblemSPH::ProcessBody(RigidBody& b) {
                 ChVector3d p_abs = p_sph + m_offset_sph;
                 ChVector3d p_loc = b.body->TransformPointParentToLocal(p_abs);
                 // Check if inside a primitive shape
-                if (InsidePoint(b.geometry, p_loc))
+                if (InsidePoint(b.geometry, p_loc, m_spacing))
                     interior.insert(ChVector3i(ix, iy, iz));
             }
         }
@@ -463,6 +481,17 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
     return num_removed;
 }
 
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::SetOutputLevel(OutputLevel output_level) {
+    m_sysSPH.SetOutputLevel(output_level);
+}
+
+void ChFsiProblemSPH::SaveOutputData(double time, const std::string& sph_dir, const std::string& fsi_dir) {
+    m_sysSPH.SaveParticleData(sph_dir);
+    m_sysSPH.SaveSolidData(fsi_dir, time);
+}
+
 void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
     // SPH particle grid locations
     std::ofstream sph_grid(out_dir + "/sph_grid.txt", std::ios_base::out);
@@ -482,6 +511,14 @@ void ChFsiProblemSPH::SaveInitialMarkers(const std::string& out_dir) const {
     }
 }
 
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::DoStepDynamics(double step) {
+    m_sysFSI.DoStepDynamics(step);
+}
+
+// ----------------------------------------------------------------------------
+
 const ChVector3d& ChFsiProblemSPH::GetFsiBodyForce(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
     return m_sysFSI.GetFsiBodyForce(index);
@@ -492,7 +529,7 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body
     return m_sysFSI.GetFsiBodyTorque(index);
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
     if (m_verbose) {
@@ -1041,7 +1078,7 @@ ChVector3d ChFsiProblemCartesian::Grid2Point(const ChVector3i& p) {
     return ChVector3d(m_spacing * p.x(), m_spacing * p.y(), m_spacing * p.z());
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 
 void ChFsiProblemCylindrical::Construct(double radius_inner,
                                         double radius_outer,

@@ -410,19 +410,19 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-    auto mvisualizeshellA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeshellA = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeshellA->SetSmoothFaces(true);
     mvisualizeshellA->SetWireframe(true);
     my_mesh->AddVisualShapeFEA(mvisualizeshellA);
     /*
-    auto mvisualizeshellB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeshellB = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeshellB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizeshellB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.01);
     my_mesh->AddVisualShapeFEA(mvisualizeshellB);
     */
 
-    auto mvisualizeshellC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeshellC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeshellC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizeshellC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     mvisualizeshellC->SetSymbolsThickness(0.05);
