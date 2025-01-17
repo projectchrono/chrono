@@ -73,14 +73,15 @@ TerrainType terrain_type = TerrainType::RIGID;
 ////std::string tire_json = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
 ////std::string tire_json = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
 ////std::string tire_json = "hmmwv/tire/HMMWV_ReissnerTire.json";
-std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
+std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
+////std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
 ////std::string tire_json = "Polaris/Polaris_RigidTire.json";
 ////std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
 ////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
 // Wheel specification file
-////std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
-std::string wheel_json = "Polaris/Polaris_Wheel.json";
+std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
+////std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
 double render_fps = 120;
 bool debug_output = false;
@@ -129,8 +130,13 @@ int main() {
     if (fea_tire) {
         sys = new ChSystemSMC;
         step_size = 5e-5;
-        solver_type = ChSolver::Type::PARDISO_MKL;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        ////solver_type = ChSolver::Type::PARDISO_MKL;
+        ////solver_type = ChSolver::Type::SPARSE_QR;
+        ////solver_type = ChSolver::Type::BICGSTAB;
+        solver_type = ChSolver::Type::MINRES;
+
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+        ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     } else {
         sys = new ChSystemNSC;
         step_size = 2e-4;
@@ -142,16 +148,16 @@ int main() {
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
-    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_chrono = std::min(4, ChOMP::GetNumProcs());
 
     // Number of threads used in collision detection
-    int num_threads_collision = 1;
+    int num_threads_collision = std::min(4, ChOMP::GetNumProcs());
 
     // Number of threads used by Eigen
     int num_threads_eigen = 1;
 
     // Number of threads used by PardisoMKL
-    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_pardiso = std::min(4, ChOMP::GetNumProcs());
 
     sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
     SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);

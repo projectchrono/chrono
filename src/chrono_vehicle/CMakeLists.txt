@@ -600,7 +600,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ReissnerToroidalTire.cpp
     wheeled_vehicle/tire/Pac02Tire.h
     wheeled_vehicle/tire/Pac02Tire.cpp
-
+    wheeled_vehicle/tire/MBTire.h
+    wheeled_vehicle/tire/MBTire.cpp
 )
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
