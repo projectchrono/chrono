@@ -49,6 +49,7 @@
 // that is  chrono\src\importer_blender\chrono_import.py. So you can do:
 // - menu  file/Import/Chrono import... 
 // - check the "Automatic merge" in the top right panel
+// - check the "Skip shared names" too, to avoid duplicates at shared bodies
 // - browse to  chrono\bin\Release\DEMO_OUTPUT\MDOM_MPI_0  and press the 
 //   "Import Chrono simulation" button.
 // Thanks to the automatic merge, also outputs in ..\MDOM_MPI_2 ..\MDOM_MPI_3 etc
@@ -230,9 +231,8 @@ int main(int argc, char* argv[]) {
     // Set the path where it will save all files, a directory will be created if not existing. 
     // The directories will have a name depending on the rank: MDOM_MPI_0, MDOM_MPI_1, MDOM_MPI_2, etc.
     blender_exporter.SetBasePath(GetChronoOutputPath() + "MDOM_MPI_" + std::to_string(domain_manager.GetMPIrank()));
-    // Trick: apply thin domain-specific jitter to all Blender scene, to overcome Blender issue of black artifacts
-    // if rendering engine is Cycles and two surfaces are exactly complanar - as happens with objects shared between domains.
-    blender_exporter.SetBlenderFrame(ChFramed(domain_manager.GetMPIrank()* 2e-5* ChVector3d(1,1,1), Q_ROTATE_Y_TO_Z));
+    // To help with shared bodies:
+    blender_exporter.SetUseTagsAsBlenderNames(true);
     // Show contacts in a nice way, or blender_exporter.SetShowContactsOff() for fast stuff
     blender_exporter.SetShowContactsVectors(
         ChBlender::ContactSymbolVectorLength::PROPERTY,  // vector symbol lenght is given by |F|  property (contact force)

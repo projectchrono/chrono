@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     // For debugging/logging:
     domain_manager.verbose_partition = true; // will print  partitioning in std::cout?
-    domain_manager.verbose_serialization = false; // will print interdomain serialization in std::cout?
+    domain_manager.verbose_serialization = true; // will print interdomain serialization in std::cout?
     domain_manager.verbose_variable_updates = false; // will print interdomain variable updates in std::cout?
     domain_manager.serializer_type = DomainSerializerFormat::JSON;  // default BINARY, use JSON or XML for readable verbose
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     //      otherwise DoAllDomainInitialize() won't recognize this fact and will copy them n times as disconnected.
  
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
-    mat->SetFriction(0.1);
+    mat->SetFriction(0.05);
     mat->SetTag(unique_ID); unique_ID++;
 
     // domain slice up to  x<=0
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     //     is done here between the not-existing master domain and sliced domains.)
     domain_manager.DoDomainInitialize(domain_manager.GetMPIrank());
 
-    for (int i = 0; i < 150; ++i) {
+    for (int i = 0; i < 200; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;
