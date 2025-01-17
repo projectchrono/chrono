@@ -139,7 +139,6 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, c
 
 // Add all nodes of the mesh to this collision cloud
 void ChContactSurfaceNodeCloud::AddAllNodes(const ChMesh& mesh, double point_radius) {
-
     for (unsigned int i = 0; i < mesh.GetNumNodes(); ++i)
         if (auto nodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh.GetNode(i)))
             this->AddNode(nodeFEA, point_radius);
@@ -147,15 +146,9 @@ void ChContactSurfaceNodeCloud::AddAllNodes(const ChMesh& mesh, double point_rad
             this->AddNode(nodeFEArot, point_radius);
 }
 
-/// Add nodes of the mesh, belonging to the node_set, to this collision cloud
-void ChContactSurfaceNodeCloud::AddNodesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set,
+// Add nodes of the mesh, belonging to the node_set, to this collision cloud
+void ChContactSurfaceNodeCloud::AddNodesFromNodeSet(const std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set,
                                                     const double point_radius) {
-    if (!m_physics_item)
-        return;
-    auto mesh = dynamic_cast<ChMesh*>(m_physics_item);
-    if (!mesh)
-        return;
-
     for (unsigned int i = 0; i < node_set.size(); ++i)
         if (auto nodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(node_set[i]))
             this->AddNode(nodeFEA, point_radius);
@@ -189,6 +182,17 @@ void ChContactSurfaceNodeCloud::RemoveCollisionModelsFromSystem(ChCollisionSyste
     for (const auto& node : m_nodes_rot) {
         coll_sys->Remove(node->GetCollisionModel());
     }
+}
+
+ChAABB ChContactSurfaceNodeCloud::GetAABB() const {
+    ChAABB aabb;
+    for (const auto& node : m_nodes) {
+        aabb += node->GetPos();
+    }
+    for (const auto& node : m_nodes_rot) {
+        aabb += node->GetPos();
+    }
+    return aabb;
 }
 
 }  // end namespace fea

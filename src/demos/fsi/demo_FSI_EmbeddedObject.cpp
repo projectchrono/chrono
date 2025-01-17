@@ -107,16 +107,14 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(gravity);
 
     // Set integration step size
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
     // Set soil propertiees
     ChFluidSystemSPH::ElasticMaterialProperties mat_props;
@@ -129,7 +127,7 @@ int main(int argc, char* argv[]) {
     mat_props.average_diam = 0.005;
     mat_props.cohesion_coeff = 1e3;  // default
 
-    sysSPH.SetElasticSPH(mat_props);
+    fsi.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
@@ -142,7 +140,8 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
     sph_params.boundary_type = BoundaryType::HOLMES;
-    sysSPH.SetSPHParameters(sph_params);
+
+    fsi.SetSPHParameters(sph_params);
 
     // Create body geometry
     double density = 5000;
@@ -232,7 +231,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -299,6 +298,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(0.1f);
+        visFSI->SetLightIntensity(0.9);
+        visFSI->SetLightDirection(CH_PI_2, CH_PI / 6);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
@@ -323,8 +324,7 @@ int main(int argc, char* argv[]) {
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
             cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             out_frame++;
         }
 
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics(step_size);
+        fsi.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

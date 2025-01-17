@@ -118,7 +118,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
 
-    std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChVisualShape> m_vis_shape;  ///< visualization asset
 };
 
 /// @} vehicle_wheeled_tire

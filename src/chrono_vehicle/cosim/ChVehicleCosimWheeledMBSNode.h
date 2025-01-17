@@ -24,6 +24,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/core/ChBezierCurve.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 
@@ -64,15 +65,6 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     /// Return the node type as NodeType::MBS_WHEELED.
     virtual NodeType GetNodeType() const override { return NodeType::MBS_WHEELED; }
 
-    /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
-    void SetNumThreads(int num_threads);
-
-    /// Set integrator and solver types.
-    /// For the MKL solver, use slv_type = ChSolver::Type::CUSTOM.
-    void SetIntegratorType(ChTimestepper::Type int_type,  ///< integrator type (default: HHT)
-                           ChSolver::Type slv_type        ///< solver type (default:: MKL)
-    );
-
     /// Fix the chassis to ground (default: false).
     void SetChassisFixed(bool val) { m_fix_chassis = val; }
 
@@ -86,6 +78,11 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
     /// other node.
     virtual void Initialize() override final;
+
+    /// Get vehicle path.
+    /// This may be empty (nullptr) if the terrain subsystem did not provide path information.
+    /// Note: If available, the vehicle path can be queried only after initialization.
+    std::shared_ptr<ChBezierCurve> GetPath() const { return m_path; }
 
     /// Synchronize this node.
     /// This function is called at every co-simulation synchronization time to
@@ -105,7 +102,9 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     virtual void OutputVisualizationData(int frame) override final;
 
   protected:
-    /// Construct a base class wheeled MBS node.
+    /// Construct a base class wheeled MBS co-simulation node.
+    /// By default, the underlying Chrono system is set yo use the Barzilai-Borwein solver and the Euler implicit
+    /// linearized integrator. All OpenMP thread numbers are set to 1.
     ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
@@ -148,7 +147,6 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     virtual BodyState GetSpindleState(unsigned int i) const = 0;
 
     /// Get the "chassis" body.
-    /// Only used is a drawbar-pull rig is attached.
     virtual std::shared_ptr<ChBody> GetChassisBody() const = 0;
 
     /// Impose spindle angular speed function.
@@ -159,17 +157,14 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
 
   protected:
     ChSystemSMC* m_system;                            ///< containing system
-    ChTimestepper::Type m_int_type;                   ///< integrator type
-    ChSolver::Type m_slv_type;                        ///< solver type
-    std::shared_ptr<ChTimestepperHHT> m_integrator;   ///< HHT integrator object
     std::shared_ptr<ChVehicleCosimDBPRig> m_DBP_rig;  ///< DBP rig
     std::ofstream m_DBP_outf;                         ///< DBP output file stream
 
   private:
     virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
-    void InitializeSystem();
 
     bool m_fix_chassis;
+    std::shared_ptr<ChBezierCurve> m_path;
 };
 
 /// @} vehicle_cosim

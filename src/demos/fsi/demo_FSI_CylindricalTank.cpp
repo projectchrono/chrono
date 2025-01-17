@@ -108,23 +108,21 @@ int main(int argc, char* argv[]) {
     ChFsiProblemCylindrical fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = fsi.GetFluidSystemSPH();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(gravity);
 
     // Set integration step size
-    sysFSI.SetStepSizeCFD(step_size);
-    sysFSI.SetStepsizeMBD(step_size);
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
     // Set CFD fluid properties
     ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 5;
 
-    sysSPH.SetCfdSPH(fluid_props);
+    fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
     ChFluidSystemSPH::SPHParameters sph_params;
@@ -145,7 +143,7 @@ int main(int argc, char* argv[]) {
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
 
-    sysSPH.SetSPHParameters(sph_params);
+    fsi.SetSPHParameters(sph_params);
 
     // Create a rigid body
     double radius = 0.12;
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]) {
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable depth-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysSPH, height));
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(height));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(r_inner, r_outer, height,  //
@@ -190,7 +188,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl; 
         return 1;
@@ -285,8 +283,7 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysSPH.SaveParticleData(out_dir + "/particles");
-            sysSPH.SaveSolidData(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             out_frame++;
         }
 
@@ -308,7 +305,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics(step_size);
+        fsi.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

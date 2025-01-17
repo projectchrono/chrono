@@ -24,18 +24,8 @@
 #include <set>
 #include <vector>
 
-#include "chrono/ChConfig.h"
-#include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/solver/ChSolverBB.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-
-#ifdef CHRONO_PARDISO_MKL
-    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_MUMPS
-    #include "chrono_mumps/ChSolverMumps.h"
-#endif
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTrackedMBSNode.h"
 
@@ -47,40 +37,25 @@ namespace vehicle {
 
 // Construction of the base tracked MBS node
 ChVehicleCosimTrackedMBSNode::ChVehicleCosimTrackedMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
-    // Default integrator and solver types
-    m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-
-    // Create the (sequential) SMC system
+    // Create the (sequential) SMC system with default collision system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
+    // Set default solver and integrator
+    auto solver = chrono_types::make_shared<ChSolverBB>();
+    solver->SetMaxIterations(100);
+    solver->SetTolerance(1e-10);
+    m_system->SetSolver(solver);
+
+    m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+
     // Set default number of threads
-    m_system->SetNumThreads(1, 1, 1);
+    m_system->SetNumThreads(1);
 }
 
 ChVehicleCosimTrackedMBSNode::~ChVehicleCosimTrackedMBSNode() {
     delete m_system;
-}
-
-// -----------------------------------------------------------------------------
-
-void ChVehicleCosimTrackedMBSNode::SetNumThreads(int num_threads) {
-    m_system->SetNumThreads(num_threads, 1, 1);
-}
-
-void ChVehicleCosimTrackedMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
-    m_int_type = int_type;
-    m_slv_type = slv_type;
-#ifndef CHRONO_PARDISO_MKL
-    if (m_slv_type == ChSolver::Type::PARDISO_MKL)
-        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-#endif
-#ifndef CHRONO_MUMPS
-    if (m_slv_type == ChSolver::Type::MUMPS)
-        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -110,9 +85,6 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    // Complete setup of the underlying ChSystem
-    InitializeSystem();
-
     MPI_Status status;
 
     // Receive from TERRAIN node the initial terrain dimensions and the terrain height
@@ -127,6 +99,21 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
 
     double terrain_height = init_dim[0];
     ChVector2d terrain_size(init_dim[1], init_dim[2]);
+
+    // Receive from terrain node path information
+    unsigned int num_path_points;
+    MPI_Recv(&num_path_points, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    if (num_path_points > 0) {
+        std::vector<double> all_points(3 * num_path_points);
+        MPI_Recv(all_points.data(), 3 * num_path_points, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        std::vector<ChVector3d> path_points;
+        unsigned int start_idx = 0;
+        for (unsigned int i = 0; i < num_path_points; i++) {
+            path_points.push_back({all_points[start_idx + 0], all_points[start_idx + 1], all_points[start_idx + 2]});
+            start_idx += 3;
+        }
+        m_path = chrono_types::make_shared<ChBezierCurve>(path_points);
+    }
 
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(terrain_size, terrain_height);
@@ -149,7 +136,7 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
             start_idx += 3;
         }
     }
-    MPI_Send(all_locations.data(), 3 * num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    MPI_Send(all_locations.data(), 3 * (int)num_track_shoes, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // Send the communication interface type (rigid body) to the TERRAIN node
     char comm_type = 0;
@@ -172,78 +159,6 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
         m_DBP_outf << std::scientific;
 
         OnInitializeDBPRig(m_DBP_rig->GetMotorFunction());
-    }
-}
-
-// -----------------------------------------------------------------------------
-// Complete setup of the underlying ChSystem based on any user-provided settings
-// -----------------------------------------------------------------------------
-void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
-    // Change solver
-    switch (m_slv_type) {
-        case ChSolver::Type::PARDISO_MKL: {
-#ifdef CHRONO_PARDISO_MKL
-            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case ChSolver::Type::MUMPS: {
-#ifdef CHRONO_MUMPS
-            auto solver = chrono_types::make_shared<ChSolverMumps>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-#endif
-            break;
-        }
-        case ChSolver::Type::SPARSE_LU: {
-            auto solver = chrono_types::make_shared<ChSolverSparseLU>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-            break;
-        }
-        case ChSolver::Type::SPARSE_QR: {
-            auto solver = chrono_types::make_shared<ChSolverSparseQR>();
-            solver->LockSparsityPattern(true);
-            m_system->SetSolver(solver);
-            break;
-        }
-        case ChSolver::Type::PSOR:
-        case ChSolver::Type::PSSOR:
-        case ChSolver::Type::PJACOBI:
-        case ChSolver::Type::PMINRES:
-        case ChSolver::Type::BARZILAIBORWEIN:
-        case ChSolver::Type::APGD:
-        case ChSolver::Type::GMRES:
-        case ChSolver::Type::MINRES:
-        case ChSolver::Type::BICGSTAB: {
-            m_system->SetSolverType(m_slv_type);
-            auto solver = std::dynamic_pointer_cast<ChIterativeSolver>(m_system->GetSolver());
-            assert(solver);
-            solver->SetMaxIterations(100);
-            solver->SetTolerance(1e-10);
-            break;
-        }
-        default: {
-            cout << "Solver type not supported!" << endl;
-            return;
-        }
-    }
-
-    // Change integrator
-    switch (m_int_type) {
-        case ChTimestepper::Type::HHT:
-            m_system->SetTimestepperType(ChTimestepper::Type::HHT);
-            m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
-            m_integrator->SetAlpha(-0.2);
-            m_integrator->SetMaxIters(50);
-            m_integrator->SetAbsTolerances(1e-1, 10);
-            m_integrator->SetVerbose(false);
-            m_integrator->SetMaxItersSuccess(5);
-            break;
-        default:
-            break;
     }
 }
 
@@ -299,6 +214,9 @@ void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
             start_idx += 6;
         }
     }
+
+    // Send vehicle location to terrain node
+    MPI_Send(GetChassisBody()->GetPos().data(), 3, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 }
 
 // -----------------------------------------------------------------------------

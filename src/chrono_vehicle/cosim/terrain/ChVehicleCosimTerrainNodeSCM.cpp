@@ -72,7 +72,12 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
-    m_system->SetNumThreads(1, 1, 1);
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
+
+    // Set associated path
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
@@ -89,10 +94,15 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
-    m_system->SetNumThreads(1, 1, 1);
+    m_system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()), 1, 1);
 
     // Read SCM parameters from provided specfile
     SetFromSpecfile(specfile);
+
+    // Set associated path
+    m_path_points.push_back({0, 0, 0});
+    m_path_points.push_back({m_dimX / 2, 0, 0});
+    m_path_points.push_back({m_dimX, 0, 0});
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
@@ -176,6 +186,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, max_sinkage);
     m_terrain->SetMeshWireframe(false);
     m_terrain->SetCosimulationMode(true);
+    m_terrain->SetPlane(ChCoordsysd({m_dimX / 2, 0, 0}, QUNIT));
     m_terrain->Initialize(m_dimX, m_dimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file
@@ -316,7 +327,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     proxy->mesh = chrono_types::make_shared<fea::ChMesh>();
     proxy->mesh->AddContactSurface(surface);
 
-    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>(proxy->mesh);
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
     vis_mesh->SetWireframe(true);
     proxy->mesh->AddVisualShapeFEA(vis_mesh);
@@ -464,16 +475,8 @@ void ChVehicleCosimTerrainNodeSCM::OnRender() {
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
 
-    if (m_track) {
-        ChVector3d cam_point;
-        if (auto proxy_b = std::dynamic_pointer_cast<ProxyBodySet>(m_proxies[0])) {
-            cam_point = proxy_b->bodies[0]->GetPos();
-        } else if (auto proxy_m = std::dynamic_pointer_cast<ProxyMesh>(m_proxies[0])) {
-            cam_point = proxy_m->ind2ptr_map[0]->GetPos();
-        }
-
-        m_vsys->UpdateCamera(m_cam_pos, cam_point);
-    }
+    if (m_track)
+        m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
     m_vsys->BeginScene();
     m_vsys->Render();

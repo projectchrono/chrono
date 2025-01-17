@@ -144,12 +144,12 @@ rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.
 
-mvisualizebeamA = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamA = chrono.ChVisualShapeFEA()
 mvisualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizebeamA.SetSmoothFaces(True)
 mesh.AddVisualShapeFEA(mvisualizebeamA)
 
-mvisualizebeamC = chrono.ChVisualShapeFEA(mesh)
+mvisualizebeamC = chrono.ChVisualShapeFEA()
 mvisualizebeamC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 mvisualizebeamC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizebeamC.SetSymbolsThickness(0.006)

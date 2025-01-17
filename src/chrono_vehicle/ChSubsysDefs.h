@@ -406,16 +406,17 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
 
 /// Enum for available tire models.
 enum class TireModelType {
-    RIGID,       ///< rigid tire (cylindrical)
-    RIGID_MESH,  ///< rigid tire (mesh)
-    FIALA,       ///< Fiala tire
-    ANCF,        ///< ANCF shell element-based tire
-    REISSNER,    ///< Reissner 6-field shell element-based tire
-    FEA,         ///< FEA co-rotational tire
-    PAC89,       ///< Pacejka 89 (magic formula) tire, version 1989
-    TMEASY,      ///< Tire Model Made Easy tire (G. Rill)
-    PAC02,       ///< Pacejka 02 (magic formula) tire, version 2002 or later
-    TMSIMPLE     ///< Tire Model Simple (W. Hirschberg)
+    RIGID,        ///< rigid tire (cylindrical)
+    RIGID_MESH,   ///< rigid tire (mesh)
+    FIALA,        ///< Fiala tire
+    ANCF,         ///< ANCF shell element-based tire
+    ANCF_LUMPED,  ///< ANCF shell element-based tire with single layers
+    REISSNER,     ///< Reissner 6-field shell element-based tire
+    FEA,          ///< FEA co-rotational tire
+    PAC89,        ///< Pacejka 89 (magic formula) tire, version 1989
+    TMEASY,       ///< Tire Model Made Easy tire (G. Rill)
+    PAC02,        ///< Pacejka 02 (magic formula) tire, version 2002 or later
+    TMSIMPLE      ///< Tire Model Simple (W. Hirschberg)
 };
 
 /// Enum for available engine model templates.

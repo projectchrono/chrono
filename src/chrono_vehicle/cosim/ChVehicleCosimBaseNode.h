@@ -26,6 +26,7 @@
 
 #include <mpi.h>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"

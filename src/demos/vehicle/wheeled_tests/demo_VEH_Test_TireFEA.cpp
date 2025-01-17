@@ -84,7 +84,7 @@ class DummyWheel : public ChWheel {
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << endl;
 
     // Create Chrono system
     ChSystemSMC sys;
@@ -92,12 +92,15 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver and integrator settings
-    sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 4);
-
     double step_size = 1e-4;
     auto solver_type = ChSolver::Type::PARDISO_MKL;
-    auto integrator_type = ChTimestepper::Type::HHT;
-    SetChronoSolver(sys, solver_type, integrator_type);
+    auto integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+    SetChronoSolver(sys, solver_type, integrator_type, num_threads_pardiso);
+    sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
 
     auto ls_direct = std::dynamic_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
     auto ls_iterative = std::dynamic_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
@@ -158,6 +161,7 @@ int main(int argc, char* argv[]) {
         auto floor = chrono_types::make_shared<ChBody>();
         floor->SetPos(VNULL);
         floor->SetFixed(true);
+        floor->EnableCollision(true);
         utils::AddBoxGeometry(floor.get(), mat_data.CreateMaterial(ChContactMethod::SMC),
                               ChVector3d(4 * radius, 4 * radius, 0.1), ChVector3d(0, 0, -radius - 0.1));
         sys.AddBody(floor);
@@ -214,7 +218,7 @@ int main(int argc, char* argv[]) {
     // Set up output
     std::string out_dir = GetChronoOutputPath() + "FEAtire_TEST";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
     utils::ChWriterCSV csv;
