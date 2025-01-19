@@ -323,13 +323,13 @@ void ChVehicleGuiComponentVSG::render() {
             ImGui::RadioButton("local", &e, 1);
         }
 
-        double roll;
-        double pitch;
+        double roll = 0;
+        double pitch = 0;
 
         if (e == 0) {
             roll = m_app->GetVehicle().GetRoll() * CH_RAD_TO_DEG;
             pitch = m_app->GetVehicle().GetPitch() * CH_RAD_TO_DEG;
-        } else if (e == 1) {
+        } else {
             roll = m_app->GetVehicle().GetRoll(*terrain) * CH_RAD_TO_DEG;
             pitch = m_app->GetVehicle().GetPitch(*terrain) * CH_RAD_TO_DEG;
         }
@@ -363,7 +363,7 @@ void ChVehicleGuiComponentVSG::render() {
         const auto& transmission = powertrain->GetTransmission();
 
         auto transmission_auto = transmission->asAutomatic();  // nullptr for a manual transmission
-        auto transmission_manual = transmission->asManual();   // nullptr for an automatic transmission
+        ////auto transmission_manual = transmission->asManual();   // nullptr for an automatic transmission
 
         ImGui::Spacing();
 
