@@ -252,8 +252,8 @@ int main(int argc, char* argv[]) {
         // Visualization of the FEM mesh. Also this object will migrate from master domain to sliced domains.
         auto vis_shell_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
         vis_shell_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-        vis_shell_mesh->SetShellResolution(2);
-        vis_shell_mesh->SetBackfaceCull(true);
+        vis_shell_mesh->SetShellResolution(3);
+        //vis_shell_mesh->SetBackfaceCull(true);
         mesh->AddVisualShapeFEA(vis_shell_mesh);
 
         // Visualization of the FEM nodes. Also this object will migrate from master domain to sliced domains.

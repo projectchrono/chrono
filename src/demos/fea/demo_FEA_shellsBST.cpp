@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
         std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
         for (size_t iz = 0; iz <= nsections_z; ++iz) {
             for (size_t ix = 0; ix <= nsections_x; ++ix) {
-                ChVector3d p(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
+                ChVector3d p(L_x-ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
 
                 auto node = chrono_types::make_shared<ChNodeFEAxyz>(p);
 

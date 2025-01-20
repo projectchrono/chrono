@@ -624,19 +624,12 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                         trianglemesh.GetIndicesVertexes()[i_triindex] =
                             ChVector3i(triangle_pt, triangle_pt - 1, triangle_pt + shell_resolution - iu - 1) +
                             ivert_offset;
-                        trianglemesh.GetIndicesVertexes()[i_triindex + 1] =
-                            ChVector3i(triangle_pt - 1, triangle_pt, triangle_pt + shell_resolution - iu - 1) +
-                            ivert_offset;
 
                         if (smooth_faces) {
                             trianglemesh.GetIndicesNormals()[i_triindex] =
                                 ChVector3i(triangle_pt, triangle_pt - 1, triangle_pt + shell_resolution - iu - 1) +
                                 inorm_offset;
-                            trianglemesh.GetIndicesNormals()[i_triindex + 1] =
-                                ChVector3i(triangle_pt - 1, triangle_pt, triangle_pt + shell_resolution - iu - 1) +
-                                inorm_offset;
                         }
-                        ++i_triindex;
                         ++i_triindex;
                     }
 
@@ -644,20 +637,14 @@ void ChVisualShapeFEA::UpdateBuffers_Shell(std::shared_ptr<fea::ChElementBase> e
                         trianglemesh.GetIndicesVertexes()[i_triindex] =
                             ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
                                                       triangle_pt + shell_resolution - iu - 1);
-                        trianglemesh.GetIndicesVertexes()[i_triindex + 1] =
-                            ivert_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
-                                                      triangle_pt + shell_resolution - iu - 2);
 
                         if (smooth_faces) {
                             trianglemesh.GetIndicesNormals()[i_triindex] =
                                 inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
                                                           triangle_pt + shell_resolution - iu - 1);
-                            trianglemesh.GetIndicesNormals()[i_triindex + 1] =
-                                inorm_offset + ChVector3i(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
-                                                          triangle_pt + shell_resolution - iu - 2);
-                        }
 
-                        i_triindex += 2;
+                        }
+                        i_triindex += 1;
                     }
                 }
                 ++triangle_pt;
@@ -911,12 +898,10 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                     }
                 } else if (auto shell = std::dynamic_pointer_cast<ChElementShell>(element)) {
                     if (shell->IsTriangleShell()) {
-                        for (int idp = 1; idp <= shell_resolution; ++idp) {
-                            n_verts += idp;
-                            n_vcols += idp;
-                            n_vnorms += idp;
-                        }
-                        n_triangles += 2 * (shell_resolution - 1) * (shell_resolution - 1);
+                        n_verts += (shell_resolution * (shell_resolution + 1)) / 2;
+                        n_vcols += (shell_resolution * (shell_resolution + 1)) / 2;
+                        n_vnorms += (shell_resolution * (shell_resolution + 1)) / 2;
+                        n_triangles += (shell_resolution - 1) * (shell_resolution - 1);
                     } else {
                         n_verts += shell_resolution * shell_resolution;
                         n_vcols += shell_resolution * shell_resolution;
