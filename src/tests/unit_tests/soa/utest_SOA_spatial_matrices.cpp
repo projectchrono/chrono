@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/soa/ChSpatial.h"
 
 #include "gtest/gtest.h"
@@ -54,18 +56,18 @@ struct FOUR {
 // Define the suite of typed tests (for different number of DOFs)
 using DOF_list = testing::Types<ONE, TWO, THREE, FOUR>;
 template <class>
-struct SOA_suite : testing::Test {};
-TYPED_TEST_SUITE(SOA_suite, DOF_list);
+struct SOA_linalg : testing::Test {};
+TYPED_TEST_SUITE(SOA_linalg, DOF_list);
 
 // -----------------------------------------------------------------------------
 
-TYPED_TEST(SOA_suite, matrix_construction) {
+TYPED_TEST(SOA_linalg, matrix_construction) {
     constexpr int DOF = TypeParam::DOF;
 
 #ifdef DBG_PRINT
-    std::cout.setf(std::ios::fixed, std::ios::floatfield | std::ios::showpos);
-    std::cout.width(12);
-    std::cout.precision(6);
+    cout.setf(std::ios::fixed, std::ios::floatfield | std::ios::showpos);
+    cout.width(12);
+    cout.precision(6);
 #endif
 
     // Spatial matrix from blocks and equivalent 6x6 Eigen matrix
@@ -133,7 +135,7 @@ TYPED_TEST(SOA_suite, matrix_construction) {
 
 // -----------------------------------------------------------------------------
 
-TYPED_TEST(SOA_suite, SOA_multiplication) {
+TYPED_TEST(SOA_linalg, SOA_multiplication) {
     constexpr int DOF = TypeParam::DOF;
 
     ChSpatialVec V(ChVector6::Random());
@@ -182,8 +184,19 @@ TYPED_TEST(SOA_suite, SOA_multiplication) {
         ASSERT_TRUE(hv.equals(hv_e, ABS_ERR));
     }
     {
-        auto hm = (H1 * M).eigen();
-        auto hm_e = H1.eigen() * M;
+        ChMatrix6N<DOF> hm = (H1 * M).eigen();
+        ChMatrix6N<DOF> hm_e = H1.eigen() * M;
+//#ifdef DBG_PRINT
+        cout << "-----------  eigen(H * M)" << endl;
+        cout << hm << endl;
+        cout << "-----------  eigen(H) * M" << endl;
+        cout << hm_e << endl;
+        cout << "-----------  D = eigen(H * M) - eigen(H) * M" << endl;
+        ChMatrix6N<DOF> foo = hm - hm_e;
+        cout << foo << endl;
+        cout << "-----------  ||D|| = " << foo.norm() << endl;
+//#endif
+        ASSERT_NEAR((hm - hm_e).norm(), 0.0, ABS_ERR);
         ASSERT_TRUE(hm.equals(hm_e, ABS_ERR));
     }
     {

@@ -3,6 +3,7 @@ include_directories( ${CH_INCLUDES} )
 
 set(TESTS
     utest_SOA_spatial_matrices
+    utest_SOA_pendulum
 )
 
 message(STATUS "Unit test programs for SOA...")

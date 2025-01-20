@@ -63,13 +63,16 @@ class ChApi ChMobilizedBody {
     int getNumChildren() const { return (int)m_children.size(); }
     ChMobilizedBody* getChild(int i) const { return m_children[i]; }
 
- 	virtual bool isGround() const { return false; }
+    virtual bool isGround() const { return false; }
     bool isTerminal() const { return m_children.empty(); }
 
     void lock(bool val);
 
+    const std::string& getName() const { return m_name; }
+
     const ChFramed& getRelPos() const { return m_X_FM; }
     const ChVector3d& getRelLoc() const { return m_X_FM.GetPos(); }
+    const ChQuaterniond& getRelQuat() const { return m_X_FM.GetRot(); }
     const ChMatrix33d& getRelRot() const { return m_X_FM.GetRotMat(); }
     const ChSpatialVec& getRelVel() const { return m_V_FM; }
     const ChVector3d& getRelLinVel() const { return m_V_FM.lin(); }
@@ -83,6 +86,7 @@ class ChApi ChMobilizedBody {
 
     const ChFramed& getAbsPos() const { return m_absPos; }
     const ChVector3d& getAbsLoc() const { return m_absPos.GetPos(); }
+    const ChQuaterniond& getAbsQuat() const { return m_absPos.GetRot(); }
     const ChMatrix33d& getAbsRot() const { return m_absPos.GetRotMat(); }
     const ChSpatialVec& getAbsVel() const { return m_absVel; }
     const ChVector3d& getAbsLinVel() const { return m_absVel.lin(); }
@@ -91,54 +95,59 @@ class ChApi ChMobilizedBody {
     const ChVector3d& getAbsLinAcc() const { return m_absAcc.lin(); }
     const ChVector3d& getAbsAngAcc() const { return m_absAcc.ang(); }
 
-    // These functions set the relative positions, velocities, and accelerations for
-    // this mobilized body, respectively. They are the default implementations of
-    // these virtual methods: they use the rotational and translational quantity
-    // routines and assume that the rotational and translational coordinates are
-    // independent, with rotation handled first and then left alone. If a mobilizer
-    // type needs to deal with rotation and translation simultaneously, it should
-    // provide a specific implementation for these two routines.
+    ChVector3d getAbsLoc(const ChVector3d& p_B) const;
+    ChVector3d getAbsVel(const ChVector3d& p_B) const;
+    ChVector3d getAbsAcc(const ChVector3d& p_B) const;
+
+    ChVector3d getAbsCOMLoc() const;
+    ChVector3d getAbsCOMVel() const;
+    ChVector3d getAbsCOMAcc() const;
+
+    // These functions set the relative positions, velocities, and accelerations for this mobilized body, respectively.
+    // They are the default implementations of these virtual methods: they use the rotational and translational quantity
+    // routines and assume that the rotational and translational coordinates are independent, with rotation handled
+    // first and then left alone. If a mobilizer type needs to deal with rotation and translation simultaneously, it
+    // should provide a specific implementation for these two routines.
     //
     // Notes:
-    //	- accelerations can meaningfully be set only while performing an Inverse
-    //		Dynamics Analysis.
-    //	- a concrete mobilizer must implement setRelRot() and setRelLoc(),
-    //		setRelAngVel() and setRelLinVel(), setRelAngAcc() and setRelLinAcc();
-    //		there are no defaults.
-    //	- these functions write directly into the mechanicSys's y0() state vector.
+    //	- accelerations can meaningfully be set only while performing an Inverse Dynamics Analysis.
+    //	- a concrete mobilizer must implement setRelRot() and setRelLoc(), setRelAngVel() and setRelLinVel(),
+    //    setRelAngAcc() and setRelLinAcc(); these functions do not have default implementations.
+    //	- these functions write directly into the SOA assembly's state vectors.
 
     /// Set the relative position of the mobilized body.
     /// This default implementation uses the rotational and translational quantity setter functions and assume that the
     /// rotational and translational coordinates are independent, with rotation handled first and then left alone. If a
     /// concrete mobilizer needs to deal with rotation and translation simultaneously, it should provide a specific
     /// implementation for this function.
-    virtual void setRelPos(const ChFramed& relPos) const;
+    virtual void setRelPos(const ChFramed& relPos);
 
     /// Set the relative velocity of the mobilized body.
     /// This default implementation uses the rotational and translational quantity setter functions and assume that the
     /// rotational and translational coordinates are independent, with rotation handled first and then left alone. If a
     /// concrete mobilizer needs to deal with rotation and translation simultaneously, it should provide a specific
     /// implementation for this function.
-    virtual void setRelVel(const ChSpatialVec& relVel) const;
+    virtual void setRelVel(const ChSpatialVec& relVel);
 
     /// Set the relative acceleration of the mobilized body.
     /// This default implementation uses the rotational and translational quantity setter functions and assume that the
     /// rotational and translational coordinates are independent, with rotation handled first and then left alone. If a
     /// concrete mobilizer needs to deal with rotation and translation simultaneously, it should provide a specific
     /// implementation for this function.
-    virtual void setRelAcc(const ChSpatialVec& relAcc) const;
+    virtual void setRelAcc(const ChSpatialVec& relAcc);
 
-    virtual void setRelRot(const ChMatrix33d& relRot) const = 0;
-    virtual void setRelLoc(const ChVector3d& relLoc) const = 0;
-    virtual void setRelAngVel(const ChVector3d& relAngVel) const = 0;
-    virtual void setRelLinVel(const ChVector3d& relLinVel) const = 0;
-    virtual void setRelAngAcc(const ChVector3d& relAngAcc) const = 0;
-    virtual void setRelLinAcc(const ChVector3d& relLinAcc) const = 0;
+    // Mobilizer-specific functions to set relative rotation and translation, relative angular and linear
+    // velocity, and relative angular and linear acceleration.
+    // If the body is associated with an SOA assembly that was already initialized, these functions should write in the
+    // components of assembly-wide state vectors corresponding to this body. Otherwise, these should be treated as
+    // initial conditions and cached (so that they can be returned through getQ0() and getU0()).
 
-    double getQ(int dof) const;
-    double getU(int dof) const;
-    double getQDot(int dof) const;
-    double getUDot(int dof) const;
+    virtual void setRelRot(const ChMatrix33d& relRot) = 0;
+    virtual void setRelLoc(const ChVector3d& relLoc) = 0;
+    virtual void setRelAngVel(const ChVector3d& relAngVel) = 0;
+    virtual void setRelLinVel(const ChVector3d& relLinVel) = 0;
+    virtual void setRelAngAcc(const ChVector3d& relAngAcc) = 0;
+    virtual void setRelLinAcc(const ChVector3d& relLinAcc) = 0;
 
     void AddMobilityForce(int dof, std::shared_ptr<ChMobilityForce> force);
 
@@ -158,6 +167,14 @@ class ChApi ChMobilizedBody {
                     const std::string& name = "");
 
     void ApplyMobilityForces();
+
+    double getQ(int dof) const;
+    double getU(int dof) const;
+    double getUdot(int dof) const;
+
+    void setQ(int dof, double val) const;
+    void setU(int dof, double val) const;
+    void setUdot(int dof, double val) const;
 
     // Outward recursive functions
     // ---------------------------
@@ -185,7 +202,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which first performs the
     /// appropriate operations for that mobilizer, *after* which it muct call this generic method in order to allow its
     /// children to perform the same calculations.
-    virtual void orProcVelFD(const ChVectorDynamic<>& y);
+    virtual void orProcVelFD(const ChVectorDynamic<>& yd);
 
     /// This recursive function, part of the "Forward Dynamics Analysis" chain, is  called in an outward, base-to-tip
     /// traversal of the multibody tree, to  calculate the absolute body position and velocity, as well as any position-
@@ -194,7 +211,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which first performs the
     /// appropriate operations for that mobilizer, *after* which it muct call this generic method in order to allow its
     /// children to perform the same calculations.
-    virtual void orProcPosAndVelFD(const ChVectorDynamic<>& y);
+    virtual void orProcPosAndVelFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd);
 
     /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an outward, base-to-tip
     /// traversal of the multibody tree, to calculate the absolute body acceleration and set the derivative of the state
@@ -202,7 +219,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which first performs the
     /// appropriate operations for that mobilizer, *after* which it muct call this generic method in order to allow its
     /// children to perform the same calculations.
-    virtual void orProcAccFD(const ChVectorDynamic<>& y, ChVectorDynamic<>& yd);
+    virtual void orProcAccFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, ChVectorDynamic<>& ydd);
 
     virtual void orProcMiF_passTwo(double* ud);
 
@@ -212,7 +229,9 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which first performs the
     /// appropriate operations for that mobilizer, *after* which it muct call this generic method in order to allow its
     /// children to perform the same calculations.
-    virtual void orProcPosVelAccID(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd);
+    virtual void orProcPosVelAccID(const ChVectorDynamic<>& y,
+                                   const ChVectorDynamic<>& yd,
+                                   const ChVectorDynamic<>& ydd);
 
     // Inward recursive functions
     // --------------------------
@@ -234,7 +253,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which *first* calls this generic
     /// method in order to allow its children to perform the same calculations after which it performs the appropriate
     /// operations for that mobilizer.
-    virtual void irProcInertiasAndForcesFD(const ChVectorDynamic<>& y);
+    virtual void irProcInertiasAndForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd);
 
     /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
     /// traversal of the multibody tree, to calculate the body articulated inertia. It is called only if the multibody
@@ -242,7 +261,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which *first* calls this generic
     /// method in order to allow its children to perform the same calculations after which it performs the appropriate
     /// operations for that mobilizer.
-    virtual void irProcInertiasFD(const ChVectorDynamic<>& y);
+    virtual void irProcInertiasFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd);
 
     /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
     /// traversal of the multibody tree, to calculate the generalized body force due to external and possibly constraint
@@ -252,7 +271,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which *first* calls this generic
     /// method in order to allow its children to perform the same calculations after which it performs the appropriate
     /// operations for that mobilizer.
-    virtual void irProcForcesFD(const ChVectorDynamic<>& y);
+    virtual void irProcForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd);
 
     /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
     /// traversal of the multibody tree, to calculate a column of the constraint Jacobian. Inertial effects are *not*
@@ -270,7 +289,7 @@ class ChApi ChMobilizedBody {
     /// A concrete mobilizer is supposed to implement its own version of this method which *first* calls this generic
     /// method in order to allow its children to perform the same calculations after which it performs the appropriate
     /// operations for that mobilizer.
-    virtual void irProcForcesID(const ChVectorDynamic<>& y);
+    virtual void irProcForcesID(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, const ChVectorDynamic<>& ydd);
 
     /// Allow the body to perform any operations at the beginning of a simulation step.
     virtual void prepSim() {}
@@ -290,7 +309,7 @@ class ChApi ChMobilizedBody {
     /// derivative vectors.
     ///
     /// This is the default implementations of this virtual method. It can be used by any body for which the generalized
-    /// speeds are the derivatives of the generalized coordinates. A body for which this is not true (e.g. those using
+    /// speeds are the derivatives of the generalized coordinates. A body for which this is not true (e.g., those using
     /// quaternions) must overwrite this default.
     virtual void setQDot(const ChVectorDynamic<>& y, ChVectorDynamic<>& yd) const;
 
@@ -307,6 +326,12 @@ class ChApi ChMobilizedBody {
     /// speeds are the derivatives of the generalized coordinates. A body for which this is not true (e.g. those using
     /// quaternions) must overwrite this default.
     virtual void setQDotDot(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, ChVectorDynamic<>& ydd) const;
+
+    // Functions to get initial conditions
+    // -----------------------------------
+
+    virtual double getQ0(int dof) const = 0;
+    virtual double getU0(int dof) const = 0;
 
     // Body properties
 
@@ -328,10 +353,10 @@ class ChApi ChMobilizedBody {
 
     // Indices in assembly-wide vectors
 
-    ChSoaAssembly* m_assembly;
-
     int m_qIdx;
     int m_uIdx;
+
+    ChSoaAssembly* m_assembly;
 
     // SOA quantities
 
@@ -379,23 +404,27 @@ class ChApi ChMobilizedBody {
 /// holder of the base bodies (those bodies that have ground as their parent).
 class ChApi ChGroundBody : public ChMobilizedBody {
   public:
+    ChGroundBody();
+    ~ChGroundBody() {}
+
     virtual bool isGround() const override { return true; }
 
   private:
-    ChGroundBody();
-
     virtual int getNumQ() const override { return 0; }
     virtual int getNumU() const override { return 0; }
 
-    virtual void setRelRot(const ChMatrix33d& relRot) const override {}
-    virtual void setRelLoc(const ChVector3d& relLoc) const override {}
-    virtual void setRelAngVel(const ChVector3d& relAngVel) const override {}
-    virtual void setRelLinVel(const ChVector3d& relLinVel) const override {}
-    virtual void setRelAngAcc(const ChVector3d& relAngAcc) const override {}
-    virtual void setRelLinAcc(const ChVector3d& relLinAcc) const override {}
+    virtual void setRelRot(const ChMatrix33d& relRot) override {}
+    virtual void setRelLoc(const ChVector3d& relLoc) override {}
+    virtual void setRelAngVel(const ChVector3d& relAngVel) override {}
+    virtual void setRelLinVel(const ChVector3d& relLinVel) override {}
+    virtual void setRelAngAcc(const ChVector3d& relAngAcc) override {}
+    virtual void setRelLinAcc(const ChVector3d& relLinAcc) override {}
 
     virtual void setInboardFrame(const ChFramed& X_PF) override {}
     virtual void setOutboardFrame(const ChFramed& X_BM) override {}
+
+    virtual double getQ0(int dof) const override { return 0.0; }
+    virtual double getU0(int dof) const override { return 0.0; }
 
     friend class ChSoaAssembly;
 };

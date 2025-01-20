@@ -41,9 +41,9 @@ class ChApi ChRevoluteBody : public ChMobilizedBodyT<1> {
     /// is also constant in M.) For this mobilizer the velocity Jacobian H_FM is constant (and set at construction) and
     /// thus its derivative is zero (also set at construction).
     ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
+                   const ChMassProps& mprops,
                    const ChFramed& inbFrame,
                    const ChFramed& outbFrame,
-                   const ChMassProps& mprops,
                    const std::string& name = "");
 
     virtual int getNumQ() const override { return 1; }
@@ -56,18 +56,21 @@ class ChApi ChRevoluteBody : public ChMobilizedBodyT<1> {
     // z-axis that best approximates (in the Frobenius norm sense) the given
     // rotation matrix.
 
-    virtual void setRelRot(const ChMatrix33d& relRot) const override;
-    virtual void setRelLoc(const ChVector3d& relLoc) const override {}
-    virtual void setRelAngVel(const ChVector3d& relAngVel) const override;
-    virtual void setRelLinVel(const ChVector3d& relLinVel) const override {}
-    virtual void setRelAngAcc(const ChVector3d& relAngAcc) const override;
-    virtual void setRelLinAcc(const ChVector3d& relLinAcc) const override {}
+    virtual void setRelRot(const ChMatrix33d& relRot) override;
+    virtual void setRelLoc(const ChVector3d& relLoc) override {}
+    virtual void setRelAngVel(const ChVector3d& relAngVel) override;
+    virtual void setRelLinVel(const ChVector3d& relLinVel) override {}
+    virtual void setRelAngAcc(const ChVector3d& relAngAcc) override;
+    virtual void setRelLinAcc(const ChVector3d& relLinAcc) override {}
 
     // Mobilizer-specific access to generalized coordinates, velocities, and accelerations.
 
-    void setRelPos(double rotAngle) const;
-    void setRelVel(double rotRate) const;
-    void setRelAcc(double rotAcc) const;
+    void setRelPos(double rotAngle);
+    void setRelVel(double rotRate);
+    void setRelAcc(double rotAcc);
+
+    virtual double getQ0(int dof) const override;
+    virtual double getU0(int dof) const override;
 
     /// Utility function to calculate the joint rotation matrix corresponding to the specified generalized coordinate.
     static ChMatrix33d calcRelRot(double q);
@@ -82,6 +85,9 @@ class ChApi ChRevoluteBody : public ChMobilizedBodyT<1> {
     /// To prevent floating-point precision problems when the angular generalized coordinate accumulates excessively, we
     /// restrict it to [-2 * PI, 2 * PI].
     virtual void prepSim() override;
+
+    double m_q0;
+    double m_u0;
 };
 
 /// @} chrono_soa

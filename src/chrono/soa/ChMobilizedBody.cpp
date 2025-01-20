@@ -71,43 +71,83 @@ void ChMobilizedBody::ApplyMobilityForces() {
 
 // -----------------------------------------------------------------------------
 
-double ChMobilizedBody::getQ(int dof) const {
-    assert(dof >= 0 && dof < getNumQ());
-
-    return m_assembly->getCurState(m_qIdx + dof);
+ChVector3d ChMobilizedBody::getAbsLoc(const ChVector3d& p_B) const {
+    return m_absPos * p_B;
 }
 
-double ChMobilizedBody::getU(int dof) const {
-    assert(dof >= 0 && dof < getNumU());
-
-    return m_assembly->getCurState(m_uIdx + dof);
+ChVector3d ChMobilizedBody::getAbsVel(const ChVector3d& p_B) const {
+    ChVector3d r = m_absPos.GetRotMat() * p_B;
+    return m_absVel.lin() + m_absVel.ang() % r;
 }
 
-double ChMobilizedBody::getQDot(int dof) const {
-    assert(dof >= 0 && dof < getNumQ());
-
-    return m_assembly->getCurStateDeriv(m_qIdx + dof);
+ChVector3d ChMobilizedBody::getAbsAcc(const ChVector3d& p_B) const {
+    ChVector3d r = m_absPos.GetRotMat() * p_B;
+    return m_absAcc.lin() + m_absAcc.ang() % r + m_absVel.ang() % (m_absVel.ang() % r);
 }
 
-double ChMobilizedBody::getUDot(int dof) const {
-    assert(dof >= 0 && dof < getNumU());
+ChVector3d ChMobilizedBody::getAbsCOMLoc() const {
+    return getAbsLoc(m_mpropsB.com());
+}
 
-    return m_assembly->getCurStateDeriv(m_uIdx + dof);
+ChVector3d ChMobilizedBody::getAbsCOMVel() const {
+    return getAbsVel(m_mpropsB.com());
+}
+
+ChVector3d ChMobilizedBody::getAbsCOMAcc() const {
+    return getAbsAcc(m_mpropsB.com());
 }
 
 // -----------------------------------------------------------------------------
 
-void ChMobilizedBody::setRelPos(const ChFramed& relPos) const {
+double ChMobilizedBody::getQ(int dof) const {
+    assert(m_assembly->IsInitialized());
+    assert(dof >= 0 && dof < getNumQ());
+    return m_assembly->getY(m_qIdx + dof);
+}
+
+double ChMobilizedBody::getU(int dof) const {
+    assert(m_assembly->IsInitialized());
+    assert(dof >= 0 && dof < getNumU());
+    return m_assembly->getYd(m_uIdx + dof);
+}
+
+double ChMobilizedBody::getUdot(int dof) const {
+    assert(m_assembly->IsInitialized());
+    assert(dof >= 0 && dof < getNumU());
+    return m_assembly->getYdd(m_uIdx + dof);
+}
+
+void ChMobilizedBody::setQ(int dof, double val) const {
+    assert(m_assembly->IsInitialized());
+    assert(dof >= 0 && dof < getNumQ());
+    m_assembly->setY(m_qIdx + dof, val);
+}
+
+void ChMobilizedBody::setU(int dof, double val) const {
+    assert(m_assembly->IsInitialized());
+    assert(dof >= 0 && dof < getNumU());
+    m_assembly->setYd(m_uIdx + dof, val);
+}
+
+void ChMobilizedBody::setUdot(int dof, double val) const {
+    assert(m_assembly->IsInitialized());
+    assert(dof >= 0 && dof < getNumU());
+    m_assembly->setYdd(m_uIdx + dof, val);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChMobilizedBody::setRelPos(const ChFramed& relPos) {
     setRelRot(relPos.GetRotMat());
     setRelLoc(relPos.GetPos());
 }
 
-void ChMobilizedBody::setRelVel(const ChSpatialVec& relVel) const {
+void ChMobilizedBody::setRelVel(const ChSpatialVec& relVel) {
     setRelAngVel(relVel.ang());
     setRelLinVel(relVel.lin());
 }
 
-void ChMobilizedBody::setRelAcc(const ChSpatialVec& relAcc) const {
+void ChMobilizedBody::setRelAcc(const ChSpatialVec& relAcc) {
     setRelAngAcc(relAcc.ang());
     setRelLinAcc(relAcc.lin());
 }
@@ -119,19 +159,19 @@ void ChMobilizedBody::orProcPosFD(const ChVectorDynamic<>& y) {
         getChild(i)->orProcPosFD(y);
 }
 
-void ChMobilizedBody::orProcVelFD(const ChVectorDynamic<>& y) {
+void ChMobilizedBody::orProcVelFD(const ChVectorDynamic<>& yd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->orProcVelFD(y);
+        getChild(i)->orProcVelFD(yd);
 }
 
-void ChMobilizedBody::orProcPosAndVelFD(const ChVectorDynamic<>& y) {
+void ChMobilizedBody::orProcPosAndVelFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->orProcPosAndVelFD(y);
+        getChild(i)->orProcPosAndVelFD(y, yd);
 }
 
-void ChMobilizedBody::orProcAccFD(const ChVectorDynamic<>& y, ChVectorDynamic<>& yd) {
+void ChMobilizedBody::orProcAccFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, ChVectorDynamic<>& ydd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->orProcAccFD(y, yd);
+        getChild(i)->orProcAccFD(y, yd, ydd);
 }
 
 void ChMobilizedBody::orProcMiF_passTwo(double* ud) {
@@ -139,26 +179,28 @@ void ChMobilizedBody::orProcMiF_passTwo(double* ud) {
         getChild(i)->orProcMiF_passTwo(ud);
 }
 
-void ChMobilizedBody::orProcPosVelAccID(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+void ChMobilizedBody::orProcPosVelAccID(const ChVectorDynamic<>& y,
+                                        const ChVectorDynamic<>& yd,
+                                        const ChVectorDynamic<>& ydd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->orProcPosVelAccID(y, yd);
+        getChild(i)->orProcPosVelAccID(y, yd, ydd);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChMobilizedBody::irProcInertiasAndForcesFD(const ChVectorDynamic<>& y) {
+void ChMobilizedBody::irProcInertiasAndForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->irProcInertiasAndForcesFD(y);
+        getChild(i)->irProcInertiasAndForcesFD(y, yd);
 }
 
-void ChMobilizedBody::irProcInertiasFD(const ChVectorDynamic<>& y) {
+void ChMobilizedBody::irProcInertiasFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->irProcInertiasFD(y);
+        getChild(i)->irProcInertiasFD(y, yd);
 }
 
-void ChMobilizedBody::irProcForcesFD(const ChVectorDynamic<>& y) {
+void ChMobilizedBody::irProcForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->irProcForcesFD(y);
+        getChild(i)->irProcForcesFD(y, yd);
 }
 
 void ChMobilizedBody::irProcConstraintJac(double* vec) {
@@ -171,9 +213,11 @@ void ChMobilizedBody::irProcMiF_passOne() {
         getChild(i)->irProcMiF_passOne();
 }
 
-void ChMobilizedBody::irProcForcesID(const ChVectorDynamic<>& y) {
+void ChMobilizedBody::irProcForcesID(const ChVectorDynamic<>& y,
+                                     const ChVectorDynamic<>& yd,
+                                     const ChVectorDynamic<>& ydd) {
     for (int i = 0; i < getNumChildren(); i++)
-        getChild(i)->irProcForcesID(y);
+        getChild(i)->irProcForcesID(y, yd, ydd);
 }
 
 // -----------------------------------------------------------------------------

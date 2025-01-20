@@ -70,15 +70,14 @@ class ChMobilizedBodyT : public ChMobilizedBody {
                      const ChFramed& X_BM,
                      const std::string& name = "");
 
-    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is
-    /// called in an outward, base-to-tip traversal of the multibody tree, to
-    /// calculate the absolute body position and velocity, as well as any position-
-    /// and velocity-related quantities required for further dynamic analysis. It
-    /// assumes that the same function has already been called for the parent body.
+    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an outward, base-to-tip
+    /// traversal of the multibody tree, to calculate the absolute body position and velocity, as well as any position-
+    /// and velocity-related quantities required for further dynamic analysis. It assumes that the same function has
+    /// already been called for the parent body.
     ///
-    /// The concrete mobilizer is first given the opportunity to calculate and cache
-    /// any precalculated quantities that could be reused in subsequent traversals
-    /// for the given state vector.
+    /// The concrete mobilizer is first given the opportunity to calculate and cache any precalculated quantities that
+    /// could be reused in subsequent traversals for the given state vector.
+    ///
     /// The quantities calculated here are as follows:
     /// <pre>
     ///	X_FM		joint transform (mobilizer-specific);
@@ -104,18 +103,16 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///					a = PhiDot * V_GP + HDot * u;
     /// </pre>
     ///
-    /// The last operation that this function performs is to call this same function
-    /// for all the children of this body to ensure the base-to-tip traversal.
-    virtual void orProcPosAndVelFD(const ChVectorDynamic<>& y) override;
+    /// The last operation that this function performs is to call this same function for all the children of this body
+    /// to ensure the base-to-tip traversal.
+    virtual void orProcPosAndVelFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override;
 
-    /// This recursive function, called in an outward, base-to-tip traversal of the
-    /// multibody tree, calculates the absolute position and all position-dependent
-    /// kinematic quantities. It assumes that the same function has already been
-    /// called for the parent body.
+    /// This recursive function, called in an outward, base-to-tip traversal of the multibody tree, calculates the
+    /// absolute position and all position-dependent kinematic quantities. It assumes that the same function has already
+    /// been called for the parent body.
     ///
-    /// The concrete mobilizer is first given the opportunity to calculate and cache
-    /// any precalculated quantities that could be reused in subsequent traversals
-    /// for the given state vector.
+    /// The concrete mobilizer is first given the opportunity to calculate and cache any precalculated quantities that
+    /// could be reused in subsequent traversals for the given state vector.
     /// The quantities calculated here are as follows:
     /// <pre>
     ///	X_FM	joint transform;
@@ -127,14 +124,13 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///	H_PB_G	parent-to child velocity transition matrix (generic);
     /// </pre>
     ///
-    /// The last operation that this function performs is to call this same function
-    /// for all the children of this body to ensure the base-to-tip traversal.
+    /// The last operation that this function performs is to call this same function for all the children of this body
+    /// to ensure the base-to-tip traversal.
     virtual void orProcPosFD(const ChVectorDynamic<>& y) override;
 
-    /// This recursive function, called in an outward, base-to-tip traversal of the
-    /// multibody tree, calculates the absolute body velocity. It assumes that a
-    /// tree traversal to calculate position-level quantities has been performed and
-    /// that this same function has already been called for the parent body.
+    /// This recursive function, called in an outward, base-to-tip traversal of the multibody tree, calculates the
+    /// absolute body velocity. It assumes that a tree traversal to calculate position-level quantities has been
+    /// performed and that this same function has already been called for the parent body.
     ///
     /// The quantities calculated here are as follows:
     /// <pre>
@@ -142,15 +138,14 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///	V_GB	spatial body velocity with respect to ground.
     /// </pre>
     ///
-    /// The last operation that this function performs is to call this same function
-    /// for all the children of this body to ensure the base-to-tip traversal.
-    virtual void orProcVelFD(const ChVectorDynamic<>& y) override;
+    /// The last operation that this function performs is to call this same function for all the children of this body
+    /// to ensure the base-to-tip traversal.
+    virtual void orProcVelFD(const ChVectorDynamic<>& yd) override;
 
-    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is
-    /// called in an inward, tip-to-base traversal of the multibody tree, to
-    /// calculate the body articulated inertia and the generalized force due to
-    /// external forces. It is called only if the multibody system has no active
-    /// constraints and, as such, all CS forces are set to zero.
+    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
+    /// traversal of the multibody tree, to calculate the body articulated inertia and the generalized force due to
+    /// external forces. It is called only if the multibody system has no active constraints and, as such, all CS forces
+    /// are set to zero.
     ///
     /// This function must only be called *after*:
     /// <pre>
@@ -159,13 +154,12 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///	(b)	any external (body and/or mobility) forces have been accounted for.
     /// </pre>
     ///
-    /// The first operation that this function performs is to call this same function
-    /// for all children of the current body to ensure the tip-to-base traversal.
-    virtual void irProcInertiasAndForcesFD(const ChVectorDynamic<>& y) override;
+    /// The first operation that this function performs is to call this same function for all children of the current
+    /// body to ensure the tip-to-base traversal.
+    virtual void irProcInertiasAndForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override;
 
-    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is
-    /// called in an inward, tip-to-base traversal of the multibody tree, to
-    /// calculate the body articulated inertia. It is called only if the multibody
+    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
+    /// traversal of the multibody tree, to calculate the body articulated inertia. It is called only if the multibody
     /// system has active constraints.
     ///
     /// This function must only be called *after*:
@@ -174,17 +168,15 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///		position and velocity are available.
     /// </pre>
     ///
-    /// The first operation that this function performs is to call this same function
-    /// for all children of the current body to ensure the tip-to-base traversal.
-    virtual void irProcInertiasFD(const ChVectorDynamic<>& y) override;
+    /// The first operation that this function performs is to call this same function for all children of the current
+    /// body to ensure the tip-to-base traversal.
+    virtual void irProcInertiasFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override;
 
-    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is
-    /// called in an inward, tip-to-base traversal of the multibody tree, to
-    /// calculate the generalized body force due to external and possibly constraint
-    /// forces. It is called only if the multibody system has active constraints,
-    /// once for evaluating the open-loop dynamics (in which case all CS forces are
-    /// set to zero) and a second time for the closed-loop dynamics (in which case
-    /// the CS forces are non-zero).
+    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
+    /// traversal of the multibody tree, to calculate the generalized body force due to external and possibly constraint
+    /// forces. It is called only if the multibody system has active constraints, once for evaluating the open-loop
+    /// dynamics (in which case all CS forces are set to zero) and a second time for the closed-loop dynamics (in which
+    /// case the CS forces are non-zero).
     ///
     /// This function must only be called *after*:
     /// <pre>
@@ -197,13 +189,12 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///		resulting constraint forces applied.
     /// </pre>
     ///
-    /// The first operation that this function performs is to call this same function
-    /// for all children of the current body to ensure the tip-to-base traversal.
-    virtual void irProcForcesFD(const ChVectorDynamic<>& y) override;
+    /// The first operation that this function performs is to call this same function for all children of the current
+    /// body to ensure the tip-to-base traversal.
+    virtual void irProcForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override;
 
-    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is
-    /// called in an outward, base-to-tip traversal of the multibody tree, to
-    /// calculate the absolute body acceleration and set the derivative of the state
+    /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an outward, base-to-tip
+    /// traversal of the multibody tree, to calculate the absolute body acceleration and set the derivative of the state
     /// vector.
     ///
     /// This function must only be called *after*:
@@ -215,14 +206,13 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///	(c) any external and/or constraint forces have been accounted for.
     /// </pre>
     ///
-    /// Note that this function operates with the current values for 'm_nu'. These
-    /// may account for only the external forces or they may account for both
-    /// external and constraint forces, depending on whether it is called while
+    /// Note that this function operates with the current values for 'm_nu'. These may account for only the external
+    /// forces or they may account for both external and constraint forces, depending on whether it is called while
     /// evaluating the open-loop or closed-loop dynamics.
     ///
-    /// The last operation that this function performs is to call this same function
-    /// for all the children of this body to ensure the base-to-tip traversal.
-    virtual void orProcAccFD(const ChVectorDynamic<>& y, ChVectorDynamic<>& yd) override;
+    /// The last operation that this function performs is to call this same function for all the children of this body
+    /// to ensure the base-to-tip traversal.
+    virtual void orProcAccFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, ChVectorDynamic<>& ydd) override;
 
     /// This recursive function, part of the "Forward Dynamics Analysis" chain, is called in an inward, tip-to-base
     /// traversal of the multibody tree, to calculate a column of the constraint Jacobian. Inertial effects are *not*
@@ -261,14 +251,13 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     /// constraint calculates forces that really correspond to -(Gt * lambda).
     virtual void orProcMiF_passTwo(double* ud) override;
 
-    /// This recursive function, part of the "Inverse Dynamics Analysis" chain, is
-    /// called in an outward, base-to-tip traversal of the multibody tree, to
-    /// calculate the absolute body position, velocity, and acceleration. It assumes
+    /// This recursive function, part of the "Inverse Dynamics Analysis" chain, is called in an outward, base-to-tip
+    /// traversal of the multibody tree, to calculate the absolute body position, velocity, and acceleration. It assumes
     /// that the same function has already been called for the parent body.
     ///
-    /// The concrete mobilizer is first given the opportunity to calculate and cache
-    /// any precalculated quantities that could be reused in subsequent traversals
-    /// for the given state vector.
+    /// The concrete mobilizer is first given the opportunity to calculate and cache any precalculated quantities that
+    /// could be reused in subsequent traversals for the given state vector.
+    ///
     /// The quantities calculated here are as follows:
     /// <pre>
     ///	X_FM		joint transform (mobilizer-specific);
@@ -295,14 +284,15 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///	A_GB		the spatial body acceleration with respect to Ground.
     /// </pre>
     ///
-    /// The last operation that this function performs is to call this same function
-    /// for all the children of this body to ensure the base-to-tip traversal.
-    virtual void orProcPosVelAccID(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) override;
+    /// The last operation that this function performs is to call this same function for all the children of this body
+    /// to ensure the base-to-tip traversal.
+    virtual void orProcPosVelAccID(const ChVectorDynamic<>& y,
+                                   const ChVectorDynamic<>& yd,
+                                   const ChVectorDynamic<>& ydd) override;
 
-    /// This recursive function, part of the "Inverse Dynamics Analysis" chain, is
-    /// called in an inward, tip-to-base traversal of the multibody tree, to
-    /// calculate the body and mobility forces at the given body configuration
-    /// (i.e. the current body position, velocity, and acceleration).
+    /// This recursive function, part of the "Inverse Dynamics Analysis" chain, is called in an inward, tip-to-base
+    /// traversal of the multibody tree, to calculate the body and mobility forces at the given body configuration (i.e.
+    /// the current body position, velocity, and acceleration).
     ///
     /// This function must be called only *after*:
     /// <pre>
@@ -311,18 +301,18 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///	(b)	any desired external forces have been accounted for.
     /// </pre>
     ///
-    /// This means that, on entry, 'm_bodyForce' contains any external body forces
-    /// applied directly to this body and 'm_mobilityForce' contains any external
-    /// hinge forces applied directly to the mobilizer inboard joint.
+    /// This means that, on entry, 'm_bodyForce' contains any external body forces applied directly to this body and
+    /// 'm_mobilityForce' contains any external hinge forces applied directly to the mobilizer inboard joint.
     ///
-    /// The quantity calculated here is 'm_mobilityForceID',	the auxiliary mobility
-    /// (hinge) forces that should be applied to this mobilized body, in *addition*
-    /// to any other external forces (body and/or hinge), in order to achieve the
-    /// desired body acceleration.
+    /// The quantity calculated here is 'm_mobilityForceID',	the auxiliary mobility (hinge) forces that should be
+    /// applied to this mobilized body, in *addition* to any other external forces (body and/or hinge), in order to
+    /// achieve the desired body acceleration.
     ///
-    /// The first operation that this function performs is to call this same function
-    /// for all children of the current body to ensure the tip-to-base traversal.
-    virtual void irProcForcesID(const ChVectorDynamic<>& y) override;
+    /// The first operation that this function performs is to call this same function for all children of the current
+    /// body to ensure the tip-to-base traversal.
+    virtual void irProcForcesID(const ChVectorDynamic<>& y,
+                                const ChVectorDynamic<>& yd,
+                                const ChVectorDynamic<>& ydd) override;
 
     /// Include the provided force as a constraint mobility force on the specified DOF.
     virtual void applyCSMobilityForce(int which, double force) override;
@@ -371,6 +361,7 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     /// H_PB_G represents the transition matrix giving the velocity change from parent to child, expressed in the ground
     /// frame. This function is called in a based-to-tip[ traversal and therefore the parent transform X_GP as well as
     /// the transition matrix H_FM are available.
+    /// 
     /// This function calculates the following quantities:
     /// <pre>
     ///	r_MB_F		vector from OM, the origin of the M frame to OB, the origin of
@@ -418,11 +409,10 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     /// </pre>
     void calcArticulatedInertia();
 
-    /// This function calculates the generalized force acting on the inboard joint of
-    /// this body due to external and possibly constraint forces. It is called from
-    /// either irProcInertiasAndForcesFD() or irProcForcesFD() during an inward,
-    /// tip-to-base traversal of the multibody tree. It assumes that the articulated
-    /// inertia has already been calculated.
+    /// This function calculates the generalized force acting on the inboard joint of this body due to external and
+    /// possibly constraint forces. It is called from either irProcInertiasAndForcesFD() or irProcForcesFD() during an
+    /// inward, tip-to-base traversal of the multibody tree. It assumes that the articulated inertia has already been
+    /// calculated.
     ///
     /// The quantities calculated here are as follows:
     /// <pre>
@@ -437,30 +427,29 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ///					Zplus = Z + G * eps.
     /// </pre>
     ///
-    /// Note that external and constraint forces are included with opposite signs.
-    /// This is due to the fact that each constraint calculates forces that really
-    /// correspond to -(Gt * lambda).
+    /// Note that external and constraint forces are included with opposite signs. This is due to the fact that each
+    /// constraint calculates forces that really correspond to -(Gt * lambda).
     void calcGeneralizedForce();
 
     /// Get a constant reference to the states of this mobilizer in the provided assembly-wide vector.
-    const ChVectorN<double, dof> myU(const ChVectorDynamic<>& y) const { return y.segment(m_uIdx, dof); }
-    const ChVectorN<double, dof> myU(double* y) const {
-        return Eigen::Map<ChVectorN<double, dof>>(&y[m_uIdx], dof, 1);
+    const ChVectorN<double, dof> myU(const ChVectorDynamic<>& yd) const { return yd.segment(m_uIdx, dof); }
+    const ChVectorN<double, dof> myU(double* yd) const {
+        return Eigen::Map<ChVectorN<double, dof>>(&yd[m_uIdx], dof, 1);
     }
 
-    ////const ChVectorN<double, dof>& myU(const ChVectorDynamic<>& y) const { return y.segment(m_uIdx, dof); }
-    ////const ChVectorN<double, dof>& myU(double* y) const {
-    ////    return Eigen::Map<ChVectorN<double, dof>>(&y[m_uIdx], dof, 1);
+    ////const ChVectorN<double, dof>& myU(const ChVectorDynamic<>& yd) const { return yd.segment(m_uIdx, dof); }
+    ////const ChVectorN<double, dof>& myU(double* yd) const {
+    ////    return Eigen::Map<ChVectorN<double, dof>>(&yd[m_uIdx], dof, 1);
     ////}
 
-    ////const Eigen::Ref<ChVectorN<double, dof>>& myU(const ChVectorDynamic<>& y) const { return y.segment(m_uIdx, dof); }
-    ////const Eigen::Ref<ChVectorN<double, dof>>& myU(double* y) const {
-    ////    return Eigen::Map<ChVectorN<double, dof>>(&y[m_uIdx], dof, 1);
+    ////const Eigen::Ref<ChVectorN<double, dof>>& myU(const ChVectorDynamic<>& yd) const { return yd.segment(m_uIdx, dof); }
+    ////const Eigen::Ref<ChVectorN<double, dof>>& myU(double* yd) const {
+    ////    return Eigen::Map<ChVectorN<double, dof>>(&yd[m_uIdx], dof, 1);
     ////}
 
     /// Set (copy) the states of this mobilizer into the provided assembly-wide state vector.
-    void setMyU(ChVectorDynamic<>& y, const ChVectorN<double, dof>& u);
-    void setMyU(double* y, const ChVectorN<double, dof>& u);
+    void setMyU(ChVectorDynamic<>& yd, const ChVectorN<double, dof>& u);
+    void setMyU(double* yd, const ChVectorN<double, dof>& u);
 };
 
 // -----------------------------------------------------------------------------
@@ -489,7 +478,7 @@ template <int dof>
 inline void ChMobilizedBodyT<dof>::orProcPosFD(const ChVectorDynamic<>& y) {
     setJointPrecalculated(y);
 
-    // Calculate the body position.
+    // Calculate the body position
     setJointTransform(y);
 
     m_X_PB = m_X_PF * m_X_FM * m_X_BM.GetInverse();
@@ -499,7 +488,7 @@ inline void ChMobilizedBodyT<dof>::orProcPosFD(const ChVectorDynamic<>& y) {
     else
         m_absPos = getParent()->getAbsPos() * m_X_PB;
 
-    // Calculate position-dependent quantities.
+    // Calculate position-dependent quantities
     if (getParent()->isGround())
         m_Phi = ChShiftMat(m_X_PB.GetPos());
     else
@@ -508,32 +497,32 @@ inline void ChMobilizedBodyT<dof>::orProcPosFD(const ChVectorDynamic<>& y) {
     setJointVelMat(y);
     calcParentToChildVelMat();
 
-    // Initialize the constraint forces to zero.
+    // Initialize the constraint forces to zero
     m_bodyForceCS.setZero();
     m_mobilityForceCS.setZero();
 
-    // Request the children to perform same operation.
+    // Request the children to perform same operation
     ChMobilizedBody::orProcPosFD(y);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcVelFD(const ChVectorDynamic<>& y) {
-    m_V_FM = m_H_FM * myU(y);
+inline void ChMobilizedBodyT<dof>::orProcVelFD(const ChVectorDynamic<>& yd) {
+    m_V_FM = m_H_FM * myU(yd);
 
     if (getParent()->isGround())
-        m_absVel = m_H * myU(y);
+        m_absVel = m_H * myU(yd);
     else
-        m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(y);
+        m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(yd);
 
-    // Request the children to perform same operation.
-    ChMobilizedBody::orProcVelFD(y);
+    // Request the children to perform same operation
+    ChMobilizedBody::orProcVelFD(yd);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y) {
+inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
     setJointPrecalculated(y);
 
-    // Calculate the body position.
+    // Calculate the body position
     setJointTransform(y);
 
     m_X_PB = m_X_PF * m_X_FM * m_X_BM.GetInverse();
@@ -543,7 +532,7 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y)
     else
         m_absPos = getParent()->getAbsPos() * m_X_PB;
 
-    // Calculate position-dependent quantities.
+    // Calculate position-dependent quantities
     if (getParent()->isGround())
         m_Phi = ChShiftMat(m_X_PB.GetPos());
     else
@@ -560,7 +549,7 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y)
     m_Mk = ChSpatialMat(m_inertiaOB_G, offDiag, -offDiag, m_mpropsB.mass() * ChMatrix33d(1));
 
     // Calculate the body spatial velocity and velocity-dependent quantities.
-    // Note that if this body is locked, we treat is similarly to an mbWeldBody.
+    // Note that if this body is locked, we treat is similarly to an mbWeldBody
     if (m_locked) {
         if (getParent()->isGround()) {
             m_absVel.setZero();
@@ -584,16 +573,16 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y)
     } else {
         setJointVelMat(y);
 
-        m_V_FM = m_H_FM * myU(y);
+        m_V_FM = m_H_FM * myU(yd);
 
         setJointVelMatDot(y);
 
         calcParentToChildVelMatDot();
 
         if (getParent()->isGround())
-            m_absVel = m_H * myU(y);
+            m_absVel = m_H * myU(yd);
         else
-            m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(y);
+            m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(yd);
 
         const ChVector3d& w_GB = m_absVel.ang();
         const ChVector3d& v_GB = m_absVel.lin();
@@ -601,31 +590,31 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y)
         m_gyrForce = ChSpatialVec(w_GB % (m_inertiaOB_G * w_GB), m_mpropsB.mass() * (w_GB % (w_GB % m_CB_G)));
 
         if (getParent()->isGround()) {
-            m_corAcc = m_H_dot * myU(y);
+            m_corAcc = m_H_dot * myU(yd);
             m_corAccT = m_corAcc;
         } else {
             const ChVector3d& w_GP = getParent()->getAbsVel().ang();
             const ChVector3d& v_GP = getParent()->getAbsVel().lin();
 
-            m_corAcc = ChSpatialVec(ChVector3d(0.0f), w_GP % (v_GB - v_GP)) + m_H_dot * myU(y);
+            m_corAcc = ChSpatialVec(ChVector3d(0.0f), w_GP % (v_GB - v_GP)) + m_H_dot * myU(yd);
             m_corAccT = m_Phi * getParent()->m_corAccT + m_corAcc;
         }
     }
 
-    // Update the contact model at new position.
+    // Update the contact model at new position
     //// TODO -- contact
     ////if (m_contact)
     ////    m_contact->update();
 
-    // Initialize the body, mobility, and constraint forces to zero.
+    // Initialize the body, mobility, and constraint forces to zero
     m_bodyForce.setZero();
     m_mobilityForce.setZero();
 
     m_bodyForceCS.setZero();
     m_mobilityForceCS.setZero();
 
-    // Request the children to perform same operation.
-    ChMobilizedBody::orProcPosAndVelFD(y);
+    // Request the children to perform same operation
+    ChMobilizedBody::orProcPosAndVelFD(y, yd);
 }
 
 // -----------------------------------------------------------------------------
@@ -683,23 +672,23 @@ inline void ChMobilizedBodyT<dof>::calcParentToChildVelMatDot() {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcInertiasAndForcesFD(const ChVectorDynamic<>& y) {
-    ChMobilizedBody::irProcInertiasAndForcesFD(y);
+inline void ChMobilizedBodyT<dof>::irProcInertiasAndForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    ChMobilizedBody::irProcInertiasAndForcesFD(y, yd);
 
     calcArticulatedInertia();
     calcGeneralizedForce();
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcInertiasFD(const ChVectorDynamic<>& y) {
-    ChMobilizedBody::irProcInertiasFD(y);
+inline void ChMobilizedBodyT<dof>::irProcInertiasFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    ChMobilizedBody::irProcInertiasFD(y, yd);
 
     calcArticulatedInertia();
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcForcesFD(const ChVectorDynamic<>& y) {
-    ChMobilizedBody::irProcForcesFD(y);
+inline void ChMobilizedBodyT<dof>::irProcForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    ChMobilizedBody::irProcForcesFD(y, yd);
 
     calcGeneralizedForce();
 }
@@ -743,51 +732,49 @@ inline void ChMobilizedBodyT<dof>::calcGeneralizedForce() {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcAccFD(const ChVectorDynamic<>& y, ChVectorDynamic<>& yd) {
+inline void ChMobilizedBodyT<dof>::orProcAccFD(const ChVectorDynamic<>& y,
+                                               const ChVectorDynamic<>& yd,
+                                               ChVectorDynamic<>& ydd) {
     if (m_locked) {
-        // If this body is locked, set its state derivatives to zero and
-        // calculate the body spatial acceleration which, in this case, is just
-        // the sum of the parent's shifted acceleration and the Coriolis
-        // acceleration (same as for an mbWeldBody).
+        // If this body is locked, set its state derivatives to zero and calculate the body spatial acceleration which,
+        // in this case, is just the sum of the parent's shifted acceleration and the Coriolis acceleration (same as for
+        // an ChWeldBody)
         for (int i = 0; i < getNumQ(); i++)
-            yd[m_qIdx + i] = 0;
+            ydd[m_qIdx + i] = 0;
         for (int i = 0; i < getNumU(); i++)
-            yd[m_uIdx + i] = 0;
+            ydd[m_uIdx + i] = 0;
 
         m_absAcc = m_corAcc;
 
         if (!getParent()->isGround())
             m_absAcc += m_Phi * getParent()->getAbsAcc();
     } else {
-        // Set the derivatives of the generalized coordinates.
-        setQDot(y, yd);
+        // Set the derivatives of the generalized coordinates
+        ////setQDot(y, yd);  //// TODO -- needed?
 
-        // Calculate the body acceleration and set the derivatives of generalized
-        // velocities.
+        // Calculate the body acceleration and set the derivatives of generalized velocities
         if (getParent()->isGround()) {
-            setMyU(yd, m_nu);
-            m_absAcc = m_H * myU(yd) + m_corAcc;
+            setMyU(ydd, m_nu);
+            m_absAcc = m_H * myU(ydd) + m_corAcc;
         } else {
             ChSpatialVec alphap = m_Phi * getParent()->getAbsAcc();
-            setMyU(yd, m_nu - (~m_G * alphap));
-            m_absAcc = alphap + m_H * myU(yd) + m_corAcc;
+            setMyU(ydd, m_nu - (~m_G * alphap));
+            m_absAcc = alphap + m_H * myU(ydd) + m_corAcc;
         }
     }
 
     // Request the children to perform same operation.
-    ChMobilizedBody::orProcAccFD(y, yd);
+    ChMobilizedBody::orProcAccFD(y, yd, ydd);
 }
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::irProcConstraintJac(double* vec) {
-    // Request the children to perform same operation.
+    // Request the children to perform same operation
     ChMobilizedBody::irProcConstraintJac(vec);
 
-    // Calculate the generalized joint force 'eps' due to constraint forces but
-    // do not include any inertial components. Note that constraint forces must
-    // be included with a sign opposite to what would be used for external
-    // forces. This is due to the fact that each constraint calculates forces
-    // that really correspond to -(Gt * lambda).
+    // Calculate the generalized joint force 'eps' due to constraint forces but do not include any inertial components.
+    // Note that constraint forces must be included with a sign opposite to what would be used for external forces. This
+    // is due to the fact that each constraint calculates forces that really correspond to -(Gt * lambda).
     ChSpatialVec Z = m_bodyForceCS;
 
     for (int i = 0; i < getNumChildren(); i++)
@@ -803,12 +790,11 @@ inline void ChMobilizedBodyT<dof>::irProcConstraintJac(double* vec) {
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::irProcMiF_passOne() {
-    // Request the children to perform same operation.
+    // Request the children to perform same operation
     ChMobilizedBody::irProcMiF_passOne();
 
-    // Calculate the generalized joint force 'eps' and joint acceleration 'm_nu'
-    // due to all applied forces (excluding centrifugal forces). Note that
-    // constraint forces have opposite sign to the external forces.
+    // Calculate the generalized joint force 'eps' and joint acceleration 'm_nu' due to all applied forces (excluding
+    // centrifugal forces). Note that constraint forces have opposite sign to the external forces
     ChSpatialVec Z = -m_bodyForce + m_bodyForceCS;
 
     for (int i = 0; i < getNumChildren(); i++)
@@ -824,8 +810,7 @@ inline void ChMobilizedBodyT<dof>::irProcMiF_passOne() {
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::orProcMiF_passTwo(double* ud) {
-    // Set the derivatives of the generalized velocities due to the applied
-    // forces (excluding Coriolis acceleration).
+    // Set the derivatives of the generalized velocities due to the applied forces (excluding Coriolis acceleration)
     if (getParent()->isGround()) {
         setMyU(ud, m_nu);
         m_absAcc = m_H * myU(ud);
@@ -835,17 +820,19 @@ inline void ChMobilizedBodyT<dof>::orProcMiF_passTwo(double* ud) {
         m_absAcc = alphap + m_H * myU(ud);
     }
 
-    // Request the children to perform same operation.
+    // Request the children to perform same operation
     ChMobilizedBody::orProcMiF_passTwo(ud);
 }
 
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
+                                                     const ChVectorDynamic<>& yd,
+                                                     const ChVectorDynamic<>& ydd) {
     setJointPrecalculated(y);
 
-    // Calculate the body position and position-dependent quantities.
+    // Calculate the body position and position-dependent quantities
     setJointTransform(y);
 
     m_X_PB = m_X_PF * m_X_FM * m_X_BM.GetInverse();
@@ -870,19 +857,19 @@ inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
     auto offDiag = m_mpropsB.mass() * ChStarMatrix33d(m_CB_G);
     m_Mk = ChSpatialMat(m_inertiaOB_G, offDiag, -offDiag, m_mpropsB.mass() * ChMatrix33d(1));
 
-    // Calculate the body spatial velocity and velocity-dependent quantities.
+    // Calculate the body spatial velocity and velocity-dependent quantities
     setJointVelMat(y);
 
-    m_V_FM = m_H_FM * myU(y);
+    m_V_FM = m_H_FM * myU(yd);
 
     setJointVelMatDot(y);
 
     calcParentToChildVelMatDot();
 
     if (getParent()->isGround())
-        m_absVel = m_H * myU(y);
+        m_absVel = m_H * myU(yd);
     else
-        m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(y);
+        m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(yd);
 
     const auto& w_GB = m_absVel.ang();
     const auto& v_GB = m_absVel.lin();
@@ -890,13 +877,13 @@ inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
     m_gyrForce = ChSpatialVec(w_GB % (m_inertiaOB_G * w_GB), m_mpropsB.mass() * (w_GB % (w_GB % m_CB_G)));
 
     if (getParent()->isGround()) {
-        m_corAcc = m_H_dot * myU(y);
+        m_corAcc = m_H_dot * myU(yd);
         m_corAccT = m_corAcc;
     } else {
         const auto& w_GP = getParent()->getAbsVel().ang();
         const auto& v_GP = getParent()->getAbsVel().lin();
 
-        m_corAcc = ChSpatialVec(ChVector3d(0), w_GP % (v_GB - v_GP)) + m_H_dot * myU(y);
+        m_corAcc = ChSpatialVec(ChVector3d(0), w_GP % (v_GB - v_GP)) + m_H_dot * myU(yd);
         m_corAccT = m_Phi * getParent()->m_corAccT + m_corAcc;
     }
 
@@ -905,14 +892,13 @@ inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
     ////if (m_contact)
     ////    m_contact->update();
 
-    // Calculate the body spatial acceleration.
+    // Calculate the body spatial acceleration
     if (getParent()->isGround())
-        m_absAcc = m_H * myU(yd) + m_corAcc;
+        m_absAcc = m_H * myU(ydd) + m_corAcc;
     else
-        m_absAcc = m_Phi * getParent()->getAbsAcc() + m_H * myU(yd) + m_corAcc;
+        m_absAcc = m_Phi * getParent()->getAbsAcc() + m_H * myU(ydd) + m_corAcc;
 
-    // Initialize the body, mobility, constraint, and auxiliary ID forces to
-    // zero.
+    // Initialize the body, mobility, constraint, and auxiliary ID forces to zero
     m_bodyForce.setZero();
     m_mobilityForce.setZero();
 
@@ -921,28 +907,27 @@ inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
 
     m_mobilityForceID.setZero();
 
-    // Request the children to perform same operation.
-    ChMobilizedBody::orProcPosVelAccID(y, yd);
+    // Request the children to perform same operation
+    ChMobilizedBody::orProcPosVelAccID(y, yd, ydd);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcForcesID(const ChVectorDynamic<>& y) {
-    // Request the children to perform same operation.
-    ChMobilizedBody::irProcForcesID(y);
+inline void ChMobilizedBodyT<dof>::irProcForcesID(const ChVectorDynamic<>& y,
+                                                  const ChVectorDynamic<>& yd,
+                                                  const ChVectorDynamic<>& ydd) {
+    // Request the children to perform same operation
+    ChMobilizedBody::irProcForcesID(y, yd, ydd);
 
-    // Overwrite the body spatial force with the sum of the inertial force (due
-    // to the desired body acceleration) and the gyroscopic force (due to
-    // angular velocity) minus the external body forces.
+    // Overwrite the body spatial force with the sum of the inertial force (due to the desired body acceleration) and
+    // the gyroscopic force (due to angular velocity) minus the external body forces
     m_bodyForce = m_Mk * m_absAcc + m_gyrForce - m_bodyForce;
 
-    // Include the body forces on the children bodies, shifted to the frame of
-    // this body.
+    // Include the body forces on the children bodies, shifted to the frame of this body
     for (int i = 0; i < getNumChildren(); i++)
         m_bodyForce += ~getChild(i)->m_Phi * getChild(i)->m_bodyForce;
 
-    // Project the body force into the joint space and subtract any external
-    // mobility forces, to obtain the remaining hinge forces needed to produce
-    // the desired acceleration.
+    // Project the body force into the joint space and subtract any external mobility forces, to obtain the remaining
+    // hinge forces needed to produce the desired acceleration
     m_mobilityForceID = ~m_H * m_bodyForce - m_mobilityForce;
 }
 

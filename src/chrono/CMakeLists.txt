@@ -377,6 +377,7 @@ set(ChronoEngine_soa_FILES
     soa/ChMobilityForce.h
     soa/ChRevoluteBody.h
     #
+    soa/ChSoaAssembly.cpp
     soa/ChMassProps.cpp
     soa/ChMobilizedBody.cpp
     soa/ChRevoluteBody.cpp

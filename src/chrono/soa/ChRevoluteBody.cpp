@@ -19,11 +19,11 @@ namespace chrono {
 namespace soa {
 
 ChRevoluteBody::ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
+                               const ChMassProps& mprops,
                                const ChFramed& inbFrame,
                                const ChFramed& outbFrame,
-                               const ChMassProps& mprops,
                                const std::string& name)
-    : ChMobilizedBodyT<1>(parent, mprops, inbFrame, outbFrame, name) {
+    : ChMobilizedBodyT<1>(parent, mprops, inbFrame, outbFrame, name), m_q0(0), m_u0(0) {
     m_H_FM.ang().col(0) = ChVector3d(0, 0, 1).eigen();
     m_H_FM.lin().col(0) = ChVector3d(0, 0, 0).eigen();
 
@@ -31,30 +31,54 @@ ChRevoluteBody::ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
     m_H_FM_dot.lin().setZero();
 }
 
-void ChRevoluteBody::setRelPos(double rotAngle) const {
-    m_assembly->setCurState(m_qIdx, std::fmod(rotAngle, CH_2PI));
+void ChRevoluteBody::setRelPos(double rotAngle) {
+    if (m_assembly && m_assembly->IsInitialized())
+        setQ(0, std::fmod(rotAngle, CH_2PI));
+    else
+        m_q0 = std::fmod(rotAngle, CH_2PI);
 }
 
-void ChRevoluteBody::setRelVel(double rotRate) const {
-    m_assembly->setCurState(m_uIdx, rotRate);
+void ChRevoluteBody::setRelVel(double rotRate) {
+    if (m_assembly && m_assembly->IsInitialized())
+        setU(0, rotRate);
+    else
+        m_u0 = rotRate;
 }
 
-void ChRevoluteBody::setRelAcc(double rotAcc) const {
-    m_assembly->setCurStateDeriv(m_uIdx, rotAcc);
+void ChRevoluteBody::setRelAcc(double rotAcc) {
+    if (m_assembly && m_assembly->IsInitialized())
+        setUdot(0, rotAcc);
 }
 
-void ChRevoluteBody::setRelRot(const ChMatrix33d& relRot) const {
+void ChRevoluteBody::setRelRot(const ChMatrix33d& relRot) {
     float a = relRot(0, 0) + relRot(1, 1);
     float b = relRot(0, 1) - relRot(1, 0);
-    m_assembly->setCurState(m_qIdx, atan2f(b, a));
+    if (m_assembly && m_assembly->IsInitialized())
+        setQ(0, atan2f(b, a));
+    else
+        m_q0 = atan2f(b, a);
 }
 
-void ChRevoluteBody::setRelAngVel(const ChVector3d& relAngVel) const {
-    m_assembly->setCurState(m_uIdx, relAngVel.z());
+void ChRevoluteBody::setRelAngVel(const ChVector3d& relAngVel) {
+    if (m_assembly && m_assembly->IsInitialized())
+        setU(0, relAngVel.z());
+    else
+        m_u0 = relAngVel.z();
 }
 
-void ChRevoluteBody::setRelAngAcc(const ChVector3d& relAngAcc) const {
-    m_assembly->setCurStateDeriv(m_uIdx, relAngAcc.z());
+void ChRevoluteBody::setRelAngAcc(const ChVector3d& relAngAcc) {
+    if (m_assembly && m_assembly->IsInitialized())
+        setUdot(0, relAngAcc.z());
+}
+
+double ChRevoluteBody::getQ0(int dof) const {
+    assert(dof == 0);
+    return m_q0;
+}
+
+double ChRevoluteBody::getU0(int dof) const {
+    assert(dof == 0);
+    return m_u0;
 }
 
 ChMatrix33d ChRevoluteBody::calcRelRot(double q) {
@@ -66,8 +90,7 @@ void ChRevoluteBody::setJointTransform(const ChVectorDynamic<>& y) {
 }
 
 void ChRevoluteBody::prepSim() {
-    double q = m_assembly->getCurState(m_qIdx);
-    m_assembly->setCurState(m_qIdx, std::fmod(q, CH_2PI));
+//// NEEDED?!?
 }
 
 }  // namespace soa

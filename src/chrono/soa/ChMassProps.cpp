@@ -47,7 +47,7 @@ void ChMassProps::calcInverse() {
     auto p_x = ChStarMatrix33<>(m_com_B);
 
     m_invM_B.A00() = calcCentralInertia();
-    m_invM_B.A00() = m_invM_B.A00().inverse();
+    m_invM_B.A00() = m_invM_B.A00().inverse().eval();
 
     m_invM_B.A10() = p_x * m_invM_B.A00();
     m_invM_B.A01() = -m_invM_B.A00() * p_x;
