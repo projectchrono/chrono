@@ -38,7 +38,7 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
 
     void RemoveBody(std::shared_ptr<ChMobilizedBody> body);
 
-    void Initialize();
+    virtual void Initialize() override;
     bool IsInitialized() const { return m_initialized; }
 
     std::shared_ptr<ChGroundBody> getGroundBody() const { return m_ground_body; }
@@ -125,15 +125,17 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
                                 const ChVectorDynamic<>& y,
                                 const ChVectorDynamic<>& yd,
                                 ChVectorDynamic<>& F) override {}
-    
+
     virtual void CalculateConstraintViolation(double time, const ChVectorDynamic<>& y, ChVectorDynamic<>& c) override {}
-    
+
     virtual void CalculateConstraintJacobian(double time,
                                              const ChVectorDynamic<>& y,
                                              const ChVectorDynamic<>& c,
                                              ChMatrixDynamic<>& J) override {}
 
-    virtual void IncrementState(const ChVectorDynamic<>& x, const ChVectorDynamic<>& Dv, ChVectorDynamic<>& x_new) {}
+    virtual void IncrementState(const ChVectorDynamic<>& x,
+                                const ChVectorDynamic<>& Dv,
+                                ChVectorDynamic<>& x_new) override {}
 
     virtual void CalculateStateIncrement(const ChVectorDynamic<>& x,
                                          const ChVectorDynamic<>& x_new,

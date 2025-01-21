@@ -49,7 +49,7 @@ namespace soa {
 template <int dof>
 class ChMobilizedBodyT : public ChMobilizedBody {
   public:
-    virtual int getNumU() const { return dof; }
+    virtual int getNumU() const override { return dof; }
 
     /// Include the provided force as a mobility force on the specified DOF.
     virtual void addMobilityForce(int which, double force);

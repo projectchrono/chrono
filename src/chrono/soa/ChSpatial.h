@@ -19,7 +19,6 @@
 #ifndef CH_SPATIAL_H
 #define CH_SPATIAL_H
 
-#include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChMatrix33.h"
@@ -62,49 +61,59 @@ class ChVelMatT;
 /// Definition of a spatial vector.
 /// A ChSpatialVec encapsulates two 3D vectors. Since these spatial vectors most often represent a spatial velocity, the
 /// two components are called "angular" and "linear" (stored ion this order).
-class ChApi ChSpatialVec {
+class ChSpatialVec : public ChVector6 {
   public:
+    ChSpatialVec() : ChVector6() {}
+
     /// Construct a spatial vector from its two 3D vector components.
     ChSpatialVec(const ChVector3d& angIn, const ChVector3d& linIn) {
-        m_v.segment(0, 3) = angIn.eigen();
-        m_v.segment(3, 3) = linIn.eigen();
+        segment(0, 3) = angIn.eigen();
+        segment(3, 3) = linIn.eigen();
     }
-    ChSpatialVec() {}
-    ChSpatialVec(const ChVector6& vec) : m_v(vec) {}
 
-    const ChSpatialVec& operator+() const { return *this; }
-    ChSpatialVec operator-() const { return -m_v; }
-    ChSpatialVec operator+(const ChSpatialVec& vec) const { return m_v + vec.m_v; }
-    ChSpatialVec operator-(const ChSpatialVec& vec) const { return m_v - vec.m_v; }
-    ChSpatialVec& operator+=(const ChSpatialVec& vec) {
-        m_v += vec.m_v;
-        return *this;
-    }
-    ChSpatialVec& operator-=(const ChSpatialVec& vec) {
-        m_v -= vec.m_v;
-        return *this;
-    }
+    /// Constructor from Eigen expressions.
+    template <typename OtherDerived>
+    ChSpatialVec(const Eigen::MatrixBase<OtherDerived>& other) : ChVector6(other) {}
 
     /// Access the "angular" component.
-    ChVector3d& ang() { return *((ChVector3d*)(m_v.data())); }
+    ChVector3d& ang() { return *((ChVector3d*)(data())); }
 
     /// Const access to the "angular" component.
-    const ChVector3d& ang() const { return *((ChVector3d*)(m_v.data())); }
+    const ChVector3d& ang() const { return *((ChVector3d*)(data())); }
 
     /// Access the "linear" component.
-    ChVector3d lin() { return *((ChVector3d*)(m_v.data() + 3)); }
+    ChVector3d lin() { return *((ChVector3d*)(data() + 3)); }
 
     /// Const access to the "linear" component.
-    const ChVector3d& lin() const { return *((ChVector3d*)(m_v.data() + 3)); }
+    const ChVector3d& lin() const { return *((ChVector3d*)(data() + 3)); }
 
-    /// Set this spatial vector to zero.
-    void setZero() { m_v.setZero(); }
+    /// Assign Eigen expressions to ChSpatialVec.
+    template <typename OtherDerived>
+    ChSpatialVec& operator=(const Eigen::MatrixBase<OtherDerived>& other) {
+        this->ChVector6::operator=(other);
+        return *this;
+    }
 
-    /// View this spatial vector as a 6x1 Eigen vector (debugging and testing).
-    const ChVector6& eigen() const { return m_v; }
+    /// Operator for sign change.
+    const ChSpatialVec& operator+() const { return *this; }
+    /// Operator for sign change.
+    ChSpatialVec operator-() const { return this->ChVector6::operator-(); }
 
-  private:
-    ChVector6 m_v;
+    /// Operator for vector sum.
+    ChSpatialVec operator+(const ChSpatialVec& v) const { return ChSpatialVec(this->ChVector6::operator+(v)); }
+    /// Operator for vector difference.
+    ChSpatialVec operator-(const ChSpatialVec& v) const { return ChSpatialVec(this->ChVector6::operator-(v)); }
+
+    /// Operator for vector increment.
+    ChSpatialVec& operator+=(const ChSpatialVec& v) {
+        this->ChVector6::operator+=(v);
+        return *this;
+    }
+    /// Operator for vector decrement.
+    ChSpatialVec& operator-=(const ChSpatialVec& v) {
+        this->ChVector6::operator-=(v);
+        return *this;
+    }
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -119,7 +128,7 @@ class ChApi ChSpatialVec {
 ///   [ ----+---- ]
 ///   [ A10 | A11 ]
 /// </pre>
-class ChApi ChSpatialMat {
+class ChSpatialMat {
   public:
     ChSpatialMat() {}
     ChSpatialMat(const ChMatrix33d& A00, const ChMatrix33d& A01, const ChMatrix33d& A10, const ChMatrix33d& A11)
@@ -173,7 +182,7 @@ class ChApi ChSpatialMat {
 ///   [ -crossMat(l) | I3 ]
 /// </pre>
 /// where I3 the the 3x3 identity matrix.
-class ChApi ChShiftMat {
+class ChShiftMat {
   public:
     ChShiftMat() {}
     ChShiftMat(const ChVector3d& l) : m_l(l) {}

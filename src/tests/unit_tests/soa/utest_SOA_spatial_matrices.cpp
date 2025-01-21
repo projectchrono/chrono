@@ -149,18 +149,18 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
     ChMatrix33d R = ChMatrix33d::Random();
 
     {
-        auto sv = (S * V).eigen();
-        auto sv_e = S.eigen() * V.eigen();
+        auto sv = S * V;
+        auto sv_e = S.eigen() * V;
         ASSERT_TRUE(sv.equals(sv_e, ABS_ERR));
     }
     {
-        auto pv = (P * V).eigen();
-        auto pv_e = P.eigen() * V.eigen();
+        auto pv = P * V;
+        auto pv_e = P.eigen() * V;
         ASSERT_TRUE(pv.equals(pv_e, ABS_ERR));
     }
     {
-        auto pv = (~P * V).eigen();
-        auto pv_e = P.eigen().transpose() * V.eigen();
+        auto pv = ~P * V;
+        auto pv_e = P.eigen().transpose() * V;
         ASSERT_TRUE(pv.equals(pv_e, ABS_ERR));
     }
     {
@@ -174,13 +174,13 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ASSERT_TRUE(ps.equals(ps_e, ABS_ERR));
     }
     {
-        auto hv = (H1 * v).eigen();
+        auto hv = H1 * v;
         auto hv_e = H1.eigen() * v;
         ASSERT_TRUE(hv.equals(hv_e, ABS_ERR));
     }
     {
         auto hv = ~H1 * V;
-        auto hv_e = H1.eigen().transpose() * V.eigen();
+        auto hv_e = H1.eigen().transpose() * V;
         ASSERT_TRUE(hv.equals(hv_e, ABS_ERR));
     }
     {
