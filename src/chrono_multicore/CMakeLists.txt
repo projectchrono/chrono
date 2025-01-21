@@ -17,7 +17,6 @@ if(NOT ENABLE_MODULE_MULTICORE)
   mark_as_advanced(FORCE BLAZE_INSTALL_DIR)
   mark_as_advanced(FORCE USE_MULTICORE_DOUBLE)
   mark_as_advanced(FORCE USE_MULTICORE_SIMD)
-  mark_as_advanced(FORCE USE_MULTICORE_CUDA)
   return()
 endif()
 
@@ -33,7 +32,6 @@ endif()
 mark_as_advanced(CLEAR BLAZE_INSTALL_DIR)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
-mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
 
 # ------------------------------------------------------------------------------
 # Additional compiler flags
@@ -45,16 +43,6 @@ set(CH_MULTICORE_C_FLAGS "")
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
-
-# ----- CUDA support -----
-
-cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CUDA_FOUND" OFF)
-
-if(USE_MULTICORE_CUDA)
-  set(CHRONO_MULTICORE_USE_CUDA "#define CHRONO_MULTICORE_USE_CUDA")
-else()
-  set(CHRONO_MULTICORE_USE_CUDA "#undef CHRONO_MULTICORE_USE_CUDA")
-endif()
 
 # ----- Double precision support -----
 
@@ -195,22 +183,9 @@ SET(ChronoEngine_Multicore_PHYSICS
     physics/ChFluidKernels.h
     physics/ChFluidContainer.cpp
     physics/ChParticleContainer.cpp
-    physics/ChMPMSettings.h
     )
 
 SOURCE_GROUP(physics FILES ${ChronoEngine_Multicore_PHYSICS})
-
-SET(ChronoEngine_Multicore_CUDA
-    cuda/matrixf.cuh
-    cuda/svd.h
-    cuda/ChCudaHelper.cuh
-    cuda/ChGPUVector.cuh
-    cuda/ChMPM.cu
-    cuda/ChMPM.cuh
-    cuda/ChMPMUtils.h
-    )
-
-SOURCE_GROUP(cuda FILES ${ChronoEngine_Multicore_CUDA})
     
 SET(ChronoEngine_Multicore_SOLVER
     solver/ChSystemDescriptorMulticore.h
@@ -261,26 +236,14 @@ SOURCE_GROUP(collision FILES ${ChronoEngine_Multicore_COLLISION})
 # Add the ChronoEngine_multicore library
 # ------------------------------------------------------------------------------
 
-IF(USE_MULTICORE_CUDA)
-    CUDA_ADD_LIBRARY(ChronoEngine_multicore
-            ${ChronoEngine_Multicore_BASE}
-            ${ChronoEngine_Multicore_PHYSICS}
-            ${ChronoEngine_Multicore_CUDA}
-            ${ChronoEngine_Multicore_COLLISION}
-            ${ChronoEngine_Multicore_CONSTRAINTS}
-            ${ChronoEngine_Multicore_SOLVER}
-            ) 
-    SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
-ELSE()
-    ADD_LIBRARY(ChronoEngine_multicore
+ADD_LIBRARY(ChronoEngine_multicore
             ${ChronoEngine_Multicore_BASE}
             ${ChronoEngine_Multicore_PHYSICS}
             ${ChronoEngine_Multicore_COLLISION}
             ${ChronoEngine_Multicore_CONSTRAINTS}
             ${ChronoEngine_Multicore_SOLVER}
             )
-    SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
-ENDIF()
+SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 
 # On Visual Studio, disable warning C4146 from Blaze
 # ("unary minus operator applied to unsigned type, result still unsigned")
@@ -307,21 +270,7 @@ INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_multicore
         FILES_MATCHING PATTERN "*.h")
 
-IF(USE_MULTICORE_CUDA)
-  INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-          DESTINATION include/chrono_multicore
-          FILES_MATCHING PATTERN "*.cuh")
-ENDIF()
-
 # Install required chrono_thirdparty headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
         DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-
-if(USE_MULTICORE_CUDA)
-	if (DEFINED CUB_INCLUDE_DIR)
-		install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
-			DESTINATION include/chrono_thirdparty
-			FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-	endif()
-endif()
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")

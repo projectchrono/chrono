@@ -23,10 +23,6 @@
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
 
-#ifdef CHRONO_MULTICORE_USE_CUDA
-    #include "chrono_multicore/cuda/ChMPM.cuh"
-#endif
-
 namespace chrono {
 
 ChParticleContainer::ChParticleContainer() {
@@ -37,7 +33,6 @@ ChParticleContainer::ChParticleContainer() {
     mass = 0.037037;
     start_boundary = 0;
     start_contact = 0;
-    mpm_iterations = 0;
 
     nu = .2;
     youngs_modulus = 1.4e5;
@@ -47,7 +42,6 @@ ChParticleContainer::ChParticleContainer() {
     theta_s = 7.5e-3;
     theta_c = 2.5e-2;
     alpha_flip = .95;
-    mpm_init = false;
 }
 
 void ChParticleContainer::AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
@@ -66,55 +60,6 @@ void ChParticleContainer::Update3DOF(double ChTime) {
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
     real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
-#ifdef CHRONO_MULTICORE_USE_CUDA
-    if (mpm_init) {
-        temp_settings.dt = (float)data_manager->settings.step_size;
-        temp_settings.kernel_radius = (float)kernel_radius;
-        temp_settings.inv_radius = float(1.0 / kernel_radius);
-        temp_settings.bin_edge = float(kernel_radius * 2);
-        temp_settings.inv_bin_edge = float(1.0 / (kernel_radius * 2.0));
-        temp_settings.max_velocity = (float)max_velocity;
-        temp_settings.mu = (float)lame_mu;
-        temp_settings.lambda = (float)lame_lambda;
-        temp_settings.hardening_coefficient = (float)hardening_coefficient;
-        temp_settings.theta_c = (float)theta_c;
-        temp_settings.theta_s = (float)theta_s;
-        temp_settings.alpha_flip = (float)alpha_flip;
-        temp_settings.youngs_modulus = (float)youngs_modulus;
-        temp_settings.poissons_ratio = (float)nu;
-        temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
-        temp_settings.mass = (float)mass;
-        temp_settings.yield_stress = (float)yield_stress;
-        temp_settings.num_iterations = mpm_iterations;
-
-        if (mpm_iterations > 0) {
-            mpm_pos.resize(data_manager->num_fluid_bodies * 3);
-            mpm_vel.resize(data_manager->num_fluid_bodies * 3);
-            mpm_jejp.resize(data_manager->num_fluid_bodies * 2);
-            for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
-                mpm_pos[i * 3 + 0] = (float)data_manager->host_data.pos_3dof[i].x;
-                mpm_pos[i * 3 + 1] = (float)data_manager->host_data.pos_3dof[i].y;
-                mpm_pos[i * 3 + 2] = (float)data_manager->host_data.pos_3dof[i].z;
-            }
-            for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
-                mpm_vel[i * 3 + 0] = (float)data_manager->host_data.vel_3dof[i].x;
-                mpm_vel[i * 3 + 1] = (float)data_manager->host_data.vel_3dof[i].y;
-                mpm_vel[i * 3 + 2] = (float)data_manager->host_data.vel_3dof[i].z;
-            }
-
-            MPM_UpdateDeformationGradient(std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel),
-                                          std::ref(mpm_jejp));
-
-            mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
-
-            //            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
-            //                data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
-            //                data_manager->host_data.vel_3dof[i].y = mpm_vel[i * 3 + 1];
-            //                data_manager->host_data.vel_3dof[i].z = mpm_vel[i * 3 + 2];
-            //            }
-        }
-    }
-#endif
 
     uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 #pragma omp parallel for
@@ -234,40 +179,7 @@ void ChParticleContainer::Setup3DOF(int start_constraint) {
     num_rigid_contacts = (num_fluid_contacts - num_fluid_bodies) / 2;
 }
 
-void ChParticleContainer::Initialize() {
-#ifdef CHRONO_MULTICORE_USE_CUDA
-    temp_settings.dt = (float)data_manager->settings.step_size;
-    temp_settings.kernel_radius = (float)kernel_radius;
-    temp_settings.inv_radius = float(1.0 / kernel_radius);
-    temp_settings.bin_edge = float(kernel_radius * 2);
-    temp_settings.inv_bin_edge = float(1.0 / (kernel_radius * 2.0));
-    temp_settings.max_velocity = (float)max_velocity;
-    temp_settings.mu = (float)lame_mu;
-    temp_settings.lambda = (float)lame_lambda;
-    temp_settings.hardening_coefficient = (float)hardening_coefficient;
-    temp_settings.theta_c = (float)theta_c;
-    temp_settings.theta_s = (float)theta_s;
-    temp_settings.alpha_flip = (float)alpha_flip;
-    temp_settings.youngs_modulus = (float)youngs_modulus;
-    temp_settings.poissons_ratio = (float)nu;
-    temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
-    temp_settings.mass = (float)mass;
-    temp_settings.yield_stress = (float)yield_stress;
-    temp_settings.num_iterations = mpm_iterations;
-    if (mpm_iterations > 0) {
-        mpm_pos.resize(data_manager->num_fluid_bodies * 3);
-
-        for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
-            mpm_pos[i * 3 + 0] = (float)data_manager->host_data.pos_3dof[i].x;
-            mpm_pos[i * 3 + 1] = (float)data_manager->host_data.pos_3dof[i].y;
-            mpm_pos[i * 3 + 2] = (float)data_manager->host_data.pos_3dof[i].z;
-        }
-
-        MPM_Initialize(temp_settings, mpm_pos);
-    }
-    mpm_init = true;
-#endif
-}
+void ChParticleContainer::Initialize() {}
 
 void ChParticleContainer::Build_D() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
@@ -477,20 +389,7 @@ real3 ChParticleContainer::GetBodyContactTorque(std::shared_ptr<ChBody> body) {
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 
-void ChParticleContainer::PreSolve() {
-#ifdef CHRONO_MULTICORE_USE_CUDA
-    if (mpm_thread.joinable()) {
-        mpm_thread.join();
-    #pragma omp parallel for
-        for (int p = 0; p < (signed)num_fluid_bodies; p++) {
-            int index = data_manager->cd_data->reverse_mapping_3dof[p];
-            data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
-            data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
-            data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
-        }
-    }
-#endif
-}
+void ChParticleContainer::PreSolve() {}
 
 void ChParticleContainer::PostSolve() {}
 
