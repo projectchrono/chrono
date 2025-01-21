@@ -408,65 +408,6 @@ inline ChMatrixNN<N> operator*(const ChVelMatT<N>& H1, const ChVelMat<N>& H2) {
     return H1.ang().transpose() * H2.ang() + H1.lin().transpose() * H2.lin();
 }
 
-// These are some specializations of the above base function templates.
-
-template <>
-inline ChSpatialVec operator*(const ChVelMat<1>& H, const ChVectorN<double, 1>& vec) {
-    ChVector3d resAng;
-    ChVector3d resLin;
-
-    const auto& ang = H.ang();
-    const auto& lin = H.lin();
-
-    resAng[0] = ang(0, 0) * vec[0];
-    resAng[1] = ang(1, 0) * vec[0];
-    resAng[2] = ang(2, 0) * vec[0];
-
-    resLin[0] = lin(0, 0) * vec[0];
-    resLin[1] = lin(1, 0) * vec[0];
-    resLin[2] = lin(2, 0) * vec[0];
-
-    return ChSpatialVec(resAng, resLin);
-}
-
-template <>
-inline ChSpatialVec operator*(const ChVelMat<2>& H, const ChVectorN<double, 2>& vec) {
-    ChVector3d resAng;
-    ChVector3d resLin;
-
-    const ChMatrix3N<2>& ang = H.ang();
-    const ChMatrix3N<2>& lin = H.lin();
-
-    resAng[0] = ang(0, 0) * vec[0] + ang(0, 1) * vec[1];
-    resAng[1] = ang(1, 0) * vec[0] + ang(1, 1) * vec[1];
-    resAng[2] = ang(2, 0) * vec[0] + ang(2, 1) * vec[1];
-
-    resLin[0] = lin(0, 0) * vec[0] + lin(0, 1) * vec[1];
-    resLin[1] = lin(1, 0) * vec[0] + lin(1, 1) * vec[1];
-    resLin[2] = lin(2, 0) * vec[0] + lin(2, 1) * vec[1];
-
-    return ChSpatialVec(resAng, resLin);
-}
-
-template <>
-inline ChSpatialVec operator*(const ChVelMat<3>& H, const ChVectorN<double, 3>& vec) {
-    ChVector3d resAng;
-    ChVector3d resLin;
-
-    const ChMatrix3N<3>& ang = H.ang();
-    const ChMatrix3N<3>& lin = H.lin();
-
-    resAng[0] = ang(0, 0) * vec[0] + ang(0, 1) * vec[1] + ang(0, 2) * vec[2];
-    resAng[1] = ang(1, 0) * vec[0] + ang(1, 1) * vec[1] + ang(1, 2) * vec[2];
-    resAng[2] = ang(2, 0) * vec[0] + ang(2, 1) * vec[1] + ang(2, 2) * vec[2];
-
-    resLin[0] = lin(0, 0) * vec[0] + lin(0, 1) * vec[1] + lin(0, 2) * vec[2];
-    resLin[1] = lin(1, 0) * vec[0] + lin(1, 1) * vec[1] + lin(1, 2) * vec[2];
-    resLin[2] = lin(2, 0) * vec[0] + lin(2, 1) * vec[1] + lin(2, 2) * vec[2];
-
-    return ChSpatialVec(resAng, resLin);
-}
-
 // -----------------------------------------------------------------------------
 
 /// Insertion of a ChSpatialMat to output stream.

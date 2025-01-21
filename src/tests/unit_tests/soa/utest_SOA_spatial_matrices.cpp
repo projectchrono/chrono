@@ -186,7 +186,7 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
     {
         ChMatrix6N<DOF> hm = (H1 * M).eigen();
         ChMatrix6N<DOF> hm_e = H1.eigen() * M;
-//#ifdef DBG_PRINT
+#ifdef DBG_PRINT
         cout << "-----------  eigen(H * M)" << endl;
         cout << hm << endl;
         cout << "-----------  eigen(H) * M" << endl;
@@ -195,24 +195,27 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ChMatrix6N<DOF> foo = hm - hm_e;
         cout << foo << endl;
         cout << "-----------  ||D|| = " << foo.norm() << endl;
-//#endif
+#endif
         ASSERT_NEAR((hm - hm_e).norm(), 0.0, ABS_ERR);
-        ASSERT_TRUE(hm.equals(hm_e, ABS_ERR));
+        ////ASSERT_TRUE(hm.equals(hm_e, ABS_ERR));
     }
     {
         auto sh = (S * H1).eigen();
         auto sh_e = S.eigen() * H1.eigen();
-        ASSERT_TRUE(sh.equals(sh_e, ABS_ERR));
+        ASSERT_NEAR((sh-sh_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(sh.equals(sh_e, ABS_ERR));
     }
     ////{ auto rh = (R * H1).eigen(); }
     {
         auto hh = (H1 * ~H2).eigen();
         auto hh_e = H1.eigen() * H2.eigen().transpose();
-        ASSERT_TRUE(hh.equals(hh_e, ABS_ERR));
+        ASSERT_NEAR((hh - hh_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(hh.equals(hh_e, ABS_ERR));
     }
     {
         auto hh = ~H1 * H2;
         auto hh_e = H1.eigen().transpose() * H2.eigen();
-        ASSERT_TRUE(hh.equals(hh_e, ABS_ERR));
+        ASSERT_NEAR((hh - hh_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(hh.equals(hh_e, ABS_ERR));
     }
 }
