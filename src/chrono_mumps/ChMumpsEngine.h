@@ -18,7 +18,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono_mumps/ChApiMumps.h"
 
-#include <dmumps_c.h>
+#include "dmumps_c.h"
 #define USE_COMM_WORLD -987654
 
 /* macro s.t. indices match documentation */
