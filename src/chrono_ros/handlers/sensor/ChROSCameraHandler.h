@@ -33,7 +33,7 @@ namespace ros {
 /// @{
 
 /// This handler is responsible for interfacing a ChCameraSensor to ROS. Will publish sensor_msgs::msg::Image.
-class ChROSCameraHandler : public ChROSHandler {
+class CH_ROS_API ChROSCameraHandler : public ChROSHandler {
   public:
     /// Constructor. The update rate is set to camera->GetUpdateRate().
     /// The update rate corresponds to the sensor's update rate.
