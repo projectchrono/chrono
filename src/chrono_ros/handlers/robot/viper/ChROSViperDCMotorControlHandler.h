@@ -37,7 +37,7 @@ namespace ros {
 
 /// This handler is responsible for interfacing a ViperDCMotorControl driver to ROS. Will instantiate a subscriber to
 /// chrono_ros_interfaces::msg::ViperDCMotorControl.
-class ChROSViperDCMotorControlHandler : public ChROSHandler {
+class CH_ROS_API ChROSViperDCMotorControlHandler : public ChROSHandler {
   public:
     /// Constructor. Takes a ViperDCMotorControl driver
     ChROSViperDCMotorControlHandler(double update_rate,

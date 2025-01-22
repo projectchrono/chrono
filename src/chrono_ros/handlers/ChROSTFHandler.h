@@ -44,7 +44,7 @@ namespace ros {
 
 /// @brief This handler is responsible for publishing transform (tf) information. For more information on the use of tf
 /// in ROS, see the tf2_ros documentation.
-class ChROSTFHandler : public ChROSHandler {
+class CH_ROS_API ChROSTFHandler : public ChROSHandler {
     typedef std::pair<chrono::ChFrame<>, std::string> ChFrameTransform;
     typedef std::pair<std::shared_ptr<chrono::ChBody>, std::string> ChBodyTransform;
     typedef std::variant<ChBodyTransform, ChFrameTransform> ChROSTransform;

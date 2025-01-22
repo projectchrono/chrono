@@ -34,7 +34,7 @@ enum class ChROSLidarHandlerMessageType { LASER_SCAN, POINT_CLOUD2 };
 class ChROSLidarHandlerImpl;
 
 /// This handler interfaces a ChLidarSensor to ROS.
-class ChROSLidarHandler : public ChROSHandler {
+class CH_ROS_API ChROSLidarHandler : public ChROSHandler {
   public:
     /// Constructor. The update rate is set to lidar->GetUpdateRate().
     ChROSLidarHandler(std::shared_ptr<chrono::sensor::ChLidarSensor> lidar,

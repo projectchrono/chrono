@@ -30,11 +30,11 @@
 namespace chrono {
 namespace ros {
 
-    class ChROSAccelerometerHandler;
-    class ChROSGyroscopeHandler;
-    class ChROSMagnetometerHandler;
+class ChROSAccelerometerHandler;
+class ChROSGyroscopeHandler;
+class ChROSMagnetometerHandler;
 
-class ChROSIMUHandler : public ChROSHandler {
+class CH_ROS_API ChROSIMUHandler : public ChROSHandler {
   public:
     ChROSIMUHandler(double update_rate, const std::string& topic_name, const std::string& frame_id = "imu");
 

@@ -38,7 +38,7 @@ class ChROSIMUHandler;
 
 /// This handler is responsible for interfacing a ChMagnetometerSensor to ROS. Will publish
 /// sensor_msgs::msg::MagneticField.
-class ChROSMagnetometerHandler : public ChROSHandler {
+class CH_ROS_API ChROSMagnetometerHandler : public ChROSHandler {
   public:
     /// Constructor. The update rate is set to imu->GetUpdateRate().
     ChROSMagnetometerHandler(std::shared_ptr<chrono::sensor::ChMagnetometerSensor> imu, const std::string& topic_name);
