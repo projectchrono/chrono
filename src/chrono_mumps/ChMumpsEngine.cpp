@@ -86,6 +86,10 @@ void ChMumpsEngine::SetRhsVector(double* b) {
     mumps_id.rhs = b;
 }
 
+void ChMumpsEngine::SetNumThreads(int num_threads) {
+    mumps_id.ICNTL(16) = num_threads;
+}
+
 void ChMumpsEngine::EnableNullPivotDetection(bool val, double threshold) {
     mumps_id.ICNTL(24) = val;      ///< activates null pivot detection
     mumps_id.ICNTL(25) = 0;        ///< tries to compute one of the many solutions of AX = B
