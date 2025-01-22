@@ -100,7 +100,7 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
     // Construct a symmetric matrix
     ChMatrixNN<DOF> D;
     D.setRandom();
-    D = D.selfadjointView<Eigen::Lower>();
+    D = D.template selfadjointView<Eigen::Lower>();
 #ifdef DBG_PRINT
     cout << "\nSymmetric matrix\n";
     cout << D << endl;
@@ -114,10 +114,10 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
     cout << S1 << endl;
     cout << S1_e << endl;
 #endif
-    ASSERT_TRUE(S1.A00().equals(S1_e.block(0, 0, 3, 3), ABS_ERR));
-    ASSERT_TRUE(S1.A01().equals(S1_e.block(0, 3, 3, 3), ABS_ERR));
-    ASSERT_TRUE(S1.A10().equals(S1_e.block(3, 0, 3, 3), ABS_ERR));
-    ASSERT_TRUE(S1.A11().equals(S1_e.block(3, 3, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S1.A00().isApprox(S1_e.block(0, 0, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S1.A01().isApprox(S1_e.block(0, 3, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S1.A10().isApprox(S1_e.block(3, 0, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S1.A11().isApprox(S1_e.block(3, 3, 3, 3), ABS_ERR));
 
     // Test construction of spatial matrix from symmetric velocity transform
     auto S2 = ChSpatialMat::constructFrom(H, D);
@@ -127,10 +127,10 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
     cout << S2 << endl;
     cout << S2_e << endl;
 #endif
-    ASSERT_TRUE(S2.A00().equals(S2_e.block(0, 0, 3, 3), ABS_ERR));
-    ASSERT_TRUE(S2.A01().equals(S2_e.block(0, 3, 3, 3), ABS_ERR));
-    ASSERT_TRUE(S2.A10().equals(S2_e.block(3, 0, 3, 3), ABS_ERR));
-    ASSERT_TRUE(S2.A11().equals(S2_e.block(3, 3, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S2.A00().isApprox(S2_e.block(0, 0, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S2.A01().isApprox(S2_e.block(0, 3, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S2.A10().isApprox(S2_e.block(3, 0, 3, 3), ABS_ERR));
+    ASSERT_TRUE(S2.A11().isApprox(S2_e.block(3, 3, 3, 3), ABS_ERR));
 }
 
 // -----------------------------------------------------------------------------
@@ -151,37 +151,37 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
     {
         auto sv = S * V;
         auto sv_e = S.eigen() * V;
-        ASSERT_TRUE(sv.equals(sv_e, ABS_ERR));
+        ASSERT_TRUE(sv.isApprox(sv_e, ABS_ERR));
     }
     {
         auto pv = P * V;
         auto pv_e = P.eigen() * V;
-        ASSERT_TRUE(pv.equals(pv_e, ABS_ERR));
+        ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
         auto pv = ~P * V;
         auto pv_e = P.eigen().transpose() * V;
-        ASSERT_TRUE(pv.equals(pv_e, ABS_ERR));
+        ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
         auto sp = (S * P).eigen();
         auto sp_e = S.eigen() * P.eigen();
-        ASSERT_TRUE(sp.equals(sp_e, ABS_ERR));
+        ASSERT_TRUE(sp.isApprox(sp_e, ABS_ERR));
     }
     {
         auto ps = (~P * S).eigen();
         auto ps_e = P.eigen().transpose() * S.eigen();
-        ASSERT_TRUE(ps.equals(ps_e, ABS_ERR));
+        ASSERT_TRUE(ps.isApprox(ps_e, ABS_ERR));
     }
     {
         auto hv = H1 * v;
         auto hv_e = H1.eigen() * v;
-        ASSERT_TRUE(hv.equals(hv_e, ABS_ERR));
+        ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
     }
     {
         auto hv = ~H1 * V;
         auto hv_e = H1.eigen().transpose() * V;
-        ASSERT_TRUE(hv.equals(hv_e, ABS_ERR));
+        ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
     }
     {
         ChMatrix6N<DOF> hm = (H1 * M).eigen();
@@ -197,25 +197,25 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         cout << "-----------  ||D|| = " << foo.norm() << endl;
 #endif
         ASSERT_NEAR((hm - hm_e).norm(), 0.0, ABS_ERR);
-        ////ASSERT_TRUE(hm.equals(hm_e, ABS_ERR));
+        ASSERT_TRUE(hm.isApprox(hm_e, ABS_ERR));
     }
     {
         auto sh = (S * H1).eigen();
         auto sh_e = S.eigen() * H1.eigen();
         ASSERT_NEAR((sh-sh_e).norm(), 0.0, ABS_ERR);
-        ////ASSERT_TRUE(sh.equals(sh_e, ABS_ERR));
+        ASSERT_TRUE(sh.isApprox(sh_e, ABS_ERR));
     }
     ////{ auto rh = (R * H1).eigen(); }
     {
         auto hh = (H1 * ~H2).eigen();
         auto hh_e = H1.eigen() * H2.eigen().transpose();
         ASSERT_NEAR((hh - hh_e).norm(), 0.0, ABS_ERR);
-        ////ASSERT_TRUE(hh.equals(hh_e, ABS_ERR));
+        ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
     }
     {
         auto hh = ~H1 * H2;
         auto hh_e = H1.eigen().transpose() * H2.eigen();
         ASSERT_NEAR((hh - hh_e).norm(), 0.0, ABS_ERR);
-        ////ASSERT_TRUE(hh.equals(hh_e, ABS_ERR));
+        ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
     }
 }
