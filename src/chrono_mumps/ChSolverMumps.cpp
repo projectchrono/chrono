@@ -18,8 +18,8 @@
 namespace chrono {
 
 ChSolverMumps::ChSolverMumps(int num_threads) {
-    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
-    ChOMP::SetNumThreads(nthreads);
+    //ChOMP::SetNumThreads(num_threads);
+    m_engine.SetNumThreads(num_threads);
 }
 
 void ChSolverMumps::EnableNullPivotDetection(bool val, double threshold) {

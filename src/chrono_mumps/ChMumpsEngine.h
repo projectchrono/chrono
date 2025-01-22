@@ -54,6 +54,9 @@ class ChApiMumps ChMumpsEngine {
     ChMumpsEngine();
     ~ChMumpsEngine();
 
+    /// Set the number of OpenMP threads for MUMPS.
+    void SetNumThreads(int num_threads);
+
     /// Set the problem matrix and the right-hand side.
     void SetProblem(const ChSparseMatrix& Z, ChVectorRef rhs);
 

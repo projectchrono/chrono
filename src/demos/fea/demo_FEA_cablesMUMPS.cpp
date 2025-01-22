@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     // Configure MUMPS solver.
     // For this simple and relatively small problem, use of the sparsity pattern learner may introduce additional
     // overhead (if the sparsity pattern is not locked).
-    auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
+    auto mumps_solver = chrono_types::make_shared<ChSolverMumps>(1);
     mumps_solver->UseSparsityPatternLearner(true);
     mumps_solver->LockSparsityPattern(true);
     sys.SetSolver(mumps_solver);
