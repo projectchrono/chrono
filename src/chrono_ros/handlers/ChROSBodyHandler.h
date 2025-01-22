@@ -35,7 +35,7 @@ namespace ros {
 
 /// This handler is responsible for publishing state information about a ChBody. This handler creates three publishers
 /// for the pose, twist (linear/angular velocity), and accel (linear/angular acceleration) topics.
-class ChROSBodyHandler : public ChROSHandler {
+class CH_ROS_API ChROSBodyHandler : public ChROSHandler {
   public:
     /// Constructor.
     /// The based topic is concatenated before the individual topic names. This handler will publish to the topics:
