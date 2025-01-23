@@ -95,7 +95,13 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
 	assert(mrank == domain->GetRank());
 
-	if (!(domain->IsMaster() && !this->master_domain_enabled))
+	int ninterfaces = domain->GetInterfaces().size();
+	ChMPIrequest* requests = new ChMPIrequest[ninterfaces];
+	ChMPIstatus* statuses = new ChMPIstatus[ninterfaces];
+	std::vector<std::string> send_strings(ninterfaces); // need to persist until all nonblocking sends are done 
+
+	int i_int = 0;
+	if (!(domain->IsMaster() && !this->master_domain_enabled)) {
 		for (auto& minterface : domain->GetInterfaces()) {
 			int other_rank = minterface.second.side_OUT->GetRank();
 
@@ -105,10 +111,24 @@ bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
 			// A)
 			// non-blocking MPI send from this domain to neighbour domain:
 			// equivalent:   MPI_Isend
-			ChMPIrequest mrequest1;
-			std::string send_string;
-			send_string = minterface.second.buffer_sending.rdbuf()->str();
-			mpi_engine.SendString_nonblocking(other_rank, send_string, ChMPI::eCh_mpiCommMode::MPI_STANDARD, &mrequest1);
+			// A copy to a persistent std::string is needed, because minterface.second.buffer_sending 
+			// cannot be used directly for MPI send because it is a std::stringstream, that has no accessible buffer (maybe noncontiguous)
+			send_strings[i_int] = minterface.second.buffer_sending.rdbuf()->str(); 
+			mpi_engine.SendString_nonblocking(other_rank, send_strings[i_int], ChMPI::eCh_mpiCommMode::MPI_STANDARD, &requests[i_int]);
+
+			++i_int;
+		}
+		
+		// Wait all non-blocking sends are done. If the receiving were non-blocking too, this could be after 
+		// receiving stuff below, aiming at highest performance with high communication overlap. Sadly, not possible as ReceiveString
+		// is only available in blocking version, because of the problem with receiving buffer size not known in advance.
+		mpi_engine.WaitAll(i_int, requests, statuses); 
+		
+		for (auto& minterface : domain->GetInterfaces()) {
+			int other_rank = minterface.second.side_OUT->GetRank();
+
+			if (minterface.second.side_OUT->IsMaster() && !this->master_domain_enabled)
+				continue;
 
 			// B)
 			// blocking MPI receive from neighbour domain to this domain:
@@ -118,6 +138,7 @@ bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
 			mpi_engine.ReceiveString_blocking(other_rank, receive_string, &mstatus2);
 			minterface.second.buffer_receiving << receive_string;
 		}
+	}
 
 	if (this->verbose_variable_updates)
 		for (int i = 0; i < GetMPItotranks(); i++) {
@@ -139,6 +160,8 @@ bool ChDomainManagerMPI::DoDomainSendReceive(int mrank) {
 			this->mpi_engine.Barrier();							// WILL BLOCK ALL!
 		}
 
+	delete[] requests;
+	delete[] statuses;
 
 	return true;
 }
