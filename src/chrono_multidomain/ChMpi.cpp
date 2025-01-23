@@ -354,9 +354,43 @@ int ChMPI::SendString_nonblocking(
 	return err;
 }
 
+/*
+int ChMPI::SendString_nonblocking2(
+	int destID,					///< destination rank
+	std::string& source_str,	///< source string
+	eCh_mpiCommMode mmode,		///< send mode
+	ChMPIrequest* mreq			///< if nonblocking=true, must use this
+)
+{
+	char* data = (char*)source_str.data(); // should not access directly std::string data, but this is efficient!
+	int nbytes = (int)source_str.size();
+	int err = 0;
 
+	switch (mmode)
+	{
+	case ChMPI::MPI_STANDARD:
+		err = MPI_Isend(&nbytes, 1, MPI_INT, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		err = MPI_Isend(data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		break;
+	case ChMPI::MPI_BUFFERED:
+		err = MPI_Ibsend(&nbytes, 1, MPI_INT, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		err = MPI_Ibsend(data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		break;
+	case ChMPI::MPI_SYNCHRONOUS:
+		err = MPI_Issend(&nbytes, 1, MPI_INT, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		err = MPI_Issend(data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		break;
+	case ChMPI::MPI_READY:
+		err = MPI_Irsend(&nbytes, 1, MPI_INT, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		err = MPI_Irsend(data, nbytes, MPI_BYTE, destID, 1002, MPI_COMM_WORLD, (MPI_Request*)mreq->mpireq);
+		break;
+	default:
+		break;
+	}
 
-
+	return err;
+}
+*/
 
 int ChMPI::ReceiveString_blocking(
 							int sourceID,				///< source rank
@@ -382,9 +416,28 @@ int ChMPI::ReceiveString_blocking(
 	return err;
 }
 
+/*
+int ChMPI::ReceiveString_blocking2(
+	int sourceID,				///< source rank
+	std::string& dest_str,		///< destination string - will be resized
+	ChMPIstatus* mstatus
+) {
+	int recv_length; 
+	MPI_Recv(&recv_length, 1, MPI_INT, sourceID, 1002, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
+	dest_str.resize(recv_length); 
+	int err = MPI_Recv(&dest_str[0], recv_length, MPI_BYTE, sourceID, 1002, MPI_COMM_WORLD, (MPI_Status*)mstatus->mpistat);
+	return err;
+}
+*/
 
 int ChMPI::Barrier() {
 	return MPI_Barrier(MPI_COMM_WORLD);
+}
+
+int ChMPI::WaitAll(int arraysize, ChMPIrequest requests[], ChMPIstatus statuses[]) {
+	for (int i = 0; i < arraysize; ++i)
+		int res = MPI_Wait((MPI_Request*)requests[i].mpireq, (MPI_Status*)statuses[i].mpistat);
+	return 1;
 }
 
 

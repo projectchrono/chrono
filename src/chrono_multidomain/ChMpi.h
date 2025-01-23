@@ -140,6 +140,12 @@ public:
 							eCh_mpiCommMode mmode,		///< send mode
 							ChMPIrequest* mreq			///< if nonblocking, must use this
 	);
+	static int SendString_nonblocking2(
+		int destID,					///< destination rank
+		std::string& source_str,	///< source string
+		eCh_mpiCommMode mmode,		///< send mode
+		ChMPIrequest* mreq			///< if nonblocking, must use this
+	);
 
 	/// Receive a std::string from the process with rank sourceID.
 	/// Blocking version.
@@ -154,8 +160,17 @@ public:
 							ChMPIstatus* mstatus		///< return status here
 							);
 
+	static int ReceiveString_blocking2(
+		int sourceID,				///< source rank
+		std::string& dest_str,		///< destination string - will be resized
+		ChMPIstatus* mstatus
+	);
+
 	/// Global barrier. Calling MPI_Barrier(MPI_COMM_WORLD);
 	static int Barrier();
+
+	/// Wait all non blocking operations are finished. Calling MPI_Waitall(MPI_COMM_WORLD);
+	static int WaitAll(int arraysize, ChMPIrequest requests[], ChMPIstatus statuses[]);
 
 
 	/// Reduction (combines values from all processes and distributes the result back 
