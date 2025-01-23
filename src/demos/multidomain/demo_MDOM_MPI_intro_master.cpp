@@ -56,7 +56,6 @@
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 //#include "chrono_multidomain/ChSolverBBmultidomain.h"
 #include "chrono_postprocess/ChBlender.h"
-//#include <Windows.h>
 
 using namespace chrono;
 using namespace multidomain;

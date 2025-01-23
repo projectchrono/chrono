@@ -29,7 +29,7 @@
 // depending on the MPI version that you installed, it could be "mpirun" or such) and type
 // the command to start parallel computation, in this example spawn 3 processes:
 // 
-//   mpiexec -n 3 demo_MDOM_MPI_grid.exe 
+//   mpiexec -n 5 demo_MDOM_MPI_grid.exe 
 // 
 // After running, it produces postprocessing files ready for rendering in Blender3D
 // To see the result in Blender3D, you must install the add-in for loading Chrono files,
@@ -50,6 +50,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveUtils.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -60,7 +61,6 @@
 #include "chrono_multidomain/ChSolverPSORmultidomain.h"
 //#include "chrono_multidomain/ChSolverBBmultidomain.h"
 #include "chrono_postprocess/ChBlender.h"
-//#include <Windows.h>
 
 using namespace chrono;
 using namespace multidomain;
@@ -168,17 +168,31 @@ int main(int argc, char* argv[]) {
 
     if (domain_manager.GetMPIrank() == domain_builder.GetMasterRank()) {
         
+        //precompute some values
+        double size_x = 4;
+        double size_y = 2;
+        double size_z = 4;
+        double density = 100;
+        double mmass = density * (size_x * size_y * size_z);
+        ChVector3d minertiaXX((1.0 / 12.0) * mmass * (std::pow(size_y, 2) + std::pow(size_z, 2)),
+            (1.0 / 12.0) * mmass * (std::pow(size_x, 2) + std::pow(size_z, 2)),
+            (1.0 / 12.0) * mmass * (std::pow(size_x, 2) + std::pow(size_y, 2)));
+
+        // Contact material will be shared among all bricks
         auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetFriction(0.4f);
         mat->SetYoungModulus(2e8);
 
+        // Visualization model will be shared among all bricks
+        auto visualmodel = chrono_types::make_shared<ChVisualModel>();
+        visualmodel->AddShape(chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z));
+        visualmodel->GetShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_borders.png"));
+
+
         // Create some bricks placed as walls, for benchmark purposes
-        int n_walls = 1;
+        int n_walls = 3;
         int n_vertical    = 5;
-        int n_horizontal  = 5;
-        double size_x = 4;
-        double size_y = 2;
-        double size_z = 4;
+        int n_horizontal  = 16;
         double walls_space = 9;
         double wall_corner_x = -0.5 * (size_x * n_horizontal) - 0.1;
         double wall_corner_z = -0.5 * (size_z * n_walls + walls_space * (n_walls-1));
@@ -186,15 +200,35 @@ int main(int argc, char* argv[]) {
             for (int bi = 0; bi < n_vertical; bi++) {        // loop of vert. bricks
                 for (int ui = 0; ui < n_horizontal; ui++) {  // loop of hor. bricks
 
+                    //We could use ChBodyEasyBox to create in a single statement: the ChBody, its
+                    //mass, its visualization model, its collision shape, and other properties, as follows: 
+                    /*
                     auto mrigidBody = chrono_types::make_shared<ChBodyEasyBox>(size_x*0.9, size_y, size_z,
                         100,         // density
                         true,        // visualization?
                         true,        // collision?
                         mat);        // contact material
+                    */
+                    //However, since this is a set of bricks with the same visualization model, it is better 
+                    //to create generic ChBody objs, with a single ChVisualModel for all of them, created 
+                    //outside the for.. loops and shared among the bodies, see above. Note that multidomain will 
+                    //share it also among domains, because of the SetTag() GetTag() functions to mark it uniquely.
+                    
+                    auto mrigidBody = chrono_types::make_shared<ChBody>();  
+                    mrigidBody->SetMass(mmass);
+                    mrigidBody->SetInertiaXX(minertiaXX);
+
+                    mrigidBody->AddVisualModel(visualmodel); // the  "visualmodel" is shared
+
+                    // [also the collision models should be taken out of the for loops and shared
+                    // among ChBody briks via AddCollisionModel(), but it crashes - must find and remove bug]
+                    auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size_x, size_y, size_z);
+                    mrigidBody->AddCollisionShape(cshape);
+                    mrigidBody->EnableCollision(true);
+
                     mrigidBody->SetPos(ChVector3d(wall_corner_x + size_x*(ui + 0.5 * (1+bi % 2)), 
                                                   size_y*(0.5 + bi), 
                                                   wall_corner_z + ai * walls_space));
-                    mrigidBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/cubetexture_borders.png"));
                     sys.Add(mrigidBody);
                 }
             }
@@ -212,6 +246,12 @@ int main(int argc, char* argv[]) {
         sys.Add(mrigidFloor);
         
         // Create a ball that will collide with wall
+        // Visualization material for the ball
+        auto visualglossymaterial = chrono_types::make_shared<ChVisualMaterial>();
+        visualglossymaterial->SetDiffuseColor(ChColor(1.0, 0.6, 0));
+        visualglossymaterial->SetMetallic(0.5);
+        visualglossymaterial->SetRoughness(0.12);
+
         auto mrigidBall = chrono_types::make_shared<ChBodyEasySphere>(3.5,     // radius
             8000,  // density
             true,  // visualization?
@@ -219,7 +259,7 @@ int main(int argc, char* argv[]) {
             mat);  // contact material
         mrigidBall->SetPos(ChVector3d(0, 3.5, wall_corner_z - 6.5));
         mrigidBall->SetPosDt(ChVector3d(0, 0, 16));  // set initial speed
-        mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+        mrigidBall->GetVisualShape(0)->AddMaterial(visualglossymaterial);
         sys.Add(mrigidBall);
         
 
@@ -256,7 +296,7 @@ int main(int argc, char* argv[]) {
     // The master domain does not need to communicate anymore with the domains so do:
     domain_manager.master_domain_enabled = true;
 
-    for (int i = 0; i < 500; ++i) {
+    for (int i = 0; i < 1500; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step " << i << std::endl << std::endl;

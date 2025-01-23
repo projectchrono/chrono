@@ -71,7 +71,6 @@
 
 #include "chrono_postprocess/ChBlender.h"
 
-
 using namespace chrono;
 using namespace multidomain;
 using namespace postprocess;
@@ -80,7 +79,7 @@ using namespace fea;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
-
+ 
     // This source generates a simple executable with basic std::cout output on the command
     // line console, enough to show basic functionality of the multidomain module.
     // 
@@ -94,9 +93,9 @@ int main(int argc, char* argv[]) {
 
     ChDomainManagerMPI domain_manager(&argc,&argv);
 
-    // This demo assumes 1..7 processes (ex. 3 processes =2 slices + 1 master domain, i.e. "mpiexec -n 3 ..." etc.)
+    // This demo assumes 1..16 processes (ex. 3 processes =2 slices + 1 master domain, i.e. "mpiexec -n 3 ..." etc.)
     assert(domain_manager.GetMPItotranks() >= 1);
-    assert(domain_manager.GetMPItotranks() < 8);
+    assert(domain_manager.GetMPItotranks() < 16);
 
     // For debugging/logging:
     domain_manager.verbose_partition = false; // will print  partitioning in std::cout?
@@ -112,12 +111,10 @@ int main(int argc, char* argv[]) {
 
     ChDomainBuilderSlices       domain_builder(
                                         domain_manager.GetMPItotranks()-1,  // number of slices
-                                        //-2e307, 2e307,      // min and max along axis to split in slices
-                                        -30,30,
+                                        -0.5,0.5,           // min and max along axis to split in slices
                                         ChAxis::X,          // axis about whom one needs the space slicing
                                         true);              // build also master domain, interfacing to all slices, for initial injection of objects   
     
-
     // 3- Create the ChDomain object and its ChSystem physical system.
     //    Only a single system is created, because this is already one of n 
     //    parallel processes. One must be the master domain.
@@ -139,7 +136,7 @@ int main(int argc, char* argv[]) {
 
     // 4- Set solver, timestepper, etc. that can work in multidomain mode. Do this after SetDomain(). 
     //    Set the time stepper: we have FEA, use an explicit time stepper. 
-    auto explicit_timestepper = chrono_types::make_shared<ChTimestepperEulerExplIIorder>(&sys);
+    auto explicit_timestepper = chrono_types::make_shared<ChTimestepperHeun>(&sys);
     explicit_timestepper->SetConstraintsAsPenaltyON(2e6); // use penalty for constraints, skip linear systems completely
     sys.SetTimestepper(explicit_timestepper);
     //    Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
@@ -165,9 +162,9 @@ int main(int argc, char* argv[]) {
 
         // Create a material
         double density = 100;
-        double E = 6e4;
+        double E = 1e4;
         double nu = 0.0;
-        double thickness = 0.01;
+        double thickness = 0.046;
 
         auto elasticity = chrono_types::make_shared<ChElasticityKirchhoffIsothropic>(E, nu);
         auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
@@ -177,10 +174,10 @@ int main(int argc, char* argv[]) {
         double corner_z = -0.5;
         double size_x = 1;
         double size_z = 1;
-        size_t nsections_x = 10;
-        size_t nsections_z = 10;
-        size_t fixed_x = 3;
-        size_t fixed_z = 3;
+        size_t nsections_x = 61;
+        size_t nsections_z = 61;
+        size_t fixed_x = 40;
+        size_t fixed_z = 40;
 
         // Create nodes
         std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
@@ -252,15 +249,14 @@ int main(int argc, char* argv[]) {
         // Visualization of the FEM mesh. Also this object will migrate from master domain to sliced domains.
         auto vis_shell_mesh = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
         vis_shell_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-        vis_shell_mesh->SetShellResolution(3);
-        //vis_shell_mesh->SetBackfaceCull(true);
+        vis_shell_mesh->SetShellResolution(2);
         mesh->AddVisualShapeFEA(vis_shell_mesh);
 
         // Visualization of the FEM nodes. Also this object will migrate from master domain to sliced domains.
         auto vis_shell_nodes = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
         vis_shell_nodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         vis_shell_nodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-        vis_shell_nodes->SetSymbolsThickness(0.03);
+        vis_shell_nodes->SetSymbolsThickness(0.005);
         mesh->AddVisualShapeFEA(vis_shell_nodes);
 
         // 6- Set the tag IDs for all nodes, bodies, etc.
@@ -296,13 +292,21 @@ int main(int argc, char* argv[]) {
     // The master domain does not need to communicate anymore with the domains so do:
     domain_manager.master_domain_enabled = false;
 
-    for (int i = 0; i < 1000; ++i) {
+    // IDEA: for FEA, if no collisions are needed, if topology remains the same through all
+    // the simulation, there is no need to continuously update the initial domain partitioning.
+    // So one could avoid repeating the DoDomainPartitionUpdate(); operation at ech time step,
+    // that could waste some network bandwidth, and just do it once at the beginning (the one 
+    // in DoDomainInitialize() is not sufficient). If you want this optimization uncomment 
+    // the following and comment out the one inside the for() loop. 
+        domain_manager.DoDomainPartitionUpdate(domain_manager.GetMPIrank());
+
+    for (int i = 0; i < 5000; ++i) {
 
         if (domain_manager.GetMPIrank()==0) 
             std::cout << "\n\n\n============= Time step (explicit) " << i << std::endl << std::endl;
 
         // MULTIDOMAIN AUTOMATIC ITEM MIGRATION!
-        domain_manager.DoDomainPartitionUpdate(domain_manager.GetMPIrank());
+        //domain_manager.DoDomainPartitionUpdate(domain_manager.GetMPIrank());
 
         // MULTIDOMAIN TIME INTEGRATION
         sys.DoStepDynamics(0.0001);
