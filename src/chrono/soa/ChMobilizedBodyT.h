@@ -621,7 +621,7 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y,
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::calcParentToChildVelMat() {
-    const auto& r_MB = (m_X_BM.GetInverse()).GetPos();
+    const auto r_MB = (m_X_BM.GetInverse()).GetPos();
     const auto& R_FM = m_X_FM.GetRotMat();
 
     const ChVector3d r_MB_F = R_FM * r_MB;
@@ -641,7 +641,7 @@ inline void ChMobilizedBodyT<dof>::calcParentToChildVelMat() {
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::calcParentToChildVelMatDot() {
-    const auto& r_MB = (m_X_BM.GetInverse()).GetPos();
+    const auto r_MB = (m_X_BM.GetInverse()).GetPos();
     const auto& R_FM = m_X_FM.GetRotMat();
 
     const ChVector3d r_MB_F = R_FM * r_MB;

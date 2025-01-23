@@ -26,6 +26,8 @@ using std::endl;
 using namespace chrono;
 using namespace chrono::soa;
 
+constexpr double ABS_ERR = 1e-14;
+
 TEST(SOA_pendulum, kinematics) {
     ChSoaAssembly soa;
 
@@ -37,7 +39,7 @@ TEST(SOA_pendulum, kinematics) {
     double L2 = 1;
     ChMatrix33d inertia2(ChVector3d(0.01, mass2 * L2 * L2 / 12, mass2 * L2 * L2 / 12));
 
-    // Douuble pendulum with reference frames at COMs
+    // Double pendulum with reference frames at COMs
     {
         ChMassProps pendulum1_mprops(mass1, VNULL, inertia1);
         auto pendulum1 =
@@ -96,9 +98,9 @@ TEST(SOA_pendulum, kinematics) {
     auto c2_p1 = soa.findBody("chain2_pendulum1");
     auto c2_p2 = soa.findBody("chain2_pendulum2");
 
-    Assert_near(c1_p1->getAbsCOMLoc(), c2_p1->getAbsCOMLoc());
-    Assert_near(c1_p1->getAbsCOMVel(), c2_p1->getAbsCOMVel());
+    Assert_near(c1_p1->getAbsCOMLoc(), c2_p1->getAbsCOMLoc(), ABS_ERR);
+    Assert_near(c1_p1->getAbsCOMVel(), c2_p1->getAbsCOMVel(), ABS_ERR);
 
-    Assert_near(c1_p2->getAbsCOMLoc(), c2_p2->getAbsCOMLoc());
-    Assert_near(c1_p2->getAbsCOMVel(), c2_p2->getAbsCOMVel());
+    Assert_near(c1_p2->getAbsCOMLoc(), c2_p2->getAbsCOMLoc(), ABS_ERR);
+    Assert_near(c1_p2->getAbsCOMVel(), c2_p2->getAbsCOMVel(), ABS_ERR);
 }
