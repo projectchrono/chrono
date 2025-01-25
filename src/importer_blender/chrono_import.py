@@ -47,7 +47,7 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 5),
+    "version": (0, 0, 7),
     "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
     "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
@@ -72,6 +72,7 @@ from bpy.props import (IntProperty,
                        PointerProperty,
                        CollectionProperty)
 from datetime import datetime
+from bpy.app.handlers import persistent
 
 #
 # Globals, to keep things simple with callbacks
@@ -1335,8 +1336,9 @@ def rotate_cube_UVs(mcube):
 # LOAD OBJECTS
 #
 
+@persistent
 def callback_post(self):
-    #print("dbg0")
+    #print("dbg_callback_post")
     scene = bpy.context.scene
     cFrame = scene.frame_current
     sFrame = scene.frame_start
@@ -1569,6 +1571,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         empty_mesh = bpy.data.meshes.new('empty_mesh')
         empty_mesh.from_pydata([], [], []) 
         empty_mesh_object = bpy.data.objects.new('empty_mesh_object', empty_mesh)
+        chrono_assets.objects.link(empty_mesh_object)
 
     # create template for all chrono coordinate systems
     chrono_csys = bpy.data.objects.get('chrono_csys')
@@ -1602,6 +1605,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_csys.name ='chrono_csys'
         chrono_csys.select_set(False)
         bpy.context.scene.collection.objects.unlink(chrono_csys)
+        chrono_assets.objects.link(chrono_csys)
     
     # create template for primitives (for glyphs etc)
     chrono_cube = bpy.data.objects.get('chrono_cube')
@@ -1611,6 +1615,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cube.name = 'chrono_cube'
         bpy.context.scene.collection.objects.unlink(chrono_cube)
         rotate_cube_UVs(chrono_cube)
+        chrono_assets.objects.link(chrono_cube)
 
     chrono_cylinder = bpy.data.objects.get('chrono_cylinder')
     if not chrono_cylinder:
@@ -1623,6 +1628,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         for f in chrono_cylinder.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_cylinder)
+        chrono_assets.objects.link(chrono_cylinder)
 
     chrono_cone = bpy.data.objects.get('chrono_cone')
     if not chrono_cone:
@@ -1635,6 +1641,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         for f in chrono_cone.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_cone)
+        chrono_assets.objects.link(chrono_cone)
         
     chrono_sphere = bpy.data.objects.get('chrono_sphere')
     if not chrono_sphere:
@@ -1646,6 +1653,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         for f in chrono_sphere.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_sphere)
+        chrono_assets.objects.link(chrono_sphere)
 
     
     chrono_filename = filepath
@@ -1677,10 +1685,10 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
     chrono_gui_doupdate = True
     
     #clear the post frame handler
-    bpy.app.handlers.frame_change_post.clear()
+    #bpy.app.handlers.frame_change_post.clear()
 
     #run the function on each frame
-    bpy.app.handlers.frame_change_post.append(callback_post)
+    #bpy.app.handlers.frame_change_post.append(callback_post)
 
 
     # TEST: Update to a frame where particles are updated
