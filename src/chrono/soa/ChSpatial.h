@@ -321,7 +321,7 @@ inline ChMatrixNM<double, 6, 6> ChShiftMat::eigen() const {
     ChMatrixNM<double, 6, 6> P_e;
     P_e.block(0, 0, 3, 3).setIdentity();
     P_e.block(0, 3, 3, 3).setZero();
-    P_e.block(3, 0, 3, 3) = -ChStarMatrix33<>(m_l);
+    P_e.block(3, 0, 3, 3) = ChStarMatrix33<>(-m_l);
     P_e.block(3, 3, 3, 3).setIdentity();
     return P_e;
 }
@@ -422,10 +422,9 @@ inline ChMatrixNN<N> operator*(const ChVelMatT<N>& H1, const ChVelMat<N>& H2) {
 /// Insertion of a ChSpatialMat to output stream.
 inline std::ostream& operator<<(std::ostream& out, const ChSpatialMat& S) {
     for (int i = 0; i < 3; i++)
-        out << S.A00().row(i) << "   |   " << S.A01().row(i) << std::endl;
-    out << "----------" << std::endl;
+        out << S.A00().row(i) << " " << S.A01().row(i) << std::endl;
     for (int i = 0; i < 3; i++)
-        out << S.A10().row(i) << "   |   " << S.A11().row(i) << std::endl;
+        out << S.A10().row(i) << " " << S.A11().row(i) << std::endl;
 
     return out;
 }
@@ -434,13 +433,12 @@ inline std::ostream& operator<<(std::ostream& out, const ChSpatialMat& S) {
 inline std::ostream& operator<<(std::ostream& out, const ChShiftMat& P) {
     auto zero = ChMatrix33d::Zero();
     auto eye = ChMatrix33d::Identity();
-    auto x = -ChStarMatrix33d(P.l());
+    auto x = ChStarMatrix33d(-P.l());
 
     for (int i = 0; i < 3; i++)
-        out << eye.row(i) << "   |   " << zero.row(i) << std::endl;
-    out << "----------" << std::endl;
+        out << eye.row(i) << " " << zero.row(i) << std::endl;
     for (int i = 0; i < 3; i++)
-        out << x.row(i) << "   |   " << eye.row(i) << std::endl;
+        out << x.row(i) << " " << eye.row(i) << std::endl;
 
     return out;
 }
@@ -449,7 +447,6 @@ inline std::ostream& operator<<(std::ostream& out, const ChShiftMat& P) {
 template <int N>
 inline std::ostream& operator<<(std::ostream& out, const ChVelMat<N>& H) {
     out << H.ang() << std::endl;
-    out << "----------" << std::endl;
     out << H.lin() << std::endl;
 
     return out;

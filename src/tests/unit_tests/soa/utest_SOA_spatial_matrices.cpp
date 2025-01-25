@@ -19,6 +19,7 @@
 
 #include <iomanip>
 
+#include "chrono/core/ChRotation.h"
 #include "chrono/soa/ChSpatial.h"
 
 #include "gtest/gtest.h"
@@ -28,7 +29,7 @@ using std::endl;
 using namespace chrono;
 using namespace chrono::soa;
 
-//#define DBG_PRINT
+// #define DBG_PRINT
 
 constexpr double ABS_ERR = 1e-10;
 
@@ -71,7 +72,8 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
 #endif
 
     // Spatial matrix from blocks and equivalent 6x6 Eigen matrix
-    ChSpatialMat S(ChMatrix33d::Random(), ChMatrix33d::Random(), ChMatrix33d::Random(), ChMatrix33d::Random());
+    ChSpatialMat S(ChMatrix33d::Random(3, 3), ChMatrix33d::Random(3, 3), ChMatrix33d::Random(3, 3),
+                   ChMatrix33d::Random(3, 3));
     ChMatrixNM<double, 6, 6> S_e = S.eigen();
 #ifdef DBG_PRINT
     cout << "\nSpatial matrix\n";
@@ -89,7 +91,7 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
 #endif
 
     // Velocity matrix from blocks
-    ChVelMat<DOF> H(ChMatrix3N<DOF>::Random(), ChMatrix3N<DOF>::Random());
+    ChVelMat<DOF> H(ChMatrix3N<DOF>::Random(3, DOF), ChMatrix3N<DOF>::Random(3, DOF));
     ChMatrix6N<DOF> H_e = H.eigen();
 #ifdef DBG_PRINT
     cout << "\nVelocity matrix\n";
@@ -138,102 +140,212 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
 TYPED_TEST(SOA_linalg, SOA_multiplication) {
     constexpr int DOF = TypeParam::DOF;
 
-    ChSpatialVec V(ChVector6::Random());
-    ChSpatialMat S(ChMatrix33d::Random(), ChMatrix33d::Random(), ChMatrix33d::Random(), ChMatrix33d::Random());
+    ChSpatialVec V(ChVector3d(1, -2, 3), ChVector3d(0.3, 0.2, -0.3));
+
+    ChMatrix33d A00(ChVector3d(+0.1, +0.2, +0.3), ChVector3d(-0.4, +0.5, -0.6), ChVector3d(+1.0, +2.0, +3.0));
+    ChMatrix33d A01(ChVector3d(+0.1, -0.2, +0.3), ChVector3d(+1.0, -2.0, +3.0), ChVector3d(-1.0, +2.0, -3.0));
+    ChMatrix33d A10(ChVector3d(-0.4, +0.5, -0.6), ChVector3d(-0.4, -0.5, -0.6), ChVector3d(+0.1, +0.2, -0.3));
+    ChMatrix33d A11(ChVector3d(-0.1, -0.2, -0.6), ChVector3d(-0.5, +0.5, +0.1), ChVector3d(-0.4, +0.2, +0.3));
+    ChSpatialMat S(A00, A01, A10, A11);
+
     ChShiftMat P(ChVector3d(1, 2, 3));
 
-    ChVelMat<DOF> H1(ChMatrix3N<DOF>::Random(), ChMatrix3N<DOF>::Random());
-    ChVelMat<DOF> H2(ChMatrix3N<DOF>::Random(), ChMatrix3N<DOF>::Random());
-    ChVectorN<double, DOF> v = ChVectorN<double, DOF>::Random();
-    ChMatrixNN<DOF> M = ChMatrixNN<DOF>::Random();
-    ChMatrix33d R = ChMatrix33d::Random();
+    ChVelMat<DOF> H1;
+    ChVelMat<DOF> H2;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < DOF; j++) {
+            H1.ang()(i, j) = 0.1 + 2 * i - 3 * j;
+            H1.lin()(i, j) = 0.1 - 2 * i + 3 * j;
+            H2.ang()(i, j) = -0.1 + 3 * i - 2 * j;
+            H2.lin()(i, j) = -0.1 - 3 * i + 2 * j;
+        }
+    }
+
+    ChVectorN<double, DOF> v;
+    for (int j = 0; j < DOF; j++) {
+        v(j) = -0.3 + 2 * j;
+    }
+
+    ChMatrixNN<DOF> M;
+    for (int i = 0; i < DOF; i++) {
+        for (int j = 0; j < DOF; j++) {
+            M(i, j) = 1.0 + (i + 0.1) * (j + 0.2);
+        }
+    }
+
+    ChMatrix33d R(QuatFromAngleX(CH_PI / 6));
+
+#ifdef DBG_PRINT
+    cout << "========================================" << endl;
+    cout << "   DOF = " << DOF << endl;
+    cout << "========================================" << endl;
+    cout << "V (ChSpatialVec)" << endl;
+    cout << V << endl;
+    cout << "S (ChSpatialMat)" << endl;
+    cout << S << endl;
+    cout << "S.eigen()" << endl;
+    cout << S.eigen() << endl;
+    cout << "P (ChShiftMat)" << endl;
+    cout << P << endl;
+    cout << "P.eigen()" << endl;
+    cout << P.eigen() << endl;
+    cout << "H1 (ChVelMat)" << endl;
+    cout << H1 << endl;
+    cout << "H1.eigen()" << endl;
+    cout << H1.eigen() << endl;
+    cout << "H2 (ChVelMat)" << endl;
+    cout << H2 << endl;
+    cout << "H2.eigen()" << endl;
+    cout << H2.eigen() << endl;
+    cout << "v (ChVectorN<double, DOF>)" << endl;
+    cout << v << endl;
+    cout << "M (ChMatrixNN<DOF>)" << endl;
+    cout << M << endl;
+    cout << "========================================" << endl;
+#endif
 
     {
         auto sv = S * V;
         auto sv_e = S.eigen() * V;
-//#ifdef DBG_PRINT
-        cout << "S * V" << endl;
+#ifdef DBG_PRINT
+        cout << "\nS * V" << endl;
         cout << sv << endl;
         cout << "---" << endl;
         cout << sv_e << endl;
-        //#endif
-        ASSERT_TRUE(sv.isApprox(sv_e, ABS_ERR));
+        cout << "||diff|| = " << (sv - sv_e).norm() << endl;
+#endif
+        ASSERT_NEAR((sv - sv_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(sv.isApprox(sv_e, ABS_ERR));
     }
     {
         auto pv = P * V;
         auto pv_e = P.eigen() * V;
-//#ifdef DBG_PRINT
-        cout << "P * V" << endl;
+#ifdef DBG_PRINT
+        cout << "\nP * V" << endl;
         cout << pv << endl;
         cout << "---" << endl;
         cout << pv_e << endl;
-        //#endif
-        ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
+        cout << "||diff|| = " << (pv - pv_e).norm() << endl;
+#endif
+        ASSERT_NEAR((pv - pv_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
         auto pv = ~P * V;
         auto pv_e = P.eigen().transpose() * V;
-//#ifdef DBG_PRINT
-        cout << "P^T * V" << endl;
+#ifdef DBG_PRINT
+        cout << "\nP^T * V" << endl;
         cout << pv << endl;
         cout << "---" << endl;
         cout << pv_e << endl;
-//#endif
-        ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
+        cout << "||diff|| = " << (pv - pv_e).norm() << endl;
+#endif
+        ASSERT_NEAR((pv - pv_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
         auto sp = (S * P).eigen();
         auto sp_e = S.eigen() * P.eigen();
-        ASSERT_TRUE(sp.isApprox(sp_e, ABS_ERR));
+#ifdef DBG_PRINT
+        cout << "\nS * P" << endl;
+        cout << sp << endl;
+        cout << "---" << endl;
+        cout << sp_e << endl;
+        cout << "||diff|| = " << (sp - sp_e).norm() << endl;
+#endif
+        ASSERT_NEAR((sp - sp_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(sp.isApprox(sp_e, ABS_ERR));
     }
     {
         auto ps = (~P * S).eigen();
         auto ps_e = P.eigen().transpose() * S.eigen();
-        ASSERT_TRUE(ps.isApprox(ps_e, ABS_ERR));
+#ifdef DBG_PRINT
+        cout << "\nP^T * S" << endl;
+        cout << ps << endl;
+        cout << "---" << endl;
+        cout << ps_e << endl;
+        cout << "||diff|| = " << (ps - ps_e).norm() << endl;
+#endif
+        ASSERT_NEAR((ps - ps_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(ps.isApprox(ps_e, ABS_ERR));
     }
     {
         auto hv = H1 * v;
         auto hv_e = H1.eigen() * v;
-        ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
+#ifdef DBG_PRINT
+        cout << "\nH * v" << endl;
+        cout << hv << endl;
+        cout << "---" << endl;
+        cout << hv_e << endl;
+        cout << "||diff|| = " << (hv - hv_e).norm() << endl;
+#endif
+        ASSERT_NEAR((hv - hv_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
     }
     {
         auto hv = ~H1 * V;
         auto hv_e = H1.eigen().transpose() * V;
-        ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
+#ifdef DBG_PRINT
+        cout << "\nH^T * V" << endl;
+        cout << hv << endl;
+        cout << "---" << endl;
+        cout << hv_e << endl;
+        cout << "||diff|| = " << (hv - hv_e).norm() << endl;
+#endif
+        ASSERT_NEAR((hv - hv_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
     }
     {
         ChMatrix6N<DOF> hm = (H1 * M).eigen();
         ChMatrix6N<DOF> hm_e = H1.eigen() * M;
 #ifdef DBG_PRINT
-        cout << "-----------  eigen(H * M)" << endl;
+        cout << "H * M" << endl;
         cout << hm << endl;
-        cout << "-----------  eigen(H) * M" << endl;
+        cout << "---" << endl;
         cout << hm_e << endl;
-        cout << "-----------  D = eigen(H * M) - eigen(H) * M" << endl;
-        ChMatrix6N<DOF> foo = hm - hm_e;
-        cout << foo << endl;
-        cout << "-----------  ||D|| = " << foo.norm() << endl;
+        cout << "||diff|| = " << (hm - hm_e).norm() << endl;
 #endif
         ASSERT_NEAR((hm - hm_e).norm(), 0.0, ABS_ERR);
-        ASSERT_TRUE(hm.isApprox(hm_e, ABS_ERR));
+        ////ASSERT_TRUE(hm.isApprox(hm_e, ABS_ERR));
     }
     {
         auto sh = (S * H1).eigen();
         auto sh_e = S.eigen() * H1.eigen();
-        ASSERT_NEAR((sh-sh_e).norm(), 0.0, ABS_ERR);
-        ASSERT_TRUE(sh.isApprox(sh_e, ABS_ERR));
+#ifdef DBG_PRINT
+        cout << "S * H" << endl;
+        cout << sh << endl;
+        cout << "---" << endl;
+        cout << sh_e << endl;
+        cout << "||diff|| = " << (sh - sh_e).norm() << endl;
+#endif
+        ASSERT_NEAR((sh - sh_e).norm(), 0.0, ABS_ERR);
+        ////ASSERT_TRUE(sh.isApprox(sh_e, ABS_ERR));
     }
     ////{ auto rh = (R * H1).eigen(); }
     {
         auto hh = (H1 * ~H2).eigen();
         auto hh_e = H1.eigen() * H2.eigen().transpose();
+#ifdef DBG_PRINT
+        cout << "H * H" << endl;
+        cout << hh << endl;
+        cout << "---" << endl;
+        cout << hh_e << endl;
+        cout << "||diff|| = " << (hh - hh_e).norm() << endl;
+#endif
         ASSERT_NEAR((hh - hh_e).norm(), 0.0, ABS_ERR);
-        ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
+        ////ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
     }
     {
         auto hh = ~H1 * H2;
         auto hh_e = H1.eigen().transpose() * H2.eigen();
+#ifdef DBG_PRINT
+        cout << "H^T * H" << endl;
+        cout << hh << endl;
+        cout << "---" << endl;
+        cout << hh_e << endl;
+        cout << "||diff|| = " << (hh - hh_e).norm() << endl;
+#endif
         ASSERT_NEAR((hh - hh_e).norm(), 0.0, ABS_ERR);
-        ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
+        ////ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
     }
 }
