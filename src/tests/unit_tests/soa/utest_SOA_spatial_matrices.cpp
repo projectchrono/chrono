@@ -151,16 +151,34 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
     {
         auto sv = S * V;
         auto sv_e = S.eigen() * V;
+//#ifdef DBG_PRINT
+        cout << "S * V" << endl;
+        cout << sv << endl;
+        cout << "---" << endl;
+        cout << sv_e << endl;
+        //#endif
         ASSERT_TRUE(sv.isApprox(sv_e, ABS_ERR));
     }
     {
         auto pv = P * V;
         auto pv_e = P.eigen() * V;
+//#ifdef DBG_PRINT
+        cout << "P * V" << endl;
+        cout << pv << endl;
+        cout << "---" << endl;
+        cout << pv_e << endl;
+        //#endif
         ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
         auto pv = ~P * V;
         auto pv_e = P.eigen().transpose() * V;
+//#ifdef DBG_PRINT
+        cout << "P^T * V" << endl;
+        cout << pv << endl;
+        cout << "---" << endl;
+        cout << pv_e << endl;
+//#endif
         ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
