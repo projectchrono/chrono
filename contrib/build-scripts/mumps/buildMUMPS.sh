@@ -10,8 +10,8 @@
 # - Run the script (sh ./buildMUMPS.sh).
 # - The install directory will contain (under subdirectories of MUMPS_INSTALL_DIR/cmake) the MUMPS CMake
 #   project configuration script required to configure Chrono with the Chrono::MUMPS module enabled.
-# - After installation, run `sudo ldconfig` (if installing to a system directory) or else update the
-#   LD_LIBRARY_PATH (if installing to a custom directory).
+# - After installation, run `sudo ldconfig ${MUMPS_INSTALL_DIR}/lib` or else update the LD_LIBRARY_PATH
+#   environment variable.
 #
 # Notes:
 # - The script accepts 1 optional argument to override the install directory.

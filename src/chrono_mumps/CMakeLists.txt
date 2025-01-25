@@ -26,6 +26,9 @@ else()
   return()
 endif()
 
+enable_language(Fortran)
+message(STATUS "  Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mumps module
 

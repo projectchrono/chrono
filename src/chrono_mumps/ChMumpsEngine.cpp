@@ -19,7 +19,7 @@
 namespace chrono {
 
 ChMumpsEngine::ChMumpsEngine() {
-    /* Initialize a MUMPS instance. Use MPI_COMM_WORLD */
+    // Initialize a MUMPS instance. Use MPI_COMM_WORLD 
     mumps_id.job = INIT;
     mumps_id.par = 1;
     mumps_id.sym = UNSYMMETRIC;
@@ -27,15 +27,18 @@ ChMumpsEngine::ChMumpsEngine() {
 
     dmumps_c(&mumps_id);
 
-    /* Output messages */
+    // Output messages 
     mumps_id.ICNTL(1) = 6;  // Error
     mumps_id.ICNTL(2) = 0;  // Diagnostic and warnings
     mumps_id.ICNTL(3) = 0;  // Global information
     mumps_id.ICNTL(4) = 1;  // Error, warning and diagnostic control
 
-    /* Matrix control */
+    // Matrix control
     mumps_id.ICNTL(5) = 0;   // COO Matrix format selection
     mumps_id.ICNTL(18) = 0;  // Matrix centralized on the host
+
+    // Set default number of OpenMP threads
+    SetNumThreads(1);
 }
 
 ChMumpsEngine::~ChMumpsEngine() {
