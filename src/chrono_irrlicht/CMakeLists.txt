@@ -184,7 +184,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRLICHT_DLL}"
             "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    MAIN_DEPENDENCY ChronoEngine_irrlicht
     COMMENT "Copying Irrlicht DLL..."
   )
 

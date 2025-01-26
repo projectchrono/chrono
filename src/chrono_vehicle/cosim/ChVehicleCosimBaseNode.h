@@ -30,7 +30,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
-
+#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"

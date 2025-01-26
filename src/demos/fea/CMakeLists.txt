@@ -22,12 +22,6 @@ if(ENABLE_MODULE_IRRLICHT)
     )
     endif()
 
-    if(ENABLE_MODULE_MUMPS)
-    set(FEA_DEMOS ${FEA_DEMOS}
-        demo_FEA_cablesMUMPS
-    )
-    endif()
-
 endif()
 
 # Add demos that require run-time visualization (IRRLICHT or VSG)
@@ -44,14 +38,18 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
         demo_FEA_loads_dynamics
     )
     
-    # Add demos that require Matlab
+    if(ENABLE_MODULE_MUMPS)
+    set(FEA_DEMOS ${FEA_DEMOS}
+        demo_FEA_cablesMUMPS
+    )
+    endif()
+
     if(ENABLE_MODULE_MATLAB)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_cablesMATLAB
     )
     endif()
     
-    # Add demos that require MKL
     if(ENABLE_MODULE_PARDISO_MKL)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beamsEuler
@@ -100,13 +98,12 @@ endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
   include_directories(${CH_MKL_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+  #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+  #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
   list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 if(ENABLE_MODULE_MUMPS)
-  include_directories(${CH_MUMPS_INCLUDES})
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 

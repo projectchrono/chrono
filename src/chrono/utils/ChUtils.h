@@ -26,7 +26,7 @@ namespace chrono {
 #define ChAssertAlways(exp)                                                                                    \
     {                                                                                                          \
         if (!(exp)) {                                                                                          \
-            char msg[100];                                                                                     \
+            char msg[300];                                                                                     \
             std::sprintf(msg, "Expression '%s' returned false - file %s, line %d.", #exp, __FILE__, __LINE__); \
             throw std::runtime_error(msg);                                                                     \
         }                                                                                                      \

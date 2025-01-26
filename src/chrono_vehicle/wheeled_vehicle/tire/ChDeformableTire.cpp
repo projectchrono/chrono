@@ -119,8 +119,8 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
     }
 
     // Attach the requested FEA visual shapes
-    for (const auto& vis : m_visFEA) {
-        m_mesh->AddVisualShapeFEA(vis);
+    for (const auto& v : m_visFEA) {
+        m_mesh->AddVisualShapeFEA(v);
     }
 }
 

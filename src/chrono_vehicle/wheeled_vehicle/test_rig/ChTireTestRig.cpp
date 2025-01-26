@@ -582,8 +582,6 @@ void ChTireTestRig::CreateTerrainCRM() {
     double initSpace0 = 2 * m_params_crm.radius;
 
     std::shared_ptr<CRMTerrain> terrain = chrono_types::make_shared<CRMTerrain>(*m_system, initSpace0);
-    ChFsiSystemSPH& sysFSI = terrain->GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = terrain->GetFluidSystemSPH();
 
     // m_terrain->DisableMBD();
     terrain->SetOutputLevel(OutputLevel::STATE);
