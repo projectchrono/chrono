@@ -149,7 +149,7 @@ class ChSpatialMat {
     ChSpatialMat operator-(const ChSpatialMat& mat) const;
 
     /// View this spatial matrix as a 6x6 Eigen matrix (debugging and testing).
-    ChMatrixNM<double, 6, 6> eigen() const;
+    ChMatrix66d eigen() const;
 
     /// Construct a spatial matrix by applying a symmetric spatial shift to the given spatial matrix.
     ///    S1 = ~Phi * S * Phi
@@ -195,7 +195,7 @@ class ChShiftMat {
     const ChShiftMatT& operator~() const { return *((const ChShiftMatT*)this); }
 
     /// View this shift matrix as a 6x6 Eigen matrix (debugging and testing).
-    ChMatrixNM<double, 6, 6> eigen() const;
+    ChMatrix66d eigen() const;
 
   private:
     ChVector3d m_l;
@@ -268,8 +268,8 @@ class ChVelMatT {
 
 // =============================================================================
 
-inline ChMatrixNM<double, 6, 6> ChSpatialMat::eigen() const {
-    ChMatrixNM<double, 6, 6> S_e;
+inline ChMatrix66d ChSpatialMat::eigen() const {
+    ChMatrix66d S_e;
     S_e.block(0, 0, 3, 3) = m_A00;
     S_e.block(0, 3, 3, 3) = m_A01;
     S_e.block(3, 0, 3, 3) = m_A10;
@@ -317,8 +317,8 @@ inline ChSpatialMat ChSpatialMat::operator-(const ChSpatialMat& mat) const {
 
 // -----------------------------------------------------------------------------
 
-inline ChMatrixNM<double, 6, 6> ChShiftMat::eigen() const {
-    ChMatrixNM<double, 6, 6> P_e;
+inline ChMatrix66d ChShiftMat::eigen() const {
+    ChMatrix66d P_e;
     P_e.block(0, 0, 3, 3).setIdentity();
     P_e.block(0, 3, 3, 3).setZero();
     P_e.block(3, 0, 3, 3) = ChStarMatrix33<>(-m_l);

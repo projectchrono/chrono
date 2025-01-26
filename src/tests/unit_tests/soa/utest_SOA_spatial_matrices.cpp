@@ -109,8 +109,8 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
 #endif
 
     // Test construction of shifted spatial matrix
-    auto S1 = ChSpatialMat::constructFrom(S, P);
-    auto S1_e = P_e.transpose() * S_e * P_e;
+    ChSpatialMat S1 = ChSpatialMat::constructFrom(S, P);
+    ChMatrix66d S1_e = P_e.transpose() * S_e * P_e;
 #ifdef DBG_PRINT
     cout << "\nShifted spatial matrix\n";
     cout << S1 << endl;
@@ -122,8 +122,8 @@ TYPED_TEST(SOA_linalg, matrix_construction) {
     ASSERT_TRUE(S1.A11().isApprox(S1_e.block(3, 3, 3, 3), ABS_ERR));
 
     // Test construction of spatial matrix from symmetric velocity transform
-    auto S2 = ChSpatialMat::constructFrom(H, D);
-    auto S2_e = H_e * D * H_e.transpose();
+    ChSpatialMat S2 = ChSpatialMat::constructFrom(H, D);
+    ChMatrix66d S2_e = H_e * D * H_e.transpose();
 #ifdef DBG_PRINT
     cout << "\nSpatial matrix from symmetric vel transform\n";
     cout << S2 << endl;
@@ -205,8 +205,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
 #endif
 
     {
-        auto sv = S * V;
-        auto sv_e = S.eigen() * V;
+        ChSpatialVec sv = S * V;
+        ChVector6 sv_e = S.eigen() * V;
 #ifdef DBG_PRINT
         cout << "\nS * V" << endl;
         cout << sv << endl;
@@ -218,8 +218,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(sv.isApprox(sv_e, ABS_ERR));
     }
     {
-        auto pv = P * V;
-        auto pv_e = P.eigen() * V;
+        ChSpatialVec pv = P * V;
+        ChVector6 pv_e = P.eigen() * V;
 #ifdef DBG_PRINT
         cout << "\nP * V" << endl;
         cout << pv << endl;
@@ -231,8 +231,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
-        auto pv = ~P * V;
-        auto pv_e = P.eigen().transpose() * V;
+        ChSpatialVec pv = ~P * V;
+        ChVector6 pv_e = P.eigen().transpose() * V;
 #ifdef DBG_PRINT
         cout << "\nP^T * V" << endl;
         cout << pv << endl;
@@ -244,8 +244,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(pv.isApprox(pv_e, ABS_ERR));
     }
     {
-        auto sp = (S * P).eigen();
-        auto sp_e = S.eigen() * P.eigen();
+        ChMatrix66d sp = (S * P).eigen();
+        ChMatrix66d sp_e = S.eigen() * P.eigen();
 #ifdef DBG_PRINT
         cout << "\nS * P" << endl;
         cout << sp << endl;
@@ -257,8 +257,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(sp.isApprox(sp_e, ABS_ERR));
     }
     {
-        auto ps = (~P * S).eigen();
-        auto ps_e = P.eigen().transpose() * S.eigen();
+        ChMatrix66d ps = (~P * S).eigen();
+        ChMatrix66d ps_e = P.eigen().transpose() * S.eigen();
 #ifdef DBG_PRINT
         cout << "\nP^T * S" << endl;
         cout << ps << endl;
@@ -270,8 +270,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(ps.isApprox(ps_e, ABS_ERR));
     }
     {
-        auto hv = H1 * v;
-        auto hv_e = H1.eigen() * v;
+        ChSpatialVec hv = H1 * v;
+        ChVector6 hv_e = H1.eigen() * v;
 #ifdef DBG_PRINT
         cout << "\nH * v" << endl;
         cout << hv << endl;
@@ -283,8 +283,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(hv.isApprox(hv_e, ABS_ERR));
     }
     {
-        auto hv = ~H1 * V;
-        auto hv_e = H1.eigen().transpose() * V;
+        ChVectorN<double, DOF> hv = ~H1 * V;
+        ChVectorN<double, DOF> hv_e = H1.eigen().transpose() * V;
 #ifdef DBG_PRINT
         cout << "\nH^T * V" << endl;
         cout << hv << endl;
@@ -309,8 +309,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(hm.isApprox(hm_e, ABS_ERR));
     }
     {
-        auto sh = (S * H1).eigen();
-        auto sh_e = S.eigen() * H1.eigen();
+        ChMatrix6N<DOF> sh = (S * H1).eigen();
+        ChMatrix6N<DOF> sh_e = S.eigen() * H1.eigen();
 #ifdef DBG_PRINT
         cout << "S * H" << endl;
         cout << sh << endl;
@@ -323,8 +323,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
     }
     ////{ auto rh = (R * H1).eigen(); }
     {
-        auto hh = (H1 * ~H2).eigen();
-        auto hh_e = H1.eigen() * H2.eigen().transpose();
+        ChMatrix66d hh = (H1 * ~H2).eigen();
+        ChMatrix66d hh_e = H1.eigen() * H2.eigen().transpose();
 #ifdef DBG_PRINT
         cout << "H * H" << endl;
         cout << hh << endl;
@@ -336,8 +336,8 @@ TYPED_TEST(SOA_linalg, SOA_multiplication) {
         ////ASSERT_TRUE(hh.isApprox(hh_e, ABS_ERR));
     }
     {
-        auto hh = ~H1 * H2;
-        auto hh_e = H1.eigen().transpose() * H2.eigen();
+        ChMatrixNN<DOF> hh = ~H1 * H2;
+        ChMatrixNN<DOF> hh_e = H1.eigen().transpose() * H2.eigen();
 #ifdef DBG_PRINT
         cout << "H^T * H" << endl;
         cout << hh << endl;

@@ -131,8 +131,8 @@ linux:ubuntu22.04-gcc:test:
     # Source ROS distro
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
-    - export CTEST_OUTPUT_ON_FAILURE=1
-    - ninja test
+    #- export CTEST_OUTPUT_ON_FAILURE=1
+    - ctest --output-on-failure
   dependencies: ["linux:ubuntu22.04-gcc:build"]
 
 linux:ubuntu22.04-clang:build:
@@ -163,8 +163,8 @@ linux:ubuntu22.04-clang:test:
     # Source ROS distro
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
-    - export CTEST_OUTPUT_ON_FAILURE=1
-    - ctest -E "utest_SOA"
+    #- export CTEST_OUTPUT_ON_FAILURE=1
+    - ctest --output-on-failure
   dependencies: ["linux:ubuntu22.04-clang:build"]
 
 .ubuntu-deploy-base:
@@ -445,8 +445,8 @@ windows:deploy-python3.10:
   # Copying files to correct directory for CI because of Ninja Multi-Config
   - cp -r bin/Release/* bin/
   - cp -r bin/data .
-  - export CTEST_OUTPUT_ON_FAILURE=1
-  - ctest -E "utest_SOA"
+  #- export CTEST_OUTPUT_ON_FAILURE=1
+  - ctest --output-on-failure
 
 
 macos-apple:monterey:build:
