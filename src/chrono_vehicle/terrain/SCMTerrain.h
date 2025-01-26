@@ -148,6 +148,15 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
                     float scale_y = 1            ///< [in] texture Y scale
     );
 
+    /// Set boundary of the SCM computational domain.
+    /// By default, the SCM terrain patch extends to infinity in the x-y plane, beyond the area used to initialize it;
+    /// outside the initialization area, the height of the SCM terrain is that of the closest initialized point.
+    /// By specifying a boundary, SCM terrain forces outside that boundary are not generated. This feature is useful in
+    /// stitching an environment with multiple SCM terrain patches or with a combination of SCM and rigid terrain
+    /// patches. The boundary is specified as an axis-aligned bounding box expressed relative to the SCM reference
+    /// plane. Note that the z values of the provided AABB are not used (as long as the AABB is not inverted).
+    void SetBoundary(const ChAABB& aabb);
+
     /// Add a new moving patch.
     /// Multiple calls to this function can be made, each of them adding a new active patch area.
     /// If no patches are defined, ray-casting is performed for every single node of the underlying SCM grid.
@@ -548,6 +557,9 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     std::unordered_map<ChVector2i, NodeRecord, CoordHash> m_grid_map;  ///< modified grid nodes (persistent)
     std::vector<ChVector2i> m_modified_nodes;                          ///< modified grid nodes (current)
+
+    ChAABB m_aabb;    ///< user-specified SCM terrain boundary
+    bool m_boundary;  ///< user-specified SCM terrain boundary?
 
     std::vector<MovingPatchInfo> m_patches;  ///< set of active moving patches
     bool m_moving_patch;                     ///< user-specified moving patches?

@@ -28,10 +28,11 @@ namespace mrole {
 const double mrole_SimpleDriveline::m_front_torque_frac = 0.5;
 const double mrole_SimpleDriveline::m_front_diff_bias = 2.0;
 const double mrole_SimpleDriveline::m_rear_diff_bias = 2.0;
+const double mrole_SimpleDriveline::m_front_conicalgear_ratio = 0.25;
+const double mrole_SimpleDriveline::m_rear_conicalgear_ratio = 0.25;
 
 // -----------------------------------------------------------------------------
-// Constructor of mrole_SimpleDriveline.
-// -----------------------------------------------------------------------------
+
 mrole_SimpleDriveline::mrole_SimpleDriveline(const std::string& name) : ChSimpleDriveline(name) {}
 
 }  // namespace mrole

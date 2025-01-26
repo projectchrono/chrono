@@ -176,19 +176,19 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 sys.Add(mesh)
 
 # Options for visualization in irrlicht
-mvisualizemeshref = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshref = chrono.ChVisualShapeFEA()
 mvisualizemeshref.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshref.SetWireframe(True)
 mvisualizemeshref.SetDrawInUndeformedReference(True)
 mesh.AddVisualShapeFEA(mvisualizemeshref)
 
-mvisualizemeshC = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshC = chrono.ChVisualShapeFEA()
 mvisualizemeshC.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 mvisualizemeshC.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshC.SetSymbolsThickness(0.015)
 mesh.AddVisualShapeFEA(mvisualizemeshC)
 
-mvisualizemeshD = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshD = chrono.ChVisualShapeFEA()
 mvisualizemeshD.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NONE)
 mvisualizemeshD.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshD.SetSymbolsScale(1)

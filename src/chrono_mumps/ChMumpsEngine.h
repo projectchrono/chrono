@@ -18,7 +18,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono_mumps/ChApiMumps.h"
 
-#include <dmumps_c.h>
+#include "dmumps_c.h"
 #define USE_COMM_WORLD -987654
 
 /* macro s.t. indices match documentation */
@@ -53,6 +53,9 @@ class ChApiMumps ChMumpsEngine {
 
     ChMumpsEngine();
     ~ChMumpsEngine();
+
+    /// Set the number of OpenMP threads for MUMPS.
+    void SetNumThreads(int num_threads);
 
     /// Set the problem matrix and the right-hand side.
     void SetProblem(const ChSparseMatrix& Z, ChVectorRef rhs);

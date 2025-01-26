@@ -24,8 +24,6 @@
 #include <set>
 #include <vector>
 
-#include "chrono/ChConfig.h"
-
 #include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -234,10 +232,6 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
                << del << m_system->GetTimerUpdate() << del;
-        if (m_int_type == ChTimestepper::Type::HHT) {
-            m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
-                   << m_integrator->GetNumSolveCalls() << del;
-        }
         m_outf << endl;
     }
 

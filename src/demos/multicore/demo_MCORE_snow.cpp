@@ -12,8 +12,7 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
-// Chrono::Multicore test program using an MPM container (3DOF), either a particle
-// or a fluid container
+// Chrono::Multicore test program using a 3DOF container (particle or fluid).
 //
 // The global reference frame has Z up.
 //
@@ -66,52 +65,51 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     sys->AddBody(bin);
 }
 
-// Create the MPM container with spherical contact
-void AddMPMContainer(ChSystemMulticoreNSC* sys) {
+// Create the 3DOF container with spherical contact
+void AddContainer(ChSystemMulticoreNSC* sys) {
 #if USE_RIGID
-    auto mpm_container = chrono_types::make_shared<ChParticleContainer>();
+    auto container = chrono_types::make_shared<ChParticleContainer>();
 #else
-    auto mpm_container = chrono_types::make_shared<ChFluidContainer>();
+    auto container = chrono_types::make_shared<ChFluidContainer>();
 #endif
-    sys->Add3DOFContainer(mpm_container);
+    sys->Add3DOFContainer(container);
 
     real youngs_modulus = 1.4e6;
     real poissons_ratio = 0.2;
     real rho = 400;
 
 #if USE_RIGID
-    mpm_container->mu = 0;
-    mpm_container->alpha = 0;
-    mpm_container->cohesion = 0;
+    container->mu = 0;
+    container->alpha = 0;
+    container->cohesion = 0;
 #else
-    mpm_container->tau = time_step * 4;
-    mpm_container->epsilon = 1e-3;
-    mpm_container->rho = rho;
-    mpm_container->viscosity = false;
-    mpm_container->artificial_pressure = false;
+    container->tau = time_step * 4;
+    container->epsilon = 1e-3;
+    container->rho = rho;
+    container->viscosity = false;
+    container->artificial_pressure = false;
 #endif
 
-    mpm_container->theta_c = 1;
-    mpm_container->theta_s = 1;
-    mpm_container->lame_lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
-    mpm_container->lame_mu = youngs_modulus / (2. * (1. + poissons_ratio));
-    mpm_container->youngs_modulus = youngs_modulus;
-    mpm_container->nu = poissons_ratio;
-    mpm_container->alpha_flip = .95;
-    mpm_container->hardening_coefficient = 10.0;
-    // mpm_container->rho = 400;
-    mpm_container->mass = .01;
-    mpm_container->mpm_iterations = 30;
-    mpm_container->kernel_radius = kernel_radius;
-    mpm_container->collision_envelope = kernel_radius * 0.05;
-    mpm_container->contact_recovery_speed = 10;
-    mpm_container->contact_cohesion = 0;
-    mpm_container->contact_mu = 0;
-    mpm_container->max_velocity = 10;
-    mpm_container->compliance = 0;
+    container->theta_c = 1;
+    container->theta_s = 1;
+    container->lame_lambda = youngs_modulus * poissons_ratio / ((1. + poissons_ratio) * (1. - 2. * poissons_ratio));
+    container->lame_mu = youngs_modulus / (2. * (1. + poissons_ratio));
+    container->youngs_modulus = youngs_modulus;
+    container->nu = poissons_ratio;
+    container->alpha_flip = .95;
+    container->hardening_coefficient = 10.0;
+    ////container->rho = 400;
+    container->mass = .01;
+    container->kernel_radius = kernel_radius;
+    container->collision_envelope = kernel_radius * 0.05;
+    container->contact_recovery_speed = 10;
+    container->contact_cohesion = 0;
+    container->contact_mu = 0;
+    container->max_velocity = 10;
+    container->compliance = 0;
 
-    // mpm_container->tau = time_step * 4;
-    // mpm_container->epsilon = 1e-3;
+    ////container->tau = time_step * 4;
+    ////container->epsilon = 1e-3;
     real radius = .2;  //*5
     real3 origin(0, 0, .1);
 
@@ -125,7 +123,7 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
 #endif
 
     real vol = dist * dist * dist * .8;
-    mpm_container->mass = rho * vol;
+    container->mass = rho * vol;
 
     utils::ChHCPSampler<> sampler(dist);
     utils::ChGenerator::PointVector points =
@@ -137,8 +135,8 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
         pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(0, 0, -5);
     }
-    mpm_container->UpdatePosition(0);
-    mpm_container->AddBodies(pos_fluid, vel_fluid);
+    container->UpdatePosition(0);
+    container->AddBodies(pos_fluid, vel_fluid);
 
     points = sampler.SampleBox(ChVector3d(1, 0, 0), ChVector3d(radius, radius, radius));
 
@@ -183,7 +181,7 @@ int main(int argc, char* argv[]) {
     sys.ChangeSolverType(SolverType::BB);
     sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
-    AddMPMContainer(&sys);
+    AddContainer(&sys);
 
     sys.GetSettings()->collision.collision_envelope = kernel_radius * .05;
     sys.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
@@ -191,14 +189,14 @@ int main(int argc, char* argv[]) {
     // Create the fixed body
     AddBody(&sys);
 
-    // This initializes all of the MPM stuff
+    // Initialize system
     sys.Initialize();
 
     // Perform the simulation
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;
     vis.AttachSystem(&sys);
-    vis.SetWindowTitle("Snow MPM");
+    vis.SetWindowTitle("Snow");
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();

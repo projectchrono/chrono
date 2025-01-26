@@ -435,14 +435,14 @@ int main(int argc, char* argv[]) {
     // Set visualization of the FEM mesh.
     // -----------------------------------------------------------------
 
-    auto beam_visA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto beam_visA = chrono_types::make_shared<ChVisualShapeFEA>();
     beam_visA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     beam_visA->SetColorscaleMinMax(-400, 200);
     beam_visA->SetSmoothFaces(true);
     beam_visA->SetWireframe(false);
     mesh->AddVisualShapeFEA(beam_visA);
 
-    auto beam_visB = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto beam_visB = chrono_types::make_shared<ChVisualShapeFEA>();
     beam_visB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     beam_visB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     beam_visB->SetSymbolsThickness(0.006);

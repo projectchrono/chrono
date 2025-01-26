@@ -98,7 +98,8 @@ bool ChAABB::IsInverted() const {
 }
 
 ChAABB& ChAABB::operator+=(const ChAABB& aabb) {
-    *this = ChAABB(Vmin(min, aabb.min), Vmax(max, aabb.max));
+    min = Vmin(min, aabb.min);
+    max = Vmax(max, aabb.max);
     return *this;
 }
 
@@ -106,6 +107,12 @@ ChAABB ChAABB::operator+(const ChAABB& aabb) {
     ChAABB result = *this;
     result += aabb;
     return result;
+}
+
+ChAABB& ChAABB::operator+=(const ChVector3d p) {
+    min = Vmin(min, p);
+    max = Vmax(max, p);
+    return *this;
 }
 
 ChAABB ChAABB::Transform(const ChFrame<>& frame) const {

@@ -53,8 +53,11 @@ struct ChApi ChAABB {
     /// Return the union of this AABB and the specified AABB.
     ChAABB operator+(const ChAABB& aabb);
 
-    /// Include the specified AABB to this AABB.
+    /// Include the specified AABB in this AABB.
     ChAABB& operator+=(const ChAABB& aabb);
+
+    /// Include the specified point in this AABB.
+    ChAABB& operator+=(const ChVector3d p);
 
     /// Transform by the given frame.
     ChAABB Transform(const ChFrame<>& frame) const;

@@ -121,7 +121,6 @@ class CH_MULTICORE_API ChSolverMulticore {
     ChConstraintBilateral* bilateral;
     Ch3DOFContainer* three_dof;
     Ch3DOFContainer* fem;
-    Ch3DOFContainer* mpm;
 
     ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 

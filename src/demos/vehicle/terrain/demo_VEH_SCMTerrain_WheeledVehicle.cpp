@@ -50,6 +50,8 @@ using namespace chrono::irrlicht;
 using namespace chrono::vsg3d;
 #endif
 
+#include "demos/SetChronoSolver.h"
+
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
@@ -64,47 +66,24 @@ using std::endl;
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// -----------------------------------------------------------------------------
-// Terrain parameters
-// -----------------------------------------------------------------------------
-
-// If true, set the SCM terrain profile from a mesh (bump.obj).
-// Otherwise, create a flat SCM terrain patch of given dimensions.
+// SCM terrain patch type
 enum class PatchType { FLAT, MESH, HEIGHMAP };
-PatchType patch_type = PatchType::HEIGHMAP;
+PatchType patch_type = PatchType::FLAT;
 
-double delta = 0.05;  // SCM grid spacing
+// SCM grid spacing
+double delta = 0.05;
+
+// Type of tire (controls both contact and visualization)
+enum class TireType { CYLINDRICAL, LUGGED, FEA };
+TireType tire_type = TireType::LUGGED;
+
+// Rendering frequency (FPS)
+double render_fps = 100;
 
 // SCM terrain visualization options
 bool render_wireframe = true;  // render wireframe (flat otherwise)
 bool apply_texture = false;    // add texture
 bool render_sinkage = true;    // use false coloring for sinkage visualization
-
-// -----------------------------------------------------------------------------
-// Vehicle parameters
-// -----------------------------------------------------------------------------
-
-// Type of tire (controls both contact and visualization)
-enum class TireType { CYLINDRICAL, LUGGED };
-TireType tire_type = TireType::LUGGED;
-
-// Tire contact material properties
-float Y_t = 1.0e6f;
-float cr_t = 0.1f;
-float mu_t = 0.8f;
-
-// -----------------------------------------------------------------------------
-// Simulation parameters
-// -----------------------------------------------------------------------------
-
-// Simulation step size
-double step_size = 3e-3;
-
-// Time interval between two render frames (1/FPS)
-double render_step_size = 1.0 / 100;
-
-// Point on chassis tracked by the camera
-ChVector3d track_point(0.0, 0.0, 1.75);
 
 // Visualization output
 bool img_output = false;
@@ -184,13 +163,16 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Set initial vehicle location
+    // Set terain patch size and initial vehicle location
     ChVector3d init_loc;
     ChVector2d patch_size;
+    ChAABB patch_aabb;
     switch (patch_type) {
         case PatchType::FLAT:
-            init_loc = ChVector3d(-5.0, -2.0, 0.6);
-            patch_size = ChVector2d(16.0, 8.0);
+            init_loc = ChVector3d(-15.0, -6.0, 0.6);
+            patch_size = ChVector2d(40.0, 16.0);
+            patch_aabb = ChAABB(ChVector3d(-patch_size.x() / 2, -patch_size.y() / 2, 0),
+                                ChVector3d(+patch_size.x() / 2, +patch_size.y() / 2, 0));
             break;
         case PatchType::MESH:
             init_loc = ChVector3d(-12.0, -12.0, 1.6);
@@ -198,6 +180,8 @@ int main(int argc, char* argv[]) {
         case PatchType::HEIGHMAP:
             init_loc = ChVector3d(-15.0, -15.0, 0.6);
             patch_size = ChVector2d(40.0, 40.0);
+            patch_aabb = ChAABB(ChVector3d(-patch_size.x() / 2, -patch_size.y() / 2, 0),
+                                ChVector3d(+patch_size.x() / 2, +patch_size.y() / 2, 0));
             break;
     }
 
@@ -219,14 +203,22 @@ int main(int argc, char* argv[]) {
         case TireType::LUGGED:
             hmmwv.SetTireType(TireModelType::RIGID);
             break;
+        case TireType::FEA:
+            hmmwv.SetTireType(TireModelType::ANCF_LUMPED);
+            break;
     }
     hmmwv.Initialize();
 
     hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
 
+    ChSystem* sys = hmmwv.GetSystem();
+
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
     // -----------------------------------------------------------
+    float Y_t = 1.0e6f;
+    float cr_t = 0.1f;
+    float mu_t = 0.8f;
     auto wheel_material = chrono_types::make_shared<ChContactMaterialSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
@@ -253,10 +245,7 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
-    ChSystem* system = hmmwv.GetSystem();
-    system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
-
-    SCMTerrain terrain(system);
+    SCMTerrain terrain(sys);
     terrain.SetSoilParameters(2e6,   // Bekker Kphi
                               0,     // Bekker Kc
                               1.1,   // Bekker n exponent
@@ -266,6 +255,9 @@ int main(int argc, char* argv[]) {
                               2e8,   // Elastic stiffness (Pa/m), before plastic yield
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
+
+    //// Optionally, restrict the SCM computational domain.
+    ////terrain.SetBoundary(patch_aabb);
 
     // Optionally, enable bulldozing effects.
     ////terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
@@ -326,7 +318,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
-            vis_irr->SetChaseCamera(track_point, 6.0, 0.5);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -347,7 +339,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetChaseCamera(track_point, 10.0, 0.5);
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->AttachTerrain(&terrain);
             vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
@@ -358,6 +350,25 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
+
+    // ---------------------
+    // Solver and integrator
+    // ---------------------
+
+    double step_size = 3e-3;
+    auto solver = ChSolver::Type::BARZILAIBORWEIN;
+    auto integrator = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    if (tire_type == TireType::FEA) {
+        step_size = 1e-4;
+        solver = ChSolver::Type::PARDISO_MKL;
+        integrator = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    }
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+    SetChronoSolver(*sys, solver, integrator, num_threads_pardiso);
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
 
     // -----------------
     // Initialize output
@@ -381,27 +392,20 @@ int main(int argc, char* argv[]) {
     // ---------------
     std::cout << "Total vehicle mass: " << hmmwv.GetVehicle().GetMass() << std::endl;
 
-    // Solver settings.
-    system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    system->GetSolver()->AsIterative()->SetMaxIterations(150);
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counter
-    int step_number = 0;
+    int sim_frame = 0;
     int render_frame = 0;
 
     ChTimer timer;
 
     while (vis->Run()) {
-        double time = system->GetChTime();
+        double time = sys->GetChTime();
 
-        if (step_number == 800) {
+        if (sim_frame == 800) {
             std::cout << "\nstart timer at t = " << time << std::endl;
             timer.start();
         }
-        if (step_number == 1400) {
+        if (sim_frame == 1400) {
             timer.stop();
             std::cout << "stop timer at t = " << time << std::endl;
             std::cout << "elapsed: " << timer() << std::endl;
@@ -410,16 +414,16 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene
-        vis->BeginScene();
-        vis->Render();
-        ////tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30, 200);
-        vis->EndScene();
+        if (time >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
 
-        if (img_output && step_number % render_steps == 0) {
-            // Zero-pad frame numbers in file names for postprocessing
-            std::ostringstream filename;
-            filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
-            vis->WriteImageToFile(filename.str());
+            if (img_output) {
+                std::ostringstream filename;
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".jpg";
+                vis->WriteImageToFile(filename.str());
+            }
             render_frame++;
         }
 
@@ -437,7 +441,7 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
 
         // Increment frame number
-        step_number++;
+        sim_frame++;
     }
 
     return 0;

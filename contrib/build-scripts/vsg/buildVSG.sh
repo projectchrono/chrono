@@ -17,7 +17,7 @@
 #   only exception being vsgImGui which pulls the latest version.
 #      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.4
 #      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.2
-#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 latest
+#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.5.0
 #      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.4
 #      assimp (github.com/assimp/assimp):                          Tag v5.3.1
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
@@ -29,7 +29,7 @@ DOWNLOAD=ON
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
 BUILDSHARED=ON
-BUILDDEBUG=ON
+BUILDDEBUG=OFF
 BUILDSYSTEM="Ninja Multi-Config"
 
 if [ ${DOWNLOAD} = OFF ]
@@ -60,21 +60,18 @@ then
 
     echo "  ... VulkanSceneGraph"
     git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
-    #git clone "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
     VSG_SOURCE_DIR="download_vsg/vsg"
 
     echo "  ... vsgXchange"    
     git clone -c advice.detachedHead=false --depth 1 --branch v1.1.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
-    #git clone "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
 
     echo "  ... vsgImGui"
-    git clone "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
+    git clone -c advice.detachedHead=false --depth 1 --branch v0.5.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
     
     echo "  ... vsgExamples"
     git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
-    #git clone "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"

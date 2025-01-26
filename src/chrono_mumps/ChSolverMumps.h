@@ -53,7 +53,7 @@ See ChSystemDescriptor for more information about the problem formulation and th
 */
 class ChApiMumps ChSolverMumps : public ChDirectSolverLS {
   public:
-    ChSolverMumps(int num_threads = 0);
+    ChSolverMumps(int num_threads = 1);
     ~ChSolverMumps() {}
     virtual Type GetType() const override { return Type::MUMPS; }
 

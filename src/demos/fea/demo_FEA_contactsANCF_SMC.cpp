@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
 
     // FEA visualization
     {
-        auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>(mesh_shells);
+        auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>();
         fea_vis->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         fea_vis->SetWireframe(true);
         mesh_shells->AddVisualShapeFEA(fea_vis);
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
 
     // FEA visualization
     {
-        auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>(mesh_cables);
+        auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>();
         fea_vis->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
         fea_vis->SetColorscaleMinMax(0.0, 5.50);
         fea_vis->SetSmoothFaces(true);

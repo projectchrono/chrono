@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
   public:
     /// Create a Chrono::FSI granular SPH terrain node.
     /// No SPH parameters are set.
-    ChVehicleCosimTerrainNodeGranularSPH(double length, double width);
+    ChVehicleCosimTerrainNodeGranularSPH(double length, double width, double depth);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
     /// See SetFromSpecfile.
@@ -58,13 +58,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     void SetFromSpecfile(const std::string& specfile);
 
     /// Specify the SPH terrain properties.
-    void SetPropertiesSPH(const std::string& specfile, double depth);
+    void SetPropertiesSPH(const std::string& specfile);
 
     /// Set properties of granular material.
     void SetGranularMaterial(double radius,   ///< particle radius (default: 0.01)
                              double density,  ///< particle material density (default: 2000)
                              double cohesion  ///< particle material cohesion (default: 0)
     );
+
+    /// Set solid visualization.
+    void SetSolidVisualization(bool show_geometry = true, bool show_bce = true);
 
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system and the proxy bodies, then finalize the underlying FSI system.
@@ -91,6 +94,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_cohesion;  ///< granular material cohesion
 
     double m_active_box_size;  ///< size of FSI active domain
+
+    bool m_show_geometry;  ///< show 3D geometry of interacting solids
+    bool m_show_bce;       ///< show BCE markers on interacting solids
 
     virtual ChSystem* GetSystemPostprocess() const override {
         if (m_vsys)

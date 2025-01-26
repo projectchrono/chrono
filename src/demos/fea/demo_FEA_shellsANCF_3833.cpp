@@ -237,26 +237,26 @@ int main(int argc, char* argv[]) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizemeshA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
     visualizemeshA->SetShrinkElements(true, 0.85);
     visualizemeshA->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(visualizemeshA);
 
-    auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     visualizemeshB->SetWireframe(true);
     visualizemeshB->SetDrawInUndeformedReference(true);
     mesh->AddVisualShapeFEA(visualizemeshB);
 
-    auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     visualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizemeshC->SetSymbolsThickness(0.004);
     mesh->AddVisualShapeFEA(visualizemeshC);
 
-    auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizemeshD = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     visualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizemeshD->SetSymbolsScale(1);
