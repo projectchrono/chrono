@@ -26,19 +26,12 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_MBTire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
-
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireStaticTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -62,29 +55,31 @@ using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
 
-// Contact formulation type (SMC or NSC)
-ChContactMethod contact_method = ChContactMethod::SMC;
-
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Tire model
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER, MB };
-TireType tire_type = TireType::RIGID;
+// Tire specification file
+////std::string tire_json = "hmmwv/tire/HMMWV_RigidTire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_ReissnerTire.json";
+std::string tire_json = "hmmwv/tire/HMMWV_MBTire.json";
+////std::string tire_json = "Polaris/Polaris_RigidTire.json";
+////std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
+////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
+
+// Wheel specification file
+std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
+////std::string wheel_json = "Polaris/Polaris_Wheel.json";
+
+// Tire contact model (nodes or faces)
+auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
 
 // Test mode
 ChTireStaticTestRig::Mode test_mode = ChTireStaticTestRig::Mode::TEST_R;
 
-// Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
-int num_threads_chrono = 4;
-
-// Number of threads used in collision detection
-int num_threads_collision = 4;
-
-// Read from JSON specification file?
-bool use_JSON = false;
-
 bool debug_output = false;
+bool gnuplot_output = true;
 
 // -----------------------------------------------------------------------------
 
@@ -93,89 +88,22 @@ int main() {
     // Create wheel and tire subsystems
     // --------------------------------
 
-    auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
+    auto wheel = ReadWheelJSON(vehicle::GetDataFile(wheel_json));
+    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
 
-    double tire_contact_surface_dim = 0.02;
-    int tire_collision_family = 7;
+    bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
+    bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    bool rigid_tire = std::dynamic_pointer_cast<ChRigidTire>(tire) != nullptr;
 
-    std::shared_ptr<ChTire> tire;
-    if (use_JSON) {
-        std::string tire_file;
-        switch (tire_type) {
-            case TireType::RIGID:
-                tire_file = "hmmwv/tire/HMMWV_RigidTire.json";
-                break;
-            case TireType::TMEASY:
-                tire_file = "hmmwv/tire/HMMWV_TMeasyTire.json";
-                break;
-            case TireType::FIALA:
-                tire_file = "hmmwv/tire/HMMWV_FialaTire.json";
-                break;
-            case TireType::PAC89:
-                tire_file = "hmmwv/tire/HMMWV_Pac89Tire.json";
-                break;
-            case TireType::PAC02:
-                tire_file = "hmmwv/tire/HMMWV_Pac02Tire.json";
-                break;
-            case TireType::ANCF4:
-                tire_file = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
-                break;
-            case TireType::ANCF8:
-                tire_file = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
-                break;
-            case TireType::REISSNER:
-                tire_file = "hmmwv/tire/HMMWV_ReissnerTire.json";
-                break;
-        }
-        tire = ReadTireJSON(vehicle::GetDataFile(tire_file));
-    } else {
-        switch (tire_type) {
-            case TireType::RIGID:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid_tire");
-                break;
-            case TireType::TMEASY:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy_tire");
-                break;
-            case TireType::FIALA:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala_tire");
-                break;
-            case TireType::PAC89:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89_tire");
-                break;
-            case TireType::ANCF4: {
-                auto ancf4_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
-                    "ANCF4_tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
-                ancf4_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::NODE_CLOUD, tire_contact_surface_dim,
-                                                  tire_collision_family);
-                tire = ancf4_tire;
-                break;
-            }
-            case TireType::ANCF8: {
-                auto ancf8_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
-                    "ANCF8_tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
-                ancf8_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::NODE_CLOUD, tire_contact_surface_dim,
-                                                  tire_collision_family);
-                tire = ancf8_tire;
-                break;
-            }
-            case TireType::REISSNER: {
-                auto reissner_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner_tire");
-                reissner_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::NODE_CLOUD, tire_contact_surface_dim,
-                                                     tire_collision_family);
-                tire = reissner_tire;
-                break;
-            }
-            case TireType::MB: {
-                auto hmmwv_tire = chrono_types::make_shared<hmmwv::HMMWV_MBTire>("MB_Tire");
-                hmmwv_tire->IsStiff(false);
-                hmmwv_tire->ForceJacobianCalculation(false);
-                hmmwv_tire->SetContactSurfaceType(ChTire::ContactSurfaceType::NODE_CLOUD, tire_contact_surface_dim,
-                                                  tire_collision_family);
-                tire = hmmwv_tire;
-                break;
-            }
-        }
+    if (handling_tire) {
+        cerr << "ERROR: Handling tire models cannot be used with the static test rig." << endl;
+        return 1;
     }
+
+    // Set tire contact surface
+    int collision_family = 7;
+    double surface_dim = 0.02;
+    tire->SetContactSurfaceType(surface_type, surface_dim, collision_family);
 
     // ----------------------------
     // Create system and set solver
@@ -184,46 +112,42 @@ int main() {
     ChSystem* sys = nullptr;
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
-    double step_size = 1e-3;
+    double step_size = 0;
 
-    if (tire_type == TireType::ANCF4 || tire_type == TireType::ANCF8 || tire_type == TireType::ANCF_TOROIDAL ||
-        tire_type == TireType::REISSNER) {
-        if (contact_method != ChContactMethod::SMC)
-            cout << "\nWarning! Contact formulation changed to SMC.\n" << endl;
-        contact_method = ChContactMethod::SMC;
+    if (fea_tire) {
+        sys = new ChSystemSMC;
+        step_size = 5e-5;
+        ////solver_type = ChSolver::Type::PARDISO_MKL;
+        ////solver_type = ChSolver::Type::SPARSE_QR;
+        ////solver_type = ChSolver::Type::BICGSTAB;
+        solver_type = ChSolver::Type::MINRES;
+
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+        ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    } else {
+        sys = new ChSystemNSC;
+        step_size = 2e-4;
+        solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
 
-    switch (contact_method) {
-        case ChContactMethod::SMC:
-            sys = new ChSystemSMC;
-            step_size = 1e-3;
-
-            ////solver_type = ChSolver::Type::PARDISO_MKL;
-            ////solver_type = ChSolver::Type::SPARSE_QR;
-            ////solver_type = ChSolver::Type::BICGSTAB;
-            solver_type = ChSolver::Type::MINRES;
-
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-            ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-            break;
-        case ChContactMethod::NSC:
-            sys = new ChSystemNSC;
-            step_size = 1e-3;
-
-            solver_type = ChSolver::Type::BARZILAIBORWEIN;
-
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-            break;
-    }
-
+    // Set collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    sys->SetNumThreads(num_threads_chrono, num_threads_collision, 1);
+    // Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
+    int num_threads_chrono = std::min(4, ChOMP::GetNumProcs());
 
-    SetChronoSolver(*sys, solver_type, integrator_type);
+    // Number of threads used in collision detection
+    int num_threads_collision = std::min(4, ChOMP::GetNumProcs());
 
+    // Number of threads used by Eigen
+    int num_threads_eigen = 1;
+
+    // Number of threads used by PardisoMKL
+    int num_threads_pardiso = std::min(4, ChOMP::GetNumProcs());
+
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
     tire->SetStepsize(step_size);
 
     // -----------------
@@ -247,7 +171,7 @@ int main() {
     ChTireStaticTestRig rig(wheel, tire, sys);
 
     rig.SetGravitationalAcceleration(g);
-    rig.SetOutput(out_dir, true);
+    rig.SetOutput(out_dir, gnuplot_output);
 
     // Set tire options
     rig.SetTireStepsize(step_size);

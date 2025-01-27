@@ -330,37 +330,48 @@ void ChTireStaticTestRig::StateTransition(double time) {
     State new_state = m_state;
 
     switch (m_state) {
-        case State::FIXED:
+        case State::FIXED: {
             assert(m_mode == Mode::SUSPEND);
             break;
-        case State::DROPPING:
-            // Switch to COMPRESS when contact occurs and cache current spindle z
+        }
+        case State::DROPPING: {
+            // Switch to compression phase when contact occurs and cache current spindle z
             if (m_system->GetNumContacts() > 0) {
-                cout << "t = " << time << "  num. contacts: " << m_system->GetNumContacts() << endl;
                 m_spindle_z_ref = m_spindle_body->GetPos().z();
                 new_state = State::COMPRESSING;
+                cout << "\nt = " << time << endl;
+                cout << "  num. contacts:    " << m_system->GetNumContacts() << endl;
+                cout << "  reference height: " << m_spindle_z_ref << endl;
+                cout << "  switch to State::COMPRESSING (nominal_load = " << m_r_load << ")" << endl;
             }
             break;
-        case State::COMPRESSING:
+        }
+        case State::COMPRESSING: {
+            auto current_load = m_motor_r->GetMotorForce();
+            cout << "\r" << current_load;
+
             // End compression phase when reaching the prescribed radial load
-            if (m_motor_r->GetMotorForce() > m_r_load) {
-                cout << "t = " << time << "  radial load: " << m_motor_r->GetMotorForce();
-                cout << "  nominal load: " << m_r_load << endl;
+            if (current_load > m_r_load) {
                 if (m_mode == Mode::TEST_R)
                     new_state = State::DONE;
                 else
                     new_state = State::DISPLACING;
+                cout << "\nt = " << time << endl;
+                cout << "  radial load:  " << current_load;
+                cout << "  nominal load: " << m_r_load << endl;
+                cout << "  switch to state: " << StateName(new_state) << endl;
             }
             break;
-        case State::DISPLACING:
+        }
+        case State::DISPLACING: {
             // End displacement testing phase when relative motion tire-plate small enough
             //// TODO
 
             break;
+        }
     }
 
     if (new_state != m_state) {
-        cout << "t = " << time << "  switch to state: " << StateName(new_state) << endl;
         m_state = new_state;
         m_transition_time = time;
     }
@@ -459,6 +470,7 @@ void ChTireStaticTestRig::WriteOutput() {
     mplot.SetLabelY(y_label);
     mplot.SetCommand("set format y '%4.1e'");
     mplot.SetCommand("set terminal wxt size 800, 600");
+    mplot.SetCommand("set yrange[0:]");
     mplot.Plot(out_file, 2, 3, "", " with lines lw 2");
 
 #endif
