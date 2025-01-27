@@ -170,7 +170,9 @@ install(TARGETS ChronoEngine_synchrono
 #-----------------------------------------------------------------------------
 
 if (ENABLE_MODULE_SENSOR)
-  target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoEngine_sensor)
+  target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_sensor) # needs PUBLIC
+  find_package(OptiX REQUIRED)
+  target_link_libraries(ChronoEngine_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
 endif()
   
 if (ENABLE_MODULE_IRRLICHT)
@@ -179,7 +181,7 @@ if (ENABLE_MODULE_IRRLICHT)
 endif()
 
 target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoEngine_vehicle)
+target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_vehicle) # needs PUBLIC
 target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoModels_vehicle)
 target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoModels_robot)
 target_link_libraries(ChronoEngine_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
