@@ -54,7 +54,7 @@ void Cartesian2ENU(ChVector3d& coords, ChVector3d& ref) {
     // convert from cartesian to gps coordinates assuming a sphere
     double lat = ref.y();
     double lon = ref.x();
-    double alt = ref.z();
+    ////double alt = ref.z();
 
     double x = coords.x();
     double y = coords.y();
@@ -78,7 +78,7 @@ void ENU2Cartesian(ChVector3d& coords, ChVector3d& ref) {
     // convert from cartesian to gps coordinates assuming a sphere
     double lat = ref.y();
     double lon = ref.x();
-    double alt = ref.z();
+    ////double alt = ref.z();
 
     double x = coords.x();
     double y = coords.y();

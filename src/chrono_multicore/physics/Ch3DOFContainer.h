@@ -22,7 +22,6 @@
 
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/physics/ChMPMSettings.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
@@ -119,7 +118,6 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_fluid_bodies;
     uint num_rigid_bodies;
     uint num_rigid_fluid_contacts;
-    uint num_rigid_mpm_contacts;
     uint num_unilaterals;
     uint num_bilaterals;
     uint num_shafts;
@@ -144,8 +142,6 @@ class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
     virtual void Initialize() override;
     virtual void PreSolve() override;
     void Density_Fluid();
-    void Density_FluidMPM();
-    void DensityConstraint_FluidMPM();
     void Normalize_Density_Fluid();
     virtual void Build_D() override;
     virtual void Build_b() override;
@@ -189,12 +185,6 @@ class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
     real theta_s;
     real theta_c;
     real alpha_flip;
-
-    int mpm_iterations;
-    std::thread mpm_thread;
-    bool mpm_init;
-    MPM_Settings temp_settings;
-    custom_vector<float> mpm_pos, mpm_vel, mpm_jejp;
 
   private:
     uint body_offset;
@@ -244,13 +234,6 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
     real theta_s;
     real theta_c;
     real alpha_flip;
-
-    int mpm_iterations;
-    custom_vector<float> mpm_pos, mpm_vel, mpm_jejp;
-
-    std::thread mpm_thread;
-    bool mpm_init;
-    MPM_Settings temp_settings;
 
   private:
     uint body_offset;

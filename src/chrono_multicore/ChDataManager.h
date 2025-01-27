@@ -62,7 +62,6 @@ class real4;
 class vec3;
 class Ch3DOFContainer;
 class ChFluidContainer;
-class ChMPMContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
 class ChContactMaterialCompositionStrategy;

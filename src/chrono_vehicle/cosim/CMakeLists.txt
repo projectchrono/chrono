@@ -106,7 +106,6 @@ if(ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 if(ENABLE_MODULE_MUMPS)
-  set(INCLUDES "${INCLUDES};${CH_MUMPS_INCLUDES}")
   list(APPEND LIBRARIES ChronoEngine_mumps)
 endif()
 

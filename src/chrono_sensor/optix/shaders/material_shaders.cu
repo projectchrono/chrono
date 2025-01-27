@@ -892,7 +892,7 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
 
         const MaterialParameters& mat = params.material_pool[material_id]; // Assume no blended materials for now
         float3 subsarface_albedo = mat.Kd;
-        float3 specular = mat.Ks;
+        ////float3 specular = mat.Ks;
 
         // Get Hapke material parameters
         float w = mat.w;
@@ -936,7 +936,7 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
 
                         float3 light_attenuation = prd_shadow.attenuation;
 
-                        float point_light_falloff  = 1.0f; // ??
+                        ////float point_light_falloff  = 1.0f; // ??
                         float3 incoming_light_ray = l.color * cos_i * light_attenuation; // Add attenuation later
                         //printf("incoming_light_ray: (%.2f,%.2f,%.2f)\n", incoming_light_ray.x, incoming_light_ray.y, incoming_light_ray.z);
                         if (fmaxf(incoming_light_ray) > 0.0f) {
@@ -951,8 +951,8 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
 
                             float cot_i = 1/tan_i;
                             float cot_e = 1/tan_e;
-                            float cot_i_sq = cot_i * cot_i;
-                            float cot_e_sq = cot_e * cot_e;
+                            ////float cot_i_sq = cot_i * cot_i;
+                            ////float cot_e_sq = cot_e * cot_e;
 
 
                             // Calculate Psi
@@ -968,7 +968,7 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
                             float tan_theta_p_sq = tan_theta_p * tan_theta_p;
 
                             float cot_theta_p = 1/tan_theta_p;
-                            float cot_theta_p_sq = cot_theta_p * cot_theta_p;
+                            ////float cot_theta_p_sq = cot_theta_p * cot_theta_p;
 
                             float E_1_i = expf((-2/CUDART_PI_F) * cot_theta_p * cot_i);
                             float E_2_i = expf((-1/CUDART_PI_F) * cot_theta_p * cot_theta_p * cot_i * cot_i);
@@ -1018,7 +1018,7 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
                             float LS = mu0_e / (mu0_e + mu_e);
                             float b_sq = b*b;
 
-                            float twobcos_g = 2 * b * cos_g;
+                            ////float twobcos_g = 2 * b * cos_g;
 
                             float p_g = (1 + c) / 2 * (1-b_sq) / pow(1 - (2*b*cos_g) + b_sq, 1.5f) + (1 - c)/2 * (1-b_sq)/pow(1 + (2*b*cos_g) + b_sq, 1.5f);
 

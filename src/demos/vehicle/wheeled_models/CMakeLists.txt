@@ -57,7 +57,6 @@ if(ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 if(ENABLE_MODULE_MUMPS)
-    include_directories(${CH_MUMPS_INCLUDES})
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
