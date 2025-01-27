@@ -30,16 +30,13 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "FEAvisualization.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -116,7 +113,7 @@ int main(int argc, char* argv[]) {
     // Do not forget AddVisualShapeFEA() at the end!
 
     // Paint the colored mesh with temperature scale (NODE_FIELD_VALUE is the scalar field of the Poisson problem)
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
     mvisualizemesh->SetColorscaleMinMax(-1, 12);
     mvisualizemesh->SetShrinkElements(false, 0.85);
@@ -124,13 +121,13 @@ int main(int argc, char* argv[]) {
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     // This will paint the wireframe
-    auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshB);
 
     // This will paint the heat flux as line vectors
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_VECT_DP);
     mvisualizemeshC->SetSymbolsScale(0.003);
@@ -138,17 +135,8 @@ int main(int argc, char* argv[]) {
     mvisualizemeshC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("FEM thermal");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddLight(ChVector3d(+20, 20, +20), 90, ChColor(0.5, 0.5, 0.5));
-    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector3d(0, 0.7, -1), ChVector3d(0, 0.4, 0));
-    vis->AttachSystem(&sys);
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA thermal", ChVector3d(0, 0.7, -1),
+                                         ChVector3d(0, 0.4, 0));
 
     // SIMULATION LOOP
 
@@ -183,6 +171,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Print some node temperatures..
+    std::cout << "time = " << sys.GetChTime() << std::endl;
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().x() < 0.01) {

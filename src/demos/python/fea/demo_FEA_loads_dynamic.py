@@ -138,14 +138,14 @@ load_container.Add(custom_load)
 # -----------------------------------------------------------------
 # Set visualization of the FEM mesh.
 
-beam_visA = chrono.ChVisualShapeFEA(mesh)
+beam_visA = chrono.ChVisualShapeFEA()
 beam_visA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
 beam_visA.SetColorscaleMinMax(-400, 200)
 beam_visA.SetSmoothFaces(True)
 beam_visA.SetWireframe(False)
 mesh.AddVisualShapeFEA(beam_visA)
 
-beam_visB = chrono.ChVisualShapeFEA(mesh)
+beam_visB = chrono.ChVisualShapeFEA()
 beam_visB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_CSYS)
 beam_visB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 beam_visB.SetSymbolsThickness(0.006)

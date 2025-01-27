@@ -16,13 +16,16 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
 
 #include "IndustrialKinematics.h"
 
 namespace chrono {
 namespace industrial {
+
+/// @addtogroup robot_models_industrial
+/// @{
 
 class CH_MODELS_API IndustrialKinematicsSCARA : public IndustrialKinematics {
   public:
@@ -64,7 +67,9 @@ class CH_MODELS_API IndustrialKinematicsSCARA : public IndustrialKinematics {
     ChVector3d m_TCP_offset0;                           ///< initial TCP vertical offset from base
 };
 
+/// @} robot_models_industrial
+
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_SCARA_H

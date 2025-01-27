@@ -49,6 +49,12 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
     /// Returns true if the specified node is owned by this segment.
     bool OwnsNode(int i) const { return m_owns_node[i]; }
 
+    /// Get the current position of first node.
+    const ChVector3d& GetPos1() const { return m_nodes[0]->GetPos(); }
+
+    /// Get the current position of second node.
+    const ChVector3d& GetPos2() const { return m_nodes[1]->GetPos(); }
+
     /// Get the contact surface container.
     ChContactSurface* GetContactSurface() const { return m_container; }
 
@@ -171,6 +177,12 @@ class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<3, 3> /*, public
 
     /// Returns true if the specified node is owned by this segment.
     bool OwnsNode(int i) const { return m_owns_node[i]; }
+
+    /// Get the current position of first node.
+    const ChVector3d& GetPos1() const { return m_nodes[0]->GetPos(); }
+
+    /// Get the current position of second node.
+    const ChVector3d& GetPos2() const { return m_nodes[1]->GetPos(); }
 
     /// Get the contact surface container.
     ChContactSurface* GetContactSurface() const { return m_container; }
@@ -299,9 +311,11 @@ class ChApi ChContactSurfaceSegmentSet : public ChContactSurface {
                     double sphere_swept = 0.0                ///< thickness (radius of sweeping sphere)
     );
 
-    /// Utility function to add segments for all 1D elements of the associated FEA mesh to this collision set.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
-    void AddAllSegments(double sphere_swept = 0.0);
+    /// Utility function to add segments for all 1D elements of the specified FEA mesh to this collision set.
+    void AddAllSegments(const ChMesh& mesh, double sphere_swept = 0.0);
+
+    /// Get the current axis-aligned bounding box.
+    virtual ChAABB GetAABB() const override;
 
     /// Get the list of segments.
     std::vector<std::shared_ptr<ChContactSegmentXYZ>>& GetSegmentsXYZ() { return m_segments; }

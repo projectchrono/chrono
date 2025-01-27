@@ -337,14 +337,7 @@ void ChContactSurfaceSegmentSet::AddSegment(std::shared_ptr<ChNodeFEAxyzrot> nod
     m_segments_rot.push_back(segment);
 }
 
-void ChContactSurfaceSegmentSet::AddAllSegments(double sphere_swept) {
-    if (!m_physics_item)
-        return;
-
-    auto mesh = dynamic_cast<ChMesh*>(m_physics_item);
-    if (!mesh)
-        return;
-
+void ChContactSurfaceSegmentSet::AddAllSegments(const ChMesh& mesh, double sphere_swept) {
     // Traverse all elements in the provided mesh
     // - extract the 1-D elements elements that use XYZ nodes
     // - extract the 1-D elements that use XYZRot nodes
@@ -352,7 +345,7 @@ void ChContactSurfaceSegmentSet::AddAllSegments(double sphere_swept) {
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyz>, 2>> seg_ptrs;
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>> seg_rot_ptrs;
 
-    for (const auto& element : mesh->GetElements()) {
+    for (const auto& element : mesh.GetElements()) {
         if (auto cable_el = std::dynamic_pointer_cast<fea::ChElementCableANCF>(element)) {
             seg_ptrs.push_back({{cable_el->GetNodeA(), cable_el->GetNodeB()}});
         } else if (auto beam3243_el = std::dynamic_pointer_cast<fea::ChElementBeamANCF_3243>(element)) {
@@ -424,6 +417,19 @@ void ChContactSurfaceSegmentSet::RemoveCollisionModelsFromSystem(ChCollisionSyst
     for (const auto& seg : m_segments_rot) {
         coll_sys->Remove(seg->GetCollisionModel());
     }
+}
+
+ChAABB ChContactSurfaceSegmentSet::GetAABB() const {
+    ChAABB aabb;
+    for (const auto& seg : m_segments) {
+        aabb += seg->GetPos1();
+        aabb += seg->GetPos2();
+    }
+    for (const auto& seg : m_segments_rot) {
+        aabb += seg->GetPos1();
+        aabb += seg->GetPos2();
+    }
+    return aabb;
 }
 
 }  // end namespace fea

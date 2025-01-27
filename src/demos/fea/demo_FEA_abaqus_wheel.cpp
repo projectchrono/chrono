@@ -29,14 +29,15 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -146,8 +147,8 @@ int main(int argc, char* argv[]) {
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
     // all nodes to it.
     auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
+    mcontactsurf->AddAllNodes(*my_mesh);
     my_mesh->AddContactSurface(mcontactsurf);
-    mcontactsurf->AddAllNodes();
 
     // Apply initial speed and angular speed
     for (unsigned int i = 0; i < my_mesh->GetNumNodes(); ++i) {
@@ -208,39 +209,29 @@ int main(int argc, char* argv[]) {
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 10);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     /*
-        auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
         mvisualizemeshB->SetWireframe(true);
         my_mesh->AddVisualShapeFEA(mvisualizemeshB);
     */
     /*
-        auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
         mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         mvisualizemeshC->SetSymbolsThickness(0.006);
         my_mesh->AddVisualShapeFEA(mvisualizemeshC);
      */
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(1280, 720);
-    vis->SetWindowTitle("FEA contacts");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
-    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                            ChColor(0.8f, 0.8f, 1.0f));
-    vis->EnableShadows();
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Abaqus wheel",
+                                         ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
 
     // SIMULATION LOOP
 

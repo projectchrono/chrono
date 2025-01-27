@@ -21,32 +21,15 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChTimer.h"
-
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ReissnerTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_TMeasyTire.h"
-#include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
-
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
-
-#ifdef CHRONO_POSTPROCESS
-    #include "chrono_postprocess/ChGnuPlot.h"
-    #include "chrono_postprocess/ChBlender.h"
-#endif
-
-#include "demos/SetChronoSolver.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -56,179 +39,128 @@ using namespace chrono::irrlicht;
     #include "chrono_vsg/ChVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChBlender.h"
+#endif
+
+#include "chrono_thirdparty/filesystem/path.h"
+
+#include "demos/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
 
-// -----------------------------------------------------------------------------
+using std::cout;
+using std::cerr;
+using std::endl;
 
-// Contact formulation type (SMC or NSC)
-ChContactMethod contact_method = ChContactMethod::NSC;
+// -----------------------------------------------------------------------------
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
-// Tire model
-enum class TireType { RIGID, TMEASY, FIALA, PAC89, PAC02, ANCF4, ANCF8, ANCF_TOROIDAL, REISSNER };
-TireType tire_type = TireType::TMEASY;
 
 // Terrain type (RIGID or SCM)
 enum class TerrainType { RIGID, SCM };
 TerrainType terrain_type = TerrainType::RIGID;
 
-// Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
-int num_threads_chrono = 4;
+// Tire specification file
+////std::string tire_json = "hmmwv/tire/HMMWV_RigidTire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_TMeasyTire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_FialaTire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_Pac89Tire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_Pac02Tire.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
+////std::string tire_json = "hmmwv/tire/HMMWV_ReissnerTire.json";
+std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
+////std::string tire_json = "Polaris/Polaris_RigidTire.json";
+////std::string tire_json = "Polaris/Polaris_RigidMeshTire.json";
+////std::string tire_json = "Polaris/Polaris_ANCF4Tire_Lumped.json";
 
-// Number of threads used in collision detection
-int num_threads_collision = 4;
+// Wheel specification file
+////std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
+std::string wheel_json = "Polaris/Polaris_Wheel.json";
 
-// Read from JSON specification file?
-bool use_JSON = false;
-
+double render_fps = 120;
 bool debug_output = false;
-bool gnuplot_output = false;
+bool gnuplot_output = true;
 bool blender_output = false;
 
 // -----------------------------------------------------------------------------
 
 int main() {
+    // --------------------------------
     // Create wheel and tire subsystems
-    auto wheel = chrono_types::make_shared<hmmwv::HMMWV_Wheel>("Wheel");
+    // --------------------------------
 
-    ChTire::ContactSurfaceType tire_contact_surface_type =
-        (terrain_type == TerrainType::RIGID ? ChTire::ContactSurfaceType::NODE_CLOUD
-                                            : ChTire::ContactSurfaceType::TRIANGLE_MESH);
-    double tire_contact_surface_dim = 0.02;
-    int tire_collision_family = 7;
+    auto wheel = ReadWheelJSON(vehicle::GetDataFile(wheel_json));
+    auto tire = ReadTireJSON(vehicle::GetDataFile(tire_json));
 
-    std::shared_ptr<ChTire> tire;
-    if (tire_type == TireType::ANCF_TOROIDAL) {
-        auto ancf_tire = chrono_types::make_shared<ANCFToroidalTire>("ANCFtoroidal tire");
-        ancf_tire->SetRimRadius(0.27);
-        ancf_tire->SetHeight(0.18);
-        ancf_tire->SetThickness(0.015);
-        ancf_tire->SetDivCircumference(40);
-        ancf_tire->SetDivWidth(8);
-        ancf_tire->SetPressure(320e3);
-        ancf_tire->SetAlpha(0.15);
-        ancf_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim, tire_collision_family);
-        tire = ancf_tire;
-    } else if (use_JSON) {
-        std::string tire_file;
-        switch (tire_type) {
-            case TireType::RIGID:
-                tire_file = "hmmwv/tire/HMMWV_RigidTire.json";
-                break;
-            case TireType::TMEASY:
-                tire_file = "hmmwv/tire/HMMWV_TMeasyTire.json";
-                break;
-            case TireType::FIALA:
-                tire_file = "hmmwv/tire/HMMWV_FialaTire.json";
-                break;
-            case TireType::PAC89:
-                tire_file = "hmmwv/tire/HMMWV_Pac89Tire.json";
-                break;
-            case TireType::PAC02:
-                tire_file = "hmmwv/tire/HMMWV_Pac02Tire.json";
-                break;
-            case TireType::ANCF4:
-                tire_file = "hmmwv/tire/HMMWV_ANCF4Tire_Lumped.json";
-                break;
-            case TireType::ANCF8:
-                tire_file = "hmmwv/tire/HMMWV_ANCF8Tire_Lumped.json";
-                break;
-            case TireType::REISSNER:
-                tire_file = "hmmwv/tire/HMMWV_ReissnerTire.json";
-                break;
-        }
-        tire = ReadTireJSON(vehicle::GetDataFile(tire_file));
-    } else {
-        switch (tire_type) {
-            case TireType::RIGID:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("Rigid tire");
-                break;
-            case TireType::TMEASY:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_TMeasyTire>("TMeasy tire");
-                break;
-            case TireType::FIALA:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
-                break;
-            case TireType::PAC89:
-                tire = chrono_types::make_shared<hmmwv::HMMWV_Pac89Tire>("Pac89 tire");
-                break;
-            case TireType::ANCF4: {
-                auto ancf4_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
-                    "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_4);
-                ancf4_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
-                                                  tire_collision_family);
-                tire = ancf4_tire;
-                break;
-            }
-            case TireType::ANCF8: {
-                auto ancf8_tire = chrono_types::make_shared<hmmwv::HMMWV_ANCFTire>(
-                    "ANCF tire", hmmwv::HMMWV_ANCFTire::ElementType::ANCF_8);
-                ancf8_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
-                                                  tire_collision_family);
-                tire = ancf8_tire;
-                break;
-            }
-            case TireType::REISSNER: {
-                auto reissner_tire = chrono_types::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
-                reissner_tire->SetContactSurfaceType(tire_contact_surface_type, tire_contact_surface_dim,
-                                                     tire_collision_family);
-                tire = reissner_tire;
-                break;
-            }
-        }
+    bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
+    bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+
+    if (handling_tire && terrain_type == TerrainType::SCM) {
+        cerr << "ERROR: Handling tire models cannot be used with SCM terrain." << endl;
+        return 1;
     }
 
-    // Create system and set solver
+    // Set tire contact surface (relevant for FEA tires only)
+    if (fea_tire) {
+        int collision_family = 7;
+        auto surface_type = ChTire::ContactSurfaceType::NODE_CLOUD;
+        double surface_dim = 0.02;
+        if (terrain_type == TerrainType::SCM) {
+            surface_type = ChTire::ContactSurfaceType::TRIANGLE_MESH;
+            surface_dim = 0;
+        }
+        tire->SetContactSurfaceType(surface_type, surface_dim, collision_family);
+    }
+
+    // ---------------------------------------------------------
+    // Create system and set default solver and integrator types
+    // ---------------------------------------------------------
+
     ChSystem* sys = nullptr;
+    double step_size = 0;
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
-    double step_size = 1e-3;
 
-    if (tire_type == TireType::ANCF4 || tire_type == TireType::ANCF8 || tire_type == TireType::ANCF_TOROIDAL ||
-        tire_type == TireType::REISSNER) {
-        if (contact_method != ChContactMethod::SMC)
-            std::cout << "\nWarning! Contact formulation changed to SMC.\n" << std::endl;
-        contact_method = ChContactMethod::SMC;
+    if (fea_tire) {
+        sys = new ChSystemSMC;
+        step_size = 5e-5;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    } else {
+        sys = new ChSystemNSC;
+        step_size = 2e-4;
+        solver_type = ChSolver::Type::BARZILAIBORWEIN;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     }
 
-    switch (contact_method) {
-        case ChContactMethod::SMC:
-            sys = new ChSystemSMC;
-            step_size = 5e-5;
-
-            ////solver_type = ChSolver::Type::PARDISO_MKL;
-            ////solver_type = ChSolver::Type::SPARSE_QR;
-            ////solver_type = ChSolver::Type::BICGSTAB;
-            solver_type = ChSolver::Type::MINRES;
-
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-            ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-            break;
-        case ChContactMethod::NSC:
-            sys = new ChSystemNSC;
-            step_size = 1e-3;
-
-            solver_type = ChSolver::Type::BARZILAIBORWEIN;
-
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-            break;
-    }
-
+    // Set collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    sys->SetNumThreads(num_threads_chrono, num_threads_collision, 1);
+    // Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
+    int num_threads_chrono = std::min(8, ChOMP::GetNumProcs());
 
-    SetChronoSolver(*sys, solver_type, integrator_type);
+    // Number of threads used in collision detection
+    int num_threads_collision = 1;
 
+    // Number of threads used by Eigen
+    int num_threads_eigen = 1;
+
+    // Number of threads used by PardisoMKL
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
+
+    sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+    SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
     tire->SetStepsize(step_size);
 
+    // -----------------------------
     // Create and configure test rig
+    // -----------------------------
+
     ChTireTestRig rig(wheel, tire, sys);
 
     rig.SetGravitationalAcceleration(9.8);
@@ -240,12 +172,33 @@ int main() {
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
-    if (terrain_type == TerrainType::RIGID)
-        rig.SetTerrainRigid(0.8, 0, 2e7);
-    else
-        rig.SetTerrainSCM(2e6, 0, 1.1, 0, 30, 0.01);
+    if (terrain_type == TerrainType::RIGID) {
+        ChTireTestRig::TerrainParamsRigid params;
+        params.friction = 0.8f;
+        params.restitution = 0;
+        params.Young_modulus = 2e7f;
+        params.length = 10;
+        params.width = 1;
 
+        rig.SetTerrainRigid(params);
+    } else {
+        ChTireTestRig::TerrainParamsSCM params;
+        params.Bekker_Kphi = 2e6;
+        params.Bekker_Kc = 0;
+        params.Bekker_n = 1.1;
+        params.Mohr_cohesion = 0;
+        params.Mohr_friction = 30;
+        params.Janosi_shear = 0.01;
+        params.length = 10;
+        params.width = 1;
+        params.grid_spacing = 0.05;
+
+        rig.SetTerrainSCM(params);
+    }
+
+    // -----------------
     // Set test scenario
+    // -----------------
 
     // Scenario: driven wheel
     ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10.0));
@@ -279,18 +232,29 @@ int main() {
 
     // Optionally, modify tire visualization (can be done only after initialization)
     if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        if (tire_def->GetMeshVisualization())
-            tire_def->GetMeshVisualization()->SetColorscaleMinMax(0.0, 5.0);  // range for nodal speed norm
+        auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
+        visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        visFEA->SetShellResolution(3);
+        visFEA->SetWireframe(false);
+        visFEA->SetColorscaleMinMax(0.0, 5.0);
+        visFEA->SetSmoothFaces(true);
+        tire_def->AddVisualShapeFEA(visFEA);
     }
 
+    // -----------------
     // Initialize output
+    // -----------------
+
     const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
-    // Create the vehicle run-time visualization interface and the interactive driver
+    // ---------------------------------
+    // Create the run-time visualization
+    // ---------------------------------
+
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -340,14 +304,17 @@ int main() {
         }
     }
 
-// Create the Blender exporter
 #ifdef CHRONO_POSTPROCESS
+    // ---------------------------
+    // Create the Blender exporter
+    // ---------------------------
+
     postprocess::ChBlender blender_exporter(sys);
 
     if (blender_output) {
         std::string blender_dir = out_dir + "/blender";
         if (!filesystem::create_directory(filesystem::path(blender_dir))) {
-            std::cout << "Error creating directory " << blender_dir << std::endl;
+            cerr << "Error creating directory " << blender_dir << endl;
             return 1;
         }
 
@@ -359,11 +326,14 @@ int main() {
     }
 #endif
 
+    // ---------------
+    // Simulation loop
+    // ---------------
+
     // Timers and counters
     ChTimer timer;         // timer for measuring total run time
     double time = 0;       // simulated time
     double sim_time = 0;   // simulation time
-    double fps = 120;      // rendering frequency
     int render_frame = 0;  // render frame counter
 
     // Data collection
@@ -373,7 +343,6 @@ int main() {
 
     double time_offset = 0.5;
 
-    // Simulation loop
     timer.start();
     while (vis->Run()) {
         time = sys->GetChTime();
@@ -384,13 +353,12 @@ int main() {
             camber_angle_fct.AddPoint(time, tire->GetCamberAngle() * CH_RAD_TO_DEG);
         }
 
-        if (time >= render_frame / fps) {
+        if (time >= render_frame / render_fps) {
             auto& loc = rig.GetPos();
             vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
 
             vis->BeginScene();
             vis->Render();
-            ////tools::drawAllContactPoints(vis.get(), 1.0, ContactsDrawMode::CONTACT_NORMALS);
             vis->EndScene();
 
 #ifdef CHRONO_POSTPROCESS
@@ -403,30 +371,34 @@ int main() {
         sim_time += sys->GetTimerStep();
 
         if (debug_output) {
-            std::cout << time << std::endl;
+            cout << time << endl;
             auto long_slip = tire->GetLongitudinalSlip();
             auto slip_angle = tire->GetSlipAngle();
             auto camber_angle = tire->GetCamberAngle();
-            std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
+            cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << endl;
             auto tforce = rig.ReportTireForce();
             auto frc = tforce.force;
             auto pnt = tforce.point;
             auto trq = tforce.moment;
-            std::cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
-            std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
-            std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
+            cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << endl;
+            cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << endl;
+            cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << endl;
         } else {
-            std::cout << "\rRTF: " << sys->GetRTF();
+            cout << "\rRTF: " << sys->GetRTF();
         }
     }
     timer.stop();
 
     double step_time = timer();
-    std::cout << "\rSimulated time: " << time << std::endl;
-    std::cout << "Run time (simulation): " << sim_time << "  |  RTF: " << sim_time / time << std::endl;
-    std::cout << "Run time (total):      " << step_time << "  |  RTF: " << step_time / time << std::endl;
+    cout << "\rSimulated time: " << time << endl;
+    cout << "Run time (simulation): " << sim_time << "  |  RTF: " << sim_time / time << endl;
+    cout << "Run time (total):      " << step_time << "  |  RTF: " << step_time / time << endl;
 
 #ifdef CHRONO_POSTPROCESS
+    // ------------
+    // Plot results
+    // ------------
+
     if (gnuplot_output && sys->GetChTime() > time_offset) {
         postprocess::ChGnuPlot gplot_long_slip(out_dir + "/tmp1.gpl");
         gplot_long_slip.SetGrid();

@@ -23,9 +23,19 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChLoadContainer.h"
+
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
+
+#ifdef CHRONO_FSI
+    #include "chrono_vehicle/terrain/CRMTerrain.h"
+using namespace chrono::fsi;
+#endif
+
+#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -95,13 +105,40 @@ void ChTireTestRig::SetTireCollisionType(ChTire::CollisionType coll_type) {
 
 // -----------------------------------------------------------------------------
 
+void ChTireTestRig::SetTerrainRigid(const TerrainParamsRigid& params) {
+    m_terrain_type = TerrainType::RIGID;
+    m_params_rigid = params;
+}
+
+void ChTireTestRig::SetTerrainRigid(double friction,
+                                    double restitution,
+                                    double Young_modulus,
+                                    double terrain_length,
+                                    double terrain_width) {
+    m_terrain_type = TerrainType::RIGID;
+
+    m_params_rigid.friction = (float)friction;
+    m_params_rigid.restitution = (float)restitution;
+    m_params_rigid.Young_modulus = (float)Young_modulus;
+
+    m_params_rigid.length = terrain_length;
+    m_params_rigid.width = terrain_width;
+}
+
+void ChTireTestRig::SetTerrainSCM(const TerrainParamsSCM& params) {
+    m_terrain_type = TerrainType::SCM;
+    m_params_SCM = params;
+}
+
 void ChTireTestRig::SetTerrainSCM(double Bekker_Kphi,
                                   double Bekker_Kc,
                                   double Bekker_n,
                                   double Mohr_cohesion,
                                   double Mohr_friction,
                                   double Janosi_shear,
-                                  double terrain_length) {
+                                  double grid_spacing,
+                                  double terrain_length,
+                                  double terrain_width) {
     m_terrain_type = TerrainType::SCM;
 
     m_params_SCM.Bekker_Kphi = Bekker_Kphi;
@@ -111,19 +148,14 @@ void ChTireTestRig::SetTerrainSCM(double Bekker_Kphi,
     m_params_SCM.Mohr_friction = Mohr_friction;
     m_params_SCM.Janosi_shear = Janosi_shear;
 
+    m_params_SCM.grid_spacing = grid_spacing;
     m_params_SCM.length = terrain_length;
-    m_params_SCM.width = 1;  //// TODO: m_tire->GetWidth();
+    m_params_SCM.width = terrain_width;
 }
 
-void ChTireTestRig::SetTerrainRigid(double friction, double restitution, double Young_modulus, double terrain_length) {
-    m_terrain_type = TerrainType::RIGID;
-
-    m_params_rigid.friction = (float)friction;
-    m_params_rigid.restitution = (float)restitution;
-    m_params_rigid.Young_modulus = (float)Young_modulus;
-
-    m_params_rigid.length = terrain_length;
-    m_params_rigid.width = 1;  //// TODO: m_tire->GetWidth();
+void ChTireTestRig::SetTerrainGranular(const TerrainParamsGranular& params) {
+    m_terrain_type = TerrainType::GRANULAR;
+    m_params_granular = params;
 }
 
 void ChTireTestRig::SetTerrainGranular(double radius,
@@ -131,7 +163,8 @@ void ChTireTestRig::SetTerrainGranular(double radius,
                                        double density,
                                        double friction,
                                        double cohesion,
-                                       double Young_modulus) {
+                                       double Young_modulus,
+                                       double terrain_width) {
     m_terrain_type = TerrainType::GRANULAR;
 
     m_params_granular.radius = radius;
@@ -141,8 +174,47 @@ void ChTireTestRig::SetTerrainGranular(double radius,
     m_params_granular.cohesion = cohesion;
     m_params_granular.Young_modulus = Young_modulus;
 
-    m_params_granular.length = 5 * m_tire->GetRadius();
-    m_params_granular.width = 1;  //// TODO: m_tire->GetWidth();
+    m_params_granular.width = terrain_width;
+}
+
+void ChTireTestRig::SetTerrainCRM(double radius,
+                                  double density,
+                                  double cohesion,
+                                  double terrain_length,
+                                  double terrain_width,
+                                  double terrain_depth) {
+#ifndef CHRONO_FSI
+    std::cerr << "ERROR: CRM terrain requires Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires Chrono::FSI module.");
+#endif
+
+    if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
+        std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
+        throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
+    }
+
+    m_terrain_type = TerrainType::CRM;
+
+    m_params_crm.radius = radius;
+    m_params_crm.density = density;
+    m_params_crm.cohesion = cohesion;
+    m_params_crm.length = terrain_length;
+    m_params_crm.width = terrain_width;
+    m_params_crm.depth = terrain_depth;
+}
+
+void ChTireTestRig::SetTerrainCRM(const TerrainParamsCRM& params) {
+#ifndef CHRONO_FSI
+    std::cerr << "ERROR: CRM terrain requires Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires Chrono::FSI module.");
+#endif
+
+    if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
+        std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
+        throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
+    }
+    m_terrain_type = TerrainType::CRM;
+    m_params_crm = params;
 }
 
 // -----------------------------------------------------------------------------
@@ -223,16 +295,22 @@ void ChTireTestRig::Initialize(Mode mode) {
 void ChTireTestRig::Advance(double step) {
     double time = m_system->GetChTime();
 
-    // Synchronize subsystems
-    m_terrain->Synchronize(time);
-    m_tire->Synchronize(time, *m_terrain.get());
-    m_spindle_body->EmptyAccumulators();
-    m_wheel->Synchronize();
+    if (m_terrain_type == TerrainType::CRM) {
+#ifdef CHRONO_FSI
+        std::static_pointer_cast<CRMTerrain>(m_terrain)->GetSystemFSI().DoStepDynamics(step);
+#endif
+    } else {
+        // Synchronize subsystems
+        m_terrain->Synchronize(time);
+        m_tire->Synchronize(time, *m_terrain.get());
+        m_spindle_body->EmptyAccumulators();
+        m_wheel->Synchronize();
 
-    // Advance state
-    m_terrain->Advance(step);
-    m_tire->Advance(step);
-    m_system->DoStepDynamics(step);
+        // Advance state
+        m_terrain->Advance(step);
+        m_tire->Advance(step);
+        m_system->DoStepDynamics(step);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -242,8 +320,8 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
 
     // Create bodies.
     // Rig bodies are constructed with mass and inertia commensurate with those of the wheel-tire system.
-    // The spindle body is constructed with zero mass and inertia (these will be increased by at least the wheel mass
-    // and inertia).
+    // The spindle body is constructed with zero mass and inertia (these will be increased by at least the wheel
+    // mass and inertia).
     const double dim = 0.1;
     const double mass = m_wheel->GetWheelMass() + m_tire->GetTireMass();
     const ChVector3d inertia = m_wheel->GetWheelInertia() + m_tire->GetTireInertia();
@@ -401,6 +479,9 @@ void ChTireTestRig::CreateTerrain() {
         case TerrainType::GRANULAR:
             CreateTerrainGranular();
             break;
+        case TerrainType::CRM:
+            CreateTerrainCRM();
+            break;
         default:
             break;
     }
@@ -412,16 +493,14 @@ void ChTireTestRig::CreateTerrainSCM() {
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
-    // Mesh divisions
-    double delta = 0.125;  // initial SCM grid spacing
-
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(m_system);
     terrain->SetPlane(ChCoordsys<>(location));
-    terrain->SetSoilParameters(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,            //
-                               m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction, m_params_SCM.Janosi_shear,  //
+    terrain->SetSoilParameters(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,  //
+                               m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction,
+                               m_params_SCM.Janosi_shear,  //
                                E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
-    terrain->Initialize(m_params_SCM.length, m_params_SCM.width, delta);
+    terrain->Initialize(m_params_SCM.length, m_params_SCM.width, m_params_SCM.grid_spacing);
     terrain->AddMovingPatch(m_chassis_body, ChVector3d(0, 0, 0),
                             ChVector3d(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));
 
@@ -486,7 +565,9 @@ void ChTireTestRig::CreateTerrainGranular() {
 
     ////terrain->EnableVisualization(true);
     terrain->EnableVerbose(true);
-    terrain->Initialize(location, m_params_granular.length, m_params_granular.width, m_params_granular.num_layers,
+
+    double granular_length = 5 * m_tire->GetRadius();
+    terrain->Initialize(location, granular_length, m_params_granular.width, m_params_granular.num_layers,
                         m_params_granular.radius, m_params_granular.density);
 
     double buffer_dist = 2.0 * m_tire->GetRadius();
@@ -494,6 +575,77 @@ void ChTireTestRig::CreateTerrainGranular() {
     terrain->EnableMovingPatch(m_spindle_body, buffer_dist, shift_dist, ChVector3d(0, 0, -2));
 
     m_terrain = terrain;
+}
+
+void ChTireTestRig::CreateTerrainCRM() {
+#ifdef CHRONO_FSI
+    double initSpace0 = 2 * m_params_crm.radius;
+
+    std::shared_ptr<CRMTerrain> terrain = chrono_types::make_shared<CRMTerrain>(*m_system, initSpace0);
+
+    // m_terrain->DisableMBD();
+    terrain->SetOutputLevel(OutputLevel::STATE);
+    terrain->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
+
+    terrain->SetStepSizeCFD(m_tire_step);
+
+    terrain->SetStepsizeMBD(m_tire_step);
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+    mat_props.density = m_params_crm.density;
+    mat_props.Young_modulus = 2e6;
+    mat_props.Poisson_ratio = 0.3;
+    mat_props.mu_I0 = 0.03;
+    mat_props.mu_fric_s = 0.7;
+    mat_props.mu_fric_2 = 0.7;
+    mat_props.average_diam = 0.0614;
+    mat_props.cohesion_coeff = m_params_crm.cohesion;
+
+    ChFluidSystemSPH::SPHParameters sph_params;
+    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.initial_spacing = initSpace0;
+    sph_params.d0_multiplier = 1.2;
+    sph_params.artificial_viscosity = 0.5;
+    sph_params.xsph_coefficient = 0.25;
+    sph_params.shifting_coefficient = 1.0;
+    sph_params.kernel_threshold = 0.8;
+    sph_params.num_proximity_search_steps = 1;
+    sph_params.consistent_gradient_discretization = false;
+    sph_params.consistent_laplacian_discretization = false;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_type = BoundaryType::ADAMI;
+
+    terrain->SetElasticSPH(mat_props);
+    terrain->SetSPHParameters(sph_params);
+
+    double loc_z = m_terrain_height - m_params_crm.depth;
+    ChVector3d location(m_params_crm.length / 2 - 2 * m_tire->GetRadius(), m_terrain_offset, loc_z);
+    terrain->Construct({m_params_crm.length, m_params_crm.width, m_params_crm.depth}, location,
+                       BoxSide::ALL & ~BoxSide::Z_POS);
+
+    // Guesstimate of reasonable active domain size
+    terrain->SetActiveDomain(ChVector3d(m_tire->GetRadius() * 2, m_tire->GetWidth() * 2, m_tire->GetRadius() * 2));
+
+    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
+        std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
+        auto mesh = fea_tire->GetMesh();
+        terrain->AddFeaMesh(mesh, false);
+    } else {
+        auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
+        assert(rgd_tire->UseContactMesh());
+        auto trimesh = rgd_tire->GetContactMesh();
+        utils::ChBodyGeometry geometry;
+        geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
+        terrain->AddRigidBody(m_spindle_body, geometry, false);
+    }
+
+    terrain->Initialize();
+    auto aabb = terrain->GetSPHBoundingBox();
+    std::cout << "  SPH particles:     " << terrain->GetNumSPHParticles() << std::endl;
+    std::cout << "  Bndry BCE markers: " << terrain->GetNumBoundaryBCEMarkers() << std::endl;
+    std::cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << std::endl;
+
+    m_terrain = terrain;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -508,7 +660,8 @@ void ChTireTestRig::GetSuggestedCollisionSettings(double& collision_envelope, Ch
     collision_envelope = 0.05 * m_params_granular.radius;
 
     int factor = 2;
-    collision_bins.x() = (int)std::ceil((0.5 * m_params_granular.length) / m_params_granular.radius) / factor;
+    double granular_length = 5 * m_tire->GetRadius();
+    collision_bins.x() = (int)std::ceil((0.5 * granular_length) / m_params_granular.radius) / factor;
     collision_bins.y() = (int)std::ceil((0.5 * m_params_granular.width) / m_params_granular.radius) / factor;
     collision_bins.z() = 1;
 }

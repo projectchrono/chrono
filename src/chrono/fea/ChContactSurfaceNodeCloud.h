@@ -37,6 +37,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// Set the FEA node to whom this is a proxy.
     void SetNode(ChNodeFEAxyz* node) { m_node = node; }
 
+    /// Get the current position.
+    const ChVector3d& GetPos() const { return m_node->GetPos(); }
+
     /// Get the contact surface container.
     ChContactSurface* GetContactSurface() const { return m_container; }
 
@@ -143,6 +146,8 @@ class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
     ~ChContactNodeXYZsphere() {}
 };
 
+// -----------------------------------------------------------------------------
+
 // Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAxyz were inherited from ChNodeFEAxyzrot, but this is
 // currently not the case. As such, we need to also implement this ChContactNodeXYZRot as a proxy to ChNodeFEAxyzrot.
 
@@ -156,6 +161,9 @@ class ChApi ChContactNodeXYZRot : public ChContactable_1vars<6> {
 
     /// Set the FEA node to whom this is a proxy
     void SetNode(ChNodeFEAxyzrot* node) { m_node = node; }
+
+    /// Get the current position.
+    const ChVector3d& GetPos() const { return m_node->GetPos(); }
 
     /// Get the contact surface container
     ChContactSurface* GetContactSurface() const { return m_container; }
@@ -263,6 +271,8 @@ class ChApi ChContactNodeXYZRotSphere : public ChContactNodeXYZRot {
     ~ChContactNodeXYZRotSphere() {}
 };
 
+// -----------------------------------------------------------------------------
+
 /// Class which defines a contact surface for FEA elements.
 /// Only xyz nodes in the FEA model are used as contact items for the collision detection.
 /// Might be an efficient option in case of dense tessellations (but misses the node-vs-face and edge-vs-edge cases)
@@ -278,13 +288,15 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     /// Add a specific node to this collision cloud.
     void AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, const double point_radius = 0.001);
 
-    /// Utility function to add all nodes of the associated FEA mesh to this collision cloud.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
-    void AddAllNodes(const double point_radius = 0.001);
+    /// Utility function to add all nodes of the specified FEA mesh to this collision cloud.
+    void AddAllNodes(const ChMesh& mesh, double point_radius = 0.001);
 
     /// Utility function to add nodes of the associated mesh belonging to the given node_set, to this collision cloud.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
-    void AddNodesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set, const double point_radius = 0.001);
+    void AddNodesFromNodeSet(const std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set,
+                             const double point_radius = 0.001);
+
+    /// Get the current axis-aligned bounding box.
+    virtual ChAABB GetAABB() const override;
 
     /// Get the list of nodes.
     std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodes() { return m_nodes; }

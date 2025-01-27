@@ -26,5 +26,13 @@ namespace vehicle {
 
 CRMTerrain::CRMTerrain(ChSystem& sys, double spacing) : ChFsiProblemCartesian(sys, spacing) {}
 
+void CRMTerrain::SetActiveDomain(const ChVector3d& half_dim) {
+    GetFluidSystemSPH().SetActiveDomain(half_dim);
+}
+
+void CRMTerrain::Advance(double step) {
+    DoStepDynamics(step);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

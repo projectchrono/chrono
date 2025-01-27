@@ -21,13 +21,13 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
+#include "FEAvisualization.h"
 #include "FEAcables.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Select solver type (SPARSE_QR, SPARSE_LU, or MINRES).
 ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
@@ -56,14 +56,14 @@ int main(int argc, char* argv[]) {
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh asset that is internally managed) by
     // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
     // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
     vis_beam_A->SetColorscaleMinMax(-0.4, 0.4);
     vis_beam_A->SetSmoothFaces(true);
     vis_beam_A->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_beam_A);
 
-    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     vis_beam_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     vis_beam_B->SetSymbolsThickness(0.006);
@@ -108,16 +108,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Cables FEM");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0, 0.6, -1.0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM", ChVector3d(0, 0.6, -1.0));
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

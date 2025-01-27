@@ -121,15 +121,15 @@ ChVectorDynamic<> IndustrialKinematics6dofSpherical::GetIK(const ChCoordsysd& ta
     double theta4 = 0.0, theta5 = 0.0, theta6 = 0.0;
 
     // if R36_22 != +/- 1:
-    if (abs(abs(R36_22) - 1.0) > 1e-6) {
+    if (std::abs(std::abs(R36_22) - 1.0) > 1e-6) {
         // Normal state
         double R36_12 = ChClamp(2 * (-q36.e1() * q36.e0() + q36.e2() * q36.e3()), -1.0, 1.0);
         double R36_20 = ChClamp(2 * (q36.e1() * q36.e3() - q36.e2() * q36.e0()), -1.0, 1.0);
         double R36_21 = ChClamp(2 * (q36.e1() * q36.e0() + q36.e2() * q36.e3()), -1.0, 1.0);
         double R36_02 = ChClamp(2 * (q36.e1() * q36.e3() + q36.e2() * q36.e0()), -1.0, 1.0);
 
-        theta5 = asin(R36_22);
-        double cos_theta5 = -cos(theta5);  // why negative sign?
+        theta5 = std::asin(R36_22);
+        double cos_theta5 = -std::cos(theta5);  // why negative sign?
 
         theta4 = std::atan2(R36_12 / cos_theta5, R36_02 / cos_theta5);
         theta6 = std::atan2(-R36_21 / cos_theta5, R36_20 / cos_theta5);
@@ -141,7 +141,7 @@ ChVectorDynamic<> IndustrialKinematics6dofSpherical::GetIK(const ChCoordsysd& ta
         double R36_01 = ChClamp(2 * (q36.e1() * q36.e2() - q36.e3() * q36.e0()), -1.0, 1.0);
 
         // if R36_22 = -1:
-        if (abs(R36_22 + 1.0) < 1e-5) {
+        if (std::abs(R36_22 + 1.0) < 1e-5) {
             theta5 = -CH_PI_2;
             theta4 = -theta6 + std::atan2(-R36_01, R36_00);
         } else {

@@ -29,16 +29,16 @@
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/solver/ChSolverADMM.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -159,8 +159,8 @@ int main(int argc, char* argv[]) {
     // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
 
     auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
+    mcontactsurf->AddFacesFromBoundary(*my_mesh, sphere_swept_thickness);
     my_mesh->AddContactSurface(mcontactsurf);
-    mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
 
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
         // all nodes to it.
 
         auto mcontactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
+        mcontactcloud->AddAllNodes(*my_mesh_beams, 0.025);  // use larger point size to match beam section radius
         my_mesh_beams->AddContactSurface(mcontactcloud);
-        mcontactcloud->AddAllNodes(0.025);  // use larger point size to match beam section radius
     }
 
     // Remember to add the mesh to the system!
@@ -209,46 +209,36 @@ int main(int argc, char* argv[]) {
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
     /*
-        auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+        auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
         mvisualizemeshcoll->SetWireframe(true);
         mvisualizemeshcoll->SetDefaultMeshColor(ChColor(0.2, 0.2, 0.2));
         my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
     */
 
-    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_beams);
+    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
     my_mesh_beams->AddVisualShapeFEA(mvisualizemeshbeam);
 
     /*
-        auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_beams);
+        auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>();
         mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
         mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
         mvisualizemeshbeamnodes->SetSymbolsThickness(0.008);
         my_mesh_beams->AddVisualShapeFEA(mvisualizemeshbeamnodes);
     */
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("FEA contacts");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
-    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512, ChColor(1, 1, 1));
-    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
-    vis->EnableShadows();
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA contacts (NSC)",
+                                         ChVector3d(0.0, 0.6, -1.0));
 
     // SIMULATION LOOP
 

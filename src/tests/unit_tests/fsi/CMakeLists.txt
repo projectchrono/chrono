@@ -4,7 +4,7 @@ set(TESTS
 #--------------------------------------------------------------
 
 list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_fsi")
+list(APPEND LIBS "ChronoEngine_fsi_sph")
 
 if(ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vsg")

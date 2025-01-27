@@ -79,6 +79,7 @@ set(INDUSTRIAL_FILES
 	industrial/IndustrialKinematicsSCARA.h industrial/IndustrialKinematicsSCARA.cpp
 	industrial/IndustrialKinematics6dofSpherical.h industrial/IndustrialKinematics6dofSpherical.cpp
 	industrial/IndustrialKinematicsNdofNumerical.h industrial/IndustrialKinematicsNdofNumerical.cpp
+	industrial/TrajectoryInterpolator.h industrial/TrajectoryInterpolator.cpp
 )
 
 source_group("industrial" FILES ${INDUSTRIAL_FILES})

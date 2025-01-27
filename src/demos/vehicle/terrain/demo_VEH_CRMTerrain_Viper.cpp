@@ -20,7 +20,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/robot/viper/Viper.h"
@@ -36,12 +36,12 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono/assets/ChVisualSystem.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 using namespace chrono;
@@ -67,8 +67,9 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     ChVector3d active_box_hdim(0.4, 0.3, 0.5);
 
-    bool visualization = true;             // run-time visualization
-    double visualizationFPS = 0;           // frames rendered per second (0: every frame)
+    bool render = true;       // use run-time visualization
+    double render_fps = 200;  // rendering FPS
+
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = false;  // render wheel BCE markers
@@ -102,45 +103,36 @@ int main(int argc, char* argv[]) {
     // Create the CRM terrain system
     double initial_spacing = 0.03;
     CRMTerrain terrain(sys, initial_spacing);
+    ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
     terrain.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = terrain.GetSystemFSI();
+    terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    terrain.SetStepSizeCFD(step_size);
 
-    // Set SPH parameters and soil material properties
-    const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sys.SetGravitationalAcceleration(gravity);
-
-    ChSystemFsi::ElasticMaterialProperties mat_props;
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
-    mat_props.stress = 0;  // default
-    mat_props.viscosity_alpha = 0.5;
-    mat_props.viscosity_beta = 0.0;
     mat_props.mu_I0 = 0.04;
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_PI / 10;  // default
-    mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = cohesion;
+    terrain.SetElasticSPH(mat_props);
 
-    sysFSI.SetElasticSPH(mat_props);
-
-    ChSystemFsi::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.d0_multiplier = 1;
     sph_params.kernel_threshold = 0.8;
+    sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_type = BoundaryType::ADAMI;
+    terrain.SetSPHParameters(sph_params);
 
-    sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSize(step_size);
-
-    sysFSI.SetActiveDomain(ChVector3d(active_box_hdim));
-
-    sysFSI.SetOutputLength(0);
+    // Set output level from SPH simulation
+    terrain.SetOutputLevel(OutputLevel::STATE);
 
     // Add rover wheels as FSI bodies
     cout << "Create wheel BCE markers..." << endl;
@@ -149,12 +141,14 @@ int main(int argc, char* argv[]) {
     geometry.materials.push_back(ChContactMaterialData());
     geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
-    //// TODO: FIX ChFsiProblem to allow rotating geometry on body!!
+    //// TODO: FIX ChFsiProblemSPH to allow rotating geometry on body!!
     for (int i = 0; i < 4; i++) {
         auto wheel_body = rover->GetWheels()[i]->GetBody();
         auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;
         terrain.AddRigidBody(wheel_body, geometry, false);
     }
+
+    terrain.SetActiveDomain(ChVector3d(active_box_hdim));
 
     // Construct the terrain
     cout << "Create terrain..." << endl;
@@ -164,19 +158,16 @@ int main(int argc, char* argv[]) {
                       0.3,                                                       // depth
                       true,                                                      // uniform depth
                       ChVector3d(0, 0, 0),                                       // patch center
-                      true,                                                      // bottom wall?
-                      false                                                      // side walls?
+                      BoxSide::Z_NEG                                             // bottom wall
     );
-
-
 
     // Initialize the terrain system
     cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
-    cout << "  SPH particles:     " << sysFSI.GetNumFluidMarkers() << endl;
-    cout << "  Bndry BCE markers: " << sysFSI.GetNumBoundaryMarkers() << endl;
+    cout << "  SPH particles:     " << terrain.GetNumSPHParticles() << endl;
+    cout << "  Bndry BCE markers: " << terrain.GetNumBoundaryBCEMarkers() << endl;
     cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
@@ -188,9 +179,12 @@ int main(int argc, char* argv[]) {
     if (vis_type == ChVisualSystem::Type::VSG)
         vis_type = ChVisualSystem::Type::OpenGL;
 #endif
+#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
+    render = false;
+#endif
 
     std::shared_ptr<ChFsiVisualization> visFSI;
-    if (visualization) {
+    if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
@@ -206,7 +200,6 @@ int main(int argc, char* argv[]) {
         }
 
         visFSI->SetTitle("Viper rover on CRM deformable terrain");
-        visFSI->SetVerbose(verbose);
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
         visFSI->SetCameraMoveScale(0.2f);
@@ -215,32 +208,35 @@ int main(int argc, char* argv[]) {
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(
-            chrono_types::make_shared<HeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
+                                                                                           aabb.min.z(), aabb.max.z()));
         visFSI->AttachSystem(&sys);
         visFSI->Initialize();
     }
 
     // Start the simulation
-    int render_steps = (visualizationFPS > 0) ? (int)std::round((1.0 / visualizationFPS) / step_size) : 1;
-    double t = 0;
-    int frame = 0;
+    double time = 0;
+    int sim_frame = 0;
+    int render_frame = 0;
 
-    while (t < tend) {
+    while (time < tend) {
         rover->Update();
 
         // Run-time visualization
-        if (visualization && frame % render_steps == 0) {
+        if (render && time >= render_frame / render_fps) {
             if (!visFSI->Render())
                 break;
+            render_frame++;
         }
-        if (!visualization) {
-            std::cout << sysFSI.GetSimTime() << "  " << sysFSI.GetRTF() << std::endl;
+        if (!render) {
+            std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
         }
 
-        sysFSI.DoStepDynamics_FSI();
-        t += step_size;
-        frame++;
+        // Advance dynamics of multibody and fluid systems concurrently
+        terrain.DoStepDynamics(step_size);
+
+        time += step_size;
+        sim_frame++;
     }
 
     return 0;

@@ -1,39 +1,38 @@
 // Sample GRANULAR_SPH terrain specification file for co-simulation
 {
-    "Type": "GRANULAR_SPH",
-
-    "Patch data files": {
-        "SPH particles file": "terrain/sph/S-lane_RMS/sph_particles.txt",
-        "BCE markers file": "terrain/sph/S-lane_RMS/bce_markers.txt"
-    },
-
-    "Granular material": {
-        "Radius": 0.01,
-        "Density": 1700,
-        "Cohesion": 5000
-    },
-
-    "Output Folder": "demo_tire_rig",
-
-    "SPH Parameters": {
-        "Method": "WCSPH",
-        "Epsilon": 0.001,
-        "XSPH Coefficient": 0.5,
-        "Shifting Coefficient": 1.0
-    },
-
-    "Elastic SPH": {
-        "Poisson ratio": 0.3,
-        "Young modulus": 1.0e6,
-        "Artificial viscosity alpha": 0.5,
-        "Artificial viscosity beta": 0.0,
-        "I0": 0.04,
-        "mu_s": 0.8,
-        "mu_2": 0.8,
-        "particle diameter": 0.01,
-        "kernel threshold": 0.8
-    },
-
-    "Body Active Domain": [ 0.8, 0.5, 1.0 ],
-    "Settling Time": 0.0
+  "Type": "GRANULAR_SPH",
+  "Patch data files": {
+    "SPH particles file": "terrain/sph/S-lane_RMS/sph_particles.txt",
+    "BCE markers file": "terrain/sph/S-lane_RMS/bce_markers.txt",
+    "Path file": "terrain/sph/S-lane_RMS/path.txt"
+  },
+  "Granular material": {
+    "Radius": 0.01,
+    "Density": 1700,
+    "Cohesion": 5e3
+  },
+  "SPH Parameters": {
+    "Method": "WCSPH",
+    "Epsilon": 0.001,
+    "XSPH Coefficient": 0.5,
+    "Shifting Coefficient": 1.0,
+    "Viscosity Treatment Type": "Artificial Bilateral",
+    "Boundary Treatment Type": "Adami",
+    "Artificial viscosity alpha": 0.5
+  },
+  "Elastic SPH": {
+    "Poisson ratio": 0.3,
+    "Young modulus": 1.0e6,
+    "I0": 0.04,
+    "mu_s": 0.8,
+    "mu_2": 0.8,
+    "particle diameter": 0.01,
+    "kernel threshold": 0.8
+  },
+  "Body Active Domain": [
+    0.8,
+    0.5,
+    1.0
+  ],
+  "Settling Time": 0.0
 }

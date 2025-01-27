@@ -24,6 +24,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCFTire.h"
+#include "chrono_models/vehicle/hmmwv/tire/HMMWV_ANCF4LumpedTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_Pac02Tire.h"
@@ -269,6 +270,27 @@ void HMMWV::Initialize() {
             auto tire_FR = chrono_types::make_shared<HMMWV_ANCFTire>("FR");
             auto tire_RL = chrono_types::make_shared<HMMWV_ANCFTire>("RL");
             auto tire_RR = chrono_types::make_shared<HMMWV_ANCFTire>("RR");
+
+            tire_FL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+            tire_FR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+            tire_RL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+            tire_RR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
+
+            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+
+            m_tire_mass = tire_FL->GetMass();
+
+            break;
+        }
+
+        case TireModelType::ANCF_LUMPED: {
+            auto tire_FL = chrono_types::make_shared<HMMWV_ANCF4LumpedTire>("FL");
+            auto tire_FR = chrono_types::make_shared<HMMWV_ANCF4LumpedTire>("FR");
+            auto tire_RL = chrono_types::make_shared<HMMWV_ANCF4LumpedTire>("RL");
+            auto tire_RR = chrono_types::make_shared<HMMWV_ANCF4LumpedTire>("RR");
 
             tire_FL->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);
             tire_FR->SetContactSurfaceType(m_tire_surface_type, m_tire_surface_dim, m_tire_collision_family);

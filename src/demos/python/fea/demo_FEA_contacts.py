@@ -113,7 +113,6 @@ mmaterial.SetPoissonRatio(0.3)
 mmaterial.SetRayleighDampingBeta(0.003)
 mmaterial.SetDensity(1000)
 
-
 for i in range(4) :
     try :
         cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
@@ -128,18 +127,13 @@ for i in range(4) :
         print('Error Loading meshes')
         break
     
-
-
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
-
 mcontactsurf = fea.ChContactSurfaceMesh(mysurfmaterial)
+mcontactsurf.AddFacesFromBoundary(mesh, sphere_swept_thickness)
 mesh.AddContactSurface(mcontactsurf)
 
-mcontactsurf.AddFacesFromBoundary(sphere_swept_thickness)  # do this after my_meshAddContactSurface
-
-
-# Remember to add the mesh to the system!
+# Add the mesh to the system
 sys.Add(mesh)
 
 #
@@ -168,14 +162,11 @@ builder.BuildBeam(my_mesh_beams,             # the mesh where to put the created
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceNodeCloud, so just pass
 # all nodes to it.
-
 mcontactcloud = fea.ChContactSurfaceNodeCloud(mysurfmaterial)
+mcontactcloud.AddAllNodes(my_mesh_beams, 0.025)  # match beam section radius
 my_mesh_beams.AddContactSurface(mcontactcloud)
 
-mcontactcloud.AddAllNodes(0.025)  # use larger posize to match beam section radius
-
-
-# Remember to add the mesh to the system!
+# Add the mesh to the system
 sys.Add(my_mesh_beams)
 
 #
@@ -189,29 +180,29 @@ sys.Add(my_mesh_beams)
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
+mvisualizemesh = chrono.ChVisualShapeFEA()
 mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
 mvisualizemesh.SetColorscaleMinMax(0.0, 5.50)
 mvisualizemesh.SetSmoothFaces(True)
 mesh.AddVisualShapeFEA(mvisualizemesh)
 
-mvisualizemeshcoll = chrono.ChVisualShapeFEA(mesh)
+mvisualizemeshcoll = chrono.ChVisualShapeFEA()
 mvisualizemeshcoll.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_CONTACTSURFACES)
 mvisualizemeshcoll.SetWireframe(True)
 mvisualizemeshcoll.SetDefaultMeshColor(chrono.ChColor(1, 0.5, 0))
 mesh.AddVisualShapeFEA(mvisualizemeshcoll)
 
-mvisualizemeshbeam = chrono.ChVisualShapeFEA(my_mesh_beams)
+mvisualizemeshbeam = chrono.ChVisualShapeFEA()
 mvisualizemeshbeam.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
 mvisualizemeshbeam.SetColorscaleMinMax(0.0, 5.50)
 mvisualizemeshbeam.SetSmoothFaces(True)
-mesh.AddVisualShapeFEA(mvisualizemeshbeam)
+my_mesh_beams.AddVisualShapeFEA(mvisualizemeshbeam)
 
-mvisualizemeshbeamnodes = chrono.ChVisualShapeFEA(my_mesh_beams)
+mvisualizemeshbeamnodes = chrono.ChVisualShapeFEA()
 mvisualizemeshbeamnodes.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 mvisualizemeshbeamnodes.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 mvisualizemeshbeamnodes.SetSymbolsThickness(0.008)
-mesh.AddVisualShapeFEA(mvisualizemeshbeamnodes)
+my_mesh_beams.AddVisualShapeFEA(mvisualizemeshbeamnodes)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()

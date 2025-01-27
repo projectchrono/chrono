@@ -29,10 +29,7 @@ using namespace chrono::fea;
 
 // -----------------------------------------------------------------------------
 ChDeformableTire::ChDeformableTire(const std::string& name)
-    : ChTire(name),
-      m_connection_enabled(true),
-      m_pressure_enabled(true),
-      m_contact_enabled(true) {}
+    : ChTire(name), m_connection_enabled(true), m_pressure_enabled(true), m_contact_enabled(true) {}
 
 ChDeformableTire::~ChDeformableTire() {
     if (!m_initialized)
@@ -96,19 +93,35 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         // Let the derived class create the constraints and add them to the system.
         CreateRimConnections(wheel->GetSpindle());
     }
+
+    InitializeInertiaProperties();
+}
+
+void ChDeformableTire::AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shape) {
+    m_visFEA.push_back(shape);
 }
 
 void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_visualization = chrono_types::make_shared<ChVisualShapeFEA>(m_mesh);
-    m_visualization->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    m_visualization->SetShellResolution(3);
-    m_visualization->SetWireframe(false);
-    m_visualization->SetColorscaleMinMax(0.0, 5.0);
-    m_visualization->SetSmoothFaces(true);
-    m_mesh->AddVisualShapeFEA(m_visualization);
+    // If no FEA visualization shape was provided, create a single one with speed coloring
+    if (m_visFEA.empty()) {
+        auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
+        visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        visFEA->SetShellResolution(3);
+        visFEA->SetWireframe(false);
+        visFEA->SetColorscaleMinMax(0.0, 5.0);
+        visFEA->SetSmoothFaces(true);
+        m_mesh->AddVisualShapeFEA(visFEA);
+
+        return;
+    }
+
+    // Attach the requested FEA visual shapes
+    for (const auto& v : m_visFEA) {
+        m_mesh->AddVisualShapeFEA(v);
+    }
 }
 
 void ChDeformableTire::RemoveVisualizationAssets() {

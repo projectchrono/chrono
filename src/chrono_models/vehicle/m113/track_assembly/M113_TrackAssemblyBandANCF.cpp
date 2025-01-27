@@ -115,7 +115,7 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
 
     SetLayerFiberAngles(0 * CH_DEG_TO_RAD, 0 * CH_DEG_TO_RAD, 0 * CH_DEG_TO_RAD);
 
-    SetElementStructuralDamping(0.05);
+    SetElementStructuralDamping(0.15);
 
     // Specify contact properties for the web mesh
     SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::TRIANGLE_MESH);

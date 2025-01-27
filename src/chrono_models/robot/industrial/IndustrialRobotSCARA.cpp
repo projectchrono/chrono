@@ -65,26 +65,31 @@ void IndustrialRobotSCARA::SetupBodies() {
     // Base
     m_base = chrono_types::make_shared<ChBodyAuxRef>();
     m_base->SetFixed(true);
+    m_base->SetName("robot_base");
     m_base->SetPos((m_base_frame.GetPos() + m_joint_frames[0].GetPos()) * 0.5);
     m_sys->Add(m_base);
 
     // Biceps
     m_biceps = chrono_types::make_shared<ChBodyAuxRef>();
+    m_biceps->SetName("robot_biceps");
     m_biceps->SetPos((m_joint_frames[0].GetPos() + m_joint_frames[1].GetPos()) * 0.5);
     m_sys->Add(m_biceps);
 
     // Forearm
     m_forearm = chrono_types::make_shared<ChBodyAuxRef>();
+    m_forearm->SetName("robot_forearm");
     m_forearm->SetPos((m_joint_frames[1].GetPos() + m_joint_frames[2].GetPos()) * 0.5);
     m_sys->Add(m_forearm);
 
     // Screw
     m_screw = chrono_types::make_shared<ChBodyAuxRef>();
+    m_screw->SetName("robot_screw");
     m_screw->SetPos(m_joint_frames[2].GetPos());
     m_sys->Add(m_screw);
 
     // End effector
     m_end_effector = chrono_types::make_shared<ChBodyAuxRef>();
+    m_end_effector->SetName("robot_end_effector");
     m_end_effector->SetPos(ChVector3d((m_joint_frames[2].GetPos().x() + m_joint_frames[3].GetPos().x()) * 0.5,
                                       m_joint_frames[3].GetPos().y(), 0));
     m_sys->Add(m_end_effector);

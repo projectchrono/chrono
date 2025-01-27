@@ -29,30 +29,22 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     ChIndexedNodes(const ChIndexedNodes& other) : ChPhysicsItem(other) {}
     virtual ~ChIndexedNodes() {}
 
-    //
-    // FUNCTIONS
-    //
-
     /// Get the number of nodes
     virtual unsigned int GetNumNodes() const = 0;
 
     /// Access the N-th node
-    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) = 0;
+    virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) const = 0;
 
     /// Add a new node to the particle cluster, passing a
     /// vector as initial position.
-    //	virtual void AddNode(ChVector3d initial_state) =0;
+    //virtual void AddNode(ChVector3d initial_state) = 0;
 
     /// Resize the node cluster. Also clear the state of
     /// previously created particles, if any.
-    //	virtual void ResizeNnodes(int newsize) =0;
+    //virtual void ResizeNnodes(int newsize) = 0;
 
     /// Number of coordinates of the node cluster
-    //	virtual unsigned int GetNumCoordsPosLevel  ()   {return 3*GetNumNodes();}
-
-    //
-    // SERIALIZATION
-    //
+    //virtual unsigned int GetNumCoordsPosLevel() {return 3*GetNumNodes();}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

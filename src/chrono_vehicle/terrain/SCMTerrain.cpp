@@ -194,6 +194,15 @@ void SCMTerrain::SetPlotType(DataPlotType plot_type, double min_val, double max_
     m_loader->m_plot_v_max = max_val;
 }
 
+// Enable SCM terrain patch boundaries
+void SCMTerrain::SetBoundary(const ChAABB& aabb) {
+    if (aabb.IsInverted())
+        return;
+
+    m_loader->m_aabb = aabb;
+    m_loader->m_boundary = true;
+}
+
 // Enable moving patch.
 void SCMTerrain::AddMovingPatch(std::shared_ptr<ChBody> body,
                                 const ChVector3d& OOBB_center,
@@ -397,8 +406,8 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_test_offset_up = 0.1;
     m_test_offset_down = 0.5;
 
+    m_boundary = false;
     m_moving_patch = false;
-
     m_cosim_mode = false;
 }
 
@@ -1189,6 +1198,12 @@ void SCMLoader::ComputeInternalForces() {
             double y = ij.y() * m_delta;
             double z = GetHeight(ij);
 
+            // If enabled, check if current grid node in user-specified boundary
+            if (m_boundary) {
+                if (x > m_aabb.max.x() || x < m_aabb.min.x() || y > m_aabb.max.y() || y < m_aabb.min.y())
+                    continue;
+            }
+
             ChVector3d vertex_abs = m_plane.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Create ray at current grid location
@@ -1494,7 +1509,6 @@ void SCMLoader::ComputeInternalForces() {
         }
 
         for (const auto& f : m_node_forces) {
-            std::cout << f.second << std::endl;
             auto force_load = chrono_types::make_shared<ChLoadNodeXYZ>(f.first, f.second);
             Add(force_load);
         }

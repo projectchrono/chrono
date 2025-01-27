@@ -50,6 +50,15 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// Acccess the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
 
+    /// Get the current position of first node.
+    const ChVector3d& GetPos1() const { return m_nodes[0]->GetPos(); }
+
+    /// Get the current position of second node.
+    const ChVector3d& GetPos2() const { return m_nodes[1]->GetPos(); }
+
+    /// Get the current position of third node.
+    const ChVector3d& GetPos3() const { return m_nodes[2]->GetPos(); }
+
     /// Get the contact surface container.
     ChContactSurface* GetContactSurface() const { return m_container; }
 
@@ -65,8 +74,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Access variables for node 1.
     virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
+
     /// Access variables for node 2.
     virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
+
     /// Access variables for node 3.
     virtual ChVariables* GetVariables3() override { return &m_nodes[2]->Variables(); }
 
@@ -240,6 +251,15 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, publi
     /// Acccess the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyzrot> GetNode(int i) const { return m_nodes[i]; }
 
+    /// Get the current position of first node.
+    const ChVector3d& GetPos1() const { return m_nodes[0]->GetPos(); }
+
+    /// Get the current position of second node.
+    const ChVector3d& GetPos2() const { return m_nodes[1]->GetPos(); }
+
+    /// Get the current position of third node.
+    const ChVector3d& GetPos3() const { return m_nodes[2]->GetPos(); }
+
     /// Get the contact surface container.
     ChContactSurface* GetContactSurface() const { return m_container; }
 
@@ -255,8 +275,10 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Access variables for node 1.
     virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
+
     /// Access variables for node 2.
     virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
+
     /// Access variables for node 3.
     virtual ChVariables* GetVariables3() override { return &m_nodes[2]->Variables(); }
 
@@ -449,8 +471,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                  double sphere_swept = 0.0                     ///< thickness (radius of sweeping sphere)
     );
 
-    /// Utility function to add all boundary faces of the associated FEA mesh to this collision surface.
-    /// This function does nothing if the contact surface was not yet associated with an FEA mesh.
+    /// Utility function to add all boundary faces of the specified FEA mesh to this collision surface.
     /// The function scans all the finite elements already added in the parent ChMesh and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
     /// For shells, the argument 'ccw' indicates whether the face vertices are provided in a counter-clockwise (default)
@@ -467,7 +488,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// - beams:
     ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)
     ///     - ChElementBeamEuler: Euler-Bernoulli beams (as sphere-swept lines, i.e. sequence of capsules)
-    void AddFacesFromBoundary(double sphere_swept = 0.0,           ///< radius of swept sphere
+    void AddFacesFromBoundary(const ChMesh& mesh,                  ///< FEA mesh
+                              double sphere_swept = 0.0,           ///< radius of swept sphere
                               bool ccw = true,                     ///< indicate counterclockwise vertex ordering
                               bool include_cable_elements = true,  ///< create contact triangles for cable elements
                               bool include_beam_elements = true    ///< create contact triangles for beam elements
@@ -476,6 +498,9 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// Construct a contact surface from a triangular mesh.
     /// FEA nodes are created at the mesh vertex locations.
     void ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
+
+    /// Get the current axis-aligned bounding box.
+    virtual ChAABB GetAABB() const override;
 
     /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTrianglesXYZ() { return m_faces; }

@@ -16,17 +16,19 @@
 //
 // =============================================================================
 
-#ifndef CH_INDUSTRIAL_ROBOT_KINEMATICS_H
-#define CH_INDUSTRIAL_ROBOT_KINEMATICS_H
+#ifndef INDUSTRIAL_ROBOT_KINEMATICS_H
+#define INDUSTRIAL_ROBOT_KINEMATICS_H
 
+#include "chrono_models/ChApiModels.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChRotation.h"
 #include "chrono/utils/ChUtils.h"
 
-#include "chrono_models/ChApiModels.h"
-
 namespace chrono {
 namespace industrial {
+
+/// @addtogroup robot_models_industrial
+/// @{
 
 class CH_MODELS_API IndustrialKinematics {
   public:
@@ -39,11 +41,17 @@ class CH_MODELS_API IndustrialKinematics {
     /// Get number of robot joints.
     int GetNumJoints() const { return m_num_joints; }
 
+    /// Toggle verbosity.
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
   protected:
-    int m_num_joints = 0;
+    unsigned int m_num_joints = 0;
+    bool m_verbose = false;
 };
+
+/// @} robot_models_industrial
 
 }  // end namespace industrial
 }  // end namespace chrono
 
-#endif  // end CH_INDUSTRIAL_ROBOT_KINEMATICS_H
+#endif  // end INDUSTRIAL_ROBOT_KINEMATICS_H

@@ -84,12 +84,8 @@ class ChApi ChVisualShapeFEA {
     };
 
   public:
-    ChVisualShapeFEA(std::shared_ptr<fea::ChMesh> fea_mesh);
-
+    ChVisualShapeFEA();
     ~ChVisualShapeFEA() {}
-
-    /// Access the referenced FEM mesh.
-    fea::ChMesh& GetMesh() { return *FEMmesh; }
 
     /// Returns the current data type to be plotted (speeds, forces, etc.).
     DataType GetFEMdataType() { return fem_data_type; }
@@ -226,7 +222,7 @@ class ChApi ChVisualShapeFEA {
                                           unsigned int& i_triindex,
                                           bool& need_automatic_smoothing);
 
-    std::shared_ptr<fea::ChMesh> FEMmesh;
+    ChPhysicsItem* physics_item;
 
     DataType fem_data_type;
     GlyphType fem_glyph;
@@ -262,6 +258,7 @@ class ChApi ChVisualShapeFEA {
     std::vector<int> normal_accumulators;
 
     friend class ChVisualModel;
+    friend class ChPhysicsItem;
 };
 
 /// @} chrono_assets

@@ -156,10 +156,10 @@ TEST(LinearAlgebraTest, extensions) {
     ChMatrixNM<double, 2, 3> B(A);
     B(1, 2) += 0.01;
     cout << "matrix B = A with B(1,2) incremented by 0.01\n" << B << endl;
-    cout << "|A-B| < 0.1?   " << A.equals(B, 0.1) << endl;
-    cout << "|A-B| < 0.001? " << A.equals(B, 0.001) << endl;
-    ASSERT_TRUE(A.equals(B, 0.1));
-    ASSERT_FALSE(A.equals(B, 0.001));
+    cout << "|A-B| < 0.1?   " << A.isApprox(B, 0.1) << endl;
+    cout << "|A-B| < 0.001? " << A.isApprox(B, 0.001) << endl;
+    ASSERT_TRUE(A.isApprox(B, 0.1));
+    ASSERT_FALSE(A.isApprox(B, 0.001));
 
     ChVectorDynamic<> v(3);
     v << 2, 3, 4;

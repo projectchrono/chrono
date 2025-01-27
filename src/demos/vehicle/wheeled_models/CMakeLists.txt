@@ -48,7 +48,6 @@ if(ENABLE_MODULE_PARDISO_MKL)
 endif()
 
 if(ENABLE_MODULE_MUMPS)
-    include_directories(${CH_MUMPS_INCLUDES})
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
@@ -64,6 +63,8 @@ foreach(PROGRAM ${DEMOS})
 
     if(PROGRAM STREQUAL "demo_VEH_Wheeled")
       set(MODELS ../WheeledVehicleModels.h)
+    elseif(PROGRAM STREQUAL "demo_VEH_WheeledJSON")
+      set(MODELS ../WheeledVehicleJSON.h)
     else()
       set(MODELS "")
     endif()

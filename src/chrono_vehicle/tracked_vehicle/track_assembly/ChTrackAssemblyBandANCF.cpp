@@ -196,8 +196,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         switch (m_contact_type) {
             case ContactSurfaceType::NODE_CLOUD: {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_material);
+                contact_surf->AddAllNodes(*m_track_mesh, thickness / 2);
                 m_track_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddAllNodes(thickness / 2);
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& node : contact_surf->GetNodes()) {
@@ -209,8 +209,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             }
             case ContactSurfaceType::TRIANGLE_MESH: {
                 auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_material);
+                contact_surf->AddFacesFromBoundary(*m_track_mesh, thickness / 2, false);
                 m_track_mesh->AddContactSurface(contact_surf);
-                contact_surf->AddFacesFromBoundary(thickness / 2, false);
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& face : contact_surf->GetTrianglesXYZ()) {
@@ -244,20 +244,20 @@ void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
+    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
     mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     m_track_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
+    auto mvisualizemeshref = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshref->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshref->SetWireframe(true);
     mvisualizemeshref->SetDrawInUndeformedReference(true);
     m_track_mesh->AddVisualShapeFEA(mvisualizemeshref);
 
-    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>(m_track_mesh);
+    auto mvisualizemeshC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizemeshC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshC->SetSymbolsThickness(0.004);

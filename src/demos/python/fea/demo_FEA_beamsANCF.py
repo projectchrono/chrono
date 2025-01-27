@@ -209,13 +209,13 @@ elif element_type == 2:
     load_container.Add(load)     # add the load to the load container.
 
 # Set visualization of the FEM mesh.
-beam_visA = chrono.ChVisualShapeFEA(mesh)
+beam_visA = chrono.ChVisualShapeFEA()
 beam_visA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 beam_visA.SetWireframe(True)
 beam_visA.SetDrawInUndeformedReference(True)
 mesh.AddVisualShapeFEA(beam_visA)
 
-beam_visB = chrono.ChVisualShapeFEA(mesh)
+beam_visB = chrono.ChVisualShapeFEA()
 beam_visB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
 beam_visB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 beam_visB.SetSymbolsThickness(0.01)
@@ -238,3 +238,6 @@ while vis.Run():
     vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(0.01)
+
+    my_node = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(mesh.GetNode(1)))
+    print(f't:  {sys.GetChTime():.2f}    pos: {my_node.GetPos()}')

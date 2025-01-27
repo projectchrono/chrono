@@ -189,13 +189,14 @@ int main(int argc, char* argv[]) {
 
     // rock material
     auto rock_vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-    rock_vis_mat->SetAmbientColor({1,1,1}); //0.65f,0.65f,0.65f
-    rock_vis_mat->SetDiffuseColor({1,1,1});
-    rock_vis_mat->SetSpecularColor({1,1,1});
+    rock_vis_mat->SetAmbientColor({1, 1, 1});  // 0.65f,0.65f,0.65f
+    rock_vis_mat->SetDiffuseColor({1, 1, 1});
+    rock_vis_mat->SetSpecularColor({1, 1, 1});
     rock_vis_mat->SetUseSpecularWorkflow(true);
     rock_vis_mat->SetRoughness(1.0f);
     rock_vis_mat->SetUseHapke(true);
-    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_PI/180));
+    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,
+                                     float(23.4 * CH_DEG_TO_RAD));
 
     // Add pre-defined 20 rocks
     for (int i = 0; i < 20; i++) {
@@ -290,13 +291,11 @@ int main(int argc, char* argv[]) {
         rock_mesh->SetMesh(rock_mmesh);
         rock_mesh->SetBackfaceCull(true);
 
-        if(rock_mesh->GetNumMaterials() == 0){
+        if (rock_mesh->GetNumMaterials() == 0) {
             rock_mesh->AddMaterial(rock_vis_mat);
-        }
-        else{
+        } else {
             rock_mesh->GetMaterials()[0] = rock_vis_mat;
         }
-        
 
         rock_Body->AddVisualShape(rock_mesh);
 
@@ -323,25 +322,23 @@ int main(int argc, char* argv[]) {
 
     // Add hapke material to the terrain
     auto lunar_material = chrono_types::make_shared<ChVisualMaterial>();
-    lunar_material->SetAmbientColor({0.0, 0.0, 0.0}); //0.65f,0.65f,0.65f
-    lunar_material->SetDiffuseColor({0.7, 0.7, 0.7});
-    lunar_material->SetSpecularColor({1.0, 1.0, 1.0});
+    lunar_material->SetAmbientColor({0.0, 0.0, 0.0});  // 0.65f,0.65f,0.65f
+    lunar_material->SetDiffuseColor({0.7f, 0.7f, 0.7f});
+    lunar_material->SetSpecularColor({1.0f, 1.0f, 1.0f});
     lunar_material->SetUseSpecularWorkflow(true);
     lunar_material->SetRoughness(0.8f);
     lunar_material->SetAnisotropy(1.f);
     lunar_material->SetUseHapke(true);
-    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_PI/180));
+    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,
+                                       float(23.4 * CH_DEG_TO_RAD));
     lunar_material->SetClassID(30000);
     lunar_material->SetInstanceID(20000);
     auto mesh = terrain.GetMesh();
 
-  
-
     {
-        if(mesh->GetNumMaterials() == 0){
+        if (mesh->GetNumMaterials() == 0) {
             mesh->AddMaterial(lunar_material);
-        }
-        else{
+        } else {
             mesh->GetMaterials()[0] = lunar_material;
         }
     }
@@ -445,7 +442,7 @@ int main(int argc, char* argv[]) {
     //
     // Create a sensor manager
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
-    manager->scene->AddPointLight({-10, 0, 50}, {1.f,1.f,1.f}, 1000);
+    manager->scene->AddPointLight({-10, 0, 50}, {1.f, 1.f, 1.f}, 1000);
     manager->SetVerbose(false);
     Background b;
     // b.mode = BackgroundMode::SOLID_COLOR;
@@ -495,21 +492,19 @@ int main(int argc, char* argv[]) {
 
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Front Radar"));
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(960, 480, 0.2, "Front Radar"));
-    
-    
+
     // Add camera
     auto cam = chrono_types::make_shared<ChCameraSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
                                                          50,                             // scanning rate in Hz
                                                          offset_pose,                    // offset pose
                                                          960,                            // image width
                                                          480,                            // image height
-                                                         CH_PI / 3                   // FOV
-                                                        );
+                                                         CH_PI / 3                       // FOV
+    );
     cam->SetName("Camera Sensor");
     cam->SetLag(0.f);
     cam->SetCollectionWindow(0.02f);
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(960, 480, "Camera Image"));
-
 
     // add lidar, radar and camera to the sensor manager
     manager->AddSensor(lidar);

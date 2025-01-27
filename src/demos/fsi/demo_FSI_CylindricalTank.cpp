@@ -19,14 +19,14 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #ifdef CHRONO_POSTPROCESS
@@ -83,14 +83,14 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class PositionVisibilityCallback : public ChParticleCloud::VisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
   public:
-    PositionVisibilityCallback() {}
+    MarkerPositionVisibilityCallback() {}
 
-    virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override {
-        auto p = cloud.GetParticlePos(n);
-        return p.x() < 0 || p.y() < 0;
-    };
+    virtual bool get(unsigned int n) const override {
+        auto p = pos[n];
+        return p.x < 0 || p.y < 0;
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -107,36 +107,43 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCylindrical fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = fsi.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(gravity);
+
+    // Set integration step size
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
     // Set CFD fluid properties
-    ChSystemFsi::FluidProperties fluid_props;
+    ChFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
-    fluid_props.viscosity = 1;
+    fluid_props.viscosity = 5;
 
-    sysFSI.SetCfdSPH(fluid_props);
+    fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.num_bce_layers = 3;
-    sph_params.kernel_h = initial_spacing;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.max_velocity = 1.0;
+    sph_params.d0_multiplier = 1;
+    sph_params.max_velocity = 8.0;
     sph_params.xsph_coefficient = 0.5;
     sph_params.shifting_coefficient = 0.0;
-    sph_params.density_reinit_steps = 1000;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = 1;
+    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.artificial_viscosity = 0.1;
+    sph_params.eos_type = EosType::TAIT;
+    sph_params.use_delta_sph = true;
+    sph_params.delta_sph_coefficient = 0.1;
 
-    sysFSI.SetSPHParameters(sph_params);
-    sysFSI.SetStepSize(step_size);
+    fsi.SetSPHParameters(sph_params);
 
     // Create a rigid body
     double radius = 0.12;
@@ -162,18 +169,17 @@ int main(int argc, char* argv[]) {
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, false);
 
-    // Enable height-based initial pressure for SPH particles
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(sysFSI, height));
+    // Enable depth-based initial pressure for SPH particles
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(height));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(r_inner, r_outer, height,  //
                   ChVector3d(0, 0, 0),       // position of bottom origin
-                  false,                     // bottom wall?
-                  false                      // side walls?
+                  CylSide::NONE              // no boundary BCEs
     );
 
     // Create a matching cylindrical container (with bottom, side, and top walls)
-    fsi.AddCylindricalContainer(r_inner, r_outer, height + 0.4, ChVector3d(0, 0, 0), true, true, true);
+    fsi.AddCylindricalContainer(r_inner, r_outer, height + 0.4, ChVector3d(0, 0, 0), CylSide::ALL);
 
     fsi.Initialize();
 
@@ -182,26 +188,32 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl;
+        cerr << "Error creating directory " << out_dir << endl; 
         return 1;
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        cerr << "Error creating directory " << out_dir + "/particles" << endl;
-        return 1;
+
+    if (output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+            cerr << "Error creating directory " << out_dir + "/particles" << endl;
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+            cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+            return 1;
+        }
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+            cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+            return 1;
+        }
     }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-        return 1;
+
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+            return 1;
+        }
     }
 
     ////fsi.SaveInitialMarkers(out_dir);
@@ -235,8 +247,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, 1.0);
-        auto vis_callback = chrono_types::make_shared<PositionVisibilityCallback>();
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
@@ -248,14 +259,11 @@ int main(int argc, char* argv[]) {
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
-        visFSI->SetSPHVisibilityCallback(vis_callback);
-        visFSI->SetBCEVisibilityCallback(vis_callback);
+        visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
+        visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
     }
-
-    // Record sphere height
-    ChFunctionInterp height_recorder;
 
     // Start the simulation
     double time = 0.0;
@@ -263,14 +271,19 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
+    std::string out_file = out_dir + "/results.txt";
+    std::ofstream ofile(out_file, std::ios::trunc);
+
     ChTimer timer;
     timer.start();
     while (time < t_end) {
+        auto body_height = body->GetPos().z();
+        ofile << time << "\t" << body_height << "\n";
+
         if (output && time >= out_frame / output_fps) {
             if (verbose)
                 cout << " -- Output frame " << out_frame << " at t = " << time << endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             out_frame++;
         }
 
@@ -291,20 +304,16 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        auto body_height = body->GetPos().z();
-        height_recorder.AddPoint(time, body_height);
-
-        ////cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
-        ////     << "\tbody z: " << body_height << endl;
-
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        fsi.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;
     }
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
+
+    ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
@@ -313,7 +322,7 @@ int main(int argc, char* argv[]) {
     gplot.SetTitle(speed_title);
     gplot.SetLabelX("time (s)");
     gplot.SetLabelY("height (m)");
-    gplot.Plot(height_recorder, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+    gplot.Plot(out_file, 1, 2, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
 #endif
 
     return 0;

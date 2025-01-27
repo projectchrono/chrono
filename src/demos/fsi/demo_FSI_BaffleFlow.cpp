@@ -20,15 +20,14 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/ChFsiProblem.h"
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -46,15 +45,8 @@ using std::endl;
 // Run-time visualization system (VSG, OpenGL, or NONE)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Output directories and settings
-std::string out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow";
-
-// Output frequency
-bool output = false;
-unsigned int output_fps = 100;
-
 // Container dimensions
-ChVector3d csize(1.6, 1.4, 0.16);
+ChVector3d csize(1.6, 1.4, 0.5);
 
 // Size of the baffles
 ChVector3d bsize(0.1, 0.1, 0.16);
@@ -67,16 +59,6 @@ ChVector3d bloc3(0.4, 0, 0);
 // Initial size of SPH material
 ChVector3d fsize(0.2, 0.8, 0.14);
 
-// Final simulation time
-double t_end = 0.7;
-
-// Enable/disable run-time visualization
-bool render = true;
-double render_fps = 300;
-
-// Enable saving snapshots
-bool snapshots = false;
-
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -84,32 +66,31 @@ bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
 // ----------------------------------------------------------------------------
+
 // Callback for setting initial SPH particle properties
-class SPHPropertiesCallback : public ChFsiProblem::ParticlePropertiesCallback {
+class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    SPHPropertiesCallback(const ChSystemFsi& sysFSI, double zero_height, const ChVector3d& init_velocity)
-        : ParticlePropertiesCallback(sysFSI), zero_height(zero_height), init_velocity(init_velocity) {
-        gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
-        c2 = sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed();
+    SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity)
+        : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {
     }
 
-    virtual void set(const ChVector3d& pos) override {
-        p0 = sysFSI.GetDensity() * gz * (zero_height - pos.z());
-        rho0 = sysFSI.GetDensity() + p0 / c2;
-        mu0 = sysFSI.GetViscosity();
+    virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+        double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
+        double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
+        p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
+        rho0 = sysSPH.GetDensity() + p0 / c2;
+        mu0 = sysSPH.GetViscosity();
         v0 = init_velocity;
     }
 
     double zero_height;
     ChVector3d init_velocity;
-    double gz;
-    double c2;
 };
 
 // ----------------------------------------------------------------------------
 
-void CreateBaffles(ChFsiProblem& fsi) {
-    ChSystem& sysMBS = fsi.GetSystyemMBS();
+void CreateBaffles(ChFsiProblemSPH& fsi) {
+    ChSystem& sysMBS = fsi.GetMultibodySystem();
 
     // Common contact material and geometry
     ChContactMaterialData cmat;
@@ -153,35 +134,54 @@ void CreateBaffles(ChFsiProblem& fsi) {
 
 bool GetProblemSpecs(int argc,
                      char** argv,
+                     double& t_end,
                      bool& verbose,
                      bool& output,
-                     unsigned int& output_fps,
+                     double& output_fps,
                      bool& render,
                      double& render_fps,
                      bool& snapshots,
-                     int& ps_freq) {
+                     int& ps_freq,
+                     std::string& boundary_type,
+                     std::string& viscosity_type) {
     ChCLI cli(argv[0], "Baffle Flow FSI demo");
+
+    cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose terminal output");
     cli.AddOption<bool>("Output", "output", "Enable collection of output files");
-    cli.AddOption<unsigned int>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
     cli.AddOption<bool>("Visualization", "snapshots", "Enable writing snapshot image files");
+
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
+
+    // options for boundary condition and viscosity type
+    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_type",
+                               "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
         return false;
     }
 
+    t_end = cli.GetAsType<double>("t_end");
+
     verbose = !cli.GetAsType<bool>("quiet");
     output = cli.GetAsType<bool>("output");
     render = !cli.GetAsType<bool>("no_vis");
     snapshots = cli.GetAsType<bool>("snapshots");
-    output_fps = cli.GetAsType<unsigned int>("output_fps");
+
+    output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
+
     ps_freq = cli.GetAsType<int>("ps_freq");
+
+    boundary_type = cli.GetAsType<std::string>("boundary_type");
+    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
 
     return true;
 }
@@ -191,13 +191,22 @@ bool GetProblemSpecs(int argc,
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.01;
     double step_size = 1e-4;
+
+    // Parse command line arguments
+    double t_end = 0.7;
     bool verbose = true;
-    int ps_freq = 1;  // Frequency of Proximity Search
-    if (!GetProblemSpecs(argc, argv, verbose, output, output_fps, render, render_fps, snapshots, ps_freq)) {
+    bool output = false;
+    double output_fps = 100;
+    bool render = true;
+    double render_fps = 300;
+    bool snapshots = false;
+    int ps_freq = 1;
+    std::string boundary_type = "adami";
+    std::string viscosity_type = "artificial_unilateral";
+    if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
+                         boundary_type, viscosity_type)) {
         return 1;
     }
-
-    out_dir = out_dir + std::to_string(ps_freq) + "/";
 
     // Create the Chrono system and associated collision system
     ChSystemSMC sysMBS;
@@ -206,65 +215,79 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
-    ChSystemFsi& sysFSI = fsi.GetSystemFSI();
+    ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
     // Set gravitational acceleration
     const ChVector3d gravity(0, 0, -9.8);
-    sysFSI.SetGravitationalAcceleration(gravity);
-    sysMBS.SetGravitationalAcceleration(gravity);
+    fsi.SetGravitationalAcceleration(gravity);
+
+    // Set integration step size
+    fsi.SetStepSizeCFD(step_size);
+    fsi.SetStepsizeMBD(step_size);
 
     // Set soil propertiees
-    ChSystemFsi::ElasticMaterialProperties mat_props;
+    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
-    mat_props.stress = 0;  // default
-    mat_props.viscosity_alpha = 0.05;
-    mat_props.viscosity_beta = 0.0;
     mat_props.mu_I0 = 0.03;
     mat_props.mu_fric_s = 0.7;
     mat_props.mu_fric_2 = 0.7;
     mat_props.average_diam = 0.0614;
-    mat_props.friction_angle = CH_PI / 10;  // default
-    mat_props.dilation_angle = CH_PI / 10;  // default
-    mat_props.cohesion_coeff = 0;           // default
+    mat_props.cohesion_coeff = 0;  // default
 
-    sysFSI.SetElasticSPH(mat_props);
+    fsi.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChSystemFsi::SPHParameters sph_params;
+    ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.kernel_h = 0.012;
     sph_params.initial_spacing = initial_spacing;
-    sph_params.xsph_coefficient = 0.5;
+    sph_params.d0_multiplier = 1.2;
+    sph_params.artificial_viscosity = 0.1;
+    sph_params.xsph_coefficient = 0.25;
     sph_params.shifting_coefficient = 1.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
 
-    sysFSI.SetSPHParameters(sph_params);
+    // Set boundary type
+    if (boundary_type == "holmes") {
+        sph_params.boundary_type = BoundaryType::HOLMES;
+    } else {
+        sph_params.boundary_type = BoundaryType::ADAMI;
+    }
+
+    // Set viscosity type
+    if (viscosity_type == "artificial_bilateral") {
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    } else {
+        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+    }
+
+    fsi.SetSPHParameters(sph_params);
 
     // Create rigid bodies
     CreateBaffles(fsi);
 
-    // Enable height-based initial pressure for SPH particles
-    ChVector3 v0(2, 0, 0);
-    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(sysFSI, fsize.z(), v0));
+    // Enable depth-based initial pressure for SPH particles
+    ChVector3d v0(1.5, 0, 0);
+    fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
     fsi.Construct(fsize,                                                                          // box dimensions
                   ChVector3d(bloc1.x() - bsize.x() / 2 - fsize.x() / 2 - initial_spacing, 0, 0),  // reference location
-                  false,                                                                          // bottom wall?
-                  false                                                                           // side walls?
+                  BoxSide::NONE                                                                   // no boundary BCEs
     );
 
     // Create container
-    bool side_walls = false;
     fsi.AddBoxContainer(csize,                // length x width x height
                         ChVector3d(0, 0, 0),  // reference location
-                        true,                 // bottom wall
-                        side_walls,           // side walls
-                        false                 // top wall
+                        BoxSide::Z_NEG        // creater only bottom boundary
     );
+
+    // Explicitly set computational domain (necessary if no side walls)
+    ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
+                ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
+    fsi.SetComputationalDomainSize(aabb);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);
@@ -274,13 +297,23 @@ int main(int argc, char* argv[]) {
     }
 
     fsi.Initialize();
+
+    // Output directories
+    std::string out_dir;
     if (output || snapshots) {
+        out_dir = GetChronoOutputPath() + "FSI_Baffle_Flow/";
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
+        out_dir = out_dir + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
+            std::cerr << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+
         if (output) {
-            // Create output directories
-            if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                std::cerr << "Error creating directory " << out_dir << std::endl;
-                return 1;
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
                 std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
                 return 1;
@@ -294,14 +327,8 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         }
+
         if (snapshots) {
-            if (!output) {
-                // Create output directories
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    std::cerr << "Error creating directory " << out_dir << std::endl;
-                    return 1;
-                }
-            }
             if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
                 std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
                 return 1;
@@ -338,7 +365,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto col_callback = chrono_types::make_shared<VelocityColorCallback>(0, v0.Length());
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v0.Length());
 
         visFSI->SetTitle("Chrono::FSI baffle flow");
         visFSI->SetSize(1280, 720);
@@ -364,10 +391,9 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < t_end) {
         if (output && time >= out_frame / output_fps) {
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+            fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             out_frame++;
-        }
+        } 
 
         // Render SPH particles
         if (render && time >= render_frame / render_fps) {
@@ -386,11 +412,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (sim_frame % 1000 == 0) {
-            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF() << std::endl;
+            std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF_fluid: " << fsi.GetRtfCFD()
+                      << "\tRTF_solid: " << fsi.GetRtfMBD() << std::endl;
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        fsi.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

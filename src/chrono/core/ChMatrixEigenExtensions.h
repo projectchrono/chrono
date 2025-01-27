@@ -30,12 +30,6 @@ inline void fillRandom(Scalar min, Scalar max) {
     derived() = (derived().Random(rows(), cols()) + 1.) * 0.5 * (max - min) + min;
 }
 
-/// Test if this matrix is within given tolerance from specified matrix (element-wise).
-template <typename OtherDerived>
-inline bool equals(const MatrixBase<OtherDerived>& other, Scalar tolerance) {
-    return (derived() - other).cwiseAbs().maxCoeff() <= tolerance;
-}
-
 /// Calculate the WRMS (weighted residual mean square) norm of a vector.
 template <typename OtherDerived>
 Scalar wrmsNorm(

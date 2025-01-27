@@ -426,10 +426,10 @@ int main(int argc, char* argv[]) {
             // for (int i = 0; i < depth_ptr->Height * depth_ptr->Width; i++) {
             //     max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);
             // }
-            float depth = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
+            float d = depth_ptr->Buffer[depth_ptr->Height * depth_ptr->Width / 2].depth;
             std::cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
                       << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
-                      << ", depth ["<<depth_ptr->Height * depth_ptr->Width / 2 << "] ="<< depth << "m" << std::endl
+                      << ", depth ["<<depth_ptr->Height * depth_ptr->Width / 2 << "] ="<< d << "m" << std::endl
                       << std::endl;
         }
 

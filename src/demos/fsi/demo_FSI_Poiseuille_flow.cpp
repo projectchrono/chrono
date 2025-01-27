@@ -22,14 +22,14 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/sph/ChFluidSystemSPH.h"
 
-#include "chrono_fsi/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
 #ifdef CHRONO_VSG
-    #include "chrono_fsi/visualization/ChFsiVisualizationVSG.h"
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -59,36 +59,19 @@ double t_end = 10.0;
 
 // Enable/disable run-time visualization
 bool render = true;
-bool snapshots = true;
+bool snapshots = false;
 float render_fps = 100;
-
-//------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if FSI,
-// their BCE representation are created and added to the systems
-//------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    // General setting of ground body
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetFixed(true);
-    ground->EnableCollision(false);
-    sysMBS.AddBody(ground);
-
-    // Add BCE particles attached on the walls into FSI system
-    sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(0, 0, 2));
-}
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    // Create a physics system and an FSI system
+    // Create a physics system and an SPH system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_I2SPH.json");
     if (argc == 1) {
         std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
@@ -99,13 +82,13 @@ int main(int argc, char* argv[]) {
         std::cout << "usage: ./demo_FSI_Poiseuille_flow <json_file>" << std::endl;
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
     // Set the periodic boundary condition (in X and Y direction)
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
     ChVector3d cMax = ChVector3d(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetBoundaries(cMin, cMax);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
@@ -118,13 +101,21 @@ int main(int argc, char* argv[]) {
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSPHParticle(points[i]);
+        sysSPH.AddSPHParticle(points[i]);
     }
 
     // Create solid region and attach BCE SPH particles
-    CreateSolidPhase(sysMBS, sysFSI);
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
+    sysMBS.AddBody(ground);
 
-    // Complete construction of the FSI system
+    sysSPH.AddBoxContainerBCE(ground,                                         //
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(0, 0, 2));
+
+    // Complete construction of the fluid system
     sysFSI.Initialize();
 
     // Create oputput directories
@@ -132,7 +123,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysFSI.GetPhysicsProblemString() + "_" + sysFSI.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -164,16 +155,18 @@ int main(int argc, char* argv[]) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
 #ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysSPH);
 #endif
                 break;
             case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysSPH);
 #endif
                 break;
             }
         }
+
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 0.04);
 
         visFSI->SetTitle("Chrono::FSI Poiseuille flow");
         visFSI->AddCamera(ChVector3d(0, -5 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.5 * bzDim));
@@ -181,12 +174,12 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<VelocityColorCallback>(0, 0.04));
+        visFSI->SetSPHColorCallback(col_callback);
         visFSI->Initialize();
     }
 
     // Start the simulation
-    double dT = sysFSI.GetStepSize();
+    double dT = sysSPH.GetStepSize();
     double time = 0;
     int sim_frame = 0;
     int out_frame = 0;
@@ -195,12 +188,10 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << sim_frame << " time: " << time << std::endl;
-
         // Save data of the simulation
         if (output && time >= out_frame / out_fps) {
             std::cout << " -- Output frame " << out_frame << " at t = " << time << std::endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
+            sysSPH.SaveParticleData(out_dir + "/particles");
 
             out_frame++;
         }
@@ -222,7 +213,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Call the FSI solver
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
 
         time += dT;
         sim_frame++;

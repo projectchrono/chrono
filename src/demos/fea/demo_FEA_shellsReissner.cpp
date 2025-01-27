@@ -28,9 +28,6 @@
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
-
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
@@ -38,13 +35,13 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+#include "FEAvisualization.h"
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -413,35 +410,28 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-    auto mvisualizeshellA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeshellA = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeshellA->SetSmoothFaces(true);
     mvisualizeshellA->SetWireframe(true);
     my_mesh->AddVisualShapeFEA(mvisualizeshellA);
     /*
-    auto mvisualizeshellB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeshellB = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeshellB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizeshellB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeshellB->SetSymbolsThickness(0.01);
     my_mesh->AddVisualShapeFEA(mvisualizeshellB);
     */
 
-    auto mvisualizeshellC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeshellC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeshellC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizeshellC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     mvisualizeshellC->SetSymbolsThickness(0.05);
     mvisualizeshellC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizeshellC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Shells FEA");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddTypicalLights();
-    vis->AddCamera(ChVector3d(0.0, 6.0, -15.0));
-    vis->AttachSystem(&sys);
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Reissner Shells FEA",
+                                         ChVector3d(0.0, 6.0, -15.0));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -471,9 +461,6 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
 
-        // .. draw also a grid
-        tools::drawGrid(vis.get(), 1, 1);
-
         // ...update load at end nodes, as simple lumped nodal forces
 
         double load_scale = mtime * 0.1;
@@ -493,9 +480,6 @@ int main(int argc, char* argv[]) {
         }
 
         vis->EndScene();
-
-        if (load_scale > 1)
-            vis->GetDevice()->closeDevice();
     }
 
     // Outputs results in a GNUPLOT plot:
