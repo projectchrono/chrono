@@ -924,7 +924,7 @@ if(HAVE_OPENCRG)
 endif()
 
 if(ENABLE_MODULE_FSI)
-  target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsi)
+  target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsi_sph)
 endif()
 
 target_compile_definitions(ChronoEngine INTERFACE 

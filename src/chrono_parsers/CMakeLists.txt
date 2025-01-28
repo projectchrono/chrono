@@ -76,14 +76,25 @@ SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
 
 
 # Include ROS parser if found --------------------------------------------
+set(HAVE_ROS FALSE)
 
 find_package(ROS2 QUIET
   COMPONENTS ament_index_cpp
 )
 if (ROS2_FOUND)
-    set(HAVE_ROS TRUE)
-    message(STATUS "Found ROS 2.")
-    message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
+  find_package(ament_index_cpp QUIET)
+  if (ament_index_cpp_FOUND)
+  set(HAVE_ROS TRUE)
+  message(STATUS "Found ROS 2.")
+  message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")  
+  set(_ament_prefix_path "$ENV{AMENT_PREFIX_PATH}")
+  foreach(_ros2_packages_path IN LISTS _ament_prefix_path)
+      string(REPLACE ":" ";" _ros2_packages_path ${_ros2_packages_path})
+      target_include_directories(ChronoEngine_parsers PRIVATE "${_ros2_packages_path}/include")
+  endforeach()
+  target_compile_definitions(ChronoEngine_parsers PUBLIC $<$<COMPILE_LANGUAGE:CXX>:HAVE_ROS>)
+  target_link_libraries(ChronoEngine_parsers PRIVATE ament_index_cpp::ament_index_cpp)
+  endif()
 else()
     set(HAVE_ROS FALSE)
     message(STATUS "Package ROS2 NOT found. ROS support disabled.")
@@ -115,44 +126,6 @@ endif()
 
 SET(HAVE_PYTHON "${HAVE_PYTHON}" PARENT_SCOPE)
 
-#-----------------------------------------------------------------------------
-
-set(CH_PARSERS_INCLUDES "")
-if(HAVE_URDF)
-    include_directories(${urdfdom_INCLUDE_DIRS})
-    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${urdfdom_INCLUDE_DIRS}")
-endif()
-if (HAVE_ROS)
-  set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${ROS2_INCLUDE_DIRS}")
-  add_definitions(-DHAVE_ROS)
-endif()
-if(HAVE_PYTHON)
-    include_directories(${CH_PYTHONINC})
-    set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES};${CH_PYTHONINC}")
-endif()
-set(CH_PARSERS_INCLUDES "${CH_PARSERS_INCLUDES}" PARENT_SCOPE)
-
-add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
-
-set_target_properties(ChronoEngine_parsers PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-
-target_compile_definitions(ChronoEngine_parsers PRIVATE "CH_API_COMPILE_PARSERS")
-target_compile_definitions(ChronoEngine_parsers PRIVATE "CH_IGNORE_DEPRECATED")
-
-target_link_libraries(ChronoEngine_parsers ChronoEngine)
-if(HAVE_URDF)
-    target_link_libraries(ChronoEngine_parsers urdfdom::urdfdom_model)
-    target_link_libraries(ChronoEngine_parsers urdfdom::urdfdom_sensor)
-    target_link_libraries(ChronoEngine_parsers tinyxml2::tinyxml2)
-endif()
-if(HAVE_ROS)
-    target_link_libraries(ChronoEngine_parsers ament_index_cpp::ament_index_cpp)
-endif()
-if(HAVE_PYTHON)
-    target_link_libraries(ChronoEngine_parsers ${CH_PYTHONLIB})
-endif()
 
 install(TARGETS ChronoEngine_parsers
         EXPORT ChronoEngineTargets

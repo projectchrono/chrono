@@ -494,9 +494,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
       if (CHRONO_${COMPONENT_UPPER}_FOUND)
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi_sph")
         if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi_sph.dll")
 
           # ATTENTION: This is a temporary hack!
           # We only add to the list of DLLs, when we should fully configure the OpenGL and VSG modules.

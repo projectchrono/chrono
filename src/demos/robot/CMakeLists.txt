@@ -74,7 +74,7 @@ if(ENABLE_MODULE_SENSOR)
 endif()
 
 if(ENABLE_MODULE_FSI)
-  list(APPEND LIBS "ChronoEngine_fsi")
+  list(APPEND LIBS "ChronoEngine_fsi_sph")
 endif()
 
 # ------------------------------------------------------------------------------

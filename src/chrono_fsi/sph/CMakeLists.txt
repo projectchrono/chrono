@@ -14,32 +14,14 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
 endif()
 
 # Return now if CUDA is not available
-if(NOT CUDA_FOUND)
-    message("Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
+if(NOT CHRONO_CUDA_FOUND)
+    find_package(CUDAToolkit REQUIRED)
+    message(WARNING "Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
     set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()
 endif()
 
 message(STATUS "  Use double precision? " ${FSI_USE_DOUBLE})
-
-# ----------------------------------------------------------------------------
-# Collect additional include directories necessary for the FSI-SPH module
-# ----------------------------------------------------------------------------
-
-set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES} ${CUDA_TOOLKIT_ROOT_DIR}/include")
-
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_FRAMEWORK})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cudadevrt_LIBRARY})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_CUDART_LIBRARY})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cusparse_LIBRARY})
-list(APPEND CH_FSI_LINKED_LIBRARIES ${CUDA_cublas_LIBRARY})
-
-message(STATUS "  FSI-SPH libraries: ${CH_FSI_LINKED_LIBRARIES}")
-
-# Make some variables visible from parent directory
-
-set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
-set(CH_FSI_LINKED_LIBRARIES "${CH_FSI_LINKED_LIBRARIES}" PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library
@@ -154,7 +136,7 @@ source_group("utils\\stb" FILES ${ChronoEngine_FSI_STB_FILES})
 # Create the ChronoEngine_fsi_sph library
 #-----------------------------------------------------------------------------
 
-cuda_add_library(ChronoEngine_fsi_sph
+add_library(ChronoEngine_fsi_sph
     ${ChronoEngine_FSI_BASE_FILES}
     ${ChronoEngine_FSI_FILES}
     ${ChronoEngine_FSI_PHYSICS_FILES}
@@ -164,19 +146,44 @@ cuda_add_library(ChronoEngine_fsi_sph
     ${ChronoEngine_FSI_STB_FILES}
 )
 
-set_target_properties(ChronoEngine_fsi_sph PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_FSI_LINKER_FLAGS}")
+add_library(ChronoEngine::fsi_sph ALIAS ChronoEngine_fsi_sph)
 
-target_compile_definitions(ChronoEngine_fsi_sph PRIVATE "CH_API_COMPILE_FSI")
-target_compile_definitions(ChronoEngine_fsi_sph PRIVATE "CH_IGNORE_DEPRECATED")
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cudart_static)
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::nvrtc)
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cuda_driver)
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cublas)
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cusparse)
 
-target_link_libraries(ChronoEngine_fsi_sph ${CH_FSI_LINKED_LIBRARIES})
+
+if(ENABLE_MODULE_OPENGL)
+  target_link_libraries(ChronoEngine_fsi_sph PRIVATE ChronoEngine_opengl)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+     target_compile_options(ChronoEngine_fsi_sph PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
+  endif()
+endif()
+
+if(ENABLE_MODULE_VSG)
+  target_link_libraries(ChronoEngine_fsi_sph PRIVATE ChronoEngine_vsg)
+endif()
+
+# If using MSVC, disable warnings related to missing DLL interface
+if(MSVC)
+    target_compile_options(ChronoEngine_fsi_sph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+endif()
+
+
+target_compile_definitions(ChronoEngine_fsi_sph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+
+set_target_properties(ChronoEngine_fsi_sph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+
 
 install(TARGETS ChronoEngine_fsi_sph
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_fsi)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_fsi

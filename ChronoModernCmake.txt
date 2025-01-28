@@ -20,3 +20,4 @@
 - use consistently either pardiso_mkl or pardisomkl
 - update USE_TENSOR_RT
 - check AVX2 not actually passed to compiler
+- ma.SetMatr(mlist) in demo_CH_coordsys.py gives error

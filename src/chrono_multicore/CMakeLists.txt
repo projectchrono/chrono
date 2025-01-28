@@ -17,7 +17,6 @@ if(NOT ENABLE_MODULE_MULTICORE)
   mark_as_advanced(FORCE Blaze_ROOT)
   mark_as_advanced(FORCE USE_MULTICORE_DOUBLE)
   mark_as_advanced(FORCE USE_MULTICORE_SIMD)
-  mark_as_advanced(FORCE USE_MULTICORE_CUDA)
   return()
 endif()
 
@@ -42,21 +41,10 @@ endif()
 mark_as_advanced(CLEAR Blaze_ROOT)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
-mark_as_advanced(CLEAR USE_MULTICORE_CUDA)
 
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
-
-# ----- CUDA support -----
-cmake_dependent_option(USE_MULTICORE_CUDA "Enable CUDA support in Chrono::Multicore (if available)" OFF "CMAKE_CUDA_COMPILER" OFF)
-
-if(USE_MULTICORE_CUDA)
-  set(CHRONO_MULTICORE_USE_CUDA "#define CHRONO_MULTICORE_USE_CUDA")
-else()
-  set(CHRONO_MULTICORE_USE_CUDA "#undef CHRONO_MULTICORE_USE_CUDA")
-endif()
-
 # ----- Double precision support -----
 
 OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision math" ON)
@@ -108,23 +96,9 @@ set(ChronoEngine_Multicore_PHYSICS
     physics/ChFluidKernels.h
     physics/ChFluidContainer.cpp
     physics/ChParticleContainer.cpp
-    physics/ChMPMSettings.h
     )
 
 source_group(physics FILES ${ChronoEngine_Multicore_PHYSICS})
-
-set(ChronoEngine_Multicore_CUDA
-    cuda/matrixf.cuh
-    cuda/svd.h
-    cuda/ChCudaHelper.cuh
-    cuda/ChGPUVector.cuh
-    cuda/ChMPM.cu
-    cuda/ChMPM.cuh
-    cuda/ChMPMUtils.h
-    )
-
-source_group(cuda FILES ${ChronoEngine_Multicore_CUDA})
-
     
 set(ChronoEngine_Multicore_SOLVER
     solver/ChSystemDescriptorMulticore.h
@@ -185,16 +159,7 @@ add_library(ChronoEngine_multicore
 
 add_library(ChronoEngine::ChronoEngine_multicore ALIAS ChronoEngine_multicore)
 
-if(USE_MULTICORE_CUDA)
-  target_sources(ChronoEngine_multicore PRIVATE ${ChronoEngine_Multicore_CUDA})
-  target_link_libraries(ChronoEngine_multicore PRIVATE CUDA::cudart_static)
-  target_link_libraries(ChronoEngine_multicore PRIVATE CUDA::nvrtc)
-  target_link_libraries(ChronoEngine_multicore PRIVATE CUDA::cuda_driver)
-endif()
-
 set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-set_target_properties(ChronoEngine_multicore PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
-
 
 target_link_libraries(ChronoEngine_multicore PRIVATE ChronoEngine)
 if(ENABLE_OPENMP)
@@ -244,16 +209,10 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_multicore
         FILES_MATCHING PATTERN "*.h")
 
-if(USE_MULTICORE_CUDA)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-          DESTINATION include/chrono_multicore
-          FILES_MATCHING PATTERN "*.cuh")
-endif()
-
 # Install required chrono_thirdparty headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
         DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
 
 # Provide required find
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
