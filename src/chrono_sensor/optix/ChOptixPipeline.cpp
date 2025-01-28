@@ -1087,7 +1087,7 @@ unsigned int ChOptixPipeline::GetNVDBMaterial(std::vector<std::shared_ptr<ChVisu
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_nvdb_vol_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
-    mat_record.data.num_blended_materials = mat_list.size();
+    mat_record.data.num_blended_materials = (unsigned int)mat_list.size();
     m_material_records.push_back(mat_record);
 
     return static_cast<unsigned int>(m_material_records.size() - 1);
