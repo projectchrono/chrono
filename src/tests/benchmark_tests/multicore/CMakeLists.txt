@@ -28,7 +28,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-message(STATUS "Benchmark test programs for MULTICORE module...")
+message(STATUS "Add benchmark test programs for MULTICORE module")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

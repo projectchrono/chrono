@@ -33,10 +33,10 @@ endif()
 
 #--------------------------------------------------------------
 
-message(STATUS "Demo programs for CORE module...")
+#message(STATUS "Demo programs for CORE module...")
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    #message(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

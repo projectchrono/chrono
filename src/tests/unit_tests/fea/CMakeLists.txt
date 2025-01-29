@@ -30,7 +30,7 @@ set(TESTS_MKL
     utest_FEA_constraints
 )
 
-# MESSAGE(STATUS "Unit test programs for FEA module...")
+MESSAGE(STATUS "Add unit test programs for FEA module")
 
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data

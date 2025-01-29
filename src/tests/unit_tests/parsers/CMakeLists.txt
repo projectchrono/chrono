@@ -1,5 +1,3 @@
-# MESSAGE(STATUS "Unit test programs for Parsers module...")
-
 set(TESTS "")
 
 if(HAVE_URDF)
@@ -31,6 +29,8 @@ set(LIBRARIES ChronoEngine ChronoEngine_parsers)
 
 #--------------------------------------------------------------
 # Add executables
+
+MESSAGE(STATUS "Add unit test programs for PARSERS module")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

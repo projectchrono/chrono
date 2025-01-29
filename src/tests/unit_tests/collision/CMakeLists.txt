@@ -46,7 +46,7 @@ ELSE()
   SET(BULLET_FILES "")
 ENDIF()
 
-# MESSAGE(STATUS "Unit test programs for COLLISION...")
+MESSAGE(STATUS "Add unit test programs for COLLISION")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

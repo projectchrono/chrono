@@ -25,7 +25,7 @@ set(TESTS
 
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "benchmark test programs for SENSOR module...")
+MESSAGE(STATUS "Add benchmark test programs for SENSOR module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

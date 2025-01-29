@@ -118,7 +118,7 @@ endif()
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for Threads...")
+message(STATUS "Searching for Threads")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
@@ -133,7 +133,7 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 # However, we allow the user to optionally disable OpenMP support in the
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
-message(STATUS "Searching for OpenMP...")
+message(STATUS "Searching for OpenMP")
 # WARNING: TODO: OpenMP must be looked for before CUDA, since it cannot find OpenMP_CUDA; should it?
 find_package(OpenMP)
 
@@ -195,6 +195,8 @@ endif()
 # # CUDA support
 # #-----------------------------------------------------------------------------
 
+message(STATUS "Searching for CUDA")
+
 set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "all-major")
@@ -213,7 +215,7 @@ if(CMAKE_CUDA_COMPILER)
     message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
     set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
     mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
-    message(STATUS "CUDA found and enabled.")
+    message(STATUS "  CUDA found and enabled.")
     ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       set(CUDA_SEPARABLE_COMPILATION OFF)
@@ -221,7 +223,7 @@ if(CMAKE_CUDA_COMPILER)
 else()
     set(CHRONO_CUDA_FOUND FALSE)
     mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
-    message(WARNING "CUDA not found. CUDA features will be disabled.")
+    message(WARNING "  CUDA not found. CUDA features will be disabled.")
 endif()
 
 
@@ -234,7 +236,7 @@ option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 if(USE_SIMD)
 	
    # Figure out SIMD support
-   message(STATUS "Testing SIMD capabilities...")
+   message(STATUS "Testing SIMD capabilities")
    find_package(SIMD)
    
    # Set substitution variables for configuration file
@@ -275,7 +277,7 @@ if(USE_SIMD)
    set(ALLOW_FMA TRUE)
    if(MSVC)
      if(NOT CH_WHOLE_PROG_OPT)
-        message(STATUS "FMA requires enabling whole program optimization. FMA check disabled.")
+        message(STATUS "  FMA requires enabling whole program optimization. FMA check disabled.")
         set(ALLOW_FMA FALSE)
      endif()
    endif()
@@ -294,7 +296,7 @@ if(USE_SIMD)
 
 else()
 
-   message(STATUS "SIMD support disabled")
+   message(STATUS "  SIMD support disabled")
 
 endif() 
 
@@ -302,23 +304,23 @@ endif()
 # Eigen library
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for Eigen3 in module mode.")
-find_package(Eigen3 3.3 MODULE)
+message(STATUS "Searching for Eigen3 in module mode")
+find_package(Eigen3 3.3 MODULE QUIET)
 if(EIGEN3_FOUND)
-  message(STATUS "Eigen3 found (module mode)")
-  message(STATUS "EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+  message(STATUS "  Eigen3 found (module mode)")
+  message(STATUS "  EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
   mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
 else()
-  message(STATUS "Eigen3 not found in module mode. Looking for Eigen3 in configuration mode.")
+  message(STATUS "  Eigen3 not found in module mode. Looking for Eigen3 in configuration mode.")
   find_package(Eigen3 3.3 CONFIG)
   if(EIGEN3_FOUND)
-    message(STATUS "Eigen3 found (config mode)")
-    message(STATUS "EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+    message(STATUS "  Eigen3 found (config mode)")
+    message(STATUS "  EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
     mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
     mark_as_advanced(FORCE Eigen3_DIR)
   else()
-    message(SEND_ERROR "Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
+    message(SEND_ERROR "  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
     set(EIGEN3_INCLUDE_DIR "" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
     mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
     mark_as_advanced(CLEAR Eigen3_DIR)
@@ -348,7 +350,6 @@ if(MPI_CXX_FOUND)
   message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")
   message(STATUS "  MPI link flags:    ${MPI_CXX_LINK_FLAGS}")
   message(STATUS "  MPI libraries:     ${MPI_CXX_LIBRARIES}")
-  message(STATUS "")
   message(STATUS "  MPIEXEC:               ${MPIEXEC}")
   message(STATUS "  MPIEXEC_NUMPROC_FLAG:  ${MPIEXEC_NUMPROC_FLAG}")
   message(STATUS "  MPIEXEC_PREFLAGS:      ${MPIEXEC_PREFLAGS}")
@@ -359,7 +360,7 @@ endif()
 # Thrust library
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for Thrust...")
+message(STATUS "Searching for Thrust")
 
 find_package(Thrust)
 
@@ -367,11 +368,6 @@ if(THRUST_FOUND)
   message(STATUS "  Thrust version:     ${THRUST_VERSION}")
   message(STATUS "  Thrust include dir: ${THRUST_INCLUDE_DIR}")
   mark_as_advanced(FORCE THRUST_ROOT)
-
-  if(THRUST_VERSION VERSION_GREATER "2.2.0")
-    message("  Thrust version newer than 2.2.0 not supported. Thrust support disabled.")
-    set(THRUST_FOUND FALSE)
-  endif()
 else()
   message(STATUS "  Thrust not found. Set THRUST_ROOT to the location of Thrust library.")
   mark_as_advanced(CLEAR THRUST_ROOT)
@@ -618,6 +614,8 @@ endif()
 if(BUILD_BENCHMARKING)
   add_subdirectory(tests/benchmark_tests)
 endif()
+
+message(STATUS "")
 
 #------------------------------------------------------------
 # Install headers from chrono_thirdparty folder

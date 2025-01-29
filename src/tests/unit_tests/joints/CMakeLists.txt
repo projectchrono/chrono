@@ -1,8 +1,6 @@
 # Unit tests for miscellaneous Chrono joints
 # ==================================================================
 
-message(STATUS "Unit tests for Chrono joints...")
-
 set(TEST_PROGRAMS
     utest_JOINT_revolute
     utest_JOINT_spherical
@@ -35,8 +33,10 @@ set(LIBRARIES ChronoEngine)
 #--------------------------------------------------------------
 # Add executables
 
+message(STATUS "Add unit test programs for Chrono joints")
+
 foreach(PROGRAM ${TEST_PROGRAMS})
-  message(STATUS "...${PROGRAM}")
+  #message(STATUS "...${PROGRAM}")
   
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")

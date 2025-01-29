@@ -37,7 +37,7 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Test programs for Gpu module...")
+MESSAGE(STATUS "Add unit test programs for Gpu module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

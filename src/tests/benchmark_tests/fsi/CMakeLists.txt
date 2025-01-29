@@ -23,10 +23,10 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-message(STATUS "Benchmark test programs for FSI module...")
+message(STATUS "Add benchmark test programs for FSI module")
 
 foreach(PROGRAM ${TESTS})
-    message(STATUS "...add ${PROGRAM}")
+    #message(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")

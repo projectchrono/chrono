@@ -752,7 +752,7 @@ source_group(collision FILES
 # Chrono collision group
 
 if (THRUST_FOUND)
-   message(STATUS "Adding internal multicore collision detection library.")       
+   message(STATUS "Add Chrono multicore collision detection library")       
 
    set(ChronoEngine_collision_multicore_SOURCES
        collision/multicore/ChCollisionSystemMulticore.h
@@ -1491,7 +1491,7 @@ endif()
 # Compiler warning level and disbaled warnings
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    message(STATUS "[Clang] Warning level set to default")
+    message(STATUS "Warning level set to default")
     #target_compile_options(ChronoEngine PUBLIC -Wall)
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-warning-option>)
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-reorder-ctor>)
@@ -1502,7 +1502,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result>)
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-Wno-switch>)
 elseif(MSVC)
-    message(STATUS "[MSVC] Warning level set to /W4")
+    message(STATUS "Warning level set to /W4")
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/W4>)
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4100>)   # unreferenced formal parameter
     target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4127>)   # conditional expression is constant

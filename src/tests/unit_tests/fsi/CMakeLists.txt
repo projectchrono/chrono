@@ -21,7 +21,7 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-message(STATUS "Test programs for FSI module...")
+message(STATUS "Add unit test programs for FSI module")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

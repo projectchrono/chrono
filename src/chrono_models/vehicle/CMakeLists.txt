@@ -4,7 +4,7 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-message(STATUS "Vehicle models...")
+message(STATUS "Add ChronoModels_vehicle library")
 
 # ----------------------------------------------------------------------------
 # List the files in the Chrono_vehicle_models library

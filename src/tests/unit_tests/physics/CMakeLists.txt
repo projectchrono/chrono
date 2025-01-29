@@ -9,7 +9,7 @@ SET(TESTS
     utest_CH_composite_inertia
 )
 
-# MESSAGE(STATUS "Unit test programs for PHYSICS module...")
+MESSAGE(STATUS "Add unit test programs for PHYSICS module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

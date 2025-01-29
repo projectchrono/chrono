@@ -4,7 +4,7 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-MESSAGE(STATUS "Robot models...")
+MESSAGE(STATUS "Add ChronoModels_robot library")
 
 #-----------------------------------------------------------------------------
 

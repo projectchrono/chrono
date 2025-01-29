@@ -1,5 +1,3 @@
-# MESSAGE(STATUS "Unit test programs for Vehicle module...")
-
 set(TESTS
     utest_VEH_destructors
 )
@@ -21,6 +19,8 @@ list(APPEND LIBS "ChronoEngine_vehicle")
 
 #--------------------------------------------------------------
 # Add executables
+
+MESSAGE(STATUS "Add unit test programs for VEHICLE module")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

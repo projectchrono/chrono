@@ -16,7 +16,7 @@ SET(TESTS
 
 
 
-# MESSAGE(STATUS "Unit test programs for CORE module...")
+MESSAGE(STATUS "Add unit test programs for CORE module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

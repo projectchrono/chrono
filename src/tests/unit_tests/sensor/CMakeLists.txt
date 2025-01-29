@@ -10,7 +10,7 @@ SET(TESTS
     utest_SEN_radar
 )
 
-# MESSAGE(STATUS "Unit test programs for SENSOR module...")
+MESSAGE(STATUS "Add unit test programs for SENSOR module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

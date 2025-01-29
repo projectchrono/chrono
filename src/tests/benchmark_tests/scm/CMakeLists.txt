@@ -33,7 +33,7 @@ include_directories(${SYN_INCLUDES})
 
 # ------------------------------------------------------------------------------
 
-message(STATUS "Benchmark test programs for SCM scaling...")
+message(STATUS "Add benchmark test programs for SCM scaling")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

@@ -26,7 +26,7 @@ SET(TESTS
     utest_MCORE_contact_forces
 )
 
-# MESSAGE(STATUS "Unit test programs for MULTICORE module...")
+MESSAGE(STATUS "Add unit test programs for MULTICORE module")
 
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")

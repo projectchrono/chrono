@@ -81,8 +81,10 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
+#MESSAGE(STATUS "Demo programs for ROBOTICS...")
+
 foreach(PROGRAM ${DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
+    #MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
@@ -101,6 +103,4 @@ endforeach()
 # Add subdirectories
 
 add_subdirectory(industrial)
-if(ENABLE_MODULE_VEHICLE)
-  add_subdirectory(robosimian)
-endif()
+add_subdirectory(robosimian)

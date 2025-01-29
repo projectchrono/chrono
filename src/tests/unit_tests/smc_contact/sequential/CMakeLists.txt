@@ -14,7 +14,7 @@ SET(TESTS
     utest_SMC_sphere_sphere
 )
 
-# MESSAGE(STATUS "Unit test programs for SMC contact in core module...")
+MESSAGE(STATUS "Add unit test programs for SMC contact in CORE module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

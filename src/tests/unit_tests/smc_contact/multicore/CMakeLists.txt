@@ -23,7 +23,7 @@ SET(TESTS
     utest_SMCm_stacking
 )
 
-# MESSAGE(STATUS "Unit test programs for SMC contact in MULTICORE module...")
+MESSAGE(STATUS "Add unit test programs for SMC contact in MULTICORE module")
 
 FOREACH(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

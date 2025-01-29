@@ -1,8 +1,6 @@
 # Unit tests for the Chrono::Modal module
 # ==================================================================
 
-message(STATUS "Unit tests for Chrono::Modal...")
-
 set(TESTS
     utest_MOD_eigensolver
     utest_MOD_curved_beam
@@ -32,6 +30,8 @@ endif()
 
 #--------------------------------------------------------------
 # Add executables
+
+message(STATUS "Add unit tests for MODAL module")
 
 foreach(PROGRAM ${TESTS})
   message(STATUS "...${PROGRAM}")
