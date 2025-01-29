@@ -326,7 +326,7 @@ else()
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
-if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915) OR NOT USE_EIGEN_OPENMP)
+if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND "${MSVC_VERSION}" GREATER_EQUAL 1915) OR NOT USE_EIGEN_OPENMP)
     target_compile_definitions(Eigen3::Eigen INTERFACE "_ENABLE_EXTENDED_ALIGNED_STORAGE")
 endif()
 
