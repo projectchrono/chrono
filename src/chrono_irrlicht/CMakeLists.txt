@@ -49,10 +49,16 @@ SOURCE_GROUP("" FILES
 
 find_package(IRRLICHT)
 
-if (IRRLICHT_FOUND)
-    message(STATUS "IRRLICHT found")
+if(IRRLICHT_FOUND)
+    message(STATUS "Irrlicht libraries:   ${IRRLICHT_LIBRARIES}")
+    message(STATUS "Irrlicht include dir: ${IRRLICHT_INCLUDE_DIRS}")
+    message(STATUS "Irrlicht C++ flags:   ${IRRLICHT_CXX_FLAGS}")
+    if(MSVC)
+    message(STATUS "Irrlicht DLL:         ${IRRLICHT_DLL}")
+    endif()
 else()
-    message(ERROR "IRRLICHT not found. Please set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
+    message(ERROR " IRRLICHT not found. Please set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
+    set(IRRLICHT_DIR "C:/irrlicht-1.8.1" CACHE PATH "Path to Irrlicht SDK installation.")
 endif()
 
 #-------------------------------------------------------------------------------

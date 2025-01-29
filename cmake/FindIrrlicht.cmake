@@ -87,7 +87,7 @@ endif()
 # Find IRRLICHT headers
 find_path(IRRLICHT_INCLUDE_DIR NAMES irrlicht.h PATHS ${IRRLICHT_INCLUDE_PATHS} NO_CACHE)
 if (IRRLICHT_INCLUDE_DIR MATCHES IRRLICHT_INCLUDE_DIR-NOTFOUND)
-  message(FATAL_ERROR "Could not find 'irrlicht.h' in any of the following directories: ${IRRLICHT_INCLUDE_PATHS}.\nSet IRRLICHT_DIR to the Irrlicht SDK installation directory.")
+  #message(FATAL_ERROR "Could not find 'irrlicht.h' in any of the following directories: ${IRRLICHT_INCLUDE_PATHS}.\nSet IRRLICHT_DIR to the Irrlicht SDK installation directory.")
   return()
 endif()
 set(IRRLICHT_INCLUDE_DIRS ${IRRLICHT_INCLUDE_DIR} ${IRRLICHT_DEPENDENCY_INCLUDE_DIRS})
@@ -95,7 +95,7 @@ set(IRRLICHT_INCLUDE_DIRS ${IRRLICHT_INCLUDE_DIR} ${IRRLICHT_DEPENDENCY_INCLUDE_
 # Find IRRLICHT library
 find_library(IRRLICHT_LIBRARY NAMES Irrlicht PATHS ${IRRLICHT_LIBRARY_PATHS} NO_CACHE)
 if (IRRLICHT_LIBRARY MATCHES IRRLICHT_LIBRARY-NOTFOUND)
-  message(FATAL_ERROR "Could not find 'irrlicht${CMAKE_IMPORT_LIBRARY_SUFFIX}' in any of the following directories: ${IRRLICHT_LIBRARY_PATHS}.\nSet IRRLICHT_DIR to the Irrlicht SDK installation directory.")
+  #message(FATAL_ERROR "Could not find 'irrlicht${CMAKE_IMPORT_LIBRARY_SUFFIX}' in any of the following directories: ${IRRLICHT_LIBRARY_PATHS}.\nSet IRRLICHT_DIR to the Irrlicht SDK installation directory.")
   return()
 endif()
 set(IRRLICHT_LIBRARIES ${IRRLICHT_LIBRARY} ${IRRLICHT_DEPENDENCY_LIBS})
