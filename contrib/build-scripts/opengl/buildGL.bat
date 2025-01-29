@@ -13,9 +13,9 @@
 @rem   the source archive available on SourceForge.
 @rem - The sources for GLM and GLFW can be obtained either from GitHub or from SourceForge.
 @rem - This was tested with the following versions of GL libraries:
-@rem      GLEW (glew.sourceforge.net/):     Version 2.1.0
-@rem      GLFW (github.com/glfw/glfw):      Commit (#8f470597)
-@rem      GLM (github.com/g-truc/glm.git):  Commit (#efec5db0)                  
+@rem      GLEW (glew.sourceforge.net/):     Version 2.2.0
+@rem      GLFW (github.com/glfw/glfw):      Version 3.3.10
+@rem      GLM (github.com/g-truc/glm.git):  Version 1.0.1                  
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -49,12 +49,12 @@ if "%~1" NEQ "" (
     echo "  ... GLEW"
     powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.zip -OutFile download_gl/glew.zip"
     powershell -Command "Expand-Archive -Force download_gl/glew.zip download_gl"
-    set GLEW_SOURCE_DIR="download_gl/glew-2.1.0"
+    set GLEW_SOURCE_DIR="download_gl/glew-2.2.0"
 
     echo "  ... GLFW"
     powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://sourceforge.net/projects/glfw/files/glfw/3.3.10/glfw-3.3.10.zip -OutFile download_gl/glfw.zip"
     powershell -Command "Expand-Archive -Force download_gl/glfw.zip download_gl"
-    set GLFW_SOURCE_DIR="download_gl/glfw-3.3.8"
+    set GLFW_SOURCE_DIR="download_gl/glfw-3.3.10"
 
     echo "  ... GLM"
     powershell -Command "Invoke-WebRequest -UserAgent 'Wget' -Uri https://github.com/g-truc/glm/archive/refs/tags/1.0.1.zip -OutFile download_gl/glm.zip"
