@@ -22,7 +22,7 @@
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 
-#include "cublas_v2.h"
+////#include "cublas_v2.h"
 
 #include "chrono_fsi/sph/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
@@ -899,6 +899,12 @@ ChFsiForceI2SPH::~ChFsiForceI2SPH() {
 void ChFsiForceI2SPH::Initialize() {
     ChFsiForce::Initialize();
 
+    if (m_data_mgr.paramsH->LinearSolver != SolverType::JACOBI) {
+        cout << "WARNING: Only JACOBI linear solver is currently supported." << endl;
+    }
+
+    /*
+
     // Create linear solver object
     switch (m_data_mgr.paramsH->LinearSolver) {
         case SolverType::BICGSTAB:
@@ -913,6 +919,8 @@ void ChFsiForceI2SPH::Initialize() {
             std::cout << "The ChFsiLinearSolver you chose has not been implemented, reverting to JACOBI";
             break;
     }
+
+    */
 
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));

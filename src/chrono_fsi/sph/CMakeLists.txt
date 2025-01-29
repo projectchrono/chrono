@@ -21,7 +21,9 @@ if(NOT CHRONO_CUDA_FOUND)
     return()
 endif()
 
-message(STATUS "  Use double precision? " ${FSI_USE_DOUBLE})
+message(STATUS "  Use double precision? ${FSI_USE_DOUBLE}")
+message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
+message(STATUS "  CMake CUDA architectures:  ${CMAKE_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library
@@ -80,11 +82,10 @@ set(ChronoEngine_FSI_MATH_FILES
     math/CustomMath.h
     math/ExactLinearSolvers.cuh
     math/ChFsiLinearSolver.h
-    math/ChFsiLinearSolverBiCGStab.h
-    math/ChFsiLinearSolverGMRES.h
-
-    math/ChFsiLinearSolverBiCGStab.cpp
-    math/ChFsiLinearSolverGMRES.cpp
+    #math/ChFsiLinearSolverBiCGStab.h
+    #math/ChFsiLinearSolverGMRES.h
+    #math/ChFsiLinearSolverBiCGStab.cpp
+    #math/ChFsiLinearSolverGMRES.cpp
 )
 
 source_group(math FILES ${ChronoEngine_FSI_MATH_FILES})
@@ -176,7 +177,6 @@ endif()
 target_compile_definitions(ChronoEngine_fsi_sph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
 
 set_target_properties(ChronoEngine_fsi_sph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
-
 
 install(TARGETS ChronoEngine_fsi_sph
         EXPORT ChronoEngineTargets

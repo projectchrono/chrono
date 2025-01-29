@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <typeinfo>
-#include "cublas_v2.h"
-#include "cusparse_v2.h"
+////#include "cublas_v2.h"
+////#include "cusparse_v2.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/math/CustomMath.h"
