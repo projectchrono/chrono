@@ -48,6 +48,7 @@ __host__ __device__ inline bool IsInMarkerGroup(MarkerGroup group, Real code) {
         case MarkerGroup::NON_BOUNDARY:
             return code > 0.5 || code < -0.5;
     }
+    return false;
 }
 
 /// Marker (SPH and BCE) type.
