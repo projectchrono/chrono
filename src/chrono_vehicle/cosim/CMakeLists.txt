@@ -147,4 +147,4 @@ install(TARGETS ChronoEngine_vehicle_cosim
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        INCLUDE DESTINATION include/chrono_vehicle/cosim)
+        INCLUDES DESTINATION include/chrono_vehicle/cosim)
