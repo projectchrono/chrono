@@ -488,7 +488,7 @@ void WriteParticleFileCSV(const std::string& outfilename,
         if (rP.w != -1)
             continue;
         Real4 pos = posRadH[i];
-        Real3 vel = velMasH[i] + mR3(1e-20);
+        Real3 vel = velMasH[i] + mR3(Real(1e-20));
 
         Real velMag = length(vel);
         ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps

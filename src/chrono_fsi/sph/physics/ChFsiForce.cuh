@@ -56,7 +56,7 @@ struct Real4_x {
     const Real rest_val;
     Real4_x(Real _a) : rest_val(_a) {}
     __host__ __device__ Real operator()(const Real4& input) const {
-        return (input.w != -1.0) ? 0.0 : abs(input.x - rest_val);
+        return (input.w != -1) ? Real(0) : abs(input.x - rest_val);
     }
 };
 struct saxpy_functor {
@@ -74,15 +74,15 @@ struct Real4_z {
 };
 
 struct Real4_boundary {
-    __host__ __device__ bool operator()(const Real4& input) const { return input.w == 1.0; }
+    __host__ __device__ bool operator()(const Real4& input) const { return input.w == 1; }
 };
 
 struct Real4_y {
-    __host__ __device__ Real operator()(const Real4& input) const { return (input.w != -1.0) ? 0.0 : input.y; }
+    __host__ __device__ Real operator()(const Real4& input) const { return (input.w != -1) ? 0 : input.y; }
 };
 
 struct Real4_y_min {
-    __host__ __device__ Real operator()(const Real4& input) const { return (input.w != -1.0) ? 1e9 : input.y; }
+    __host__ __device__ Real operator()(const Real4& input) const { return (input.w != -1) ? Real(1e9) : input.y; }
 };
 __device__ inline void clearRow(uint i_idx, uint csrStartIdx, uint csrEndIdx, Real* A_Matrix, Real* Bi) {
     for (uint count = csrStartIdx; count < csrEndIdx; count++) {

@@ -925,7 +925,7 @@ void ChFsiForceI2SPH::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
-    int numAllMarkers = (int)m_data_mgr.countersH->numAllMarkers;
+    numAllMarkers = m_data_mgr.countersH->numAllMarkers;
     _sumWij_inv.resize(numAllMarkers);
     Normals.resize(numAllMarkers);
     G_i.resize(numAllMarkers * 9);
@@ -985,7 +985,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
              << updatePortion.w << endl;
 
     uint numThreads, numBlocks;
-    computeGridSize((int)numAllMarkers + 1, 256, numBlocks, numThreads);
+    computeGridSize((uint)numAllMarkers + 1, 256, numBlocks, numThreads);
 
     // TODO: shall i include the proximity search freq?
     neighborSearch();
@@ -999,11 +999,11 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     thrust::device_vector<Real4> posRadD_old = m_sortedSphMarkers_D->posRadD;
     thrust::device_vector<Real3> velMasD_old = m_sortedSphMarkers_D->velMasD;
 
-    thrust::fill(V_star_old.begin(), V_star_old.end(), mR3(0.0));
-    thrust::fill(V_star_new.begin(), V_star_new.end(), mR3(0.0));
-    thrust::fill(b3Vector.begin(), b3Vector.end(), mR3(0.0));
-    thrust::fill(Residuals.begin(), Residuals.end(), 0.0);
-    Real yeild_strain = MaxVel / pH->h * 0.05;
+    thrust::fill(V_star_old.begin(), V_star_old.end(), mR3(0));
+    thrust::fill(V_star_new.begin(), V_star_new.end(), mR3(0));
+    thrust::fill(b3Vector.begin(), b3Vector.end(), mR3(0));
+    thrust::fill(Residuals.begin(), Residuals.end(), Real(0));
+    Real yeild_strain = MaxVel / pH->h * Real(0.05);
 
     if (pH->non_newtonian) {
         Viscosity_correction<<<numBlocks, numThreads>>>(
@@ -1124,12 +1124,12 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
         pH->dT, error_flagD);
     cudaCheckErrorFlag(error_flagD, "Pressure_Equation");
 
-    Real Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+    Real Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), Real(0)) / numAllMarkers;
 
     my_Functor mf(Ave_RHS);
     if (pH->Pressure_Constraint) {
         thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-        Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+        Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), Real(0)) / numAllMarkers;
         printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
     }
 
@@ -1200,10 +1200,10 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     //                                                 /
     //                        (cH->numFluidMarkers);
 
-    Real Ave_pressure = thrust::reduce(q_new.begin(), q_new.end(), 0.0) / (cH->numAllMarkers) / TIME_SCALE;
+    Real Ave_pressure = thrust::reduce(q_new.begin(), q_new.end(), Real(0)) / (cH->numAllMarkers) / TIME_SCALE;
 
     thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-    Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+    Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), Real(0)) / numAllMarkers;
     if (m_verbose) {
         double Pressure_Computation = (clock() - LinearSystemClock_p) / (double)CLOCKS_PER_SEC;
         printf("Ave RHS =%.3e, Ave after removing null space=%.3e\n", Ave_RHS, Ave_after);
@@ -1246,9 +1246,10 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 
     Real4_x unary_op(pH->rho0);
     thrust::plus<Real> binary_op;
-    Real Ave_density_Err = thrust::transform_reduce(m_sortedSphMarkers_D->rhoPresMuD.begin(),
-                                                    m_sortedSphMarkers_D->rhoPresMuD.end(), unary_op, 0.0, binary_op) /
-                           (cH->numFluidMarkers * pH->rho0);
+    Real Ave_density_Err =
+        thrust::transform_reduce(m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(),
+                                 unary_op, Real(0), binary_op) /
+        (cH->numFluidMarkers * pH->rho0);
 
     double updateComputation = (clock() - updateClock) / (double)CLOCKS_PER_SEC;
     Real Re = pH->L_Characteristic * pH->rho0 * MaxVel / pH->mu0;
@@ -1260,7 +1261,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
     if (pH->Conservative_Form && pH->ClampPressure) {
         Real minP =
             thrust::transform_reduce(m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(),
-                                     Real4_y_min(), 1e9, thrust::minimum<Real>());
+                                     Real4_y_min(), Real(1e9), thrust::minimum<Real>());
         my_Functor_real4y negate(minP);
         thrust::for_each(m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(), negate);
         printf("Shifting min pressure of %.3e to 0\n", minP);
@@ -1274,13 +1275,11 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceI2SPH::neighborSearch() {
-    bool* error_flagD;
-    cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    computeGridSize(m_data_mgr.countersH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    computeGridSize(numAllMarkers, 256, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
@@ -1304,20 +1303,15 @@ void ChFsiForceI2SPH::neighborSearch() {
         U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
         error_flagD);
     cudaCheckErrorFlag(error_flagD, "neighborSearchID");
-
-    cudaFreeErrorFlag(error_flagD);
 }
-
-//--------------------------------------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
     cudaResetErrorFlag(error_flagD);
 
-    numAllMarkers = m_data_mgr.countersH->numAllMarkers;
     uint numThreads, numBlocks;
-    computeGridSize((int)numAllMarkers, 128, numBlocks, numThreads);
+    computeGridSize((uint)numAllMarkers, 128, numBlocks, numThreads);
     thrust::fill(_sumWij_inv.begin(), _sumWij_inv.end(), 1e-3);
     thrust::fill(A_i.begin(), A_i.end(), 0);
     thrust::fill(L_i.begin(), L_i.end(), 0);

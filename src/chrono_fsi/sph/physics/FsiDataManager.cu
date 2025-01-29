@@ -395,18 +395,19 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     //// TODO: why is this sized for both WCSPH and ISPH?!?
     vel_XSPH_D.resize(countersH->numAllMarkers);  // TODO (Huzaifa): Check if this is always sorted or not
 
-    vis_vel_SPH_D.resize(countersH->numAllMarkers, mR3(1e-20));
-    sr_tau_I_mu_i.resize(countersH->numAllMarkers, mR4(1e-20));           // sorted
-    sr_tau_I_mu_i_Original.resize(countersH->numAllMarkers, mR4(1e-20));  // unsorted
+    Real tiny = Real(1e-20);
+    vis_vel_SPH_D.resize(countersH->numAllMarkers, mR3(tiny));
+    sr_tau_I_mu_i.resize(countersH->numAllMarkers, mR4(tiny));           // sorted
+    sr_tau_I_mu_i_Original.resize(countersH->numAllMarkers, mR4(tiny));  // unsorted
 
     //// TODO: why is this sized for both WCSPH and ISPH?!?
-    bceAcc.resize(countersH->numAllMarkers, mR3(0.0));  // Rigid/flex body accelerations from motion
+    bceAcc.resize(countersH->numAllMarkers, mR3(0));  // Rigid/flex body accelerations from motion
 
     activityIdentifierD.resize(countersH->numAllMarkers, 1);
     extendedActivityIdD.resize(countersH->numAllMarkers, 1);
 
-    numNeighborsPerPart.resize(countersH->numAllMarkers + 1,
-                               0);  // Stores the number of neighbors the particle given by the index has
+    // Number of neighbors for the particle of given index
+    numNeighborsPerPart.resize(countersH->numAllMarkers + 1, 0);
     freeSurfaceIdD.resize(countersH->numAllMarkers, 0);
 
     thrust::copy(sphMarkers_H->posRadH.begin(), sphMarkers_H->posRadH.end(), sphMarkers_D->posRadD.begin());
