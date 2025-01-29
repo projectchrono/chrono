@@ -26,8 +26,8 @@
 
 #include "chrono_fsi/sph/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
-#include "chrono_fsi/sph/math/ChFsiLinearSolverBiCGStab.h"
-#include "chrono_fsi/sph/math/ChFsiLinearSolverGMRES.h"
+////#include "chrono_fsi/sph/math/ChFsiLinearSolverBiCGStab.h"
+////#include "chrono_fsi/sph/math/ChFsiLinearSolverGMRES.h"
 
 using std::cout;
 using std::cerr;
