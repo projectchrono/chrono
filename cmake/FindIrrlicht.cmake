@@ -1,6 +1,6 @@
 
 #-------------------------------------------------------------------------------
-# Find IRRLICHT
+# Find Irrlicht
 # This find script requires the following input variables:
 # IRRLICHT_DIR: location of irrlicht root directory
 # This find script provides the following output variables:
@@ -103,29 +103,26 @@ set(IRRLICHT_LIBRARIES ${IRRLICHT_LIBRARY} ${IRRLICHT_DEPENDENCY_LIBS})
 set(IRRLICHT_FOUND TRUE)
 
 
-# IRRLICHT-specific compiler flags
-set(IRRLICHT_CXX_FLAGS "")
-set(IRRLICHT_C_FLAGS "")
-if(MSVC)
-  # If using MSVC, disable warning 4275 (non-DLL-interface class used as base for DLL-interface class)
-  ###add_compile_options(/wd4275)
-  set(IRRLICHT_CXX_FLAGS "${IRRLICHT_CXX_FLAGS} /wd4275")
-  set(IRRLICHT_C_FLAGS "${IRRLICHT_C_FLAGS} /wd4275")
-endif()
-
 if(IRRLICHT_FOUND AND NOT TARGET Irrlicht::Irrlicht)
   add_library(Irrlicht::Irrlicht SHARED IMPORTED)
   set_target_properties(Irrlicht::Irrlicht PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${IRRLICHT_INCLUDE_DIRS}")
   
-  set_property(TARGET Irrlicht::Irrlicht PROPERTY
-              IMPORTED_LOCATION ${IRRLICHT_DLL})
+  if(MSVC)
+    set_property(TARGET Irrlicht::Irrlicht PROPERTY
+                IMPORTED_LOCATION ${IRRLICHT_DLL})
+    set_property(TARGET Irrlicht::Irrlicht PROPERTY
+               INTERFACE_COMPILE_OPTIONS "/wd4275")
+  else()
+    set_property(TARGET Irrlicht::Irrlicht PROPERTY
+                IMPORTED_LOCATION ${IRRLICHT_LIBRARY})
+  endif()
+
   set_property(TARGET Irrlicht::Irrlicht PROPERTY
               IMPORTED_IMPLIB ${IRRLICHT_LIBRARY})
   set_property(TARGET Irrlicht::Irrlicht PROPERTY
               IMPORTED_LINK_DEPENDENT_LIBRARIES ${IRRLICHT_DEPENDENCY_LIBS})
-  set_property(TARGET Irrlicht::Irrlicht PROPERTY
-               INTERFACE_COMPILE_OPTIONS "/wd4275")
+
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_property(TARGET Irrlicht::Irrlicht PROPERTY

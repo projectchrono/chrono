@@ -47,12 +47,11 @@ SOURCE_GROUP("" FILES
 #-------------------------------------------------------------------------------
 # Find the IRRLICHT library
 
-find_package(IRRLICHT)
+find_package(Irrlicht)
 
 if(IRRLICHT_FOUND)
     message(STATUS "Irrlicht libraries:   ${IRRLICHT_LIBRARIES}")
     message(STATUS "Irrlicht include dir: ${IRRLICHT_INCLUDE_DIRS}")
-    message(STATUS "Irrlicht C++ flags:   ${IRRLICHT_CXX_FLAGS}")
     if(MSVC)
     message(STATUS "Irrlicht DLL:         ${IRRLICHT_DLL}")
     endif()
@@ -71,13 +70,15 @@ add_library(ChronoEngine_irrlicht
 
 add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
 
-target_include_directories(ChronoEngine_irrlicht PUBLIC ${IRRLICHT_INCLUDE_DIR})
-set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+if(MSVC)
+  set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_IRRLICHT>)
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:IGNORE_DEPRECATED_WARNING>)
 
-target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine Irrlicht::Irrlicht)
+target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_irrlicht PUBLIC Irrlicht::Irrlicht)
 
 if (ENABLE_MODULE_POSTPROCESS)
     target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine_postprocess)
