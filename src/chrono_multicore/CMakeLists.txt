@@ -159,7 +159,9 @@ add_library(ChronoEngine_multicore
 
 add_library(ChronoEngine::ChronoEngine_multicore ALIAS ChronoEngine_multicore)
 
-set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+if(MSVC)
+  set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 target_link_libraries(ChronoEngine_multicore PRIVATE ChronoEngine)
 if(ENABLE_OPENMP)

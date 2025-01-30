@@ -1409,9 +1409,11 @@ target_include_directories(ChronoEngine PUBLIC
 target_link_libraries(ChronoEngine PUBLIC Eigen3::Eigen)
 
 if(THRUST_FOUND)
-  # in main Chrono library Thrust is used only from cpp files, so we can link it privately
-  # because of the same reason there is no need to propagate Thrust to other targets
-  target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust)
+  if(MSVC)
+    target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust)
+  else()
+    target_link_libraries(ChronoEngine PUBLIC Thrust::Thrust)
+  endif()
 endif(THRUST_FOUND)
 
 if(ENABLE_OPENMP)
@@ -1420,7 +1422,7 @@ endif(ENABLE_OPENMP)
 
 
 if (UNIX)
-  target_link_libraries(ChronoEngine pthread)
+  target_link_libraries(ChronoEngine PUBLIC pthread)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.
@@ -1559,7 +1561,9 @@ endif()
 #-----------------------------------------------------------------------------
 # Select proper MSVC Runtime Library
 #-----------------------------------------------------------------------------
-set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+if(MSVC)
+  set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
