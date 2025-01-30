@@ -197,11 +197,6 @@ endif()
 
 message(STATUS "Searching for CUDA")
 
-set(CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
-if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES "all-major")
-endif()
-
 include(CheckLanguage)
 check_language(CUDA)
 
@@ -211,11 +206,21 @@ if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
     find_package(CUDAToolkit)
     message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "  CUDAToolkit version:   ${CUDAToolkit_VERSION}")
+    message(STATUS "  CUDA toolkit version:  ${CUDAToolkit_VERSION}")
     message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
-    set(CHRONO_CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}" CACHE STRING "GPU architectures")
-    mark_as_advanced(CLEAR CUDA_ARCHITECTURES)
+
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+      if(CMAKE_VERSION VERSION_LESS "3.23")
+        set(CHRONO_CUDA_ARCHITECTURES "90" CACHE STRING "GPU architectures")
+      else()
+        set(CHRONO_CUDA_ARCHITECTURES "all-major")
+      endif()
+    else()
+      set(CHRONO_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
+    endif()
+
     message(STATUS "  CUDA found and enabled.")
+    
     ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       set(CUDA_SEPARABLE_COMPILATION OFF)
