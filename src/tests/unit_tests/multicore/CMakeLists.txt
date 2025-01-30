@@ -28,9 +28,7 @@ SET(TESTS
 
 MESSAGE(STATUS "Add unit test programs for MULTICORE module")
 
-FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
-    
+FOREACH(PROGRAM ${TESTS})   
     set(FILES ${PROGRAM}.cpp ../ut_utils.h)
     ADD_EXECUTABLE(${PROGRAM} ${FILES})
     SOURCE_GROUP("" FILES ${FILES})
