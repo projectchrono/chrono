@@ -484,7 +484,7 @@ class ChSystemGpu_impl {
     /// Write particle positions, vels and ang vels to a file stream (based on a format)
     void WriteRawParticles(std::ofstream& ptFile) const;
     void WriteCsvParticles(std::ofstream& ptFile) const;
-    void WriteChPFParticles(std::ofstream& ptFile) const;
+
 #ifdef USE_HDF5
     void WriteH5Particles(H5::H5File& ptFile) const;
 #endif

@@ -48,7 +48,7 @@ list(APPEND LIBS "ChronoEngine_fsi_sph")
 
 #--------------------------------------------------------------
 
-# MESSAGE(STATUS "Demo programs for FSI module...")
+message(STATUS "Add demo programs for FSI module")
 	
 foreach(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

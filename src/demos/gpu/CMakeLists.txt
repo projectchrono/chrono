@@ -25,7 +25,7 @@ SET(DEMOS
 # Add all executables
 # ------------------------------------------------------------------------------
 
-# MESSAGE(STATUS "Demo programs for Gpu module...")
+message(STATUS "Add demo programs for GPU module")
 
 FOREACH(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")
