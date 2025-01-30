@@ -77,10 +77,10 @@ add_subdirectory(sph)
 
 # Generate the configuration header file using substitution variables.
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFSI.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFsi.h.in
+               ${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
+install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h"
         DESTINATION include/chrono_fsi)
 
 
