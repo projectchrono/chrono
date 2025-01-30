@@ -26,17 +26,14 @@ endif()
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "ChronoEngine_irrlicht")
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
 if(ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vsg")
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 

@@ -1,6 +1,4 @@
-#--------------------------------------------------------------
-
-# MESSAGE(STATUS "Demo programs for VEHICLE module...")
+message(STATUS "Add demo programs for VEHICLE module")
 
 add_subdirectory(wheeled_models)
 add_subdirectory(wheeled_tests)
@@ -17,6 +15,7 @@ add_subdirectory(multicore)
 add_subdirectory(paths)
 add_subdirectory(visualization)
 
-add_subdirectory(cosimulation)
 add_subdirectory(fmi)
 add_subdirectory(fsi)
+
+add_subdirectory(cosimulation)

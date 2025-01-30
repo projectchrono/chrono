@@ -916,7 +916,7 @@ message(STATUS "Add ChronoEngine_vehicle library")
 
 add_library(ChronoEngine::vehicle ALIAS ChronoEngine_vehicle)
 
-target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine)
 
 
 if(HAVE_OPENCRG)
@@ -962,9 +962,8 @@ if(ENABLE_MODULE_IRRLICHT)
 
     add_library(ChronoEngine::vehicle_irrlicht ALIAS ChronoEngine_vehicle_irrlicht)
 
-    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine)
-    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_vehicle)
-    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine_irrlicht)
+    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine ChronoEngine_vehicle)
+    target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC ChronoEngine_irrlicht)
     
     if(ENABLE_IRRKLANG)
         target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
@@ -997,7 +996,8 @@ if(ENABLE_MODULE_VSG)
     
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
     
-    target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle ChronoEngine_vsg)
+    target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle)
+    target_link_libraries(ChronoEngine_vehicle_vsg PUBLIC ChronoEngine_vsg)
     
     install(TARGETS ChronoEngine_vehicle_vsg
             EXPORT ChronoEngineTargets
@@ -1022,7 +1022,8 @@ if(ENABLE_MODULE_OPENGL)
     
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
     
-    target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle ChronoEngine_opengl)
+    target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle)
+    target_link_libraries(ChronoEngine_vehicle_opengl PUBLIC ChronoEngine_opengl)
     
     install(TARGETS ChronoEngine_vehicle_opengl
             EXPORT ChronoEngineTargets

@@ -17,36 +17,36 @@ set(CVM_COMMON_FILES
 source_group("" FILES ${CVM_COMMON_FILES})
 
 set(CVM_JEEP_FILES
-        jeep/Cherokee_Chassis.cpp
-        jeep/Cherokee_Chassis.h
-        jeep/Cherokee_Wheel.cpp
-        jeep/Cherokee_Wheel.h
-        jeep/Cherokee_TMeasyTire.cpp
-        jeep/Cherokee_TMeasyTire.h
-        jeep/Cherokee_Driveline4WD.cpp
-        jeep/Cherokee_Driveline4WD.h
-        jeep/Cherokee_AutomaticTransmissionStafts.cpp
-        jeep/Cherokee_AutomaticTransmissionStafts.h
-        jeep/Cherokee_BrakeShafts.cpp
-        jeep/Cherokee_BrakeShafts.h
-        jeep/Cherokee_EngineShafts.cpp
-        jeep/Cherokee_EngineShafts.h
-        jeep/Cherokee_SolidAxleRear.cpp
-        jeep/Cherokee_SolidAxleRear.h
-        jeep/Cherokee_SolidAxleFront.cpp
-        jeep/Cherokee_SolidAxleFront.h
-        jeep/Cherokee_Steering.cpp
-        jeep/Cherokee_Steering.h
-        jeep/Cherokee_Vehicle.cpp
-        jeep/Cherokee_Vehicle.h
-        jeep/Cherokee.cpp
-        jeep/Cherokee.h
-        jeep/Cherokee_RigidTire.cpp
-        jeep/Cherokee_RigidTire.h
-        jeep/Cherokee_EngineSimpleMap.cpp
-        jeep/Cherokee_EngineSimpleMap.h
-        jeep/Cherokee_AutomaticTransmissionSimpleMap.cpp
-        jeep/Cherokee_AutomaticTransmissionSimpleMap.h
+    jeep/Cherokee_Chassis.cpp
+    jeep/Cherokee_Chassis.h
+    jeep/Cherokee_Wheel.cpp
+    jeep/Cherokee_Wheel.h
+    jeep/Cherokee_TMeasyTire.cpp
+    jeep/Cherokee_TMeasyTire.h
+    jeep/Cherokee_Driveline4WD.cpp
+    jeep/Cherokee_Driveline4WD.h
+    jeep/Cherokee_AutomaticTransmissionStafts.cpp
+    jeep/Cherokee_AutomaticTransmissionStafts.h
+    jeep/Cherokee_BrakeShafts.cpp
+    jeep/Cherokee_BrakeShafts.h
+    jeep/Cherokee_EngineShafts.cpp
+    jeep/Cherokee_EngineShafts.h
+    jeep/Cherokee_SolidAxleRear.cpp
+    jeep/Cherokee_SolidAxleRear.h
+    jeep/Cherokee_SolidAxleFront.cpp
+    jeep/Cherokee_SolidAxleFront.h
+    jeep/Cherokee_Steering.cpp
+    jeep/Cherokee_Steering.h
+    jeep/Cherokee_Vehicle.cpp
+    jeep/Cherokee_Vehicle.h
+    jeep/Cherokee.cpp
+    jeep/Cherokee.h
+    jeep/Cherokee_RigidTire.cpp
+    jeep/Cherokee_RigidTire.h
+    jeep/Cherokee_EngineSimpleMap.cpp
+    jeep/Cherokee_EngineSimpleMap.h
+    jeep/Cherokee_AutomaticTransmissionSimpleMap.cpp
+    jeep/Cherokee_AutomaticTransmissionSimpleMap.h
 )
 source_group("jeep" FILES ${CVM_JEEP_FILES})
 
@@ -83,10 +83,10 @@ set(CVM_BMW_FILES
     bmw/BMW_E90_TMsimpleTireFront.h
     bmw/BMW_E90_TMsimpleTireRear.cpp
     bmw/BMW_E90_TMsimpleTireRear.h
-        bmw/BMW_E90_TMeasyTireFront.cpp
-        bmw/BMW_E90_TMeasyTireFront.h
-        bmw/BMW_E90_TMeasyTireRear.cpp
-        bmw/BMW_E90_TMeasyTireRear.h
+    bmw/BMW_E90_TMeasyTireFront.cpp
+    bmw/BMW_E90_TMeasyTireFront.h
+    bmw/BMW_E90_TMeasyTireRear.cpp
+    bmw/BMW_E90_TMeasyTireRear.h
 )
 source_group("bmw" FILES ${CVM_BMW_FILES})
 
@@ -1002,9 +1002,9 @@ source_group("kraz" FILES ${CVM_KRAZ_FILES})
 
 add_library(ChronoModels_vehicle
     ${CVM_COMMON_FILES}
-    ${CVM_JEEP_FILES}     
-    ${CVM_BMW_FILES}     
-    ${CVM_GCLASS_FILES}     
+    ${CVM_JEEP_FILES}
+    ${CVM_BMW_FILES}
+    ${CVM_GCLASS_FILES}
     ${CVM_HMMWV_FILES}
     ${CVM_FEDA_FILES}
     ${CVM_FMTV_FILES}
@@ -1027,7 +1027,7 @@ add_library(ChronoEngine::ModelsVehicle ALIAS ChronoModels_vehicle)
 
 target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
 
-target_link_libraries(ChronoModels_vehicle PRIVATE ChronoEngine ChronoEngine_vehicle)
+target_link_libraries(ChronoModels_vehicle PUBLIC ChronoEngine ChronoEngine_vehicle)
 
 install(TARGETS ChronoModels_vehicle
         EXPORT ChronoEngineTargets
@@ -1035,8 +1035,6 @@ install(TARGETS ChronoModels_vehicle
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_models/vehicle)
-
-
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/vehicle

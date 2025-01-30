@@ -53,13 +53,12 @@ ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
 SOURCE_GROUP("" FILES ${PROGRAM}.cpp ${MODEL_FILES})
 
-    if(APPLE)
-      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
-    endif()
+if(APPLE)
+   set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+endif()
+
 SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 TARGET_LINK_LIBRARIES(${PROGRAM}
-                      ChronoEngine
-                      ChronoEngine_irrlicht
                       ChronoEngine_vehicle
                       ChronoEngine_vehicle_irrlicht
                       ChronoModels_vehicle)

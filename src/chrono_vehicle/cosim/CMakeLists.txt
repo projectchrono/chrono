@@ -60,60 +60,22 @@ set(CV_COSIM_TERRAIN_FILES
     terrain/ChVehicleCosimTerrainNodeSCM.cpp
 )
 
-# ------------------------------------------------------------------------------
-
-# Set flags, include paths, and libraries
-
-list(APPEND LIBRARIES ChronoEngine_vehicle)
-list(APPEND LIBRARIES ChronoModels_robot)
-list(APPEND LIBRARIES MPI::MPI_CXX)
-
 if(ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularOMP.h
       terrain/ChVehicleCosimTerrainNodeGranularOMP.cpp)
-  source_group("terrain" FILES)
-  list(APPEND LIBRARIES ChronoEngine_multicore)
 endif()
 
 if(ENABLE_MODULE_FSI)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularSPH.h
       terrain/ChVehicleCosimTerrainNodeGranularSPH.cpp)
-  list(APPEND LIBRARIES ChronoEngine_fsi_sph)
 endif()
 
 if(ENABLE_MODULE_GPU)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularGPU.h
       terrain/ChVehicleCosimTerrainNodeGranularGPU.cpp)
-  list(APPEND LIBRARIES ChronoEngine_gpu)
-endif()
-
-if(ENABLE_MODULE_PARDISO_MKL)
-  list(APPEND LIBRARIES ChronoEngine_pardisomkl)
-endif()
-
-if(ENABLE_MODULE_MUMPS)
-  list(APPEND LIBRARIES ChronoEngine_mumps)
-endif()
-
-if(ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBRARIES ChronoEngine_irrlicht)
-  list(APPEND LIBRARIES ChronoEngine_vehicle_irrlicht)
-endif()
-
-if(ENABLE_MODULE_VSG)
-  list(APPEND LIBRARIES ChronoEngine_vsg)
-  list(APPEND LIBRARIES ChronoEngine_vehicle_vsg)
-endif()
-
-if(ENABLE_MODULE_OPENGL)
-  list(APPEND LIBRARIES ChronoEngine_opengl)
-endif()
-
-if(ENABLE_MODULE_POSTPROCESS)
-    list(APPEND LIBRARIES ChronoEngine_postprocess)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -124,7 +86,6 @@ source_group("tire" FILES ${CV_COSIM_TIRE_FILES})
 source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
 
 # ------------------------------------------------------------------------------
-
 # Add the ChronoEngine_vehicle_cosim library
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
@@ -140,7 +101,41 @@ add_library(ChronoEngine::ChronoEngine_vehicle_cosim ALIAS ChronoEngine_vehicle_
 
 target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
 
-target_link_libraries(ChronoEngine_vehicle_cosim ${LIBRARIES})
+target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_vehicle)
+target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoModels_robot)
+if(ENABLE_MODULE_MULTICORE)
+  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_multicore)
+endif()
+if(ENABLE_MODULE_FSI)
+  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_fsi_sph)
+endif()
+if(ENABLE_MODULE_GPU)
+  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_gpu)
+endif()
+
+target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC MPI::MPI_CXX)
+
+if(ENABLE_MODULE_PARDISO_MKL)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_pardisomkl)
+endif()
+if(ENABLE_MODULE_MUMPS)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_mumps)
+endif()
+if(ENABLE_MODULE_IRRLICHT)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_irrlicht)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vehicle_irrlicht)  
+endif()
+if(ENABLE_MODULE_VSG)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vsg)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vehicle_vsg)  
+endif()
+if(ENABLE_MODULE_OPENGL)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_opengl)
+endif()
+if(ENABLE_MODULE_POSTPROCESS)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_postprocess)
+endif()
+
 
 install(TARGETS ChronoEngine_vehicle_cosim
         EXPORT ChronoEngineTargets

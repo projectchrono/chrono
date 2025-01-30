@@ -25,30 +25,11 @@ set(UTILS "../../SetChronoSolver.h")
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
-list(APPEND LIBS "ChronoModels_robot")
-
-if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_irrlicht")
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
-endif()
 
 if(ENABLE_MODULE_VSG)
-    include_directories(${CH_VSG_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_vsg")
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
-endif()
-
-if(ENABLE_MODULE_MULTICORE)
-    include_directories(${CH_MULTICORE_INCLUDES})
-    set(COMPILER_FLAGS "${CH_CXX_FLAGS}  ${CH_MULTICORE_CXX_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_multicore")
 endif()
 
 if(ENABLE_MODULE_FSI)
@@ -68,7 +49,6 @@ if(ENABLE_MODULE_MUMPS)
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 
@@ -80,8 +60,6 @@ endif()
 # Create the executables
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
     source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 

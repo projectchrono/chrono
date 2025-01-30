@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 
 if(NOT ENABLE_MODULE_MULTICORE OR NOT ENABLE_MODULE_OPENGL)
-  message(STATUS "  Warning: the multicore RoboSimian projects require Chrono::Multicore and Chrono::OpenGL!")
+  message(STATUS "  Warning: the multicore RoboSimian projects require Chrono::Multicore and Chrono::OpenGL")
   return()
 endif()
 
@@ -22,7 +22,6 @@ set(UTILITIES
 # ------------------------------------------------------------------------------
 
 foreach(PROGRAM ${DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
     add_executable(${PROGRAM} "${PROGRAM}.cpp" ${UTILITIES})
     source_group(""  FILES "${PROGRAM}.cpp" ${UTILITIES})
     set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)

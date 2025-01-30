@@ -1,8 +1,6 @@
 # Demo programs for simulations with models from the Chrono::Robots library
 # ------------------------------------------------------------------------------
 
-# MESSAGE(STATUS "Demo programs for ROBOT models...")
-
 set(DEMOS "")
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -15,30 +13,30 @@ endif()
 
 if(ENABLE_MODULE_VEHICLE)
 
-	if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
-	  set(DEMOS ${DEMOS}
-		  demo_ROBOT_Curiosity_Rigid
-		  demo_ROBOT_Curiosity_SCM    
-		  demo_ROBOT_Turtlebot_Rigid
-		  demo_ROBOT_Viper_Rigid
-		  demo_ROBOT_Viper_SCM
-	  )
+  if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+    set(DEMOS ${DEMOS}
+        demo_ROBOT_Curiosity_Rigid
+        demo_ROBOT_Curiosity_SCM    
+        demo_ROBOT_Turtlebot_Rigid
+        demo_ROBOT_Viper_Rigid
+        demo_ROBOT_Viper_SCM
+    )
 
-	  if(ENABLE_MODULE_SENSOR)
-		set(DEMOS ${DEMOS}
-			demo_ROBOT_Curiosity_SCM_Sensor
-			demo_ROBOT_Viper_SCM_Sensor
-		)
-	  endif()
-	endif()
+    if(ENABLE_MODULE_SENSOR)
+      set(DEMOS ${DEMOS}
+          demo_ROBOT_Curiosity_SCM_Sensor
+          demo_ROBOT_Viper_SCM_Sensor
+      )
+    endif()
+  endif()
 
-	if(ENABLE_MODULE_VSG OR ENABLE_MODULE_OPENGL)
-	  if(ENABLE_MODULE_FSI)
-		set(DEMOS ${DEMOS}
-			demo_ROBOT_Viper_SPH
-		)
-	  endif()
-	endif()
+  if(ENABLE_MODULE_VSG OR ENABLE_MODULE_OPENGL)
+    if(ENABLE_MODULE_FSI)
+      set(DEMOS ${DEMOS}
+          demo_ROBOT_Viper_SPH
+      )
+    endif()
+  endif()
 
 endif()
 
@@ -81,11 +79,9 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
-#MESSAGE(STATUS "Demo programs for ROBOTICS...")
+message(STATUS "Add demo programs for ROBOT models")
 
 foreach(PROGRAM ${DEMOS})
-    #MESSAGE(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
 

@@ -69,20 +69,20 @@ source_group("copters" FILES ${CRM_COPTERS_FILES})
 
 #-----------------------------------------------------------------------------
 
-set(INDUSTRIAL_FILES
+set(CRM_INDUSTRIAL_FILES
     industrial/IndustrialRobot.h industrial/IndustrialRobot.cpp
-	industrial/IndustrialRobotSCARA.h industrial/IndustrialRobotSCARA.cpp
-	industrial/IndustrialRobotSCARA_CAD.h industrial/IndustrialRobotSCARA_CAD.cpp
-	industrial/IndustrialRobot6dof.h industrial/IndustrialRobot6dof.cpp
-	industrial/IndustrialRobot6dofCAD.h industrial/IndustrialRobot6dofCAD.cpp
-	industrial/IndustrialKinematics.h industrial/IndustrialKinematics.cpp
-	industrial/IndustrialKinematicsSCARA.h industrial/IndustrialKinematicsSCARA.cpp
-	industrial/IndustrialKinematics6dofSpherical.h industrial/IndustrialKinematics6dofSpherical.cpp
-	industrial/IndustrialKinematicsNdofNumerical.h industrial/IndustrialKinematicsNdofNumerical.cpp
-	industrial/TrajectoryInterpolator.h industrial/TrajectoryInterpolator.cpp
+    industrial/IndustrialRobotSCARA.h industrial/IndustrialRobotSCARA.cpp
+    industrial/IndustrialRobotSCARA_CAD.h industrial/IndustrialRobotSCARA_CAD.cpp
+    industrial/IndustrialRobot6dof.h industrial/IndustrialRobot6dof.cpp
+    industrial/IndustrialRobot6dofCAD.h industrial/IndustrialRobot6dofCAD.cpp
+    industrial/IndustrialKinematics.h industrial/IndustrialKinematics.cpp
+    industrial/IndustrialKinematicsSCARA.h industrial/IndustrialKinematicsSCARA.cpp
+    industrial/IndustrialKinematics6dofSpherical.h industrial/IndustrialKinematics6dofSpherical.cpp
+    industrial/IndustrialKinematicsNdofNumerical.h industrial/IndustrialKinematicsNdofNumerical.cpp
+    industrial/TrajectoryInterpolator.h industrial/TrajectoryInterpolator.cpp
 )
 
-source_group("industrial" FILES ${INDUSTRIAL_FILES})
+source_group("industrial" FILES ${CRM_INDUSTRIAL_FILES})
 
 #-----------------------------------------------------------------------------
 
@@ -93,18 +93,17 @@ add_library(ChronoModels_robot
             ${CRM_VIPER_FILES}
             ${CRM_TURTLEBOT_FILES}
             ${CRM_COPTERS_FILES}
-			${INDUSTRIAL_FILES}
+            ${CRM_INDUSTRIAL_FILES}
             )
 
 add_library(ChronoEngine::ChronoModels_robot ALIAS ChronoModels_robot)
 
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 
-target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine)
+target_link_libraries(ChronoModels_robot PUBLIC ChronoEngine)
 
 if(ENABLE_MODULE_IRRLICHT)
     target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine_irrlicht)
-    include_directories(${CH_IRRLICHT_INCLUDES})
 endif()
 
 install(TARGETS ChronoModels_robot
@@ -117,4 +116,3 @@ install(TARGETS ChronoModels_robot
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/robot
         FILES_MATCHING PATTERN "*.h")
-

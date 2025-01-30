@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 
 if(NOT ENABLE_MODULE_IRRLICHT)
-  message(STATUS "  Warning: the sequential RoboSimian projects require Chrono::Irrlicht!")
+  message(STATUS "  Warning: the sequential RoboSimian projects require Chrono::Irrlicht")
   return()
 endif()
 
@@ -18,7 +18,6 @@ set(DEMOS
 # ------------------------------------------------------------------------------
 
 foreach(PROGRAM ${DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
     add_executable(${PROGRAM} "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 

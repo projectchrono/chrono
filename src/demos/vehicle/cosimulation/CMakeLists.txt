@@ -10,16 +10,10 @@ if(NOT ENABLE_MODULE_VEHICLE_COSIM)
   return()
 endif()
 
-#message(STATUS "COSIM CXX: ${CH_VEHCOSIM_CXX_FLAGS}")
-#message(STATUS "COSIM LINK: ${CH_VEHCOSIM_LINKER_FLAGS}")
-#message(STATUS "COSIM INCLUDES: ${CH_VEHCOSIM_INCLUDES}")
-#message(STATUS "COSIM LIBS: ${CH_VEHCOSIM_LIBRARIES}")
-
 # ------------------------------------------------------------------------------
 
 set(PROGRAMS 
     demo_VEH_Cosim_WheelRig
-    demo_VEH_Cosim_WheelRig_CustomTerrain
     demo_VEH_Cosim_Viper
     demo_VEH_Cosim_Curiosity
 )
@@ -43,23 +37,15 @@ if(ENABLE_MODULE_VEHICLE_MODELS)
 
 endif()
 
-include_directories(${CH_VEHCOSIM_INCLUDES})
-list(APPEND LIBRARIES ChronoEngine_vehicle_cosim)
-list(APPEND LIBRARIES ${CH_VEHCOSIM_LIBRARIES})
+# ------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VEHICLE_MODELS)
-  list(APPEND LIBRARIES ChronoModels_vehicle)
-endif()
+message(STATUS "Add demo programs for VEHICLE COSIM module")
 
-FOREACH(PROGRAM ${PROGRAMS})
-  # MESSAGE(STATUS "...add ${PROGRAM}")
-
+foreach(PROGRAM ${PROGRAMS})
   add_executable(${PROGRAM} ${PROGRAM}.cpp)
   source_group("" FILES ${PROGRAM}.cpp)
+  target_link_libraries(${PROGRAM} ChronoModels_vehicle)
+  target_link_libraries(${PROGRAM} ChronoEngine_vehicle_cosim)
+endforeach()
 
-  set_target_properties(${PROGRAM} PROPERTIES 
-      COMPILE_FLAGS "${CH_VEHCOSIM_CXX_FLAGS}"
-      LINK_FLAGS "${CH_VEHCOSIM_LINKER_FLAGS}")
-
-  target_link_libraries(${PROGRAM} ${LIBRARIES})
-ENDFOREACH()
+add_subdirectory(external)
