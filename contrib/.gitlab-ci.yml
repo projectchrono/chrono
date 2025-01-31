@@ -270,9 +270,11 @@ windows:vs2022:build:
   stage: build
   extends: .windows
   script:
+  # Build gl with buildGL script
+  - '& $CI_PROJECT_DIR\contrib\build-scripts\opengl\buildGL.bat $CI_PROJECT_DIR\contrib\build-scripts\gl_build'
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\vsg\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  # Build vsg with buildURDF script
+  # Build urdf with buildURDF script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\urdf\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
   - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -DCMAKE_CXX_FLAGS="/MP4" --preset=windowsci-vs2022
