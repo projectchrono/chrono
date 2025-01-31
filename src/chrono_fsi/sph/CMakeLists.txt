@@ -155,6 +155,9 @@ target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cuda_driver)
 target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cublas)
 target_link_libraries(ChronoEngine_fsi_sph PRIVATE CUDA::cusparse)
 
+target_link_libraries(ChronoEngine_fsi_sph PRIVATE Thrust::Thrust)
+target_compile_definitions(ChronoEngine_fsi_sph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+target_compile_definitions(ChronoEngine_fsi_sph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
 if(ENABLE_MODULE_OPENGL)
   target_link_libraries(ChronoEngine_fsi_sph PRIVATE ChronoEngine_opengl)
