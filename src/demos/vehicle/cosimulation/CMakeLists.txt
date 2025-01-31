@@ -39,13 +39,29 @@ endif()
 
 # ------------------------------------------------------------------------------
 
+list(APPEND LIBS "ChronoEngine_vehicle_cosim")
+list(APPEND LIBS "ChronoModels_vehicle")
+
+if(ENABLE_MODULE_PARDISO_MKL)
+    list(APPEND LIBS "ChronoEngine_pardisomkl")
+endif()
+
+if(ENABLE_MODULE_MUMPS)
+    list(APPEND LIBS "ChronoEngine_mumps")
+endif()
+
+if(ENABLE_MODULE_POSTPROCESS)
+    list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
+# ------------------------------------------------------------------------------
+
 message(STATUS "Add demo programs for VEHICLE COSIM module")
 
 foreach(PROGRAM ${PROGRAMS})
   add_executable(${PROGRAM} ${PROGRAM}.cpp)
   source_group("" FILES ${PROGRAM}.cpp)
-  target_link_libraries(${PROGRAM} ChronoModels_vehicle)
-  target_link_libraries(${PROGRAM} ChronoEngine_vehicle_cosim)
+  target_link_libraries(${PROGRAM} ${LIBS})
 endforeach()
 
 add_subdirectory(external)
