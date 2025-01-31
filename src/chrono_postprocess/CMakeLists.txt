@@ -7,36 +7,48 @@
 option(ENABLE_MODULE_POSTPROCESS "Enable the Chrono Postprocess module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_POSTPROCESS)
+if(NOT ENABLE_MODULE_POSTPROCESS)
 	RETURN()
-ENDIF()
+endif()
 
-MESSAGE(STATUS "\n==== Chrono Postprocess module ====\n")
+message(STATUS "\n==== Chrono Postprocess module ====\n")
 
 #-----------------------------------------------------------------------------
-# LIST THE FILES THAT MAKE THE POSTPROCESS LIBRARY
 
-SET(ChronoEngine_POSTPROCESS_SOURCES 
+find_package(Gnuplot QUIET)
+
+if(GNUPLOT_FOUND)
+  message(STATUS "Gnuplot executable: ${GNUPLOT_EXECUTABLE}")
+  message(STATUS "Gnuplot version:    ${GNUPLOT_VERSION_STRING}")
+endif()
+
+#-----------------------------------------------------------------------------
+
+set(ChronoEngine_POSTPROCESS_SOURCES 
     ChPovRay.cpp
     ChBlender.cpp
 )
 
-SET(ChronoEngine_POSTPROCESS_HEADERS
+set(ChronoEngine_POSTPROCESS_HEADERS
     ChApiPostProcess.h 
     ChPostProcessBase.h
-    ChGnuPlot.h
     ChPovRay.h
     ChBlender.h
 )
 
-SOURCE_GROUP("" FILES 
+if(GNUPLOT_FOUND)
+  set(ChronoEngine_POSTPROCESS_HEADERS ${ChronoEngine_POSTPROCESS_HEADERS}
+      ChGnuPlot.h)
+endif()
+
+source_group("" FILES 
             ${ChronoEngine_POSTPROCESS_SOURCES} 
             ${ChronoEngine_POSTPROCESS_HEADERS})
 
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
-ADD_LIBRARY(ChronoEngine_postprocess 
+add_library(ChronoEngine_postprocess 
 			${ChronoEngine_POSTPROCESS_SOURCES}
 			${ChronoEngine_POSTPROCESS_HEADERS})
                           

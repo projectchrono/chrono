@@ -52,7 +52,7 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-# MESSAGE(STATUS "Demo programs for Sensor module...")
+message(STATUS "Add demo programs for SENSOR module")
 
 foreach(PROGRAM ${DEMOS})
   # MESSAGE(STATUS "...add ${PROGRAM}")

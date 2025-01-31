@@ -109,11 +109,9 @@ endif()
 
 #--------------------------------------------------------------
 
-# MESSAGE(STATUS "Demo programs for FEA module...")
+message(STATUS "Add demo programs for FEA module")
 
 foreach(PROGRAM ${FEA_DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 

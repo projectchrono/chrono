@@ -23,7 +23,6 @@ endif()
 
 message(STATUS "  Use double precision? ${FSI_USE_DOUBLE}")
 message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
-message(STATUS "  CMake CUDA architectures:  ${CMAKE_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library

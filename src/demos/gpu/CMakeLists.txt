@@ -28,8 +28,6 @@ SET(DEMOS
 message(STATUS "Add demo programs for GPU module")
 
 FOREACH(PROGRAM ${DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 

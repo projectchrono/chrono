@@ -31,11 +31,9 @@ endif()
 #--------------------------------------------------------------
 # Add executables
 
-message(STATUS "Add unit tests for MODAL module")
+message(STATUS "Add unit test programs for MODAL module")
 
 foreach(PROGRAM ${TESTS})
-  message(STATUS "...${PROGRAM}")
-  
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")
 

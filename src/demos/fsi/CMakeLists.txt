@@ -51,8 +51,6 @@ list(APPEND LIBS "ChronoEngine_fsi_sph")
 message(STATUS "Add demo programs for FSI module")
 	
 foreach(PROGRAM ${DEMOS})
-    # MESSAGE(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
     set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)

@@ -36,7 +36,7 @@ endif()
 
 #--------------------------------------------------------------
 
-# MESSAGE(STATUS "Demo programs for MODAL module...")
+message(STATUS "Add demo programs for MODAL module")
 
 foreach(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

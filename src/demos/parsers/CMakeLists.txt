@@ -51,7 +51,7 @@ endif()
 
 # Add executables
 
-# MESSAGE(STATUS "Demo programs for Parsers module...")
+message(STATUS "Add demo programs for PARSERS module")
 
 foreach(PROGRAM ${DEMOS})
   # MESSAGE(STATUS "...add ${PROGRAM}")

@@ -56,7 +56,7 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
-# MESSAGE(STATUS "Demo programs for MULTICORE module...")
+message(STATUS "Add demo programs for MULTICORE module")
 
 FOREACH(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")

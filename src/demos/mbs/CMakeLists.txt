@@ -103,7 +103,7 @@ endif()
 
 # Add executables
 
-# MESSAGE(STATUS "Demo programs for MBS module...")
+message(STATUS "Add demo programs for MBS module")
 
 foreach(PROGRAM ${DEMOS})
   # MESSAGE(STATUS "...add ${PROGRAM}")

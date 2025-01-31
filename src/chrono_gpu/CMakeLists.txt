@@ -31,6 +31,8 @@ if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     return()
 endif()
 
+message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
+
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
 # ----------------------------------------------------------------------------
@@ -46,27 +48,6 @@ configure_file(
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h"
         DESTINATION include/chrono_gpu)
-
-# ------------------------------------------------------------------------------
-# Collect all additional include directories necessary for the GPU module
-# ------------------------------------------------------------------------------
-
-# include_directories(${CUDA_INCLUDE_DIRS})
-
-# set(CH_GPU_INCLUDES ${CUDA_INCLUDE_DIRS})
-# set(CH_GPU_CXX_FLAGS "")
-# set(CH_GPU_C_FLAGS "")
-# set(CH_CPU_COMPILE_DEFS "")
-# set(CH_GPU_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
-# set(CH_GPU_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
-
-# # ------------------------------------------------------------------------------
-# # Make some variables visible from parent directory
-# # ------------------------------------------------------------------------------
-
-# set(CH_GPU_CXX_FLAGS "${CH_GPU_CXX_FLAGS}" PARENT_SCOPE)
-# set(CH_GPU_C_FLAGS "${CH_GPU_C_FLAGS}" PARENT_SCOPE)
-# set(CH_GPU_INCLUDES "${CH_GPU_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List the files in the Chrono::GPU module
