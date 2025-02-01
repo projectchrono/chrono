@@ -86,7 +86,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 
@@ -99,7 +98,6 @@ if(ENABLE_MODULE_MUMPS)
 endif()
 
 if(ENABLE_MODULE_MATLAB)
-  include_directories(${CH_MATLABINC})
   list(APPEND LIBS "ChronoEngine_matlab")
 endif()
 
