@@ -363,6 +363,8 @@ add_library(ChronoEngine::ChronoEngine_sensor ALIAS ChronoEngine_sensor)
 # Find and set everything needed for OptiX
 # ------------------------------------------------------------------------------
 
+message(STATUS "Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
+
 find_package(OptiX REQUIRED)
 
 message(STATUS "OptiX include directory: ${OptiX_INCLUDE_DIR}")
@@ -397,6 +399,7 @@ endif()
 target_compile_options(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>)
 target_compile_options(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>)
 
+set_target_properties(ChronoEngine_sensor PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
 # ------------------------------------------------------------------------------
 # Optionally use NVRTC to compile shader code rather than NVCC to PTX
