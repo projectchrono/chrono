@@ -85,16 +85,10 @@ include_directories(${OpenCASCADE_INCLUDE_DIR})
 set(LIBRARIES "ChronoEngine")
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBRARIES ChronoEngine_irrlicht)
 endif()
 
 add_library(ChronoEngine_cascade ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
-
-set_target_properties(ChronoEngine_cascade PROPERTIES 
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions( "/DWNT" )
@@ -105,14 +99,14 @@ endif()
 
 target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
 
-target_link_libraries(ChronoEngine_cascade
-        ${OpenCASCADE_LIBRARIES} 
-        ${LIBRARIES})
+target_link_libraries(ChronoEngine_cascade ${OpenCASCADE_LIBRARIES} ${LIBRARIES})
 
 install(TARGETS ChronoEngine_cascade
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_cascade)
 
-install(FILES ${ChronoEngine_CASCADE_HEADERS}
-        DESTINATION include/chrono_cascade)
+#install(FILES ${ChronoEngine_CASCADE_HEADERS}
+#        DESTINATION include/chrono_cascade)

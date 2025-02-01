@@ -8,17 +8,24 @@ if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
 endif()
 
 #--------------------------------------------------------------
+# List of all Cascade demos
+
+set(DEMOS_CAS
+	demo_CAS_converter
+	demo_CAS_stepfile
+	demo_CAS_robot
+	demo_CAS_profile
+)
+
+#--------------------------------------------------------------
 # Additional paths and settings
 
 include_directories(${OpenCASCADE_INCLUDE_DIR})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE} ${OpenCASCADE_LINKER_FLAGS}")
+
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_cascade")
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
@@ -36,19 +43,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif()
 
 #--------------------------------------------------------------
-# List of all Cascade demos
 
-set(DEMOS_CAS
-	demo_CAS_converter
-	demo_CAS_stepfile
-	demo_CAS_robot
-	demo_CAS_profile
-)
-
-# MESSAGE(STATUS "Demo programs for OpenCASCADE module...")
-
-#--------------------------------------------------------------
-# Add demo executables
+message(STATUS "Add demo programs for CASCADE module")
 
 foreach(PROGRAM ${DEMOS_CAS})
     # MESSAGE(STATUS "...add ${PROGRAM}")
@@ -56,7 +52,6 @@ foreach(PROGRAM ${DEMOS_CAS})
     add_executable(${PROGRAM} "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()    
