@@ -48,14 +48,33 @@ set(DBG_SCRIPT FALSE)
 # Find PYTHON
 #-----------------------------------------------------------------------------
 
+message(STATUS "Find Python")
 set(Python_ADDITIONAL_VERSIONS 3.4)
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+find_package(Python3 REQUIRED 
+             COMPONENTS Interpreter Development
+             OPTIONAL_COMPONENTS NumPy)
+
+if(Python3_FOUND)
+  message(STATUS "  Python version:       ${Python3_VERSION}")
+  message(STATUS "  Python NumPy found?   ${Python3_NumPy_FOUND}")
+  if(Python3_NumPy_FOUND)
+    message(STATUS "  Python NumPy version: ${Python3_NumPy_VERSION}")
+  endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Find SWIG
 #-----------------------------------------------------------------------------
 
-find_package(SWIG REQUIRED COMPONENTS python)
+message(STATUS "Find SWIG")
+find_package(SWIG QUIET REQUIRED COMPONENTS python)
+
+if(SWIG_FOUND)
+  message(STATUS "  SWIG version:      ${SWIG_VERSION}")
+  message(STATUS "  SWIG python found? ${SWIG_python_FOUND}")
+  message(STATUS "  SWIG executable:   ${SWIG_EXECUTABLE}")
+endif()
+
 include(${SWIG_USE_FILE})
 
 # Set location of SWIG-generated files.
@@ -410,7 +429,7 @@ if(ENABLE_MODULE_IRRLICHT)
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-  find_package(IRRLICHT)
+  find_package(Irrlicht)
 
   swig_add_library(irrlicht LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
   target_link_libraries(irrlicht PRIVATE Python3::Python ChronoEngine ChronoEngine_irrlicht Irrlicht::Irrlicht)
@@ -672,7 +691,7 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   swig_add_library(vehicle LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   target_link_libraries(vehicle PRIVATE Python3::Python ChronoEngine ChronoEngine_vehicle ChronoModels_vehicle)
   if(ENABLE_MODULE_IRRLICHT)
-    find_package(IRRLICHT)
+    find_package(Irrlicht)
     target_link_libraries(vehicle PRIVATE ChronoEngine_vehicle_irrlicht ChronoEngine_irrlicht Irrlicht::Irrlicht)
   endif()
 
@@ -749,7 +768,6 @@ endif()
 #-----------------------------------------------------------------------------
 # MODULE for the sensor python wrapper.
 #-----------------------------------------------------------------------------
-find_package(Python3 QUIET COMPONENTS NumPy)
 
 if(ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
 
