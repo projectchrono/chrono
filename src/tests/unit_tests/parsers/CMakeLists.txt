@@ -1,15 +1,10 @@
 set(TESTS "")
 
 if(HAVE_URDF)
-  SET(TESTS
-    ${TESTS}
+  SET(TESTS ${TESTS}
     utest_PARSERS_URDF_simple
     utest_PARSERS_URDF_package
   )
-endif()
-
-if(HAVE_ROS)
-  add_definitions(-DHAVE_ROS)
 endif()
 
 #--------------------------------------------------------------
@@ -25,12 +20,16 @@ endif()
 
 #--------------------------------------------------------------
 
-set(LIBRARIES ChronoEngine ChronoEngine_parsers)
+list(APPEND LIBRARIES "ChronoEngine")
+list(APPEND LIBRARIES "ChronoEngine_parsers")
+if(HAVE_ROS)
+  list(APPEND LIBRARIES "ChronoEngine_ros")
+endif()
 
 #--------------------------------------------------------------
 # Add executables
 
-MESSAGE(STATUS "Add unit test programs for PARSERS module")
+message(STATUS "Add unit test programs for PARSERS module")
 
 foreach(PROGRAM ${TESTS})
     # MESSAGE(STATUS "...add ${PROGRAM}")
@@ -38,7 +37,10 @@ foreach(PROGRAM ${TESTS})
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
+    if(HAVE_ROS)
+      target_compile_definitions(${PROGRAM} PRIVATE "HAVE_ROS")
+    endif()
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER tests)
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 
