@@ -48,8 +48,6 @@ set(DBG_SCRIPT FALSE)
 # Find PYTHON
 #-----------------------------------------------------------------------------
 
-message(STATUS "...find Python")
-
 set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 
@@ -57,11 +55,9 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 # Find SWIG
 #-----------------------------------------------------------------------------
 
-message(STATUS "...find SWIG")
-
 find_package(SWIG REQUIRED COMPONENTS python)
 include(${SWIG_USE_FILE})
- 
+
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
 set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
@@ -141,7 +137,7 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INST
 # MODULE for the core wrapper, including most of the C::E
 #-----------------------------------------------------------------------------
 
-message(STATUS "...add python CORE module")
+message(STATUS "Add python CORE module")
 
 # Interface files
 set(CHPY_CORE_MODULE_FILE ChModuleCore_python.i)
@@ -241,7 +237,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install"
 
 if(ENABLE_MODULE_POSTPROCESS)
 
-  message(STATUS "...add python POSTPROCESS module")
+  message(STATUS "Add python POSTPROCESS module")
 
   # Python module name
   set(CHPY_POSTPROCESS postprocess)
@@ -320,7 +316,7 @@ endif()
 # MODULE for the fea python wrapper.
 #-----------------------------------------------------------------------------
 
-  message(STATUS "...add python FEA module")
+  message(STATUS "Add python FEA module")
 
   # Python module name
   set(CHPY_FEA fea)
@@ -401,7 +397,7 @@ endif()
 
 if(ENABLE_MODULE_IRRLICHT)
 
-  message(STATUS "...add python IRRLICHT module")
+  message(STATUS "Add python IRRLICHT module")
 
   # Interface files
   set(CHPY_IRRLICHT_MODULE_FILE ChModuleIrrlicht_python.i)
@@ -480,7 +476,7 @@ endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
 
-  message(STATUS "...add python Pardiso MKL module:  pychrono.pardisomkl")
+  message(STATUS "Add python PardisoMKL module")
 
   # Python module name
   set(CHPY_MKL pardisomkl)
@@ -563,7 +559,7 @@ endif()
 
 if(ENABLE_MODULE_CASCADE)
 
-  message(STATUS "...add python CASCADE module:  pychrono.cascade")
+  message(STATUS "Add python CASCADE module")
 
   # Interface files
   set(CHPY_CASCADE_MODULE_FILE
@@ -654,7 +650,7 @@ endif()
 
 if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
-  message(STATUS "...add python vehicle module:  pychrono.vehicle")
+  message(STATUS "Add python VEHICLE module")
 
   # Python module name
   set(CHPY_VEHICLE vehicle)
@@ -757,7 +753,7 @@ find_package(Python3 QUIET COMPONENTS NumPy)
 
 if(ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
 
-  message(STATUS "...add python SENSOR module")
+  message(STATUS "Add python SENSOR module")
 
   # Interface files
   set(CHPY_SENSOR_MODULE_FILE
@@ -834,7 +830,7 @@ endif()
 # Module for the robot models
 #-----------------------------------------------------------------------------
 
-  message(STATUS "...add python robot module:  pychrono.robot")
+  message(STATUS "Add python ROBOT module")
 
   # Python module name
   set(CHPY_RS robot)
@@ -915,7 +911,7 @@ endif()
 
 # Only build if have URDF for now
 if(ENABLE_MODULE_PARSERS AND HAVE_URDF)
-  message(STATUS "...add python parsers module:  pychrono.parsers")
+  message(STATUS "Add python PARSERS module")
 
   # Interface files
   set(CHPY_PARSERS_MODULE_FILE
@@ -998,7 +994,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 if(ENABLE_MODULE_ROS)
-  message(STATUS "...add python ros module:  pychrono.ros")
+  message(STATUS "Add python ROS module")
 
   # Force C++17, required by ROS Humble
   set(CMAKE_CXX_STANDARD 17)

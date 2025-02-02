@@ -26,8 +26,6 @@ set(DBG_SCRIPT false)
 # Find SWIG
 #-----------------------------------------------------------------------------
 
-message(STATUS "...find SWIG")
-
 if (POLICY CMP0122) # from 3.21 only
   cmake_policy(SET CMP0122 NEW)
 endif()
@@ -45,11 +43,6 @@ if(DBG_SCRIPT)
   message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
   message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
 endif()
-
-# # Disable additional warnings for generated C++ code
-# if(MSVC)
-#    add_compile_options(/wd4702)  # unreachable code
-# endif()
 
 #-----------------------------------------------------------------------------
 
@@ -94,14 +87,11 @@ function(add_csharp_postbuild_command target_name glob_dir binary_dir)
     endif()
 endfunction()
 
-
-
-
 #-----------------------------------------------------------------------------
 # Wrapper for CORE Chrono module
 #-----------------------------------------------------------------------------
 
-message(STATUS "...add CSharp CORE module")
+message(STATUS "Add C# CORE module")
 
 set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/core")
 
@@ -153,7 +143,7 @@ endif()
 
 if(ENABLE_MODULE_POSTPROCESS)
 
-  message(STATUS "...add CSharp POSTPROCESS module")
+  message(STATUS "Add C# POSTPROCESS module")
 
   set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/postprocess")
 
@@ -223,7 +213,7 @@ endif()
 
 if(ENABLE_MODULE_IRRLICHT)
 
-  message(STATUS "...add csharp IRRLICHT module")
+  message(STATUS "Add C# IRRLICHT module")
 
   set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/irrlicht")
 
@@ -294,7 +284,7 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DHAVE_OPENCRG")
   endif()
 
-  message(STATUS "...add CSharp VEHICLE module")
+  message(STATUS "Add C# VEHICLE module")
 
   set(CMAKE_SWIG_OUTDIR "${CHRONO_SWIG_OUTDIR}/vehicle")
 
@@ -356,7 +346,6 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
               LIBRARY DESTINATION lib)
   endif()
   
-
   if (DBG_SCRIPT)
     message(STATUS "Module name:     ChronoEngine_csharp_vehicle")
     message(STATUS "SWIG_REAL_NAME:  ChronoEngine_csharp_vehicle")
