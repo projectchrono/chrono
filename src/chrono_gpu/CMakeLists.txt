@@ -14,11 +14,8 @@ endif()
 
 message(STATUS "\n==== Chrono GPU module ====\n")
 
-enable_language(CUDA)
-find_package(CUDAToolkit REQUIRED)
-
 # Return now if CUDA is not available
-if(NOT CUDAToolkit_FOUND)
+if(NOT CHRONO_CUDA_FOUND)
     message("Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
     set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()

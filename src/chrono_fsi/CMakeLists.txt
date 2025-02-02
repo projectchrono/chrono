@@ -7,7 +7,7 @@
 option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
 if(NOT ENABLE_MODULE_FSI)
-  #mark_as_advanced(FORCE FSI_USE_DOUBLE)
+  mark_as_advanced(FORCE FSI_USE_DOUBLE)
   return()
 endif()
 

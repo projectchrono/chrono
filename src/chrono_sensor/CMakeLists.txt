@@ -13,7 +13,7 @@ endif()
 message(STATUS "\n==== Chrono Sensor module ====\n")
 
 # Return now if CUDA is not available
-if(NOT CMAKE_CUDA_COMPILER)
+if(NOT CHRONO_CUDA_FOUND)
   message(WARNING "Chrono::Sensor requires CUDA, but CUDA was not found; disabling Chrono::Sensor")
 
   mark_as_advanced(FORCE GLM_INCLUDE_DIR)
@@ -410,10 +410,10 @@ if(USE_CUDA_NVRTC)
   find_package(CUDAToolkit REQUIRED)
 
   if(NOT TARGET CUDA::nvrtc)
-    message(WARNING "CUDA::nvrtc target is missing; NVRTC will be turned off.")
+    message(WARNING "CUDA::nvrtc target is missing; NVRTC will be turned off")
     set(USE_CUDA_NVRTC OFF CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" FORCE)
   else()
-    message(STATUS "CUDA::nvrtc found and enabled.")
+    message(STATUS "CUDA::nvrtc found and enabled")
     target_compile_definitions(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
 
     target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::nvrtc)
@@ -512,9 +512,9 @@ if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
   target_link_libraries(ChronoEngine_sensor PUBLIC OpenGL::GL)
   target_link_libraries(ChronoEngine_sensor PUBLIC GLEW::glew)
   target_link_libraries(ChronoEngine_sensor PUBLIC glfw)
-  message(STATUS "GL libraries found.")
+  message(STATUS "GL libraries found")
 else()
-  message(STATUS "GL libraries not found. OpenGL support disabled.")
+  message(STATUS "GL libraries not found; OpenGL support disabled")
 endif()
 
 

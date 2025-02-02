@@ -15,8 +15,7 @@ endif()
 
 # Return now if CUDA is not available
 if(NOT CHRONO_CUDA_FOUND)
-    find_package(CUDAToolkit REQUIRED)
-    message(WARNING "Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
+    message(WARNING "Chrono::FSI::SPH requires CUDA, but CUDA was not found; disabling Chrono::FSI::SPH")
     set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()
 endif()
