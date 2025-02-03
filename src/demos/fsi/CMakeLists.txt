@@ -31,20 +31,19 @@ endif()
 #--------------------------------------------------------------
 
 list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_fsisph")
 
 if(ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vsg")
+    list(APPEND LIBS "ChronoEngine_fsisph_vsg")
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_opengl")
+    list(APPEND LIBS "ChronoEngine_fsisph_opengl")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
-
-list(APPEND LIBS "ChronoEngine_fsi_sph")
 
 #--------------------------------------------------------------
 

@@ -21,11 +21,10 @@ set(LIBRARIES
     ChronoEngine
     ChronoEngine_vehicle
     ChronoEngine_synchrono
+    ChronoModels_vehicle
     )
 
 if (ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     set(LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
 endif()
 
@@ -41,7 +40,6 @@ foreach(PROGRAM ${TESTS})
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${CXX_FLAGS} ${SYN_CXX_FLAGS}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBRARIES})
 

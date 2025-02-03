@@ -40,20 +40,8 @@ set(UTILS "../../SetChronoSolver.h")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
-endif()
-
-if(ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
-endif()
-
 if(ENABLE_MODULE_FSI)
-    list(APPEND LIBS "ChronoEngine_fsi_sph")
-endif()
-
-if(ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_opengl")
+    list(APPEND LIBS "ChronoEngine_fsisph")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
@@ -66,6 +54,24 @@ endif()
 
 if(ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
+if(ENABLE_MODULE_IRRLICHT)
+    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+endif()
+
+if(ENABLE_MODULE_VSG)
+    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    if(ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+    endif()
+endif()
+
+if(ENABLE_MODULE_OPENGL)
+    list(APPEND LIBS "ChronoEngine_vehicle_opengl")
+    if(ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_opengl")
+    endif()
 endif()
 
 #--------------------------------------------------------------

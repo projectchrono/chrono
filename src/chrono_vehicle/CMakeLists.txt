@@ -775,6 +775,17 @@ set(CV_TV_VEHICLE_FILES
 )
 source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
 
+# --------------- THIRD-PARTY FILES
+
+set(CV_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
+)
+source_group("utils\\stb" FILES ${CV_STB_FILES})
+
 # --------------- VEHICLE IRRLICHT INTERFACE
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -798,8 +809,6 @@ if(ENABLE_MODULE_IRRLICHT)
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.cpp
     )
-
-    message(STATUS "Enable Irrlicht support")
 else()
     set(CVIRR_FILES "")
     set(CVIRR_WV_FILES "")
@@ -831,8 +840,6 @@ if(ENABLE_MODULE_VSG)
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.h
         tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.cpp
     )
-
-    message(STATUS "Enable VSG support")    
 else()
     set(CVVSG_FILES "")
     set(CVVSG_WV_FILES "")
@@ -850,24 +857,11 @@ if(ENABLE_MODULE_OPENGL)
         ChVehicleVisualSystemOpenGL.h
         ChVehicleVisualSystemOpenGL.cpp
     )
-
-    message(STATUS "Enable OpenGL support")    
 else()
     set(CVGL_FILES "")
 endif()
 
 source_group("" FILES ${CVGL_FILES})
-
-# --------------- THIRD-PARTY FILES
-
-set(CV_STB_FILES
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
-)
-source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -924,7 +918,7 @@ if(HAVE_OPENCRG)
 endif()
 
 if(ENABLE_MODULE_FSI)
-  target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsi_sph)
+  target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsisph)
 endif()
 
 target_compile_definitions(ChronoEngine INTERFACE 
@@ -953,25 +947,24 @@ install(TARGETS ChronoEngine_vehicle
 #-------------------------------------------------------------------------------
 
 if(ENABLE_MODULE_IRRLICHT)
+    message(STATUS "Add ChronoEngine_vehicle_irrlicht library")
 
     add_library(ChronoEngine_vehicle_irrlicht
         ${CVIRR_FILES}
         ${CVIRR_WV_FILES}
         ${CVIRR_TV_FILES}
     )
-
     add_library(ChronoEngine::vehicle_irrlicht ALIAS ChronoEngine_vehicle_irrlicht)
 
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC ChronoEngine_irrlicht)
-    
+
     if(ENABLE_IRRKLANG)
         target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
     endif()
-    
+
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-    
-    
+
     install(TARGETS ChronoEngine_vehicle_irrlicht
             EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
@@ -986,6 +979,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(ENABLE_MODULE_VSG)
+    message(STATUS "Add ChronoEngine_vehicle_vsg library")
 
     add_library(ChronoEngine_vehicle_vsg
         ${CVVSG_FILES}
@@ -993,12 +987,12 @@ if(ENABLE_MODULE_VSG)
         ${CVVSG_TV_FILES}
     )
     add_library(ChronoEngine::vehicle_vsg ALIAS ChronoEngine_vehicle_vsg)
-    
+
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-    
+
     target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_vsg PUBLIC ChronoEngine_vsg)
-    
+
     install(TARGETS ChronoEngine_vehicle_vsg
             EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
@@ -1013,18 +1007,18 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(ENABLE_MODULE_OPENGL)
+    message(STATUS "Add ChronoEngine_vehicle_opengl library")
 
     add_library(ChronoEngine_vehicle_opengl
         ${CVGL_FILES}
     )
     add_library(ChronoEngine::vehicle_opengl ALIAS ChronoEngine_vehicle_opengl)
 
-    
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-    
+
     target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_opengl PUBLIC ChronoEngine_opengl)
-    
+
     install(TARGETS ChronoEngine_vehicle_opengl
             EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
@@ -1103,7 +1097,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 
   # Make variable visible from outside this directory
-  SET(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
-  SET(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
+  set(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
+  set(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
 
 endif()

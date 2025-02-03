@@ -45,8 +45,17 @@ endif()
 
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoModels_robot")
+
 if(ENABLE_MODULE_VEHICLE)
   list(APPEND LIBS "ChronoEngine_vehicle")
+endif()
+
+if(ENABLE_MODULE_SENSOR)
+  list(APPEND LIBS "ChronoEngine_sensor")
+endif()
+
+if(ENABLE_MODULE_FSI)
+  list(APPEND LIBS "ChronoEngine_fsisph")
 endif()
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -61,18 +70,19 @@ if(ENABLE_MODULE_VSG)
     if(ENABLE_MODULE_VEHICLE) 
       list(APPEND LIBS "ChronoEngine_vehicle_vsg")
     endif()
+    if(ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+    endif()
 endif()
 
 if(ENABLE_MODULE_OPENGL)
     list(APPEND LIBS "ChronoEngine_opengl")
-endif()
-
-if(ENABLE_MODULE_SENSOR)
-  list(APPEND LIBS "ChronoEngine_sensor")
-endif()
-
-if(ENABLE_MODULE_FSI)
-  list(APPEND LIBS "ChronoEngine_fsi_sph")
+    if(ENABLE_MODULE_VEHICLE) 
+      list(APPEND LIBS "ChronoEngine_vehicle_opengl")
+    endif()
+    if(ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_opengl")
+    endif()
 endif()
 
 # ------------------------------------------------------------------------------

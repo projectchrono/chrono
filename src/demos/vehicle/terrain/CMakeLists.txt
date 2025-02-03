@@ -64,22 +64,12 @@ list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 list(APPEND LIBS "ChronoModels_robot")
 
-if(ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "ChronoEngine_irrlicht")
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
-endif()
-
-if(ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vsg")
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
-endif()
-
 if(ENABLE_MODULE_MULTICORE)
     list(APPEND LIBS "ChronoEngine_multicore")
 endif()
 
 if(ENABLE_MODULE_FSI)
-    list(APPEND LIBS "ChronoEngine_fsi_sph")
+    list(APPEND LIBS "ChronoEngine_fsisph")
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
@@ -91,12 +81,26 @@ if(ENABLE_MODULE_MUMPS)
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_opengl")
-endif()
-
 if(ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
+if(ENABLE_MODULE_IRRLICHT)
+    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+endif()
+
+if(ENABLE_MODULE_VSG)
+    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    if(ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+    endif()
+endif()
+
+if(ENABLE_MODULE_OPENGL)
+    list(APPEND LIBS "ChronoEngine_opengl")
+    if(ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_opengl")
+    endif()
 endif()
 
 #--------------------------------------------------------------

@@ -54,10 +54,10 @@ add_executable(demo_GPU_mixer demo_GPU_mixer.cpp)
 target_link_libraries(demo_GPU_mixer PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_gpu)
 
 add_executable(demo_FSI_Poiseuille_flow demo_FSI_Poiseuille_flow.cpp)
-target_link_libraries(demo_FSI_Poiseuille_flow PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsi_sph ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vsg)
+target_link_libraries(demo_FSI_Poiseuille_flow PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsisph ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vsg)
 
 add_executable(demo_FSI_WaveTank demo_FSI_WaveTank.cpp)
-target_link_libraries(demo_FSI_WaveTank PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsi_sph ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vsg)
+target_link_libraries(demo_FSI_WaveTank PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsisph ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vsg)
 
 add_executable(demo_GL_cohesion demo_GL_cohesion.cpp)
 target_link_libraries(demo_GL_cohesion PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_opengl)

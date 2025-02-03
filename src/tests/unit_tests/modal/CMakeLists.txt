@@ -22,7 +22,6 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES ChronoEngine ChronoEngine_modal)
 
 if(ENABLE_MODULE_PARDISO_MKL)
-    include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
     list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
