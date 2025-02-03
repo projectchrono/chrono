@@ -72,25 +72,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 # ------------------------------------------------------------------------------
-# Collect all include directories necessary for the OpenGL module
-# ------------------------------------------------------------------------------
-
-# include_directories(${glm_DIR})
-
-# if(ENABLE_MODULE_MULTICORE)
-#     include_directories(${CH_MULTICORE_INCLUDES})
-# endif()
-
-# # ------------------------------------------------------------------------------
-# # Make some variables visible from parent directory
-# # ------------------------------------------------------------------------------
-
-# SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
-# SET(OPENGL_LIBRARIES   "${OPENGL_LIBRARIES}" PARENT_SCOPE)
-# SET(GLEW_DIR "${GLEW_DIR}" PARENT_SCOPE)
-# SET(glfw3_DIR "${glfw3_DIR}" PARENT_SCOPE)
-
-# ------------------------------------------------------------------------------
 # Add commands to compile shaders
 # ------------------------------------------------------------------------------
 
@@ -114,7 +95,7 @@ foreach(GLSL_SHADER ${GLSL_SHADERS})
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
     COMMAND ${CMAKE_COMMAND} 
             -DSYMBOL=${GLSL_SHADER}
-            -DDATA_FILE=${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl 
+            -DDATA_FILE=${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl
             -DHEADER_FILE=${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
             -P ${CMAKE_SOURCE_DIR}/cmake/embedfile.cmake
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl
@@ -284,12 +265,11 @@ target_link_libraries(ChronoEngine_opengl PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_opengl PUBLIC glm::glm)
 
 if(ENABLE_MODULE_MULTICORE)
-  target_link_libraries(ChronoEngine_opengl PRIVATE ChronoEngine_multicore) # do not propagate to consumers
+  target_link_libraries(ChronoEngine_opengl PUBLIC ChronoEngine_multicore)
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   target_link_libraries(ChronoEngine_opengl PUBLIC OpenGL::GL)
-  # target_link_libraries(ChronoEngine_opengl PRIVATE OpenGL::GLU)
   target_link_libraries(ChronoEngine_opengl PUBLIC GLEW::glew)
   target_link_libraries(ChronoEngine_opengl PUBLIC glfw)
 endif()
@@ -332,10 +312,3 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       install(FILES "${GLFW_DLL}" DESTINATION bin)
     endif()
 endif()
-
-# file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindGLM.cmake"
-#      DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-# install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindGLM.cmake"
-#         DESTINATION ${CH_CONFIG_INSTALL_PATH}
-#         )
