@@ -503,8 +503,8 @@ message(STATUS "GLFW3 found:  ${glfw3_FOUND}")
 # optional. If not specified, it is the user's responsibility to make them
 # available at runtime.
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(GLEW_DLL "${GLEW_DIR}/../../../bin/glew32d.dll" CACHE FILEPATH "Path to GLEW DLL")
-  set(GLFW_DLL "${glfw3_DIR}/../../../bin/glfw3.dll;${glfw3_DIR}/../../../bin/glfw3_d.dll" CACHE FILEPATH "Path to GLFW DLL")
+  set(GLEW_DLL "${GLEW_DIR}/../../../bin/glew32.dll" CACHE FILEPATH "Path to GLEW DLL")
+  set(GLFW_DLL "${glfw3_DIR}/../../../bin/glfw3.dll" CACHE FILEPATH "Path to GLFW DLL")
 endif()
 
 if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
