@@ -20,13 +20,6 @@ set(CRM_ROBOSIMIAN_FILES
     robosimian/RoboSimian.h
 )
 
-if(ENABLE_MODULE_IRRLICHT)
-set(CRM_ROBOSIMIAN_FILES ${CRM_ROBOSIMIAN_FILES}
-    robosimian/RoboSimianVisualSystemIrrlicht.cpp
-    robosimian/RoboSimianVisualSystemIrrlicht.h
-)
-endif()
-
 source_group("robosimian" FILES ${CRM_ROBOSIMIAN_FILES})
 
 #-----------------------------------------------------------------------------
@@ -101,10 +94,6 @@ add_library(ChronoEngine::ChronoModels_robot ALIAS ChronoModels_robot)
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 
 target_link_libraries(ChronoModels_robot PUBLIC ChronoEngine)
-
-if(ENABLE_MODULE_IRRLICHT)
-    target_link_libraries(ChronoModels_robot PRIVATE ChronoEngine_irrlicht)
-endif()
 
 install(TARGETS ChronoModels_robot
         EXPORT ChronoEngineTargets
