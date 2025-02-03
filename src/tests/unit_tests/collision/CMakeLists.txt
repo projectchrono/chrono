@@ -5,7 +5,7 @@ set(TESTS
     utest_COLL_bullet_utils
 )
 
-if (${THRUST_FOUND})
+if (CHRONO_THRUST_FOUND)
    set(TESTS ${TESTS}
        utest_COLL_narrow_prims
        utest_COLL_narrow_mpr

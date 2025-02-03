@@ -23,7 +23,7 @@ endif()
 message(STATUS "\n==== Chrono Multicore module ====\n")
 
 # Return now if Thrust not available
-if (NOT THRUST_FOUND)
+if (NOT CHRONO_THRUST_FOUND)
   message("Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
   set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
   return()

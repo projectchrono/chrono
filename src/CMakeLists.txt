@@ -115,6 +115,16 @@ if (MSVC)
 endif()
 
 #-----------------------------------------------------------------------------
+# Create installation directory
+#-----------------------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_CONFIG_INSTALL_PATH "cmake")
+else()
+    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
+endif()
+
+#-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
 
@@ -350,11 +360,11 @@ endif()
 message(STATUS "Searching for MPI for C++")
 find_package(MPI)
 if(MPI_CXX_FOUND)
-  message(STATUS "  MPI compiler:      ${MPI_CXX_COMPILER}")
-  message(STATUS "  MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
-  message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")
-  message(STATUS "  MPI link flags:    ${MPI_CXX_LINK_FLAGS}")
-  message(STATUS "  MPI libraries:     ${MPI_CXX_LIBRARIES}")
+  message(STATUS "  MPI compiler:          ${MPI_CXX_COMPILER}")
+  message(STATUS "  MPI compile flags:     ${MPI_CXX_COMPILE_FLAGS}")
+  message(STATUS "  MPI include path:      ${MPI_CXX_INCLUDE_PATH}")
+  message(STATUS "  MPI link flags:        ${MPI_CXX_LINK_FLAGS}")
+  message(STATUS "  MPI libraries:         ${MPI_CXX_LIBRARIES}")
   message(STATUS "  MPIEXEC:               ${MPIEXEC}")
   message(STATUS "  MPIEXEC_NUMPROC_FLAG:  ${MPIEXEC_NUMPROC_FLAG}")
   message(STATUS "  MPIEXEC_PREFLAGS:      ${MPIEXEC_PREFLAGS}")
@@ -369,52 +379,23 @@ message(STATUS "Searching for Thrust")
 
 find_package(Thrust)
 
-if(THRUST_FOUND)
+if(Thrust_FOUND)
   message(STATUS "  Thrust version:     ${THRUST_VERSION}")
   message(STATUS "  Thrust include dir: ${THRUST_INCLUDE_DIR}")
-  mark_as_advanced(FORCE THRUST_ROOT)
+  
+  set(CHRONO_THRUST_FOUND TRUE)
+  mark_as_advanced(FORCE Thrust_ROOT)
+
+  file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindThrust.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+  install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindThrust.cmake"
+          DESTINATION ${CH_CONFIG_INSTALL_PATH})
+
 else()
-  message(STATUS "  Thrust not found. Set THRUST_ROOT to the location of Thrust library.")
-  mark_as_advanced(CLEAR THRUST_ROOT)
+  message(STATUS "  Thrust not found. Set Thrust_ROOT to the location of Thrust library.")
+
+  set(CHRONO_THRUST_FOUND TRUE)
+  mark_as_advanced(CLEAR Thrust_ROOT)
 endif()
-
-## TODO: DARIOM see if we can use CUB from CUDA>12.3 or if Chrono requires necessariliy some old CUB
-# #-----------------------------------------------------------------------------
-# # CUB Library
-# #-----------------------------------------------------------------------------
-# find_package(CUDAToolkit)
-# if (CUDAToolkit_FOUND AND CUDAToolkit_VERSION_MAJOR LESS 11) # CUB should only be used with CUDA 
-# 	message(STATUS "Searching for CUB...")
-#   message(STATUS "DARIOM: cudatoolkit inside CUB_INCLUDE_DIR: ${CUB_INCLUDE_DIR}")
-
-
-# 	if (CUDAToolkit_VERSION_MAJOR LESS 11)
-# 		find_path(
-# 			CUB_INCLUDE_DIR 
-# 			cub.cuh
-# 			PATHS 
-# 				"${CUDA_TOOLKIT_ROOT_DIR}/include/cub/"
-# 				"${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub/cub/"
-# 			DOC "Path to the CUB include directory" 
-# 			REQUIRED
-# 		)
-#   else ()
-#     set(CUB_INCLUDE_DIR
-# 	endif()
-
-#   message(STATUS "DARIOM: after findpath CUB_INCLUDE_DIR: ${CUB_INCLUDE_DIR}")
-
-
-#   if (CUB_INCLUDE_DIR AND NOT TARGET Cub::Cub)
-#     add_library(Cub::Cub INTERFACE IMPORTED)
-#     set_target_properties(Cub::Cub PROPERTIES
-#                           INTERFACE_INCLUDE_DIRECTORIES "${CUB_INCLUDE_DIR}")
-
-#     install(DIRECTORY "${CUB_INCLUDE_DIR}" DESTINATION include/chrono_thirdparty)
-#   endif()
-
-# endif()
-
 
 #-----------------------------------------------------------------------------
 # HDF5 support (optional)
@@ -469,34 +450,6 @@ if(ENABLE_HDF5)
     endif()
 
 endif()
-
-#-----------------------------------------------------------------------------
-# Set the base compilation flags
-#-----------------------------------------------------------------------------
-
-# message(STATUS "Compiler and linker flags:")
-# message(STATUS "  CMAKE_CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
-# message(STATUS "  CMAKE_CXX_FLAGS_DEBUG:   ${CMAKE_CXX_FLAGS_DEBUG}")
-# message(STATUS "  CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
-# message(STATUS "  Linke flags LIB:         ${CH_LINKERFLAG_LIB}")
-# message(STATUS "  Linke flags EXE:         ${CH_LINKERFLAG_EXE}")
-
-
-#OPTION(USE_BULLET_DOUBLE "Compile Bullet in double precision" ON)
-#if (USE_BULLET_DOUBLE)
-#   add_definitions("-DBT_USE_DOUBLE_PRECISION")
-#endif()
-
-
-# #-----------------------------------------------------------------------------
-# # Set the base include directories
-# #-----------------------------------------------------------------------------
-
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-# include_directories(${PROJECT_BINARY_DIR})
-# include_directories(${EIGEN3_INCLUDE_DIR})
-# include_directories(${OPENMP_INCLUDE_DIR})
-# include_directories(${THRUST_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -571,12 +524,6 @@ endif()
 #------------------------------------------------------------
 # Propagate the CMake build to other directories
 #------------------------------------------------------------
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CH_CONFIG_INSTALL_PATH "cmake")
-else()
-    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
-endif()
 
 # Add directory for main ChronoEngine library
 add_subdirectory(chrono)
@@ -831,7 +778,7 @@ else()
   set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
 endif()
 
-if(THRUST_FOUND)
+if(CHRONO_THRUST_FOUND)
   set(CHRONO_HAS_THRUST "#define CHRONO_HAS_THRUST")
   set(CHRONO_THRUST_VERSION "#define CHRONO_THRUST_VERSION \"${THRUST_VERSION}\"")
   set(CHRONO_COLLISION "#define CHRONO_COLLISION")
@@ -863,61 +810,13 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 # Create the Chrono CMake project configuration file
 #------------------------------------------------------------
 
-# # For the BUILD tree
-# set(CH_THIRDPARTY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty")
-# set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACD")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
-
-# For C# globals
-# set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
-# set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
-
-# # DEBUG DARIOM
-
-# # configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-# #                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake"
-# #                @ONLY)
-
+# For the BUILD tree
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 
-
-# # For the INSTALL tree
-# set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")
-# set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACD")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
-# set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
-
-# set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
-# set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
-
-# DEBUG DARIOM
-# configure_file("${PROJECT_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-#                "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
-#                @ONLY)
-
-# install(FILES "${PROJECT_BINARY_DIR}/cmake/chrono-config.cmake.install"
-#         DESTINATION ${CH_CONFIG_INSTALL_PATH}
-#         RENAME chrono-config.cmake)
-
+# For the INSTALL tree
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
-
-
 
 ############################################################ NEW INSTALL
 

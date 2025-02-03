@@ -659,7 +659,7 @@ source_group(assets FILES
 
 # Multicore types and math 
 
-if (THRUST_FOUND)
+if (CHRONO_THRUST_FOUND)
     set(ChronoEngine_MulticoreMath_SOURCES
         multicore_math/ChMulticoreMath.h
         multicore_math/ChCudaDefines.h
@@ -751,7 +751,7 @@ source_group(collision FILES
 
 # Chrono collision group
 
-if (THRUST_FOUND)
+if (CHRONO_THRUST_FOUND)
    message(STATUS "Add Chrono multicore collision detection library")       
 
    set(ChronoEngine_collision_multicore_SOURCES
@@ -1408,7 +1408,7 @@ target_include_directories(ChronoEngine PUBLIC
 
 target_link_libraries(ChronoEngine PUBLIC Eigen3::Eigen)
 
-if(THRUST_FOUND)
+if(CHRONO_THRUST_FOUND)
   if(MSVC)
     target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust)
   else()
@@ -1425,7 +1425,7 @@ if(THRUST_FOUND)
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
   endif()
-endif(THRUST_FOUND)
+endif()
 
 if(ENABLE_OPENMP)
   target_link_libraries(ChronoEngine PUBLIC OpenMP::OpenMP_CXX)

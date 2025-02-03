@@ -60,7 +60,7 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_custom_contact
     )
 
-    if(THRUST_FOUND)
+    if(CHRONO_THRUST_FOUND)
       set(DEMOS ${DEMOS}
         demo_MBS_collision_object
       )

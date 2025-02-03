@@ -9,7 +9,7 @@ set(DEMOS
   demo_IRR_visualize_FEA
 )
 
-if(THRUST_FOUND)
+if(CHRONO_THRUST_FOUND)
   set(DEMOS ${DEMOS}
     demo_IRR_raycast_test
   )
