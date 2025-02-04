@@ -19,7 +19,7 @@ cmake_policy(SET CMP0091 NEW)
 project(my_project CXX)
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
-find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore GPU OpenGL Vehicle vsg sensor parsers synchrono modal)
+find_package(Chrono COMPONENTS Irrlicht PardisoMKL MultiCore FSI GPU OpenGL Vehicle vsg sensor parsers synchrono modal)
 
 
 #--------------------------------------------------------------
@@ -51,13 +51,13 @@ add_executable(demo_MCORE_cratering_OpenGL demo_MCORE_cratering_OpenGL.cpp)
 target_link_libraries(demo_MCORE_cratering_OpenGL PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_multicore ChronoEngine::ChronoEngine_opengl)
 
 add_executable(demo_GPU_mixer demo_GPU_mixer.cpp)
-target_link_libraries(demo_GPU_mixer PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_gpu)
+target_link_libraries(demo_GPU_mixer PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_gpu ChronoEngine::ChronoEngine_gpu_opengl)
 
 add_executable(demo_FSI_Poiseuille_flow demo_FSI_Poiseuille_flow.cpp)
-target_link_libraries(demo_FSI_Poiseuille_flow PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsisph ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vsg)
+target_link_libraries(demo_FSI_Poiseuille_flow PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsisph ChronoEngine::ChronoEngine_fsisph_vsg ChronoEngine::ChronoEngine_fsisph_opengl)
 
 add_executable(demo_FSI_WaveTank demo_FSI_WaveTank.cpp)
-target_link_libraries(demo_FSI_WaveTank PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsisph ChronoEngine::ChronoEngine_opengl ChronoEngine::ChronoEngine_vsg)
+target_link_libraries(demo_FSI_WaveTank PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_fsisph ChronoEngine::ChronoEngine_fsisph_vsg ChronoEngine::ChronoEngine_fsisph_opengl)
 
 add_executable(demo_GL_cohesion demo_GL_cohesion.cpp)
 target_link_libraries(demo_GL_cohesion PRIVATE ChronoEngine::ChronoEngine ChronoEngine::ChronoEngine_opengl)
