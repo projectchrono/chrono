@@ -17,9 +17,8 @@
 #ifndef CH_COLLISION_MODEL_MULTICORE_H
 #define CH_COLLISION_MODEL_MULTICORE_H
 
+#include "chrono/multicore_math/ChMulticoreTypes.h"
 #include "chrono/collision/ChCollisionModel.h"
-
-#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 

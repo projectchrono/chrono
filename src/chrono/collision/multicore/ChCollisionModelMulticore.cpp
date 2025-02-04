@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/collision/multicore/ChCollisionModelMulticore.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"

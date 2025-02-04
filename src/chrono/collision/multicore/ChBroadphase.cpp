@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <climits>
 
+#include "chrono/multicore_math/ChMulticoreMath.h"
+
 #include "chrono/collision/multicore/ChBroadphase.h"
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
