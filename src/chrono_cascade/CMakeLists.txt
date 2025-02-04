@@ -1,7 +1,5 @@
 #=============================================================================
 # CMake configuration file for the Chrono OpenCASCADE module
-# 
-# Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
 option(ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
@@ -47,59 +45,106 @@ source_group("" FILES
 #-----------------------------------------------------------------------------	
 # Find OpenCASCADE
 
-find_package(OpenCASCADE CONFIG)
+message(STATUS "Find OpenCascade")
+find_package(OpenCASCADE REQUIRED CONFIG)
 
 if (NOT OpenCASCADE_FOUND)
-  message("Could not find OpenCASCADE or one of its required modules")
+  message("Could not find OpenCASCADE or one of its required modules; disabling Chrono::Cascade module")
+  set(ENABLE_MODULE_CASCADE OFF CACHE BOOL "Enable the Chrono Cascade module" FORCE)
   return()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    FILE(GLOB OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARY_DIR}/TK*.lib")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    FILE(GLOB OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARY_DIR}/libTK*.so")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    FILE(GLOB OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARY_DIR}/libTK*.dylib")
-    #add_definitions( -DHAVE_LIMITS_H -DHAVE_IOSTREAM )
-endif()
-
 message(STATUS "  OpenCASCADE include directory: ${OpenCASCADE_INCLUDE_DIR}")
-message(STATUS "  OpenCASCADE binary directory:  ${OpenCASCADE_BINARY_DIR}")
 message(STATUS "  OpenCASCADE library directory: ${OpenCASCADE_LIBRARY_DIR}")
-##message(STATUS "  OpenCASCADE C++ flags:         ${OpenCASCADE_CXX_FLAGS}")
-message(STATUS "  OpenCASCADE linker flags:      ${OpenCASCADE_LINKER_FLAGS}")
-message(STATUS "  OpenCASCADE libraries:         ${OpenCASCADE_LIBRARIES}")
 
-# Make variables visible also from outside this directory
+#-----------------------------------------------------------------------------	
 
-set(OpenCASCADE_INCLUDE_DIR "${OpenCASCADE_INCLUDE_DIR}" PARENT_SCOPE)
-set(OpenCASCADE_BINARY_DIR "${OpenCASCADE_BINARY_DIR}" PARENT_SCOPE)
-##set(OpenCASCADE_CXX_FLAGS "${OpenCASCADE_CXX_FLAGS}" PARENT_SCOPE)
-set(OpenCASCADE_LINKER_FLAGS "${OpenCASCADE_LINKER_FLAGS}" PARENT_SCOPE)
-set(OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARIES}" PARENT_SCOPE)
+set(OCCT_LIBS
+TKBin                                                            
+TKBinL                                                           
+TKBinTObj                                                        
+TKBinXCAF                                                        
+TKBO                                                             
+TKBool                                                           
+TKBRep                                                           
+TKCAF                                                            
+TKCDF                                                            
+TKD3DHost                                                        
+TKDCAF                                                           
+TKDraw                                                           
+TKernel                                                          
+TKFeat                                                           
+TKFillet                                                         
+TKG2d                                                            
+TKG3d                                                            
+TKGeomAlgo                                                       
+TKGeomBase                                                       
+TKHLR                                                            
+TKIGES                                                           
+TKLCAF                                                           
+TKMath                                                           
+TKMesh                                                           
+TKMeshVS                                                         
+TKOffset                                                         
+TKOpenGl                                                         
+TKPrim                                                           
+TKQADraw                                                         
+TKRWMesh                                                         
+TKService                                                        
+TKShHealing                                                      
+TKStd                                                            
+TKStdL                                                           
+TKSTEP                                                           
+TKSTEP209                                                        
+TKSTEPAttr                                                       
+TKSTEPBase                                                       
+TKSTL                                                            
+TKTObj                                                           
+TKTObjDRAW                                                       
+TKTopAlgo                                                        
+TKTopTest                                                        
+TKV3d                                                            
+TKVCAF                                                           
+TKVRML                                                           
+TKXCAF                                                           
+TKXDEDRAW                                                        
+TKXDEIGES                                                        
+TKXDESTEP                                                        
+TKXMesh                                                          
+TKXml                                                            
+TKXmlL                                                           
+TKXmlTObj                                                        
+TKXmlXCAF                                                        
+TKXSBase                                                         
+TKXSDRAW                                                         
+)
+
+message(STATUS "Linked OpenCascade libraries: ${OCCT_LIBS}")
 
 #-----------------------------------------------------------------------------	
 # Add the ChronoEngine_cascade library
 
-include_directories(${OpenCASCADE_INCLUDE_DIR})
-set(LIBRARIES "ChronoEngine")
-
-if(ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBRARIES ChronoEngine_irrlicht)
-endif()
-
 add_library(ChronoEngine_cascade ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    add_definitions( "/DWNT" )
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_definitions(-DHAVE_IOSTREAM)
-    add_definitions(-DHAVE_LIMITS_H)
+if(WIN32)
+    target_compile_definitions(ChronoEngine_cascade PRIVATE WNT)
 endif()
+
+if(UNIX)
+    target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_IOSTREAM)
+    target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_LIMITS_H)
+endif()
+
+target_include_directories(ChronoEngine_cascade SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
 
-target_link_libraries(ChronoEngine_cascade ${OpenCASCADE_LIBRARIES} ${LIBRARIES})
+target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine)
+if(ENABLE_MODULE_IRRLICHT)
+  target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine_irrlicht)
+endif()
+
+target_link_libraries(ChronoEngine_cascade PUBLIC ${OCCT_LIBS})
 
 install(TARGETS ChronoEngine_cascade
         EXPORT ChronoEngineTargets

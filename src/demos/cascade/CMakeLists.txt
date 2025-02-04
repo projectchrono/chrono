@@ -20,8 +20,6 @@ set(DEMOS_CAS
 #--------------------------------------------------------------
 # Additional paths and settings
 
-include_directories(${OpenCASCADE_INCLUDE_DIR})
-
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_cascade")
 
@@ -31,15 +29,6 @@ endif()
 
 if(ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vsg")
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
-    add_definitions( "/DWNT" )
-endif()	
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_definitions(-DHAVE_IOSTREAM)
-    add_definitions(-DHAVE_LIMITS_H)
 endif()
 
 #--------------------------------------------------------------
@@ -52,10 +41,19 @@ foreach(PROGRAM ${DEMOS_CAS})
     add_executable(${PROGRAM} "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
+    if(WIN32)
+      target_compile_definitions(ChronoEngine_cascade PRIVATE WNT)
+    endif()
+    if(UNIX)
+      target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_IOSTREAM)
+      target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_LIMITS_H)
+    endif()
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()    
+
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    
     target_link_libraries(${PROGRAM} ${LIBS})
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
