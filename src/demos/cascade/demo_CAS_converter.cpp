@@ -150,7 +150,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
             scene::SMesh* mmesh = new scene::SMesh();
             video::SColor clr(255, 100, 120, 125);
 
-            irr::scene::ChCascadeIrrMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
+            ChCascadeIrrMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
             // ..also show in Irrlicht view
             scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
             Amesh->addMesh(mmesh);
