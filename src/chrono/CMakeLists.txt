@@ -663,7 +663,6 @@ if (CHRONO_THRUST_FOUND)
     set(ChronoEngine_MulticoreMath_SOURCES
         multicore_math/ChMulticoreTypes.h
         multicore_math/ChMulticoreMath.h
-        multicore_math/ChCudaDefines.h
         multicore_math/matrix.cpp
         multicore_math/matrix.h
         multicore_math/other_types.h

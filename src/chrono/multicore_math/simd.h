@@ -17,8 +17,6 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/ChConfig.h"
 
-#include "chrono/multicore_math/ChCudaDefines.h"
-
 #ifndef __CUDACC__
 
     // Include appropriate SSE header, depending on supported level

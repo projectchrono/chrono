@@ -19,7 +19,6 @@
 
 #include <iostream>
 
-#include "chrono/multicore_math/ChCudaDefines.h"
 #include "chrono/multicore_math/real3.h"
 #include "chrono/multicore_math/simd.h"
 
@@ -75,13 +74,13 @@ class ChApi vec2 {
 
 class ChApi vec3 {
   public:
-    CUDA_HOST_DEVICE inline vec3() : x(0), y(0), z(0), w(0) {}
-    CUDA_HOST_DEVICE inline vec3(int a) : x(a), y(a), z(a), w(0) {}
-    CUDA_HOST_DEVICE inline vec3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
-    CUDA_HOST_DEVICE inline vec3(const vec3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
-    CUDA_HOST_DEVICE inline vec3(const real3& v) : x(int(v.x)), y(int(v.y)), z(int(v.z)), w(0) {}
-    CUDA_HOST_DEVICE inline int operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE inline int& operator[](unsigned int i) { return array[i]; }
+    inline vec3() : x(0), y(0), z(0), w(0) {}
+    inline vec3(int a) : x(a), y(a), z(a), w(0) {}
+    inline vec3(int a, int b, int c) : x(a), y(b), z(c), w(0) {}
+    inline vec3(const vec3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
+    inline vec3(const real3& v) : x(int(v.x)), y(int(v.y)), z(int(v.z)), w(0) {}
+    inline int operator[](unsigned int i) const { return array[i]; }
+    inline int& operator[](unsigned int i) { return array[i]; }
 
 #if defined(USE_SSE) || defined(USE_AVX)
     inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
@@ -92,13 +91,13 @@ class ChApi vec3 {
     }
 #endif
 
-    CUDA_HOST_DEVICE inline vec3& operator=(const vec3& rhs) {
+    inline vec3& operator=(const vec3& rhs) {
         x = int(rhs.x);
         y = int(rhs.y);
         z = int(rhs.z);
         return *this;
     }
-    CUDA_HOST_DEVICE inline vec3& operator=(const real3& rhs) {
+    inline vec3& operator=(const real3& rhs) {
         x = int(rhs.x);
         y = int(rhs.y);
         z = int(rhs.z);
@@ -112,13 +111,13 @@ class ChApi vec3 {
     };
 };
 
-CUDA_HOST_DEVICE ChApi vec3 operator-(const vec3& a, const vec3& b);
-CUDA_HOST_DEVICE ChApi vec3 operator-(const vec3& a, const int& b);
-CUDA_HOST_DEVICE ChApi vec3 operator+(const vec3& a, const vec3& b);
-CUDA_HOST_DEVICE ChApi vec3 operator+(const vec3& a, const int& b);
-CUDA_HOST_DEVICE ChApi vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max);
-CUDA_HOST_DEVICE ChApi vec3 Max(const vec3& a, const vec3& b);
-CUDA_HOST_DEVICE ChApi vec3 Min(const vec3& a, const vec3& b);
+ChApi vec3 operator-(const vec3& a, const vec3& b);
+ChApi vec3 operator-(const vec3& a, const int& b);
+ChApi vec3 operator+(const vec3& a, const vec3& b);
+ChApi vec3 operator+(const vec3& a, const int& b);
+ChApi vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max);
+ChApi vec3 Max(const vec3& a, const vec3& b);
+ChApi vec3 Min(const vec3& a, const vec3& b);
 
 struct vec4 {
     int x, y, z, w;
