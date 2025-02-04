@@ -1409,7 +1409,7 @@ target_include_directories(ChronoEngine PUBLIC
 target_link_libraries(ChronoEngine PUBLIC Eigen3::Eigen)
 
 if(CHRONO_THRUST_FOUND)
-  target_link_libraries(ChronoEngine PUBLIC Thrust::Thrust)
+  target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust)
 
   if(ENABLE_OPENMP)
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")

@@ -38,28 +38,28 @@ endif()
 cmake_policy(SET CMP0072 NEW)
 
 find_package(OpenGL)
-find_package(glm REQUIRED) # TODO: DARIOM is glm actually required?
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(glm REQUIRED)
 
 message(STATUS "OpenGL found: ${OPENGL_FOUND}")
-message(STATUS "glm found:    ${glm_FOUND}")
-message(STATUS "GLEW found:   ${GLEW_FOUND}")
+message(STATUS "   include dir: ${OPENGL_INCLUDE_DIR}")
+message(STATUS "   libraries:   ${OPENGL_LIBRARIES}")
+message(STATUS "GLEW found: ${GLEW_FOUND}")
+message(STATUS "   include dir: ${GLEW_INCLUDE_DIRS}")
+message(STATUS "   libraries:   ${GLEW_LIBRARIES}")
 message(STATUS "glfw3 found:  ${glfw3_FOUND}")
-
+message(STATUS "glm found: ${glm_FOUND}")
 
 # If all dependencies are available, enable building OpenGL support.
 if(OPENGL_FOUND AND glm_FOUND AND GLEW_FOUND AND glfw3_FOUND)
     set(CHRONO_OPENGL "#define CHRONO_OPENGL")
-    message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
-    message(STATUS "GLM config dir: ${glm_DIR}")
-    message(STATUS "GLEW config dir:  ${GLEW_DIR}")
-    message(STATUS "glfw3 config dir: ${glfw3_DIR}")
 else()
     # Unable to find everything, turn off OpenGL
     message("Cannot build ChronoEngine_OpenGL (missing dependencies); disabling Chrono::OpenGL")
     set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
     set(ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
+    return()
 endif()
 
 # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is

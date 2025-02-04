@@ -496,8 +496,12 @@ find_package(GLEW QUIET)
 find_package(glfw3 QUIET)
 
 message(STATUS "OpenGL found: ${OPENGL_FOUND}")
+message(STATUS "   include dir: ${OPENGL_INCLUDE_DIR}")
+message(STATUS "   libraries:   ${OPENGL_LIBRARIES}")
 message(STATUS "GLEW found:   ${GLEW_FOUND}")
-message(STATUS "GLFW3 found:  ${glfw3_FOUND}")
+message(STATUS "   include dir: ${GLEW_INCLUDE_DIRS}")
+message(STATUS "   libraries:   ${GLEW_LIBRARIES}")
+message(STATUS "glfw3 found:  ${glfw3_FOUND}")
 
 # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
 # optional. If not specified, it is the user's responsibility to make them
@@ -509,9 +513,9 @@ endif()
 
 if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
   target_compile_definitions(ChronoEngine_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_SENSOR_GLFW>)
-  target_link_libraries(ChronoEngine_sensor PUBLIC OpenGL::GL)
   target_link_libraries(ChronoEngine_sensor PUBLIC GLEW::glew)
   target_link_libraries(ChronoEngine_sensor PUBLIC glfw)
+  target_link_libraries(ChronoEngine_sensor PUBLIC OpenGL::GL)
   message(STATUS "GL libraries found")
 else()
   message(STATUS "GL libraries not found; OpenGL support disabled")

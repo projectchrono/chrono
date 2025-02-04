@@ -1,19 +1,8 @@
 # ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-INCLUDE_DIRECTORIES(${CH_GPU_INCLUDES})
-
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_gpu
-)
-
-# ------------------------------------------------------------------------------
 # List of all executables
 # ------------------------------------------------------------------------------
 
-SET(DEMOS
+set(DEMOS
     demo_GPU_ballCosim
     demo_GPU_movingBoundary
     demo_GPU_fixedTerrain
@@ -22,19 +11,26 @@ SET(DEMOS
 )
 
 # ------------------------------------------------------------------------------
+
+list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_gpu")
+
+if(ENABLE_MODULE_OPENGL)
+    list(APPEND LIBS "ChronoEngine_gpu_opengl")
+endif()
+
+# ------------------------------------------------------------------------------
 # Add all executables
 # ------------------------------------------------------------------------------
 
 message(STATUS "Add demo programs for GPU module")
 
-FOREACH(PROGRAM ${DEMOS})
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+foreach(PROGRAM ${DEMOS})
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER demos)
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH(PROGRAM)
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach(PROGRAM)

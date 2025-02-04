@@ -52,10 +52,11 @@ message(STATUS "Add demo programs for FSI module")
 foreach(PROGRAM ${DEMOS})
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
-    set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
+
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
+    
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
 

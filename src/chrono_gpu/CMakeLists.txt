@@ -50,14 +50,13 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_gpu/ChConfigGpu.h"
 # List the files in the Chrono::GPU module
 # ------------------------------------------------------------------------------
 
-set(ChronoEngine_GPU_BASE
+set(GPU_BASE_FILES
     ChApiGpu.h
     ChGpuDefines.h
     )
+source_group("" FILES ${GPU_BASE_FILES})
 
-source_group("" FILES ${ChronoEngine_GPU_BASE})
-
-set(ChronoEngine_GPU_PHYSICS
+set(GPU_PHYSICS_FILES
     physics/ChSystemGpu.h
     physics/ChSystemGpu.cpp
     physics/ChSystemGpu_impl.h
@@ -66,10 +65,9 @@ set(ChronoEngine_GPU_PHYSICS
     physics/ChSystemGpuMesh_impl.cpp
     physics/ChGpuBoundaryConditions.h
     )
+source_group(physics FILES ${GPU_PHYSICS_FILES})
 
-source_group(physics FILES ${ChronoEngine_GPU_PHYSICS})
-
-set(ChronoEngine_GPU_CUDA
+set(GPU_CUDA_FILES
     cuda/ChGpu_SMC.cu
     cuda/ChGpu_SMC.cuh
     cuda/ChGpu_SMC_trimesh.cu
@@ -81,40 +79,43 @@ set(ChronoEngine_GPU_CUDA
     cuda/ChGpuCUDAalloc.hpp
     cuda/ChCudaMathUtils.cuh
     )
+source_group(cuda FILES ${GPU_CUDA_FILES})
 
-source_group(cuda FILES ${ChronoEngine_GPU_CUDA})
-
-set(ChronoEngine_GPU_UTILITIES
+set(GPU_UTILITY_FILES
     utils/ChGpuUtilities.h
     utils/ChGpuJsonParser.h
     utils/ChGpuSphereDecomp.h
     )
+source_group(utilities FILES ${GPU_UTILITY_FILES})
 
-source_group(utilities FILES ${ChronoEngine_GPU_UTILITIES})
+set(GPU_VIS_FILES
+    visualization/ChGpuVisualization.h
+    visualization/ChGpuVisualization.cpp
+)
+source_group(visualization FILES ${GPU_VIS_FILES})
 
-set(ChronoEngine_GPU_VISUALIZATION
-    utils/ChGpuVisualization.h
-    utils/ChGpuVisualization.cpp
+set(GPU_GL_FILES
+    visualization/ChGpuVisualizationGL.h
+    visualization/ChGpuVisualizationGL.cpp
    )
-source_group(utilities FILES ${ChronoEngine_GPU_VISUALIZATION})
+source_group("" FILES ${GPU_GL_FILES})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_gpu library
 # ------------------------------------------------------------------------------
 
+message(STATUS "Add ChronoEngine_gpu library")
+
 add_library(ChronoEngine_gpu
-            ${ChronoEngine_GPU_BASE}
-            ${ChronoEngine_GPU_PHYSICS}
-            ${ChronoEngine_GPU_CUDA}
+            ${GPU_BASE_FILES}
+            ${GPU_PHYSICS_FILES}
+            ${GPU_CUDA_FILES}
             ${ChronoEngine_GPU_UTILITIES}
-            ${ChronoEngine_GPU_VISUALIZATION}
-            )
+            ${GPU_VIS_FILES})
 
 add_library(ChronoEngine::gpu ALIAS ChronoEngine_gpu)
 
 target_compile_definitions(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
-
-# target_include_directories(ChronoEngine_gpu PUBLIC "${CHRONO_SOURCE_DIR}/src/chrono_thirdparty/cub")
 
 target_link_libraries(ChronoEngine_gpu PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cudart_static)
@@ -123,24 +124,8 @@ target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cuda_driver)
 target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cublas)
 target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cusparse)
 
-#target_link_libraries(ChronoEngine_gpu PRIVATE Thrust::Thrust)
-#target_compile_definitions(ChronoEngine_gpu PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-#target_compile_definitions(ChronoEngine_gpu PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-
 set_target_properties(ChronoEngine_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
-
-# ------------------------------------------------------------------------------
-# Add optional run-time visualization support
-# ------------------------------------------------------------------------------
-## TODO: DARIOM add Modern support for OpenGL
-if(ENABLE_MODULE_OPENGL)
-  target_link_libraries(ChronoEngine_gpu PUBLIC ChronoEngine_opengl)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-     target_link_options(ChronoEngine_gpu PUBLIC "-framework IOKit -framework Cocoa -framework OpenGL")
-  endif()
-endif()
-        
 install(TARGETS ChronoEngine_gpu
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
@@ -149,69 +134,38 @@ install(TARGETS ChronoEngine_gpu
         INCLUDES DESTINATION include/chrono_gpu
 )
 
-mark_as_advanced(FORCE
-                 CUDA_BUILD_CUBIN
-                 CUDA_BUILD_EMULATION
-                 CUDA_SEPARABLE_COMPILATION
-                 CUDA_SDK_ROOT_DIR
-                 CUDA_VERBOSE_BUILD
-                 CUDA_HOST_COMPILER)
-
 # ------------------------------------------------------------------------------
-# Additional dependencies, specific to this module
+# Add the ChronoEngine_gpu_opengl library
 # ------------------------------------------------------------------------------
 
-# # ----- CUDA support -----
+if(ENABLE_MODULE_OPENGL)
 
-# option(GPU_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" OFF)
-# mark_as_advanced(GPU_VERBOSE_PTXAS)
+    message(STATUS "Add ChronoEngine_gpu_opengl library")
 
-# if(GPU_VERBOSE_PTXAS)
-#     target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--ptxas-options=-v>)
-# endif()
+    add_library(ChronoEngine_gpu_opengl ${GPU_GL_FILES})
+    add_library(ChronoEngine::gpu_opengl ALIAS ChronoEngine_gpu_opengl)
 
-# target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--debug>)
-# target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--device-debug>)
+    target_compile_definitions(ChronoEngine_gpu_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
 
-# set_property(TARGET ChronoEngine_gpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-# # DARIOM: why these options are set for all the targets?
-# # If they should be project-wise they should be set in an upper CMakeLists
-# # if they apply only here than they should be set on ChronoEngine_gpu
+    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE ChronoEngine ChronoEngine_gpu)
+    target_link_libraries(ChronoEngine_gpu_opengl PUBLIC ChronoEngine_opengl)
 
-# set(CUDA_SEPARABLE_COMPILATION OFF)
+    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cudart_static)
+    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::nvrtc)
+    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cuda_driver)
+    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cublas)
+    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cusparse)
 
-# if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-#     set(CUDA_SEPARABLE_COMPILATION ON)
-#     set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        target_compile_options(ChronoEngine_gpu_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
+    endif()
 
-#     # DARIOM why the device-debug and --generate-line-info are alwasy active?
-#     target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-#                            --generate-line-info
-#                            --device-debug
-#                            >)
+        
+    install(TARGETS ChronoEngine_gpu_opengl
+            EXPORT ChronoEngineTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_gpu)
 
-# elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-#     # DARIOM: why not enabling CUDA_PROPAGATE_HOST_FLAGS instaed of passing the flags manually to the host compiler?
-#     target_compile_definitions(ChronoEngine_gpu PRIVATE "CHRONO_LINUX")
-    # set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CUDA_FLAGS_DEBUG} -G -Xcompiler -g")
-    # set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG")
-    # set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "${CMAKE_CUDA_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG")
-    # set(CMAKE_CUDA_FLAGS_MINSIZEREL "${CMAKE_CUDA_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG")
-
-#     # message(STATUS "NVCC Release flags are" ${CMAKE_CUDA_FLAGS_RELEASE})
-       
-#     if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-#         if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
-#             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-#         else()
-#             message(FATAL_ERROR "Using GCC version ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
-#         endif()
-#     endif()
-#     set(CMAKE_CUDA_FLAGS ${CMAKE_CUDA_FLAGS}; --compiler-options -fPIC -Wall -lineinfo)
-
-# elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-#     message(FATAL_ERROR "macOS is not supported!")
-
-# endif()
-
+endif()
