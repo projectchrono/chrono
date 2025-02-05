@@ -42,12 +42,12 @@
 
 bl_info = {
     "name": "Chrono import",
-    "blender": (4, 0, 1),
+    "blender": (4, 3, 2),
     "category": "Import-Export",
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 7),
+    "version": (0, 0, 8),
     "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
     "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
@@ -1600,7 +1600,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
             bpy.ops.object.join()
         chrono_csys = bpy.context.object
         with bpy.context.temp_override(selected_editable_objects=[chrono_csys]):
-            bpy.ops.object.shade_smooth(use_auto_smooth=True,auto_smooth_angle=1.1)
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         chrono_csys.visible_shadow = False
         chrono_csys.name ='chrono_csys'
         chrono_csys.select_set(False)
@@ -1623,8 +1623,8 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cylinder = bpy.context.object
         chrono_cylinder.name = 'chrono_cylinder'
         chrono_cylinder.data.transform(mathutils.Matrix.Translation((0,0,0.5)))
-        chrono_cylinder.data.use_auto_smooth = 1
-        chrono_cylinder.data.auto_smooth_angle = 0.8
+        with bpy.context.temp_override(selected_editable_objects=[chrono_cylinder]):
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         for f in chrono_cylinder.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_cylinder)
@@ -1636,8 +1636,8 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cone = bpy.context.object
         chrono_cone.name = 'chrono_cone'
         chrono_cone.data.transform(mathutils.Matrix.Translation((0,0,0.5)))
-        chrono_cone.data.use_auto_smooth = 1
-        chrono_cone.data.auto_smooth_angle = 0.8
+        with bpy.context.temp_override(selected_editable_objects=[chrono_cone]):
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         for f in chrono_cone.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_cone)
@@ -1648,8 +1648,8 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         bpy.ops.mesh.primitive_uv_sphere_add(segments=10, ring_count=10, radius=0.5, calc_uvs=True)
         chrono_sphere = bpy.context.object
         chrono_sphere.name = 'chrono_sphere'
-        chrono_sphere.data.use_auto_smooth = 1
-        chrono_sphere.data.auto_smooth_angle = 0.8
+        with bpy.context.temp_override(selected_editable_objects=[chrono_sphere]):
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         for f in chrono_sphere.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_sphere)
