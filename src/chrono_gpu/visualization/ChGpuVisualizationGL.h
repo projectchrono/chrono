@@ -51,7 +51,7 @@ class CH_GPU_API ChGpuVisualizationGL : public ChGpuVisualization {
     virtual void UpdateCamera(const ChVector3d& pos, const ChVector3d& target) override;
 
     /// Set camera up vector (default: Z).
-    virtual virtual void SetCameraVertical(CameraVerticalDir up) override;
+    virtual void SetCameraVertical(CameraVerticalDir up) override;
 
     /// Set scale for camera movement increments (default: 0.1).
     /// Must be called before Initialize().
