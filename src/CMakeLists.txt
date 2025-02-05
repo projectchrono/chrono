@@ -393,7 +393,7 @@ if(Thrust_FOUND)
 else()
   message(STATUS "  Thrust not found. Set Thrust_ROOT to the location of Thrust library.")
 
-  set(CHRONO_THRUST_FOUND TRUE)
+  set(CHRONO_THRUST_FOUND FALSE)
   mark_as_advanced(CLEAR Thrust_ROOT)
 endif()
 
