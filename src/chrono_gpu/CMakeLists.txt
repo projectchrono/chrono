@@ -118,11 +118,12 @@ add_library(ChronoEngine::gpu ALIAS ChronoEngine_gpu)
 target_compile_definitions(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
 
 target_link_libraries(ChronoEngine_gpu PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cudart_static)
-target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::nvrtc)
-target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cuda_driver)
-target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cublas)
-target_link_libraries(ChronoEngine_gpu PRIVATE CUDA::cusparse)
+
+target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cudart_static)
+target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::nvrtc)
+target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cuda_driver)
+target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cublas)
+target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cusparse)
 
 set_target_properties(ChronoEngine_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 

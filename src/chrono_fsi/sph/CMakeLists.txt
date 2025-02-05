@@ -160,13 +160,13 @@ add_library(ChronoEngine::fsi_sph ALIAS ChronoEngine_fsisph)
 
 target_link_libraries(ChronoEngine_fsisph PRIVATE ChronoEngine)
 
-target_link_libraries(ChronoEngine_fsisph PRIVATE CUDA::cudart_static)
-target_link_libraries(ChronoEngine_fsisph PRIVATE CUDA::nvrtc)
-target_link_libraries(ChronoEngine_fsisph PRIVATE CUDA::cuda_driver)
-target_link_libraries(ChronoEngine_fsisph PRIVATE CUDA::cublas)
-target_link_libraries(ChronoEngine_fsisph PRIVATE CUDA::cusparse)
+target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cudart_static)
+target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::nvrtc)
+target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cuda_driver)
+target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cublas)
+target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cusparse)
 
-target_link_libraries(ChronoEngine_fsisph PRIVATE Thrust::Thrust)
+target_link_libraries(ChronoEngine_fsisph PUBLIC Thrust::Thrust)
 target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
 target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
