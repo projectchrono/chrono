@@ -661,11 +661,8 @@ source_group(assets FILES
 
 if (CHRONO_THRUST_FOUND)
     set(ChronoEngine_MulticoreMath_SOURCES
-        multicore_math/ChMulticoreTypes.h
-        multicore_math/ChMulticoreMath.h
         multicore_math/matrix.cpp
         multicore_math/matrix.h
-        multicore_math/other_types.h
         multicore_math/real.h
         multicore_math/real_double.h
         multicore_math/real_single.h
@@ -679,6 +676,8 @@ if (CHRONO_THRUST_FOUND)
         multicore_math/simd_non.h
         multicore_math/simd_sse.h
         multicore_math/simd.h
+        multicore_math/thrust.h
+        multicore_math/types.h
         multicore_math/utility.h
         multicore_math/vec3.cpp
         )

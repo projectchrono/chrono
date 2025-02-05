@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "chrono/multicore_math/ChMulticoreTypes.h"
+#include "chrono/multicore_math/types.h"
 #include "chrono/multicore_math/utility.h"
 
 #undef _GLIBCXX_ATOMIC_BUILTINS

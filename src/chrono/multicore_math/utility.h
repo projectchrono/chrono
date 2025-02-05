@@ -22,12 +22,8 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
 
-#include "chrono/multicore_math/real.h"
-#include "chrono/multicore_math/real2.h"
-#include "chrono/multicore_math/real3.h"
-#include "chrono/multicore_math/real4.h"
 #include "chrono/multicore_math/matrix.h"
-#include "chrono/multicore_math/other_types.h"
+#include "chrono/multicore_math/types.h"
 
 namespace chrono {
 
@@ -59,15 +55,6 @@ static inline real3 TransformLocalToParent(const real3& p, const quaternion& q, 
 static inline real3 TransformParentToLocal(const real3& p, const quaternion& q, const real3& rp) {
     return RotateT(rp - p, q);
 }
-
-class real3_int {
-  public:
-    real3_int() {}
-    real3_int(real3 a, int b) : v(a), i(b) {}
-
-    real3 v;
-    int i;
-};
 
 // -----------------------------------------------------------------------------
 

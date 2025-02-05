@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2021 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,18 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar, Radu Serban
+// Authors: Radu Serban
 // =============================================================================
 //
-// Description: definition of other types such as vec3 and vec2
+// Description: definition of types for multicore math
 // =============================================================================
 
 #pragma once
 
-#include <iostream>
-
+#include "chrono/multicore_math/real.h"
+#include "chrono/multicore_math/real2.h"
 #include "chrono/multicore_math/real3.h"
-#include "chrono/multicore_math/simd.h"
+#include "chrono/multicore_math/real4.h"
 
 #define S2 _make_short2
 #define U3 _make_uvec3
@@ -109,6 +109,15 @@ class ChApi vec3 {
             int x, y, z, w;
         };
     };
+};
+
+class ChApi real3_int {
+  public:
+    real3_int() {}
+    real3_int(real3 a, int b) : v(a), i(b) {}
+
+    real3 v;
+    int i;
 };
 
 ChApi vec3 operator-(const vec3& a, const vec3& b);
@@ -267,4 +276,4 @@ static bool operator==(const uvec3& lhs, const uvec3& rhs) {
 
 /// @} chrono_mc_math
 
-}  // namespace chrono
+}  // end namespace chrono

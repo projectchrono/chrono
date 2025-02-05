@@ -22,8 +22,9 @@
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/utils/ChProfiler.h"
 
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
-#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/collision/multicore/ChRayTest.h"
 
 namespace chrono {

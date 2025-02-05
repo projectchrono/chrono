@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/multicore_math/simd.h"
-#include "chrono/multicore_math/other_types.h"
+#include "chrono/multicore_math/types.h"
 
 #if defined(USE_SSE)
     #include "chrono/multicore_math/simd_sse.h"
