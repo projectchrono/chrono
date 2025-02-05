@@ -355,7 +355,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     elseif(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
       set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
-
       find_dependency(Thrust)
 
       # Return now if Thrust not available
@@ -493,6 +492,10 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
       if (CHRONO_${COMPONENT_UPPER}_FOUND)
+
+        set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
+        find_dependency(Thrust)
+
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsisph")
         if (NOT CHRONO_STATIC)
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsisph.dll")
