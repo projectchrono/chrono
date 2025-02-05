@@ -13,21 +13,21 @@
 #   Synchrono, Vehicle, VehicleCosim.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
-# 
+#
 # Variables set by this script:
 # Chrono_FOUND
 #       set to true if Chrono and all required components were found
 # CHRONO_STATIC
 #       set to ON if Chrono has been built as static library, OFF if shared library
-# CHRONO_LIBRARIES
-#       list of required libraries (with full path) of both Chrono and its dependencies
+# CHRONO_TARGETS
+#       list of exported Chrono targets
 # CHRONO_DLL_NAMES
-#       list of DLL names (without path) of both Chrono without its dependencies
+#       list of Chrono DLLs (without path)
 # CHRONO_DEPENDENCY_DLLS
-#       list of DLL names (with full path) of Chrono dependencies
+#       list of Chrono dependency DLLs (with full path)
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
-#       (currently, only the core, Irrlicht, and Vehicle Chrono modules are wrapped for C#)
+#       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono modules are wrapped for C#)
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -65,8 +65,7 @@
 # * Chrono::Synchrono module
 #     CHRONO_SYNCHRONO_FASTDDS
 #       set to true if FastDDS support is available.
-#       CHRONO_LIBRARIES include FastDDS.
-#       However, the user must still invoke fast_package(fastrtps)!
+#       The user must still invoke fast_package(fastrtps)
 #===============================================================================
 
 @PACKAGE_INIT@
@@ -95,17 +94,17 @@ get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
 if(@ENABLE_OPENMP@ AND LANG_INDEX GREATER_EQUAL 0)
   find_dependency(OpenMP)
-endif(@ENABLE_OPENMP@ AND LANG_INDEX GREATER_EQUAL 0)
+endif()
 
 ## Handle Eigen3 dependency
 # try finding Eigen3
 if(NOT EIGEN3_INCLUDE_DIR AND NOT Eigen3_ROOT)
   set(Eigen3_ROOT "@EIGEN3_INCLUDE_DIR@")
-endif(NOT EIGEN3_INCLUDE_DIR AND NOT Eigen3_ROOT)
+endif()
 
 if(NOT Eigen3_DIR)
   set(Eigen3_DIR "@Eigen3_DIR@")
-endif(NOT Eigen3_DIR)
+endif()
 
 find_dependency(Eigen3)
 
@@ -113,11 +112,11 @@ if(EIGEN3_FOUND)
   mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
   mark_as_advanced(FORCE Eigen3_ROOT)
-endif(EIGEN3_FOUND)
+endif()
 
-
-#################### Checking ChronoEngine Modules ####################
-
+#-------------------------------------------------------------------------------
+# Set/initialize variables
+#-------------------------------------------------------------------------------
 
 list(PREPEND CHRONO_LIB_NAMES "ChronoEngine")
 list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
@@ -185,60 +184,62 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 endforeach()
 
 #-------------------------------------------------------------------------------
-# Request additional components if requesting a component with dependencies
+# Enable additional components if requesting a component with dependencies
 #-------------------------------------------------------------------------------
 
 if(Chrono_SENSOR_REQUESTED AND Chrono_SENSOR_AVAILABLE)
-  if(Chrono_OPENGL_AVAILABLE)
+  if(Chrono_OPENGL_AVAILABLE AND NOT Chrono_OPENGL_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};OpenGL")
-    if(Chrono_MULTICORE_AVAILABLE)
+    if(Chrono_MULTICORE_AVAILABLE AND NOT Chrono_MULTICORE_REQUESTED)
       set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
     endif()
   endif()
 endif()
 
 if(Chrono_OPENGL_REQUESTED AND Chrono_OPENGL_AVAILABLE)
-  if(Chrono_MULTICORE_AVAILABLE)
+  if(Chrono_MULTICORE_AVAILABLE AND NOT Chrono_MULTICORE_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
   endif()
 endif()
 
 if(Chrono_VEHICLE_REQUESTED AND Chrono_VEHICLE_AVAILABLE)
-  if(Chrono_FSI_AVAILABLE)
+  if(Chrono_FSI_AVAILABLE AND NOT Chrono_FSI_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
   endif()
 endif()
 
 if(Chrono_CASCADE_REQUESTED AND Chrono_CASCADE_AVAILABLE)
-  if(Chrono_IRRLICHT_AVAILABLE)
+  if(Chrono_IRRLICHT_AVAILABLE AND NOT Chrono_IRRLICHT_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Irrlicht")
   endif()
 endif()
 
 if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
-  set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Vehicle")
-  if(Chrono_MULTICORE_AVAILABLE)
+  if(NOT Chrono_VEHICLE_REQUESTED)
+    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Vehicle")
+  endif()
+  if(Chrono_MULTICORE_AVAILABLE AND NOT Chrono_MULTICORE_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
   endif()
-  if(Chrono_GPU_AVAILABLE)
+  if(Chrono_GPU_AVAILABLE AND NOT Chrono_GPU_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};GPU")
   endif()
-  if(Chrono_FSI_AVAILABLE)
+  if(Chrono_FSI_AVAILABLE AND NOT Chrono_FSI_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
   endif()
-  if(Chrono_PARDISOMKL_AVAILABLE)
+  if(Chrono_PARDISOMKL_AVAILABLE AND NOT Chrono_PARDISOMKL_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};PardisoMKL")
   endif()
-  if(Chrono_MUMPS_AVAILABLE)
+  if(Chrono_MUMPS_AVAILABLE AND NOT Chrono_MUMPS_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};MUMPS")
   endif()
-  if(Chrono_IRRLICHT_AVAILABLE)
+  if(Chrono_IRRLICHT_AVAILABLE AND NOT Chrono_IRRLICHT_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Irrlicht")
   endif()
-  if(Chrono_OPENGL_AVAILABLE)
+  if(Chrono_OPENGL_AVAILABLE AND NOT Chrono_OPENGL_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};OpenGL")
   endif()
-  if(Chrono_VSG_AVAILABLE)
+  if(Chrono_VSG_AVAILABLE AND NOT Chrono_VSG_REQUESTED)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};VSG")
   endif()
 endif()
@@ -262,13 +263,32 @@ if(Chrono_GPU_REQUESTED OR Chrono_FSI_REQUESTED OR Chrono_SENSOR_REQUESTED)
   find_package(CUDAToolkit)
   enable_language(CUDA)
 
-  if (NOT CMAKE_CUDA_COMPILER OR NOT CUDAToolkit_FOUND)
-    mark_as_advanced(CLEAR CUDAToolkit_DIR)
-    set(CHRONO_CUDA_FOUND FALSE)
-  else()
+  if (CMAKE_CUDA_COMPILER AND CUDAToolkit_FOUND)
+    message(STATUS "CUDA found")
     mark_as_advanced(FORCE CUDAToolkit_DIR)
     set(CHRONO_CUDA_FOUND TRUE)
+  else()
+    message("CUDA not found")
+    mark_as_advanced(CLEAR CUDAToolkit_DIR)
+    set(CHRONO_CUDA_FOUND FALSE)
   endif()
+endif()
+
+#-------------------------------------------------------------------------------
+# Check Thrust
+#-------------------------------------------------------------------------------
+
+set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
+find_dependency(Thrust)
+
+if (Thrust_FOUND)
+    message(STATUS "Thrust found")
+    mark_as_advanced(FORCE Thrust_ROOT)
+    set(CHRONO_THRUST_FOUND TRUE)
+else()
+    message("Thrust not found")
+    mark_as_advanced(CLEAR Thrust_ROOT)
+    set(CHRONO_THRUST_FOUND FALSE)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -354,12 +374,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
-      set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
-      find_dependency(Thrust)
-
       # Return now if Thrust not available
-      if (NOT Thrust_FOUND)
-        message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found.")
+      if (NOT CHRONO_THRUST_FOUND)
+        message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
 
@@ -421,10 +438,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
         if (NOT CHRONO_STATIC)
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
-        else()
-          # when a library is static does not link against the dependencies;
-          # the child project thus needs to link itself
-          list(APPEND CHRONO_LIBRARIES "Irrlicht::Irrlicht")
         endif()
 
       endif()
@@ -439,7 +452,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       find_package(vsg REQUIRED)
       find_package(vsgImGui REQUIRED)
       find_package(vsgXchange REQUIRED)
-      list(APPEND CHRONO_LIBRARIES "vsg::vsg;vsgImGui::vsgImGui;vsgXchange::vsgXchange")
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 
@@ -487,14 +499,16 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
       
       if(NOT CHRONO_CUDA_FOUND)
-        message(WARNING "CUDA dependency for Chrono::FSI was not found; set CUDAToolkit_DIR to the CUDA installation directory")
+        message(WARNING "Chrono::FSI requires Cuda, but Cuda was not found")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+
+      if(NOT CHRONO_THRUST_FOUND)
+        message(WARNING "Chrono::FSI requires Thrust, but Thrust was not found")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
 
       if (CHRONO_${COMPONENT_UPPER}_FOUND)
-
-        set(Thrust_ROOT "@THRUST_INCLUDE_DIR@" CACHE PATH "Thrust library location (should contain 'thrust/version.h')")
-        find_dependency(Thrust)
 
         list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsisph")
         if (NOT CHRONO_STATIC)
@@ -570,15 +584,13 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         PATHS "${Chrono_DIR}"
       )
 
-      list(APPEND CHRONO_LIBRARIES "@CH_ROS_LIBRARIES@")
-
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_ros")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ros.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
       if(NOT CHRONO_CUDA_FOUND)
-        message(WARNING "CUDA dependency for Chrono::GPU was not found; set CUDAToolkit_DIR to the CUDA installation directory")
+        message(WARNING "Chrono::FSI requires Cuda, but Cuda was not found")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
 
@@ -637,7 +649,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       separate_arguments(CH_MUMPS_LINK_FLAGS NATIVE_COMMAND "@CH_MUMPS_LINK_FLAGS@")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
-      list(APPEND CHRONO_LIBRARIES "@MUMPS_LIBRARY@")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
       endif()
@@ -653,7 +664,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     elseif(${COMPONENT_UPPER} MATCHES "CASCADE")
       
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
-      list(APPEND CHRONO_LIBRARIES "@OpenCASCADE_LIBRARIES@")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
       endif()
@@ -673,7 +683,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
          find_package(urdfdom_headers REQUIRED)
          find_package(console_bridge REQUIRED)
          find_package(tinyxml2 REQUIRED)
-         list(APPEND CHRONO_LIBRARIES "urdfdom::urdfdom_model;urdfdom::urdfdom_world;urdfdom::urdfdom_sensor;tinyxml2::tinyxml2")
       endif()
 
       set(CHRONO_PARSERS_PYTHON @HAVE_PYTHON@)
@@ -682,7 +691,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
 
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
-      list(APPEND CHRONO_LIBRARIES "@CH_MATLABLIB@")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
       endif()
@@ -805,6 +813,7 @@ set(Chrono_FOUND ON)
 #-------------------------------------------------------------------------------
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
+
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT CHRONO_CONFIGURATION_TYPES)
   if(IS_MULTI_CONFIG)
@@ -833,12 +842,6 @@ foreach(config ${CHRONO_CONFIGURATION_TYPES})
     )
     if(NOT onelib)
       list(APPEND CHRONO_MISSING_LIB_CONFIG_${config} ${lib})
-    else()
-      if(IS_MULTI_CONFIG)
-        list(APPEND CHRONO_LIBRARIES_${config} "${onelib}")
-      else()
-        list(APPEND CHRONO_LIBRARIES "${onelib}")
-      endif()
     endif()
   endforeach()
 endforeach()
@@ -851,16 +854,12 @@ unset(onelib CACHE)
 
 if (IS_MULTI_CONFIG)
   message(STATUS "Chrono libraries for multi-config build systems")
-
   foreach(config ${CHRONO_CONFIGURATION_TYPES})
     # if the given configuration does not have a proper Chrono built library then link to Chrono Release, but only for non-static
     if (CHRONO_MISSING_LIB_CONFIG_${config})
-      MESSAGE(STATUS "  Configuration ${config} will not work properly since some Chrono libraries are missing for this configuration:\n      missing: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
+      message(STATUS "  Configuration ${config} will not work properly since some Chrono libraries are missing for this configuration:\n      missing: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
     else()
       message(STATUS "  Chrono libraries for configuration ${config} have been successfully found.")
-      foreach(onelib ${CHRONO_LIBRARIES_${config}})
-        list(APPEND CHRONO_LIBRARIES "$<$<CONFIG:${config}>:${onelib}>")
-      endforeach()
     endif()
   endforeach()
 else()
@@ -883,28 +882,28 @@ endif()
 # so we manually create a variable that carries the current location of this package
 set(CHRONO_PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../")
 
-
+#-------------------------------------------------------------------------------
+# Create list of Chrono target names
 #-------------------------------------------------------------------------------
 
 foreach(lib ${CHRONO_LIB_NAMES})
-  list(APPEND CHRONO_LIBS "ChronoEngine::${lib}")
+  list(APPEND CHRONO_TARGETS "ChronoEngine::${lib}")
 endforeach()
 
+unset(CHRONO_LIB_NAMES)
 
 #-------------------------------------------------------------------------------
 # Report the exported variables
 #-------------------------------------------------------------------------------
 
 message(STATUS "Configuration summary")
-message(STATUS "  CHRONO_LIB_NAMES         (Chrono library names): ${CHRONO_LIB_NAMES}")
-message(STATUS "  CHRONO_LIBS              (Chrono libraries): ${CHRONO_LIBS}")
-message(STATUS "  CHRONO_LIBRARIES         (Chrono libraries): ${CHRONO_LIBRARIES}")
+message(STATUS "  CHRONO_TARGETS           (Chrono targets): ${CHRONO_TARGETS}")
 message(STATUS "  CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
 message(STATUS "  CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
 message(STATUS "  CHRONO_FSI_DATA_DIR      (Path to Chrono::FSI data folder): ${CHRONO_FSI_DATA_DIR}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  message(STATUS "  CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAMES}")
+  message(STATUS "  CHRONO_DLL_NAMES         (Chrono DLLs): ${CHRONO_DLL_NAMES}")
   message(STATUS "  CHRONO_DEPENDENCY_DLLS   (Dependency DLLs): ${CHRONO_DEPENDENCY_DLLS}")
 endif()
 
