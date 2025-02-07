@@ -810,20 +810,16 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 # Create the Chrono CMake project configuration file
 #-----------------------------------------------------------------------------
 
-# Set path to Chrono data directory in build tree
+include(CMakePackageConfigHelpers)
 
-
-
-# For the BUILD tree
+# Copy FindEigen3.cmake to build and install trees
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-# For the INSTALL tree
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 
+# Create Chrono configuration header in build and install trees
 set(CH_INSTALL_TREE TRUE)
-# create config file to be later copied to install tree
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
@@ -831,7 +827,6 @@ configure_package_config_file(
 )
 
 set(CH_INSTALL_TREE FALSE)
-# create config file for build tree
 configure_package_config_file(
   "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
   "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
@@ -843,7 +838,6 @@ unset(CH_INSTALL_TREE)
 # install config files
 install(FILES
         "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
-        # "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
         RENAME "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )
@@ -867,9 +861,6 @@ if(ENABLE_MODULE_CSHARP)
 endif()
 
 #-----------------------------------------------------------------------------
-
-# include CMakePackageConfigHelpers macro
-include(CMakePackageConfigHelpers)
 
 
 ## TODO DARIOM: do version
