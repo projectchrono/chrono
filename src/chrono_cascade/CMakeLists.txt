@@ -81,7 +81,6 @@ TKMath
 TKMesh
 TKOffset
 TKPrim
-TKRWMesh
 TKShHealing
 TKStd
 TKStdL
@@ -92,16 +91,12 @@ TKSTEPBase
 TKSTL
 TKTObj
 TKTopAlgo
-TKVCAF
-TKVRML
-TKXCAF
 TKXDEIGES
 TKXDESTEP
 TKXMesh
 TKXml
 TKXmlL
 TKXmlTObj
-TKXmlXCAF
 TKXSBase
 )
 
