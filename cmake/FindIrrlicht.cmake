@@ -208,10 +208,5 @@ if(Irrlicht_FOUND AND NOT TARGET Irrlicht::Irrlicht)
 
   set_property(TARGET Irrlicht::Irrlicht PROPERTY IMPORTED_IMPLIB ${IRRLICHT_LIBRARY})
   set_property(TARGET Irrlicht::Irrlicht PROPERTY IMPORTED_LINK_DEPENDENT_LIBRARIES ${IRRLICHT_DEPENDENCY_LIBS})
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_property(TARGET Irrlicht::Irrlicht PROPERTY
-                 INTERFACE_COMPILE_OPTIONS "-framework IOKit -framework Cocoa -framework OpenGL")
-  endif()
                
 endif()
