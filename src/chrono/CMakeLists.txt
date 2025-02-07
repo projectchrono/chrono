@@ -1547,7 +1547,6 @@ target_compile_definitions(ChronoEngine PUBLIC
 	$<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:RELEASE>:NDEBUG>>
 )
 
-
 target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
 
 # Set some custom properties of this target
@@ -1556,14 +1555,9 @@ target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
 target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE>)
 target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)
 
-target_compile_definitions(ChronoEngine INTERFACE
-    $<BUILD_INTERFACE:CHRONO_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/\">
-    $<INSTALL_INTERFACE:CHRONO_DATA_DIR=\"$<INSTALL_PREFIX>/data/\">)
-
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_directories(ChronoEngine INTERFACE $<INSTALL_INTERFACE:lib>)
 endif()
-
 
 #-----------------------------------------------------------------------------
 # Select proper MSVC Runtime Library

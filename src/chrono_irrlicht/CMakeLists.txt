@@ -7,15 +7,15 @@
 option(ENABLE_MODULE_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_IRRLICHT)
-  RETURN()
-ENDIF()
+if(NOT ENABLE_MODULE_IRRLICHT)
+  return()
+endif()
 
-MESSAGE(STATUS "\n==== Chrono Irrlicht module ====\n")
+message(STATUS "\n==== Chrono Irrlicht module ====\n")
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_irrlicht lib
-SET(ChronoEngine_IRRLICHT_SOURCES
+set(IRR_SOURCE_FILES
   ChIrrCamera.cpp
   ChIrrMeshTools.cpp
   ChIrrTools.cpp
@@ -26,7 +26,7 @@ SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrNodeShape.cpp
 )
 
-SET(ChronoEngine_IRRLICHT_HEADERS
+set(IRR_HEADER_FILES
   ChApiIrr.h
   ChIrrTools.h
   ChIrrCamera.h
@@ -39,34 +39,21 @@ SET(ChronoEngine_IRRLICHT_HEADERS
   ChIrrNodeShape.h
 )
 
-SOURCE_GROUP("" FILES
-  ${ChronoEngine_IRRLICHT_SOURCES}
-  ${ChronoEngine_IRRLICHT_HEADERS}
-)
+source_group("" FILES ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 
 #-------------------------------------------------------------------------------
-# Find the IRRLICHT library
+# Find the Irrlicht library
 
 find_package(Irrlicht)
 
-if(IRRLICHT_FOUND)
-    message(STATUS "Irrlicht libraries:   ${IRRLICHT_LIBRARIES}")
-    message(STATUS "Irrlicht include dir: ${IRRLICHT_INCLUDE_DIRS}")
-    if(MSVC)
-    message(STATUS "Irrlicht DLL:         ${IRRLICHT_DLL}")
-    endif()
-else()
-    message(ERROR " IRRLICHT not found. Please set IRRLICHT_DIR to the Irrlicht SDK installation directory.")
-    set(IRRLICHT_DIR "C:/irrlicht-1.8.1" CACHE PATH "Path to Irrlicht SDK installation.")
-endif()
+set(IRRLICHT_INCLUDE_DIR ${IRRLICHT_INCLUDE_DIR} PARENT_SCOPE)
+set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} PARENT_SCOPE)
+set(IRRLICHT_DLL ${IRRLICHT_DLL} PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_irrlicht library
 
-add_library(ChronoEngine_irrlicht
-  ${ChronoEngine_IRRLICHT_SOURCES}
-  ${ChronoEngine_IRRLICHT_HEADERS}
-)
+add_library(ChronoEngine_irrlicht ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 
 add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
 
@@ -88,9 +75,9 @@ if (ENABLE_MODULE_MODAL)
 endif()
 
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(ChronoEngine_irrlicht PRIVATE ${MAC_LIBS})
-ENDIF()
+endif()
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the Irrlicht DLL to the bin/ directory
@@ -99,11 +86,11 @@ ENDIF()
 # copy_if_different.
 
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   # Make variable visible from outside this directory
-  SET(CH_IRRLICHT_DLL "${IRRLICHT_DLL}")
-  SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
+  set(CH_IRRLICHT_DLL ${IRRLICHT_DLL})
+  set(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
 
   add_custom_command(
     TARGET ChronoEngine_irrlicht POST_BUILD
@@ -115,10 +102,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMENT "Copying Irrlicht DLL..."
   )
 
-  # copy the IRRLICHT dll into the installed package to be on the safe side 
+  # Copy the IRRLICHT dll into the installed package to be on the safe side 
   install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
 
-ENDIF()
+endif()
 
 
 #-------------------------------------------------------------------------------
@@ -133,7 +120,7 @@ install(TARGETS ChronoEngine_irrlicht
 )
 
 # # TODO: DARIOM check if this is already covered by the install TARGETS above
-# install(FILES ${ChronoEngine_IRRLICHT_HEADERS}
+# install(FILES ${IRR_HEADER_FILES}
 #         DESTINATION include/chrono_irrlicht)
 
 file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"

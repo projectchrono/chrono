@@ -806,9 +806,13 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChVersion.h.in"
 install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
         DESTINATION include/chrono)
 
-#------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Create the Chrono CMake project configuration file
-#------------------------------------------------------------
+#-----------------------------------------------------------------------------
+
+# Set path to Chrono data directory in build tree
+
+
 
 # For the BUILD tree
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
@@ -818,23 +822,51 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindEigen3.cmake"
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
         )
 
-############################################################ NEW INSTALL
+set(CH_INSTALL_TREE TRUE)
+# create config file to be later copied to install tree
+configure_package_config_file(
+  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
+  INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
 
+set(CH_INSTALL_TREE FALSE)
+# create config file for build tree
+configure_package_config_file(
+  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
+  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+  INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
+
+unset(CH_INSTALL_TREE)
+
+# install config files
+install(FILES
+        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
+        # "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
+        RENAME "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+)
+
+#-----------------------------------------------------------------------------
 # Generate the C# file with global constants
 # This must be done here, after replacement variables were set.
+#-----------------------------------------------------------------------------
+
 if(ENABLE_MODULE_CSHARP)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in" DESTINATION "${PROJECT_BINARY_DIR}/cmake")
 
-  # configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
-  #                "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
-  #                @ONLY)
+  set(CH_CS_DATA ${CH_BUILD_DATA})
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
+                  "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
+                  @ONLY)
 
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
   DESTINATION ${CH_CONFIG_INSTALL_PATH}
   )
 endif()
 
-
+#-----------------------------------------------------------------------------
 
 # include CMakePackageConfigHelpers macro
 include(CMakePackageConfigHelpers)
@@ -860,33 +892,9 @@ include(CMakePackageConfigHelpers)
 # )
 
 
-set(CH_INSTALL_TREE TRUE)
-# create config file to be later copied to install tree
-configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
-  INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
-)
-
-
-set(CH_INSTALL_TREE FALSE)
-# create config file for build tree
-configure_package_config_file(
-  "${CMAKE_SOURCE_DIR}/cmake/chrono-config.cmake.in"
-  "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
-  INSTALL_DESTINATION ${CH_CONFIG_INSTALL_PATH}
-)
-
-unset(CH_INSTALL_TREE)
-
-# install config files
-install(FILES
-        "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake-install"
-        # "${CMAKE_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
-        RENAME "${CMAKE_BINARY_DIR}/cmake/chrono-config.cmake"
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-)
-
+#-----------------------------------------------------------------------------
+# Export generated ChronoEngineTargets.cmake
+#-----------------------------------------------------------------------------
 
 
 export(EXPORT ChronoEngineTargets
