@@ -132,11 +132,6 @@ target_link_libraries(ChronoEngine_vsg PUBLIC
                       vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
 
-# TODO DARIOM: verify if needed
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_options(ChronoEngine_vsg PUBLIC "-framework IOKit -framework Cocoa -framework OpenGL")
-endif()
-
 #-------------------------------------------------------------------------------
 # Install the ChronoEngine_vsg library
 
