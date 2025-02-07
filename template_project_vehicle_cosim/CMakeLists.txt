@@ -60,13 +60,13 @@ add_executable(vehicle_cosim vehicle_cosim.cpp)
 
 target_compile_definitions(vehicle_cosim PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 
-# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
-if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-  target_compile_definitions(vehicle_cosim PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
-endif()
-
-# Disable some MSVC compiler warnings
 if(MSVC)
+    # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
+    if(${MSVC_VERSION} GREATER_EQUAL 1915)
+      target_compile_definitions(vehicle_cosim PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
+    endif()
+
+    # Disable some MSVC compiler warnings
     target_compile_definitions(vehicle_cosim PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
     target_compile_definitions(vehicle_cosim PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
     target_compile_definitions(vehicle_cosim PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
@@ -77,6 +77,7 @@ endif()
 #--------------------------------------------------------------
 
 target_link_libraries(vehicle_cosim PRIVATE ${CHRONO_TARGETS})
+target_link_libraries(vehicle_cosim PRIVATE MPI::MPI_CXX)
 
 #--------------------------------------------------------------
 # 4. OPTIONAL (Windows only)

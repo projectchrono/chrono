@@ -29,18 +29,17 @@ endif()
 
 set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
-  endif()
-endif()
-
 if(MSVC)
-    add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-    add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-    add_definitions("-DNOMINMAX")                  # do not use MSVC's min/max macros
-    add_compile_options(/wd4275)                   # disable warnings triggered by Irrlicht
-    add_compile_options(/wd4251)                   # class needs to have dll-interface
+  if(${MSVC_VERSION} GREATER_EQUAL 1915)
+      target_compile_definitions(vehicle_cosim PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
+  endif()
+
+    target_compile_definitions(vehicle_cosim PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
+    target_compile_definitions(vehicle_cosim PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
+    target_compile_definitions(vehicle_cosim PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
+
+    target_compile_options(vehicle_cosim PRIVATE /wd4275>)   # non dll-interface class used as base class
+    target_compile_options(vehicle_cosim PRIVATE /wd4251>)   # class needs to have dll-interface
 endif()
 
 
