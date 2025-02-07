@@ -69,13 +69,9 @@ TKBool
 TKBRep
 TKCAF
 TKCDF
-TKDCAF
-TKDraw
 TKernel
 TKFeat
 TKFillet
-TKG2d
-TKG3d
 TKGeomAlgo
 TKGeomBase
 TKHLR
@@ -83,13 +79,9 @@ TKIGES
 TKLCAF
 TKMath
 TKMesh
-TKMeshVS
 TKOffset
-TKOpenGl
 TKPrim
-TKQADraw
 TKRWMesh
-TKService
 TKShHealing
 TKStd
 TKStdL
@@ -99,14 +91,10 @@ TKSTEPAttr
 TKSTEPBase
 TKSTL
 TKTObj
-TKTObjDRAW
 TKTopAlgo
-TKTopTest
-TKV3d
 TKVCAF
 TKVRML
 TKXCAF
-TKXDEDRAW
 TKXDEIGES
 TKXDESTEP
 TKXMesh
@@ -115,7 +103,6 @@ TKXmlL
 TKXmlTObj
 TKXmlXCAF
 TKXSBase
-TKXSDRAW
 )
 
 message(STATUS "Linked OpenCascade libraries: ${OCCT_LIBS}")
