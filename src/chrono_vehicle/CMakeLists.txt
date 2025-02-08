@@ -38,7 +38,8 @@ if (ENABLE_OPENCRG)
 
   if (OpenCRG_FOUND)
     message(STATUS "OpenCRG include dir: ${OpenCRG_INCLUDE_DIR}")
-    message(STATUS "OpenCRG library:     ${OpenCRG_LIBRARY}")  
+    message(STATUS "OpenCRG library:     ${OpenCRG_LIBRARY}")
+
     mark_as_advanced(FORCE OpenCRG_INCLUDE_DIR)
     mark_as_advanced(FORCE OpenCRG_LIBRARY)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -48,13 +49,10 @@ if (ENABLE_OPENCRG)
     set(HAVE_OPENCRG ON)
 
     file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-
-    install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake"
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-        )
+    install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindOpenCRG.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
 
   else()
+    message("WARNINIG: OpenCRG not found; disabling CRG support in Chrono::Vehicle")
 
     set(OpenCRG_INCLUDE_DIR "" CACHE PATH "Directory containing OpenCRG include files")
     set(OpenCRG_LIBRARY "" CACHE FILEPATH "OpenCRG library")
