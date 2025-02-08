@@ -10,12 +10,17 @@ endif()
 #--------------------------------------------------------------
 # List of all Cascade demos
 
-set(DEMOS_CAS
-	demo_CAS_converter
-	demo_CAS_stepfile
-	demo_CAS_robot
-	demo_CAS_profile
+set(DEMOS
+    demo_CAS_stepfile
+    demo_CAS_robot
+    demo_CAS_profile
 )
+
+if(ENABLE_MODULE_IRRLICHT)
+  set(DEMOS ${DEMOS}
+      demo_CAS_converter
+  )
+endif()
 
 #--------------------------------------------------------------
 # Additional paths and settings
@@ -35,7 +40,7 @@ endif()
 
 message(STATUS "Add demo programs for CASCADE module")
 
-foreach(PROGRAM ${DEMOS_CAS})
+foreach(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} "${PROGRAM}.cpp")
