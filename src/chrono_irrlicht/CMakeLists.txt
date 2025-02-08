@@ -15,6 +15,7 @@ message(STATUS "\n==== Chrono Irrlicht module ====\n")
 
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_irrlicht lib
+
 set(IRR_SOURCE_FILES
   ChIrrCamera.cpp
   ChIrrMeshTools.cpp
@@ -44,7 +45,13 @@ source_group("" FILES ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 #-------------------------------------------------------------------------------
 # Find the Irrlicht library
 
-find_package(Irrlicht)
+find_package(Irrlicht MODULE REQUIRED)
+
+if(NOT Irrlicht_FOUND)
+  message("WARNING: Irrlicht not found; disabling Chrono::Irrlicht")
+  set(ENABLE_MODULE_IRRLICHT OFF CACHE BOOL "Enable the Chrono::Irrlicht module" FORCE)
+  return()
+endif()
 
 set(IRRLICHT_INCLUDE_DIR ${IRRLICHT_INCLUDE_DIR} PARENT_SCOPE)
 set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} PARENT_SCOPE)
@@ -84,7 +91,6 @@ endif()
 # We do this through a custom command so that the Irrlich DLL is copied to the
 # appropriate directory (depending on the build type); however, we use
 # copy_if_different.
-
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
