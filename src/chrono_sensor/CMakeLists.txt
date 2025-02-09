@@ -406,7 +406,10 @@ set_target_properties(ChronoEngine_sensor PROPERTIES CUDA_ARCHITECTURES ${CHRONO
 # ------------------------------------------------------------------------------
 
 set(USE_CUDA_NVRTC ON CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX")
+
 if(USE_CUDA_NVRTC)
+  message(STATUS "Building Chrono::Sensor with NVRTC ON")
+
   find_package(CUDAToolkit REQUIRED)
 
   if(NOT TARGET CUDA::nvrtc)
@@ -456,22 +459,40 @@ if(USE_CUDA_NVRTC)
 
   endif()
 else()
-  # Generate the PTX files only if NVRTC is disabled
-  add_library(PTX_TARGET ${ChronoEngine_sensor_RT_SOURCES} )
-  set_target_properties(PTX_TARGET PROPERTY CUDA_PTX_COMPILATION ON)
-  set_target_properties(PTX_TARGET PROPERTY LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
+  message(STATUS "Building Chrono::Sensor with NVRTC OFF")
 
-  set(PTX_TARGET_GENERATED_FILES $<TARGET_OBJECTS:PTX_TARGET>)
-  source_group("Generated Files" FILES ${PTX_TARGET_GENERATED_FILES})
-  target_link_libraries(ChronoEngine_sensor PRIVATE ${PTX_TARGET_GENERATED_FILES})
+  # Create helper PTX library
+  add_library(ChronoEngine_sensor_ptx OBJECT ${ChronoEngine_sensor_RT_SOURCES} ${ChronoEngine_sensor_RT_HEADERS})
+  target_include_directories(ChronoEngine_sensor_ptx PRIVATE ${CMAKE_SOURCE_DIR}/src)
+  set_property(TARGET ChronoEngine_sensor_ptx PROPERTY CUDA_PTX_COMPILATION ON)
+  target_link_libraries(ChronoEngine_sensor_ptx PRIVATE OptiX::OptiX)
+  target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::cudart_static)
+  target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::nppc)
+  target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::nppig)
+  target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::nppidei)
+  if(USE_NVDB)
+    target_link_libraries(ChronoEngine_sensor_ptx PRIVATE OpenVDB::openvdb)
+    target_link_libraries(ChronoEngine_sensor_ptx PRIVATE OpenVDB::nanovdb)
+  endif()
 
+  # Copy PTX files to known location (under lib/sensor_ptx)
+  # Notes:
+  #   1. We cannot install the PTX files since these are "objects" not known at configuration time.
+  #   2. By design, CMake does not allow redirecting output of object files. So we cannot set output prperties on the ChronoEngine_sensor_ptx target.
+  #   3. A POST_BUILD command cannot be associated with an OBJECT library target. So we cannot do this after ChronoEngine_sensor_ptx.
+  # The solution is to do the copy in a PRE_BUILD command of the ChronoEngine_sensor target (which depends on ChronoEngine_sensor_ptx).
+  add_custom_command(TARGET ChronoEngine_sensor
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:ChronoEngine_sensor_ptx> "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
+    COMMAND_EXPAND_LISTS
+    COMMENT "Copy Chrono::Sensor PTX files."
+  )
+
+  # Link PTX helper library, use NVCC, and set macro with location of PTX files
+  target_link_libraries(ChronoEngine_sensor PUBLIC ${ChronoEngine_sensor_ptx})
   target_compile_definitions(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
-
   target_compile_definitions(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_BINARY_DIR}/lib/sensor_ptx/">)
-
-  install(FILES ${PTX_TARGET_GENERATED_FILES}
-          DESTINATION lib/sensor_ptx)
-
 endif()
 
 
