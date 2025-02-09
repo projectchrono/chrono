@@ -454,6 +454,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       set(Blaze_ROOT "@Blaze_ROOT@" CACHE PATH "Blaze library location (should contain 'blaze/Blaze.h')")
       find_dependency(Blaze QUIET)
+
       if (NOT Blaze_FOUND)
         message("WARNING: Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
@@ -569,12 +570,16 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
         
-        find_dependency(MPI)
-
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
-        if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
+        if(NOT CHRONO_MPI_FOUND)
+          message("WARNING: Chrono::Vehicle co-sim requires MPI, but MPI was not found")
+          set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+        else()
+          list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
+          if (NOT CHRONO_STATIC)
+            list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
+          endif()
         endif()
+
       endif()
 
       set(CHRONO_VEHICLE_IRRKLANG @HAVE_IRRKLANG@)
@@ -633,43 +638,70 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
 
       set(OptiX_INSTALL_DIR "@OptiX_ROOT_DIR@" CACHE PATH "Path to the installed location of the OptiX SDK.")
-
       find_dependency(OptiX REQUIRED)
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
+      if(NOT Optix_FOUND)
+        message("WARNINNG: Chrono::Sensor requires OptiX, but Optix was not found")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+        mark_as_advanced(CLEAR OptiX_INSTALL_DIR)
+      else()
+        mark_as_advanced(FORCE OptiX_INSTALL_DIR)
       endif()
-      #list(APPEND CHRONO_DEPENDENCY_DLLS "@optix_DLL@")
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
+        endif()
+        #list(APPEND CHRONO_DEPENDENCY_DLLS "@optix_DLL@")
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
-      if(@FASTDDS_FOUND@)
-         set(fastrtps_DIR "@fastrtps_DIR@")
-         find_dependency(fastrtps REQUIRED)
+      if(NOT CHRONO_MPI_FOUND)
+        message("WARNING: Chrono::Synchrono requires MPI, but MPI was not found")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
 
-      find_dependency(MPI)
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
+        if(@FASTDDS_FOUND@)
+           set(fastrtps_DIR "@fastrtps_DIR@" CACHE PATH "Path to FastDDS installation")
+           find_dependency(fastrtps REQUIRED)
+        endif()
+        
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
+        endif()
+        
+        set(CHRONO_SYNCHRONO_FASTDDS @FASTDDS_FOUND@)
+
       endif()
-
-      set(CHRONO_SYNCHRONO_FASTDDS @FASTDDS_FOUND@)
 
     elseif(${COMPONENT_UPPER} MATCHES "ROS")
 
+      set(ROS2_DIR "@ROS2_DIR@" CACHE PATH "Path to ROS2 installation")
       find_dependency(ROS2 QUIET
         COMPONENTS "@CH_ROS_REQUIRED_PACKAGES@"
         OPTIONAL_COMPONENTS "@CH_ROS_OPTIONAL_PACKAGES@"
         PATHS "${Chrono_DIR}"
       )
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_ros")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ros.dll")
+      if(NOT ROS2_FOUND)
+        message("WARNINIG Could not find ROS2")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+        mark_as_advanced(CLEAR ROS2_DIR)
+      else()
+        mark_as_advanced(FORCE ROS2_DIR)
+      endif()
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_ros")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ros.dll")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
@@ -737,11 +769,18 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(MUMPS_DIR "@MUMPS_DIR@" CACHE PATH "Path to MUMPS installation.")
       find_dependency(MUMPS)
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
+      if(NOT MUMPS_FOUND)
+        message("WARNINIG Could not find MUMPS")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       endif()
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@MUMPS_SHARED_LIBRARIES@")
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
+        endif()
+        list(APPEND CHRONO_DEPENDENCY_DLLS "@MUMPS_SHARED_LIBRARIES@")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
@@ -768,6 +807,10 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       endif()
 
       if(@HAVE_URDF@)
+         set(urdfdom_DIR "@urdfdom_DIR@" CACHE PATH "The directory containing a CMake configuration for urdfdom")
+         set(urdfdom_headers_DIR "@urdfdom_headers_DIR@" CACHE PATH "The directory containing a CMake configuration for urdfdom_headers")
+         set(console_bridge_DIR "@console_bridge_DIR@" CACHE PATH "The directory containing a CMake configuration for console_bridge")
+         set(tinyxml2_DIR "@tinyxml2_DIR@" CACHE PATH "The directory containing a CMake configuration for tinyxml2")
          find_dependency(urdfdom REQUIRED)
          find_dependency(urdfdom_headers REQUIRED)
          find_dependency(console_bridge REQUIRED)
@@ -779,9 +822,22 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
+      set(Matlab_ROOT_DIR "@Matlab_ROOT_DIR@" CACHE PATH "MAtlab installation root path")
+      find_dependency(Matlab COMPONENTS MAT_LIBRARY ENG_LIBRARY REQUIRED)
+
+      if(NOT Matlab_FOUND)
+        message("WARNINIG Could not find Matlab")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+        mark_as_advanced(CLEAR Matlab_ROOT_DIR)
+      else()
+        mark_as_advanced(FORCE Matlab_ROOT_DIR)
+      endif()
+
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
+        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "CSHARP")
