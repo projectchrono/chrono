@@ -125,122 +125,44 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
-# Threads and OpenMP support
+# Eigen library
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for Threads")
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads)
-
-message(STATUS "  Thread library:      ${CMAKE_THREAD_LIBS_INIT}")
-message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
-message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
-
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
-
-# We always look for OpenMP (which is required for the PARALLEL module).
-# However, we allow the user to optionally disable OpenMP support in the
-# main ChronoEngine library, regardless on whether or not OpenMP is found.
-
-message(STATUS "Searching for OpenMP")
-# WARNING: TODO: OpenMP must be looked for before CUDA, since it cannot find OpenMP_CUDA; should it?
-find_package(OpenMP)
-
-# Determine OpenMP version. Prepare substitution variables that can be used in
-# generating configuration header files.
-
-if(OpenMP_FOUND)
-  include(CheckOpenMPVersion)
-  message(STATUS "  OpenMP version:   ${OMP_VERSION}")
-  set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
-  set(CHRONO_OMP_VERSION "#define CHRONO_OMP_VERSION \"${OMP_VERSION}\"")
-  if(OMP_20)
-    set(CHRONO_OMP_20 "#define CHRONO_OMP_20")
-  else()
-    set(CHRONO_OMP_20 "")
-  endif()
-  if(OMP_30)
-    set(CHRONO_OMP_30 "#define CHRONO_OMP_30")
-  else()
-    set(CHRONO_OMP_30 "")
-  endif()
-  if(OMP_40)
-    set(CHRONO_OMP_40 "#define CHRONO_OMP_40")
-  else()
-    set(CHRONO_OMP_40 "")
-  endif()
+message(STATUS "Searching for Eigen3 in module mode")
+find_package(Eigen3 3.3 MODULE QUIET)
+if(EIGEN3_FOUND)
+  message(STATUS "  Eigen3 found (module mode)")
+  message(STATUS "  EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+  mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(FORCE Eigen3_DIR)
 else()
-  message(STATUS "  OpenMP not found")
+  message(STATUS "  Eigen3 not found in module mode")
+  message(STATUS "Searching for Eigen3 in configuration mode")
+  find_package(Eigen3 3.3 CONFIG QUIET)
+  if(EIGEN3_FOUND)
+    message(STATUS "  Eigen3 found (config mode)")
+    message(STATUS "  EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
+    mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
+    mark_as_advanced(FORCE Eigen3_DIR)
+  else()
+    message(ERROR "  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
+    set(EIGEN3_INCLUDE_DIR "" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
+    mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+    mark_as_advanced(CLEAR Eigen3_DIR)
+    return()
+  endif()
 endif()
 
-# Provide an option (dependent on OPENMP_FOUND) for the user to disable OpenMP
-# support in the Chrono libraries (note that some modules may override this).
-
-cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON
-                       "OPENMP_FOUND" OFF)
-
-# set(OPENMP_INCLUDE_DIR "")
-# set(OPENMP_LIBRARIES "")
-if(ENABLE_OPENMP)
-  # message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
-  # message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
-  # message(STATUS "  OpenMP includes:  ${OpenMP_CXX_INCLUDE_DIRS}")
-  # message(STATUS "  OpenMP library:   ${OpenMP_CXX_LIBRARY}")
-  # message(STATUS "  OpenMP libraries: ${OpenMP_CXX_LIBRARIES}")
-  # # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  # # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  # # set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  # # set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
-  # set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
-  # set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
-else()
-	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
-	find_package(TBB)
-	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
+# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
+if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND "${MSVC_VERSION}" GREATER_EQUAL 1915) OR NOT USE_EIGEN_OPENMP)
+    target_compile_definitions(Eigen3::Eigen INTERFACE "_ENABLE_EXTENDED_ALIGNED_STORAGE")
 endif()
 
+cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
 
-# #-----------------------------------------------------------------------------
-# # CUDA support
-# #-----------------------------------------------------------------------------
-
-message(STATUS "Searching for CUDA")
-
-include(CheckLanguage)
-check_language(CUDA)
-
-# If CUDA was found, enable the CUDA language
-if(CMAKE_CUDA_COMPILER)
-    set(CHRONO_CUDA_FOUND TRUE)
-    enable_language(CUDA)
-    find_package(CUDAToolkit)
-    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "  CUDA toolkit version:  ${CUDAToolkit_VERSION}")
-    message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
-
-    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-      if(CMAKE_VERSION VERSION_LESS "3.23")
-        set(CHRONO_CUDA_ARCHITECTURES "90" CACHE STRING "GPU architectures")
-      else()
-        set(CHRONO_CUDA_ARCHITECTURES "all-major")
-      endif()
-    else()
-      set(CHRONO_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
-    endif()
-
-    message(STATUS "  CUDA found and enabled.")
-    
-    ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(CUDA_SEPARABLE_COMPILATION OFF)
-    endif()
-else()
-    set(CHRONO_CUDA_FOUND FALSE)
-    mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
-    message(WARNING "  CUDA not found. CUDA features will be disabled.")
+if (NOT USE_EIGEN_OPENMP)
+  target_compile_definitions(Eigen3::Eigen INTERFACE "EIGEN_DONT_PARALLELIZE")
 endif()
-
 
 #-----------------------------------------------------------------------------
 # SSE / AVX / FMA / NEON support
@@ -316,41 +238,57 @@ else()
 endif() 
 
 #-----------------------------------------------------------------------------
-# Eigen library
+# Threads and OpenMP support
 #-----------------------------------------------------------------------------
 
-message(STATUS "Searching for Eigen3 in module mode")
-find_package(Eigen3 3.3 MODULE QUIET)
-if(EIGEN3_FOUND)
-  message(STATUS "  Eigen3 found (module mode)")
-  message(STATUS "  EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
-  mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
-  mark_as_advanced(FORCE Eigen3_DIR)
-else()
-  message(STATUS "  Eigen3 not found in module mode. Looking for Eigen3 in configuration mode.")
-  find_package(Eigen3 3.3 CONFIG)
-  if(EIGEN3_FOUND)
-    message(STATUS "  Eigen3 found (config mode)")
-    message(STATUS "  EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
-    mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
-    mark_as_advanced(FORCE Eigen3_DIR)
+message(STATUS "Searching for Threads")
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads)
+
+message(STATUS "  Thread library:      ${CMAKE_THREAD_LIBS_INIT}")
+message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
+message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
+
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+
+message(STATUS "Searching for OpenMP")
+find_package(OpenMP)
+
+# Determine OpenMP version (support level)
+# Prepare substitution variables that can be used in generating configuration header files
+if(OpenMP_FOUND)
+  include(CheckOpenMPVersion)
+  message(STATUS "  OpenMP version:   ${OMP_VERSION}")
+  set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
+  set(CHRONO_OMP_VERSION "#define CHRONO_OMP_VERSION \"${OMP_VERSION}\"")
+  if(OMP_20)
+    set(CHRONO_OMP_20 "#define CHRONO_OMP_20")
   else()
-    message(SEND_ERROR "  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
-    set(EIGEN3_INCLUDE_DIR "" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
-    mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
-    mark_as_advanced(CLEAR Eigen3_DIR)
+    set(CHRONO_OMP_20 "")
   endif()
+  if(OMP_30)
+    set(CHRONO_OMP_30 "#define CHRONO_OMP_30")
+  else()
+    set(CHRONO_OMP_30 "")
+  endif()
+  if(OMP_40)
+    set(CHRONO_OMP_40 "#define CHRONO_OMP_40")
+  else()
+    set(CHRONO_OMP_40 "")
+  endif()
+else()
+  message(STATUS "  OpenMP not found")
 endif()
 
-# Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
-if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND "${MSVC_VERSION}" GREATER_EQUAL 1915) OR NOT USE_EIGEN_OPENMP)
-    target_compile_definitions(Eigen3::Eigen INTERFACE "_ENABLE_EXTENDED_ALIGNED_STORAGE")
-endif()
+# Allow caller to disable OpenMP use (even if OpenMP found)
+# Note that some modules may override this
+cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON "OPENMP_FOUND" OFF)
 
-cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
-
-if (NOT USE_EIGEN_OPENMP)
-  target_compile_definitions(Eigen3::Eigen INTERFACE "EIGEN_DONT_PARALLELIZE")
+if(NOT ENABLE_OPENMP)
+	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
+	find_package(TBB)
+	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -370,6 +308,47 @@ if(MPI_CXX_FOUND)
   message(STATUS "  MPIEXEC_PREFLAGS:      ${MPIEXEC_PREFLAGS}")
   message(STATUS "  MPIEXEC_POSTFLAGS:     ${MPIEXEC_POSTFLAGS}")
 endif()
+
+#-----------------------------------------------------------------------------
+# CUDA support
+#-----------------------------------------------------------------------------
+
+message(STATUS "Searching for CUDA")
+
+include(CheckLanguage)
+check_language(CUDA)
+
+# If CUDA was found, enable the CUDA language
+if(CMAKE_CUDA_COMPILER)
+    set(CHRONO_CUDA_FOUND TRUE)
+    enable_language(CUDA)
+    find_package(CUDAToolkit)
+    message(STATUS "  CUDA compiler:         ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "  CUDA toolkit version:  ${CUDAToolkit_VERSION}")
+    message(STATUS "  CUDA toolkit root dir: ${CUDAToolkit_LIBRARY_ROOT}")
+
+    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+      if(CMAKE_VERSION VERSION_LESS "3.23")
+        set(CHRONO_CUDA_ARCHITECTURES "90" CACHE STRING "GPU architectures")
+      else()
+        set(CHRONO_CUDA_ARCHITECTURES "all-major")
+      endif()
+    else()
+      set(CHRONO_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
+    endif()
+
+    message(STATUS "  CUDA found and enabled.")
+    
+    ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set(CUDA_SEPARABLE_COMPILATION OFF)
+    endif()
+else()
+    set(CHRONO_CUDA_FOUND FALSE)
+    mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
+    message(WARNING "  CUDA not found. CUDA features will be disabled.")
+endif()
+
 
 #-----------------------------------------------------------------------------
 # Thrust library
@@ -528,15 +507,12 @@ endif()
 # Add directory for main ChronoEngine library
 add_subdirectory(chrono)
 
-
-# # Let all modules have access to the headers of the main library
-# include_directories(${CH_INCLUDES})
-
-# Add directories to build various optional modules.  Each module is supposed
-# to provide an option for enabling that particular module.
-add_subdirectory(chrono_parsers)
-add_subdirectory(chrono_pardisomkl)
+# Add directories to build various optional modules
+# Each module is supposed to provide an option for enabling that particular module
+# ATTENTION: It is important to configure Chrono::Mumps before any other modules that may depend on Intel MKL!
 add_subdirectory(chrono_mumps)
+add_subdirectory(chrono_pardisomkl)
+add_subdirectory(chrono_parsers)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_vsg)

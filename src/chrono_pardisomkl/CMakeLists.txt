@@ -77,8 +77,11 @@ mark_as_advanced(FORCE MKL_THREADING)
 mark_as_advanced(FORCE MKL_INTERFACE)
 mark_as_advanced(FORCE MKL_MPI)
 
-find_package(MKL CONFIG REQUIRED)
-
+if(NOT TARGET MKL::MKL)
+  find_package(MKL CONFIG REQUIRED)
+else()
+  message(STATUS "MKL::MKL target already exists. Skip search for MKL")
+endif()
 
 if(NOT MKL_FOUND)
   set(MKL_ROOT "C:/Program Files (x86)/Intel/oneAPI/mkl/latest" CACHE PATH "Location of MKL installation (e.g. \"C:/Program Files (x86)/Intel/oneAPI/mkl/latest\"")

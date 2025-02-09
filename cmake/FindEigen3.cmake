@@ -58,34 +58,40 @@ macro(_eigen3_check_version)
   endif()
 
   if(NOT EIGEN3_VERSION_OK)
-
-    message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
-                   "but at least version ${Eigen3_FIND_VERSION} is required")
+    message("WARNING: Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
+                     "but at least version ${Eigen3_FIND_VERSION} is required")
   endif()
 endmacro()
 
 
 
 if (EIGEN3_INCLUDE_DIR)
-  MESSAGE(STATUS "EIGEN3_INCLUDE_DIR found in cache: ${EIGEN3_INCLUDE_DIR}")
+  if(NOT ${Eigen3_FIND_QUIETLY})
+    message(STATUS "EIGEN3_INCLUDE_DIR found in cache: ${EIGEN3_INCLUDE_DIR}")
+  endif()
   # in cache already
   _eigen3_check_version()
   set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
   set(Eigen3_FOUND ${EIGEN3_VERSION_OK})
 
 else ()
-
-  MESSAGE(STATUS "EIGEN3_INCLUDE_DIR NOT found in cache. Looking for Eigen3Config.cmake.")
-
+  if(NOT ${Eigen3_FIND_QUIETLY})
+    message(STATUS "EIGEN3_INCLUDE_DIR NOT found in cache. Looking for Eigen3Config.cmake.")
+  endif()
   
   # search first if an Eigen3Config.cmake is available in the system,
   # if successful this would set EIGEN3_INCLUDE_DIR and the rest of
   # the script will work as usual
-  find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
-
+  if(${Eigen3_FIND_QUIETLY})
+    find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
+  else()
+    find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE)
+  endif()
 
   if(NOT EIGEN3_INCLUDE_DIR)
-    MESSAGE(STATUS "EIGEN3_INCLUDE_DIR NOT found through Eigen3Config.cmake. Looking for Eigen3 EIGEN3_ROOT, EIGEN3_ROOT_DIR.")
+    if(NOT ${Eigen3_FIND_QUIETLY})
+      message(STATUS "EIGEN3_INCLUDE_DIR NOT found through Eigen3Config.cmake. Looking for Eigen3 EIGEN3_ROOT, EIGEN3_ROOT_DIR.")
+    endif()
 
     find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
         HINTS
@@ -100,7 +106,7 @@ else ()
 
   if(EIGEN3_INCLUDE_DIR)
     _eigen3_check_version()
-  else()
+  elseif(NOT Eigen3_FIND_QUIETLY)
     MESSAGE(STATUS "EIGEN3_INCLUDE_DIR NOT found through find_path.")
   endif()
 
