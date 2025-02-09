@@ -48,7 +48,7 @@ void GetShaderFromFile(OptixDeviceContext context,
 #ifdef USE_CUDA_NVRTC
     // std::chrono::high_resolution_clock::time_point start_compile = std::chrono::high_resolution_clock::now();
 
-    std::string cuda_file = SensorConfig::SENSOR_SHADER_DIR + file_name + ".cu";
+    std::string cuda_file = shader_dir + "/" + file_name + ".cu";
     std::string str;
     std::ifstream f(cuda_file);
     if (f.good()) {
