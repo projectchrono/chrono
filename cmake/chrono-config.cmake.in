@@ -882,6 +882,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       
       # Create ChChronoGlobals.cs based on current location
       set(CH_CS_DATA ${CHRONO_DATA_DIR})
+      set(CH_CS_VEHICLE_DATA ${CHRONO_VEHICLE_DATA_DIR})
       configure_file("${CMAKE_CURRENT_LIST_DIR}/ChChronoGlobals.cs.in"
                      "${CHRONO_CSHARP_SOURCE_DIR}/core/ChChronoGlobals.cs"
                      @ONLY)
