@@ -1,9 +1,3 @@
-# Demo programs for simulations for the Chrono::ROS library
-# ------------------------------------------------------------------------------
-
-# MESSAGE(STATUS "Demo programs for Chrono::ROS...")
-
-# ------------------------------------------------------------------------------
 
 set(DEMOS "")
 
@@ -31,8 +25,6 @@ endif()
 # ------------------------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_ros")
 list(APPEND LIBS "ChronoModels_robot")
@@ -41,8 +33,6 @@ list(APPEND LIBS "ChronoModels_robot")
 set(CMAKE_CXX_STANDARD 17)
 
 if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
     if (ENABLE_MODULE_VEHICLE)
         list(APPEND LIBS "ChronoEngine_vehicle")
@@ -51,8 +41,6 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_VSG)
-    set(CMAKE_CXX_STANDARD 17)
-
     list(APPEND LIBS "ChronoEngine_vsg")
     if (ENABLE_MODULE_VEHICLE)
         list(APPEND LIBS "ChronoEngine_vehicle")
@@ -61,12 +49,10 @@ if(ENABLE_MODULE_VSG)
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 
 if(ENABLE_MODULE_SENSOR)
-  include_directories(${CH_SENSOR_INCLUDES})
   list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
@@ -81,13 +67,14 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
+message(STATUS "Add demo programs for ROS module")
+
 foreach(PROGRAM ${DEMOS})
     # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
 
-    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
