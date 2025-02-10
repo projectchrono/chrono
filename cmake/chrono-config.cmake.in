@@ -1083,26 +1083,26 @@ function(add_DLL_copy_command)
       return()
     endif()
 
-    message(STATUS "------------------------------------")
-    message(STATUS "Add custom commands for copying DLLs")
-    message(STATUS "------------------------------------")
+    message(STATUS "\nAdd custom commands for copying DLLs")
     
     if(${ARGC} GREATER 0)
-      message(STATUS "DLLs that will be copied (user-provided lists)")
+      message(STATUS "DLLs from provided lists will be copied to runtime folder")
       set(DLL_NAMES ${ARGV0})
       set(DEPENDENCY_DLLS ${ARGV1})
 
-      message(STATUS "Dependencies:")
-      foreach(dep_dll ${DEPENDENCY_DLLS})
-        message(STATUS "...${dep_dll}")
-      endforeach()
-  
-      message(STATUS "Chrono libraries (if found for the given configuration):")
-      foreach(chrono_dll ${DLL_NAMES})
-        message(STATUS "...${chrono_dll}")
-      endforeach()
+      #message(STATUS "Chrono libraries (if found for the given configuration)")
+      #message(STATUS "Search for DLLs in ${CHRONO_PACKAGE_PREFIX_DIR}/bin")
+      #foreach(chrono_dll ${DLL_NAMES})
+      #  message(STATUS "...${chrono_dll}")
+      #endforeach()
+      #
+      #message(STATUS "Dependencies")
+      #foreach(dep_dll ${DEPENDENCY_DLLS})
+      #  message(STATUS "...${dep_dll}")
+      #endforeach()
+
     else()
-      message(STATUS "CHRONO_DEPENDENCY_DLLS and libraries listed in CHRONO_DLL_NAMES (if found for the given configuration) will be copied automatically to runtime folder.")
+      message(STATUS "CHRONO_DEPENDENCY_DLLS and libraries listed in CHRONO_DLL_NAMES (if found for the given configuration) will be copied automatically to runtime folder")
       set(DLL_NAMES ${CHRONO_DLL_NAMES})
       set(DEPENDENCY_DLLS ${CHRONO_DEPENDENCY_DLLS})
     endif()
@@ -1125,6 +1125,7 @@ function(add_DLL_copy_command)
     list(REMOVE_DUPLICATES DEPENDENCY_DLLS)
 
     # Find actual Chrono DLLs
+
     foreach(config ${CHRONO_CONFIGURATION_TYPES})
       unset(DLLS_${config})
       unset(DLL_MISSING_${config})
@@ -1221,6 +1222,8 @@ function(add_DLL_copy_command)
     endforeach()
     unset(TEMP_RUNTIME_OUTPUT_DIRECTORY_CONFIG)
     unset(config_upper)
+
+    message(STATUS "")
 
 endfunction()
 

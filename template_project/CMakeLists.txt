@@ -134,13 +134,6 @@ target_link_libraries(my_demo PRIVATE ${CHRONO_TARGETS})
 # Add a custom command for copying all Chrono and
 # dependency DLLs to the appropriate binary output folder.
 # This function has effect only on Windows.
-# 
-# DLLs will be copied into:
-#  ${PROJECT_BINARY_DIR}/${config} by default, or
-#  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${config} if only CMAKE_RUNTIME_OUTPUT_DIRECTORY is set, or
-#  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG>} if the specific CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> has been set
 #--------------------------------------------------------------
 
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "<mycustompathforrelease>")
 add_DLL_copy_command()

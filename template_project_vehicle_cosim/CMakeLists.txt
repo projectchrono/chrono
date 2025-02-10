@@ -85,9 +85,6 @@ target_link_libraries(vehicle_cosim PRIVATE MPI::MPI_CXX)
 # Add a custom command for copying all Chrono and
 # dependency DLLs to the appropriate binary output folder.
 # This function has effect only on Windows.
-# 
-# Note that you must first set EXECUTABLE_OUTPUT_PATH
-# (this can simply be ${CMAKE_BINARY_DIR}, like in this example)
 #--------------------------------------------------------------
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
