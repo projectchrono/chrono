@@ -6,68 +6,84 @@
 
 option(ENABLE_MODULE_ROS "Enable the Chrono::ROS module" OFF)
 
-IF(NOT ENABLE_MODULE_ROS)
+if(NOT ENABLE_MODULE_ROS)
   return()
-ENDIF()
+endif()
 
 message(STATUS "\n==== Chrono::ROS module ====\n")
-
-set(CXX_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
-set(CH_ROS_INCLUDES "")
-set(CH_ROS_LIBRARIES "ChronoEngine")
-set(CH_ROS_LINKED_LIBRARIES "")
 
 # Force C++17, required by ROS Humble
 set(CMAKE_CXX_STANDARD 17)
 
 #-----------------------------------------------------------------------------
-# Find ROS
+# Find ROS packages
 #-----------------------------------------------------------------------------
 
-set(CH_ROS_REQUIRED_PACKAGES rclcpp rcl_interfaces std_msgs geometry_msgs sensor_msgs tf2_ros tf2_msgs)
-set(CH_ROS_OPTIONAL_PACKAGES chrono_ros_interfaces)
+# RADU TODO: do we need this here? At least, we should get rid of the ament check
+#            since we do not want to use the ament macros at all.
 
-find_package(ROS2 QUIET
-  COMPONENTS ${CH_ROS_REQUIRED_PACKAGES}
-  OPTIONAL_COMPONENTS ${CH_ROS_OPTIONAL_PACKAGES}
-)
-if(ROS2_FOUND)
-  message(STATUS "Found ROS 2.")
-  message(STATUS "  ROS 2 distro is \"$ENV{ROS_DISTRO}\"")
-else()
-  message(SEND_ERROR "  Chrono::ROS requires ROS 2, but ROS 2 was not found.")
+if(NOT DEFINED ENV{ROS_DISTRO} OR NOT DEFINED ENV{AMENT_PREFIX_PATH})   
+  message("ERROR Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS")
+  set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
   return()
 endif()
 
-set(CH_ROS_HAS_INTERFACES ${chrono_ros_interfaces_FOUND})
-if (NOT CH_ROS_HAS_INTERFACES)
-  message(STATUS "  Could not find chrono_ros_interfaces. Some features will be disabled.")
+# Find required ROS2 packages
+find_package(rclcpp QUIET)
+find_package(tf2_ros QUIET)
+find_package(rcl_interfaces QUIET)
+find_package(std_msgs QUIET)
+find_package(geometry_msgs QUIET)
+find_package(sensor_msgs QUIET)
+find_package(tf2_msgs QUIET)
+
+if(rclcpp_FOUND AND tf2_ros_FOUND AND rcl_interfaces_FOUND AND std_msgs_FOUND AND geometry_msgs_FOUND AND sensor_msgs_FOUND AND tf2_msgs_FOUND)
+  message(STATUS "Found ROS 2")
+else()
+  message("ERROR Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS")
+  set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
+  return()
 endif()
 
-set(CH_ROS_INCLUDES ${CH_ROS_INCLUDES} ${ROS2_INCLUDE_DIRS})
-set(CH_ROS_LIBRARIES ${CH_ROS_LIBRARIES} ${ROS2_LIBRARIES})
+# Set list of ROS2 targets
+set(ROS2_TARGETS 
+    rclcpp::rclcpp
+    tf2_ros::tf2_ros
+    ${rcl_interfaces_TARGETS}
+    ${std_msgs_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${sensor_msgs_TARGETS}
+    ${tf2_msgs_TARGETS}
+)
+
+# Optional package
+find_package(chrono_ros_interfaces)
+
+if(chrono_ros_interfaces_FOUND)
+  set(CH_ROS_HAS_INTERFACES TRUE)
+  set(ROS2_TARGETS ${ROS2_TARGETS} ${chrono_ros_interfaces_TARGETS})
+else()
+  set(CH_ROS_HAS_INTERFACES FALSE)
+  message(STATUS "Could not find chrono_ros_interfaces; some features will be disabled")
+endif()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
 
-# Generate the configuration header file using substitution variables.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigROS.h.in
-	${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigROS.h.in ${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h)
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h"
-		DESTINATION include/chrono_ros)
+install(FILES "${PROJECT_BINARY_DIR}/chrono_ros/ChConfigROS.h" DESTINATION include/chrono_ros)
 
 # ------------
 # Common Files
 # ------------
 
 set(CH_ROS_BASE_FILES
-	ChApiROS.h
+  ChApiROS.h
 
   ChROSManager.h
-	ChROSManager.cpp
+  ChROSManager.cpp
 
   ChROSInterface.h
   ChROSInterface.cpp
@@ -142,63 +158,59 @@ source_group("robot_handler" FILES ${CH_ROS_ROBOT_HANDLER_FILES})
 #-----------------------------------------------------------------------------
 
 add_library(ChronoEngine_ros SHARED
-	${CH_ROS_BASE_FILES}
-	${CH_ROS_HANDLER_FILES}
-	${CH_ROS_VEHICLE_HANDLER_FILES}
-	${CH_ROS_SENSOR_HANDLER_FILES}
-	${CH_ROS_ROBOT_HANDLER_FILES}
+            ${CH_ROS_BASE_FILES}
+            ${CH_ROS_HANDLER_FILES}
+            ${CH_ROS_VEHICLE_HANDLER_FILES}
+            ${CH_ROS_SENSOR_HANDLER_FILES}
+            ${CH_ROS_ROBOT_HANDLER_FILES}
 )
 
-list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
-
-# Update compile definitions on optionally found packages
-if (CH_ROS_HAS_INTERFACES)
-  target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_ROS_HAS_INTERFACES)
-endif()
-
-if (ENABLE_MODULE_VEHICLE)
-	list(APPEND CH_ROS_LIBRARIES ChronoEngine_vehicle)
-  if (ENABLE_MODULE_VEHICLE_MODELS)
-    list(APPEND CH_ROS_LIBRARIES ChronoModels_vehicle)
-  endif()
-endif()
-
-if (ENABLE_MODULE_SENSOR)
-	list(APPEND CH_ROS_LIBRARIES ChronoEngine_sensor)
-endif()
-
-if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
-	list(APPEND CH_ROS_LIBRARIES ChronoEngine_parsers)
-  target_compile_definitions(ChronoEngine_ros PUBLIC -DCHRONO_PARSERS_URDF)
-endif()
-
-# Set some variables to be visible outside this directory
-set(CH_ROS_REQUIRED_PACKAGES "${CH_ROS_REQUIRED_PACKAGES}" PARENT_SCOPE)
-set(CH_ROS_OPTIONAL_PACKAGES "${CH_ROS_OPTIONAL_PACKAGES}" PARENT_SCOPE)
-set(CH_ROS_INCLUDES   "${CH_ROS_INCLUDES}"   PARENT_SCOPE)
-set(CH_ROS_LIBRARIES  "${CH_ROS_LIBRARIES}"  PARENT_SCOPE)
-set(CH_ROS_HAS_INTERFACES ${CH_ROS_HAS_INTERFACES} PARENT_SCOPE)
-
-# windows builds should disable warning 4661 and 4005
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
-endif()
-
-set_target_properties(ChronoEngine_ros PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${LINKER_FLAGS}")
 set_target_properties(ChronoEngine_ros PROPERTIES LINKER_LANGUAGE CXX)
 
 target_compile_definitions(ChronoEngine_ros PRIVATE "CH_API_COMPILE_ROS")
 
-target_include_directories(ChronoEngine_ros PUBLIC ${CH_ROS_INCLUDES})
+# Update compile definitions on optionally found packages
+if (CH_ROS_HAS_INTERFACES)
+  target_compile_definitions(ChronoEngine_ros PUBLIC CHRONO_ROS_HAS_INTERFACES)
+endif()
 
-target_link_libraries(ChronoEngine_ros ${CH_ROS_LIBRARIES})
+# Windows builds should disable warning 4661 and 4005
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4661>) 
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4005>) 
+endif()
+
+# Link libraries
+target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine)
+target_link_libraries(ChronoEngine_ros PUBLIC ChronoModels_robot)
+
+if (ENABLE_MODULE_VEHICLE)
+  target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_vehicle)
+  if (ENABLE_MODULE_VEHICLE_MODELS)
+    target_link_libraries(ChronoEngine_ros PUBLIC ChronoModels_vehicle)
+  endif()
+endif()
+
+if (ENABLE_MODULE_SENSOR)
+  target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_sensor)
+endif()
+
+if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
+  target_compile_definitions(ChronoEngine_ros PUBLIC CHRONO_PARSERS_URDF)
+  target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_parsers)
+endif()
+
+target_link_libraries(ChronoEngine_ros PUBLIC ${ROS2_TARGETS})
+
+# Set some variables to be visible outside this directory
+set(CH_ROS_HAS_INTERFACES ${CH_ROS_HAS_INTERFACES} PARENT_SCOPE)
 
 install(TARGETS ChronoEngine_ros
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_ros
+)
 
 #-------------------------------------------------------------------------------
 # Install Chrono::ROS headers
@@ -209,9 +221,9 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CH_CONFIG_INSTALL_PATH "cmake")
+  set(CH_CONFIG_INSTALL_PATH "cmake")
 else()
-    set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
+  set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
 endif()
 
 install(FILES ${CMAKE_SOURCE_DIR}/cmake/FindROS2.cmake DESTINATION ${CH_CONFIG_INSTALL_PATH} RENAME ros2-config.cmake)

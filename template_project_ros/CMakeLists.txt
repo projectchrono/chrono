@@ -105,18 +105,18 @@ add_executable(custom_handler custom_handler.cpp)
 # path to the Chrono data directory, either in its source tree
 # (if using a build version of Chrono), or in its install tree
 # (if using an installed version of Chrono).
-target_compile_definitions(my_demo PRIVATE "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_definitions(custom_handler PRIVATE "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 
 if(MSVC)
     # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
     if(${MSVC_VERSION} GREATER_EQUAL 1915)
-      target_compile_definitions(my_demo PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
+      target_compile_definitions(custom_handler PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
     endif()
 
     # Disable some MSVC compiler warnings
-    target_compile_definitions(my_demo PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(my_demo PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(my_demo PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
+    target_compile_definitions(custom_handler PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
+    target_compile_definitions(custom_handler PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
+    target_compile_definitions(custom_handler PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
 endif()
 
 #--------------------------------------------------------------
