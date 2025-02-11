@@ -267,6 +267,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %shared_ptr(chrono::vehicle::ChTransmission)
 
+// Expose for csharp only
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
+#endif             // --------------------------------------------------------------------- CSHARP
+
 // Expose for both python and csharp
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
