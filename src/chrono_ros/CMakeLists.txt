@@ -206,6 +206,7 @@ target_link_libraries(ChronoEngine_ros PUBLIC ${ROS2_TARGETS})
 set(CH_ROS_HAS_INTERFACES ${CH_ROS_HAS_INTERFACES} PARENT_SCOPE)
 
 install(TARGETS ChronoEngine_ros
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
