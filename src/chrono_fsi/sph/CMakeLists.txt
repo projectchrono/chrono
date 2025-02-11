@@ -20,7 +20,7 @@ if(NOT CHRONO_CUDA_FOUND)
     return()
 endif()
 
-message(STATUS "  Use double precision? ${FSI_USE_DOUBLE}")
+message(STATUS "  Use double precision? ${USE_FSI_DOUBLE}")
 message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
