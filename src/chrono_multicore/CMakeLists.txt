@@ -183,7 +183,6 @@ endif()
 target_compile_definitions(ChronoEngine_multicore PRIVATE CH_API_COMPILE_MULTICORE)
 target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)
 
-
 # ----- Configure Blaze and Thrust -----
 ## TODO: DARIOM shall they be guarded for only CXX?
 if(ENABLE_OPENMP)
@@ -199,7 +198,6 @@ else()
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 endif()
 
-
 install(TARGETS ChronoEngine_multicore
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
@@ -207,18 +205,15 @@ install(TARGETS ChronoEngine_multicore
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_multicore)
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way (install headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_multicore
         FILES_MATCHING PATTERN "*.h")
 
-# Install required chrono_thirdparty headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
-
-# Provide required find
+# Install files for chrono-config (in both build and install trees)
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake"
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-        )
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindBlaze.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})

@@ -135,7 +135,9 @@ set(SYN_UTILS_FILES
 )
 source_group("utils" FILES ${SYN_UTILS_FILES})
 
-
+#-----------------------------------------------------------------------------
+# Add the ChronoEngine_synchrono library
+#-----------------------------------------------------------------------------
 
 add_library(ChronoEngine_synchrono
 	${SYN_BASE_FILES}
@@ -159,17 +161,7 @@ target_include_directories(ChronoEngine_synchrono PUBLIC
   $<INSTALL_INTERFACE:include/chrono_thirdparty/flatbuffers/include>
 )
 
-install(TARGETS ChronoEngine_synchrono
-        EXPORT ChronoEngineTargets
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-		INCLUDES DESTINATION include/chrono_synchrono)
-
-#-----------------------------------------------------------------------------
 # Add dependencies
-#-----------------------------------------------------------------------------
-
 if (ENABLE_MODULE_SENSOR)
   target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_sensor) # needs PUBLIC
   find_package(OptiX REQUIRED)
@@ -256,14 +248,23 @@ endif()
 # Set some variables to be visible outside this directory
 set(FASTDDS_FOUND "${FASTDDS_FOUND}" PARENT_SCOPE)
 
+
+install(TARGETS ChronoEngine_synchrono
+        EXPORT ChronoEngineTargets
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+		INCLUDES DESTINATION include/chrono_synchrono)
+
 #-------------------------------------------------------------------------------
-# Install SynChrono headers
+# Install files
 #-------------------------------------------------------------------------------
 
 # Generate the configuration header file using substitution variables.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
 			   ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
 
+# Old way (install headers preserving directory structure)
 install(FILES "${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h"
 		DESTINATION include/chrono_synchrono)
 
@@ -271,7 +272,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_synchrono
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
 
-# Install required chrono_thirdparty headers
+# Install 3rd party headers       
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include
         DESTINATION include/chrono_thirdparty/flatbuffers
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

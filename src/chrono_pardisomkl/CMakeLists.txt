@@ -125,7 +125,6 @@ target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_API_COMPILE_PARDI
 target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
 target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "MKL_LP64") # who needs this? Eigen?
 
-
 install(TARGETS ChronoEngine_pardisomkl
   EXPORT ChronoEngineTargets
   RUNTIME DESTINATION bin
@@ -133,5 +132,10 @@ install(TARGETS ChronoEngine_pardisomkl
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include/chrono_pardisomkl)
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_PardisoMKL_HEADERS}
         DESTINATION include/chrono_pardisomkl)

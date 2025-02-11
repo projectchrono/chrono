@@ -61,9 +61,6 @@ target_link_libraries(ChronoEngine_mumps
                       ChronoEngine
                       MUMPS::MUMPS)
 
-#-------------------------------------------------------------------------------
-# Install the ChronoEngine_mumps library
-
 install(TARGETS ChronoEngine_mumps
   EXPORT ChronoEngineTargets
   RUNTIME DESTINATION bin
@@ -71,5 +68,10 @@ install(TARGETS ChronoEngine_mumps
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include/chrono_mumps)
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_MUMPS_HEADERS} 
         DESTINATION include/chrono_mumps)

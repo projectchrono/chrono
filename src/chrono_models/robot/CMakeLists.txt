@@ -102,6 +102,11 @@ install(TARGETS ChronoModels_robot
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_models/robot)
 
+# -------------------------------------------------------------------------------------------------
+# Install files
+# -------------------------------------------------------------------------------------------------
+
+# Old way (install headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/robot
         FILES_MATCHING PATTERN "*.h")

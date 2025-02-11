@@ -268,13 +268,15 @@ if(ENABLE_MODULE_OPENGL)
 endif()
 
 #-------------------------------------------------------------------------------
-# Install Chrono::FSI headers
+# Install files
 #-------------------------------------------------------------------------------
 
+# Old way (install headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_fsi
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
 
+# Install 3rd party headers       
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

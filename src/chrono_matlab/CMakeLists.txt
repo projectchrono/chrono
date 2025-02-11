@@ -61,3 +61,11 @@ install(TARGETS ChronoEngine_matlab
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include/chrono_matlab
 )      
+
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
+install(FILES ${ChronoEngine_MATLAB_HEADERS}
+        DESTINATION include/chrono_matlab)

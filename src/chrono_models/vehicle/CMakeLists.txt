@@ -1036,6 +1036,11 @@ install(TARGETS ChronoModels_vehicle
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_models/vehicle)
 
+# -------------------------------------------------------------------------------------------------
+# Install files
+# -------------------------------------------------------------------------------------------------
+
+# Old way (install headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/vehicle
         FILES_MATCHING PATTERN "*.h")

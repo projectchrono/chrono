@@ -569,8 +569,6 @@ target_compile_definitions(ChronoEngine_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:
 
 target_link_libraries(ChronoEngine_sensor PRIVATE ChronoEngine ${LIBRARIES})
 
-
-
 # ------------------------------------------------------------------------------
 # Optionally find TensorRT Version___ and set libaries and includes
 # ------------------------------------------------------------------------------
@@ -599,10 +597,6 @@ IF(USE_TENSOR_RT)
 
 ENDIF()
 
-#-------------------------------------------------------------------------------
-# Install the ChronoEngine_sensor library
-#-------------------------------------------------------------------------------
-
 install(TARGETS ChronoEngine_sensor
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
@@ -610,6 +604,11 @@ install(TARGETS ChronoEngine_sensor
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_sensor)
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_sensor_HEADERS}
 		DESTINATION include/chrono_sensor)
 install(FILES ${ChronoEngine_sensor_SENSORS_HEADERS}
@@ -627,11 +626,12 @@ install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
 install(FILES ${ChronoEngine_sensor_RT_HEADERS}
       DESTINATION include/chrono_sensor/optix/shaders)
       
+# Install 3rd party headers       
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-#-------------------------------------------------------------------------------
 # On Windows, copy the GLEW and GLFW DLLs (if specified)
-#-------------------------------------------------------------------------------
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(EXISTS "${GLEW_DLL}")
       ADD_CUSTOM_COMMAND(TARGET ChronoEngine_sensor POST_BUILD
@@ -648,3 +648,4 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       install(FILES "${GLFW_DLL}" DESTINATION bin)
     endif()
 endif()
+

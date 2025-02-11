@@ -1021,6 +1021,7 @@ if(ENABLE_MODULE_OPENGL)
             EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
             INCLUDES DESTINATION include/chrono_vehicle) # TODO DARIOM: verify if correct folder
 
 endif()
@@ -1050,14 +1051,15 @@ endif()
 set(ENABLE_MODULE_VEHICLE_FMI  "${ENABLE_MODULE_VEHICLE_FMI}" PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
-# Install Chrono::Vehicle headers
+# Install files
 #-------------------------------------------------------------------------------
 
+# Old way (install headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle
         FILES_MATCHING PATTERN "*.h")
 
-# Install required chrono_thirdparty headers
+# Install 3rd party headers       
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
@@ -1066,19 +1068,12 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
+# Install files for chrono-config (in both build and install trees)
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
 
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake"
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-        )
-
-
-#-------------------------------------------------------------------------------
-# On Windows, copy DLLs (if specified)
-#-------------------------------------------------------------------------------
-
+# On Windows, copy DLLs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
     if(ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -1097,5 +1092,4 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # Make variable visible from outside this directory
   set(CH_IRRKLANG_DLL "${IRRKLANG_DLL}" PARENT_SCOPE)
   set(CH_OPENCRG_DLL "${OpenCRG_DLL}" PARENT_SCOPE)
-
 endif()

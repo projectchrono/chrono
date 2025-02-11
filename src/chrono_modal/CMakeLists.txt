@@ -48,11 +48,16 @@ SOURCE_GROUP("" FILES
             ${ChronoEngine_MODAL_HEADERS})
 
 #-----------------------------------------------------------------------------	
-# In most cases, you do not need to edit the lines below.
+# Find Spectra
+#-----------------------------------------------------------------------------	
 
 set(Spectra_INCLUDE_DIR "spectra/include" CACHE PATH "Path to Spectra include directory, shall contain the subdirectory named 'Spectra'.")
 
 find_package(Spectra REQUIRED)
+
+#-----------------------------------------------------------------------------	
+# Add the ChronoEngine_modal library
+#-------------------------------------------------------------------------------
 
 add_library(ChronoEngine_modal 
 			${ChronoEngine_MODAL_SOURCES}
@@ -65,7 +70,6 @@ target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
 target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
 	
-	
 install(TARGETS ChronoEngine_modal
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
@@ -74,12 +78,14 @@ install(TARGETS ChronoEngine_modal
         INCLUDES DESTINATION include/chrono_modal
         )		
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_MODAL_HEADERS}
         DESTINATION include/chrono_modal)
 
-# Provide required find
+# Install files for chrono-config (in both build and install trees)
 file(COPY ${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake"
-        DESTINATION ${CH_CONFIG_INSTALL_PATH}
-        )
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindSpectra.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})

@@ -144,7 +144,7 @@ foreach(OBJ_FILE ${OBJ_FILES})
        DESTINATION "${CMAKE_BINARY_DIR}/${OBJ_FILES_DEST}")
 
   # copy to install folder TODO: DARIOM check if needed, it wasn't here before
-  install(FILES "${OBJ_FILE}" DESTINATION ${OBJ_FILES_DEST})
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/${OBJ_FILE}" DESTINATION ${OBJ_FILES_DEST})
 endforeach()
 
 # ------------------------------------------------------------------------------
@@ -282,20 +282,21 @@ install(TARGETS ChronoEngine_opengl
         INCLUDES DESTINATION include/chrono_opengl
         )
 
-# TODO: DARIOM are there any headers not included in the target that should be copied?
-# install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-#         DESTINATION include/chrono_opengl
-#         FILES_MATCHING PATTERN "*.h" PATTERN "resources" EXCLUDE)
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
 
-# Install required chrono_thirdparty headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+# Old way (install headers preserving directory structure)
+ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+         DESTINATION include/chrono_opengl
+         FILES_MATCHING PATTERN "*.h" PATTERN "resources" EXCLUDE)
+
+# Install 3rd party headers       
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-#-------------------------------------------------------------------------------
 # On Windows, copy the GLEW and GLFW DLLs (if specified)
-#-------------------------------------------------------------------------------
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(EXISTS "${GLEW_DLL}")
       add_custom_command(TARGET ChronoEngine_opengl POST_BUILD

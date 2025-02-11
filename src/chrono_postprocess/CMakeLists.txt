@@ -63,7 +63,10 @@ install(TARGETS ChronoEngine_postprocess
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_vehicle)		
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_POSTPROCESS_HEADERS}
         DESTINATION include/chrono_postprocess)
-
-

@@ -134,5 +134,10 @@ install(TARGETS ChronoEngine_cascade
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_cascade)
 
-#install(FILES ${ChronoEngine_CASCADE_HEADERS}
-#        DESTINATION include/chrono_cascade)
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
+install(FILES ${ChronoEngine_CASCADE_HEADERS}
+        DESTINATION include/chrono_cascade)

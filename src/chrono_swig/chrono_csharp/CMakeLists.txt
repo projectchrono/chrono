@@ -136,7 +136,9 @@ add_dependencies(ChronoEngine_csharp_core ChronoEngine)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(TARGETS ChronoEngine_csharp_core
             EXPORT ChronoEngineTargets
-            LIBRARY DESTINATION bin)
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
 else()
     install(TARGETS ChronoEngine_csharp_core
             EXPORT ChronoEngineTargets
@@ -193,11 +195,13 @@ if(ENABLE_MODULE_POSTPROCESS)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(TARGETS ChronoEngine_csharp_postprocess
             EXPORT ChronoEngineTargets
-            LIBRARY DESTINATION bin)
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
   else()
-      install(TARGETS ChronoEngine_csharp_postprocess
-              EXPORT ChronoEngineTargets
-              LIBRARY DESTINATION lib)
+    install(TARGETS ChronoEngine_csharp_postprocess
+            EXPORT ChronoEngineTargets
+            LIBRARY DESTINATION lib)
   endif()
 
   if (DBG_SCRIPT)
@@ -263,11 +267,13 @@ if(ENABLE_MODULE_IRRLICHT)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(TARGETS ChronoEngine_csharp_irrlicht
             EXPORT ChronoEngineTargets
-            LIBRARY DESTINATION bin)
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
   else()
-      install(TARGETS ChronoEngine_csharp_irrlicht
-              EXPORT ChronoEngineTargets
-              LIBRARY DESTINATION lib)
+    install(TARGETS ChronoEngine_csharp_irrlicht
+            EXPORT ChronoEngineTargets
+            LIBRARY DESTINATION lib)
   endif()
 
   if (DBG_SCRIPT)
@@ -344,15 +350,16 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
     add_dependencies(ChronoEngine_csharp_vehicle ChronoEngine_csharp_postprocess)
   endif()
   
-  
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      install(TARGETS ChronoEngine_csharp_vehicle
-              EXPORT ChronoEngineTargets
-              LIBRARY DESTINATION bin)
+    install(TARGETS ChronoEngine_csharp_vehicle
+            EXPORT ChronoEngineTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib)
   else()
-      install(TARGETS ChronoEngine_csharp_vehicle
-              EXPORT ChronoEngineTargets
-              LIBRARY DESTINATION lib)
+    install(TARGETS ChronoEngine_csharp_vehicle
+            EXPORT ChronoEngineTargets
+            LIBRARY DESTINATION lib)
   endif()
   
   if (DBG_SCRIPT)
@@ -373,11 +380,11 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
 endif()
 
-#-----------------------------------------------------------------------------
-# Install swig-generate C# files
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
 
+# Swig generated files
 install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
-
-
