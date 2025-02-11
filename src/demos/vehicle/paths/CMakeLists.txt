@@ -22,4 +22,8 @@ TARGET_LINK_LIBRARIES(${PROGRAM}
                       ChronoEngine_vehicle
                       ChronoEngine_postprocess)
 
+if(MSVC)
+  set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

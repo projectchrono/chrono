@@ -95,6 +95,10 @@ target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
 
 target_link_libraries(ChronoModels_robot PUBLIC ChronoEngine)
 
+if(MSVC)
+  set_target_properties(ChronoModels_robot PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 install(TARGETS ChronoModels_robot
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin

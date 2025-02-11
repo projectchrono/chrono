@@ -34,6 +34,10 @@ target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_fmi)
 
 set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
+if(MSVC)
+  set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 if (${FMU_EXPORT_SUPPORT})
   add_dependencies(${PROGRAM} ${VDP_FMU2_MODEL_IDENTIFIER})
   add_dependencies(${PROGRAM} ${VDP_FMU3_MODEL_IDENTIFIER})

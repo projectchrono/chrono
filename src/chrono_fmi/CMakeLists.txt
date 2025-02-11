@@ -147,19 +147,18 @@ add_library(ChronoEngine_fmi
             ${ChronoEngine_FMI_HEADERS}
             ${ChronoEngine_FMI_SOURCES})
 
-set_target_properties(ChronoEngine_fmi PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-
 target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
 
 target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
+target_link_libraries(ChronoEngine_fmi PUBLIC ChronoEngine)
 
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-target_link_libraries(ChronoEngine_fmi ChronoEngine)
+if(MSVC)
+  set_target_properties(ChronoEngine_fmi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 add_dependencies(ChronoEngine_fmi ChronoEngine)
 

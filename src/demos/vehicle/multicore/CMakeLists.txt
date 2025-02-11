@@ -31,6 +31,9 @@ foreach(PROGRAM ${DEMOS})
                           ChronoEngine_opengl
                           ChronoEngine_vehicle
                           ChronoModels_vehicle)
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

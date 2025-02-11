@@ -1029,6 +1029,10 @@ target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
 
 target_link_libraries(ChronoModels_vehicle PUBLIC ChronoEngine ChronoEngine_vehicle)
 
+if(MSVC)
+  set_target_properties(ChronoModels_vehicle PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 install(TARGETS ChronoModels_vehicle
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin

@@ -127,6 +127,10 @@ target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cusparse)
 
 set_target_properties(ChronoEngine_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
+if(MSVC)
+  set_target_properties(ChronoEngine_gpu PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 install(TARGETS ChronoEngine_gpu
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin

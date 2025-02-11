@@ -125,6 +125,10 @@ if(ENABLE_MODULE_IRRLICHT)
   target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine_irrlicht)
 endif()
 
+if(MSVC)
+  set_target_properties(ChronoEngine_cascade PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_link_libraries(ChronoEngine_cascade PUBLIC ${OCCT_LIBS})
 
 install(TARGETS ChronoEngine_cascade

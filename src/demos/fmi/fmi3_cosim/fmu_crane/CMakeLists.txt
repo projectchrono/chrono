@@ -67,7 +67,11 @@ add_dependencies(${FMU_MODEL_IDENTIFIER} ${COMPONENT_CHRONO_DEPENDENCIES})
 target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE ${COMPONENT_SOURCES})
 
 set_target_properties(${FMU_MODEL_IDENTIFIER} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
-target_link_libraries(${FMU_MODEL_IDENTIFIER} ${LIBS})  
+target_link_libraries(${FMU_MODEL_IDENTIFIER} ${LIBS})
+
+if(MSVC)
+  set_target_properties(${FMU_MODEL_IDENTIFIER} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 #--------------------------------------------------------------
 

@@ -69,6 +69,10 @@ target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:
 
 target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
+
+if(MSVC)
+  set_target_properties(ChronoEngine_modal PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 	
 install(TARGETS ChronoEngine_modal
         EXPORT ChronoEngineTargets

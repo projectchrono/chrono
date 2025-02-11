@@ -172,7 +172,8 @@ target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUS
 
 # If using MSVC, disable warnings related to missing DLL interface
 if(MSVC)
-    target_compile_options(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+  target_compile_options(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+  set_target_properties(ChronoEngine_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 target_compile_definitions(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
@@ -212,6 +213,10 @@ if(ENABLE_MODULE_VSG)
     target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE Thrust::Thrust)
     target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
     target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+
+    if(MSVC)
+      set_target_properties(ChronoEngine_fsisph_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
 
     install(TARGETS ChronoEngine_fsisph_vsg
             EXPORT ChronoEngineTargets
@@ -256,6 +261,7 @@ if(ENABLE_MODULE_OPENGL)
     # If using MSVC, disable warnings related to missing DLL interface
     if(MSVC)
         target_compile_options(ChronoEngine_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+        set_target_properties(ChronoEngine_fsisph_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
     install(TARGETS ChronoEngine_fsisph_opengl

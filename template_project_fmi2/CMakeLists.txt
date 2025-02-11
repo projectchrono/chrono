@@ -27,22 +27,6 @@ if(APPLE)
     set(CMAKE_MACOSX_BUNDLE ON)
 endif()
 
-set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
-
-if(MSVC)
-  if(${MSVC_VERSION} GREATER_EQUAL 1915)
-      target_compile_definitions(vehicle_cosim PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
-  endif()
-
-    target_compile_definitions(vehicle_cosim PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(vehicle_cosim PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(vehicle_cosim PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
-
-    target_compile_options(vehicle_cosim PRIVATE /wd4275>)   # non dll-interface class used as base class
-    target_compile_options(vehicle_cosim PRIVATE /wd4251>)   # class needs to have dll-interface
-endif()
-
-
 # ===============
 # Fetch fmu_tools
 # ===============
@@ -82,11 +66,8 @@ message(STATUS "\nConfigure FMU...")
 
 # Append FMU sources toi automatically generated target
 target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp)
-target_include_directories(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_INCLUDE_DIRS})
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
-target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
-target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
-target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
+target_link_libraries(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_TARGETS})
 
 
 # Enable testing
@@ -112,7 +93,22 @@ target_compile_definitions(${DEMO} PUBLIC FMU_DIRECTORY="${FMU_DIRECTORY}")
 target_compile_definitions(${DEMO} PUBLIC FMU_FILENAME="${FMU_FILENAME}")
 target_compile_definitions(${DEMO} PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(${DEMO} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
-target_include_directories(${DEMO} PUBLIC ${CHRONO_INCLUDE_DIRS})
+
+if(MSVC)
+  if(${MSVC_VERSION} GREATER_EQUAL 1915)
+      target_compile_definitions(${DEMO} PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
+  endif()
+
+  set_target_properties(${DEMO} PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
+
+  target_compile_definitions(${DEMO} PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
+  target_compile_definitions(${DEMO} PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
+  target_compile_definitions(${DEMO} PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
+
+  target_compile_options(${DEMO} PRIVATE /wd4275>)   # non dll-interface class used as base class
+  target_compile_options(${DEMO} PRIVATE /wd4251>)   # class needs to have dll-interface
+endif()
+
 
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "6.0")

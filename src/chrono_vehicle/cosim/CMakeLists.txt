@@ -101,6 +101,10 @@ add_library(ChronoEngine::ChronoEngine_vehicle_cosim ALIAS ChronoEngine_vehicle_
 
 target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
 
+if(MSVC)
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_vehicle)
 target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoModels_robot)
 if(ENABLE_MODULE_MULTICORE)

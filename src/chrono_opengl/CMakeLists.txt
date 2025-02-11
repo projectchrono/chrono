@@ -274,6 +274,10 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   target_link_libraries(ChronoEngine_opengl PUBLIC glfw)
 endif()
 
+if(MSVC)
+  set_target_properties(ChronoEngine_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 install(TARGETS ChronoEngine_opengl
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin

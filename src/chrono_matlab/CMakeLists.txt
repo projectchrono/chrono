@@ -54,6 +54,10 @@ target_link_libraries(ChronoEngine_matlab PUBLIC Matlab::eng)           # C
                           
 target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_API_COMPILE_MATLAB")
 
+if(MSVC)
+  set_target_properties(ChronoEngine_matlab PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 install(TARGETS ChronoEngine_matlab
   EXPORT ChronoEngineTargets
   RUNTIME DESTINATION bin

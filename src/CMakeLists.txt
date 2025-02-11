@@ -22,6 +22,11 @@ endif()
 # Choose to build either shared or static libraries as default
 #-----------------------------------------------------------------------------
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+if (NOT BUILD_SHARED_LIBS)
+  set(CH_STATIC TRUE)
+else()
+  set(CH_STATIC FALSE)
+endif()
 
 #-----------------------------------------------------------------------------
 # Optionally use static runtime library (MSVC only)

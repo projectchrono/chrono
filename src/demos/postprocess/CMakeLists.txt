@@ -28,7 +28,9 @@ foreach(PROGRAM ${POST_DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")    
     target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_postprocess)
-    add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_postprocess)
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
@@ -48,7 +50,10 @@ if(ENABLE_MODULE_IRRLICHT)
         	ChronoEngine
             ChronoEngine_postprocess
             ChronoEngine_irrlicht)
-        add_dependencies(${PROGRAM} ChronoEngine ChronoEngine_postprocess ChronoEngine_irrlicht)
+        
+        if(MSVC)
+          set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+        endif()
 
         install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     endforeach()

@@ -21,3 +21,4 @@
 - update USE_TENSOR_RT
 - check AVX2 not actually passed to compiler
 - ma.SetMatr(mlist) in demo_CH_coordsys.py gives error
+- double checke the need for MSVC specific compiler flags in template_project

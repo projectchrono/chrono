@@ -47,5 +47,9 @@ foreach(PROGRAM ${TESTS})
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
     set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 endforeach(PROGRAM)

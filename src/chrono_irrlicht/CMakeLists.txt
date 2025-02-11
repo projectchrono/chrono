@@ -65,7 +65,7 @@ add_library(ChronoEngine_irrlicht ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
 
 if(MSVC)
-  set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(ChronoEngine_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_IRRLICHT>)
@@ -81,32 +81,24 @@ if (ENABLE_MODULE_MODAL)
     target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine_modal)
 endif()
 
+
+if(MSVC)
+  set_target_properties(ChronoEngine_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   target_link_libraries(ChronoEngine_irrlicht PRIVATE ${MAC_LIBS})
 endif()
 
-install(TARGETS ChronoEngine_irrlicht
-  EXPORT ChronoEngineTargets
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include/chrono_irrlicht
-)
-
 #-------------------------------------------------------------------------------
-# Install files
-#-------------------------------------------------------------------------------
+# On Windows, copy the Irrlicht DLL to the bin/ directory
+# We do this through a custom command so that the Irrlich DLL is copied to the
+# appropriate directory (depending on the build type); however, we use
+# copy_if_different.
 
-# Old way
-install(FILES ${IRR_HEADER_FILES}
-        DESTINATION include/chrono_irrlicht)
-
-# Install files for chrono-config (in both build and install trees)
-file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
-install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
-
-# On Windows, copy DLLs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
   # Make variable visible from outside this directory
   set(CH_IRRLICHT_DLL ${IRRLICHT_DLL})
   set(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
@@ -123,4 +115,28 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   # Copy the IRRLICHT dll into the installed package to be on the safe side 
   install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
+
 endif()
+
+
+#-------------------------------------------------------------------------------
+# Install the ChronoEngine_irrlicht library
+
+install(TARGETS ChronoEngine_irrlicht
+  EXPORT ChronoEngineTargets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include/chrono_irrlicht
+)
+
+# # TODO: DARIOM check if this is already covered by the install TARGETS above
+# install(FILES ${IRR_HEADER_FILES}
+#         DESTINATION include/chrono_irrlicht)
+
+file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
+     DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
+
+install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake"
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
+        )

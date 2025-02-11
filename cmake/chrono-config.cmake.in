@@ -85,9 +85,10 @@ set(CHRONO_INSTALL_TREE @CH_INSTALL_TREE@)
 
 include(CMakeFindDependencyMacro)
 
-## TODO: should be carried on by ChronoEngine target
-# ## Handle MSVC Runtime Library
-# set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
+# Handle MSVC Runtime Library
+set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
+
+set(CHRONO_STATIC @CH_STATIC@)
 
 #-------------------------------------------------------------------------------
 # Local variables specifying Chrono support

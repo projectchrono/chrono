@@ -156,6 +156,10 @@ endif()
 
 target_compile_definitions(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SYN_API_COMPILE>)
 
+if(MSVC)
+  set_target_properties(ChronoEngine_synchrono PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_include_directories(ChronoEngine_synchrono PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include>
   $<INSTALL_INTERFACE:include/chrono_thirdparty/flatbuffers/include>

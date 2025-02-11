@@ -108,6 +108,9 @@ add_executable(custom_handler custom_handler.cpp)
 target_compile_definitions(custom_handler PRIVATE "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 
 if(MSVC)
+
+    set_target_properties(my_demo PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+
     # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
     if(${MSVC_VERSION} GREATER_EQUAL 1915)
       target_compile_definitions(custom_handler PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)

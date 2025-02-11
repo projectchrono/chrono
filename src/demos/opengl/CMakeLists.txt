@@ -26,5 +26,9 @@ FOREACH(PROGRAM ${DEMOS})
     ChronoEngine
     ChronoEngine_opengl)
 
+  if(MSVC)
+    set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  endif()
+
   INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()

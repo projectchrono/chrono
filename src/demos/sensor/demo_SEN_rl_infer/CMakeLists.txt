@@ -20,8 +20,9 @@ IF(USE_TENSOR_RT AND ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE AND ENABLE
 
   # Visual Studio needs to have the debugger working directory set explicitly to the output directory
   # (specifically, so that the data directory is found when running demos in the debugger)
-  IF(${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+  IF(MSVC)
     set_property(TARGET demo_SEN_rl_infer PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$(OutputPath)")
+    set_target_properties(demo_SEN_rl_infer PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
   ENDIF()
 
   TARGET_LINK_LIBRARIES(demo_SEN_rl_infer

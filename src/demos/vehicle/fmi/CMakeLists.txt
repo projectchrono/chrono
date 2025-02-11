@@ -39,6 +39,10 @@ foreach(PROGRAM ${DEMOS})
 
   target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_vehicle)
 
+  if(MSVC)
+    set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  endif()
+
   set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
   ###add_dependencies(${PROGRAM} ${CHRONO_VEHICLE_FMU})

@@ -132,6 +132,14 @@ target_link_libraries(ChronoEngine_vsg PUBLIC
                       vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
 
+
+if(MSVC)
+  set_target_properties(ChronoEngine_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+#-------------------------------------------------------------------------------
+# Install the ChronoEngine_vsg library
+
 install(TARGETS ChronoEngine_vsg
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
@@ -139,16 +147,6 @@ install(TARGETS ChronoEngine_vsg
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_vsg)
 
-# -------------------------------------------------------------------------------------------------
-# Install files
-# -------------------------------------------------------------------------------------------------
-
-# Old way (install headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vsg
         FILES_MATCHING PATTERN "*.h")
-
-# Install 3rd party headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

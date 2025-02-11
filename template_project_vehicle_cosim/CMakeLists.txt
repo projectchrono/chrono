@@ -61,6 +61,9 @@ add_executable(vehicle_cosim vehicle_cosim.cpp)
 target_compile_definitions(vehicle_cosim PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 
 if(MSVC)
+
+    set_target_properties(vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+
     # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
     if(${MSVC_VERSION} GREATER_EQUAL 1915)
       target_compile_definitions(vehicle_cosim PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
