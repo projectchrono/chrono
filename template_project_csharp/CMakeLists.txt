@@ -9,8 +9,7 @@ if(NOT Chrono_DIR)
 endif()
 
 find_package(Chrono
-             COMPONENTS CSharp
-             OPTIONAL_COMPONENTS Irrlicht)
+             COMPONENTS CSharp Irrlicht)
 
 # Add C# executable
 add_executable(ChronoDemo
