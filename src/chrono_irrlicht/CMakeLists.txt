@@ -74,14 +74,6 @@ target_compile_definitions(ChronoEngine_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CX
 target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_irrlicht PUBLIC Irrlicht::Irrlicht)
 
-if (ENABLE_MODULE_POSTPROCESS)
-    target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine_postprocess)
-endif()
-if (ENABLE_MODULE_MODAL)
-    target_link_libraries(ChronoEngine_irrlicht PRIVATE ChronoEngine_modal)
-endif()
-
-
 if(MSVC)
   set_target_properties(ChronoEngine_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()

@@ -43,6 +43,12 @@ SET(ChronoEngine_MODAL_HEADERS
     ChKrylovSchurEig.h
 )
 
+if(ENABLE_MODULE_IRRLICHT)
+  set(ChronoEngine_MODAL_HEADERS ${ChronoEngine_MODAL_HEADERS}
+      ChModalVisualSystemIrrlicht.h
+  )
+endif()
+
 SOURCE_GROUP("" FILES 
             ${ChronoEngine_MODAL_SOURCES} 
             ${ChronoEngine_MODAL_HEADERS})
