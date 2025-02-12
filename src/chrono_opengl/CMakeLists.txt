@@ -238,6 +238,17 @@ source_group("resources" FILES ${CE_OpenGL_RESOURCES_FILES})
 source_group("utils" FILES ${CE_OpenGL_STB_FILES} ${CE_OpenGL_TINYOBJLOADER_FILES})
 
 # ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_OPENGL "")
+if(ENABLE_MODULE_MULTICORE)
+  list (APPEND DEPENDENCIES_OPENGL "MULTICORE")
+endif()
+
+set(DEPENDENCIES_OPENGL ${DEPENDENCIES_OPENGL} PARENT_SCOPE)
+
+# ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
 

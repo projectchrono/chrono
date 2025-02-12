@@ -27,7 +27,7 @@
 #       list of Chrono dependency DLLs (with full path)
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
-#       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono modules are wrapped for C#)
+#       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono are wrapped)
 # CHRONO_DATA_DIR
 #       path to the Chrono data directory
 # CHRONO_VEHICLE_DATA_DIR
@@ -37,9 +37,10 @@
 # SYNCHRONO_DATA_DIR
 #       path to the Chrono::Synchrono data directory
 #
-# In addition, for each requested component [COMPONENT], the following variable
+# In addition, for each requested component <COMPONENT>, the following variable
 # is set to true (ON) or false (OFF):
-# CHRONO_[COMPONENT]_FOUND
+# CHRONO_<COMPONENT_UPPER>_FOUND
+# where <COMPONENT_UPPER> is the component name in upper case.
 #
 # Certain Chrono modules can be configured with optional support. The following
 # variables (meaningful only if the corresponding Chrono module is requested)
@@ -133,81 +134,89 @@ else()
 endif()
 
 #-------------------------------------------------------------------------------
-# List of requested component flags
+# Lists of Chrono module inter-dependencies
 #-------------------------------------------------------------------------------
 
+set(Chrono_CASCADE_DEPENDENCIES        "@DEPENDENCIES_CASCADE@")
+set(Chrono_IRRLICHT_DEPENDENCIES       "@DEPENDENCIES_IRRLICHT@")
+set(Chrono_MATLAB_DEPENDENCIES         "@DEPENDENCIES_MATLAB@")
+set(Chrono_PARDISOMKL_DEPENDENCIES     "@DEPENDENCIES_PARDISO_MKL@")
+set(Chrono_MUMPS_DEPENDENCIES          "@DEPENDENCIES_MUMPS@")
+set(Chrono_MULTICORE_DEPENDENCIES      "@DEPENDENCIES_MULTICORE@")
+set(Chrono_OPENGL_DEPENDENCIES         "@DEPENDENCIES_OPENGL@")
+set(Chrono_POSTPROCESS_DEPENDENCIES    "@DEPENDENCIES_POSTPROCESS@")
+set(Chrono_PARSERS_DEPENDENCIES        "@DEPENDENCIES_PARSERS@")
+set(Chrono_VEHICLE_DEPENDENCIES        "@DEPENDENCIES_VEHICLE@")
+set(Chrono_FSI_DEPENDENCIES            "@DEPENDENCIES_FSI@")
+set(Chrono_GPU_DEPENDENCIES            "@DEPENDENCIES_GPU@")
+set(Chrono_SENSOR_DEPENDENCIES         "@DEPENDENCIES_SENSOR@")
+set(Chrono_SYNCHRONO_DEPENDENCIES      "@DEPENDENCIES_SYNCHRONO@")
+set(Chrono_MODAL_DEPENDENCIES          "@DEPENDENCIES_MODAL@")
+set(Chrono_VSG_DEPENDENCIES            "@DEPENDENCIES_VSG@")
+set(Chrono_ROS_DEPENDENCIES            "@DEPENDENCIES_ROS@")
+set(Chrono_VEHICLECOSIM_DEPENDENCIES   "@DEPENDENCIES_VEHICLECOSIM@")
+
+#-------------------------------------------------------------------------------
+# Build complete list of Chrono modules (requested and their dependencies)
+#-------------------------------------------------------------------------------
+
+# Recursively find all Chrono dependencies of the specified Chrono module
+function(get_dependencies OUTPUT_LIST COMPONENT)
+    # Mark the component as "visited"
+    list(APPEND VISITED_TARGETS ${COMPONENT})
+
+    # Load top-level component dependencies
+    string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
+    set(TOP_DEPENDENCIES ${Chrono_${COMPONENT_UPPER}_DEPENDENCIES})
+
+    # Initialize list of all inherited component dependencies
+    set(ALL_DEPENDENCIES "")
+
+    # Recurse starting at each top-level dependency
+    foreach(DEP ${TOP_DEPENDENCIES})
+       list(FIND VISITED_TARGETS ${DEP} VISITED)
+       if (${VISITED} EQUAL -1)
+          get_dependencies(DEP_DEPENDENCIES ${DEP})
+          list(APPEND ALL_DEPENDENCIES ${DEP} ${DEP_DEPENDENCIES})
+       endif()
+    endforeach()
+
+    # Make variables visible above (for recursive calls)
+    set(VISITED_TARGETS ${VISITED_TARGETS} PARENT_SCOPE)
+    set(${OUTPUT_LIST} ${ALL_DEPENDENCIES} PARENT_SCOPE)
+endfunction()
+
+# Build union of all Chrono dependencies starting from the requested components
+set(Chrono_COMPONENTS "")
 foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
-  set(Chrono_${COMPONENT_UPPER}_REQUESTED TRUE)
+
+  list(APPEND Chrono_COMPONENTS ${COMPONENT_UPPER})
+
+  get_dependencies(DEPENDENCIES ${COMPONENT_UPPER})
+  list(APPEND Chrono_COMPONENTS ${DEPENDENCIES})
+
+  if(Chrono_FIND_REQUIRED_${COMPONENT})
+    set(Chrono_${COMPONENT_UPPER}_REQUIRED TRUE)
+  else()
+    set(Chrono_${COMPONENT_UPPER}_REQUIRED FALSE)
+  endif()
+
+  if(NOT Chrono_FIND_QUIETLY)
+    message(STATUS "Requested component: ${COMPONENT}")
+    message(STATUS "  dependencies: ${DEPENDENCIES}")
+    message(STATUS "  required?     ${Chrono_${COMPONENT_UPPER}_REQUIRED}")
+  endif()
 endforeach()
 
-#-------------------------------------------------------------------------------
-# Enable additional components if requesting a component with dependencies
-#-------------------------------------------------------------------------------
-
-if(Chrono_SENSOR_REQUESTED AND Chrono_SENSOR_AVAILABLE)
-  if(Chrono_OPENGL_AVAILABLE AND NOT Chrono_OPENGL_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};OpenGL")
-    if(Chrono_MULTICORE_AVAILABLE AND NOT Chrono_MULTICORE_REQUESTED)
-      set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
-    endif()
-  endif()
+# Remove duplicates
+list(REMOVE_DUPLICATES Chrono_COMPONENTS)
+if(NOT Chrono_FIND_QUIETLY)
+  message(STATUS "Inclusive list of Chrono components: ${Chrono_COMPONENTS}")
 endif()
 
-if(Chrono_OPENGL_REQUESTED AND Chrono_OPENGL_AVAILABLE)
-  if(Chrono_MULTICORE_AVAILABLE AND NOT Chrono_MULTICORE_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
-  endif()
-endif()
-
-if(Chrono_VEHICLE_REQUESTED AND Chrono_VEHICLE_AVAILABLE)
-  if(Chrono_FSI_AVAILABLE AND NOT Chrono_FSI_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
-  endif()
-endif()
-
-if(Chrono_CASCADE_REQUESTED AND Chrono_CASCADE_AVAILABLE)
-  if(Chrono_IRRLICHT_AVAILABLE AND NOT Chrono_IRRLICHT_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Irrlicht")
-  endif()
-endif()
-
-if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
-  if(NOT Chrono_VEHICLE_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Vehicle")
-  endif()
-  if(Chrono_MULTICORE_AVAILABLE AND NOT Chrono_MULTICORE_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
-  endif()
-  if(Chrono_GPU_AVAILABLE AND NOT Chrono_GPU_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};GPU")
-  endif()
-  if(Chrono_FSI_AVAILABLE AND NOT Chrono_FSI_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
-  endif()
-  if(Chrono_PARDISOMKL_AVAILABLE AND NOT Chrono_PARDISOMKL_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};PardisoMKL")
-  endif()
-  if(Chrono_MUMPS_AVAILABLE AND NOT Chrono_MUMPS_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};MUMPS")
-  endif()
-  if(Chrono_IRRLICHT_AVAILABLE AND NOT Chrono_IRRLICHT_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Irrlicht")
-  endif()
-  if(Chrono_OPENGL_AVAILABLE AND NOT Chrono_OPENGL_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};OpenGL")
-  endif()
-  if(Chrono_VSG_AVAILABLE AND NOT Chrono_VSG_REQUESTED)
-    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};VSG")
-  endif()
-endif()
-
-#-------------------------------------------------------------------------------
-# Rebuild list of requested component flags
-#-------------------------------------------------------------------------------
-
-foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
-  string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
+# Set all components in list as "REQUESTED"
+foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
   set(Chrono_${COMPONENT_UPPER}_REQUESTED TRUE)
 endforeach()
 
@@ -371,16 +380,14 @@ if(NOT Chrono_FIND_QUIETLY)
   message(STATUS "Requested components")
 endif()
 
-foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
-
-  string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
+foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   # Report the name of the component that was requested and whether it was required or optional
   if(NOT Chrono_FIND_QUIETLY)
-    if(Chrono_FIND_REQUIRED_${COMPONENT})
-      message(STATUS "  ${COMPONENT} (REQUIRED)")
+    if(Chrono_${COMPONENT_UPPER}_REQUIRED)
+      message(STATUS "  ${COMPONENT_UPPER} (REQUIRED)")
     else()
-      message(STATUS "  ${COMPONENT} (OPTIONAL)")
+      message(STATUS "  ${COMPONENT_UPPER} (OPTIONAL)")
     endif()
   endif()
 
@@ -388,12 +395,12 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
   if(NOT Chrono_${COMPONENT_UPPER}_AVAILABLE)
     set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
 
-    if(Chrono_FIND_REQUIRED_${COMPONENT})
-       message("ERROR: Chrono was not configured with support for the REQUIRED component ${COMPONENT}")
+    if(Chrono_${COMPONENT_UPPER}_REQUIRED)
+       message("ERROR: Chrono was not configured with support for the REQUIRED component ${COMPONENT_UPPER}")
        set(Chrono_FOUND OFF)
        return()
     else()
-       message("WARNING: Chrono was not configured with support for the OPTIONAL component ${COMPONENT}")
+       message("WARNING: Chrono was not configured with support for the OPTIONAL component ${COMPONENT_UPPER}")
        continue()
     endif()
   endif()
@@ -770,7 +777,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
   elseif(${COMPONENT_UPPER} MATCHES "GPU")
 
     if(NOT CHRONO_CUDA_FOUND)
-      message("WARNING: Chrono::FSI requires Cuda, but Cuda was not found")
+      message("WARNING: Chrono::GPU requires Cuda, but Cuda was not found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 

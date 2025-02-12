@@ -102,6 +102,17 @@ TKXSBase
 
 message(STATUS "Linked OpenCascade libraries: ${OCCT_LIBS}")
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_CASCADE "")
+if(ENABLE_MODULE_IRRLICHT)
+  list (APPEND DEPENDENCIES_CASCADE "IRRLICHT")
+endif()
+
+set(DEPENDENCIES_CASCADE ${DEPENDENCIES_CASCADE} PARENT_SCOPE)
+
 #-----------------------------------------------------------------------------	
 # Add the ChronoEngine_cascade library
 

@@ -135,6 +135,23 @@ set(SYN_UTILS_FILES
 )
 source_group("utils" FILES ${SYN_UTILS_FILES})
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_SYNCHRONO "")
+if(ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_SYNCHRONO "VEHICLE")
+endif()
+if(ENABLE_MODULE_SENSOR)
+  list (APPEND DEPENDENCIES_SYNCHRONO "SENSOR")
+endif()
+if(ENABLE_MODULE_SENSOR)
+  list (APPEND DEPENDENCIES_SYNCHRONO "IRRLICHT")
+endif()
+
+set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
+
 #-----------------------------------------------------------------------------
 # Add the ChronoEngine_synchrono library
 #-----------------------------------------------------------------------------

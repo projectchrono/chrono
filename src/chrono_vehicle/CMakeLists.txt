@@ -861,6 +861,26 @@ endif()
 
 source_group("" FILES ${CVGL_FILES})
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_VEHICLE "")
+if(ENABLE_MODULE_IRRLICHT)
+  list (APPEND DEPENDENCIES_VEHICLE "IRRLICHT")
+endif()
+if(ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_VEHICLE "VSG")
+endif()
+if(ENABLE_MODULE_OPENGL)
+  list (APPEND DEPENDENCIES_VEHICLE "OPENGL")
+endif()
+if(ENABLE_MODULE_FSI)
+  list (APPEND DEPENDENCIES_VEHICLE "FSI")
+endif()
+
+set(DEPENDENCIES_VEHICLE ${DEPENDENCIES_VEHICLE} PARENT_SCOPE)
+
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
@@ -1054,6 +1074,7 @@ if(ENABLE_MODULE_VEHICLE_COSIM)
 endif()
 
 set(ENABLE_MODULE_VEHICLE_COSIM  "${ENABLE_MODULE_VEHICLE_COSIM}" PARENT_SCOPE)
+set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Trigger CMake for vehicle FMUs

@@ -101,6 +101,17 @@ set(GPU_GL_FILES
 source_group("" FILES ${GPU_GL_FILES})
 
 # ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_GPU "")
+if(ENABLE_MODULE_OPENGL)
+  list (APPEND DEPENDENCIES_GPU "OPENGL")
+endif()
+
+set(DEPENDENCIES_GPU ${DEPENDENCIES_GPU} PARENT_SCOPE)
+
+# ------------------------------------------------------------------------------
 # Add the ChronoEngine_gpu library
 # ------------------------------------------------------------------------------
 

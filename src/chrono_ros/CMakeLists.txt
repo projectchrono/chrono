@@ -153,6 +153,23 @@ if (CH_ROS_HAS_INTERFACES)
 endif()
 source_group("robot_handler" FILES ${CH_ROS_ROBOT_HANDLER_FILES})
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_ROS "")
+if(ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_ROS "VEHICLE")
+endif()
+if(ENABLE_MODULE_SENSOR)
+  list (APPEND DEPENDENCIES_ROS "SENSOR")
+endif()
+if(ENABLE_MODULE_PARSERS  AND HAVE_URDF)
+  list (APPEND DEPENDENCIES_ROS "PARSERS")
+endif()
+
+set(DEPENDENCIES_ROS ${DEPENDENCIES_ROS} PARENT_SCOPE)
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_ros library
 #-----------------------------------------------------------------------------

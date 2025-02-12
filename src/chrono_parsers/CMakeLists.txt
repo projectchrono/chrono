@@ -37,6 +37,21 @@ set(ChronoEngine_PARSERS_HEADERS
     ChRobotActuation.h
 )
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_PARSERS "")
+if(ENABLE_MODULE_ROS)
+  list (APPEND DEPENDENCIES_PARSERS "ROS")
+endif()
+
+set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
+
+#-----------------------------------------------------------------------------
+# Create the ChronoEngine_parsers library
+#-----------------------------------------------------------------------------
+
 add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
 
 add_library(ChronoEngine::ChronoEngine_parsers ALIAS ChronoEngine_parsers)

@@ -61,6 +61,17 @@ set(Spectra_INCLUDE_DIR "spectra/include" CACHE PATH "Path to Spectra include di
 
 find_package(Spectra REQUIRED)
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_MODAL "")
+if(ENABLE_MODULE_IRRLICHT)
+  list (APPEND DEPENDENCIES_MODAL "IRRLICHT")
+endif()
+
+set(DEPENDENCIES_MODAL ${DEPENDENCIES_MODAL} PARENT_SCOPE)
+
 #-----------------------------------------------------------------------------	
 # Add the ChronoEngine_modal library
 #-------------------------------------------------------------------------------

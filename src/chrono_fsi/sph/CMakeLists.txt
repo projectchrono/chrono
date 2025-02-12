@@ -141,6 +141,20 @@ else()
 endif()
 source_group("" FILES ${FSISPH_VSG_FILES})
 
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_FSI "")
+if(ENABLE_MODULE_OPENGL)
+  list (APPEND DEPENDENCIES_FSI "OPENGL")
+endif()
+if(ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_FSI "VSG")
+endif()
+
+set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsisph library
 #-----------------------------------------------------------------------------

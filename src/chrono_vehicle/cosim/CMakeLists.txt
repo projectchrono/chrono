@@ -86,7 +86,40 @@ source_group("tire" FILES ${CV_COSIM_TIRE_FILES})
 source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
 
 # ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_VEHICLECOSIM "")
+if(ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "VEHICLE")
+endif()
+
+if(ENABLE_MODULE_PARDISO_MKL)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "PARDISOMKL")
+endif()
+if(ENABLE_MODULE_MUMPS)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "MUMPS")
+endif()
+
+if(ENABLE_MODULE_MULTICORE)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "MULTICORE")
+endif()
+if(ENABLE_MODULE_FSI)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "FSI")
+endif()
+if(ENABLE_MODULE_GPU)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "GPU")
+endif()
+
+if(ENABLE_MODULE_POSTPROCESS)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "POSTPROCESS")
+endif()
+
+set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
+
+# ------------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle_cosim library
+# ------------------------------------------------------------------------------
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
