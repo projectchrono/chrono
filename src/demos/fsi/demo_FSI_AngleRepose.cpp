@@ -131,6 +131,11 @@ int main(int argc, char* argv[]) {
     // Set SPH kernel length.
     sysSPH.SetKernelMultiplier(1.2);
 
+    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
+
+    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
+    sysSPH.SetShiftingXSPHParameters(0.25);
+
     // Set density
     sysSPH.SetDensity(bulk_density);
 

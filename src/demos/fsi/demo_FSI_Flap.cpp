@@ -405,9 +405,8 @@ int main(int argc, char* argv[]) {
     sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 4;
-    sph_params.xsph_coefficient = 0.5;
-    sph_params.shifting_coefficient = 0.0;
-    // sph_params.density_reinit_steps = 10000;
+    sph_params.shifting_method = ShiftingMethod::XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;

@@ -827,8 +827,8 @@ __global__ void Shifting(Real4* sortedPosRad,
     }
 
     if (abs(mi_bar) > EPSILON)
-        shift_r = paramsD.beta_shifting * r0 * r0 * length(MaxVel) * delta_t * inner_sum / mi_bar;
-    //    shift_r = paramsD.beta_shifting * r0 * r0 * length(MaxVel) * delta_t * inner_sum;
+        shift_r = paramsD.shifting_beta_implicit * r0 * r0 * length(MaxVel) * delta_t * inner_sum / mi_bar;
+    //    shift_r = paramsD.shifting_beta_implicit * r0 * r0 * length(MaxVel) * delta_t * inner_sum;
 
     Real3 grad_p = mR3(0.0);
     Real3 grad_rho = mR3(0.0);
@@ -855,8 +855,8 @@ __global__ void Shifting(Real4* sortedPosRad,
         sortedVelMas[i_idx].x += dot(shift_r, grad_ux);
         sortedVelMas[i_idx].y += dot(shift_r, grad_uy);
         sortedVelMas[i_idx].z += dot(shift_r, grad_uz);
-        sortedVelMas[i_idx] += paramsD.EPS_XSPH * xSPH_Sum;
-        //        sortedPosRad[i_idx] += mR4(paramsD.EPS_XSPH * xSPH_Sum * delta_t, 0.0);
+        sortedVelMas[i_idx] += paramsD.shifting_xsph_eps * xSPH_Sum;
+        //        sortedPosRad[i_idx] += mR4(paramsD.shifting_xsph_eps * xSPH_Sum * delta_t, 0.0);
     }
 
     Real3 vis_vel = mR3(0.0);

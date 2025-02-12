@@ -187,8 +187,8 @@ int main(int argc, char* argv[]) {
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.0;
             sph_params.max_velocity = 10;
-            sph_params.xsph_coefficient = 0.5;
-            sph_params.shifting_coefficient = 0.0;
+            sph_params.shifting_method = ShiftingMethod::XSPH;
+            sph_params.shifting_xsph_eps = 0.5;
             sph_params.kernel_threshold = 0.8;
             sph_params.artificial_viscosity = 0.02;
             sph_params.use_delta_sph = true;
@@ -201,8 +201,10 @@ int main(int argc, char* argv[]) {
             sph_params.sph_method = SPHMethod::WCSPH;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.0;
-            sph_params.xsph_coefficient = 0.5;
-            sph_params.shifting_coefficient = 1.0;
+            sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+            sph_params.shifting_xsph_eps = 0.25;
+            sph_params.shifting_ppst_pull = 1.0;
+            sph_params.shifting_ppst_push = 3.0;
             sph_params.kernel_threshold = 0.8;
             sph_params.artificial_viscosity = 0.5;
             sph_params.num_proximity_search_steps = ps_freq;

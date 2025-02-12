@@ -13,7 +13,7 @@
 // =============================================================================
 // Cratering validation problem involving spherical impactors with different
 // densities falling from different heights (zero velocity) on CRM soil.
-// 
+//
 // Reference solution:
 // https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff
 //
@@ -168,6 +168,10 @@ int main(int argc, char* argv[]) {
 
     sysFSI.SetVerbose(verbose);
     sysSPH.SetNumProximitySearchSteps(ps_freq);
+
+    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
+    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
+    sysSPH.SetShiftingXSPHParameters(0.25);
 
     // Dimension of the space domain
     double bxDim = 0.14;

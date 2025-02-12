@@ -133,6 +133,10 @@ int main(int argc, char* argv[]) {
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_ppst_push = 3.0;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_xsph_eps = 0.25;
     sph_params.d0_multiplier = 1;
     sph_params.kernel_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
@@ -172,7 +176,8 @@ int main(int argc, char* argv[]) {
             ChBox box(size);
             mass = density * box.GetVolume();
             inertia = density * box.GetGyration();
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
+            geometry.coll_boxes.push_back(
+                utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
             break;
         }
         case ObjectShape::CYLINDER_PRIMITIVE: {
@@ -181,7 +186,8 @@ int main(int argc, char* argv[]) {
             ChCylinder cylinder(radius, length);
             mass = density * cylinder.GetVolume();
             inertia = density * cylinder.GetGyration();
-            geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI/4), cylinder, 0));
+            geometry.coll_cylinders.push_back(
+                utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI / 4), cylinder, 0));
             break;
         }
         case ObjectShape::BOX_FRAME: {
