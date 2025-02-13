@@ -27,7 +27,7 @@ Read [the introduction to modules](modularity.html) for a technical background o
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
   
-3. Set the `ENABLE_MODULE_MODAL` as 'ON', then press 'Configure' (to refresh the variable list)
+3. Set the `CH_ENABLE_MODULE_MODAL` as 'ON', then press 'Configure' (to refresh the variable list)
 
 4. Set the `SPECTRA_INCLUDE_DIR` to the path where you downloaded your Spectra library (in detail, its include/ directory).
    For example, it could be `C:/engines/spectra/include`

@@ -44,9 +44,9 @@ Running Chrono::FSI programs on Windows may require adjusting the Timeout Detect
 
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
 
-2. Set the `ENABLE_MODULE_FSI` as 'on', then press 'Configure' (to refresh the variable list)
+2. Set the `CH_ENABLE_MODULE_FSI` as 'on', then press 'Configure' (to refresh the variable list)
 
-3. Set the `USE_FSI_DOUBLE` as 'on', otherwise a single precision FSI solver will be built
+3. Set the `CH_USE_FSI_DOUBLE` as 'on', otherwise a single precision FSI solver will be built
 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

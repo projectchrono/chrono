@@ -32,7 +32,7 @@ NOTE: If you enable Chrono::Parsers with URDF support and you're using a ROS 2 d
 
 1. To build Chrono::ROS, after installing the above dependencies, ensure you have sourced your ROS 2 installation (e.g. `source /opt/ros/humble/setup.bash`).
 2. Please repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must do the following:
-  - Set the `ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
+  - Set the `CH_ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
   - Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 3. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
 

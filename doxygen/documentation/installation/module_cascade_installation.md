@@ -36,7 +36,7 @@ Currently, the Chrono API is compatible with the OpenCASCADE **v.7.4.0**. Previo
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
   
-2. Set `ENABLE_MODULE_CASCADE` as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set `CH_ENABLE_MODULE_CASCADE` as 'on', then press 'Configure' (to refresh the variable list) 
 
 3. If prompted, set `OpenCASCADE_DIR` to the path to the OpenCASCADE project configuration script (`OpenCASCADEConfig.cmake`) is located
    - example Windows: `C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake`

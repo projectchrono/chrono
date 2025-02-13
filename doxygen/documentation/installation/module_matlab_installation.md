@@ -37,7 +37,7 @@ functions from your Chrono::Engine -based application. Basically, you can
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
   
-2. Set the `ENABLE_MODULE_MATLAB` as 'on', then press 'Configure' (to refresh the variable list)
+2. Set the `CH_ENABLE_MODULE_MATLAB` as 'on', then press 'Configure' (to refresh the variable list)
 
 3. Set the `CH_MATLAB_SDK` to the path where you have your Matlab '/extern' subdirectory. 
    This changes depending on where you installed Matlab. 

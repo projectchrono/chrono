@@ -94,7 +94,7 @@ Once the necessary dependencies are installed, perform the following steps to co
 
 1. Repeat the instructions for the [full Chrono installation](@ref tutorial_install_chrono)
    
-2. During CMake configuration, set `ENABLE_MODULE_VSG` to 'on', then press 'Configure'
+2. During CMake configuration, set `CH_ENABLE_MODULE_VSG` to 'on', then press 'Configure'
 
 3. When prompted, provide the paths to the various VSG project configuration scripts (`vsg_DIR`, `vsgImGui_DIR`, and `vsgXchange_DIR`). For example, assuming you used the provided [build scripts](#vsg_scripts), these should be `<VSG_INSTALL_DIR>/lib/cmake/vsg`, `<VSG_INSTALL_DIR>/lib/cmake/vsgImGui`, and `<VSG_INSTALL_DIR>/lib/cmake/vsgXchange`, respectively.
 

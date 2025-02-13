@@ -42,7 +42,7 @@ Look at the [API section](group__mumps__module.html) of this module for a more i
    + MacOS: TODO<br>
 	
 
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must set `ENABLE_MODULE_MUMPS` as 'on'.<br>
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must set `CH_ENABLE_MODULE_MUMPS` as 'on'.<br>
    Set the CMake variable `MUMPS_ROOT` to point to the installation directory for MUMPS.
    It is expected that this directory contains the following sub-directories: 'include' (MUMPS headers), 'lib' (lib file), and 'bin' (shared library).
 

@@ -33,9 +33,9 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
 
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono). Chrono::Vehicle is required and at least one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. When you see the CMake window, you must make these additional changes:
 
-3. Set the `ENABLE_MODULE_SYNCHRONO` as 'on', then press 'Configure' (to refresh the variable list).
+3. Set the `CH_ENABLE_MODULE_SYNCHRONO` as 'on', then press 'Configure' (to refresh the variable list).
 
-4. (Optional) If using Fast_DDS set `USE_FAST_DDS` to 'on', then press 'Configure'. 
+4. (Optional) If using Fast_DDS set `CH_USE_FAST_DDS` to 'on', then press 'Configure'. 
     - If you used the installed binaries they should be picked up automatically by CMake
     - If you built from source or installed in a non-standard location, you'll have to manually specify `FAST_DDS_INSTALL_DIR`.
 

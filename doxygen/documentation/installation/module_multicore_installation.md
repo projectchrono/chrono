@@ -40,7 +40,7 @@ Alternatively, you can download or clone Thrust from its [GitHub repository](htt
 
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), with the following additional steps:
    
-3. Set the `ENABLE_MODULE_MULTICORE` as 'on', then press 'Configure' (to refresh the variable list) 
+3. Set the `CH_ENABLE_MODULE_MULTICORE` as 'on', then press 'Configure' (to refresh the variable list) 
  
 4. If prompted, set the path for `BLAZE_DIR`, the press 'Configure'
 

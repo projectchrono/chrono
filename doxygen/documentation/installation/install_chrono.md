@@ -133,7 +133,7 @@ Start `cmake-gui` to configure the build.
 
 -  Enable any additional module. Refer to their [Installation Guides](@ref install_guides) before proceeding any further.  
    If you decided to install the Irrlicht module:
-   - Tick `ENABLE_MODULE_IRRLICHT`.<br>
+   - Tick `CH_ENABLE_MODULE_IRRLICHT`.<br>
      Other modules might require additional settings and dependencies.
    - Press **Configure**.
    - Set the `IRRLICHT_INSTALL_DIR` variable: it must contain the path to the directory where you unzipped Irrlicht.<br>
@@ -184,7 +184,7 @@ The Eigen directory field should be correctly filled in already, assuming the Ei
 
       - Enter `c` to **Configure** and continue to the next screen.
 
-      - Enable the recommended optional modules: at least tick `ENABLE_MODULE_IRRLICHT`.<br>
+      - Enable the recommended optional modules: at least tick `CH_ENABLE_MODULE_IRRLICHT`.<br>
      Other modules might require additional settings and dependencies.
 
       -  Enter `c` to **Configure** and continue to the next screen.
