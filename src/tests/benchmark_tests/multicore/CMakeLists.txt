@@ -1,4 +1,4 @@
-if(NOT ENABLE_MODULE_MULTICORE)
+if(NOT CH_ENABLE_MODULE_MULTICORE)
     return()
 endif()
 
@@ -13,7 +13,7 @@ SET(LIBRARIES
     ChronoEngine_multicore
 )
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     set(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 endif()
 

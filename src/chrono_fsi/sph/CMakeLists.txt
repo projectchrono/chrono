@@ -9,18 +9,18 @@ message(STATUS "Add SPH-based Chrono::FSI submodule")
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
-    set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()
 endif()
 
 # Return now if CUDA is not available
 if(NOT CHRONO_CUDA_FOUND)
     message(WARNING "Chrono::FSI::SPH requires CUDA, but CUDA was not found; disabling Chrono::FSI::SPH")
-    set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    set(CH_ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
     return()
 endif()
 
-message(STATUS "  Use double precision? ${USE_FSI_DOUBLE}")
+message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
 message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
@@ -119,7 +119,7 @@ source_group("utils\\stb" FILES ${FSISPH_STB_FILES})
 
 # --------------- SPH FSI OpenGL INTERFACE
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     set(FSISPH_GL_FILES
         visualization/ChFsiVisualizationGL.h
         visualization/ChFsiVisualizationGL.cpp
@@ -131,7 +131,7 @@ source_group("" FILES ${FSISPH_GL_FILES})
 
 # --------------- SPH FSI VSG INTERFACE
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     set(FSISPH_VSG_FILES
         visualization/ChFsiVisualizationVSG.h
         visualization/ChFsiVisualizationVSG.cpp
@@ -146,10 +146,10 @@ source_group("" FILES ${FSISPH_VSG_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_FSI "")
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
   list (APPEND DEPENDENCIES_FSI "OPENGL")
 endif()
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   list (APPEND DEPENDENCIES_FSI "VSG")
 endif()
 
@@ -205,7 +205,7 @@ install(TARGETS ChronoEngine_fsisph
 # Add the ChronoEngine_fsisph_vsg library
 #-------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     message(STATUS "Add ChronoEngine_fsisph_vsg library")
 
     add_library(ChronoEngine_fsisph_vsg
@@ -245,7 +245,7 @@ endif()
 # Add the ChronoEngine_fsisph_opengl library
 #-------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     message(STATUS "Add ChronoEngine_fsisph_opengl library")
 
     add_library(ChronoEngine_fsisph_opengl

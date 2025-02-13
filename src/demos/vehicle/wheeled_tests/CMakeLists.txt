@@ -15,7 +15,7 @@ set(DEMOS
 )
 
 if(HAVE_OPENCRG)
-   if(ENABLE_MODULE_VSG)
+   if(CH_ENABLE_MODULE_VSG)
       set(DEMOS ${DEMOS}
           demo_VEH_Test_FEDA_Ride
           demo_VEH_Test_Cornering
@@ -29,25 +29,25 @@ endif()
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "ChronoEngine_postprocess")
 endif()
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 

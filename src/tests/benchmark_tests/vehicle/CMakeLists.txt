@@ -1,4 +1,4 @@
-if(NOT ENABLE_MODULE_VEHICLE OR NOT ENABLE_MODULE_VEHICLE_MODELS)
+if(NOT CH_ENABLE_MODULE_VEHICLE OR NOT CH_ENABLE_MODULE_VEHICLE_MODELS)
     return()
 endif()
     
@@ -16,7 +16,7 @@ list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
   list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()

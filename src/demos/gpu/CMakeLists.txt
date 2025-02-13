@@ -15,7 +15,7 @@ set(DEMOS
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_gpu")
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     list(APPEND LIBS "ChronoEngine_gpu_opengl")
 endif()
 

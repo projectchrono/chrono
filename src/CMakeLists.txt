@@ -33,8 +33,8 @@ endif()
 #-----------------------------------------------------------------------------
 # TODO DARIOM: MSVC_RUNTIME_LIBRARY is shouldn't be set globally but on a per-target basis
 if (MSVC)
-    option(USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
-    if (USE_MSVC_STATIC_RUNTIME)
+    option(CH_USE_MSVC_STATIC_RUNTIME "Compile with a multi-threaded statically-linked runtime library" OFF)
+    if (CH_USE_MSVC_STATIC_RUNTIME)
       set(CH_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     else()
       set(CH_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
@@ -140,13 +140,13 @@ else()
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
-if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND "${MSVC_VERSION}" GREATER_EQUAL 1915) OR NOT USE_EIGEN_OPENMP)
+if((${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND "${MSVC_VERSION}" GREATER_EQUAL 1915) OR NOT CH_USE_EIGEN_OPENMP)
     target_compile_definitions(Eigen3::Eigen INTERFACE "_ENABLE_EXTENDED_ALIGNED_STORAGE")
 endif()
 
-cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
+cmake_dependent_option(CH_USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "CH_ENABLE_OPENMP" OFF)
 
-if (NOT USE_EIGEN_OPENMP)
+if (NOT CH_USE_EIGEN_OPENMP)
   target_compile_definitions(Eigen3::Eigen INTERFACE "EIGEN_DONT_PARALLELIZE")
 endif()
 
@@ -154,9 +154,9 @@ endif()
 # SSE / AVX / FMA / NEON support
 #-----------------------------------------------------------------------------
 
-option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
+option(CH_USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
-if(USE_SIMD)
+if(CH_USE_SIMD)
 	
    # Figure out SIMD support
    message(STATUS "Testing SIMD capabilities")
@@ -266,12 +266,12 @@ endif()
 
 # Allow caller to disable OpenMP use (even if OpenMP found)
 # Note that some modules may override this
-cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON "OPENMP_FOUND" OFF)
+cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON "OPENMP_FOUND" OFF)
 
-if(NOT ENABLE_OPENMP)
+if(NOT CH_ENABLE_OPENMP)
 	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
 	find_package(TBB)
-	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
+	cmake_dependent_option(CH_ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -368,9 +368,9 @@ endif()
 # HDF5 support (optional)
 #-----------------------------------------------------------------------------
 
-option(ENABLE_HDF5 "Enable HDF5 support" OFF)
+option(CH_ENABLE_HDF5 "Enable HDF5 support" OFF)
 
-if(ENABLE_HDF5)
+if(CH_ENABLE_HDF5)
 
     message(STATUS "Searching for HDF5...")
 
@@ -562,133 +562,133 @@ endif()
 #       that a particular module was successfully built, not just
 #       enabled)
 
-if(ENABLE_MODULE_CASCADE)
+if(CH_ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
 endif()
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   set(CHRONO_IRRLICHT "#define CHRONO_IRRLICHT")
 else()
   set(CHRONO_IRRLICHT "#undef CHRONO_IRRLICHT")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   set(CHRONO_VSG "#define CHRONO_VSG")
 else()
   set(CHRONO_VSG "#undef CHRONO_VSG")
 endif()
 
-if(ENABLE_MODULE_MODAL)
+if(CH_ENABLE_MODULE_MODAL)
   set(CHRONO_MODAL "#define CHRONO_MODAL")
 else()
   set(CHRONO_MODAL "#undef CHRONO_MODAL")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
   set(CHRONO_MUMPS "#define CHRONO_MUMPS")
 else()
   set(CHRONO_MUMPS "#undef CHRONO_MUMPS")
 endif()
 
-if(ENABLE_MODULE_MULTICORE)
+if(CH_ENABLE_MODULE_MULTICORE)
   set(CHRONO_MULTICORE "#define CHRONO_MULTICORE")
 else()
   set(CHRONO_MULTICORE "#undef CHRONO_MULTICORE")
 endif()
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
   set(CHRONO_OPENGL "#define CHRONO_OPENGL")
 else()
   set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
 endif()
 
-if(ENABLE_MODULE_MATLAB)
+if(CH_ENABLE_MODULE_MATLAB)
   set(CHRONO_MATLAB "#define CHRONO_MATLAB")
 else()
   set(CHRONO_MATLAB "#undef CHRONO_MATLAB")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
   set(CHRONO_PARDISO_MKL "#define CHRONO_PARDISO_MKL")
 else()
   set(CHRONO_PARDISO_MKL "#undef CHRONO_PARDISO_MKL")
 endif()
 
-if(ENABLE_MODULE_PARSERS)
+if(CH_ENABLE_MODULE_PARSERS)
   set(CHRONO_PARSERS "#define CHRONO_PARSERS")
 else()
   set(CHRONO_PARSERS "#undef CHRONO_PARSERS")
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
 endif()
 
-if(ENABLE_MODULE_PYTHON)
+if(CH_ENABLE_MODULE_PYTHON)
   set(CHRONO_PYTHON "#define CHRONO_PYTHON")
 else()
   set(CHRONO_PYTHON "#undef CHRONO_PYTHON")
 endif()
 
-if(ENABLE_MODULE_VEHICLE)
+if(CH_ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
 endif()
 
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
   set(CHRONO_FSI "#define CHRONO_FSI")
 else()
   set(CHRONO_FSI "#undef CHRONO_FSI")
 endif()
 
-if(ENABLE_MODULE_GPU)
+if(CH_ENABLE_MODULE_GPU)
   set(CHRONO_GPU "#define CHRONO_GPU")
 else()
   set(CHRONO_GPU "#undef CHRONO_GPU")
 endif()
 
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
   set(CHRONO_SENSOR "#define CHRONO_SENSOR")
 else()
   set(CHRONO_SENSOR "#undef CHRONO_SENSOR")
 endif()
 
-if(ENABLE_MODULE_SYNCHRONO)
+if(CH_ENABLE_MODULE_SYNCHRONO)
   set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
 else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
 endif()
 
-if(ENABLE_MODULE_FMI)
+if(CH_ENABLE_MODULE_FMI)
   set(CHRONO_FMI "#define CHRONO_FMI")
 else()
   set(CHRONO_FMI "#undef CHRONO_FMI")
 endif()
 
-if(ENABLE_MODULE_ROS)
+if(CH_ENABLE_MODULE_ROS)
   set(CHRONO_ROS "#define CHRONO_ROS")
 else()
   set(CHRONO_ROS "#undef CHRONO_ROS")
 endif()
 
-if (USE_SIMD)
+if(CH_USE_SIMD)
    set(CHRONO_SIMD_ENABLED "#define CHRONO_SIMD_ENABLED")
 else()
    set(CHRONO_SIMD_ENABLED "#undef CHRONO_SIMD_ENABLED")
 endif()
 
-if(ENABLE_OPENMP)
+if(CH_ENABLE_OPENMP)
   set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
 else()
   set(CHRONO_OPENMP_ENABLED "#undef CHRONO_OPENMP_ENABLED")
 endif()
 
-if(ENABLE_TBB)
+if(CH_ENABLE_TBB)
   set(CHRONO_TBB_ENABLED "#define CHRONO_TBB_ENABLED")
 else()
   set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
@@ -772,7 +772,7 @@ install(FILES
 # This must be done here, after replacement variables were set.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_CSHARP)
+if(CH_ENABLE_MODULE_CSHARP)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in" DESTINATION "${PROJECT_BINARY_DIR}/cmake")
 
   set(CH_CS_DATA ${CH_BUILD_DATA})

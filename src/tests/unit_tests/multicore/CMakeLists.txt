@@ -3,7 +3,7 @@
 
 SET(LIBRARIES ChronoEngine ChronoEngine_multicore)
 
-IF (ENABLE_MODULE_OPENGL)
+IF (CH_ENABLE_MODULE_OPENGL)
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 ENDIF()
 

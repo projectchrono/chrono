@@ -1,4 +1,4 @@
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT_ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT_CH_ENABLE_MODULE_VSG)
    return()
 endif()   
 
@@ -8,7 +8,7 @@ endif()
 set(DEMOS "")
 
 # Add demos that can only work with Irrlicht
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
       demo_PARSER_OpenSim
       demo_PARSER_Adams
@@ -26,7 +26,7 @@ if(HAVE_PYTHON)
     set(DEMOS ${DEMOS}
       demo_PARSER_Python
     )
-    if(ENABLE_MODULE_IRRLICHT)
+    if(CH_ENABLE_MODULE_IRRLICHT)
       set(DEMOS ${DEMOS}
         demo_PARSER_Python_SolidWorks
       )
@@ -39,11 +39,11 @@ endif()
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_parsers")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 

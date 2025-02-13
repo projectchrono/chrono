@@ -1,4 +1,4 @@
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -26,7 +26,7 @@ set(DEMOS
 )
 
 # Add demos that can only work with Irrlicht
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
       demo_MBS_cohesion
       demo_MBS_conveyor
@@ -66,7 +66,7 @@ if(ENABLE_MODULE_IRRLICHT)
       )
     endif()
 
-    if(ENABLE_MODULE_PARDISO_MKL)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
       set(DEMOS ${DEMOS}
         demo_MBS_link_mate
       )
@@ -83,19 +83,19 @@ set(COMPILER_FLAGS "")
 set(LINKER_FLAGS "")
 list(APPEND LIBS "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 

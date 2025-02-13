@@ -4,21 +4,21 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
+option(CH_ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
-if(NOT ENABLE_MODULE_FSI)
-  mark_as_advanced(FORCE USE_FSI_DOUBLE)
+if(NOT CH_ENABLE_MODULE_FSI)
+  mark_as_advanced(FORCE CH_USE_FSI_DOUBLE)
   return()
 else()
-  mark_as_advanced(CLEAR USE_FSI_DOUBLE)
+  mark_as_advanced(CLEAR CH_USE_FSI_DOUBLE)
 endif()
 
 message(STATUS "\n==== Chrono FSI module ====\n")
 
 # Additional options for this module
 
-option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
-if(USE_FSI_DOUBLE)
+option(CH_USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
+if(CH_USE_FSI_DOUBLE)
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
 endif()
 

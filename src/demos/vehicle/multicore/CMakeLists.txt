@@ -3,7 +3,7 @@
 # These example use the OpenGL module for run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_MULTICORE OR NOT ENABLE_MODULE_OPENGL)
+if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_OPENGL)
     return()
 endif()
 

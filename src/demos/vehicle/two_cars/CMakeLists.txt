@@ -3,7 +3,7 @@
 # This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -18,11 +18,11 @@ SET(PROGRAM demo_VEH_TwoCars)
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 

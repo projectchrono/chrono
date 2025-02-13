@@ -4,9 +4,9 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_ROS "Enable the Chrono::ROS module" OFF)
+option(CH_ENABLE_MODULE_ROS "Enable the Chrono::ROS module" OFF)
 
-if(NOT ENABLE_MODULE_ROS)
+if(NOT CH_ENABLE_MODULE_ROS)
   return()
 endif()
 
@@ -24,7 +24,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 if(NOT DEFINED ENV{ROS_DISTRO} OR NOT DEFINED ENV{AMENT_PREFIX_PATH})   
   message("ERROR Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS")
-  set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
+  set(CH_ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
   return()
 endif()
 
@@ -41,7 +41,7 @@ if(rclcpp_FOUND AND tf2_ros_FOUND AND rcl_interfaces_FOUND AND std_msgs_FOUND AN
   message(STATUS "Found ROS 2")
 else()
   message("ERROR Chrono::ROS requires ROS 2, but ROS 2 was not found; disabling Chrono::ROS")
-  set(ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
+  set(CH_ENABLE_MODULE_ROS OFF CACHE BOOL "Enable the Chrono::ROS module" FORCE)
   return()
 endif()
 
@@ -107,7 +107,7 @@ set(CH_ROS_HANDLER_FILES
 source_group("handler" FILES ${CH_ROS_HANDLER_FILES})
 
 set(CH_ROS_VEHICLE_HANDLER_FILES "")
-if (ENABLE_MODULE_VEHICLE)
+if (CH_ENABLE_MODULE_VEHICLE)
   if (CH_ROS_HAS_INTERFACES)
     list(APPEND CH_ROS_VEHICLE_HANDLER_FILES 
       handlers/vehicle/ChROSDriverInputsHandler.h
@@ -118,7 +118,7 @@ endif()
 source_group("vehicle_handler" FILES ${CH_ROS_VEHICLE_HANDLER_FILES})
 
 set(CH_ROS_SENSOR_HANDLER_FILES "")
-if (ENABLE_MODULE_SENSOR)
+if (CH_ENABLE_MODULE_SENSOR)
   set(CH_ROS_SENSOR_HANDLER_FILES
     handlers/sensor/ChROSCameraHandler.h
     handlers/sensor/ChROSCameraHandler.cpp
@@ -158,13 +158,13 @@ source_group("robot_handler" FILES ${CH_ROS_ROBOT_HANDLER_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_ROS "")
-if(ENABLE_MODULE_VEHICLE)
+if(CH_ENABLE_MODULE_VEHICLE)
   list (APPEND DEPENDENCIES_ROS "VEHICLE")
 endif()
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_ROS "SENSOR")
 endif()
-if(ENABLE_MODULE_PARSERS  AND HAVE_URDF)
+if(CH_ENABLE_MODULE_PARSERS  AND HAVE_URDF)
   list (APPEND DEPENDENCIES_ROS "PARSERS")
 endif()
 
@@ -201,18 +201,18 @@ endif()
 target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine)
 target_link_libraries(ChronoEngine_ros PUBLIC ChronoModels_robot)
 
-if (ENABLE_MODULE_VEHICLE)
+if (CH_ENABLE_MODULE_VEHICLE)
   target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_vehicle)
-  if (ENABLE_MODULE_VEHICLE_MODELS)
+  if (CH_ENABLE_MODULE_VEHICLE_MODELS)
     target_link_libraries(ChronoEngine_ros PUBLIC ChronoModels_vehicle)
   endif()
 endif()
 
-if (ENABLE_MODULE_SENSOR)
+if (CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_sensor)
 endif()
 
-if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
+if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   target_compile_definitions(ChronoEngine_ros PUBLIC CHRONO_PARSERS_URDF)
   target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_parsers)
 endif()

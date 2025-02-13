@@ -4,9 +4,9 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_SENSOR "Enable the Chrono Sensor module" OFF)
+option(CH_ENABLE_MODULE_SENSOR "Enable the Chrono Sensor module" OFF)
 
-if(NOT ENABLE_MODULE_SENSOR)
+if(NOT CH_ENABLE_MODULE_SENSOR)
   return()
 endif()
 
@@ -20,7 +20,7 @@ if(NOT CHRONO_CUDA_FOUND)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
 
-  set(ENABLE_MODULE_SENSOR OFF CACHE BOOL "Enable the Chrono Sensor module" FORCE)
+  set(CH_ENABLE_MODULE_SENSOR OFF CACHE BOOL "Enable the Chrono Sensor module" FORCE)
   return()
 endif()
 
@@ -28,7 +28,7 @@ mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
 mark_as_advanced(CLEAR GLEW_DIR)
 mark_as_advanced(CLEAR glfw3_DIR)
 
-option(USE_NVDB "Enable Chrono::FSI deformable terrain sim rendering in Chrono::Sensor" OFF)
+option(CH_USE_NVDB "Enable Chrono::FSI deformable terrain sim rendering in Chrono::Sensor" OFF)
 
 #-----------------------------------------------------------------------------
 # LIST CUDA FILES USED FOR RT PROGRAMS - TO BE COMPILED TO PTX SHADERS
@@ -45,7 +45,7 @@ set(ChronoEngine_sensor_RT_SOURCES
     optix/shaders/radar.cu
 )
 
-if(USE_NVDB)
+if(CH_USE_NVDB)
   list(APPEND ChronoEngine_sensor_RT_SOURCES
     optix/shaders/nvdb_vol_intersect.cu
   )
@@ -261,7 +261,7 @@ source_group("Filters" FILES
 # LIST THE FILES THAT MAKE THE FILTERS FOR THE SENSOR LIBRARY
 #-----------------------------------------------------------------------------
 
-if(USE_TENSOR_RT)
+if(CH_USE_TENSOR_RT)
     set(ChronoEngine_sensor_TENSORRT_SOURCES
       	tensorrt/ChFilterUFF.cpp
         tensorrt/ChFilterONNX.cpp
@@ -339,7 +339,7 @@ list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SCENE_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_STB_FILES})
 list(APPEND ALL_CH_SENSOR_FILES ${SENSOR_TINYOBJ_FILES})
 
-if(USE_TENSOR_RT)
+if(CH_USE_TENSOR_RT)
     list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_TENSORRT_SOURCES})
     list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_TENSORRT_HEADERS})
 endif()
@@ -378,7 +378,7 @@ target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::nppc)
 target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::nppig)
 target_link_libraries(ChronoEngine_sensor PRIVATE CUDA::nppidei)
 
-if(USE_NVDB)
+if(CH_USE_NVDB)
   target_link_libraries(ChronoEngine_sensor PRIVATE OpenVDB::openvdb)
   target_link_libraries(ChronoEngine_sensor PRIVATE OpenVDB::nanovdb)
 endif()
@@ -398,16 +398,16 @@ set_target_properties(ChronoEngine_sensor PROPERTIES CUDA_ARCHITECTURES ${CHRONO
 # Optionally use NVRTC to compile shader code rather than NVCC to PTX
 # ------------------------------------------------------------------------------
 
-set(USE_CUDA_NVRTC ON CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX")
+set(CH_USE_CUDA_NVRTC ON CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX")
 
-if(USE_CUDA_NVRTC)
+if(CH_USE_CUDA_NVRTC)
   message(STATUS "Building Chrono::Sensor with NVRTC ON")
 
   find_package(CUDAToolkit REQUIRED)
 
   if(NOT TARGET CUDA::nvrtc)
     message(WARNING "CUDA::nvrtc target is missing; NVRTC will be turned off")
-    set(USE_CUDA_NVRTC OFF CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" FORCE)
+    set(CH_USE_CUDA_NVRTC OFF CACHE BOOL "Compile shader code at run-time with NVRTC rather than NVCC at build time to PTX" FORCE)
   else()
     message(STATUS "CUDA::nvrtc found and enabled")
     target_compile_definitions(ChronoEngine_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
@@ -463,7 +463,7 @@ else()
   target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::nppc)
   target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::nppig)
   target_link_libraries(ChronoEngine_sensor_ptx PRIVATE CUDA::nppidei)
-  if(USE_NVDB)
+  if(CH_USE_NVDB)
     target_link_libraries(ChronoEngine_sensor_ptx PRIVATE OpenVDB::openvdb)
     target_link_libraries(ChronoEngine_sensor_ptx PRIVATE OpenVDB::nanovdb)
   endif()
@@ -528,7 +528,7 @@ else()
 endif()
 
 
-if(USE_NVDB)
+if(CH_USE_NVDB)
   # CMake Module path
   set(OpenVDB_DIR "" CACHE PATH "OpenVDB CMake Module Path")
   set(CMAKE_MODULE_PATH ${OpenVDB_DIR} ${CMAKE_MODULE_PATH} )
@@ -558,9 +558,9 @@ target_link_libraries(ChronoEngine_sensor PRIVATE ChronoEngine ${LIBRARIES})
 # Optionally find TensorRT Version___ and set libaries and includes
 # ------------------------------------------------------------------------------
 
-option(USE_TENSOR_RT "Enable the TensorRT for Sensor Module" OFF)
+option(CH_USE_TENSOR_RT "Enable the TensorRT for Sensor Module" OFF)
 
-IF(USE_TENSOR_RT)
+IF(CH_USE_TENSOR_RT)
 
     set(TENSOR_RT_INSTALL_DIR "" CACHE PATH "Path to TensorRT")
 

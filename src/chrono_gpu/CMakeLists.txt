@@ -5,10 +5,10 @@
 #===============================================================================
 
 
-option(ENABLE_MODULE_GPU "Enable the Chrono::GPU module" OFF)
+option(CH_ENABLE_MODULE_GPU "Enable the Chrono::GPU module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_GPU)
+if(NOT CH_ENABLE_MODULE_GPU)
   return()
 endif()
 
@@ -17,14 +17,14 @@ message(STATUS "\n==== Chrono GPU module ====\n")
 # Return now if CUDA is not available
 if(NOT CHRONO_CUDA_FOUND)
     message("Chrono::GPU requires CUDA, but CUDA was not found; disabling Chrono::GPU")
-    set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
+    set(CH_ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()
 endif()
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
     message("Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::GPU")
-    set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
+    set(CH_ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::GPU module" FORCE)
     return()
 endif()
 
@@ -105,7 +105,7 @@ source_group("" FILES ${GPU_GL_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_GPU "")
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
   list (APPEND DEPENDENCIES_GPU "OPENGL")
 endif()
 
@@ -154,7 +154,7 @@ install(TARGETS ChronoEngine_gpu
 # Add the ChronoEngine_gpu_opengl library
 # ------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
 
     message(STATUS "Add ChronoEngine_gpu_opengl library")
 

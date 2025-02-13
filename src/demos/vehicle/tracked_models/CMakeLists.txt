@@ -3,7 +3,7 @@
 # These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -15,7 +15,7 @@ set(DEMOS
     demo_VEH_M113_Band
 )
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_VEH_Marder
        demo_VEH_TrackedJSON
@@ -33,19 +33,19 @@ set(UTILS "../../SetChronoSolver.h")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 

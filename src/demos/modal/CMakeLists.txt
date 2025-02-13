@@ -6,7 +6,7 @@ set(DEMOS
     )
 
 # Add demos that require Irrlicht
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_MOD_analysis
        demo_MOD_reduction
@@ -18,19 +18,19 @@ endif()
 # Set include paths, compiler & linker flags, and libraries
 set(LIBS ChronoEngine ChronoEngine_modal)
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS ChronoEngine_irrlicht)
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS ChronoEngine_pardisomkl)
 endif()
 
-if(ENABLE_MODULE_MATLAB)
+if(CH_ENABLE_MODULE_MATLAB)
   list(APPEND LIBS ChronoEngine_matlab)
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
   list(APPEND LIBS ChronoEngine_postprocess)
 endif()
 

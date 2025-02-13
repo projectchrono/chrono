@@ -43,7 +43,7 @@ endif()
 
 set(LIBRARIES ChronoEngine)
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
     set(TESTS ${TESTS} ${TESTS_MKL})
 endif()

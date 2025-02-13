@@ -4,12 +4,12 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
+option(CH_ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_VEHICLE)
-   mark_as_advanced(ENABLE_OPENCRG)
-   mark_as_advanced(FORCE ENABLE_IRRKLANG)
+if(NOT CH_ENABLE_MODULE_VEHICLE)
+   mark_as_advanced(FORCE CH_ENABLE_OPENCRG)
+   mark_as_advanced(FORCE CH_ENABLE_IRRKLANG)
    mark_as_advanced(FORCE IRRKLANG_INSTALL_DIR)
    mark_as_advanced(FORCE IRRKLANG_LIBRARY)
    return()
@@ -17,22 +17,22 @@ endif()
 
 message(STATUS "\n==== Chrono Vehicle module ====\n")
 
-mark_as_advanced(CLEAR ENABLE_OPENCRG)
-mark_as_advanced(CLEAR ENABLE_IRRKLANG)
+mark_as_advanced(CLEAR CH_ENABLE_OPENCRG)
+mark_as_advanced(CLEAR CH_ENABLE_IRRKLANG)
 mark_as_advanced(CLEAR IRRKLANG_INSTALL_DIR)
 mark_as_advanced(CLEAR IRRKLANG_LIBRARY)
 
 # Provide option to add OpenCRG support.
-option(ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
+option(CH_ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
 
 # If Irrlicht support was enabled, provide option to add Irrklang support.
-cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
-                       "ENABLE_MODULE_IRRLICHT" OFF)
+cmake_dependent_option(CH_ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
+                       "CH_ENABLE_MODULE_IRRLICHT" OFF)
 
 # ----------------------------------------------------------------------------
 # Find the OpenCRG library
 # ----------------------------------------------------------------------------
-if (ENABLE_OPENCRG)
+if(CH_ENABLE_OPENCRG)
 
   find_package(OpenCRG)
 
@@ -75,7 +75,7 @@ SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 # ----------------------------------------------------------------------------
 # Find IrrKlang library
 # ----------------------------------------------------------------------------
-if(ENABLE_IRRKLANG)
+if(CH_ENABLE_IRRKLANG)
 
   set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
   set(IRRKLANG_LIBDIR "" CACHE PATH "IrrKlang SDK library directory")
@@ -111,7 +111,7 @@ else()
   set(CHRONO_OPENCRG "#undef CHRONO_OPENCRG")
 endif()
 
-if(ENABLE_IRRKLANG)
+if(CH_ENABLE_IRRKLANG)
   set(CHRONO_IRRKLANG "#define CHRONO_IRRKLANG")
 else()
   set(CHRONO_IRRKLANG "#undef CHRONO_IRRKLANG")
@@ -125,7 +125,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigVehicle.h.in
 install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
         DESTINATION include/chrono_vehicle)
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     # Find the VSG library
     if (VULKAN_SDK)
         set(ENV{VULKAN_SDK} ${VULKAN_SDK})
@@ -277,7 +277,7 @@ if(HAVE_OPENCRG)
         terrain/CRGTerrain.cpp
     )
 endif()
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
     set(CV_TERRAIN_FILES ${CV_TERRAIN_FILES}
         terrain/CRMTerrain.h
         terrain/CRMTerrain.cpp    
@@ -786,7 +786,7 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 # --------------- VEHICLE IRRLICHT INTERFACE
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_FILES
         ChVehicleVisualSystemIrrlicht.h
         ChVehicleVisualSystemIrrlicht.cpp
@@ -819,7 +819,7 @@ source_group("tracked_vehicle" FILES ${CVIRR_TV_FILES})
 
 # --------------- VEHICLE VSG INTERFACE
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_FILES
         ChVehicleVisualSystemVSG.h
         ChVehicleVisualSystemVSG.cpp
@@ -850,7 +850,7 @@ source_group("tracked_vehicle" FILES ${CVVSG_TV_FILES})
 
 # --------------- VEHICLE OpenGL INTERFACE
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     set(CVGL_FILES
         ChVehicleVisualSystemOpenGL.h
         ChVehicleVisualSystemOpenGL.cpp
@@ -866,16 +866,16 @@ source_group("" FILES ${CVGL_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_VEHICLE "")
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list (APPEND DEPENDENCIES_VEHICLE "IRRLICHT")
 endif()
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   list (APPEND DEPENDENCIES_VEHICLE "VSG")
 endif()
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
   list (APPEND DEPENDENCIES_VEHICLE "OPENGL")
 endif()
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
   list (APPEND DEPENDENCIES_VEHICLE "FSI")
 endif()
 
@@ -943,7 +943,7 @@ if(HAVE_OPENCRG)
   target_link_libraries(ChronoEngine_vehicle PRIVATE OpenCRG::OpenCRG)
 endif()
 
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
   target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsisph)
 endif()
 
@@ -972,7 +972,7 @@ install(TARGETS ChronoEngine_vehicle
 # Add the ChronoEngine_vehicle_irrlicht library
 #-------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     message(STATUS "Add ChronoEngine_vehicle_irrlicht library")
 
     add_library(ChronoEngine_vehicle_irrlicht
@@ -990,7 +990,7 @@ if(ENABLE_MODULE_IRRLICHT)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC ChronoEngine_irrlicht)
 
-    if(ENABLE_IRRKLANG)
+    if(CH_ENABLE_IRRKLANG)
         target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
     endif()
 
@@ -1013,7 +1013,7 @@ endif()
 # Add the ChronoEngine_vehicle_vsg library
 #-------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     message(STATUS "Add ChronoEngine_vehicle_vsg library")
 
     add_library(ChronoEngine_vehicle_vsg
@@ -1050,7 +1050,7 @@ endif()
 # Add the ChronoEngine_vehicle_opengl library
 #-------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     message(STATUS "Add ChronoEngine_vehicle_opengl library")
 
     add_library(ChronoEngine_vehicle_opengl
@@ -1085,26 +1085,26 @@ endif()
 # Trigger CMake for vehicle cosimulation
 #-------------------------------------------------------------------------------
 
-option(ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle cosimulation library" TRUE)
-mark_as_advanced(FORCE ENABLE_MODULE_VEHICLE_COSIM)
-if(ENABLE_MODULE_VEHICLE_COSIM)
+option(CH_ENABLE_MODULE_VEHICLE_COSIM "Build the Chrono vehicle cosimulation library" TRUE)
+mark_as_advanced(FORCE CH_ENABLE_MODULE_VEHICLE_COSIM)
+if(CH_ENABLE_MODULE_VEHICLE_COSIM)
   add_subdirectory(cosim)
 endif()
 
-set(ENABLE_MODULE_VEHICLE_COSIM  "${ENABLE_MODULE_VEHICLE_COSIM}" PARENT_SCOPE)
+set(CH_ENABLE_MODULE_VEHICLE_COSIM  "${CH_ENABLE_MODULE_VEHICLE_COSIM}" PARENT_SCOPE)
 set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Trigger CMake for vehicle FMUs
 #-------------------------------------------------------------------------------
 
-cmake_dependent_option(ENABLE_MODULE_VEHICLE_FMI  "Enable FMI support for Chrono::Vehicle" ON "ENABLE_MODULE_FMI" OFF)
-mark_as_advanced(FORCE ENABLE_MODULE_VEHICLE_FMI)
-if(ENABLE_MODULE_VEHICLE_FMI)
+cmake_dependent_option(CH_ENABLE_MODULE_VEHICLE_FMI  "Enable FMI support for Chrono::Vehicle" ON "CH_ENABLE_MODULE_FMI" OFF)
+mark_as_advanced(FORCE CH_ENABLE_MODULE_VEHICLE_FMI)
+if(CH_ENABLE_MODULE_VEHICLE_FMI)
   add_subdirectory(fmi)
 endif()
 
-set(ENABLE_MODULE_VEHICLE_FMI  "${ENABLE_MODULE_VEHICLE_FMI}" PARENT_SCOPE)
+set(CH_ENABLE_MODULE_VEHICLE_FMI  "${CH_ENABLE_MODULE_VEHICLE_FMI}" PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Install files
@@ -1130,7 +1130,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake" DESTINATION ${CH_CO
 
 # On Windows, copy DLLs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if(ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
+    if(CH_ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${IRRKLANG_DLL}"

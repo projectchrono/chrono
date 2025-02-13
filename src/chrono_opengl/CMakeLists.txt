@@ -3,11 +3,11 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
+option(CH_ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 
 # Return now if this module is not enabled
 
-if(NOT ENABLE_MODULE_OPENGL)
+if(NOT CH_ENABLE_MODULE_OPENGL)
   mark_as_advanced(FORCE glm_DIR)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
@@ -48,7 +48,7 @@ else()
     # Unable to find everything, turn off OpenGL
     message("Cannot build ChronoEngine_OpenGL (missing dependencies); disabling Chrono::OpenGL")
     set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
-    set(ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
+    set(CH_ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
     return()
 endif()
 
@@ -223,7 +223,7 @@ source_group("utils" FILES ${CE_OpenGL_STB_FILES} ${CE_OpenGL_TINYOBJLOADER_FILE
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_OPENGL "")
-if(ENABLE_MODULE_MULTICORE)
+if(CH_ENABLE_MODULE_MULTICORE)
   list (APPEND DEPENDENCIES_OPENGL "MULTICORE")
 endif()
 
@@ -260,7 +260,7 @@ target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>
 target_link_libraries(ChronoEngine_opengl PRIVATE ChronoEngine)
 target_link_libraries(ChronoEngine_opengl PUBLIC glm::glm)
 
-if(ENABLE_MODULE_MULTICORE)
+if(CH_ENABLE_MODULE_MULTICORE)
   target_link_libraries(ChronoEngine_opengl PUBLIC ChronoEngine_multicore)
 endif()
 

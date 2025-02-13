@@ -4,9 +4,9 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_PARDISO_MKL "Enable the Chrono PardisoMKL module" OFF)
+option(CH_ENABLE_MODULE_PARDISO_MKL "Enable the Chrono PardisoMKL module" OFF)
 
-if(NOT ENABLE_MODULE_PARDISO_MKL)
+if(NOT CH_ENABLE_MODULE_PARDISO_MKL)
     return()
 endif()
 

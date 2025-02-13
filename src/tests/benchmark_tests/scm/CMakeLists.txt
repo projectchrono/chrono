@@ -4,7 +4,7 @@
 # Requires the SynChrono and Chrono::Vehicle modules 
 #--------------------------------------------------------------
 
-if(NOT ENABLE_MODULE_VEHICLE OR NOT ENABLE_MODULE_SYNCHRONO)
+if(NOT CH_ENABLE_MODULE_VEHICLE OR NOT CH_ENABLE_MODULE_SYNCHRONO)
   return()
 endif()  
 
@@ -24,7 +24,7 @@ set(LIBRARIES
     ChronoModels_vehicle
     )
 
-if (ENABLE_MODULE_IRRLICHT)
+if (CH_ENABLE_MODULE_IRRLICHT)
     set(LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
 endif()
 

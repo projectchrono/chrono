@@ -3,7 +3,7 @@
 # This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -14,7 +14,7 @@ set(DEMOS
     demo_VEH_Controller_DLC
 )
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_VEH_Controller_AIDriver
   )
@@ -26,19 +26,19 @@ endif()
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
     list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
-if (ENABLE_MODULE_SENSOR)
+if (CH_ENABLE_MODULE_SENSOR)
     list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 

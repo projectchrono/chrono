@@ -4,9 +4,9 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_SYNCHRONO "Enable the SynChrono module" OFF)
+option(CH_ENABLE_MODULE_SYNCHRONO "Enable the SynChrono module" OFF)
 
-IF(NOT ENABLE_MODULE_SYNCHRONO)
+IF(NOT CH_ENABLE_MODULE_SYNCHRONO)
   return()
 ENDIF()
 
@@ -15,21 +15,21 @@ message(STATUS "\n==== SynChrono module ====\n")
 # Return now if MPI is not available
 if(NOT MPI_CXX_FOUND)
 	message("Chrono::SynChrono requires MPI, but MPI not found. Disabling Chrono::SynChrono")
-	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+	set(CH_ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
 	return()
 endif()
 
 # Return now if Chrono::Vehicle is not enabled
-if(NOT ENABLE_MODULE_VEHICLE)
+if(NOT CH_ENABLE_MODULE_VEHICLE)
     message("Chrono::SynChrono depends on Chrono::Vehicle which is disabled. Disabling Chrono::SynChrono")
-    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    set(CH_ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
     return()
 endif()
 
 # Return now if the Chrono vehicle models are not enabled
-if(NOT ENABLE_MODULE_VEHICLE_MODELS)
+if(NOT CH_ENABLE_MODULE_VEHICLE_MODELS)
     message("Chrono::SynChrono depends on the vehicle models library which is disabled. Disabling Chrono::SynChrono")
-    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    set(CH_ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
     return()
 endif()
 
@@ -140,13 +140,13 @@ source_group("utils" FILES ${SYN_UTILS_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_SYNCHRONO "")
-if(ENABLE_MODULE_VEHICLE)
+if(CH_ENABLE_MODULE_VEHICLE)
   list (APPEND DEPENDENCIES_SYNCHRONO "VEHICLE")
 endif()
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_SYNCHRONO "SENSOR")
 endif()
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
   list (APPEND DEPENDENCIES_SYNCHRONO "IRRLICHT")
 endif()
 
@@ -189,13 +189,13 @@ target_include_directories(ChronoEngine_synchrono PUBLIC
 )
 
 # Add dependencies
-if (ENABLE_MODULE_SENSOR)
+if (CH_ENABLE_MODULE_SENSOR)
   target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_sensor) # needs PUBLIC
   find_package(OptiX REQUIRED)
   target_link_libraries(ChronoEngine_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
 endif()
   
-if (ENABLE_MODULE_IRRLICHT)
+if (CH_ENABLE_MODULE_IRRLICHT)
   target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoEngine_irrlicht)
   target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_vehicle_irrlicht) # needs PUBLIC because of IrrKlang
 endif()
@@ -212,11 +212,11 @@ target_link_libraries(ChronoEngine_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
 
 message(STATUS "Synchrono configured with MPI backend")
 
-option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
+option(CH_USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
 
 set(FASTDDS_FOUND FALSE)
 
-if (USE_FAST_DDS)
+if (CH_USE_FAST_DDS)
 	set(FastDDS_ROOT_DIR "" CACHE PATH "Path to FastDDS install directory")
 
 	if (FastDDS_ROOT_DIR STREQUAL "")

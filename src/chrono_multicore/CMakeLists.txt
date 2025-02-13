@@ -9,14 +9,13 @@
 # If TBB is defined, thrust will use TBB but the rest of the code will be single
 # threaded
 
-option(ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
+option(CH_ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
 
 # Return now if this module is not enabled
 
-if(NOT ENABLE_MODULE_MULTICORE)
+if(NOT CH_ENABLE_MODULE_MULTICORE)
   mark_as_advanced(FORCE Blaze_ROOT)
-  mark_as_advanced(FORCE USE_MULTICORE_DOUBLE)
-  mark_as_advanced(FORCE USE_MULTICORE_SIMD)
+  mark_as_advanced(FORCE CH_USE_MULTICORE_DOUBLE)
   return()
 endif()
 
@@ -25,7 +24,7 @@ message(STATUS "\n==== Chrono Multicore module ====\n")
 # Return now if Thrust not available
 if (NOT CHRONO_THRUST_FOUND)
   message("Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
-  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
+  set(CH_ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
   return()
 endif()
 
@@ -39,17 +38,16 @@ else()
   message(FATAL_ERROR "Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
 endif()
 
-mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
-mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
+mark_as_advanced(CLEAR CH_USE_MULTICORE_DOUBLE)
 
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
 # ----- Double precision support -----
 
-OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision math" ON)
+OPTION(CH_USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision math" ON)
 
-if(USE_MULTICORE_DOUBLE)
+if(CH_USE_MULTICORE_DOUBLE)
   set(CHRONO_MULTICORE_USE_DOUBLE "#define CHRONO_MULTICORE_USE_DOUBLE")
 endif()
 
@@ -168,9 +166,9 @@ if(MSVC)
 endif()
 
 target_link_libraries(ChronoEngine_multicore PRIVATE ChronoEngine)
-if(ENABLE_OPENMP)
+if(CH_ENABLE_OPENMP)
   target_link_libraries(ChronoEngine_multicore PRIVATE OpenMP::OpenMP_CXX)
-elseif(ENABLE_TBB)
+elseif(CH_ENABLE_TBB)
   target_link_libraries(ChronoEngine_multicore PRIVATE ${TBB_LIBRARIES})
 endif()
 target_link_libraries(ChronoEngine_multicore PUBLIC Thrust::Thrust)
@@ -189,10 +187,10 @@ target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)
 
 # ----- Configure Blaze and Thrust -----
 ## TODO: DARIOM shall they be guarded for only CXX?
-if(ENABLE_OPENMP)
+if(CH_ENABLE_OPENMP)
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
-elseif(ENABLE_TBB)
+elseif(CH_ENABLE_TBB)
   target_compile_definitions(ChronoEngine_multicore PUBLIC "BLAZE_USE_CPP_THREADS")
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB")
   target_compile_definitions(ChronoEngine_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB")

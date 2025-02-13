@@ -20,7 +20,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_Cratering
 )
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
       demo_FSI_Flexible_Plate
       demo_FSI_Flexible_Cable
@@ -33,15 +33,15 @@ endif()
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_fsisph")
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_fsisph_vsg")
 endif()
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     list(APPEND LIBS "ChronoEngine_fsisph_opengl")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 

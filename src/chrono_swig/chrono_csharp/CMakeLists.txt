@@ -4,10 +4,10 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_CSHARP "Enable the Chrono CSharp module" OFF)
+option(CH_ENABLE_MODULE_CSHARP "Enable the Chrono CSharp module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_CSHARP)
+if(NOT CH_ENABLE_MODULE_CSHARP)
   mark_as_advanced(FORCE SWIG_EXECUTABLE)
   return()
 endif()
@@ -154,7 +154,7 @@ endif()
 # MODULE for the postprocess csharp wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
 
   message(STATUS "Add C# POSTPROCESS module")
 
@@ -226,7 +226,7 @@ endif()
 # MODULE for the irrlicht csharp wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
 
   message(STATUS "Add C# IRRLICHT module")
 
@@ -288,9 +288,9 @@ endif()
 # Wrapper for VEHICLE Chrono module
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
+if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
-  if (ENABLE_MODULE_IRRLICHT)
+  if (CH_ENABLE_MODULE_IRRLICHT)
      #Append the CHRONO_IRRLICHT flag, for vehicle visual irrlicht
      set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
@@ -319,12 +319,12 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   target_link_libraries(ChronoEngine_csharp_vehicle PRIVATE ChronoEngine ChronoEngine_vehicle ChronoModels_vehicle)
 
 
-  if (ENABLE_MODULE_IRRLICHT)
+  if (CH_ENABLE_MODULE_IRRLICHT)
     find_package(Irrlicht)
     target_link_libraries(ChronoEngine_csharp_vehicle PRIVATE ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht Irrlicht::Irrlicht)
   endif()
 
-  if (ENABLE_MODULE_POSTPROCESS)
+  if (CH_ENABLE_MODULE_POSTPROCESS)
      target_link_libraries(ChronoEngine_csharp_vehicle PRIVATE ChronoEngine_postprocess)
   endif()
   
@@ -343,10 +343,10 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   add_dependencies(ChronoEngine_csharp_vehicle ChronoEngine ChronoEngine_vehicle ChronoModels_vehicle)
 
   add_dependencies(ChronoEngine_csharp_vehicle ChronoEngine_csharp_core)
-  if (ENABLE_MODULE_IRRLICHT)
+  if (CH_ENABLE_MODULE_IRRLICHT)
     add_dependencies(ChronoEngine_csharp_vehicle ChronoEngine_csharp_irrlicht)
   endif()
-  if (ENABLE_MODULE_POSTPROCESS)
+  if (CH_ENABLE_MODULE_POSTPROCESS)
     add_dependencies(ChronoEngine_csharp_vehicle ChronoEngine_csharp_postprocess)
   endif()
   

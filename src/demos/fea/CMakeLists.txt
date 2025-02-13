@@ -7,13 +7,13 @@ set(FEA_DEMOS
 )
 
 # Add demos that require IRRLICHT run-time visualization
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
 
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_truss
     )
 
-    if(ENABLE_MODULE_PARDISO_MKL)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beams_static
         demo_FEA_beams_extrude
@@ -25,7 +25,7 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 # Add demos that require run-time visualization (IRRLICHT or VSG)
-if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
 
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_thermal
@@ -38,19 +38,19 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
         demo_FEA_loads_dynamics
     )
     
-    if(ENABLE_MODULE_MUMPS)
+    if(CH_ENABLE_MODULE_MUMPS)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_cablesMUMPS
     )
     endif()
 
-    if(ENABLE_MODULE_MATLAB)
+    if(CH_ENABLE_MODULE_MATLAB)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_cablesMATLAB
     )
     endif()
     
-    if(ENABLE_MODULE_PARDISO_MKL)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beamsEuler
         demo_FEA_beams_constr
@@ -66,7 +66,7 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
     endif()
     
     # Add demos that require MKL and postprocess
-    if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
+    if(CH_ENABLE_MODULE_PARDISO_MKL AND CH_ENABLE_MODULE_POSTPROCESS)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beams_rotor
     )
@@ -81,27 +81,27 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 list(APPEND LIBS "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_MATLAB)
+if(CH_ENABLE_MODULE_MATLAB)
   list(APPEND LIBS "ChronoEngine_matlab")
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
   list(APPEND LIBS "ChronoEngine_postprocess")
 endif()
 

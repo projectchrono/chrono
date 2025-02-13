@@ -4,10 +4,10 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #===============================================================================
 
-option(ENABLE_MODULE_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
+option(CH_ENABLE_MODULE_IRRLICHT "Enable the Chrono Irrlicht module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_IRRLICHT)
+if(NOT CH_ENABLE_MODULE_IRRLICHT)
   return()
 endif()
 
@@ -49,7 +49,7 @@ find_package(Irrlicht MODULE REQUIRED)
 
 if(NOT Irrlicht_FOUND)
   message("WARNING: Irrlicht not found; disabling Chrono::Irrlicht")
-  set(ENABLE_MODULE_IRRLICHT OFF CACHE BOOL "Enable the Chrono::Irrlicht module" FORCE)
+  set(CH_ENABLE_MODULE_IRRLICHT OFF CACHE BOOL "Enable the Chrono::Irrlicht module" FORCE)
   return()
 endif()
 

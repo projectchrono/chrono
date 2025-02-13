@@ -1,4 +1,4 @@
-if(NOT ENABLE_MODULE_SENSOR)
+if(NOT CH_ENABLE_MODULE_SENSOR)
     return()
 endif()
 

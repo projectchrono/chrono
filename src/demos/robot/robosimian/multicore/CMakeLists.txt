@@ -1,7 +1,7 @@
 # Demo programs for multicore RoboSimian simulations
 # ------------------------------------------------------------------------------
 
-if(NOT ENABLE_MODULE_MULTICORE OR NOT ENABLE_MODULE_OPENGL)
+if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_OPENGL)
   message(STATUS "  Warning: the multicore RoboSimian projects require Chrono::Multicore and Chrono::OpenGL")
   return()
 endif()

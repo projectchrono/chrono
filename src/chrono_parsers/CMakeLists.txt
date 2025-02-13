@@ -2,10 +2,10 @@
 # CMake configuration file for the Chrono::Parsers module
 #=============================================================================
 
-option(ENABLE_MODULE_PARSERS "Enable the Chrono Parsers module" OFF)
+option(CH_ENABLE_MODULE_PARSERS "Enable the Chrono Parsers module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_PARSERS)
+if(NOT CH_ENABLE_MODULE_PARSERS)
     mark_as_advanced(FORCE urdfdom_DIR)
     mark_as_advanced(FORCE urdfdom_headers_DIR)
     mark_as_advanced(FORCE console_bridge_DIR)
@@ -42,7 +42,7 @@ set(ChronoEngine_PARSERS_HEADERS
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_PARSERS "")
-if(ENABLE_MODULE_ROS)
+if(CH_ENABLE_MODULE_ROS)
   list (APPEND DEPENDENCIES_PARSERS "ROS")
 endif()
 
@@ -96,7 +96,7 @@ SET(HAVE_URDF "${HAVE_URDF}" PARENT_SCOPE)
 
 # Include ROS parser if found --------------------------------------------
 
-if(ENABLE_MODULE_ROS)
+if(CH_ENABLE_MODULE_ROS)
 
   set(HAVE_ROS FALSE)
 

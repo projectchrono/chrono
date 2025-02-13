@@ -4,10 +4,10 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_MODAL "Enable the Chrono Modal module" OFF)
+option(CH_ENABLE_MODULE_MODAL "Enable the Chrono Modal module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_MODAL)
+IF(NOT CH_ENABLE_MODULE_MODAL)
   MARK_AS_ADVANCED(FORCE Spectra_INCLUDE_DIR)
   RETURN()
 ENDIF()
@@ -43,7 +43,7 @@ SET(ChronoEngine_MODAL_HEADERS
     ChKrylovSchurEig.h
 )
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   set(ChronoEngine_MODAL_HEADERS ${ChronoEngine_MODAL_HEADERS}
       ChModalVisualSystemIrrlicht.h
   )
@@ -64,7 +64,7 @@ find_package(Spectra REQUIRED)
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_MODAL "")
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list (APPEND DEPENDENCIES_MODAL "IRRLICHT")
 endif()
 

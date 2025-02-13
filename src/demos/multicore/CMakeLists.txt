@@ -9,7 +9,7 @@ SET(LIBRARIES
     ChronoEngine_multicore
 )
 
-IF(ENABLE_MODULE_OPENGL)
+IF(CH_ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
     SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 ENDIF()
@@ -31,7 +31,7 @@ SET(DEMOS
 )
 
 # Add programs that require OpenGL
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     set(DEMOS
         ${DEMOS} 
         demo_MCORE_motors
@@ -43,7 +43,7 @@ if(ENABLE_MODULE_OPENGL)
 endif()
 
 # Add programs that require Irrlicht
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht)
 
 	set(DEMOS

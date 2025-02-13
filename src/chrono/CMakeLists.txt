@@ -10,8 +10,8 @@ message(STATUS "\n==== Chrono Engine core module ====\n")
 # Double precision support for Bullet
 # -------------------------------------------------------------------------------------------------
 
-option(USE_BULLET_DOUBLE "Compile Chrono::Engine with double precision support in Bullet" OFF)
-cmake_dependent_option(USE_BULLET_OPENMP "Compile Chrono::Engine with OpenMP support in Bullet" ON "ENABLE_OPENMP" OFF)
+option(CH_USE_BULLET_DOUBLE "Compile Chrono::Engine with double precision support in Bullet" OFF)
+cmake_dependent_option(CH_USE_BULLET_OPENMP "Compile Chrono::Engine with OpenMP support in Bullet" ON "CH_ENABLE_OPENMP" OFF)
 
 # -------------------------------------------------------------------------------------------------
 # Collect files in the main ChronoEngine library
@@ -1360,10 +1360,10 @@ target_link_libraries(ChronoEngine PUBLIC Eigen3::Eigen)
 if(CHRONO_THRUST_FOUND)
   target_link_libraries(ChronoEngine PRIVATE Thrust::Thrust)
 
-  if(ENABLE_OPENMP)
+  if(CH_ENABLE_OPENMP)
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
-  elseif(ENABLE_TBB)
+  elseif(CH_ENABLE_TBB)
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB")
     target_compile_definitions(ChronoEngine PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB")
   else()
@@ -1372,9 +1372,9 @@ if(CHRONO_THRUST_FOUND)
   endif()
 endif()
 
-if(ENABLE_OPENMP)
+if(CH_ENABLE_OPENMP)
   target_link_libraries(ChronoEngine PUBLIC OpenMP::OpenMP_CXX)
-elseif(ENABLE_TBB)
+elseif(CH_ENABLE_TBB)
   target_link_libraries(ChronoEngine PRIVATE ${TBB_LIBRARIES}) 
 endif()
 
@@ -1395,7 +1395,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
-if(USE_SIMD)
+if(CH_USE_SIMD)
     message(STATUS "Using SIMD flags: ${SIMD_FLAGS}")
 	target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${SIMD_FLAGS}>)
 endif() 
@@ -1422,7 +1422,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/EHsc>) # Resolve C4530: https://learn.microsoft.com/en-us/cpp/build/reference/eh-exception-handling-model        
 
         # excluding wrong runtime libraries from the link (LNK4098): https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098
-        if(USE_MSVC_STATIC_RUNTIME)
+        if(CH_USE_MSVC_STATIC_RUNTIME)
           target_link_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:msvcrt.lib;/NODEFAULTLIB:msvcrtd.lib;/NODEFAULTLIB:libcmt$<$<NOT:$<CONFIG:Debug>>:d>.lib>)
         else()
           target_link_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/NODEFAULTLIB:libcmt.lib;/NODEFAULTLIB:libcmtd.lib;/NODEFAULTLIB:msvcrt$<$<NOT:$<CONFIG:Debug>>:d>.lib>)
@@ -1521,18 +1521,18 @@ endif()
 target_compile_definitions(ChronoEngine PRIVATE BT_THREADSAFE)
 target_compile_definitions(ChronoEngine PRIVATE BP_USE_FIXEDPOINT_INT_32)
 
-if (USE_BULLET_DOUBLE)
+if (CH_USE_BULLET_DOUBLE)
     target_compile_definitions(ChronoEngine PRIVATE BT_USE_DOUBLE_PRECISION)
 endif()
 
-if (USE_BULLET_OPENMP)
+if (CH_USE_BULLET_OPENMP)
     target_compile_definitions(ChronoEngine PRIVATE BT_USE_OPENMP)
 endif()
 
 # For Bullet to use 32 bit math
 
 if(XCODE_VERSION)
-    set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
+    set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${CH_ENABLE_OPENMP})
 endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC AND MSVC_VERSION GREATER_EQUAL 1900)

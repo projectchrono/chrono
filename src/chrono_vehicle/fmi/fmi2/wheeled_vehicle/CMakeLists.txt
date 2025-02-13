@@ -1,7 +1,7 @@
 set(COMPONENT_NAME "FMU2_WheeledVehicle")
 set(COMPONENT_SOURCES FMU_WheeledVehicle.h FMU_WheeledVehicle.cpp)
 set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/wheeled_vehicle)
-if (ENABLE_MODULE_IRRLICHT)
+if (CH_ENABLE_MODULE_IRRLICHT)
   set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht  ChronoEngine_vehicle_irrlicht)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
@@ -22,7 +22,7 @@ list(APPEND LIBS ChronoEngine_vehicle)
 
 include_directories(${FMU_TOOLS_DIR})
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
   list(APPEND LIBS ChronoEngine_vehicle_irrlicht)
 endif()

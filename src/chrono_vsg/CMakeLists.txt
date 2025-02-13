@@ -4,10 +4,10 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #===============================================================================
 
-option(ENABLE_MODULE_VSG "Enable the Chrono VSG module" OFF)
+option(CH_ENABLE_MODULE_VSG "Enable the Chrono VSG module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_VSG)
    mark_as_advanced(FORCE vsg_DIR)
    mark_as_advanced(FORCE vsgXchange_DIR)
    mark_as_advanced(FORCE vsgImGui_DIR)
@@ -19,7 +19,7 @@ message(STATUS "\n==== Chrono VSG module ====\n")
 # VSG requires C++17 support. Disable module if not available
 if(NOT CH_CXX17)
    message(WARNING "Chrono::VSG requires C++17 support which is not available; disabling Chrono::VSG")
-   set(ENABLE_MODULE_VSG OFF CACHE BOOL "Enable the Chrono VSG module" FORCE)
+   set(CH_ENABLE_MODULE_VSG OFF CACHE BOOL "Enable the Chrono VSG module" FORCE)
    mark_as_advanced(FORCE vsg_DIR)
    mark_as_advanced(FORCE vsgXchange_DIR)
    mark_as_advanced(FORCE vsgImGui_DIR)

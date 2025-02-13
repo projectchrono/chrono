@@ -3,7 +3,7 @@
 # This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-IF(NOT ENABLE_MODULE_IRRLICHT)
+IF(NOT CH_ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 

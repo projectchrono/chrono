@@ -2,10 +2,10 @@
 # CMake configuration file for Chrono Matlab module
 #=============================================================================
 
-option(ENABLE_MODULE_MATLAB "Enable the Chrono Matlab module" OFF)
+option(CH_ENABLE_MODULE_MATLAB "Enable the Chrono Matlab module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_MATLAB)
+IF(NOT CH_ENABLE_MODULE_MATLAB)
   MARK_AS_ADVANCED(FORCE Matlab_ROOT_DIR)
   RETURN()
 ENDIF()

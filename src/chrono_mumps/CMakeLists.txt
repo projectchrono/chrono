@@ -4,9 +4,9 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_MUMPS "Enable the Chrono MUMPS module" OFF)
+option(CH_ENABLE_MODULE_MUMPS "Enable the Chrono MUMPS module" OFF)
 
-if(NOT ENABLE_MODULE_MUMPS)
+if(NOT CH_ENABLE_MODULE_MUMPS)
     return()
 endif()
 
@@ -22,7 +22,7 @@ if(${MUMPS_FOUND})
   message(STATUS "MUMPS found.")
 else()
   message("MUMPS not found. Chrono::Mumps module disabled.")
-  set(ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
+  set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
   return()
 endif()
 

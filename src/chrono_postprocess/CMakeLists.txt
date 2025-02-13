@@ -4,10 +4,10 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_POSTPROCESS "Enable the Chrono Postprocess module" OFF)
+option(CH_ENABLE_MODULE_POSTPROCESS "Enable the Chrono Postprocess module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_POSTPROCESS)
+if(NOT CH_ENABLE_MODULE_POSTPROCESS)
 	RETURN()
 endif()
 

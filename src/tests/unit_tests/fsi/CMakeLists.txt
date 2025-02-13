@@ -6,7 +6,7 @@ set(TESTS
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_fsisph")
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_fsisph_vsg")
 endif()
 

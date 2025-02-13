@@ -9,7 +9,7 @@ set(TESTS
 
 list(APPEND LIBS "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 

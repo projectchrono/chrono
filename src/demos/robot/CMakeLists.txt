@@ -3,7 +3,7 @@
 
 set(DEMOS "")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   set(DEMOS ${DEMOS}
       demo_ROBOT_LittleHexy
   )
@@ -11,9 +11,9 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VEHICLE)
+if(CH_ENABLE_MODULE_VEHICLE)
 
-  if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+  if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_ROBOT_Curiosity_Rigid
         demo_ROBOT_Curiosity_SCM    
@@ -22,7 +22,7 @@ if(ENABLE_MODULE_VEHICLE)
         demo_ROBOT_Viper_SCM
     )
 
-    if(ENABLE_MODULE_SENSOR)
+    if(CH_ENABLE_MODULE_SENSOR)
       set(DEMOS ${DEMOS}
           demo_ROBOT_Curiosity_SCM_Sensor
           demo_ROBOT_Viper_SCM_Sensor
@@ -30,8 +30,8 @@ if(ENABLE_MODULE_VEHICLE)
     endif()
   endif()
 
-  if(ENABLE_MODULE_VSG OR ENABLE_MODULE_OPENGL)
-    if(ENABLE_MODULE_FSI)
+  if(CH_ENABLE_MODULE_VSG OR CH_ENABLE_MODULE_OPENGL)
+    if(CH_ENABLE_MODULE_FSI)
       set(DEMOS ${DEMOS}
           demo_ROBOT_Viper_SPH
       )
@@ -46,41 +46,41 @@ endif()
 list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoModels_robot")
 
-if(ENABLE_MODULE_VEHICLE)
+if(CH_ENABLE_MODULE_VEHICLE)
   list(APPEND LIBS "ChronoEngine_vehicle")
 endif()
 
-if(ENABLE_MODULE_SENSOR)
+if(CH_ENABLE_MODULE_SENSOR)
   list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
   list(APPEND LIBS "ChronoEngine_fsisph")
 endif()
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBS "ChronoEngine_irrlicht")
-    if(ENABLE_MODULE_VEHICLE)
+    if(CH_ENABLE_MODULE_VEHICLE)
       list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
     endif()
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vsg")
-    if(ENABLE_MODULE_VEHICLE) 
+    if(CH_ENABLE_MODULE_VEHICLE) 
       list(APPEND LIBS "ChronoEngine_vehicle_vsg")
     endif()
-    if(ENABLE_MODULE_FSI)
+    if(CH_ENABLE_MODULE_FSI)
       list(APPEND LIBS "ChronoEngine_fsisph_vsg")
     endif()
 endif()
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     list(APPEND LIBS "ChronoEngine_opengl")
-    if(ENABLE_MODULE_VEHICLE) 
+    if(CH_ENABLE_MODULE_VEHICLE) 
       list(APPEND LIBS "ChronoEngine_vehicle_opengl")
     endif()
-    if(ENABLE_MODULE_FSI)
+    if(CH_ENABLE_MODULE_FSI)
       list(APPEND LIBS "ChronoEngine_fsisph_opengl")
     endif()
 endif()

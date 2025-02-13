@@ -7,13 +7,13 @@
 
 set(DEMOS "")
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     set(DEMOS ${DEMOS}
         demo_VEH_RenderJSON_GL
     )
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_RenderJSON_VSG
     )
@@ -25,15 +25,15 @@ endif()
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 
-if(ENABLE_MODULE_OPENGL)
+if(CH_ENABLE_MODULE_OPENGL)
     list(APPEND LIBS "ChronoEngine_opengl")
 endif()
 

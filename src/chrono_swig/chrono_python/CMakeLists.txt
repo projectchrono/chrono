@@ -4,10 +4,10 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_PYTHON "Enable the Chrono Python module" OFF)
+option(CH_ENABLE_MODULE_PYTHON "Enable the Chrono Python module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_PYTHON)
+if(NOT CH_ENABLE_MODULE_PYTHON)
   mark_as_advanced(FORCE SWIG_EXECUTABLE)
   return()
 endif()
@@ -98,10 +98,10 @@ endif()
 # Prepare replacement variables for init.py
 set(ADD_CUDA_DLL "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  if(ENABLE_MODULE_SENSOR)
+  if(CH_ENABLE_MODULE_SENSOR)
     set(ADD_CUDA_DLL "os.add_dll_directory('${CUDA_BINARY_DIR}')")
   endif()
-  if(ENABLE_MODULE_CASCADE)
+  if(CH_ENABLE_MODULE_CASCADE)
     set(ADD_OCC_DLL "os.add_dll_directory('${OpenCASCADE_BINARY_DIR}')")
   endif()
 endif()
@@ -111,7 +111,7 @@ endif()
 # Path to Chrono data/ directory (in SOURCE tree)
 set(PYC_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 
-if(USE_CUDA_NVRTC)
+if(CH_USE_CUDA_NVRTC)
   set(PYC_SHADER_PATH "${PROJECT_SOURCE_DIR}/src/chrono_sensor/optix/shaders/")
 else()
   set(PYC_SHADER_PATH "${CMAKE_BINARY_DIR}/lib/sensor_ptx/")
@@ -254,7 +254,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_python/__init__.py.install"
 # MODULE for the postprocess python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
 
   message(STATUS "Add python POSTPROCESS module")
 
@@ -414,7 +414,7 @@ endif()
 
 
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
 
   message(STATUS "Add python IRRLICHT module")
 
@@ -493,7 +493,7 @@ endif()
 # MODULE for the Pardiso mkl python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
 
   message(STATUS "Add python PardisoMKL module")
 
@@ -576,7 +576,7 @@ endif()
 # MODULE for the cascade python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_CASCADE)
+if(CH_ENABLE_MODULE_CASCADE)
 
   message(STATUS "Add python CASCADE module")
 
@@ -667,7 +667,7 @@ endif()
 # MODULE for the vehicle python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
+if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
   message(STATUS "Add python VEHICLE module")
 
@@ -684,13 +684,13 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
 
   # Make sure CHRONO_IRRLICHT is defined for the SWIG processor
-  if (ENABLE_MODULE_IRRLICHT)
+  if (CH_ENABLE_MODULE_IRRLICHT)
     set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
 
   swig_add_library(vehicle LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   target_link_libraries(vehicle PRIVATE Python3::Python ChronoEngine ChronoEngine_vehicle ChronoModels_vehicle)
-  if(ENABLE_MODULE_IRRLICHT)
+  if(CH_ENABLE_MODULE_IRRLICHT)
     find_package(Irrlicht)
     target_link_libraries(vehicle PRIVATE ChronoEngine_vehicle_irrlicht ChronoEngine_irrlicht Irrlicht::Irrlicht)
   endif()
@@ -730,7 +730,7 @@ if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
 
   add_dependencies(vehicle ChronoEngine)
   add_dependencies(vehicle ChronoEngine_vehicle)
-  if(ENABLE_MODULE_IRRLICHT)
+  if(CH_ENABLE_MODULE_IRRLICHT)
     add_dependencies(vehicle ChronoEngine_irrlicht)
   endif()
   add_dependencies(vehicle ChronoModels_vehicle)
@@ -769,7 +769,7 @@ endif()
 # MODULE for the sensor python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
+if(CH_ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
 
   message(STATUS "Add python SENSOR module")
 
@@ -928,7 +928,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 # Only build if have URDF for now
-if(ENABLE_MODULE_PARSERS AND HAVE_URDF)
+if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   message(STATUS "Add python PARSERS module")
 
   # Interface files
@@ -1011,7 +1011,7 @@ endif()
 # MODULE for the ros python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_ROS)
+if(CH_ENABLE_MODULE_ROS)
   message(STATUS "Add python ROS module")
 
   # Force C++17, required by ROS Humble
@@ -1026,10 +1026,10 @@ if(ENABLE_MODULE_ROS)
 
 
   # Make sure CHRONO_PARSERS_URDF and/or CHRONO_SENSOR is defined for the SWIG processor
-  if (ENABLE_MODULE_PARSERS AND HAVE_URDF)
+  if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
     set(CHRONO_SENSOR_SWIG_FLAGS "${CHRONO_SWIG_FLAGS};-DCHRONO_PARSERS_URDF")
   endif()
-  if (ENABLE_MODULE_SENSOR)
+  if (CH_ENABLE_MODULE_SENSOR)
     set(CHRONO_SENSOR_SWIG_FLAGS "${CHRONO_SENSOR_SWIG_FLAGS};-DCHRONO_SENSOR")
   endif()
 

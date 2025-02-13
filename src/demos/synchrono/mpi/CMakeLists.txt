@@ -7,7 +7,7 @@ set(DEMOS
     demo_SYN_scm_tracked
 )
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_SYN_wheeled
        demo_SYN_tracked
@@ -24,7 +24,7 @@ list(APPEND LIBS ChronoEngine_synchrono)
 list(APPEND LIBS ChronoModels_vehicle)
 list(APPEND LIBS ChronoModels_robot)
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS ChronoEngine_irrlicht)
 endif()
 

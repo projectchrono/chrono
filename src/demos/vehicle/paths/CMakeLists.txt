@@ -3,7 +3,7 @@
 # Requires Chrono:Postprocess for Gnuplot visualization.
 #=============================================================================
 
-IF(NOT ENABLE_MODULE_POSTPROCESS)
+IF(NOT CH_ENABLE_MODULE_POSTPROCESS)
     RETURN()
 ENDIF()
 

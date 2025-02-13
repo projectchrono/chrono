@@ -19,7 +19,7 @@ endif()
 
 set(LIBRARIES ChronoEngine ChronoEngine_modal)
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
 endif()
 

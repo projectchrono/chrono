@@ -2,10 +2,10 @@
 # CMake configuration file for the Chrono OpenCASCADE module
 #=============================================================================
 
-option(ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
+option(CH_ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_CASCADE)
+if(NOT CH_ENABLE_MODULE_CASCADE)
   mark_as_advanced(FORCE OpenCASCADE_DIR)
   return()
 endif()
@@ -32,7 +32,7 @@ set(ChronoEngine_CASCADE_HEADERS
     ChVisualShapeCascade.h
     ChCascadeBodyEasy.h
 )
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(ChronoEngine_CASCADE_HEADERS ${ChronoEngine_CASCADE_HEADERS}
         ChCascadeIrrMeshTools.h)
 endif()
@@ -50,7 +50,7 @@ find_package(OpenCASCADE REQUIRED CONFIG)
 
 if (NOT OpenCASCADE_FOUND)
   message("Could not find OpenCASCADE or one of its required modules; disabling Chrono::Cascade module")
-  set(ENABLE_MODULE_CASCADE OFF CACHE BOOL "Enable the Chrono Cascade module" FORCE)
+  set(CH_ENABLE_MODULE_CASCADE OFF CACHE BOOL "Enable the Chrono Cascade module" FORCE)
   return()
 endif()
 
@@ -107,7 +107,7 @@ message(STATUS "Linked OpenCascade libraries: ${OCCT_LIBS}")
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_CASCADE "")
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   list (APPEND DEPENDENCIES_CASCADE "IRRLICHT")
 endif()
 
@@ -138,7 +138,7 @@ target_include_directories(ChronoEngine_cascade SYSTEM PUBLIC ${OpenCASCADE_INCL
 target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
 
 target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine)
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
   target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine_irrlicht)
 endif()
 

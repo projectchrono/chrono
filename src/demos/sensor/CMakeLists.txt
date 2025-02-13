@@ -14,7 +14,7 @@ set(DEMOS
 )
 
 # Demos that combine sensor simulation with vehicle dynamics
-if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
+if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
     set(DEMOS ${DEMOS}
       demo_SEN_HMMWV
       demo_SEN_Gator
@@ -23,7 +23,7 @@ if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MO
 endif()
 
 # Demos that require tensorrt
-if(USE_TENSOR_RT)
+if(CH_USE_TENSOR_RT)
     set(DEMOS ${DEMOS}
       demo_SEN_NNCamera
     )
@@ -35,16 +35,16 @@ endif()
 list(APPEND LIBRARIES "ChronoEngine")
 list(APPEND LIBRARIES "ChronoEngine_sensor")
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     list(APPEND LIBRARIES "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VEHICLE) 
-   if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_VEHICLE) 
+   if(CH_ENABLE_MODULE_IRRLICHT)
       list(APPEND LIBRARIES "ChronoEngine_vehicle")
       list(APPEND LIBRARIES "ChronoEngine_vehicle_irrlicht")
    endif()
-   if(ENABLE_MODULE_VEHICLE_MODELS)
+   if(CH_ENABLE_MODULE_VEHICLE_MODELS)
       list(APPEND LIBRARIES "ChronoModels_vehicle")
    endif()
 endif()
