@@ -39,12 +39,14 @@ endif()
 
 # --------------------------------------------------------
 
-add_library(ChronoEngine_matlab 
-            ${ChronoEngine_MATLAB_SOURCES}
-            ${ChronoEngine_MATLAB_HEADERS})
-            
-add_library(ChronoEngine::ChronoEngine_matlab ALIAS ChronoEngine_matlab)
+add_library(ChronoEngine_matlab ${ChronoEngine_MATLAB_SOURCES} ${ChronoEngine_MATLAB_HEADERS})
+add_library(ChronoEngine::matlab ALIAS ChronoEngine_matlab)
  
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_matlab PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_matlab PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
 target_link_libraries(ChronoEngine_matlab PRIVATE ChronoEngine)
 
 target_link_libraries(ChronoEngine_matlab PRIVATE Matlab::MatlabEngine) # C++

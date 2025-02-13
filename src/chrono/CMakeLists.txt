@@ -1331,6 +1331,11 @@ endif()
 add_library(ChronoEngine ${ChronoEngine_FILES})
 add_library(ChronoEngine::ChronoEngine ALIAS ChronoEngine)
 
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
 # TODO DARIOM: CH_INCLUDES_BUILD can be removed, used only here now
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
@@ -1487,14 +1492,11 @@ endif()
 # Globally define debug and NOT-debug macros based on build type 
 target_compile_definitions(ChronoEngine PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:DEBUG>:DEBUG>>
-	$<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:DEBUG>:_DEBUG>>
-	$<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:RELEASE>:NDEBUG>>
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:DEBUG>:_DEBUG>>
+    $<$<COMPILE_LANGUAGE:CXX>:$<$<CONFIG:RELEASE>:NDEBUG>>
 )
 
 target_compile_features(ChronoEngine PUBLIC ${CHRONO_CXX_STANDARD})
-
-# Set some custom properties of this target
-# set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_LIB}")
 
 target_compile_definitions(ChronoEngine PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE>)
 target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_IGNORE_DEPRECATED>)

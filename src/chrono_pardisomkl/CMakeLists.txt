@@ -115,6 +115,13 @@ source_group("" FILES ${ChronoEngine_PardisoMKL_HEADERS} ${ChronoEngine_PardisoM
 add_library(ChronoEngine_pardisomkl
             ${ChronoEngine_PardisoMKL_SOURCES}
             ${ChronoEngine_PardisoMKL_HEADERS})
+add_library(ChronoEngine::pardisomkl ALIAS ChronoEngine_pardisomkl)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_pardisomkl PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_pardisomkl PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
 
 target_link_libraries(ChronoEngine_pardisomkl
                       ChronoEngine

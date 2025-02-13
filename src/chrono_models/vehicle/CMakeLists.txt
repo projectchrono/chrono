@@ -1023,7 +1023,12 @@ add_library(ChronoModels_vehicle
     ${CVM_KRAZ_FILES}
  )
 
-add_library(ChronoEngine::ModelsVehicle ALIAS ChronoModels_vehicle)
+add_library(ChronoEngine::models_vehicle ALIAS ChronoModels_vehicle)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoModels_vehicle PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoModels_vehicle PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
 

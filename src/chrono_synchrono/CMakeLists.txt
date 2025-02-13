@@ -157,15 +157,21 @@ set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
 #-----------------------------------------------------------------------------
 
 add_library(ChronoEngine_synchrono
-	${SYN_BASE_FILES}
-	${SYN_CONTROLLER_FILES}
+    ${SYN_BASE_FILES}
+    ${SYN_CONTROLLER_FILES}
     ${SYN_AGENT_FILES}
     ${SYN_COMMUNICATION_FILES}
     ${SYN_FLATBUFFER_FILES}
     ${SYN_UTILS_FILES}
 )
+add_library(ChronoEngine::synchrono ALIAS ChronoEngine_synchrono)
 
-# windows builds should disable warning 4661 and 4005
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_synchrono PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_synchrono PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
+# Windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_compile_options(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
     target_compile_options(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)

@@ -88,8 +88,12 @@ add_library(ChronoModels_robot
             ${CRM_COPTERS_FILES}
             ${CRM_INDUSTRIAL_FILES}
             )
+add_library(ChronoEngine::models_robot ALIAS ChronoModels_robot)
 
-add_library(ChronoEngine::ChronoModels_robot ALIAS ChronoModels_robot)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoModels_robot PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoModels_robot PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 

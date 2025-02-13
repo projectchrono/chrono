@@ -156,8 +156,12 @@ add_library(ChronoEngine_multicore
   ${ChronoEngine_Multicore_CONSTRAINTS}
   ${ChronoEngine_Multicore_SOLVER}
 )
+add_library(ChronoEngine::multicore ALIAS ChronoEngine_multicore)
 
-add_library(ChronoEngine::ChronoEngine_multicore ALIAS ChronoEngine_multicore)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_multicore PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_multicore PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})

@@ -170,7 +170,7 @@ add_library(ChronoEngine_fsisph
     ${FSISPH_VIS_FILES}
     ${FSISPH_STB_FILES}
 )
-add_library(ChronoEngine::fsi_sph ALIAS ChronoEngine_fsisph)
+add_library(ChronoEngine::fsisph ALIAS ChronoEngine_fsisph)
 
 target_link_libraries(ChronoEngine_fsisph PRIVATE ChronoEngine)
 

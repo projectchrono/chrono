@@ -53,6 +53,12 @@ add_definitions("-D_OPENMP_NOFORCE_MANIFEST")
 add_library(ChronoEngine_mumps 
             ${ChronoEngine_MUMPS_SOURCES}
             ${ChronoEngine_MUMPS_HEADERS})
+add_library(ChronoEngine::mumps ALIAS ChronoEngine_mumps)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_mumps PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_mumps PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
 target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")

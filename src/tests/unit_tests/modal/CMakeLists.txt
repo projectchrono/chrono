@@ -17,13 +17,9 @@ else()
   set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES ChronoEngine ChronoEngine_modal)
 
 if(ENABLE_MODULE_PARDISO_MKL)
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
     list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
 endif()
 
@@ -36,10 +32,6 @@ foreach(PROGRAM ${TESTS})
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")
 
-  set_target_properties(${PROGRAM}  PROPERTIES
-    FOLDER tests
-    COMPILE_FLAGS "${COMPILER_FLAGS}"
-    LINK_FLAGS "${LINKER_FLAGS}")
   set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   target_include_directories(${PROGRAM} PRIVATE "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty")
   target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)

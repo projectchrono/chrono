@@ -1,5 +1,4 @@
 set(LIBRARIES ChronoEngine)
-include_directories( ${CH_INCLUDES} )
 
 set(TESTS
     utest_COLL_bullet_utils

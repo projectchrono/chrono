@@ -15,10 +15,6 @@ SET(LIBRARIES
 
 if(ENABLE_MODULE_OPENGL)
     set(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-
-#    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#       set (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-#    endif()
 endif()
 
 # ------------------------------------------------------------------------------

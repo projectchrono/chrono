@@ -885,6 +885,8 @@ set(DEPENDENCIES_VEHICLE ${DEPENDENCIES_VEHICLE} PARENT_SCOPE)
 # Add the ChronoEngine_vehicle library
 # ----------------------------------------------------------------------------
 
+message(STATUS "Add ChronoEngine_vehicle library")
+
 add_library(ChronoEngine_vehicle
 #
     ${CV_BASE_FILES}
@@ -924,17 +926,18 @@ add_library(ChronoEngine_vehicle
     ${CV_STB_FILES}
 )
 
-message(STATUS "Add ChronoEngine_vehicle library")
-
 add_library(ChronoEngine::vehicle ALIAS ChronoEngine_vehicle)
 
-target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_vehicle PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_vehicle PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
+target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine)
 
 if(MSVC)
   set_target_properties(ChronoEngine_vehicle PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
-
 
 if(HAVE_OPENCRG)
   target_link_libraries(ChronoEngine_vehicle PRIVATE OpenCRG::OpenCRG)
@@ -979,6 +982,11 @@ if(ENABLE_MODULE_IRRLICHT)
     )
     add_library(ChronoEngine::vehicle_irrlicht ALIAS ChronoEngine_vehicle_irrlicht)
 
+    if(CH_WHOLE_PROG_OPT)
+      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
+      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
+    endif()
+
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC ChronoEngine_irrlicht)
 
@@ -1015,6 +1023,11 @@ if(ENABLE_MODULE_VSG)
     )
     add_library(ChronoEngine::vehicle_vsg ALIAS ChronoEngine_vehicle_vsg)
 
+    if(CH_WHOLE_PROG_OPT)
+      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES COMPILE_FLAGS "/GL")
+      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES LINK_FLAGS "/LTCG")
+    endif()
+
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
     target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle)
@@ -1044,6 +1057,11 @@ if(ENABLE_MODULE_OPENGL)
         ${CVGL_FILES}
     )
     add_library(ChronoEngine::vehicle_opengl ALIAS ChronoEngine_vehicle_opengl)
+
+    if(CH_WHOLE_PROG_OPT)
+      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES COMPILE_FLAGS "/GL")
+      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES LINK_FLAGS "/LTCG")
+    endif()
 
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 

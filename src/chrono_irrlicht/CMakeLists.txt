@@ -61,8 +61,12 @@ set(CH_IRRLICHT_DLL ${IRRLICHT_DLL} PARENT_SCOPE)
 # Create the ChronoEngine_irrlicht library
 
 add_library(ChronoEngine_irrlicht ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
+add_library(ChronoEngine::irrlicht ALIAS ChronoEngine_irrlicht)
 
-add_library(ChronoEngine::ChronoEngine_irrlicht ALIAS ChronoEngine_irrlicht)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})

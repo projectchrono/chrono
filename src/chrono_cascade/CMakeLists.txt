@@ -117,6 +117,12 @@ set(DEPENDENCIES_CASCADE ${DEPENDENCIES_CASCADE} PARENT_SCOPE)
 # Add the ChronoEngine_cascade library
 
 add_library(ChronoEngine_cascade ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
+add_library(ChronoEngine::cascade ALIAS ChronoEngine_cascade)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_cascade PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_cascade PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 if(WIN32)
     target_compile_definitions(ChronoEngine_cascade PRIVATE WNT)

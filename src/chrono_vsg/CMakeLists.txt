@@ -121,6 +121,12 @@ add_library(ChronoEngine_vsg
             ${CE_VSG_RESOURCES_FILES}
             ${CE_VSG_UTILS_FILES}
             ${CE_VSG_STB_FILES})
+add_library(ChronoEngine::vsg ALIAS ChronoEngine_vsg)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_vsg PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_vsg PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoEngine_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VSG>)
 

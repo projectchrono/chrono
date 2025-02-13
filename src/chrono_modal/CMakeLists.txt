@@ -8,8 +8,8 @@ option(ENABLE_MODULE_MODAL "Enable the Chrono Modal module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_MODULE_MODAL)
-	MARK_AS_ADVANCED(FORCE Spectra_INCLUDE_DIR)
-	RETURN()
+  MARK_AS_ADVANCED(FORCE Spectra_INCLUDE_DIR)
+  RETURN()
 ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono Modal module ====\n")
@@ -49,13 +49,11 @@ if(ENABLE_MODULE_IRRLICHT)
   )
 endif()
 
-SOURCE_GROUP("" FILES 
-            ${ChronoEngine_MODAL_SOURCES} 
-            ${ChronoEngine_MODAL_HEADERS})
+SOURCE_GROUP("" FILES ${ChronoEngine_MODAL_SOURCES} ${ChronoEngine_MODAL_HEADERS})
 
-#-----------------------------------------------------------------------------	
+#-----------------------------------------------------------------------------
 # Find Spectra
-#-----------------------------------------------------------------------------	
+#-----------------------------------------------------------------------------
 
 set(Spectra_INCLUDE_DIR "spectra/include" CACHE PATH "Path to Spectra include directory, shall contain the subdirectory named 'Spectra'.")
 
@@ -72,16 +70,18 @@ endif()
 
 set(DEPENDENCIES_MODAL ${DEPENDENCIES_MODAL} PARENT_SCOPE)
 
-#-----------------------------------------------------------------------------	
+#-----------------------------------------------------------------------------
 # Add the ChronoEngine_modal library
-#-------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_modal 
-			${ChronoEngine_MODAL_SOURCES}
-			${ChronoEngine_MODAL_HEADERS})
+add_library(ChronoEngine_modal ${ChronoEngine_MODAL_SOURCES} ${ChronoEngine_MODAL_HEADERS})
+add_library(ChronoEngine::modal ALIAS ChronoEngine_modal)
 
-add_library(ChronoEngine::ChronoEngine_modal ALIAS ChronoEngine_modal)
-                          
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_modal PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_modal PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
 target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODAL>)
 
 target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
@@ -90,14 +90,14 @@ target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
 if(MSVC)
   set_target_properties(ChronoEngine_modal PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
-	
+
 install(TARGETS ChronoEngine_modal
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_modal
-        )		
+        )
 
 #-------------------------------------------------------------------------------
 # Install files

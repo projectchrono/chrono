@@ -346,14 +346,11 @@ endif()
 
 add_library(ChronoEngine_sensor ${ALL_CH_SENSOR_FILES}
                                 ${ChronoEngine_sensor_CUDA_SOURCES})
-
-add_library(ChronoEngine::ChronoEngine_sensor ALIAS ChronoEngine_sensor)
-
+add_library(ChronoEngine::sensor ALIAS ChronoEngine_sensor)
 
 if(MSVC)
   set_target_properties(ChronoEngine_sensor PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
-
 
 # ------------------------------------------------------------------------------
 # Find and set everything needed for OptiX

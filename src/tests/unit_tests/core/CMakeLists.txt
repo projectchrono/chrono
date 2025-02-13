@@ -1,5 +1,4 @@
 SET(LIBRARIES ChronoEngine)
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
     utest_CH_archive
@@ -13,8 +12,6 @@ SET(TESTS
     utest_CH_sparsematrix
     utest_CH_ISO2631
 )
-
-
 
 MESSAGE(STATUS "Add unit test programs for CORE module")
 
@@ -35,5 +32,4 @@ FOREACH(PROGRAM ${TESTS})
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 ENDFOREACH(PROGRAM)
-
 

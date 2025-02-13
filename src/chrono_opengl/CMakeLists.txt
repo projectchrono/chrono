@@ -242,8 +242,12 @@ add_library(ChronoEngine_opengl
             ${CE_OpenGL_STB_FILES}
             ${CE_OpenGL_TINYOBJLOADER_FILES}
 )
+add_library(ChronoEngine::opengl ALIAS ChronoEngine_opengl)
 
-add_library(ChronoEngine::ChronoEngine_opengl ALIAS ChronoEngine_opengl)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_opengl PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_opengl PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   target_compile_options(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"-s FULL_ES3=1 -s USE_GLFW=3">)

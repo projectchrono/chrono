@@ -53,8 +53,12 @@ set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 #-----------------------------------------------------------------------------
 
 add_library(ChronoEngine_parsers ${ChronoEngine_PARSERS_SOURCES} ${ChronoEngine_PARSERS_HEADERS})
+add_library(ChronoEngine::parsers ALIAS ChronoEngine_parsers)
 
-add_library(ChronoEngine::ChronoEngine_parsers ALIAS ChronoEngine_parsers)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_parsers PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_parsers PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoEngine_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_PARSERS>)
 

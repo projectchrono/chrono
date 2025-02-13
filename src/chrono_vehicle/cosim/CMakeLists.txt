@@ -129,8 +129,12 @@ add_library(ChronoEngine_vehicle_cosim
     ${CV_COSIM_TIRE_FILES}
     ${CV_COSIM_TERRAIN_FILES}
 )
+add_library(ChronoEngine::vehicle_cosim ALIAS ChronoEngine_vehicle_cosim)
 
-add_library(ChronoEngine::ChronoEngine_vehicle_cosim ALIAS ChronoEngine_vehicle_cosim)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
 

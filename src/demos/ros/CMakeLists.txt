@@ -56,13 +56,6 @@ if(ENABLE_MODULE_SENSOR)
   list(APPEND LIBS "ChronoEngine_sensor")
 endif()
 
-#--------------------------------------------------------------
-# OS-specific settings
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-endif()
-
 # ------------------------------------------------------------------------------
 # Add all executables
 # ------------------------------------------------------------------------------

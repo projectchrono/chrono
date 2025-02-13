@@ -48,10 +48,14 @@ source_group("" FILES
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
-add_library(ChronoEngine_postprocess 
-			${ChronoEngine_POSTPROCESS_SOURCES}
-			${ChronoEngine_POSTPROCESS_HEADERS})
-                          
+add_library(ChronoEngine_postprocess ${ChronoEngine_POSTPROCESS_SOURCES} ${ChronoEngine_POSTPROCESS_HEADERS})
+add_library(ChronoEngine::postprocess ALIAS ChronoEngine_postprocess)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_postprocess PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_postprocess PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
 target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
 
 target_link_libraries(ChronoEngine_postprocess PRIVATE ChronoEngine)
@@ -60,13 +64,12 @@ if(MSVC)
   set_target_properties(ChronoEngine_postprocess PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-	
 install(TARGETS ChronoEngine_postprocess
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include/chrono_vehicle)		
+        INCLUDES DESTINATION include/chrono_vehicle)
 
 #-------------------------------------------------------------------------------
 # Install files
