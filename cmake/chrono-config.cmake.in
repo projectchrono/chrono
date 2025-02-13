@@ -25,8 +25,6 @@
 #       MSVC run-time library used in building Chrono
 # CHRONO_DLL_NAMES
 #       (Windows) list of Chrono DLLs (without path)
-# CHRONO_DEPENDENCY_DLLS
-#       (Windows) list of Chrono dependency DLLs (with full path)
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
 #       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono are wrapped)
@@ -372,7 +370,6 @@ if (NOT CHRONO_STATIC)
   list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
   list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
 endif()
-list(APPEND CHRONO_DEPENDENCY_DLLS "")
 
 #-------------------------------------------------------------------------------
 # Loop over the list of requested components
@@ -457,8 +454,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
       endif()
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "MULTICORE")
@@ -529,7 +524,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
-      list(APPEND CHRONO_DEPENDENCY_DLLS "${IRRLICHT_DLL}")
 
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
@@ -691,11 +685,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
       endif()
-      #list(APPEND CHRONO_DEPENDENCY_DLLS "@optix_DLL@")
-      if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
-        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLEW_DLL@")
-        list(APPEND CHRONO_DEPENDENCY_DLLS "@GLFW_DLL@")
-      endif()
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
@@ -851,7 +840,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
       endif()
-      list(APPEND CHRONO_DEPENDENCY_DLLS "@MUMPS_SHARED_LIBRARIES@")
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
@@ -1095,7 +1083,6 @@ endif()
 # If not on Windows, clear the lists of DLLs
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CHRONO_DLL_NAMES "")
-  set(CHRONO_DEPENDENCY_DLLS "")
 endif()
 
 #-------------------------------------------------------------------------------
@@ -1122,7 +1109,6 @@ if(NOT Chrono_FIND_QUIETLY)
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     message(STATUS "  CHRONO_DLL_NAMES         (Chrono DLLs): ${CHRONO_DLL_NAMES}")
-    message(STATUS "  CHRONO_DEPENDENCY_DLLS   (Dependency DLLs): ${CHRONO_DEPENDENCY_DLLS}")
   endif()
 
 endif()
@@ -1149,25 +1135,11 @@ function(add_DLL_copy_command)
     message(STATUS "\nAdd custom commands for copying DLLs")
     
     if(${ARGC} GREATER 0)
-      message(STATUS "DLLs from provided lists will be copied to runtime folder")
+      message(STATUS "DLLs from provided list will be copied to runtime folder")
       set(DLL_NAMES ${ARGV0})
-      set(DEPENDENCY_DLLS ${ARGV1})
-
-      #message(STATUS "Chrono libraries (if found for the given configuration)")
-      #message(STATUS "Search for DLLs in ${CHRONO_PACKAGE_PREFIX_DIR}/bin")
-      #foreach(chrono_dll ${DLL_NAMES})
-      #  message(STATUS "...${chrono_dll}")
-      #endforeach()
-      #
-      #message(STATUS "Dependencies")
-      #foreach(dep_dll ${DEPENDENCY_DLLS})
-      #  message(STATUS "...${dep_dll}")
-      #endforeach()
-
     else()
-      message(STATUS "CHRONO_DEPENDENCY_DLLS and libraries listed in CHRONO_DLL_NAMES (if found for the given configuration) will be copied automatically to runtime folder")
+      message(STATUS "All libraries in CHRONO_DLL_NAMES (if found for the given configuration) will be copied automatically to runtime folder")
       set(DLL_NAMES ${CHRONO_DLL_NAMES})
-      set(DEPENDENCY_DLLS ${CHRONO_DEPENDENCY_DLLS})
     endif()
 
     get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -1185,7 +1157,6 @@ function(add_DLL_copy_command)
 
     # Remove duplicates in lists
     list(REMOVE_DUPLICATES DLL_NAMES)
-    list(REMOVE_DUPLICATES DEPENDENCY_DLLS)
 
     # Find actual Chrono DLLs
 
@@ -1264,23 +1235,7 @@ function(add_DLL_copy_command)
                   "$<$<CONFIG:${config}>:${DLL}>"
                   "$<$<CONFIG:${config}>:${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}>"
           )
-          # message(STATUS "...${DLL}")
       endforeach()
-
-      # copy dependencies DLLs in configuration-specific folder
-      foreach(DLL ${DEPENDENCY_DLLS})
-          add_custom_command(
-              TARGET COPY_DLLS POST_BUILD
-              COMMENT "Copying DLL dependency ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"
-              COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
-              "$<$<CONFIG:${config}>:-E>"
-              "$<$<CONFIG:${config}>:copy_if_different>"
-              "$<$<CONFIG:${config}>:${DLL}>"
-              "$<$<CONFIG:${config}>:${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}>"
-          )
-          # message(STATUS "...${DLL}")
-      endforeach()
-
 
     endforeach()
     unset(TEMP_RUNTIME_OUTPUT_DIRECTORY_CONFIG)
