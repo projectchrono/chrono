@@ -56,17 +56,17 @@ BUILD_DIR="$HOME/Build/chrono"
 INSTALL_DIR="$HOME/Install/chrono"
 
 EIGEN3_INSTALL_DIR="$HOMEBREW_PREFIX/include/eigen3"
-IRRLICHT_INSTALL_DIR="$HOMEBREW_PREFIX/include/irrlicht"
+IRRLICHT_ROOT="$HOMEBREW_PREFIX/include/irrlicht"
 
-BLAZE_INSTALL_DIR="$HOME/Packages/blaze-3.8"
-THRUST_INSTALL_DIR="$HOME/Packages/thrust"
+BLAZE_ROOT="$HOME/Packages/blaze-3.8"
+THRUST_INCLUDE_DIR="$HOME/Packages/thrust"
 CRG_INSTALL_DIR="$HOME/Packages/OpenCRG"
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
 URDF_INSTALL_DIR="C:/Packages/urdf"
 
 CASCADE_INSTALL_DIR="/usr/local/include/opencascade"
-SPECTRA_INSTALL_DIR="/usr/local/include"
+SPECTRA_INCLUDE_DIR="/usr/local/include"
 
 SWIG_EXE="swig"
 
@@ -101,13 +101,13 @@ cmake -G "${BUILDSYSTEM}" -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DOpenMP_C_LIB_NAMES:STRING=libomp \
       -DOpenMP_CXX_LIB_NAMES:STRING=libomp \
       -DOpenMP_libomp_LIBRARY:FILEPATH="$HOMEBREW_PREFIX/opt/libomp/lib/libomp.dylib" \
-      -DTHRUST_INCLUDE_DIR:PATH=${THRUST_INSTALL_DIR} \
-      -DBLAZE_INSTALL_DIR:PATH=${BLAZE_INSTALL_DIR} \
-      -DIRRLICHT_INSTALL_DIR:PATH=${IRRLICHT_INSTALL_DIR} \
+      -DTHRUST_INCLUDE_DIR:PATH=${THRUST_INCLUDE_DIR} \
+      -DBlaze_ROOT:PATH=${BLAZE_ROOT} \
+      -DIrrlicht_ROOT:PATH=${IRRLICHT_ROOT} \
       -DOpenCRG_INCLUDE_DIR:PATH=${CRG_INSTALL_DIR}/include \
       -DOpenCRG_LIBRARY:FILEPATH=${CRG_INSTALL_DIR}/lib/libOpenCRG.a \
       -DOpenCASCADE_DIR:PATH=${CASCADE_INSTALL_DIR}/lib/cmake/opencascade \
-      -DSPECTRA_INCLUDE_DIR:PATH=${SPECTRA_INSTALL_DIR} \
+      -DSpectra_INCLUDE_DIR:PATH=${SPECTRA_INCLUDE_DIR} \
       -Durdfdom_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
       -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/CMake \
       -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/CMake \

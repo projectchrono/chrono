@@ -24,23 +24,21 @@ BUILD_DIR="$HOME/Build/chrono"
 INSTALL_DIR="$HOME/Install/chrono"
 
 EIGEN3_INSTALL_DIR="$HOME/Packages/eigen-3.4.0"
-BLAZE_INSTALL_DIR="$HOME/Packages/blaze-3.8"
-THRUST_INSTALL_DIR="$HOME/Packages/thrust"
+BLAZE_ROOT="$HOME/Packages/blaze-3.8"
 CASCADE_INSTALL_DIR="$HOME/Packages/opencascade-7.4.0"
-SPECTRA_INSTALL_DIR="$HOME/Packages/spectra"
+SPECTRA_INCLUDE_DIR="$HOME/Packages/spectra/include"
 
 CRG_INCLUDE_DIR="${HOME}/Packages/OpenCRG/include"
 CRG_LIBRARY="$HOME/Packages/OpenCRG/lib/libOpenCRG.1.1.2.a"
 
-IRRLICHT_INSTALL_DIR="$HOME/Packages/irrlicht-1.8.5/include"
-IRRLICHT_LIBRARY="$HOME/Packages/irrlicht-1.8.5/lib/libirlicht.so"
+IRRLICHT_ROOT="$HOME/Packages/irrlicht-1.8.5"
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 GL_INSTALL_DIR="$HOME/Packages/gl"
 
 URDF_INSTALL_DIR="C:/Packages/urdf"
 
 OPTIX_INSTALL_DIR="$HOME/Packages/optix-7.5.0"
-FASTRTPS_INSTALL_DIR="$HOME/Packages/fastrtps-2.4.0"
+FASTDDS_INSTALL_DIR="$HOME/Packages/fastrtps-2.4.0"
 
 SWIG_EXE="swig"
 
@@ -76,19 +74,17 @@ cmake -G ${BUILDSYSTEM} -B ${BUILD_DIR} -S ${SOURCE_DIR} \
       -DCH_USE_CUDA_NVRTC:BOOL=OFF \
       -DCH_USE_FAST_DDS:BOOL=ON \
       -DEIGEN3_INCLUDE_DIR:PATH=${EIGEN3_INSTALL_DIR} \
-      -DIRRLICHT_INSTALL_DIR:PATH=${IRRLICHT_INSTALL_DIR} \
-      -DIRRLICHT_LIBRARY:FILEPATH=${IRRLICHT_LIBRARY} \
-      -DBLAZE_INSTALL_DIR:PATH=${BLAZE_INSTALL_DIR} \
-      -DTHRUST_INCLUDE_DIR:PATH=${THRUST_INSTALL_DIR} \
+      -DIrrlicht_ROOT:PATH=${IRRLICHT_ROOT} \
+      -DBlaze_ROOT:PATH=${BLAZE_ROOT} \
       -DOptiX_INSTALL_DIR:PATH=${OPTIX_INSTALL_DIR} \
-      -Dfastrtps_INSTALL_DIR:PATH=${FASTRTPS_INSTALL_DIR} \
+      -FastDDS_ROOT:PATH=${FASTDDS_INSTALL_DIR} \
       -DGLEW_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glew \
       -Dglfw3_DIR=${GL_INSTALL_DIR}/${LIB_DIR}/cmake/glfw3 \
       -DGLM_INCLUDE_DIR:PATH=${GL_INSTALL_DIR}/include \
       -DOpenCRG_INCLUDE_DIR:PATH=${CRG_INCLUDE_DIR} \
       -DOpenCRG_LIBRARY:FILEPATH=${CRG_LIBRARY} \
       -DOpenCASCADE_DIR:PATH=${CASCADE_INSTALL_DIR}/adm \
-      -DSPECTRA_INCLUDE_DIR:PATH=${SPECTRA_INSTALL_DIR}/include \
+      -DSpectra_INCLUDE_DIR:PATH=${SPECTRA_INCLUDE_DIR}/include \
       -DMATLAB_SDK_ROOT:PATH=${MATLAB_INSTALL_DIR}/extern \
       -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsg \
       -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/${LIB_DIR}/cmake/vsgImGui \

@@ -23,14 +23,13 @@ set INSTALL_DIR="C:/Install/chrono"
 
 set EIGEN3_INSTALL_DIR="C:/Packages/eigen"
 
-set BLAZE_INSTALL_DIR="C:/Packages/blaze"
-set SPECTRA_INSTALL_DIR="C:/Packages/spectra"
+set BLAZE_ROOT="C:/Packages/blaze"
+set SPECTRA_INCLUDE_DIR="C:/Packages/spectra/include"
 set CRG_INSTALL_DIR="C:/Packages/openCRG"
 
 set SWIG_INSTALL_DIR="C:/Packages/swigwin"
-set THRUST_INSTALL_DIR="C:/Packages/thrust"
 
-set IRRLICHT_INSTALL_DIR="C:/Packages/irrlicht"
+set IRRLICHT_ROOT="C:/Packages/irrlicht"
 set VSG_INSTALL_DIR="C:/Packages/vsg"
 set GL_INSTALL_DIR="C:/Packages/gl"
 
@@ -39,7 +38,7 @@ set URDF_INSTALL_DIR="C:/Packages/urdf"
 set MATLAB_INSTALL_DIR="C:/Program Files/MATLAB/R2019a"
 set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.4.0-vc14-64/opencascade-7.4.0"
 set OPTIX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0"
-set FASTRTPS_INSTALL_DIR="C:/Program Files/eProsima/fastrtps 2.4.0"
+set FASTDDS_INSTALL_DIR="C:/Program Files/eProsima/fastrtps 2.4.0"
 set PYTHON_EXECUTABLE_DIR="C:/Python39/python.exe"
 
 @rem -------------------------------------------
@@ -74,18 +73,17 @@ cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -DCH_USE_CUDA_NVRTC:BOOL=OFF ^
       -DCH_USE_FAST_DDS:BOOL=ON ^
       -DEIGEN3_INCLUDE_DIR:PATH=%EIGEN3_INSTALL_DIR% ^
-      -DIRRLICHT_INSTALL_DIR:PATH=%IRRLICHT_INSTALL_DIR% ^
-      -DBLAZE_INSTALL_DIR:PATH=%BLAZE_INSTALL_DIR% ^
-      -DTHRUST_INCLUDE_DIR:PATH=%THRUST_INSTALL_DIR% ^
+      -DIrrlicht_ROOT:PATH=%IRRLICHT_ROOT% ^
+      -DBlaze_ROOT:PATH=%BLAZE_ROOT% ^
       -DOptiX_INSTALL_DIR:PATH=%OPTIX_INSTALL_DIR% ^
-      -Dfastrtps_INSTALL_DIR:PATH=%FASTRTPS_INSTALL_DIR% ^
+      -DFastDDS_ROOT:PATH=%FASTDDS_INSTALL_DIR% ^
       -DGLEW_DIR=%GL_INSTALL_DIR%/lib/cmake/glew ^
       -Dglfw3_DIR=%GL_INSTALL_DIR%/lib/cmake/glfw3 ^
       -DGLM_INCLUDE_DIR:PATH=%GL_INSTALL_DIR%/include ^
       -DOpenCRG_INCLUDE_DIR:PATH=%CRG_INSTALL_DIR%%/include ^
       -DOpenCRG_LIBRARY:FILEPATH=%CRG_INSTALL_DIR%%/lib/OpenCRG.lib ^
       -DOpenCASCADE_DIR:PATH=%CASCADE_INSTALL_DIR%/cmake ^
-      -DSPECTRA_INCLUDE_DIR:PATH=%SPECTRA_INSTALL_DIR%/include ^
+      -DSpectra_INCLUDE_DIR:PATH=%SPECTRA_INCLUDE_DIR%/include ^
       -DMATLAB_SDK_ROOT:PATH=%MATLAB_INSTALL_DIR%/extern ^
       -Dvsg_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsg ^
       -DvsgImGui_DIR:PATH=%VSG_INSTALL_DIR%/lib/cmake/vsgImGui ^
