@@ -79,3 +79,16 @@ install(TARGETS ChronoEngine_mumps
 # Old way
 install(FILES ${ChronoEngine_MUMPS_HEADERS} 
         DESTINATION include/chrono_mumps)
+
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
+# TODO (RADU)  This does not actually work for MUMPS because MUMPS::MUMPS is an "umbrella" target. Need to look at the actual MUMPS targets it contains.
+#              OK for now because we usually build MUMPS as static libraries.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  get_target_property(MUMPS_TYPE MUMPS::MUMPS TYPE)
+  if (NOT MUMPS_TYPE STREQUAL STATIC_LIBRARY)
+    get_target_property(MUMPS_DLL MUMPS::MUMPS IMPORTED_LOCATION_RELEASE)
+    if(EXISTS "${MUMPS_DLL}")
+       install(FILES "${MUMPS_DLL}" DESTINATION bin)
+    endif()
+  endif()
+endif()

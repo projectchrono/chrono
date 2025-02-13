@@ -160,3 +160,24 @@ install(TARGETS ChronoEngine_parsers
 # Old way
 install(FILES ${ChronoEngine_PARSERS_HEADERS}
         DESTINATION include/chrono_parsers)
+
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
+if(HAVE_URDF AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    get_target_property(URDFDOM_MODEL_DLL urdfdom::urdfdom_model IMPORTED_LOCATION_RELEASE)
+    get_target_property(URDFDOM_SENSOR_DLL urdfdom::urdfdom_sensor IMPORTED_LOCATION_RELEASE)
+    if(EXISTS "${URDFDOM_MODEL_DLL}")
+      install(FILES "${URDFDOM_MODEL_DLL}" DESTINATION bin)
+    endif()
+    if(EXISTS "${URDFDOM_SENSOR_DLL}")
+      install(FILES "${URDFDOM_SENSOR_DLL}" DESTINATION bin)
+    endif()
+
+    get_target_property(TINYXML2_TYPE tinyxml2::tinyxml2 TYPE)
+    if(NOT TINYXML2_TYPE STREQUAL STATIC_LIBRARY)
+      message(STATUS "  MUMPS library: dynamic")
+      get_target_property(TINYXML2_DLL tinyxml2::tinyxml2 IMPORTED_LOCATION_RELEASE)
+      if(EXISTS "${TINYXML2_DLL}")
+        install(FILES "${TINYXML2_DLL}" DESTINATION bin)
+      endif()
+    endif()
+endif()

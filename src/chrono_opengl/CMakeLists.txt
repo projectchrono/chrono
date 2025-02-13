@@ -8,15 +8,9 @@ option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 # Return now if this module is not enabled
 
 if(NOT ENABLE_MODULE_OPENGL)
-  # Hide Chrono::OpenGL specific variables
   mark_as_advanced(FORCE glm_DIR)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    mark_as_advanced(FORCE GLEW_DLL)
-    mark_as_advanced(FORCE GLFW_DLL)
-  endif()
-
   return()
 endif()
 
@@ -26,10 +20,6 @@ message(STATUS "\n==== Chrono OpenGL module ====\n")
 mark_as_advanced(CLEAR glm_DIR)
 mark_as_advanced(CLEAR GLEW_DIR)
 mark_as_advanced(CLEAR glfw3_DIR)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  mark_as_advanced(CLEAR GLEW_DLL)
-  mark_as_advanced(CLEAR GLFW_DLL)
-endif()
 
 # ------------------------------------------------------------------------------
 # Dependencies for OpenGL module
@@ -60,15 +50,6 @@ else()
     set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
     set(ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
     return()
-endif()
-
-# On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
-# optional.  If not specified, it is the user's responsibility to make them
-# available at runtime.
-# TODO: DARIOM glfw3 have both debug and release and I didn't check if they are copied properly both in buildtree and installtree
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(GLEW_DLL "${GLEW_DIR}/../../../bin/glew32.dll" CACHE FILEPATH "Path to GLEW DLL")
-    set(GLFW_DLL "${glfw3_DIR}/../../../bin/glfw3.dll" CACHE FILEPATH "Path to GLFW DLL")
 endif()
 
 # ------------------------------------------------------------------------------
@@ -311,8 +292,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-# On Windows, copy the GLEW and GLFW DLLs (if specified)
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    get_target_property(GLEW_DLL GLEW::glew IMPORTED_LOCATION_RELEASE)
+    get_target_property(GLFW_DLL glfw IMPORTED_LOCATION_RELEASE)
     if(EXISTS "${GLEW_DLL}")
       install(FILES "${GLEW_DLL}" DESTINATION bin)
     endif()

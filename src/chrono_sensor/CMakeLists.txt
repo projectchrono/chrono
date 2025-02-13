@@ -19,10 +19,6 @@ if(NOT CHRONO_CUDA_FOUND)
   mark_as_advanced(FORCE GLM_INCLUDE_DIR)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    mark_as_advanced(FORCE GLEW_DLL)
-    mark_as_advanced(FORCE GLFW_DLL)
-  endif()
 
   set(ENABLE_MODULE_SENSOR OFF CACHE BOOL "Enable the Chrono Sensor module" FORCE)
   return()
@@ -31,13 +27,8 @@ endif()
 mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
 mark_as_advanced(CLEAR GLEW_DIR)
 mark_as_advanced(CLEAR glfw3_DIR)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  mark_as_advanced(CLEAR GLEW_DLL)
-  mark_as_advanced(CLEAR GLFW_DLL)
-endif()
 
 option(USE_NVDB "Enable Chrono::FSI deformable terrain sim rendering in Chrono::Sensor" OFF)
-
 
 #-----------------------------------------------------------------------------
 # LIST CUDA FILES USED FOR RT PROGRAMS - TO BE COMPILED TO PTX SHADERS
@@ -529,14 +520,6 @@ message(STATUS "   include dir: ${GLEW_INCLUDE_DIRS}")
 message(STATUS "   libraries:   ${GLEW_LIBRARIES}")
 message(STATUS "glfw3 found:  ${glfw3_FOUND}")
 
-# On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
-# optional. If not specified, it is the user's responsibility to make them
-# available at runtime.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(GLEW_DLL "${GLEW_DIR}/../../../bin/glew32.dll" CACHE FILEPATH "Path to GLEW DLL")
-  set(GLFW_DLL "${glfw3_DIR}/../../../bin/glfw3.dll" CACHE FILEPATH "Path to GLFW DLL")
-endif()
-
 if(OPENGL_FOUND AND GLEW_FOUND AND glfw3_FOUND)
   target_compile_definitions(ChronoEngine_sensor PUBLIC $<$<COMPILE_LANGUAGE:CXX>:USE_SENSOR_GLFW>)
   target_link_libraries(ChronoEngine_sensor PUBLIC GLEW::glew)
@@ -636,8 +619,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-# On Windows, copy the GLEW and GLFW DLLs (if specified)
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    get_target_property(GLEW_DLL GLEW::glew IMPORTED_LOCATION_RELEASE)
+    get_target_property(GLFW_DLL glfw IMPORTED_LOCATION_RELEASE)
     if(EXISTS "${GLEW_DLL}")
       install(FILES "${GLEW_DLL}" DESTINATION bin)
     endif()
@@ -645,4 +630,3 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       install(FILES "${GLFW_DLL}" DESTINATION bin)
     endif()
 endif()
-

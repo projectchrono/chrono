@@ -47,12 +47,12 @@ message(STATUS "vsgImGui version:   ${vsgImGui_VERSION}")
 # Check if vsgXchange is a static library. 
 # If yes, we assume it includes STB and we do not add those files in the the Chrono library
 # (else we'd get multiple defined symbols at link time).
-get_target_property(vsg_type vsgXchange::vsgXchange TYPE)
-if (vsg_type STREQUAL STATIC_LIBRARY)
-    set(INCLUDE_STB OFF)
+get_target_property(VSGXCHANGE_TYPE vsgXchange::vsgXchange TYPE)
+if (VSGXCHANGE_TYPE STREQUAL STATIC_LIBRARY)
+    set(VSGXCHANGE_STATIC TRUE)
     message(STATUS "vsgXchange library: static")
 else()
-    set(INCLUDE_STB ON)
+    set(VSGXCHANGE_STATIC FALSE)
     message(STATUS "vsgXchange library: dynamic")
 endif()
 
@@ -97,7 +97,7 @@ source_group("shapes" FILES ${CE_VSG_SHAPES_FILES})
 source_group("resources" FILES ${CE_VSG_RESOURCES_FILES})
 source_group("utils" FILES ${CE_VSG_UTILS_FILES})
 
-if(INCLUDE_STB)
+if(NOT VSGXCHANGE_STATIC)
     set(CE_VSG_STB_FILES
         ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
         ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
@@ -150,7 +150,28 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vsg
         FILES_MATCHING PATTERN "*.h")
 
-# Install 3rd party headers       
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+# Install 3rd party headers
+if(NOT VSGXCHANGE_STATIC)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+          DESTINATION include/chrono_thirdparty
+          FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
+
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    get_target_property(VSG_DLL vsg::vsg IMPORTED_LOCATION_RELEASE)
+    get_target_property(VSGIMGUI_DLL vsgImGui::vsgImGui IMPORTED_LOCATION_RELEASE)
+    if(EXISTS "${VSG_DLL}")
+      install(FILES "${VSG_DLL}" DESTINATION bin)
+    endif()
+    if(EXISTS "${VSGIMGUI_DLL}")
+      install(FILES "${VSGIMGUI_DLL}" DESTINATION bin)
+    endif()
+
+    if(NOT VSGXCHANGE_STATIC)
+      get_target_property(VSGXCHANGE_DLL vsgXchange::vsgXchange IMPORTED_LOCATION_RELEASE)
+      if(EXISTS "${VSGXCHANGE_DLL}")
+        install(FILES "${VSGXCHANGE_DLL}" DESTINATION bin)
+      endif()
+    endif()
+endif()
