@@ -225,14 +225,14 @@ endforeach()
 #-------------------------------------------------------------------------------
 
 if(NOT EIGEN3_INCLUDE_DIR AND NOT Eigen3_ROOT)
-  set(Eigen3_ROOT "@EIGEN3_INCLUDE_DIR@")
+  set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@")
 endif()
 
 if(NOT Eigen3_DIR)
   set(Eigen3_DIR "@Eigen3_DIR@")
 endif()
 
-find_dependency(Eigen3)
+find_dependency(Eigen3 3.3)
 
 if(EIGEN3_FOUND)
   if(NOT Chrono_FIND_QUIETLY)
