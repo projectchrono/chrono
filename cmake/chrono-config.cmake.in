@@ -17,14 +17,16 @@
 # Variables set by this script:
 # Chrono_FOUND
 #       set to true if Chrono and all required components were found
-# CHRONO_STATIC
-#       set to ON if Chrono has been built as static library, OFF if shared library
 # CHRONO_TARGETS
 #       list of exported Chrono targets
+# CHRONO_STATIC
+#       set to ON if Chrono static libraries were built, OFF if shared libraries
+# CHRONO_MSVC_RUNTIME_LIBRARY
+#       MSVC run-time library used in building Chrono
 # CHRONO_DLL_NAMES
-#       list of Chrono DLLs (without path)
+#       (Windows) list of Chrono DLLs (without path)
 # CHRONO_DEPENDENCY_DLLS
-#       list of Chrono dependency DLLs (with full path)
+#       (Windows) list of Chrono dependency DLLs (with full path)
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
 #       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono are wrapped)
