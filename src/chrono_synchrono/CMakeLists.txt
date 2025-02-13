@@ -217,13 +217,13 @@ option(CH_USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" O
 set(FASTDDS_FOUND FALSE)
 
 if (CH_USE_FAST_DDS)
-	set(FastDDS_ROOT_DIR "" CACHE PATH "Path to FastDDS install directory")
+	set(FastDDS_ROOT "" CACHE PATH "Path to FastDDS install directory")
 
-	if (FastDDS_ROOT_DIR STREQUAL "")
+	if (FastDDS_ROOT STREQUAL "")
 	  set(FASTDDS_FOUND FALSE)
 	else()
 	  message(STATUS "Find FastRTPS")
-	  find_package(fastrtps REQUIRED PATHS "${FastDDS_ROOT_DIR}/cmake" "${fastrtps}/share/fastrtps/cmake")
+	  find_package(fastrtps REQUIRED PATHS "${FastDDS_ROOT}/cmake" "${fastrtps}/share/fastrtps/cmake")
 	  
 	  message(STATUS "  FastCDR found?        ${fastcdr_FOUND}")
 	  message(STATUS "  FastCDR include dir:  ${fastcdr_INCLUDE_DIR}")
