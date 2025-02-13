@@ -179,10 +179,18 @@ if(ENABLE_MODULE_OPENGL)
   endif()
 endif()
 
-
 install(TARGETS ChronoEngine_vehicle_cosim
         EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_vehicle/cosim)
+
+# -------------------------------------------------------------------------------------------------
+# Install files
+# -------------------------------------------------------------------------------------------------
+
+# Old way (install headers preserving directory structure)
+#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+#        DESTINATION include/chrono_vehicle/cosim
+#        FILES_MATCHING PATTERN "*.h")

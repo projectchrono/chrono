@@ -231,17 +231,9 @@ install(TARGETS ChronoEngine_ros
 )
 
 #-------------------------------------------------------------------------------
-# Install Chrono::ROS headers
+# Install files
 #-------------------------------------------------------------------------------
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_ros
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CH_CONFIG_INSTALL_PATH "cmake")
-else()
-  set(CH_CONFIG_INSTALL_PATH "lib/cmake/Chrono")
-endif()
-
-install(FILES ${CMAKE_SOURCE_DIR}/cmake/FindROS2.cmake DESTINATION ${CH_CONFIG_INSTALL_PATH} RENAME ros2-config.cmake)

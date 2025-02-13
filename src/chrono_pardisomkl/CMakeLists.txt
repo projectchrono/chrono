@@ -137,5 +137,10 @@ install(TARGETS ChronoEngine_pardisomkl
   ARCHIVE DESTINATION lib
   INCLUDES DESTINATION include/chrono_pardisomkl)
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_PardisoMKL_HEADERS}
         DESTINATION include/chrono_pardisomkl)

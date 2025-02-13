@@ -31,14 +31,14 @@ endif()
 
 find_package(Blaze REQUIRED)
 
-if (NOT Blaze_FOUND)
+if(Blaze_FOUND)
+  mark_as_advanced(FORCE Blaze_ROOT)
+else()
   set(Blaze_ROOT "" CACHE PATH "Blaze library location (should contain 'blaze/Blaze.h')")
+  mark_as_advanced(CLEAR Blaze_ROOT)
   message(FATAL_ERROR "Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
 endif()
 
-
-
-mark_as_advanced(CLEAR Blaze_ROOT)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
 
