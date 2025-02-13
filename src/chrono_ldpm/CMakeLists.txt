@@ -19,11 +19,13 @@ SET(ChronoEngine_LDPM_SOURCES
     ChBuilderLDPM.cpp
     ChMeshLine.cpp
 	ChLinkNodeNodeRot.cpp
-    ChLinkNodeFaceRot.cpp
+    ChLinkNodeRotFace.cpp
     ChLinkPoint2Line.cpp
+	ChRepresentedVolumeElement.cpp
 )
 
 SET(ChronoEngine_LDPM_HEADERS
+	ChLdpmApi.h
     ChElementTetrahedron_6DOFs.h 
     ChElementLDPM.h
     ChMaterialVECT.h
@@ -33,8 +35,9 @@ SET(ChronoEngine_LDPM_HEADERS
     ChLDPMFace.h
     ChMeshSurfaceLDPM.h
 	ChLinkNodeNodeRot.h
-    ChLinkNodeFaceRot.h
+    ChLinkNodeRotFace.h
     ChLinkPoint2Line.h
+	ChRepresentedVolumeElement.h
 )
 
 SOURCE_GROUP("" FILES 
@@ -58,7 +61,7 @@ SET_TARGET_PROPERTIES(ChronoEngine_ldpm PROPERTIES
 )
 
 # Compile definitions
-target_compile_definitions(ChronoEngine_ldpm PRIVATE "CH_API_COMPILE_LDPM")
+target_compile_definitions(ChronoEngine_ldpm PRIVATE "CH_LDPM_API_COMPILE")
 target_compile_definitions(ChronoEngine_ldpm PRIVATE "CH_IGNORE_DEPRECATED")
 
 # Link required libraries

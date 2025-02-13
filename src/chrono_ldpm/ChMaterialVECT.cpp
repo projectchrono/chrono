@@ -127,13 +127,13 @@ void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, double &len, dou
 		statev(11) = w;
 	}
 	else {
-		mstress << 0.0, 0.0, 0.0;
+		mstress << 0.0, 0.0, 0.0;		
 	}
 	//std::cout << "stress: " << mstress << std::endl;
 	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
 	
-
 	/*
+	
 	if (epsQ!=0) {
 	        double strsQ=E0*epsQ;
 		mstress(0)=strsQ*mstrain(0)/epsQ;
@@ -243,7 +243,7 @@ void ChMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDynamic<
 		statev(14) = netstrain(2);
 	}
 	else {
-		mstress << 0.0, 0.0, 0.0;
+		mstress << 0.0, 0.0, 0.0;		
 	}
 	//std::cout << "stress: " << mstress << std::endl;
 	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
@@ -296,6 +296,7 @@ double ChMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, ChVec
 	double nt = this->Get_nt();   
 	double lt = this->Get_lt();
 	double kt = this->Get_kt();
+	double rs = this->Get_rs();
 	//double Gt = this->Get_Gt();
 	//
 	double epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5);
@@ -322,8 +323,10 @@ double ChMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, ChVec
 
 	double eps0 = sigma0 / E0;
 	//double lt = 2 * E0 * Gt / sigmat / sigmat;
-	double Ht = 2 * E0 / (lt / len - 1);
-	double H0 = Ht * pow(2 * omega / M_PI, nt);
+	double Ht = 2 * E0 / (lt / len - 1);	
+	double Hs = rs* E0;
+	//double H0 = Ht * pow(2 * omega / M_PI, nt);
+	double H0 = Hs/alpha + ( Ht- Hs/alpha )* pow(2 * omega / M_PI, nt);
 
 	double eps_max = pow(statev(6) * statev(6) + alpha * statev(7) * statev(7), 0.5);
 	double sigma_bt = sigma0 * exp(-H0 * std::max((eps_max - eps0), 0.0) / sigma0);

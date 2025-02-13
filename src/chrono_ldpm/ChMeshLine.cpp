@@ -31,6 +31,16 @@ namespace ldpm {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMeshLine)
 
+
+void ChMeshLine::AddBeamsFromGivenNodeSet(std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot>>& node_set) {
+	SortNodesByCoordinates(node_set);    
+    for (int i = 0; i < node_set.size()-1; ++i){
+		auto beam = chrono_types::make_shared<ChElementBeamEuler>();
+        beam->SetNodes(node_set[i], node_set[i+1]);
+		AddBeam(beam);  
+	}
+}
+
 void ChMeshLine::AddBeamsFromNodeSet(std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot>>& node_set) {
     std::unordered_set<size_t> node_set_map;
     for (int i = 0; i < node_set.size(); ++i)
@@ -40,7 +50,7 @@ void ChMeshLine::AddBeamsFromNodeSet(std::vector<std::shared_ptr<fea::ChNodeFEAx
     
     for (unsigned int ie = 0; ie < this->mmesh->GetNumElements (); ++ie) {
         auto element = mmesh->GetElement(ie);
-	///////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////////////////
         ///
         /// Get Euler beam elements  
         ///
@@ -54,7 +64,7 @@ void ChMeshLine::AddBeamsFromNodeSet(std::vector<std::shared_ptr<fea::ChNodeFEAx
 
             if ((nodes & 0x03) == 0x03)  // both nodes are in the set
                 AddBeam(beam);
-        }
+        }		
         ///////////////////////////////////////////////////////////////////////////////
         ///
         /// Get edge of LDPM tet  
@@ -170,6 +180,28 @@ void ChMeshLine::SortNodesByCoordinates(std::vector<std::shared_ptr<ChNodeFEAbas
 
         // x and y-coordinates are the same, compare z-coordinates
         return a_xyz->GetPos().z() < b_xyz->GetPos().z();
+    });
+}
+
+
+// Function to sort nodes by their coordinates
+void ChMeshLine::SortNodesByCoordinates(std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& node_set) {
+    std::sort(node_set.begin(), node_set.end(), [](const std::shared_ptr<ChNodeFEAxyzrot>& a, const std::shared_ptr<ChNodeFEAxyzrot>& b) {
+       
+        if (!a || !b) {
+            throw std::runtime_error("Node cannot be cast to ChNodeFEAxyz.");
+        }
+
+        // Compare x-coordinates
+        if (a->GetPos().x() < b->GetPos().x()) return true;
+        if (a->GetPos().x() > b->GetPos().x()) return false;
+
+        // x-coordinates are the same, compare y-coordinates
+        if (a->GetPos().y() < b->GetPos().y()) return true;
+        if (a->GetPos().y() > b->GetPos().y()) return false;
+
+        // x and y-coordinates are the same, compare z-coordinates
+        return a->GetPos().z() < b->GetPos().z();
     });
 }
 

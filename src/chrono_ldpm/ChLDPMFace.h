@@ -17,7 +17,12 @@
 #ifndef CH_LDPM_FACE_H
 #define CH_LDPM_FACE_H
 
+#include "chrono_ldpm/ChLdpmApi.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono_ldpm/ChElementLDPM.h"
+
+using namespace chrono::fea;
 
 namespace chrono {
 namespace ldpm {
@@ -28,7 +33,7 @@ namespace ldpm {
 /// Face of a LDPM_-shaped element.
 /// The face is identified by the number of the vertex to which it is opposed: 0,1,2,3.
 /// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
-class ChApi ChLDPMFace : public ChLoadableUV {
+class ChLdpmApi ChLDPMFace : public ChLoadableUV {
   public:
     /// Construct the specified face (0 <= id <= 3) on the given tetrahedral element.
     ChLDPMFace(std::shared_ptr<ChElementLDPM> element, char id) : m_face_id(id), m_element(element) {}

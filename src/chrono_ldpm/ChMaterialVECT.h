@@ -20,6 +20,7 @@
 #ifndef CHMATERIALVECT_H
 #define CHMATERIALVECT_H
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono/core/ChMatrix33.h"
 #include <vector>
 #include <string>
@@ -32,7 +33,7 @@ namespace ldpm {
 /// @{
 
 /// Definition of materials to be used for CSL beams and LDPM tets utilizing the lattice discrete particle model.
-class ChMaterialVECT {
+class ChLdpmApi ChMaterialVECT {
   public:
     /// Construct an isotropic elastic material.
     ChMaterialVECT(double rho,  		///< material density
@@ -140,6 +141,10 @@ class ChMaterialVECT {
     /// Return the tensile unloading.
     double Get_kt() const { return m_kt; }
     void Set_kt(double kt) { m_kt = kt; }
+	
+	/// Return the Shear softening modulus ratio.
+    double Get_rs() const { return m_rs; }
+    void Set_rs(double rs) { m_rs = rs; }
     
     /// Set and Get RayleighDampingK coefficient.
     double GetRayleighDampingK() const { return RayleighDampingK; }
@@ -185,6 +190,7 @@ class ChMaterialVECT {
     double m_muinf;             ///< asymptotic friction
     double m_sigmaN0;           ///< transitional stress.
     double m_kt;                ///< tensile unloading
+	double m_rs=0;              ///< Shear softening modulus ratio
     double RayleighDampingK=0;
     double RayleighDampingM=0;
   //public:

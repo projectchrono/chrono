@@ -54,12 +54,26 @@ void ChElementLDPM::SetNodes(std::shared_ptr<fea::ChNodeFEAxyzrot> nodeA,
     
 }
 
-void ChElementLDPM::Update() {
+void ChElementLDPM::Update() {	
     // parent class update:
     ChElementGeneric::Update();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
     //this->ComputeStiffnessMatrix();
+	//
+	// update projection matrix
+	if (LargeDeflection && macro_strain){
+		for( auto facet:this->GetSection()){ 
+			facet->ComputeProjectionMatrix();		
+		}
+	}
+	
+	if(this->macro_strain){
+		for( auto facet:this->GetSection()){ 
+			facet->ComputeEigenStrain(this->macro_strain);				
+		}
+	}
+	//		
 	/*
     ChVectorDynamic<> displ(24);
     this->GetStateBlock(displ);
@@ -271,12 +285,7 @@ void ChElementLDPM::ComputeStrain(std::shared_ptr<ChSectionLDPM> section, unsign
 	//std::cout<<"TotaldispN1:\n"<<(this->nodes[ind]->Frame().GetPos() - this->nodes[ind]->GetX0().GetPos())<<std::endl;
 	//std::cout<<"TotaldispN2:\n"<<(this->nodes[jnd]->Frame().GetPos() - this->nodes[jnd]->GetX0().GetPos())<<std::endl;
 	//
-	double length;
-	if(LargeDeflection){	
-		length = (this->nodes[jnd]->Frame().GetPos() - this->nodes[ind]->Frame().GetPos()).Length();
-	}else{
-		length = (this->nodes[jnd]->GetX0().GetPos() - this->nodes[ind]->GetX0().GetPos()).Length();
-	}
+	double length=section->Get_Length();	
 	Amatrix AI; 	Amatrix AJ;
 	// A matrix is calculated based on initial coordinates
 	this->ComputeAmatrix(AI, section->Get_center(), this->nodes[ind]->GetX0().GetPos());
@@ -366,12 +375,7 @@ void ChElementLDPM::ComputeStiffnessMatrix() {
     	//
     	// Get facet area and length of beam
     	double area=facet->Get_area();
-    	double length;
-	if(LargeDeflection){	
-		length = (this->GetTetrahedronNode(ind)->Frame().GetPos() - this->GetTetrahedronNode(jnd)->Frame().GetPos()).Length();
-	}else{
-		length = (this->GetTetrahedronNode(ind)->GetX0().GetPos() - this->GetTetrahedronNode(jnd)->GetX0().GetPos()).Length();
-	}    	
+    	double length=facet->Get_Length();	
     	double aLE_N=area*length*E0;
 	double aLE_T=aLE_N*alpha;	
     	// 
@@ -434,8 +438,8 @@ void ChElementLDPM::SetupInitial(ChSystem* system) {
     // set initial orientation of facets
     unsigned int iface=0;    
     for( auto facet:this->GetSection()){ 
-    	    unsigned int ind=facetNodeNums(iface,0);
-    	    unsigned int jnd=facetNodeNums(iface,1);
+    	unsigned int ind=facetNodeNums(iface,0);
+    	unsigned int jnd=facetNodeNums(iface,1);
 	    
 	    ChMatrix33<> A0;
 	    ChVector3d mXele = nodes[jnd]->GetX0().GetPos() - nodes[ind]->GetX0().GetPos();
@@ -444,14 +448,27 @@ void ChElementLDPM::SetupInitial(ChSystem* system) {
 	    A0.SetFromAxisX(mXele, myele);
 	    facet->Set_ref_rot( A0.GetQuaternion() );
 	    ///
+		///		
+		double length = (this->GetTetrahedronNode(ind)->GetX0().GetPos() - this->GetTetrahedronNode(jnd)->GetX0().GetPos()).Length();		
+		facet->Set_Length(length);
 	    ///
 	    ///
 	    auto statev= facet->Get_StateVar();
 	    statev.resize(16);
 	    statev.setZero();
 	    facet->Set_StateVar(statev); 
+		///
+		///
+		if(this->macro_strain){
+			facet->ComputeProjectionMatrix();			
+			facet->ComputeEigenStrain(this->macro_strain);
+		}
+		///
+		///
 	    iface++;
      }	
+	 
+	
     
 	ChVectorDynamic<> displ(24);
     this->GetStateBlock(displ);
@@ -487,6 +504,8 @@ void ChElementLDPM::UpdateRotation() {
 	    	Aabs.SetFromAxisX(mXele, myele);        
 	    	q_lattice_abs_rot = Aabs.GetQuaternion();	    	
 	    	
+			double length = (this->GetTetrahedronNode(ind)->GetX0().GetPos() - this->GetTetrahedronNode(jnd)->GetX0().GetPos()).Length();		
+			facet->Set_Length(length);
 	    }
 		
 	    facet->Set_abs_rot(q_lattice_abs_rot);	    
@@ -500,10 +519,17 @@ void ChElementLDPM::UpdateRotation() {
 }
 
 void ChElementLDPM::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == 24) && (H.cols() == 24));     
+    assert((H.rows() == 24) && (H.cols() == 24));    
+	//std::cout<<"Krm: "<<Kfactor<<" "<<Rfactor<<" "<<Mfactor<<"\t";
     // For K stiffness matrix and R damping matrix:
     double RayleighDampingK=this->GetFacetI(0)->Get_material()->GetRayleighDampingK();
     double RayleighDampingM=this->GetFacetI(0)->Get_material()->GetRayleighDampingM();
+	//std::cout<<RayleighDampingK<<" "<<RayleighDampingM<<std::endl;
+	//std::cout<<"node0: "<<this->nodes[0]->GetX0().GetPos()<<"\t";
+	//std::cout<<"node1: "<<this->nodes[1]->GetX0().GetPos()<<"\t";
+	//std::cout<<"node2: "<<this->nodes[2]->GetX0().GetPos()<<"\t";
+	//std::cout<<"node3: "<<this->nodes[3]->GetX0().GetPos()<<"\n";
+	
     //
     if (Kfactor || Rfactor) { 
     double mkfactor = Kfactor + Rfactor * RayleighDampingK;
@@ -518,6 +544,7 @@ void ChElementLDPM::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, doub
     }
      
     //std::cout<<"H:\n"<<H<<std::endl;
+	//std::cout<<std::endl;
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 }
 
@@ -550,12 +577,8 @@ void ChElementLDPM::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 	// Get facet area and length of beam
 	//
 	double area=facet->Get_area();
-	double length;
-	if(LargeDeflection){	
-		length = (this->GetTetrahedronNode(ind)->Frame().GetPos() - this->GetTetrahedronNode(jnd)->Frame().GetPos()).Length();
-	}else{
-		length = (this->GetTetrahedronNode(ind)->GetX0().GetPos() - this->GetTetrahedronNode(jnd)->GetX0().GetPos()).Length();
-	}    		
+	double length=facet->Get_Length();	
+    	
 	//std::cout<<" L: "<<length<<"\t";
 	// 
 	Amatrix AI; 	
@@ -600,8 +623,15 @@ void ChElementLDPM::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 	this->ComputeStrain(facet, ind, jnd, dmstrain);
 	//std::cout<<"strain_INC: "<<dmstrain(0)<<"\t"<<dmstrain(1)<<"\t"<<dmstrain(2)<<"\t";
 	statev=facet->Get_StateVar();	
-    	//    	  	
-	facet->Get_material()->ComputeStress( dmstrain, length,  epsV, statev, mstress, area);
+    	// 
+	//if (this->macro_strain)
+	//	facet->ComputeEigenStrain(this->macro_strain);
+	auto nonMechanicalStrain=facet->Get_nonMechanicStrain();
+    if (nonMechanicalStrain.size()){
+		facet->Get_material()->ComputeStress( dmstrain, nonMechanicalStrain, length,  epsV, statev, mstress, area);;
+	}else{
+		facet->Get_material()->ComputeStress( dmstrain, length,  epsV, statev, mstress, area);
+	}
 	facet->Set_StateVar(statev);	
 	
 	Fi.segment(ind*6,6)+= area*length*(mstress.transpose()*mBI);
@@ -821,6 +851,19 @@ void ChElementLDPM::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error
     	}      	
     	         
     
+}
+
+
+ChMatrixNM<double, 1, 9> ChElementLDPM::ComputeMacroStressContribution(){
+	ChMatrixNM<double, 1, 9> macro_stress;	  
+    macro_stress.setZero();	
+	for (auto facet:this->GetSection()){		
+		double length=facet->Get_Length();		 	
+		double area =facet->Get_area();	
+		auto statev= facet->Get_StateVar();		
+		macro_stress +=(facet->GetProjectionMatrix()).transpose()*statev.segment(3,3)*area*length;		
+	}
+	return macro_stress;
 }
 
 

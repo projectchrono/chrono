@@ -15,15 +15,18 @@
 #ifndef CHLINKNODENODEROT_H
 #define CHLINKNODENODEROT_H
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
+
+using namespace chrono::fea;
 
 namespace chrono {
 
 class ChIndexedNodes;  // forward ref
 
-namespace fea {
+namespace ldpm {
 
 /// @addtogroup fea_constraints
 /// @{
@@ -31,7 +34,7 @@ namespace fea {
 /// Constraint between two xyz FEA nodes (points).
 /// The two nodes will be joined, as overlapping. Nodes are 3-DOF points that are used in point-based primitives, such
 /// as finite elements.
-class ChApi ChLinkNodeNodeRot : public ChLinkBase {
+class ChLdpmApi ChLinkNodeNodeRot : public ChLinkBase {
   public:
     ChLinkNodeNodeRot();
     ChLinkNodeNodeRot(const ChLinkNodeNodeRot& other);
@@ -149,7 +152,7 @@ class ChApi ChLinkNodeNodeRot : public ChLinkBase {
 
 /// @} fea_constraints
 
-}  // end namespace fea
+}  // end namespace ldpm
 }  // end namespace chrono
 
 #endif

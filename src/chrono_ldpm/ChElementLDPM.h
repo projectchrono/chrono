@@ -26,6 +26,8 @@
 
 #include <cmath>
 
+#include "chrono_ldpm/ChLdpmApi.h"
+//#include "chrono_ldpm/ChElementRVE.h"
 #include "chrono_ldpm/ChElementTetrahedron_6DOFs.h"
 #include "chrono_ldpm/ChSectionLDPM.h"
 #include "chrono_ldpm/ChMaterialVECT.h"
@@ -49,7 +51,7 @@ namespace ldpm {
 /// easily used for 3D FEA problems.
 
 
-class ChApi ChElementLDPM : public ChElementTetrahedron_6DOFs,
+class ChLdpmApi ChElementLDPM : public ChElementTetrahedron_6DOFs,
                                     public fea::ChElementGeneric,
                                     public fea::ChElementCorotational,
                                     public ChLoadableUVW {
@@ -263,26 +265,35 @@ class ChApi ChElementLDPM : public ChElementTetrahedron_6DOFs,
     double ComputeTetVol( ChVector3d p1, ChVector3d p2, ChVector3d p3, ChVector3d p4);
     
     ChMatrixNM<double,6,6> ComputeTetMassN(std::shared_ptr<ChSectionLDPM> facet, ChVector3d pN, ChVector3d pC, ChVector3d pA, ChVector3d pB);
+	
+	//std::vector<ChMatrixNM<double,3,9>> ComputeProjectionMatrix();
+	
+	ChMatrixNM<double, 1, 9> ComputeMacroStressContribution();
 
-  private:
-    /// Initial setup: set up the element's parameters and matrices
+  private:    
+	
+	/// Initial setup: set up the element's parameters and matrices
     virtual void SetupInitial(ChSystem* system) override;
-
+	
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot> > nodes;
     std::vector<std::shared_ptr<ChSectionLDPM>> my_section;
     std::shared_ptr<ChMaterialVECT> Material;
     ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
     ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
-    ChMatrixNM<double, 4, 4> mM;        // for speeding up corotational approach
+    ChMatrixNM<double, 4, 4> mM;        // for speeding up corotational approach	
     double Volume;
     bool LargeDeflection=false; 
     
     //ChSystem* mysystem;
     
     std::vector<std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot>>> V_vert_nodes;  
+	
+	//template <typename T>
+	//friend class ChElementRVE;
   public:	
     ChVectorDynamic<> DUn_1;
     ChVectorDynamic<> Un_1;
+	std::shared_ptr<ChMatrixNM<double,1,9>> macro_strain;
   public:    
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
@@ -295,7 +306,7 @@ class ChApi ChElementLDPM : public ChElementTetrahedron_6DOFs,
 /// Tetrahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
-class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
+class ChLdpmApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 

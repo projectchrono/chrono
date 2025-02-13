@@ -14,10 +14,12 @@
 
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChSystem.h"
-#include "ChLinkNodeNodeRot.h"
+#include "chrono_ldpm/ChLinkNodeNodeRot.h"
+
+using namespace chrono::fea;
 
 namespace chrono {
-namespace fea {
+namespace ldpm {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkNodeNodeRot)
@@ -280,5 +282,5 @@ void ChLinkNodeNodeRot::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 
-}  // end namespace fea
+}  // end namespace ldpm
 }  // end namespace chrono

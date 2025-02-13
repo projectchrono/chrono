@@ -17,6 +17,7 @@
 #ifndef CH_TERAHEDRON_6DOFS_H
 #define CH_TERAHEDRON_6DOFS_H
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
@@ -26,7 +27,7 @@ namespace ldpm {
 /// @{
 
 /// Base class for a FEA element with tetrahedral shape.
-class ChApi ChElementTetrahedron_6DOFs {
+class ChLdpmApi ChElementTetrahedron_6DOFs {
   public:
     ChElementTetrahedron_6DOFs() {}
     virtual ~ChElementTetrahedron_6DOFs() {}

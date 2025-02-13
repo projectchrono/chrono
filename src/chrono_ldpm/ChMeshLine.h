@@ -15,11 +15,13 @@
 #ifndef CHMESHLINES_H
 #define CHMESHLINES_H
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChElementBase.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
@@ -37,7 +39,7 @@ namespace ldpm {
 
 /// Class which defines a line for a mesh FEA elements.
 /// The line is a collection of pointers to  ChLoadableU objects, which can be beams in the mesh.
-class ChApi ChMeshLine {
+class ChLdpmApi ChMeshLine {
   public:
     ChMeshLine(ChMesh* parentmesh = nullptr) : mmesh(parentmesh) {}
     virtual ~ChMeshLine() {}
@@ -63,7 +65,11 @@ class ChApi ChMeshLine {
     
     virtual void AddBeamsFromBoundary();
     
+	virtual void AddBeamsFromGivenNodeSet(std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot> >& node_set);
+	
     static void SortNodesByCoordinates(std::vector<std::shared_ptr<fea::ChNodeFEAbase>>& node_set);
+	
+	static void SortNodesByCoordinates(std::vector<std::shared_ptr<fea::ChNodeFEAxyzrot>>& node_set);
 
   private:
     std::vector<std::shared_ptr<ChLoadableU> > beams;  ///< mesh beams

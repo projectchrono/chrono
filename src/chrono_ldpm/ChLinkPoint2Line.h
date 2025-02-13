@@ -17,6 +17,7 @@
 
 #include <array>
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 
@@ -36,7 +37,7 @@ namespace fea {
 /// @{
 
 /// Utility class for using the ChLinkPoint2Line constraint
-class ChApi ChLineOfXYZnodes : public ChVariableTupleCarrier_2vars<3, 3> {
+class ChLdpmApi ChLineOfXYZnodes : public ChVariableTupleCarrier_2vars<3, 3> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB1;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB2; 
@@ -52,7 +53,7 @@ class ChApi ChLineOfXYZnodes : public ChVariableTupleCarrier_2vars<3, 3> {
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 
-class ChApi ChLinkPoint2Line : public ChLinkBase {
+class ChLdpmApi ChLinkPoint2Line : public ChLinkBase {
   private:
     ChVector3d react;
 
@@ -210,7 +211,7 @@ class ChApi ChLinkPoint2Line : public ChLinkBase {
 // Planned for future
 
 /// Utility class for using the ChLinkPoint2Line constraint
-class ChApi ChLineOfXYZROTnodes : public ChVariableTupleCarrier_2vars<6, 6> {
+class ChLdpmApi ChLineOfXYZROTnodes : public ChVariableTupleCarrier_2vars<6, 6> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB1;
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB2; 
@@ -225,7 +226,7 @@ class ChApi ChLineOfXYZROTnodes : public ChVariableTupleCarrier_2vars<6, 6> {
 /// and a triangular face given by three xyzrot FEA nodes, with linear
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
-class ChApi ChLinkPoint2LineRot : public ChLinkBase {
+class ChLdpmApi ChLinkPoint2LineRot : public ChLinkBase {
   public:
     ChLinkPoint2LineRot();
     ChLinkPoint2LineRot(const ChLinkPoint2LineRot& other);

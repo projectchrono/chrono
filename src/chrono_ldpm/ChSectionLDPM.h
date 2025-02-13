@@ -30,6 +30,7 @@
 #include <string>
 #include <cmath>
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono_ldpm/ChMaterialVECT.h"
 #include "chrono/fea/ChBeamSection.h"
 
@@ -53,7 +54,7 @@ namespace ldpm {
 /// 
 
 //class ChApi ChSectionLDPM : public ChBeamSection {
-class ChApi ChSectionLDPM  : public chrono::fea::ChBeamSection { 
+class ChLdpmApi ChSectionLDPM  : public chrono::fea::ChBeamSection { 
   public:
     ChSectionLDPM(  std::shared_ptr<ChMaterialVECT> material,  // material 
                                     double area,    // Projected total area of the facet
@@ -72,6 +73,9 @@ class ChApi ChSectionLDPM  : public chrono::fea::ChBeamSection {
     // Setter & Getter for projected facet area
     double Get_area() const { return m_area; }
     void Set_area(double area) { m_area=area; }
+	// Setter & Getter for projected facet area
+	double Get_Length() const { return m_length; }
+    void Set_Length(double length) { m_length=length; }
     // Setter & Getter for Material
     std::shared_ptr<ChMaterialVECT> Get_material() const { return m_material; };
     void Set_material(std::shared_ptr<ChMaterialVECT> material) { m_material=material; }
@@ -84,6 +88,9 @@ class ChApi ChSectionLDPM  : public chrono::fea::ChBeamSection {
     // Setter & Getter for facet state variables
     ChVectorDynamic<>  Get_StateVar() const { return m_state; };
     void Set_StateVar(ChVectorDynamic<>  state) { m_state=state; }  
+	// Setter & Getter for facet state variables
+    ChVectorDynamic<>  Get_nonMechanicStrain() const { return m_nonMechanicStrain; };
+    void Set_nonMechanicStrain(ChVectorDynamic<>  nonMechanicStrain) { m_nonMechanicStrain=nonMechanicStrain; } 
     // Setter & Getter for rotation of the lattice
     ChQuaternion<> Get_ref_rot() const { return mq_lattice_ref_rot; }
     void Set_ref_rot(ChQuaternion<> q_element_ref_rot) { mq_lattice_ref_rot=q_element_ref_rot; }
@@ -95,17 +102,22 @@ class ChApi ChSectionLDPM  : public chrono::fea::ChBeamSection {
     
     ChMatrixNM<double,3,9> GetProjectionMatrix() const { return mprojection_matrix; }
     void SetProjectionMatrix( ChMatrixNM<double,3,9> projection_matrix) { mprojection_matrix=projection_matrix; }
+	
+	void ComputeEigenStrain(std::shared_ptr<ChMatrixNM<double,1,9>> macro_strain);
+	
   protected:
     std::shared_ptr<ChMaterialVECT> m_material;
     ChVector3d m_center;
     ChMatrix33<double> m_facetFrame;
     ChVectorDynamic<>  m_state;
-    
+    ChVectorDynamic<>  m_nonMechanicStrain;
+	 
     ChQuaternion<> mq_lattice_abs_rot;
     ChQuaternion<> mq_lattice_ref_rot; 
     
     //std::shared_ptr<ChInternalDataCSL> m_state;    
     double m_area=1.0; 
+	double m_length=1.0;
     //
     ChMatrixNM<double,3,9> mprojection_matrix;
     // 

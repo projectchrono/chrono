@@ -1,6 +1,7 @@
 #ifndef CHMESHSURFACELDPM_H
 #define CHMESHSURFACELDPM_H
 
+#include "chrono_ldpm/ChLdpmApi.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/fea/ChElementBase.h"
 
@@ -9,6 +10,9 @@
 #include "chrono/fea/ChTetrahedronFace.h"
 #include "chrono/fea/ChHexahedronFace.h"
 
+using namespace chrono::fea;
+
+
 namespace chrono {
 namespace ldpm {
 
@@ -16,9 +20,9 @@ namespace ldpm {
 /// @{
 
 // Forward references (for parent hierarchy pointer)
-class ChMesh;
+//class ChMesh;
 
-class ChApi ChMeshSurfaceLDPM : public ChMeshSurface {
+class ChLdpmApi ChMeshSurfaceLDPM : public ChMeshSurface {
 public:
     // Constructor
     ChMeshSurfaceLDPM(ChMesh* parentmesh = nullptr) : ChMeshSurface(parentmesh) {}
