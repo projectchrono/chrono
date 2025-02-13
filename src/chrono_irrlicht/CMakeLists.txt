@@ -109,16 +109,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CH_IRRLICHT_DLL ${IRRLICHT_DLL})
   set(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
 
-  add_custom_command(
-    TARGET ChronoEngine_irrlicht POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_IRRLICHT_DLL}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMENT "Copying Irrlicht DLL..."
-  )
-
   # Copy the IRRLICHT dll into the installed package to be on the safe side 
   install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
 endif()

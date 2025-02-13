@@ -314,17 +314,9 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
 # On Windows, copy the GLEW and GLFW DLLs (if specified)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(EXISTS "${GLEW_DLL}")
-      add_custom_command(TARGET ChronoEngine_opengl POST_BUILD
-                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                                 "${GLEW_DLL}"
-                                 "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
       install(FILES "${GLEW_DLL}" DESTINATION bin)
     endif()
     if(EXISTS "${GLFW_DLL}")
-      add_custom_command(TARGET ChronoEngine_opengl POST_BUILD
-                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                         "${GLFW_DLL}"
-                         "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
       install(FILES "${GLFW_DLL}" DESTINATION bin)
     endif()
 endif()
