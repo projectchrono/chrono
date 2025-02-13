@@ -7,12 +7,6 @@ if(NOT ENABLE_MODULE_IRRLICHT)
 endif()
 
 # ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-include_directories(${CH_IRRLICHT_INCLUDES})
-
-# ------------------------------------------------------------------------------
 
 set(DEMOS
     demo_ROBOT_Industrial
@@ -26,10 +20,6 @@ foreach(PROGRAM ${DEMOS})
     add_executable(${PROGRAM} "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER tests
-        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()

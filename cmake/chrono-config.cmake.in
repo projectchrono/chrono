@@ -513,9 +513,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
 
-    set(Irrlicht_INCLUDE_DIR "@IRRLICHT_INCLUDE_DIR@" CACHE STRING "Irrlicht include directory")
-    set(Irrlicht_LIBRARY "@IRRLICHT_LIBRARY@" CACHE STRING "Irrlicht library")
-    set(Irrlicht_DLL "@IRRLICHT_DLL@" CACHE STRING "Irrlicht DLL")
+    set(Irrlicht_INCLUDE_DIR "@CH_IRRLICHT_INCLUDE_DIR@" CACHE STRING "Irrlicht include directory")
+    set(Irrlicht_LIBRARY "@CH_IRRLICHT_LIBRARY@" CACHE STRING "Irrlicht library")
     find_dependency(Irrlicht QUIET)
 
     if (NOT Irrlicht_FOUND)

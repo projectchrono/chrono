@@ -26,8 +26,6 @@ list(APPEND LIBS "ChronoEngine")
 include_directories(${FMU_TOOLS_DIR})
 
 if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHT_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 

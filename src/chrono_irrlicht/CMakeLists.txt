@@ -53,9 +53,9 @@ if(NOT Irrlicht_FOUND)
   return()
 endif()
 
-set(IRRLICHT_INCLUDE_DIR ${IRRLICHT_INCLUDE_DIR} PARENT_SCOPE)
-set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} PARENT_SCOPE)
-set(IRRLICHT_DLL ${IRRLICHT_DLL} PARENT_SCOPE)
+set(CH_IRRLICHT_INCLUDE_DIR ${IRRLICHT_INCLUDE_DIR} PARENT_SCOPE)
+set(CH_IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} PARENT_SCOPE)
+set(CH_IRRLICHT_DLL ${IRRLICHT_DLL} PARENT_SCOPE)
 
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_irrlicht library
@@ -103,12 +103,7 @@ install(FILES ${IRR_HEADER_FILES}
 file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
 
-# On Windows, copy DLLs
+# On Windows, install DLLs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  # Make variable visible from outside this directory
-  set(CH_IRRLICHT_DLL ${IRRLICHT_DLL})
-  set(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
-
-  # Copy the IRRLICHT dll into the installed package to be on the safe side 
-  install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
+  install(FILES "${IRRLICHT_DLL}" DESTINATION bin)
 endif()
