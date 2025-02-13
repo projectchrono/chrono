@@ -109,16 +109,6 @@ target_compile_definitions(custom_handler PRIVATE "CHRONO_DATA_DIR=\"${CHRONO_DA
 
 if(MSVC)
     set_target_properties(custom_handler PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
-
-    # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
-    if(${MSVC_VERSION} GREATER_EQUAL 1915)
-      target_compile_definitions(custom_handler PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
-    endif()
-
-    # Disable some MSVC compiler warnings
-    target_compile_definitions(custom_handler PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(custom_handler PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(custom_handler PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
 endif()
 
 #--------------------------------------------------------------

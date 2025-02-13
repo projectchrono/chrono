@@ -62,16 +62,6 @@ target_compile_definitions(vehicle_cosim PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA
 
 if(MSVC)
     set_target_properties(vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
-
-    # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen
-    if(${MSVC_VERSION} GREATER_EQUAL 1915)
-      target_compile_definitions(vehicle_cosim PRIVATE ENABLE_EXTENDED_ALIGNED_STORAGE)
-    endif()
-
-    # Disable some MSVC compiler warnings
-    target_compile_definitions(vehicle_cosim PRIVATE CRT_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(vehicle_cosim PRIVATE SCL_SECURE_NO_DEPRECATE)  # avoids deprecation warnings
-    target_compile_definitions(vehicle_cosim PRIVATE NOMINMAX)                 # do not use MSVC's min/max macros
 endif()
 
 #--------------------------------------------------------------
