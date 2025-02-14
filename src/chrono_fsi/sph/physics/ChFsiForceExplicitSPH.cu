@@ -1360,44 +1360,79 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     uint NLStart = numNeighborsPerPart[index];
     uint NLEnd = numNeighborsPerPart[index + 1];
 
-    // Calculate the correction matrix for gradient operator
-    Real G_i[9] = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    // Initialize correction matrix to identity (3x3)
+    Real G_i0 = 1.0, G_i1 = 0.0, G_i2 = 0.0;
+    Real G_i3 = 0.0, G_i4 = 1.0, G_i5 = 0.0;
+    Real G_i6 = 0.0, G_i7 = 0.0, G_i8 = 1.0;
+    // Cache constant parameters in registers
+    const Real volume0 = paramsD.volume0;
+    const KernelType kernelType = paramsD.kernel_type;
+    const Real ooh = paramsD.ooh;
+    const Real d0 = paramsD.d0;
+
+    // Only perform the consistent discretization if the flag is set.
     if (paramsD.USE_Consistent_G) {
-        Real mGi[9] = {0.0};
-        for (int n = NLStart; n < NLEnd; n++) {
+        // Initialize accumulators for mGi[9] using scalar registers.
+        Real mGi0 = 0.0, mGi1 = 0.0, mGi2 = 0.0;
+        Real mGi3 = 0.0, mGi4 = 0.0, mGi5 = 0.0;
+        Real mGi6 = 0.0, mGi7 = 0.0, mGi8 = 0.0;
+
+        // Loop over all neighbors
+        for (uint n = NLStart + 1; n < NLEnd; n++) {
             uint j = neighborList[n];
+
+            // Load neighbor position and compute the distance vector
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real3 rij = Distance(posRadA, posRadB);
-            Real3 grad_i_wij = GradW3h(paramsD.kernel_type, rij, paramsD.ooh);
-            Real3 grw_vj = grad_i_wij * paramsD.volume0;
-            mGi[0] -= rij.x * grw_vj.x;
-            mGi[1] -= rij.x * grw_vj.y;
-            mGi[2] -= rij.x * grw_vj.z;
-            mGi[3] -= rij.y * grw_vj.x;
-            mGi[4] -= rij.y * grw_vj.y;
-            mGi[5] -= rij.y * grw_vj.z;
-            mGi[6] -= rij.z * grw_vj.x;
-            mGi[7] -= rij.z * grw_vj.y;
-            mGi[8] -= rij.z * grw_vj.z;
+
+            // Compute the gradient of the kernel at this neighbor distance
+            Real3 grad_i_wij = GradW3h(kernelType, rij, ooh);
+
+            // Multiply by the neighbor's volume
+            Real3 grw_vj;
+            grw_vj.x = grad_i_wij.x * volume0;
+            grw_vj.y = grad_i_wij.y * volume0;
+            grw_vj.z = grad_i_wij.z * volume0;
+
+            // Accumulate the nine terms (using the fact that we subtract the product)
+            mGi0 -= rij.x * grw_vj.x;
+            mGi1 -= rij.x * grw_vj.y;
+            mGi2 -= rij.x * grw_vj.z;
+
+            mGi3 -= rij.y * grw_vj.x;
+            mGi4 -= rij.y * grw_vj.y;
+            mGi5 -= rij.y * grw_vj.z;
+
+            mGi6 -= rij.z * grw_vj.x;
+            mGi7 -= rij.z * grw_vj.y;
+            mGi8 -= rij.z * grw_vj.z;
         }
-        Real Det = (mGi[0] * mGi[4] * mGi[8] - mGi[0] * mGi[5] * mGi[7] - mGi[1] * mGi[3] * mGi[8] +
-                    mGi[1] * mGi[5] * mGi[6] + mGi[2] * mGi[3] * mGi[7] - mGi[2] * mGi[4] * mGi[6]);
-        if (abs(Det) > 0.01) {
+
+        // Compute the determinant of the matrix mGi
+        Real Det = mGi0 * (mGi4 * mGi8 - mGi5 * mGi7) - mGi1 * (mGi3 * mGi8 - mGi5 * mGi6) +
+                   mGi2 * (mGi3 * mGi7 - mGi4 * mGi6);
+
+        // If the determinant is sufficiently non-zero, compute the inverse
+        if (fabs(Det) > 0.01) {
             Real OneOverDet = 1.0 / Det;
-            G_i[0] = (mGi[4] * mGi[8] - mGi[5] * mGi[7]) * OneOverDet;
-            G_i[1] = -(mGi[1] * mGi[8] - mGi[2] * mGi[7]) * OneOverDet;
-            G_i[2] = (mGi[1] * mGi[5] - mGi[2] * mGi[4]) * OneOverDet;
-            G_i[3] = -(mGi[3] * mGi[8] - mGi[5] * mGi[6]) * OneOverDet;
-            G_i[4] = (mGi[0] * mGi[8] - mGi[2] * mGi[6]) * OneOverDet;
-            G_i[5] = -(mGi[0] * mGi[5] - mGi[2] * mGi[3]) * OneOverDet;
-            G_i[6] = (mGi[3] * mGi[7] - mGi[4] * mGi[6]) * OneOverDet;
-            G_i[7] = -(mGi[0] * mGi[7] - mGi[1] * mGi[6]) * OneOverDet;
-            G_i[8] = (mGi[0] * mGi[4] - mGi[1] * mGi[3]) * OneOverDet;
+            G_i0 = (mGi4 * mGi8 - mGi5 * mGi7) * OneOverDet;
+            G_i1 = -(mGi1 * mGi8 - mGi2 * mGi7) * OneOverDet;
+            G_i2 = (mGi1 * mGi5 - mGi2 * mGi4) * OneOverDet;
+
+            G_i3 = -(mGi3 * mGi8 - mGi5 * mGi6) * OneOverDet;
+            G_i4 = (mGi0 * mGi8 - mGi2 * mGi6) * OneOverDet;
+            G_i5 = -(mGi0 * mGi5 - mGi2 * mGi3) * OneOverDet;
+
+            G_i6 = (mGi3 * mGi7 - mGi4 * mGi6) * OneOverDet;
+            G_i7 = -(mGi0 * mGi7 - mGi1 * mGi6) * OneOverDet;
+            G_i8 = (mGi0 * mGi4 - mGi1 * mGi3) * OneOverDet;
         }
     }
 
-    Real sum_w_i = W3h(paramsD.kernel_type, 0, paramsD.ooh) * paramsD.volume0;
-    Real w_ini_inv = 1 / W3h(paramsD.kernel_type, paramsD.d0, paramsD.ooh);
+    Real G_i[9] = {G_i0, G_i1, G_i2, G_i3, G_i4, G_i5, G_i6, G_i7, G_i8};
+
+    Real sum_w_i = W3h(kernelType, 0, ooh) * volume0;
+    Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
 
     // Get the interaction from neighbor particles
     // NLStart + 1 because the first element in neighbor list is the particle itself
@@ -1416,8 +1451,17 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         Real3 TauXyXzYzB = sortedTauXyXzYz[j];
 
         // Correct the kernel function gradient
-        Real w_AB = W3h(paramsD.kernel_type, d, paramsD.ooh);
-        Real3 gradW = GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
+        Real w_AB = W3h(kernelType, d, ooh);
+        Real3 gradW = GradW3h(kernelType, dist3, ooh);
+
+        // Calculate dv/dt
+        // The SPH discretization choosen for gradW does not support the use of consistent discretization - it will
+        // thus not be used here
+        derivVelRho += DifVelocityRho_ElasticSPH(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index],
+                                                 sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA,
+                                                 TauXyXzYzA, TauXxYyZzB, TauXyXzYzB);
+
+        // Modify the gradW for stress equation if we decide to use consistent discretization
         if (paramsD.USE_Consistent_G) {
             Real3 gradW_new;
             gradW_new.x = G_i[0] * gradW.x + G_i[1] * gradW.y + G_i[2] * gradW.z;
@@ -1425,15 +1469,12 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
             gradW_new.z = G_i[6] * gradW.x + G_i[7] * gradW.y + G_i[8] * gradW.z;
             gradW = gradW_new;
         }
-        // Calculate dv/dt
-        derivVelRho += DifVelocityRho_ElasticSPH(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index],
-                                                 sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA,
-                                                 TauXyXzYzA, TauXxYyZzB, TauXyXzYzB);
+
         // Calculate dsigma/dt
-        if (sortedRhoPreMu[index].w < -0.5f) {
+        if (IsFluidParticle(sortedRhoPreMu[index].w)) {
             // start to calculate the stress rate
             Real3 vAB = velMasA - velMasB;
-            Real3 vAB_h = 0.5f * vAB * paramsD.volume0;
+            Real3 vAB_h = 0.5f * vAB * volume0;
             // entries of strain rate tensor
             Real exx = -2.0f * vAB_h.x * gradW.x;
             Real eyy = -2.0f * vAB_h.y * gradW.y;
@@ -1458,9 +1499,9 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
         }
 
         if (d > paramsD.h * 1.0e-9f) {
-            Real Wab = W3h(paramsD.kernel_type, d, paramsD.ooh);
+            Real Wab = W3h(kernelType, d, ooh);
             // Integration of the kernel function
-            sum_w_i += Wab * paramsD.volume0;
+            sum_w_i += Wab * volume0;
         }
     }
 
