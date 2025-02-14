@@ -1397,7 +1397,7 @@ endif()
 
 if(CH_USE_SIMD)
     message(STATUS "Using SIMD flags: ${SIMD_FLAGS}")
-	target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${SIMD_FLAGS}>)
+    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${SIMD_FLAGS}>)
 endif() 
 
 #-----------------------------------------------------------------------------

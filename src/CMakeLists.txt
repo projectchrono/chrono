@@ -157,69 +157,68 @@ endif()
 option(CH_USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
 if(CH_USE_SIMD)
-	
-   # Figure out SIMD support
-   message(STATUS "Testing SIMD capabilities")
    find_package(SIMD)
-   
-   # Set substitution variables for configuration file
+
+   # SSE support
    if(SIMD_SSE)
      set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
-	 set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SIMD_SSE}\"")
+     set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SIMD_SSE}\"")
      
-	 # SSE up to and including 2.0 is supported on all 64-bit x86 systems
-	 set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
+     # SSE up to and including 2.0 is supported on all 64-bit x86 systems
+     set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
      set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
-	 
-	 if(${SIMD_SSE} VERSION_GREATER_EQUAL 3.0)
+
+     if(${SIMD_SSE} VERSION_GREATER_EQUAL 3.0)
        set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
      endif()
-	 if(${SIMD_SSE} VERSION_GREATER_EQUAL 4.1)
+     if(${SIMD_SSE} VERSION_GREATER_EQUAL 4.1)
        set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
      endif()
-	 if(${SIMD_SSE} VERSION_GREATER_EQUAL 4.2)
+     if(${SIMD_SSE} VERSION_GREATER_EQUAL 4.2)
        set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
      endif()
    endif()
-   
-   # Figure out AVX support
-   
-   # Set substitution variables for configuration file
-   if(SIMD_AVX)
+
+   # AVX support
+   if(AVX2_FOUND OR AVX_FOUND)
      set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
-	 set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${SIMD_AVX}\"")
-	 if(${SIMD_AVX} VERSION_GREATER_EQUAL 1.0)
-       set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
-     endif()
-	 if(${SIMD_AVX} VERSION_GREATER_EQUAL 2.0)
+     set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${SIMD_AVX}\"")
+
+     if(AVX2_FOUND)
        set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
      endif()
-   endif()
-
-   # Figure out FMA support
-   set(ALLOW_FMA TRUE)
-   if(MSVC)
-     if(NOT CH_WHOLE_PROG_OPT)
-        message(STATUS "  FMA requires enabling whole program optimization. FMA check disabled.")
-        set(ALLOW_FMA FALSE)
+     if(AVX_FOUND)
+       set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
      endif()
    endif()
-     
-   if(SIMD_FMA AND ALLOW_FMA)    
-     # Set substitution variables for configuration file
-     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-   endif()
-   
-   # Figure out NEON support
 
-   # Set substitution variables for configuration file.
+   # FMA support
+   if(FMA_FOUND)
+     if (MSVC AND NOT CH_WHOLE_PROG_OPT)
+       message(STATUS "MSVC FMA requires enabling whole program optimization; FMA disregarded")
+       set(FMA_FOUND FALSE)
+     else()
+       set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+     endif()
+   endif()
+
+   # NEON support
    if(SIMD_NEON)
      set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
    endif()
 
+   message(STATUS "SIMD optimization:")
+   message(STATUS "  AVX2 found and enabled? ${AVX2_FOUND}")
+   message(STATUS "  AVX found and enabled? ${AVX_FOUND}")
+   message(STATUS "  FMA found and enabled? ${FMA_FOUND}")
+   message(STATUS "  NEON found? ${NEON_FOUND}")
+   message(STATUS "  SIMD AVX version: ${SIMD_AVX}")
+   message(STATUS "  SIMD SSE version: ${SIMD_SSE}")
+   message(STATUS "  SIMD flags: ${SIMD_FLAGS}")
+
 else()
 
-   message(STATUS "  SIMD support disabled")
+   message(STATUS "SIMD support disabled")
 
 endif() 
 
