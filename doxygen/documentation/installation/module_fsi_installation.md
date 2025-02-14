@@ -39,11 +39,11 @@ The **FSI module** allows users to:
 
 ## Building instructions
 
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
+1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
 
-2. Set the `CH_ENABLE_MODULE_FSI` as 'on', then press 'Configure' (to refresh the variable list)
+2. Set `CH_ENABLE_MODULE_FSI` to 'on'.
 
-3. Set the `CH_USE_FSI_DOUBLE` as 'on', otherwise a single precision FSI solver will be built. The single precision FSI solver has been tested to have similar level of accuracy as the double precision solver with close to a 2X performance improvement.
+3. Optionally, set `CH_USE_FSI_DOUBLE` to 'on', otherwise a single precision FSI solver will be built. The single precision FSI solver has been tested to have similar level of accuracy as the double precision solver with close to a 2X performance improvement.
 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

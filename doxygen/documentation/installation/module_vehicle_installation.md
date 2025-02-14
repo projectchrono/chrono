@@ -37,9 +37,9 @@ These scripts (`buildOpenCRG.bat` and `buildOpenCRG.sh`, for Windows and Linux, 
 
 ## Building instructions
    
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
+1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
    
-2. Set the `CH_ENABLE_MODULE_VEHICLE` as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set `CH_ENABLE_MODULE_VEHICLE` to 'on'.
 	 
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
