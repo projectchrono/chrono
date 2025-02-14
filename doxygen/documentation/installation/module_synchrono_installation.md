@@ -17,12 +17,12 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
 - To build applications based on this module, the following are required:
   * MPI
     - Linux: Tested with [OpenMPI](https://www.open-mpi.org/) and [MPICH](https://www.mpich.org/).
-    - Windows: Tested with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) and [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi). You must ensure that the MPI dll (either `impi.dll` or `msmpi.dll`) is on your system path, for example by running a post-installation script ([Intel MPI example](https://software.intel.com/content/www/us/en/develop/documentation/mpi-developer-guide-windows/top/installation-and-prerequisites/prerequisite-steps.html)).
+    - Windows: Tested with [Intel MPI](https://software.intel.com/en-us/mpi-library/choose-download/windows) and [MS-MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi). You must ensure that the MPI dll (either `impi.dll` or `msmpi.dll`) is on your system path. 
   * [FlatBuffers](http://google.github.io/flatbuffers/) 
     - A version is included in chrono_thirdparty as a submodule, for general development either that version or an externally built one can be used.
 - The following are optional:
   * [FastDDS](https://fast-dds.docs.eprosima.com/en/latest/)
-    - Please use the [latest binaries](https://www.eprosima.com/index.php/component/ars/repository/eprosima-fast-dds) for installation.
+    - Please use the [latest binaries](https://www.eprosima.com/component/ars/releases/eprosima-fast-dds?Itemid=0) for installation.
     - Versions provided by package managers will likely work as well if they are reasonably up to date.
 
 ## Building instructions
@@ -37,7 +37,7 @@ The **SynChrono module** allows users to parallelize the dynamics computations f
 
 4. (Optional) If using Fast_DDS set `CH_USE_FAST_DDS` to 'on', then press 'Configure'. 
     - If you used the installed binaries they should be picked up automatically by CMake
-    - If you built from source or installed in a non-standard location, you'll have to manually specify `FAST_DDS_INSTALL_DIR`.
+    - If you built from source or installed in a non-standard location, you'll have to manually specify `FastDDS_ROOT`.
 
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
