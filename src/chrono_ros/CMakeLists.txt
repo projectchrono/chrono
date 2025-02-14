@@ -57,7 +57,7 @@ set(ROS2_TARGETS
 )
 
 # Optional package
-find_package(chrono_ros_interfaces)
+find_package(chrono_ros_interfaces QUIET)
 
 if(chrono_ros_interfaces_FOUND)
   set(CH_ROS_HAS_INTERFACES TRUE)
