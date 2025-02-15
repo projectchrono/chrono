@@ -1441,10 +1441,6 @@ void ChSystemGpu::WriteCsvParticles(std::ofstream& ptFile) const {
     m_sys->WriteCsvParticles(ptFile);
 }
 
-void ChSystemGpu::WriteChPFParticles(std::ofstream& ptFile) const {
-    m_sys->WriteChPFParticles(ptFile);
-}
-
 #ifdef USE_HDF5
 void ChSystemGpu::WriteH5Particles(H5::H5File ptFile) const {
     m_sys->WriteH5Particles(ptFile);
@@ -1459,9 +1455,6 @@ void ChSystemGpu::WriteParticleFile(const std::string& outfilename) const {
     } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::CSV) {
         std::ofstream ptFile(outfilename, std::ios::out);
         WriteCsvParticles(ptFile);
-    } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::CHPF) {
-        std::ofstream ptFile(outfilename, std::ios::out | std::ios::binary);
-        WriteChPFParticles(ptFile);
     } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::HDF5) {
 #ifdef USE_HDF5
         H5::H5File ptFile(outfilename.c_str(), H5F_ACC_TRUNC);

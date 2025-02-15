@@ -14,7 +14,7 @@
 # - Do *not* use GLEW from its GitHub repository. It is not properly set up to work with CMake. Use instead
 #   the source archive available on SourceForge.
 # - This was tested with the following version:
-#      GLEW (glew.sourceforge.net/):     Version 2.1.0                  
+#      GLEW (glew.sourceforge.net/):     Version 2.2.0                  
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # ---------------------------------------------------------------------------------------------------------
@@ -50,9 +50,9 @@ then
     mkdir download_gl
     
     echo "  ... GLEW"
-    wget https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.zip -O download_gl/glew.zip
+    wget https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.zip -O download_gl/glew.zip
     unzip -q download_gl/glew.zip -d download_gl
-    GLEW_SOURCE_DIR="download_gl/glew-2.1.0"
+    GLEW_SOURCE_DIR="download_gl/glew-2.2.0"
 else
     echo "Using provided source directory"
 fi

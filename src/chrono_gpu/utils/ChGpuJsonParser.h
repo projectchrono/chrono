@@ -357,8 +357,6 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
             params.write_mode = CHGPU_OUTPUT_MODE::CSV;
         else if (write_mode == std::string("hdf5"))
             params.write_mode = CHGPU_OUTPUT_MODE::HDF5;
-        else if (write_mode == std::string("chpf"))
-            params.write_mode = CHGPU_OUTPUT_MODE::CHPF;
         else if (write_mode == std::string("none"))
             params.write_mode = CHGPU_OUTPUT_MODE::NONE;
         else {

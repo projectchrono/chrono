@@ -60,92 +60,23 @@ set(CV_COSIM_TERRAIN_FILES
     terrain/ChVehicleCosimTerrainNodeSCM.cpp
 )
 
-# ------------------------------------------------------------------------------
-
-# Set flags, include paths, and libraries
-
-list(APPEND LIBRARIES ChronoEngine_vehicle)
-list(APPEND LIBRARIES ChronoModels_robot)
-list(APPEND LIBRARIES "${MPI_CXX_LIBRARIES}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_LIB} ${MPI_CXX_LINK_FLAGS}")
-set(INCLUDES "${CH_INCLUDES};${MPI_CXX_INCLUDE_PATH}")
-set(CXX_FLAGS "${CH_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-
-if(ENABLE_MODULE_MULTICORE)
+if(CH_ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularOMP.h
       terrain/ChVehicleCosimTerrainNodeGranularOMP.cpp)
-  source_group("terrain" FILES)
-  set(INCLUDES "${INCLUDES};${CH_MULTICORE_INCLUDES}")
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}")
-  list(APPEND LIBRARIES ChronoEngine_multicore)
 endif()
 
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularSPH.h
       terrain/ChVehicleCosimTerrainNodeGranularSPH.cpp)
-  set(INCLUDES "${INCLUDES};${CH_FSI_INCLUDES}")
-  list(APPEND LIBRARIES ChronoEngine_fsi_sph)
 endif()
 
-if(ENABLE_MODULE_GPU)
+if(CH_ENABLE_MODULE_GPU)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularGPU.h
       terrain/ChVehicleCosimTerrainNodeGranularGPU.cpp)
-  set(INCLUDES "${INCLUDES};${CH_GPU_INCLUDES}")
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_GPU_CXX_FLAGS}")
-  list(APPEND LIBRARIES ChronoEngine_gpu)
 endif()
-
-if(ENABLE_MODULE_PARDISO_MKL)
-  set(INCLUDES "${INCLUDES};${CH_MKL_INCLUDES}")
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_MKL_CXX_FLAGS}")
-  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-  list(APPEND LIBRARIES ChronoEngine_pardisomkl)
-endif()
-
-if(ENABLE_MODULE_MUMPS)
-  list(APPEND LIBRARIES ChronoEngine_mumps)
-endif()
-
-if(ENABLE_MODULE_IRRLICHT)
-  set(INCLUDES "${INCLUDES};${CH_IRRLICHT_INCLUDES}")
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-  list(APPEND LIBRARIES ChronoEngine_irrlicht)
-  list(APPEND LIBRARIES ChronoEngine_vehicle_irrlicht)
-endif()
-
-if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_vsg)
-  list(APPEND LIBRARIES ChronoEngine_vehicle_vsg)
-endif()
-
-if(ENABLE_MODULE_OPENGL)
-  set(INCLUDES "${INCLUDES};${CH_OPENGL_INCLUDES}")
-  list(APPEND LIBRARIES ChronoEngine_opengl)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-     set(LINKER_FLAGS  "${LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
-  endif()
-endif()
-
-if(ENABLE_MODULE_POSTPROCESS)
-    list(APPEND LIBRARIES ChronoEngine_postprocess)
-endif()
-
-# ------------------------------------------------------------------------------
-# Make some variables visible from parent directory (for use in demo CMakeLists files)
-
-unset(CH_VEHCOSIM_INCLUDES CACHE)
-unset(CH_VEHCOSIM_CXX_FLAGS CACHE)
-unset(CH_VEHCOSIM_LINKER_FLAGS CACHE)
-unset(CH_VEHCOSIM_LIBRARIES CACHE)
-
-set(CH_VEHCOSIM_INCLUDES "${INCLUDES}" CACHE INTERNAL "")
-set(CH_VEHCOSIM_CXX_FLAGS "${CXX_FLAGS}" CACHE INTERNAL "")
-set(CH_VEHCOSIM_LINKER_FLAGS "${LINKER_FLAGS}" CACHE INTERNAL "")
-set(CH_VEHCOSIM_LIBRARIES "${LIBRARIES}" CACHE INTERNAL "")
 
 # ------------------------------------------------------------------------------
 
@@ -155,8 +86,40 @@ source_group("tire" FILES ${CV_COSIM_TIRE_FILES})
 source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
 
 # ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
 
+set(DEPENDENCIES_VEHICLECOSIM "")
+if(CH_ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "VEHICLE")
+endif()
+
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "PARDISOMKL")
+endif()
+if(CH_ENABLE_MODULE_MUMPS)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "MUMPS")
+endif()
+
+if(CH_ENABLE_MODULE_MULTICORE)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "MULTICORE")
+endif()
+if(CH_ENABLE_MODULE_FSI)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "FSI")
+endif()
+if(CH_ENABLE_MODULE_GPU)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "GPU")
+endif()
+
+if(CH_ENABLE_MODULE_POSTPROCESS)
+  list (APPEND DEPENDENCIES_VEHICLECOSIM "POSTPROCESS")
+endif()
+
+set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
+
+# ------------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle_cosim library
+# ------------------------------------------------------------------------------
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
@@ -166,19 +129,72 @@ add_library(ChronoEngine_vehicle_cosim
     ${CV_COSIM_TIRE_FILES}
     ${CV_COSIM_TERRAIN_FILES}
 )
+add_library(ChronoEngine::vehicle_cosim ALIAS ChronoEngine_vehicle_cosim)
 
-include_directories(${INCLUDES})
-
-set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${LINKER_FLAGS}")
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
-target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_link_libraries(ChronoEngine_vehicle_cosim ${LIBRARIES})
+if(MSVC)
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_vehicle)
+target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoModels_robot)
+if(CH_ENABLE_MODULE_MULTICORE)
+  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_multicore)
+endif()
+if(CH_ENABLE_MODULE_FSI)
+  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_fsisph)
+endif()
+if(CH_ENABLE_MODULE_GPU)
+  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_gpu)
+endif()
+
+target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC MPI::MPI_CXX)
+
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_pardisomkl)
+endif()
+if(CH_ENABLE_MODULE_MUMPS)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_mumps)
+endif()
+if(CH_ENABLE_MODULE_POSTPROCESS)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_postprocess)
+endif()
+if(CH_ENABLE_MODULE_IRRLICHT)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_irrlicht)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vehicle_irrlicht)
+endif()
+if(CH_ENABLE_MODULE_VSG)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vsg)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vehicle_vsg)
+  if(CH_ENABLE_MODULE_FSI)
+    target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_fsisph_vsg)
+  endif()
+endif()
+if(CH_ENABLE_MODULE_OPENGL)
+  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_opengl)
+  if(CH_ENABLE_MODULE_FSI)
+    target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_fsisph_opengl)
+  endif()
+endif()
 
 install(TARGETS ChronoEngine_vehicle_cosim
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_vehicle/cosim)
+
+# -------------------------------------------------------------------------------------------------
+# Install files
+# -------------------------------------------------------------------------------------------------
+
+# Old way (install headers preserving directory structure)
+#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+#        DESTINATION include/chrono_vehicle/cosim
+#        FILES_MATCHING PATTERN "*.h")

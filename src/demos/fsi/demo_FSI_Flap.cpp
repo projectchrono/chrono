@@ -267,13 +267,14 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     double top_panel_height = 0.0575;
     double bottom_panel_height = door_height - window_height - top_panel_height;
     double bottom_panel_thickness = door_thickness / 2;
-    double mini_window_rb = 0.01;  // Luning to do, i think this is messing me up, causing instability ... let me
-                                   // inflate this to door thickness and see what happens
-    // double mini_window_rb = door_thickness/2;
 
-    double mini_window_ra = mini_window_height / 2;
-    // double mini_window_angle = 0;   // when angle is 0, all windows are closed!
-    // double mini_window_angle = 45 / 180. * CH_PI;
+    // TODO (Luning): i think this is messing me up, causing instability
+    // let me inflate this to door thickness and see what happens
+    double mini_window_rb = 0.01;  
+    ////double mini_window_rb = door_thickness/2;
+    ////double mini_window_ra = mini_window_height / 2;
+    ////double mini_window_angle = 0;   // when angle is 0, all windows are closed!
+    ////double mini_window_angle = 45 / 180. * CH_PI;
 
     // location of front box -y
     ChVector3d front_box_pos(0, -(door_width + window_width) / 4, door_height / 2);

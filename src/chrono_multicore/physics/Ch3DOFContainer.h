@@ -23,7 +23,6 @@
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
 
 // Chrono headers

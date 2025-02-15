@@ -7,13 +7,6 @@
 [submodule "src/chrono_thirdparty/flatbuffers"]
 	path = src/chrono_thirdparty/flatbuffers
 	url = https://github.com/google/flatbuffers.git
-[submodule "src/chrono_thirdparty/chpf"]
-	path = src/chrono_thirdparty/chpf
-	url = https://gitlab.com/uwsbel/chpf.git
-[submodule "src/chrono_thirdparty/DEM-Engine"]
-	path = src/chrono_thirdparty/DEM-Engine
-	url = https://github.com/projectchrono/DEM-Engine
-	branch = main
 [submodule "src/chrono_thirdparty/fmu_tools"]
 	path = src/chrono_thirdparty/fmu_tools
 	url = https://github.com/projectchrono/fmu_tools.git

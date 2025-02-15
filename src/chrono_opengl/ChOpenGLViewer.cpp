@@ -258,8 +258,8 @@ void ChOpenGLViewer::Render(bool render_stats) {
         for (auto s : m_vis->GetSystems()) {
 #pragma omp parallel for
             for (int i = 0; i < s->GetBodies().size(); i++) {
-                auto abody = s->GetBodies().at(i);
-                ChVector3d pos = abody->GetPos();
+                const auto& abody = s->GetBodies().at(i);
+                const auto& pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
             }
         }
@@ -310,8 +310,8 @@ void ChOpenGLViewer::DrawVisualModel(std::shared_ptr<ChPhysicsItem> item) {
         const auto& X_SM = shape_instance.second;
 
         ChFrame<> X_SA = X_AM * X_SM;
-        auto pos = X_SA.GetPos();
-        auto rot = X_SA.GetRot();
+        const auto& pos = X_SA.GetPos();
+        const auto& rot = X_SA.GetRot();
         double angle;
         ChVector3d axis;
         rot.GetAngleAxis(angle, axis);

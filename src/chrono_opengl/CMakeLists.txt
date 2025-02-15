@@ -3,33 +3,23 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
+option(CH_ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 
 # Return now if this module is not enabled
 
-if(NOT ENABLE_MODULE_OPENGL)
-  # Hide Chrono::OpenGL specific variables
-  mark_as_advanced(FORCE GLM_INCLUDE_DIR)
+if(NOT CH_ENABLE_MODULE_OPENGL)
+  mark_as_advanced(FORCE glm_DIR)
   mark_as_advanced(FORCE GLEW_DIR)
   mark_as_advanced(FORCE glfw3_DIR)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    mark_as_advanced(FORCE GLEW_DLL)
-    mark_as_advanced(FORCE GLFW_DLL)
-  endif()
-
   return()
 endif()
 
 message(STATUS "\n==== Chrono OpenGL module ====\n")
 
 # Show Chrono::OpenGL specific variables
-mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
+mark_as_advanced(CLEAR glm_DIR)
 mark_as_advanced(CLEAR GLEW_DIR)
 mark_as_advanced(CLEAR glfw3_DIR)
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  mark_as_advanced(CLEAR GLEW_DLL)
-  mark_as_advanced(CLEAR GLFW_DLL)
-endif()
 
 # ------------------------------------------------------------------------------
 # Dependencies for OpenGL module
@@ -38,55 +28,29 @@ endif()
 cmake_policy(SET CMP0072 NEW)
 
 find_package(OpenGL)
-find_package(GLM REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(glm REQUIRED)
 
 message(STATUS "OpenGL found: ${OPENGL_FOUND}")
-message(STATUS "GLM found:    ${GLM_FOUND}")
-message(STATUS "GLEW found:   ${GLEW_FOUND}")
-message(STATUS "GLFW3 found:  ${glfw3_FOUND}")
-
-# On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
-# optional.  If not specified, it is the user's responsibility to make them
-# available at runtime.
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(GLEW_DLL  "" CACHE FILEPATH "The GLEW DLL")
-    set(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
-endif()
+message(STATUS "   include dir: ${OPENGL_INCLUDE_DIR}")
+message(STATUS "   libraries:   ${OPENGL_LIBRARIES}")
+message(STATUS "GLEW found: ${GLEW_FOUND}")
+message(STATUS "   include dir: ${GLEW_INCLUDE_DIRS}")
+message(STATUS "   libraries:   ${GLEW_LIBRARIES}")
+message(STATUS "glfw3 found:  ${glfw3_FOUND}")
+message(STATUS "glm found: ${glm_FOUND}")
 
 # If all dependencies are available, enable building OpenGL support.
-if(OPENGL_FOUND AND GLM_FOUND AND GLEW_FOUND AND glfw3_FOUND)
+if(OPENGL_FOUND AND glm_FOUND AND GLEW_FOUND AND glfw3_FOUND)
     set(CHRONO_OPENGL "#define CHRONO_OPENGL")
-    message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
-    message(STATUS "GLM_INCLUDE_DIRS: ${GLM_INCLUDE_DIRS}")
-    message(STATUS "GLEW config dir:  ${GLEW_DIR}")
-    message(STATUS "GLFW3 config dir: ${glfw3_DIR}")
 else()
     # Unable to find everything, turn off OpenGL
     message("Cannot build ChronoEngine_OpenGL (missing dependencies); disabling Chrono::OpenGL")
     set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
-    set(ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
+    set(CH_ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
+    return()
 endif()
-
-# ------------------------------------------------------------------------------
-# Collect all include directories necessary for the OpenGL module
-# ------------------------------------------------------------------------------
-
-include_directories(${GLM_INCLUDE_DIR})
-
-if(ENABLE_MODULE_MULTICORE)
-    include_directories(${CH_MULTICORE_INCLUDES})
-endif()
-
-# ------------------------------------------------------------------------------
-# Make some variables visible from parent directory
-# ------------------------------------------------------------------------------
-
-SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
-SET(OPENGL_LIBRARIES   "${OPENGL_LIBRARIES}" PARENT_SCOPE)
-SET(GLEW_DIR "${GLEW_DIR}" PARENT_SCOPE)
-SET(glfw3_DIR "${glfw3_DIR}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # Add commands to compile shaders
@@ -108,11 +72,11 @@ set(GLSL_SHADERS
     text_vert)
   
 foreach(GLSL_SHADER ${GLSL_SHADERS})
-  ADD_CUSTOM_COMMAND(
+  add_custom_command(
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
     COMMAND ${CMAKE_COMMAND} 
             -DSYMBOL=${GLSL_SHADER}
-            -DDATA_FILE=${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl 
+            -DDATA_FILE=${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl
             -DHEADER_FILE=${CMAKE_BINARY_DIR}/resources/${GLSL_SHADER}.h
             -P ${CMAKE_SOURCE_DIR}/cmake/embedfile.cmake
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/${GLSL_SHADER}.glsl
@@ -126,7 +90,7 @@ set(DEFAULT_OBJ_FILES
     cylinder)
 
 foreach(DEFAULT_OBJ_FILE ${DEFAULT_OBJ_FILES})
-  ADD_CUSTOM_COMMAND(
+  add_custom_command(
     OUTPUT  ${CMAKE_BINARY_DIR}/resources/${DEFAULT_OBJ_FILE}.h
     COMMAND ${CMAKE_COMMAND}
             -DSYMBOL=${DEFAULT_OBJ_FILE}_mesh_data
@@ -149,16 +113,19 @@ set(OBJ_FILES
     sphere.obj)
 
 if(MSVC)
-  set(OBJ_FILES_DEST "${CMAKE_BINARY_DIR}/bin/resources")
+  set(OBJ_FILES_DEST "bin/resources")
 elseif(XCODE_VERSION)
-  set(OBJ_FILES_DEST "${CMAKE_BINARY_DIR}/bin/resources")
+  set(OBJ_FILES_DEST "bin/resources")
 else()
-  set(OBJ_FILES_DEST "${CMAKE_BINARY_DIR}/resources")
+  set(OBJ_FILES_DEST "resources")
 endif()
 
 foreach(OBJ_FILE ${OBJ_FILES})
-  FILE(COPY        "${CMAKE_CURRENT_SOURCE_DIR}/resources/${OBJ_FILE}"
-       DESTINATION "${OBJ_FILES_DEST}")
+  file(COPY        "${CMAKE_CURRENT_SOURCE_DIR}/resources/${OBJ_FILE}"
+       DESTINATION "${CMAKE_BINARY_DIR}/${OBJ_FILES_DEST}")
+
+  # copy to install folder TODO: DARIOM check if needed, it wasn't here before
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/${OBJ_FILE}" DESTINATION ${OBJ_FILES_DEST})
 endforeach()
 
 # ------------------------------------------------------------------------------
@@ -252,6 +219,17 @@ source_group("resources" FILES ${CE_OpenGL_RESOURCES_FILES})
 source_group("utils" FILES ${CE_OpenGL_STB_FILES} ${CE_OpenGL_TINYOBJLOADER_FILES})
 
 # ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_OPENGL "")
+if(CH_ENABLE_MODULE_MULTICORE)
+  list (APPEND DEPENDENCIES_OPENGL "MULTICORE")
+endif()
+
+set(DEPENDENCIES_OPENGL ${DEPENDENCIES_OPENGL} PARENT_SCOPE)
+
+# ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
 
@@ -263,66 +241,69 @@ add_library(ChronoEngine_opengl
             ${CE_OpenGL_RESOURCES_FILES}
             ${CE_OpenGL_STB_FILES}
             ${CE_OpenGL_TINYOBJLOADER_FILES}
-) 
+)
+add_library(ChronoEngine::opengl ALIAS ChronoEngine_opengl)
 
-set(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
-set(CE_OpenGL_LIBRARIES  ChronoEngine)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_opengl PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_opengl PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  set (CE_OpenGL_LINK_FLAGS "-s FULL_ES3=1 -s USE_GLFW=3")
+  target_compile_options(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"-s FULL_ES3=1 -s USE_GLFW=3">)
 endif()
 
-if(ENABLE_MODULE_MULTICORE)
-	set(CE_OpenGL_LIBRARIES ${CE_OpenGL_LIBRARIES} ChronoEngine_multicore)
-	set(CE_OpenGL_FLAGS "${CE_OpenGL_FLAGS} ${CH_MULTICORE_CXX_FLAGS}")
+
+target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_OPENGL>)
+target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:GLM_ENABLE_EXPERIMENTAL>)
+
+target_link_libraries(ChronoEngine_opengl PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_opengl PUBLIC glm::glm)
+
+if(CH_ENABLE_MODULE_MULTICORE)
+  target_link_libraries(ChronoEngine_opengl PUBLIC ChronoEngine_multicore)
 endif()
 
-set_target_properties(ChronoEngine_opengl PROPERTIES 
-                      COMPILE_FLAGS "${CE_OpenGL_FLAGS}"
-                      LINK_FLAGS "${CE_OpenGL_LINK_FLAGS} ${CH_LINKERFLAG_LIB}")
-
-target_compile_definitions(ChronoEngine_opengl PRIVATE "CH_API_COMPILE_OPENGL")
-target_compile_definitions(ChronoEngine_opengl PRIVATE "GLM_ENABLE_EXPERIMENTAL")
-target_compile_definitions(ChronoEngine_opengl PRIVATE "CH_IGNORE_DEPRECATED")
-
-target_link_libraries(ChronoEngine_opengl ${CE_OpenGL_LIBRARIES})
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  target_link_libraries(ChronoEngine_opengl ${OPENGL_LIBRARIES})
-  target_link_libraries(ChronoEngine_opengl GLEW::glew)
-  target_link_libraries(ChronoEngine_opengl glfw)
+  target_link_libraries(ChronoEngine_opengl PUBLIC OpenGL::GL)
+  target_link_libraries(ChronoEngine_opengl PUBLIC GLEW::glew)
+  target_link_libraries(ChronoEngine_opengl PUBLIC glfw)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 install(TARGETS ChronoEngine_opengl
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_opengl
+        )
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/chrono_opengl
-        FILES_MATCHING PATTERN "*.h" PATTERN "resources" EXCLUDE)
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
 
-# Install required chrono_thirdparty headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+# Old way (install headers preserving directory structure)
+ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+         DESTINATION include/chrono_opengl
+         FILES_MATCHING PATTERN "*.h" PATTERN "resources" EXCLUDE)
+
+# Install 3rd party headers       
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
-#-------------------------------------------------------------------------------
-# On Windows, copy the GLEW and GLFW DLLs (if specified)
-#-------------------------------------------------------------------------------
-
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    get_target_property(GLEW_DLL GLEW::glew IMPORTED_LOCATION_RELEASE)
+    get_target_property(GLFW_DLL glfw IMPORTED_LOCATION_RELEASE)
     if(EXISTS "${GLEW_DLL}")
-      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
-                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                                 "${GLEW_DLL}"
-                                 "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
       install(FILES "${GLEW_DLL}" DESTINATION bin)
     endif()
     if(EXISTS "${GLFW_DLL}")
-      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
-                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                         "${GLFW_DLL}"
-                         "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
       install(FILES "${GLFW_DLL}" DESTINATION bin)
     endif()
 endif()

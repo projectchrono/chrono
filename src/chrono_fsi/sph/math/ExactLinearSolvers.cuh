@@ -26,6 +26,7 @@ namespace sph {
 /// @addtogroup fsi_solver
 /// @{
 
+/*
 /// This function calculates the normalized coordinates of a point inside a bilinear element
 /// i.e, P= N1*p1.+N2*p2.+N3*p3.+N4*p4. where Ni's are given based on eta and zeta
 /// The solver returns the eta and zeta of point P from the coordinates of p1.,p2.,p3.,p4.
@@ -37,32 +38,32 @@ static __host__ __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4
                (p.x * p.x) * (p4.y * p4.y) + (p.y * p.y) * (p1.x * p1.x) + (p.y * p.y) * (p2.x * p2.x) +
                (p.y * p.y) * (p3.x * p3.x) + (p.y * p.y) * (p4.x * p4.x) + (p1.x * p1.x) * (p3.y * p3.y) +
                (p3.x * p3.x) * (p1.y * p1.y) + (p2.x * p2.x) * (p4.y * p4.y) + (p4.x * p4.x) * (p2.y * p2.y) -
-               p.x * p1.x * (p3.y * p3.y) * 2.0 - p.x * p3.x * (p1.y * p1.y) * 2.0 - p.x * p2.x * (p4.y * p4.y) * 2.0 -
-               p.x * p4.x * (p2.y * p2.y) * 2.0 - (p.x * p.x) * p1.y * p2.y * 2.0 + (p.x * p.x) * p1.y * p3.y * 2.0 -
-               (p.x * p.x) * p1.y * p4.y * 2.0 - (p.x * p.x) * p2.y * p3.y * 2.0 + (p.x * p.x) * p2.y * p4.y * 2.0 -
-               (p.x * p.x) * p3.y * p4.y * 2.0 - (p.y * p.y) * p1.x * p2.x * 2.0 + (p.y * p.y) * p1.x * p3.x * 2.0 -
-               (p.y * p.y) * p1.x * p4.x * 2.0 - (p.y * p.y) * p2.x * p3.x * 2.0 + (p.y * p.y) * p2.x * p4.x * 2.0 -
-               (p.y * p.y) * p3.x * p4.x * 2.0 - p.y * (p1.x * p1.x) * p3.y * 2.0 - p.y * (p3.x * p3.x) * p1.y * 2.0 -
-               p.y * (p2.x * p2.x) * p4.y * 2.0 - p.y * (p4.x * p4.x) * p2.y * 2.0 - p1.x * p3.x * p1.y * p3.y * 2.0 -
-               p1.x * p2.x * p3.y * p4.y * 2.0 + p1.x * p3.x * p2.y * p4.y * 4.0 - p1.x * p4.x * p2.y * p3.y * 2.0 -
-               p2.x * p3.x * p1.y * p4.y * 2.0 + p2.x * p4.x * p1.y * p3.y * 4.0 - p3.x * p4.x * p1.y * p2.y * 2.0 -
-               p2.x * p4.x * p2.y * p4.y * 2.0 - p.x * p.y * p1.x * p1.y * 2.0 + p.x * p.y * p1.x * p2.y * 2.0 +
-               p.x * p.y * p2.x * p1.y * 2.0 - p.x * p.y * p1.x * p3.y * 2.0 - p.x * p.y * p2.x * p2.y * 2.0 -
-               p.x * p.y * p3.x * p1.y * 2.0 + p.x * p.y * p1.x * p4.y * 2.0 + p.x * p.y * p2.x * p3.y * 2.0 +
-               p.x * p.y * p3.x * p2.y * 2.0 + p.x * p.y * p4.x * p1.y * 2.0 - p.x * p.y * p2.x * p4.y * 2.0 -
-               p.x * p.y * p3.x * p3.y * 2.0 - p.x * p.y * p4.x * p2.y * 2.0 + p.x * p.y * p3.x * p4.y * 2.0 +
-               p.x * p.y * p4.x * p3.y * 2.0 - p.x * p.y * p4.x * p4.y * 2.0 + p.x * p1.x * p1.y * p3.y * 2.0 +
-               p.x * p1.x * p2.y * p3.y * 2.0 - p.x * p2.x * p1.y * p3.y * 4.0 + p.x * p3.x * p1.y * p2.y * 2.0 -
-               p.x * p1.x * p2.y * p4.y * 4.0 + p.x * p2.x * p1.y * p4.y * 2.0 + p.x * p3.x * p1.y * p3.y * 2.0 +
-               p.x * p4.x * p1.y * p2.y * 2.0 + p.x * p1.x * p3.y * p4.y * 2.0 + p.x * p2.x * p2.y * p4.y * 2.0 +
-               p.x * p3.x * p1.y * p4.y * 2.0 - p.x * p4.x * p1.y * p3.y * 4.0 + p.x * p2.x * p3.y * p4.y * 2.0 -
-               p.x * p3.x * p2.y * p4.y * 4.0 + p.x * p4.x * p2.y * p3.y * 2.0 + p.x * p4.x * p2.y * p4.y * 2.0 +
-               p.y * p1.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p3.y * 2.0 - p.y * p1.x * p3.x * p2.y * 4.0 +
-               p.y * p2.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p4.y * 2.0 + p.y * p1.x * p3.x * p3.y * 2.0 +
-               p.y * p1.x * p4.x * p2.y * 2.0 - p.y * p2.x * p4.x * p1.y * 4.0 - p.y * p1.x * p3.x * p4.y * 4.0 +
-               p.y * p1.x * p4.x * p3.y * 2.0 + p.y * p2.x * p4.x * p2.y * 2.0 + p.y * p3.x * p4.x * p1.y * 2.0 +
-               p.y * p2.x * p3.x * p4.y * 2.0 - p.y * p2.x * p4.x * p3.y * 4.0 + p.y * p3.x * p4.x * p2.y * 2.0 +
-               p.y * p2.x * p4.x * p4.y * 2.0)) /
+               p.x * p1.x * (p3.y * p3.y) * 2 - p.x * p3.x * (p1.y * p1.y) * 2 - p.x * p2.x * (p4.y * p4.y) * 2 -
+               p.x * p4.x * (p2.y * p2.y) * 2 - (p.x * p.x) * p1.y * p2.y * 2 + (p.x * p.x) * p1.y * p3.y * 2 -
+               (p.x * p.x) * p1.y * p4.y * 2 - (p.x * p.x) * p2.y * p3.y * 2 + (p.x * p.x) * p2.y * p4.y * 2 -
+               (p.x * p.x) * p3.y * p4.y * 2 - (p.y * p.y) * p1.x * p2.x * 2 + (p.y * p.y) * p1.x * p3.x * 2 -
+               (p.y * p.y) * p1.x * p4.x * 2 - (p.y * p.y) * p2.x * p3.x * 2 + (p.y * p.y) * p2.x * p4.x * 2 -
+               (p.y * p.y) * p3.x * p4.x * 2 - p.y * (p1.x * p1.x) * p3.y * 2 - p.y * (p3.x * p3.x) * p1.y * 2 -
+               p.y * (p2.x * p2.x) * p4.y * 2 - p.y * (p4.x * p4.x) * p2.y * 2 - p1.x * p3.x * p1.y * p3.y * 2 -
+               p1.x * p2.x * p3.y * p4.y * 2 + p1.x * p3.x * p2.y * p4.y * 4 - p1.x * p4.x * p2.y * p3.y * 2 -
+               p2.x * p3.x * p1.y * p4.y * 2 + p2.x * p4.x * p1.y * p3.y * 4 - p3.x * p4.x * p1.y * p2.y * 2 -
+               p2.x * p4.x * p2.y * p4.y * 2 - p.x * p.y * p1.x * p1.y * 2 + p.x * p.y * p1.x * p2.y * 2 +
+               p.x * p.y * p2.x * p1.y * 2 - p.x * p.y * p1.x * p3.y * 2 - p.x * p.y * p2.x * p2.y * 2 -
+               p.x * p.y * p3.x * p1.y * 2 + p.x * p.y * p1.x * p4.y * 2 + p.x * p.y * p2.x * p3.y * 2 +
+               p.x * p.y * p3.x * p2.y * 2 + p.x * p.y * p4.x * p1.y * 2 - p.x * p.y * p2.x * p4.y * 2 -
+               p.x * p.y * p3.x * p3.y * 2 - p.x * p.y * p4.x * p2.y * 2 + p.x * p.y * p3.x * p4.y * 2 +
+               p.x * p.y * p4.x * p3.y * 2 - p.x * p.y * p4.x * p4.y * 2 + p.x * p1.x * p1.y * p3.y * 2 +
+               p.x * p1.x * p2.y * p3.y * 2 - p.x * p2.x * p1.y * p3.y * 4 + p.x * p3.x * p1.y * p2.y * 2 -
+               p.x * p1.x * p2.y * p4.y * 4 + p.x * p2.x * p1.y * p4.y * 2 + p.x * p3.x * p1.y * p3.y * 2 +
+               p.x * p4.x * p1.y * p2.y * 2 + p.x * p1.x * p3.y * p4.y * 2 + p.x * p2.x * p2.y * p4.y * 2 +
+               p.x * p3.x * p1.y * p4.y * 2 - p.x * p4.x * p1.y * p3.y * 4 + p.x * p2.x * p3.y * p4.y * 2 -
+               p.x * p3.x * p2.y * p4.y * 4 + p.x * p4.x * p2.y * p3.y * 2 + p.x * p4.x * p2.y * p4.y * 2 +
+               p.y * p1.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p3.y * 2 - p.y * p1.x * p3.x * p2.y * 4 +
+               p.y * p2.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p4.y * 2 + p.y * p1.x * p3.x * p3.y * 2 +
+               p.y * p1.x * p4.x * p2.y * 2 - p.y * p2.x * p4.x * p1.y * 4 - p.y * p1.x * p3.x * p4.y * 4 +
+               p.y * p1.x * p4.x * p3.y * 2 + p.y * p2.x * p4.x * p2.y * 2 + p.y * p3.x * p4.x * p1.y * 2 +
+               p.y * p2.x * p3.x * p4.y * 2 - p.y * p2.x * p4.x * p3.y * 4 + p.y * p3.x * p4.x * p2.y * 2 +
+               p.y * p2.x * p4.x * p4.y * 2)) /
         (p3.x * (p1.y - p2.y) - p4.x * (p1.y - p2.y) - p1.x * (p3.y - p4.y) + p2.x * (p3.y - p4.y));
     eta.y =
         (p.x * p1.y - p.x * p2.y + p.x * p3.y - p.x * p4.y - p.y * p1.x + p.y * p2.x - p.y * p3.x + p.y * p4.x +
@@ -71,32 +72,32 @@ static __host__ __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4
               (p.x * p.x) * (p4.y * p4.y) + (p.y * p.y) * (p1.x * p1.x) + (p.y * p.y) * (p2.x * p2.x) +
               (p.y * p.y) * (p3.x * p3.x) + (p.y * p.y) * (p4.x * p4.x) + (p1.x * p1.x) * (p3.y * p3.y) +
               (p3.x * p3.x) * (p1.y * p1.y) + (p2.x * p2.x) * (p4.y * p4.y) + (p4.x * p4.x) * (p2.y * p2.y) -
-              p.x * p1.x * (p3.y * p3.y) * 2.0 - p.x * p3.x * (p1.y * p1.y) * 2.0 - p.x * p2.x * (p4.y * p4.y) * 2.0 -
-              p.x * p4.x * (p2.y * p2.y) * 2.0 - (p.x * p.x) * p1.y * p2.y * 2.0 + (p.x * p.x) * p1.y * p3.y * 2.0 -
-              (p.x * p.x) * p1.y * p4.y * 2.0 - (p.x * p.x) * p2.y * p3.y * 2.0 + (p.x * p.x) * p2.y * p4.y * 2.0 -
-              (p.x * p.x) * p3.y * p4.y * 2.0 - (p.y * p.y) * p1.x * p2.x * 2.0 + (p.y * p.y) * p1.x * p3.x * 2.0 -
-              (p.y * p.y) * p1.x * p4.x * 2.0 - (p.y * p.y) * p2.x * p3.x * 2.0 + (p.y * p.y) * p2.x * p4.x * 2.0 -
-              (p.y * p.y) * p3.x * p4.x * 2.0 - p.y * (p1.x * p1.x) * p3.y * 2.0 - p.y * (p3.x * p3.x) * p1.y * 2.0 -
-              p.y * (p2.x * p2.x) * p4.y * 2.0 - p.y * (p4.x * p4.x) * p2.y * 2.0 - p1.x * p3.x * p1.y * p3.y * 2.0 -
-              p1.x * p2.x * p3.y * p4.y * 2.0 + p1.x * p3.x * p2.y * p4.y * 4.0 - p1.x * p4.x * p2.y * p3.y * 2.0 -
-              p2.x * p3.x * p1.y * p4.y * 2.0 + p2.x * p4.x * p1.y * p3.y * 4.0 - p3.x * p4.x * p1.y * p2.y * 2.0 -
-              p2.x * p4.x * p2.y * p4.y * 2.0 - p.x * p.y * p1.x * p1.y * 2.0 + p.x * p.y * p1.x * p2.y * 2.0 +
-              p.x * p.y * p2.x * p1.y * 2.0 - p.x * p.y * p1.x * p3.y * 2.0 - p.x * p.y * p2.x * p2.y * 2.0 -
-              p.x * p.y * p3.x * p1.y * 2.0 + p.x * p.y * p1.x * p4.y * 2.0 + p.x * p.y * p2.x * p3.y * 2.0 +
-              p.x * p.y * p3.x * p2.y * 2.0 + p.x * p.y * p4.x * p1.y * 2.0 - p.x * p.y * p2.x * p4.y * 2.0 -
-              p.x * p.y * p3.x * p3.y * 2.0 - p.x * p.y * p4.x * p2.y * 2.0 + p.x * p.y * p3.x * p4.y * 2.0 +
-              p.x * p.y * p4.x * p3.y * 2.0 - p.x * p.y * p4.x * p4.y * 2.0 + p.x * p1.x * p1.y * p3.y * 2.0 +
-              p.x * p1.x * p2.y * p3.y * 2.0 - p.x * p2.x * p1.y * p3.y * 4.0 + p.x * p3.x * p1.y * p2.y * 2.0 -
-              p.x * p1.x * p2.y * p4.y * 4.0 + p.x * p2.x * p1.y * p4.y * 2.0 + p.x * p3.x * p1.y * p3.y * 2.0 +
-              p.x * p4.x * p1.y * p2.y * 2.0 + p.x * p1.x * p3.y * p4.y * 2.0 + p.x * p2.x * p2.y * p4.y * 2.0 +
-              p.x * p3.x * p1.y * p4.y * 2.0 - p.x * p4.x * p1.y * p3.y * 4.0 + p.x * p2.x * p3.y * p4.y * 2.0 -
-              p.x * p3.x * p2.y * p4.y * 4.0 + p.x * p4.x * p2.y * p3.y * 2.0 + p.x * p4.x * p2.y * p4.y * 2.0 +
-              p.y * p1.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p3.y * 2.0 - p.y * p1.x * p3.x * p2.y * 4.0 +
-              p.y * p2.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p4.y * 2.0 + p.y * p1.x * p3.x * p3.y * 2.0 +
-              p.y * p1.x * p4.x * p2.y * 2.0 - p.y * p2.x * p4.x * p1.y * 4.0 - p.y * p1.x * p3.x * p4.y * 4.0 +
-              p.y * p1.x * p4.x * p3.y * 2.0 + p.y * p2.x * p4.x * p2.y * 2.0 + p.y * p3.x * p4.x * p1.y * 2.0 +
-              p.y * p2.x * p3.x * p4.y * 2.0 - p.y * p2.x * p4.x * p3.y * 4.0 + p.y * p3.x * p4.x * p2.y * 2.0 +
-              p.y * p2.x * p4.x * p4.y * 2.0)) /
+              p.x * p1.x * (p3.y * p3.y) * 2 - p.x * p3.x * (p1.y * p1.y) * 2 - p.x * p2.x * (p4.y * p4.y) * 2 -
+              p.x * p4.x * (p2.y * p2.y) * 2 - (p.x * p.x) * p1.y * p2.y * 2 + (p.x * p.x) * p1.y * p3.y * 2 -
+              (p.x * p.x) * p1.y * p4.y * 2 - (p.x * p.x) * p2.y * p3.y * 2 + (p.x * p.x) * p2.y * p4.y * 2 -
+              (p.x * p.x) * p3.y * p4.y * 2 - (p.y * p.y) * p1.x * p2.x * 2 + (p.y * p.y) * p1.x * p3.x * 2 -
+              (p.y * p.y) * p1.x * p4.x * 2 - (p.y * p.y) * p2.x * p3.x * 2 + (p.y * p.y) * p2.x * p4.x * 2 -
+              (p.y * p.y) * p3.x * p4.x * 2 - p.y * (p1.x * p1.x) * p3.y * 2 - p.y * (p3.x * p3.x) * p1.y * 2 -
+              p.y * (p2.x * p2.x) * p4.y * 2 - p.y * (p4.x * p4.x) * p2.y * 2 - p1.x * p3.x * p1.y * p3.y * 2 -
+              p1.x * p2.x * p3.y * p4.y * 2 + p1.x * p3.x * p2.y * p4.y * 4 - p1.x * p4.x * p2.y * p3.y * 2 -
+              p2.x * p3.x * p1.y * p4.y * 2 + p2.x * p4.x * p1.y * p3.y * 4 - p3.x * p4.x * p1.y * p2.y * 2 -
+              p2.x * p4.x * p2.y * p4.y * 2 - p.x * p.y * p1.x * p1.y * 2 + p.x * p.y * p1.x * p2.y * 2 +
+              p.x * p.y * p2.x * p1.y * 2 - p.x * p.y * p1.x * p3.y * 2 - p.x * p.y * p2.x * p2.y * 2 -
+              p.x * p.y * p3.x * p1.y * 2 + p.x * p.y * p1.x * p4.y * 2 + p.x * p.y * p2.x * p3.y * 2 +
+              p.x * p.y * p3.x * p2.y * 2 + p.x * p.y * p4.x * p1.y * 2 - p.x * p.y * p2.x * p4.y * 2 -
+              p.x * p.y * p3.x * p3.y * 2 - p.x * p.y * p4.x * p2.y * 2 + p.x * p.y * p3.x * p4.y * 2 +
+              p.x * p.y * p4.x * p3.y * 2 - p.x * p.y * p4.x * p4.y * 2 + p.x * p1.x * p1.y * p3.y * 2 +
+              p.x * p1.x * p2.y * p3.y * 2 - p.x * p2.x * p1.y * p3.y * 4 + p.x * p3.x * p1.y * p2.y * 2 -
+              p.x * p1.x * p2.y * p4.y * 4 + p.x * p2.x * p1.y * p4.y * 2 + p.x * p3.x * p1.y * p3.y * 2 +
+              p.x * p4.x * p1.y * p2.y * 2 + p.x * p1.x * p3.y * p4.y * 2 + p.x * p2.x * p2.y * p4.y * 2 +
+              p.x * p3.x * p1.y * p4.y * 2 - p.x * p4.x * p1.y * p3.y * 4 + p.x * p2.x * p3.y * p4.y * 2 -
+              p.x * p3.x * p2.y * p4.y * 4 + p.x * p4.x * p2.y * p3.y * 2 + p.x * p4.x * p2.y * p4.y * 2 +
+              p.y * p1.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p3.y * 2 - p.y * p1.x * p3.x * p2.y * 4 +
+              p.y * p2.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p4.y * 2 + p.y * p1.x * p3.x * p3.y * 2 +
+              p.y * p1.x * p4.x * p2.y * 2 - p.y * p2.x * p4.x * p1.y * 4 - p.y * p1.x * p3.x * p4.y * 4 +
+              p.y * p1.x * p4.x * p3.y * 2 + p.y * p2.x * p4.x * p2.y * 2 + p.y * p3.x * p4.x * p1.y * 2 +
+              p.y * p2.x * p3.x * p4.y * 2 - p.y * p2.x * p4.x * p3.y * 4 + p.y * p3.x * p4.x * p2.y * 2 +
+              p.y * p2.x * p4.x * p4.y * 2)) /
         (p3.x * (p1.y - p2.y) - p4.x * (p1.y - p2.y) - p1.x * (p3.y - p4.y) + p2.x * (p3.y - p4.y));
 
     zeta.x =
@@ -106,32 +107,32 @@ static __host__ __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4
               (p.x * p.x) * (p4.y * p4.y) + (p.y * p.y) * (p1.x * p1.x) + (p.y * p.y) * (p2.x * p2.x) +
               (p.y * p.y) * (p3.x * p3.x) + (p.y * p.y) * (p4.x * p4.x) + (p1.x * p1.x) * (p3.y * p3.y) +
               (p3.x * p3.x) * (p1.y * p1.y) + (p2.x * p2.x) * (p4.y * p4.y) + (p4.x * p4.x) * (p2.y * p2.y) -
-              p.x * p1.x * (p3.y * p3.y) * 2.0 - p.x * p3.x * (p1.y * p1.y) * 2.0 - p.x * p2.x * (p4.y * p4.y) * 2.0 -
-              p.x * p4.x * (p2.y * p2.y) * 2.0 - (p.x * p.x) * p1.y * p2.y * 2.0 + (p.x * p.x) * p1.y * p3.y * 2.0 -
-              (p.x * p.x) * p1.y * p4.y * 2.0 - (p.x * p.x) * p2.y * p3.y * 2.0 + (p.x * p.x) * p2.y * p4.y * 2.0 -
-              (p.x * p.x) * p3.y * p4.y * 2.0 - (p.y * p.y) * p1.x * p2.x * 2.0 + (p.y * p.y) * p1.x * p3.x * 2.0 -
-              (p.y * p.y) * p1.x * p4.x * 2.0 - (p.y * p.y) * p2.x * p3.x * 2.0 + (p.y * p.y) * p2.x * p4.x * 2.0 -
-              (p.y * p.y) * p3.x * p4.x * 2.0 - p.y * (p1.x * p1.x) * p3.y * 2.0 - p.y * (p3.x * p3.x) * p1.y * 2.0 -
-              p.y * (p2.x * p2.x) * p4.y * 2.0 - p.y * (p4.x * p4.x) * p2.y * 2.0 - p1.x * p3.x * p1.y * p3.y * 2.0 -
-              p1.x * p2.x * p3.y * p4.y * 2.0 + p1.x * p3.x * p2.y * p4.y * 4.0 - p1.x * p4.x * p2.y * p3.y * 2.0 -
-              p2.x * p3.x * p1.y * p4.y * 2.0 + p2.x * p4.x * p1.y * p3.y * 4.0 - p3.x * p4.x * p1.y * p2.y * 2.0 -
-              p2.x * p4.x * p2.y * p4.y * 2.0 - p.x * p.y * p1.x * p1.y * 2.0 + p.x * p.y * p1.x * p2.y * 2.0 +
-              p.x * p.y * p2.x * p1.y * 2.0 - p.x * p.y * p1.x * p3.y * 2.0 - p.x * p.y * p2.x * p2.y * 2.0 -
-              p.x * p.y * p3.x * p1.y * 2.0 + p.x * p.y * p1.x * p4.y * 2.0 + p.x * p.y * p2.x * p3.y * 2.0 +
-              p.x * p.y * p3.x * p2.y * 2.0 + p.x * p.y * p4.x * p1.y * 2.0 - p.x * p.y * p2.x * p4.y * 2.0 -
-              p.x * p.y * p3.x * p3.y * 2.0 - p.x * p.y * p4.x * p2.y * 2.0 + p.x * p.y * p3.x * p4.y * 2.0 +
-              p.x * p.y * p4.x * p3.y * 2.0 - p.x * p.y * p4.x * p4.y * 2.0 + p.x * p1.x * p1.y * p3.y * 2.0 +
-              p.x * p1.x * p2.y * p3.y * 2.0 - p.x * p2.x * p1.y * p3.y * 4.0 + p.x * p3.x * p1.y * p2.y * 2.0 -
-              p.x * p1.x * p2.y * p4.y * 4.0 + p.x * p2.x * p1.y * p4.y * 2.0 + p.x * p3.x * p1.y * p3.y * 2.0 +
-              p.x * p4.x * p1.y * p2.y * 2.0 + p.x * p1.x * p3.y * p4.y * 2.0 + p.x * p2.x * p2.y * p4.y * 2.0 +
-              p.x * p3.x * p1.y * p4.y * 2.0 - p.x * p4.x * p1.y * p3.y * 4.0 + p.x * p2.x * p3.y * p4.y * 2.0 -
-              p.x * p3.x * p2.y * p4.y * 4.0 + p.x * p4.x * p2.y * p3.y * 2.0 + p.x * p4.x * p2.y * p4.y * 2.0 +
-              p.y * p1.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p3.y * 2.0 - p.y * p1.x * p3.x * p2.y * 4.0 +
-              p.y * p2.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p4.y * 2.0 + p.y * p1.x * p3.x * p3.y * 2.0 +
-              p.y * p1.x * p4.x * p2.y * 2.0 - p.y * p2.x * p4.x * p1.y * 4.0 - p.y * p1.x * p3.x * p4.y * 4.0 +
-              p.y * p1.x * p4.x * p3.y * 2.0 + p.y * p2.x * p4.x * p2.y * 2.0 + p.y * p3.x * p4.x * p1.y * 2.0 +
-              p.y * p2.x * p3.x * p4.y * 2.0 - p.y * p2.x * p4.x * p3.y * 4.0 + p.y * p3.x * p4.x * p2.y * 2.0 +
-              p.y * p2.x * p4.x * p4.y * 2.0)) /
+              p.x * p1.x * (p3.y * p3.y) * 2 - p.x * p3.x * (p1.y * p1.y) * 2 - p.x * p2.x * (p4.y * p4.y) * 2 -
+              p.x * p4.x * (p2.y * p2.y) * 2 - (p.x * p.x) * p1.y * p2.y * 2 + (p.x * p.x) * p1.y * p3.y * 2 -
+              (p.x * p.x) * p1.y * p4.y * 2 - (p.x * p.x) * p2.y * p3.y * 2 + (p.x * p.x) * p2.y * p4.y * 2 -
+              (p.x * p.x) * p3.y * p4.y * 2 - (p.y * p.y) * p1.x * p2.x * 2 + (p.y * p.y) * p1.x * p3.x * 2 -
+              (p.y * p.y) * p1.x * p4.x * 2 - (p.y * p.y) * p2.x * p3.x * 2 + (p.y * p.y) * p2.x * p4.x * 2 -
+              (p.y * p.y) * p3.x * p4.x * 2 - p.y * (p1.x * p1.x) * p3.y * 2 - p.y * (p3.x * p3.x) * p1.y * 2 -
+              p.y * (p2.x * p2.x) * p4.y * 2 - p.y * (p4.x * p4.x) * p2.y * 2 - p1.x * p3.x * p1.y * p3.y * 2 -
+              p1.x * p2.x * p3.y * p4.y * 2 + p1.x * p3.x * p2.y * p4.y * 4 - p1.x * p4.x * p2.y * p3.y * 2 -
+              p2.x * p3.x * p1.y * p4.y * 2 + p2.x * p4.x * p1.y * p3.y * 4 - p3.x * p4.x * p1.y * p2.y * 2 -
+              p2.x * p4.x * p2.y * p4.y * 2 - p.x * p.y * p1.x * p1.y * 2 + p.x * p.y * p1.x * p2.y * 2 +
+              p.x * p.y * p2.x * p1.y * 2 - p.x * p.y * p1.x * p3.y * 2 - p.x * p.y * p2.x * p2.y * 2 -
+              p.x * p.y * p3.x * p1.y * 2 + p.x * p.y * p1.x * p4.y * 2 + p.x * p.y * p2.x * p3.y * 2 +
+              p.x * p.y * p3.x * p2.y * 2 + p.x * p.y * p4.x * p1.y * 2 - p.x * p.y * p2.x * p4.y * 2 -
+              p.x * p.y * p3.x * p3.y * 2 - p.x * p.y * p4.x * p2.y * 2 + p.x * p.y * p3.x * p4.y * 2 +
+              p.x * p.y * p4.x * p3.y * 2 - p.x * p.y * p4.x * p4.y * 2 + p.x * p1.x * p1.y * p3.y * 2 +
+              p.x * p1.x * p2.y * p3.y * 2 - p.x * p2.x * p1.y * p3.y * 4 + p.x * p3.x * p1.y * p2.y * 2 -
+              p.x * p1.x * p2.y * p4.y * 4 + p.x * p2.x * p1.y * p4.y * 2 + p.x * p3.x * p1.y * p3.y * 2 +
+              p.x * p4.x * p1.y * p2.y * 2 + p.x * p1.x * p3.y * p4.y * 2 + p.x * p2.x * p2.y * p4.y * 2 +
+              p.x * p3.x * p1.y * p4.y * 2 - p.x * p4.x * p1.y * p3.y * 4 + p.x * p2.x * p3.y * p4.y * 2 -
+              p.x * p3.x * p2.y * p4.y * 4 + p.x * p4.x * p2.y * p3.y * 2 + p.x * p4.x * p2.y * p4.y * 2 +
+              p.y * p1.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p3.y * 2 - p.y * p1.x * p3.x * p2.y * 4 +
+              p.y * p2.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p4.y * 2 + p.y * p1.x * p3.x * p3.y * 2 +
+              p.y * p1.x * p4.x * p2.y * 2 - p.y * p2.x * p4.x * p1.y * 4 - p.y * p1.x * p3.x * p4.y * 4 +
+              p.y * p1.x * p4.x * p3.y * 2 + p.y * p2.x * p4.x * p2.y * 2 + p.y * p3.x * p4.x * p1.y * 2 +
+              p.y * p2.x * p3.x * p4.y * 2 - p.y * p2.x * p4.x * p3.y * 4 + p.y * p3.x * p4.x * p2.y * 2 +
+              p.y * p2.x * p4.x * p4.y * 2)) /
         (p1.x * p2.y - p2.x * p1.y - p1.x * p3.y + p3.x * p1.y + p2.x * p4.y - p4.x * p2.y - p3.x * p4.y + p4.x * p3.y);
 
     zeta.y =
@@ -141,34 +142,35 @@ static __host__ __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4
                (p.x * p.x) * (p4.y * p4.y) + (p.y * p.y) * (p1.x * p1.x) + (p.y * p.y) * (p2.x * p2.x) +
                (p.y * p.y) * (p3.x * p3.x) + (p.y * p.y) * (p4.x * p4.x) + (p1.x * p1.x) * (p3.y * p3.y) +
                (p3.x * p3.x) * (p1.y * p1.y) + (p2.x * p2.x) * (p4.y * p4.y) + (p4.x * p4.x) * (p2.y * p2.y) -
-               p.x * p1.x * (p3.y * p3.y) * 2.0 - p.x * p3.x * (p1.y * p1.y) * 2.0 - p.x * p2.x * (p4.y * p4.y) * 2.0 -
-               p.x * p4.x * (p2.y * p2.y) * 2.0 - (p.x * p.x) * p1.y * p2.y * 2.0 + (p.x * p.x) * p1.y * p3.y * 2.0 -
-               (p.x * p.x) * p1.y * p4.y * 2.0 - (p.x * p.x) * p2.y * p3.y * 2.0 + (p.x * p.x) * p2.y * p4.y * 2.0 -
-               (p.x * p.x) * p3.y * p4.y * 2.0 - (p.y * p.y) * p1.x * p2.x * 2.0 + (p.y * p.y) * p1.x * p3.x * 2.0 -
-               (p.y * p.y) * p1.x * p4.x * 2.0 - (p.y * p.y) * p2.x * p3.x * 2.0 + (p.y * p.y) * p2.x * p4.x * 2.0 -
-               (p.y * p.y) * p3.x * p4.x * 2.0 - p.y * (p1.x * p1.x) * p3.y * 2.0 - p.y * (p3.x * p3.x) * p1.y * 2.0 -
-               p.y * (p2.x * p2.x) * p4.y * 2.0 - p.y * (p4.x * p4.x) * p2.y * 2.0 - p1.x * p3.x * p1.y * p3.y * 2.0 -
-               p1.x * p2.x * p3.y * p4.y * 2.0 + p1.x * p3.x * p2.y * p4.y * 4.0 - p1.x * p4.x * p2.y * p3.y * 2.0 -
-               p2.x * p3.x * p1.y * p4.y * 2.0 + p2.x * p4.x * p1.y * p3.y * 4.0 - p3.x * p4.x * p1.y * p2.y * 2.0 -
-               p2.x * p4.x * p2.y * p4.y * 2.0 - p.x * p.y * p1.x * p1.y * 2.0 + p.x * p.y * p1.x * p2.y * 2.0 +
-               p.x * p.y * p2.x * p1.y * 2.0 - p.x * p.y * p1.x * p3.y * 2.0 - p.x * p.y * p2.x * p2.y * 2.0 -
-               p.x * p.y * p3.x * p1.y * 2.0 + p.x * p.y * p1.x * p4.y * 2.0 + p.x * p.y * p2.x * p3.y * 2.0 +
-               p.x * p.y * p3.x * p2.y * 2.0 + p.x * p.y * p4.x * p1.y * 2.0 - p.x * p.y * p2.x * p4.y * 2.0 -
-               p.x * p.y * p3.x * p3.y * 2.0 - p.x * p.y * p4.x * p2.y * 2.0 + p.x * p.y * p3.x * p4.y * 2.0 +
-               p.x * p.y * p4.x * p3.y * 2.0 - p.x * p.y * p4.x * p4.y * 2.0 + p.x * p1.x * p1.y * p3.y * 2.0 +
-               p.x * p1.x * p2.y * p3.y * 2.0 - p.x * p2.x * p1.y * p3.y * 4.0 + p.x * p3.x * p1.y * p2.y * 2.0 -
-               p.x * p1.x * p2.y * p4.y * 4.0 + p.x * p2.x * p1.y * p4.y * 2.0 + p.x * p3.x * p1.y * p3.y * 2.0 +
-               p.x * p4.x * p1.y * p2.y * 2.0 + p.x * p1.x * p3.y * p4.y * 2.0 + p.x * p2.x * p2.y * p4.y * 2.0 +
-               p.x * p3.x * p1.y * p4.y * 2.0 - p.x * p4.x * p1.y * p3.y * 4.0 + p.x * p2.x * p3.y * p4.y * 2.0 -
-               p.x * p3.x * p2.y * p4.y * 4.0 + p.x * p4.x * p2.y * p3.y * 2.0 + p.x * p4.x * p2.y * p4.y * 2.0 +
-               p.y * p1.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p3.y * 2.0 - p.y * p1.x * p3.x * p2.y * 4.0 +
-               p.y * p2.x * p3.x * p1.y * 2.0 + p.y * p1.x * p2.x * p4.y * 2.0 + p.y * p1.x * p3.x * p3.y * 2.0 +
-               p.y * p1.x * p4.x * p2.y * 2.0 - p.y * p2.x * p4.x * p1.y * 4.0 - p.y * p1.x * p3.x * p4.y * 4.0 +
-               p.y * p1.x * p4.x * p3.y * 2.0 + p.y * p2.x * p4.x * p2.y * 2.0 + p.y * p3.x * p4.x * p1.y * 2.0 +
-               p.y * p2.x * p3.x * p4.y * 2.0 - p.y * p2.x * p4.x * p3.y * 4.0 + p.y * p3.x * p4.x * p2.y * 2.0 +
-               p.y * p2.x * p4.x * p4.y * 2.0)) /
+               p.x * p1.x * (p3.y * p3.y) * 2 - p.x * p3.x * (p1.y * p1.y) * 2 - p.x * p2.x * (p4.y * p4.y) * 2 -
+               p.x * p4.x * (p2.y * p2.y) * 2 - (p.x * p.x) * p1.y * p2.y * 2 + (p.x * p.x) * p1.y * p3.y * 2 -
+               (p.x * p.x) * p1.y * p4.y * 2 - (p.x * p.x) * p2.y * p3.y * 2 + (p.x * p.x) * p2.y * p4.y * 2 -
+               (p.x * p.x) * p3.y * p4.y * 2 - (p.y * p.y) * p1.x * p2.x * 2 + (p.y * p.y) * p1.x * p3.x * 2 -
+               (p.y * p.y) * p1.x * p4.x * 2 - (p.y * p.y) * p2.x * p3.x * 2 + (p.y * p.y) * p2.x * p4.x * 2 -
+               (p.y * p.y) * p3.x * p4.x * 2 - p.y * (p1.x * p1.x) * p3.y * 2 - p.y * (p3.x * p3.x) * p1.y * 2 -
+               p.y * (p2.x * p2.x) * p4.y * 2 - p.y * (p4.x * p4.x) * p2.y * 2 - p1.x * p3.x * p1.y * p3.y * 2 -
+               p1.x * p2.x * p3.y * p4.y * 2 + p1.x * p3.x * p2.y * p4.y * 4 - p1.x * p4.x * p2.y * p3.y * 2 -
+               p2.x * p3.x * p1.y * p4.y * 2 + p2.x * p4.x * p1.y * p3.y * 4 - p3.x * p4.x * p1.y * p2.y * 2 -
+               p2.x * p4.x * p2.y * p4.y * 2 - p.x * p.y * p1.x * p1.y * 2 + p.x * p.y * p1.x * p2.y * 2 +
+               p.x * p.y * p2.x * p1.y * 2 - p.x * p.y * p1.x * p3.y * 2 - p.x * p.y * p2.x * p2.y * 2 -
+               p.x * p.y * p3.x * p1.y * 2 + p.x * p.y * p1.x * p4.y * 2 + p.x * p.y * p2.x * p3.y * 2 +
+               p.x * p.y * p3.x * p2.y * 2 + p.x * p.y * p4.x * p1.y * 2 - p.x * p.y * p2.x * p4.y * 2 -
+               p.x * p.y * p3.x * p3.y * 2 - p.x * p.y * p4.x * p2.y * 2 + p.x * p.y * p3.x * p4.y * 2 +
+               p.x * p.y * p4.x * p3.y * 2 - p.x * p.y * p4.x * p4.y * 2 + p.x * p1.x * p1.y * p3.y * 2 +
+               p.x * p1.x * p2.y * p3.y * 2 - p.x * p2.x * p1.y * p3.y * 4 + p.x * p3.x * p1.y * p2.y * 2 -
+               p.x * p1.x * p2.y * p4.y * 4 + p.x * p2.x * p1.y * p4.y * 2 + p.x * p3.x * p1.y * p3.y * 2 +
+               p.x * p4.x * p1.y * p2.y * 2 + p.x * p1.x * p3.y * p4.y * 2 + p.x * p2.x * p2.y * p4.y * 2 +
+               p.x * p3.x * p1.y * p4.y * 2 - p.x * p4.x * p1.y * p3.y * 4 + p.x * p2.x * p3.y * p4.y * 2 -
+               p.x * p3.x * p2.y * p4.y * 4 + p.x * p4.x * p2.y * p3.y * 2 + p.x * p4.x * p2.y * p4.y * 2 +
+               p.y * p1.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p3.y * 2 - p.y * p1.x * p3.x * p2.y * 4 +
+               p.y * p2.x * p3.x * p1.y * 2 + p.y * p1.x * p2.x * p4.y * 2 + p.y * p1.x * p3.x * p3.y * 2 +
+               p.y * p1.x * p4.x * p2.y * 2 - p.y * p2.x * p4.x * p1.y * 4 - p.y * p1.x * p3.x * p4.y * 4 +
+               p.y * p1.x * p4.x * p3.y * 2 + p.y * p2.x * p4.x * p2.y * 2 + p.y * p3.x * p4.x * p1.y * 2 +
+               p.y * p2.x * p3.x * p4.y * 2 - p.y * p2.x * p4.x * p3.y * 4 + p.y * p3.x * p4.x * p2.y * 2 +
+               p.y * p2.x * p4.x * p4.y * 2)) /
         (p1.x * p2.y - p2.x * p1.y - p1.x * p3.y + p3.x * p1.y + p2.x * p4.y - p4.x * p2.y - p3.x * p4.y + p4.x * p3.y);
 }
+*/
 
 /// Note that this is function calculates L=[L11 L12 L13 L22 L23 L33]' in B*L=[-1 0 0 -1 0 -1]' for a given B 6x6 matirx
 /// This is is the core function for higher-order accurate schemes

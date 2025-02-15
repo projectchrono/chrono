@@ -1644,7 +1644,7 @@ void ChFsiForceExplicitSPH::neighborSearch() {
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    computeGridSize(m_data_mgr.countersH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
@@ -1683,7 +1683,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
     // thread per particle
     uint numBlocks, numThreads;
-    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
     // Re-Initialize the density after several time steps if needed
     if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
@@ -1804,7 +1804,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     if (!m_data_mgr.paramsH->elastic_SPH) {
         // thread per particle
         uint numBlocks, numThreads;
-        computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+        computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
         thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(), mR3(0.0));
 
