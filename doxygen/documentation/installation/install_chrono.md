@@ -59,110 +59,106 @@ We strongly **recommend** using the latest Eigen3 version 3.4.0.
 
 #### Notes on 3rd-party Chrono dependencies {#dependencies}
 
-- IMPORTANT: never mix 64-bit and 32-bit binaries and libraries! <br>
+- Never mix 64-bit and 32-bit binaries and libraries! <br>
 For example, you must link the 64-bit Irrlicht library. Beginning with MacOS 10.15 Catalina there is no 32-bit support anymore.
 
-- Currently, the only dependency of the core Chrono module is the Eigen library. Since Eigen is a headers-only library, no additional steps must be taken to be able to run demos and programs that only link to the core Chrono library. <br>
-Other Chrono module (e.g., the run-time visualization Chrono modules) have additional dependencies. If using shared libraries for these dependencies, you must ensure that these are found at run time.
+- Other Chrono module (e.g., the run-time visualization Chrono modules) have additional dependencies. If using shared libraries for these dependencies, you must ensure that these are found at run time.
   - On Windows, you can either copy the corresponding DLLs (e.g., Irrlicht.dll) to the same directory as the executables or else add the path to these shared libraries to the `PATH` environment variable.
-  - On Linux, you may need to append to the `LD_LIBRARY_PATH` environment variable.
-
+  - On Linux, you may need to append to the `LD_LIBRARY_PATH` environment variable and/or run the `ldconfig` command.
 
 ------------------------------------------------------------
 ## Configuring Chrono with CMake {#configure_chrono}
 
-The average user is suggested to use the CMake GUI interface. For those that have no graphical interface available on their systems, please refer to the command line instructions below.
+CMake can be used through a GUI interface, `cmake-gui` (note that on Linux, this requires installing a separate CMake package), from a Curses interface (`ccmake`), or else directly from the command prompt (`cmake`). Note that the latter requires passing all necessary CMake variables as arguments to `cmake`, or else write a script (example scripts are provided with the Chrono distribution, under the `contrib/build-scripts/` directory).
+
+Below, we describe in more details configuration of Chrono with `cmake-gui` and `ccmake`.
 
 #### Using CMake through the GUI interface {#configure_chrono_cmake_gui}
 
 Start `cmake-gui` to configure the build.
 -  In the field "Where is the source code" set the path to your Chrono directory. <br>
    This is the directory where you created your Git repository, in our example is <tt>C:/workspace/chrono</tt>. 
--  In the field "Where to build the binaries" set the path to *another* directory on your system, 
-   that must be empty. This is where the Visual C++ project will be created. <br>
-   For our example, let's use <tt>C:/workspace/chrono_build</tt>  
+
+-  In the field "Where to build the binaries" set the path to a directory **different** from the Chrono source location, as Chrono prohibits "in-source" builds. This build directory can be manually created beforehand; otherwise, CMake will ask to create it. For our example, let's use <tt>C:/workspace/chrono_build</tt>  
    <img src="http://www.projectchrono.org/assets/manual/Install_cmake_destinations.png" class="img-responsive">
 
 -  Press the **Configure** button.
   
--  Set the appropriate generator (e.g. Visual Studio, Makefile, etc...) and the appropriate platform (Win32, x64, etc...) i.e. if you have a 64-bit processor, as usually is, you should configure a 64-bit project.<br>
-   In older CMake, there is a single list of generators in which you may choose between  
-   e.g. 'Visual Studio 15 2017' and 'Visual Studio 15 2017 **Win64**' (then choose the latter).<br>
-   In the latest CMake, there are separated fields, one for the generator (e.g. 'Visual Studio 15 2017') and another one for the platform (e.g. x64).  
+-  Set the appropriate generator (e.g. Visual Studio, Makefile, etc.) and the appropriate platform (Win32, x64, etc.) 
    <img src="http://www.projectchrono.org/assets/manual/Install_cmake_platform.png" class="img-responsive">
 
 -  Specify the location of the Eigen installation.
-   If this is not detected automatically, you may need to manually set the CMake variable `EIGEN3_INCLUDE_DIR`.<br>
-   For example, <tt>C:/workspace/libraries/eigen-3.3.7</tt>.<br>
+   If Eigen was itself configured and installed with CMake, set the CMake variable `Eigen3_DIR` to point to the Eigen installation directory that contains a project configuration script (e.g., `C:/Packages/eigen/share/eigen3/cmake/`). Otherwise, set the CMake variable `EIGEN3_INCLUDE_DIR` to point to the directory containing the subdirectory `Eigen` with header files (e.g., `C:/Packages/eigen-3.4.0/`.
 
 -  Enable any additional module. Refer to their [Installation Guides](@ref install_guides) before proceeding any further.
 
 -  Remember that you might need to press **Configure** after you change some setting, even multiple times,
-   until all the variables get a white background. 
+   until all variable dependencies are resolved. 
 
 -  Finally, press **Generate**.
 
-<div class="ce-warning"> 
-Visual Studio users should leave the `CMAKE_CONFIGURATION_TYPES` variable untouched (it should report *Debug;Release;MinSizeRel;RelWithDebInfo*; if not, please do *File*>*Delete Cache* and start again the CMake configuration).<br>
-The build configuration will be chosen directly from Visual Studio.
-For Makefile-based solutions, on the contrary, you should set `CMAKE_CONFIGURATION_TYPES` to either *Debug* or *Release* (or *MinSizeRel* or *RelWithDebInfo*). Makefile does not support multiple configuration types.
-</div>
-
-<div class="ce-warning"> 
+<div class="ce-warning">
+If using a multi-config generator (e.g., Visual Studio or ninja multi-config), CMake sets the variable `CMAKE_CONFIGURATION_TYPES` to include all available configurations (Debug, Release, MinSizeRel, RelWithDebInfo). Leave that unchanged.
+<br><br>
+If using a single-configuration generator (e.g., makefiles or ninja), set `CMAKE_CONFIGURATION_TYPES` to the desired build type (e.g., Release or Debug). Do not leave it blank (default) as this will result in a build with **no** optimization and **no** debug information.
+<br><br>
 CMake uses the slash `/` character for paths. Unix users are already used to this convention.<br>
 Windows users should take care to convert the default separator `\` to `/`!
 </div>
 
 At this point you just created a project that will be later used to build Chrono. You can close CMake.
 
-#### Using CMake through the command prompt {#configure_chrono_cmake}
+#### Using CMake through the Curses interface {#configure_chrono_ccmake}
 
-- Create a build directory **outside** of the Chrono source directory (`mkdir chrono_build`) and change your current directory to it: `cd chrono_build`.
+- Create a build directory **different** from the Chrono source directory (as Chrono prohibits "in-source" builds) and change your current directory to it.
   
-- Run `ccmake /path/to/chrono` from the build directory. A text based GUI will appear in the terminal.
+- Run `ccmake <path-to-chrono-sources>` from the build directory. A Curses-based GUI will appear in the terminal.
+
+<img src="http://www.projectchrono.org/assets/manual/install_ccmake_1.png" class="img-responsive" width="600">
 
 - Enter `c` to **Configure** and continue. The interface will reload to a new screen with more options.
   
-- Specify the location of the Eigen installation.
-   If this is not detected automatically, you may need to manually set the CMake variable `EIGEN3_INCLUDE_DIR`.<br>
+<img src="http://www.projectchrono.org/assets/manual/install_ccmake_2.png" class="img-responsive" width="600">
 
-<img src="http://www.projectchrono.org/assets/Images/install_ccmake_1.png" class="img-responsive" width="400">
+- Specify the build type (unless using a multi-config generator, see above).
 
-<div class="ce-warning">
-The Eigen directory field should be correctly filled in already, assuming the Eigen library was installed through a package manager. If the library was built from the source verify the path to the library is correct before continuing.
-</div>
+- Specify the location of the Eigen installation (see above).
 
-<img src="http://www.projectchrono.org/assets/Images/install_ccmake_2.png" class="img-responsive" width="400">
- 
-- Enter `c` to **Configure** and continue until you reach the final screen. At which point enter `g` to **Generate**, CCMake will close on completion.
+<img src="http://www.projectchrono.org/assets/manual/install_ccmake_3.png" class="img-responsive" width="600">
 
-<img src="http://www.projectchrono.org/assets/Images/install_ccmake_3.png" class="img-responsive" width="400">
+- Enter `c` to **Configure** and continue until you reach the final screen. At which point enter `g` to **Generate**, CCMake will close on completion. 
+
+<img src="http://www.projectchrono.org/assets/manual/install_ccmake_4.png" class="img-responsive" width="600">
+
+Build files are now available in the build directory (in this example, `Makefile`).
 
 ------------------------------------------------------------
 ## Building Chrono {#build_chrono}
 
 #### Visual Studio {#build_chrono_windows}
 
-1. Go to the directory that you set in "Where to build the binaries". You will find the file **Chrono.sln**.
+1. Double-click the `Chrono.sln` file in the build directory to open the Visual Studio solution file. Alternatively, if using `cmake-gui`, click the _Open Project_ button.
 
-2. **Double-click** on that file: your Visual Studio solution will open.
-
-3. In the toolbar, from the _Solution Configurations_ drop-down menu **choose 'Release' mode**  
+2. In the VS toolbar, from the _Solution Configurations_ drop-down menu select the desired build mode (e.g., **Release*).  
   <img src="http://www.projectchrono.org/assets/manual/Install_vs_buildtype.png" class="img-responsive">
 
-4. In the toolbar, click on **Build** > **Build solution...** .  
-  The entire Chrono project and its demos will be compiled, creating many .exe and .dll files, in the bin/Release subdirectory.   
-  This will take a few minutes.
+3. In the toolbar, click on **Build > Build solution** or **Build > Build ALL_BUILD**.
+   This will build all Chrono projects (one per Chrono module), as well as demos and tests (if enabled during configuration).
+   By default, shared libraries (DLLs) are generated for the Chrono modules, unless `BUILD_SHARED` was set to `off` during configuration. All DLLs and executables will be placed in a directory `bin\Release` of the build tree.
 
-5. Repeat step 3 and 4, but choosing **Debug** as configuration type. This will generate the binaries with debugging symbols: they will be placed under the bin/Debug subfolder.
+4. Optionally, repeat step 2 and 3, chosing **Debug** as configuration type, to build debug binaries which include debugging symbols. All DLLs and executables will be placed in a directory `bin\Debug` of the build tree.
 
 #### Linux/make {#build_chrono_linux}
 
-Run command `make`, optionally followed by `make install` while in the same build directory as the newly created Makefile. 
+Depending on the generator used during CMake configuration, invoke the appropriate build command. For example:
 
-<div class="ce-info">
-<code>make install</code> will copy the Chrono libraries, data files, and demo executable to the install directory specified during CMake configuration.
-</div>
+- `make -j 10`<br>
+  to build with Make using 10 parallel build threads.
+- `ninja -j 10`<br>
+  to build with ninja using 10 parallel build threads.
+- `ninja -f build.Release.ninja -j 10`<br>
+  for a Release build with `ninja` multi-config using 10 parallel build threads.
+
 
 #### MacOS/clang {#build_chrono_mac}
 
@@ -178,7 +174,7 @@ Run command `make`, optionally followed by `make install` while in the same buil
 **MacOS issues:** clang++ does not come with OpenMP support out of the box.
 You will not be able to build <tt>libChronoEngine_multicore</tt> successfully.<br> 
 However, OpenMP support can be added using homebrew: <tt>brew install libomp</tt>. 
-Having done so, you can then configure Chrono with OpenMP support. For this, you must define the right compiler flags:<br>
+Having done so, you can then configure Chrono with OpenMP support. For this, you must define the right compiler flags:
 <tt>-Xpreprocessor -fopenmp</tt> for the compiler and <tt>-lomp</tt> for the linker. Please give the OpenMP options for both, the C compiler
 and the C++ compiler, otherwise the OpenMP configuration will fail.
 </div> 
@@ -186,10 +182,22 @@ and the C++ compiler, otherwise the OpenMP configuration will fail.
 ------------------------------------------------------------
 ## Testing Chrono build {#test_chrono}
 
-For Windows users, executables for the various demos distributed with Chrono will be available in the `bin/Release` or `bin/Debug` subdirectory, depending on the configuration selected to build the Chrono libraries and executables.
+The Chrono distribution includes a large number of demos, unit tests, and benchmark test. These are included in the build if the corresponding CMake variables are set to `on` during CMake configuration: `BUILD_DEMOS`, `BUILD_TESTING`, and `BUILD_BENCHAMRKING`, respectively. By default, only generation of demo executabnles is enabled.
 
-For Linux users, these will be available in the subdirectory `bin`.
+Each Chrono module adds its own set of demos and tests and these are built only if the corresponding Chrono module is enabled. Note that some demo programs depend on more than one Chrono module being available. For example, most MBD and FEA demos require a run-time visualization module (VSG or Irrlicht). Similarly, Chrono::Vehicle demos require a run-time visualization module with some other vehicle demos also requiring additional modules (e.g., Chrono::FSI, Chrono::Multicore, etc.).
 
-------------------------------------------------------------
+Executables are available under a subdirectory `bin/<config>/` (e.g., `bin/Release/` or `bin/Debug/`) for a multi-config generator or directly under `bin/` otherwise. 
+
+Unit tests do not use run-time visualization and are based on googletest. Running any of the Chrono unit tests will generate a standard report, indicating whether the test succeeded or failed. You can run all unit tests at once using `ctest`. For example, o run all unit tests for a Release build (mult-config generator), execute the following command from the top-level build directory:<br>
+`ctest -C Release`
+
+-----------------------------------------------------------
 ## Installing Chrono {#install_chrono}
 
+Upon a successful build, Chrono can be installed (to the directory specified during CMake configuration through the `CMAKE_INSTALL_PREFIX`). This will copy Chrono libraries, headers, data files, and demo executable to the install directory.
+
+In Visual Studio, the install process is done by building the "INSTALL" project of the Chrono.sln solution.
+
+If using make or ninja, installation is performed with:
+- `make install`
+- `ninja install`
