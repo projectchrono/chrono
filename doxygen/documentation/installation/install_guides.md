@@ -80,3 +80,7 @@ Full instructions can be found in: [Linking to Chrono](@ref tutorial_install_pro
 An add-in to simulate Solidworks models using the Chrono library
 
 - @subpage chrono_solidworks_installation
+
+### Building a Docker Image with Chrono
+
+- @subpage docker_installation
