@@ -19,6 +19,8 @@ The provided `docker-compose.yml` defines two services: `dev` and `vnc`. The `de
 
 You may also provide additional dependencies or requirements in the `docker-compose.yml` at build time using the `APT_DEPENDENCIES` and `PIP_DEPENDENCIES` environment variables. You also can additional build args as necessary for your snippets. The base image must be `debian`-based (and some modules may require `ubuntu`-based images).
 
+The default `docker-compose.yml` file will attach a NVIDIA GPU to the container if available. If you don't have a NVIDIA GPU, you can comment out the parts which follow `deploy` in the `docker-compose.yml` file.
+
 To simplify the dockerfiles, we leverage an open source project called [`dockerfile-x`](https://github.com/devthefuture-org/dockerfile-x) (it doesn't require any installation). This project provides the `INCLUDE` directive, which allows us to include multiple files in a single Dockerfile. In this way, we can call `INCLUDE` only on the modules we need, and the final dockerfile will be generated automatically.
 
 \include snippets/chrono.dockerfile
@@ -61,7 +63,7 @@ The intention of the `dev` service is to attach to the container within a shell.
 docker compose -f contrib/docker/docker-compose.yml run dev
 ```
 
-By default, the initial directory is `/home/chrono/chrono`, where that directory is a volume to the host's `chrono` directory. This means you can build template projects using the chrono build. You can add additional volumes, as needed.
+By default, the initial directory is `/home/chrono/chrono-dev`, where that directory is a volume to the host's `chrono` directory. This means you can build template projects using the chrono build. You can add additional volumes, as needed.
 
 ### Visualizing GUI Applications
 
@@ -72,6 +74,10 @@ The `docker-compose.yml` file actually sets the ports to `8080-8099`, so if `808
 </div>
 
 ## Additional Notes
+
+### Building the Docker Image without a NVIDIA GPU
+
+As noted above, the default `docker-compose.yml` file will attach a NVIDIA GPU to the container if available. If you don't have a NVIDIA GPU, you can comment out the parts which follow `deploy` in the `docker-compose.yml` file.
 
 ### Installing Chrono::Sensor
 
