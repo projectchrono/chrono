@@ -6,7 +6,7 @@ set(COMPONENT_RESOURCES_DIR "")
 set(COMPONENT_DLL_DEPENDENCIES "")
 
 set(FMU_CS TRUE)
-set(FMU_TESTING ON)
+#set(FMU_TESTING ON)
 
 #--------------------------------------------------------------
 

@@ -14,7 +14,7 @@ else()
 endif()
 
 set(FMU_CS TRUE)
-set(FMU_TESTING ON)
+#set(FMU_TESTING ON)
 
 #--------------------------------------------------------------
 
