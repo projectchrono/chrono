@@ -15,7 +15,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     )
 endif()
 
-if(HAVE_URDF)
+if(HAVE_URDF AND NOT CH_STATIC)
     set(DEMOS ${DEMOS}
       demo_PARSER_URDF
       demo_PARSER_URDF_RoboSimian
