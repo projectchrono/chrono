@@ -124,6 +124,14 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_cascade PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_cascade PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_cascade PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 if(WIN32)
     target_compile_definitions(ChronoEngine_cascade PRIVATE WNT)
 endif()
@@ -140,10 +148,6 @@ target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE"
 target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine)
 if(CH_ENABLE_MODULE_IRRLICHT)
   target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine_irrlicht)
-endif()
-
-if(MSVC)
-  set_target_properties(ChronoEngine_cascade PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 target_link_libraries(ChronoEngine_cascade PUBLIC ${OCCT_LIBS})

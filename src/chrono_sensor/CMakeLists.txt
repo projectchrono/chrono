@@ -348,6 +348,15 @@ add_library(ChronoEngine_sensor ${ALL_CH_SENSOR_FILES}
                                 ${ChronoEngine_sensor_CUDA_SOURCES})
 add_library(ChronoEngine::sensor ALIAS ChronoEngine_sensor)
 
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_sensor PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_sensor PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_sensor PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 if(MSVC)
   set_target_properties(ChronoEngine_sensor PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()

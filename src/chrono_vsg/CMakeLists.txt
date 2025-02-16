@@ -128,6 +128,14 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_vsg PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_compile_definitions(ChronoEngine_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VSG>)
 
 target_link_libraries(ChronoEngine_vsg PRIVATE ChronoEngine)
@@ -135,10 +143,6 @@ target_link_libraries(ChronoEngine_vsg PUBLIC
                       vsg::vsg
                       vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
-
-if(MSVC)
-  set_target_properties(ChronoEngine_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
 
 install(TARGETS ChronoEngine_vsg
         EXPORT ChronoEngineTargets

@@ -95,13 +95,17 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_robot PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
-
-target_link_libraries(ChronoModels_robot PUBLIC ChronoEngine)
+if (CH_STATIC)
+  set_target_properties(ChronoModels_robot PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoModels_robot PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
+
+target_link_libraries(ChronoModels_robot PUBLIC ChronoEngine)
 
 install(TARGETS ChronoModels_robot
         EXPORT ChronoEngineTargets

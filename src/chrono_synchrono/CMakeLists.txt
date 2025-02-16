@@ -171,6 +171,14 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_synchrono PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_synchrono PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_synchrono PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 # Windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_compile_options(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
@@ -178,10 +186,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 target_compile_definitions(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SYN_API_COMPILE>)
-
-if(MSVC)
-  set_target_properties(ChronoEngine_synchrono PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
 
 target_include_directories(ChronoEngine_synchrono PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include>

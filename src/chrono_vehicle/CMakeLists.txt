@@ -933,11 +933,15 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_vehicle PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine)
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_vehicle PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_vehicle PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine)
 
 if(HAVE_OPENCRG)
   target_link_libraries(ChronoEngine_vehicle PRIVATE OpenCRG::OpenCRG)
@@ -987,6 +991,14 @@ if(CH_ENABLE_MODULE_IRRLICHT)
       set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
     endif()
 
+    if (CH_STATIC)
+      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+    
+    if(MSVC)
+      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
     target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC ChronoEngine_irrlicht)
 
@@ -995,10 +1007,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     endif()
 
     target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-
-    if(MSVC)
-      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
 
     install(TARGETS ChronoEngine_vehicle_irrlicht
             EXPORT ChronoEngineTargets
@@ -1028,14 +1036,18 @@ if(CH_ENABLE_MODULE_VSG)
       set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES LINK_FLAGS "/LTCG")
     endif()
 
+    if (CH_STATIC)
+      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+    
+    if(MSVC)
+      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
     target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
     target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_vsg PUBLIC ChronoEngine_vsg)
-
-    if(MSVC)
-      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
 
     install(TARGETS ChronoEngine_vehicle_vsg
             EXPORT ChronoEngineTargets
@@ -1063,14 +1075,18 @@ if(CH_ENABLE_MODULE_OPENGL)
       set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES LINK_FLAGS "/LTCG")
     endif()
 
+    if (CH_STATIC)
+      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+    
+    if(MSVC)
+      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
     target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
     target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle)
     target_link_libraries(ChronoEngine_vehicle_opengl PUBLIC ChronoEngine_opengl)
-
-    if(MSVC)
-      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
 
     install(TARGETS ChronoEngine_vehicle_opengl
             EXPORT ChronoEngineTargets

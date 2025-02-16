@@ -1336,6 +1336,15 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_STATIC>)
+  set_target_properties(ChronoEngine PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 # TODO DARIOM: CH_INCLUDES_BUILD can be removed, used only here now
 list(APPEND CH_INCLUDES_BUILD "${CMAKE_SOURCE_DIR}/src")
 list(APPEND CH_INCLUDES_BUILD "${PROJECT_BINARY_DIR}")
@@ -1505,18 +1514,9 @@ if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_directories(ChronoEngine INTERFACE $<INSTALL_INTERFACE:lib>)
 endif()
 
-# Select proper MSVC Runtime Library
-if(MSVC)
-  set_target_properties(ChronoEngine PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
-
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
-if (CH_STATIC)
-  target_compile_definitions(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:CH_STATIC>)
-  set_target_properties(ChronoEngine PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
 
 target_compile_definitions(ChronoEngine PRIVATE BT_THREADSAFE)
 target_compile_definitions(ChronoEngine PRIVATE BP_USE_FIXEDPOINT_INT_32)

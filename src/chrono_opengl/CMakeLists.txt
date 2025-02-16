@@ -249,10 +249,17 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_opengl PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   target_compile_options(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"-s FULL_ES3=1 -s USE_GLFW=3">)
 endif()
-
 
 target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_OPENGL>)
 target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:GLM_ENABLE_EXPERIMENTAL>)
@@ -268,10 +275,6 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   target_link_libraries(ChronoEngine_opengl PUBLIC OpenGL::GL)
   target_link_libraries(ChronoEngine_opengl PUBLIC GLEW::glew)
   target_link_libraries(ChronoEngine_opengl PUBLIC glfw)
-endif()
-
-if(MSVC)
-  set_target_properties(ChronoEngine_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 install(TARGETS ChronoEngine_opengl

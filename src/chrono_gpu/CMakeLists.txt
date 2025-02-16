@@ -126,6 +126,14 @@ add_library(ChronoEngine_gpu
 
 add_library(ChronoEngine::gpu ALIAS ChronoEngine_gpu)
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_gpu PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_gpu PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_compile_definitions(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
 
 target_link_libraries(ChronoEngine_gpu PRIVATE ChronoEngine)
@@ -137,10 +145,6 @@ target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cublas)
 target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cusparse)
 
 set_target_properties(ChronoEngine_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
-
-if(MSVC)
-  set_target_properties(ChronoEngine_gpu PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
 
 install(TARGETS ChronoEngine_gpu
         EXPORT ChronoEngineTargets
@@ -161,6 +165,14 @@ if(CH_ENABLE_MODULE_OPENGL)
     add_library(ChronoEngine_gpu_opengl ${GPU_GL_FILES})
     add_library(ChronoEngine::gpu_opengl ALIAS ChronoEngine_gpu_opengl)
 
+    if (CH_STATIC)
+      set_target_properties(ChronoEngine_gpu_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+    
+    if(MSVC)
+      set_target_properties(ChronoEngine_gpu_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
     target_compile_definitions(ChronoEngine_gpu_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
 
     target_link_libraries(ChronoEngine_gpu_opengl PRIVATE ChronoEngine ChronoEngine_gpu)
@@ -175,8 +187,7 @@ if(CH_ENABLE_MODULE_OPENGL)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         target_compile_options(ChronoEngine_gpu_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
     endif()
-
-        
+      
     install(TARGETS ChronoEngine_gpu_opengl
             EXPORT ChronoEngineTargets
             RUNTIME DESTINATION bin

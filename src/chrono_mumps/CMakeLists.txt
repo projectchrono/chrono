@@ -60,12 +60,16 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_mumps PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_mumps PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_mumps PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
+target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")
 
 target_link_libraries(ChronoEngine_mumps
                       ChronoEngine

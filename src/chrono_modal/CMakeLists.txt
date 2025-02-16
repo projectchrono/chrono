@@ -82,14 +82,18 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_modal PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODAL>)
-
-target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_modal PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_modal PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODAL>)
+
+target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
+target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
 
 install(TARGETS ChronoEngine_modal
         EXPORT ChronoEngineTargets

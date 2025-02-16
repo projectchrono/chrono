@@ -136,11 +136,15 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
 
 target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_vehicle)
 target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoModels_robot)

@@ -1030,13 +1030,17 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_vehicle PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
-
-target_link_libraries(ChronoModels_vehicle PUBLIC ChronoEngine ChronoEngine_vehicle)
+if (CH_STATIC)
+  set_target_properties(ChronoModels_vehicle PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoModels_vehicle PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
+
+target_link_libraries(ChronoModels_vehicle PUBLIC ChronoEngine ChronoEngine_vehicle)
 
 install(TARGETS ChronoModels_vehicle
         EXPORT ChronoEngineTargets

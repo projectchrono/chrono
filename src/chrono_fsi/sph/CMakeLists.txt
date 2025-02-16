@@ -172,6 +172,16 @@ add_library(ChronoEngine_fsisph
 )
 add_library(ChronoEngine::fsisph ALIAS ChronoEngine_fsisph)
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_fsisph PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  # disable warnings related to missing DLL interface
+  target_compile_options(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+  set_target_properties(ChronoEngine_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_link_libraries(ChronoEngine_fsisph PRIVATE ChronoEngine)
 
 target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cudart_static)
@@ -183,12 +193,6 @@ target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cusparse)
 target_link_libraries(ChronoEngine_fsisph PUBLIC Thrust::Thrust)
 target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
 target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-
-# If using MSVC, disable warnings related to missing DLL interface
-if(MSVC)
-  target_compile_options(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-  set_target_properties(ChronoEngine_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
 
 target_compile_definitions(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
 
@@ -212,6 +216,16 @@ if(CH_ENABLE_MODULE_VSG)
         ${FSISPH_VSG_FILES}
     )
     add_library(ChronoEngine::fsisph_vsg ALIAS ChronoEngine_fsisph_vsg)
+   
+    if (CH_STATIC)
+      set_target_properties(ChronoEngine_fsisph_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+ 
+    if(MSVC)
+      # disable warnings related to missing DLL interface
+      target_compile_options(ChronoEngine_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(ChronoEngine_fsisph_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
 
     target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
     
@@ -227,10 +241,6 @@ if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE Thrust::Thrust)
     target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
     target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-
-    if(MSVC)
-      set_target_properties(ChronoEngine_fsisph_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
 
     install(TARGETS ChronoEngine_fsisph_vsg
             EXPORT ChronoEngineTargets
@@ -252,6 +262,16 @@ if(CH_ENABLE_MODULE_OPENGL)
         ${FSISPH_GL_FILES}
     )
     add_library(ChronoEngine::fsisph_opengl ALIAS ChronoEngine_fsisph_opengl)
+   
+    if (CH_STATIC)
+      set_target_properties(ChronoEngine_fsisph_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+    
+    if(MSVC)
+      # disable warnings related to missing DLL interface
+      target_compile_options(ChronoEngine_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(ChronoEngine_fsisph_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
 
     target_compile_definitions(ChronoEngine_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
     
@@ -270,12 +290,6 @@ if(CH_ENABLE_MODULE_OPENGL)
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         target_compile_options(ChronoEngine_fsisph_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
-    endif()
-
-    # If using MSVC, disable warnings related to missing DLL interface
-    if(MSVC)
-        target_compile_options(ChronoEngine_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-        set_target_properties(ChronoEngine_fsisph_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
     install(TARGETS ChronoEngine_fsisph_opengl

@@ -161,7 +161,13 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_multicore PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_multicore PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 if(MSVC)
+  # for Blaze, unary minus operator applied to unsigned type, result still unsigned
+  target_compile_options(ChronoEngine_multicore PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4146>)
   set_target_properties(ChronoEngine_multicore PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
@@ -176,11 +182,6 @@ target_link_libraries(ChronoEngine_multicore PUBLIC Blaze::Blaze)
 if(BOOST_REQUIRED)
   target_include_directories(ChronoEngine_multicore PRIVATE "${Boost_INCLUDE_DIRS}")
 endif()
-
-if(MSVC)
-  target_compile_options(ChronoEngine_multicore PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4146>) # for Blaze, unary minus operator applied to unsigned type, result still unsigned
-endif()
-
 
 target_compile_definitions(ChronoEngine_multicore PRIVATE CH_API_COMPILE_MULTICORE)
 target_compile_definitions(ChronoEngine_multicore PRIVATE BT_THREADSAFE)

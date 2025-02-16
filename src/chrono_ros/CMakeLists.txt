@@ -181,6 +181,20 @@ add_library(ChronoEngine_ros SHARED
             ${CH_ROS_SENSOR_HANDLER_FILES}
             ${CH_ROS_ROBOT_HANDLER_FILES}
 )
+add_library(ChronoEngine::ros ALIAS ChronoEngine_ros)
+
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_ros PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_ros PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_ros PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_ros PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 set_target_properties(ChronoEngine_ros PROPERTIES LINKER_LANGUAGE CXX)
 

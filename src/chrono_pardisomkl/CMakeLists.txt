@@ -122,6 +122,13 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_pardisomkl PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_pardisomkl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_pardisomkl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 target_link_libraries(ChronoEngine_pardisomkl
                       ChronoEngine
@@ -131,10 +138,6 @@ target_link_libraries(ChronoEngine_pardisomkl
 target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_API_COMPILE_PARDISOMKL")
 target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
 target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "MKL_LP64") # who needs this? Eigen?
-
-if(MSVC)
-  set_target_properties(ChronoEngine_pardisomkl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
 
 
 install(TARGETS ChronoEngine_pardisomkl

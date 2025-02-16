@@ -47,6 +47,14 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_matlab PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_matlab PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_matlab PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_link_libraries(ChronoEngine_matlab PRIVATE ChronoEngine)
 
 target_link_libraries(ChronoEngine_matlab PRIVATE Matlab::MatlabEngine) # C++
@@ -55,10 +63,6 @@ target_link_libraries(ChronoEngine_matlab PUBLIC Matlab::eng)           # C
 #target_link_libraries(ChronoEngine_matlab PRIVATE Matlab::mx)
                           
 target_compile_definitions(ChronoEngine_matlab PRIVATE "CH_API_COMPILE_MATLAB")
-
-if(MSVC)
-  set_target_properties(ChronoEngine_matlab PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-endif()
 
 install(TARGETS ChronoEngine_matlab
   EXPORT ChronoEngineTargets

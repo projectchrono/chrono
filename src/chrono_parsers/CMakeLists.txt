@@ -60,10 +60,17 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_parsers PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_parsers PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_parsers PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_compile_definitions(ChronoEngine_parsers PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_PARSERS>)
 
 target_link_libraries(ChronoEngine_parsers PRIVATE ChronoEngine)
-
 
 # Include URDF parser if found --------------------------------------------
 

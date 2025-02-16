@@ -56,13 +56,17 @@ if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoEngine_postprocess PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
-
-target_link_libraries(ChronoEngine_postprocess PRIVATE ChronoEngine)
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_postprocess PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
 if(MSVC)
   set_target_properties(ChronoEngine_postprocess PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
+
+target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
+
+target_link_libraries(ChronoEngine_postprocess PRIVATE ChronoEngine)
 
 install(TARGETS ChronoEngine_postprocess
         EXPORT ChronoEngineTargets
