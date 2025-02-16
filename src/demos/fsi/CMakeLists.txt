@@ -20,7 +20,7 @@ set(DEMOS ${DEMOS}
    demo_FSI_Cratering
 )
 
-if(ENABLE_MODULE_PARDISO_MKL)
+if(CH_ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}
       demo_FSI_Flexible_Plate
       demo_FSI_Flexible_Cable
@@ -30,44 +30,37 @@ endif()
 
 #--------------------------------------------------------------
 
-include_directories(${CH_FSI_INCLUDES})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS "ChronoEngine_fsisph")
 
-if(ENABLE_MODULE_VSG)
-    include_directories(${CH_VSG_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_vsg")
+if(CH_ENABLE_MODULE_VSG)
+    list(APPEND LIBS "ChronoEngine_fsisph_vsg")
 endif()
 
-if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_opengl")
+if(CH_ENABLE_MODULE_OPENGL)
+    list(APPEND LIBS "ChronoEngine_fsisph_opengl")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
-    include_directories(${CH_MKL_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-list(APPEND LIBS "ChronoEngine_fsi_sph")
-
 #--------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for FSI module...")
+message(STATUS "Add demo programs for FSI module")
 	
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM} ${PROGRAM}.cpp)
     source_group("" FILES ${PROGRAM}.cpp)
 
-    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
+
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+    
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
 

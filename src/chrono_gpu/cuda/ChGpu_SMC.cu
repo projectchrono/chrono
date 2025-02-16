@@ -333,6 +333,18 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
 
+    //{
+    //    size_t item_size = sizeof(decltype(sphere_owner_SDs)::value_type);
+    //    size_t old_size = sphere_owner_SDs.size();
+    //    sphere_owner_SDs.resize(nSpheres);
+    //    sphere_owner_SDs.resize(nSpheres, NULL_CHGPU_ID);
+    //    size_t new_size = sphere_owner_SDs.size();
+    //    size_t byte_delta = item_size * (new_size - old_size);
+    //    gran_approx_bytes_used += byte_delta;
+    //    INFO_PRINTF("Resizing vector %s, old size %zu, new size %zu, byte delta %s\n", "sphere_owner_SDs", old_size, new_size,
+    //                pretty_format_bytes(byte_delta).c_str());
+    //}
+
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);
 
     // Allocate space for new bodies

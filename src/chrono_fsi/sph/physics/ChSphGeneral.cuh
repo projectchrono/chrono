@@ -221,6 +221,7 @@ inline __device__ Real Eos(Real rho, EosType eos_type) {
             return paramsD.Cs * paramsD.Cs * (rho - paramsD.rho0);
         }
     }
+    return -1;
 }
 
 // Inverse of equation of state
@@ -240,6 +241,7 @@ inline __device__ Real InvEos(Real pw, EosType eos_type) {
             return rho;
         }
     }
+    return -1;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

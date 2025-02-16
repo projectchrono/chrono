@@ -128,12 +128,6 @@ enum class OutputLevel {
     CRM_FULL         ///< STATE_PRESSURE plus normal and shear stress
 };
 
-/// Output mode.
-enum class OutputMode {
-    CSV,  ///< comma-separated value
-    CHPF  ///< binary
-};
-
 /// @} fsi_physics
 
 }  // namespace fsi

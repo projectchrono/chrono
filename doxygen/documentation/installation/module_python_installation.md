@@ -54,7 +54,7 @@ Building PyChrono requires SWIG version **4.0.0** or newer.
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
 
-3. Set `ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
+3. Set `CH_ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
 
 4. The Python package should be detected by CMake automatically.
 If prompted, set the `CH_PYTHONDIR` variable to the directory where you have your copy of Python. 

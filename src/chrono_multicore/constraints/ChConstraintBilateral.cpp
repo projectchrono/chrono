@@ -18,15 +18,16 @@
 
 #include <algorithm>
 
-#include "chrono_multicore/constraints/ChConstraintBilateral.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/multicore_math/thrust.h"
 
 #include "chrono/solver/ChConstraintTwoBodies.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/solver/ChConstraintThreeGeneric.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChShaft.h"
+
+#include "chrono_multicore/constraints/ChConstraintBilateral.h"
 
 using namespace chrono;
 

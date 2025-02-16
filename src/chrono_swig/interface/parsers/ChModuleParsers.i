@@ -75,16 +75,16 @@ using namespace chrono::parsers;
 %include "stdint.i"
 %include "typemaps.i"
 %include "cpointer.i"
-%include "cdata.i"
+%include "cdata.i" 
 
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkMotor.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFunction.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFrame.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyFrame.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBody.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChLinkMotor.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChFunction.i"
 
 %template(Actuation) std::vector<double>;
 

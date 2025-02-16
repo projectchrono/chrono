@@ -61,7 +61,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
     bool* error_flagD;
 
     size_t numAllMarkers;
-    int NNZ;
+    size_t NNZ;
 
     void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
 

@@ -24,7 +24,7 @@ On the Mac **SWIG v. 4.0.1** is known to work. It is installed by homebrew.
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
 
-3. Set the `ENABLE_MODULE_CSHARP` as 'on', then press 'Configure' (to refresh the variable list) 
+3. Set the `CH_ENABLE_MODULE_CSHARP` as 'on', then press 'Configure' (to refresh the variable list) 
 
 4. When you pressed 'Configure', CMake should have detected your SWIG tools. This should create two variables in CMake called <tt>SWIG_DIR</tt> and <tt>SWIG_EXECUTABLE</tt>. 
    If all is fine, they should automatically contain meaningful values, 

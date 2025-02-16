@@ -28,8 +28,6 @@
 #include "chrono/collision/multicore/ChBroadphase.h"
 #include "chrono/collision/multicore/ChNarrowphase.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
-
 namespace chrono {
 
 // forward references

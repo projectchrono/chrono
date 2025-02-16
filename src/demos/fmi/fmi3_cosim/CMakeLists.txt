@@ -26,7 +26,7 @@ endif()
 
 set(PROGRAM demo_FMI3_hydraulic_crane_cosim)
 
-message(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 add_executable(${PROGRAM})
 source_group("" FILES ${PROGRAM}.cpp)
@@ -53,6 +53,10 @@ endif()
 target_link_libraries(${PROGRAM} ChronoEngine)
 
 set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+
+if(MSVC)
+  set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
 if (${FMU_EXPORT_SUPPORT})
   add_dependencies(${PROGRAM} ${CRANE_FMU_MODEL_IDENTIFIER} ${ACTUATOR_FMU_MODEL_IDENTIFIER})

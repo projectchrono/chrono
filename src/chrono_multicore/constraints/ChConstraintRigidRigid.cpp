@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <limits>
 
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/constraints/ChConstraintRigidRigid.h"
 #include "chrono_multicore/constraints/ChConstraintUtils.h"

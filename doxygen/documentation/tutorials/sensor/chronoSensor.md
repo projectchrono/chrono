@@ -37,6 +37,6 @@ Select sensor demos:
   * demo_SEN_HMMWV - example HMMWV equipped with sensors
   * demo_SEN_deformableSoil - example sensing on deformable terrain
 
-* Sensors with TensorRT (requies USE_TENSOR_RT=ON in cmake)
+* Sensors with TensorRT (requies CH_USE_TENSOR_RT=ON in cmake)
   * demo_SEN_NNCamera - example for using a camera with a filter based on a neural net with inference through TensorRT
   * demo_SRN_rl_infer - example using sensor with neural net to perform driving using reinforcement learning

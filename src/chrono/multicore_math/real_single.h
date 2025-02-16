@@ -19,8 +19,6 @@
 #include <cmath>
 #include <cfloat>
 
-#include "chrono/multicore_math/ChCudaDefines.h"
-
 namespace chrono {
 
 /// @addtogroup chrono_mc_math
@@ -33,79 +31,79 @@ typedef float real;
 
 // Trig Functions
 // ========================================================================================
-CUDA_HOST_DEVICE static inline real Sin(const real theta) {
+static inline real Sin(const real theta) {
     return sinf(theta);
 }
-CUDA_HOST_DEVICE static inline real Cos(const real theta) {
+static inline real Cos(const real theta) {
     return cosf(theta);
 }
-CUDA_HOST_DEVICE static inline real Tan(const real theta) {
+static inline real Tan(const real theta) {
     return tanf(theta);
 }
-CUDA_HOST_DEVICE static inline real Tanh(const real theta) {
+static inline real Tanh(const real theta) {
     return tanhf(theta);
 }
-CUDA_HOST_DEVICE static inline real ASin(const real theta) {
+static inline real ASin(const real theta) {
     return asinf(theta);
 }
-CUDA_HOST_DEVICE static inline real ACos(const real theta) {
+static inline real ACos(const real theta) {
     return acosf(theta);
 }
-CUDA_HOST_DEVICE static inline real ATan(const real theta) {
+static inline real ATan(const real theta) {
     return atanf(theta);
 }
-CUDA_HOST_DEVICE static inline real ATan2(const real x, const real y) {
+static inline real ATan2(const real x, const real y) {
     return atan2f(x, y);
 }
-// CUDA_HOST_DEVICE static inline real DegToRad(const real t) {
+//  static inline real DegToRad(const real t) {
 //    return t * C_DegToRad;
 //}
-// CUDA_HOST_DEVICE static inline real RadToDeg(const real t) {
+//  static inline real RadToDeg(const real t) {
 //    return t * C_RadToDeg;
 //}
 
 // Geometric Functions
 // ========================================================================================
-CUDA_HOST_DEVICE static inline real Sqrt(const real x) {
+static inline real Sqrt(const real x) {
     return sqrtf(x);
 }
-CUDA_HOST_DEVICE static inline real InvSqrt(const real x) {
+static inline real InvSqrt(const real x) {
     return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
 }
-CUDA_HOST_DEVICE static inline real Abs(const real x) {
+static inline real Abs(const real x) {
     return fabsf(x);
 }
-CUDA_HOST_DEVICE static inline real Pow(const real b, const real e) {
+static inline real Pow(const real b, const real e) {
     return powf(b, e);
 }
-CUDA_HOST_DEVICE static inline real Mod(const real x, const real y) {
+static inline real Mod(const real x, const real y) {
     return fmod(x, y);
 }
-CUDA_HOST_DEVICE static inline real Exp(const real x) {
+static inline real Exp(const real x) {
     return expf(x);
 }
-CUDA_HOST_DEVICE static inline real Min(const real a, const real b) {
+static inline real Min(const real a, const real b) {
     return fminf(a, b);
 }
-CUDA_HOST_DEVICE static inline real Max(const real a, const real b) {
+static inline real Max(const real a, const real b) {
     return fmaxf(a, b);
 }
-CUDA_HOST_DEVICE static inline real Min(const real a, const real b, const real c) {
+static inline real Min(const real a, const real b, const real c) {
     return fminf(fminf(a, b), c);
 }
-CUDA_HOST_DEVICE static inline real Max(const real a, const real b, const real c) {
+static inline real Max(const real a, const real b, const real c) {
     return fmaxf(fmaxf(a, b), c);
 }
-CUDA_HOST_DEVICE static inline real Floor(const real a) {
+static inline real Floor(const real a) {
     return floorf(a);
 }
-CUDA_HOST_DEVICE static inline real Ceil(const real a) {
+static inline real Ceil(const real a) {
     return ceilf(a);
 }
-CUDA_HOST_DEVICE static inline real Round(const real a) {
+static inline real Round(const real a) {
     return roundf(a);
 }
-CUDA_HOST_DEVICE static inline real Log(const real a) {
+static inline real Log(const real a) {
     return logf(a);
 }
 

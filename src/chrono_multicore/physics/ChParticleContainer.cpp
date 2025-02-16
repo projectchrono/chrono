@@ -20,7 +20,7 @@
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/constraints/ChConstraintUtils.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/multicore_math/thrust.h"
 #include "chrono/multicore_math/matrix.h"
 
 namespace chrono {

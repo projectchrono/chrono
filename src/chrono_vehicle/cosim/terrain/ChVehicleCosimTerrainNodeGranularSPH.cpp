@@ -532,8 +532,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
-    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_terrain->GetSystemFSI().GetFluidSystemSPH().WriteParticleFile(filename, OutputMode::CHPF);
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "csv", frame, 5);
+    m_terrain->GetSystemFSI().GetFluidSystemSPH().WriteParticleFile(filename);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
