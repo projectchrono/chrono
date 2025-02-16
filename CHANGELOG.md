@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Refactoring of Chrono CMake build system](#changed-refactoring-of-chrono-cmake-build-system) 
   - [\[Added\] Support for modeling components with internal dynamics (DAE)](#added-support-for-modeling-components-with-internal-dynamics-dae)
   - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
 - [Release 9.0.1 (2024-07-03)](#release-901-2024-07-03)
@@ -112,6 +113,23 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Changed] Refactoring of Chrono CMake build system
+
+The Chrono CMake system was rewritten to use modern cmake. This streamlines the Chrono configuration process, provides consistency across the entire Chrono configuration and build, and eliminates changes to global CMake variables, thus allowing incorporating the Chrono repository into external projects (e.g., as a git submodule).
+
+Some of the more important changes related to this refactoring are as follows:
+- CUDA is a first class language.
+- Checks for availability of features required by more than one Chrono module are performed at top-level; these include the check for Eigen3 (the only dependency of the core Chrono module), as well as tests for SIMD optimization level support, OpenMP and MPI availability, CUDA and Thrust support.
+- Checks for availability of module-specific prerequisites are performed by each Chrono module separately (e.g., Vulkan and vsg libraries for the Chrono::VSG run-time visualization module).
+- Availability of prerequisites is preferentially done through project configuration scripts; for dependencies that do not provide a cmake-based configuration system (e.g., Irrlicht), Chrono provides custom "Find" CMake scripts that make available the necessary CMake targets.
+
+From the Chrono user perspective, the main implications of these changes are:
+- Chrono-related CMake variables were renamed to have prefix `CH_` (e.g., `CH_ENABLE_MODULE_IRRLICHT` and `CH_USE_SIMD`); this helps grouping all Chrono (e.g., in `cmake-gui`) and disambiguate from similarly-named CMake variables introduced by dependency packages.
+- CMake variables necessary to specify location of dependency packages were renamed for consistency and to follow common practice (e.g., `Eigen3_DIR`).
+- The Chrono CMake project configuration script (used to find a build or install version of Chrono when configuring an external project) was rewritten to be more robust and allow a relocatable Chrono package; among other things, the new chrono-config script will (i) identify all explicit and implicit Chrono module inter-dependencies; and (ii) default to using the dependency package locations specified during build while allowing their redefinition. 
+
+For Windows users, note that the new Chrono CMake system will no longer copy _any_ dependency DLLs to the build directory. Instead, it is the user's responsibility to ensure these DLLs are discoverable at run-time (either by manually copying them next to the binaries or else by editing the PATH environment variable).
 
 ## [Added] Support for modeling components with internal dynamics (DAE)
 

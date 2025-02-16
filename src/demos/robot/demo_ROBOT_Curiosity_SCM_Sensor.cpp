@@ -63,11 +63,9 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::curiosity;
 using namespace chrono::sensor;
 
-using namespace irr;
 
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";

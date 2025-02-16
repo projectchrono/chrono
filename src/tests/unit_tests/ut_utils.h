@@ -29,7 +29,7 @@
 #include "chrono/core/ChVector3.h"
 
 #ifdef CHRONO_HAS_THRUST
-    #include "chrono/multicore_math/ChMulticoreMath.h"
+    #include "chrono/multicore_math/utility.h"
     #include "chrono/multicore_math/matrix.h"
 #endif
 

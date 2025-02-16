@@ -307,7 +307,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     KernelType GetKernelType() const { return m_paramsH->kernel_type; }
 
     /// Write FSI system particle output.
-    void WriteParticleFile(const std::string& filename, OutputMode mode) const;
+    void WriteParticleFile(const std::string& filename) const;
 
     /// Save current SPH particle and BCE marker data to files.
     /// This function creates three CSV files for SPH particles, boundary BCE markers, and solid BCE markers data.

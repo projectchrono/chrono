@@ -78,9 +78,6 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
 
-#ifdef SWIGPYTHON
-#include "chrono_vehicle/ChVehicleVisualSystem.h"
-#endif
 
 // Wheeled vehicle
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -270,9 +267,13 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %shared_ptr(chrono::vehicle::ChTransmission)
 
-// Expose for both python and csharp
-%shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
+// Expose for csharp only
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%shared_ptr(chrono::vehicle::ChVehicleVisualSystem)
+#endif             // --------------------------------------------------------------------- CSHARP
+
+// Expose for both python and csharp
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
@@ -334,13 +335,12 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 // TODO: 
 //%include "rapidjson.i"
-
 //%include "../../../chrono_vehicle/ChApiVehicle.h"
 %ignore chrono::vehicle::TrackedCollisionFamily::Enum;
 %ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
 %include "../../../chrono_vehicle/ChSubsysDefs.h"
-%include "../chrono_models/vehicle/ChVehicleModelDefs.h"
+%include "chrono_models/vehicle/ChVehicleModelDefs.h"
 //TODO: conversion from std::vectors of ChVehicleOutput
 %include "../../../chrono_vehicle/ChVehicleOutput.h"
 %include "../../../chrono_vehicle/ChVehicleModelData.h"
@@ -359,10 +359,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChTerrain.i"
 // Place these after the ChEngine and ChTransmission and ChPowertrain base wraps
 %include "chrono_swig/interface/models/PowertrainModels.i"
-
-#ifdef SWIGPYTHON
-%include "../../../chrono_vehicle/ChVehicleVisualSystem.h"
-#endif
 
 //TODO: antirollbar
 

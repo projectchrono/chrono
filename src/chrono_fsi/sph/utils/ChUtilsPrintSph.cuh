@@ -25,9 +25,6 @@
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/math/CustomMath.h"
 
-#define FLOAT16_TYPE_AVAILABLE
-#include "chrono_thirdparty/chpf/particle_writer.hpp"
-
 struct SimParams;
 
 namespace chrono {
@@ -89,12 +86,6 @@ void WriteParticleFileCSV(const std::string& filename,
                           thrust::device_vector<Real3>& velMasD,
                           thrust::device_vector<Real4>& rhoPresMuD,
                           thrust::host_vector<int4>& referenceArray);
-
-/// Save current particle data to a binary ChPF file.
-/// Write particle positions only.
-void WriteParticleFileCHPF(const std::string& filename,
-                           thrust::device_vector<Real4>& posRadD,
-                           thrust::host_vector<int4>& referenceArray);
 
 /// @} fsi_utils
 

@@ -9,13 +9,15 @@
 #-----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.18)
+# Features achievable with later versions of CMake:
+# - install(IMPORTED_RUNTIME_ARTIFACTS) CMake 3.21
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
+    message(FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 #-----------------------------------------------------------------------------
@@ -236,11 +238,13 @@ endif()
 
 get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(MULTI_CONFIG)
+    set(CH_BUILD_DATA ${CMAKE_BINARY_DIR}/bin/data)
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
     message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
     message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/bin/data/")
     message(STATUS "Binaries will be created in ${CMAKE_BINARY_DIR}/bin/<CONFIGURATION>/")
 else()
+    set(CH_BUILD_DATA ${CMAKE_BINARY_DIR}/data)
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
     message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
     message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/data/")

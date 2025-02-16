@@ -34,19 +34,10 @@
 namespace chrono {
 namespace sensor {
 
-class SensorConfig {
-  public:
-    static std::string ptx_pre;            //= "ChronoEngine_sensor_generated_";
-    static std::string ptx_suff;           // = ".cu.ptx";
-    static std::string SENSOR_SHADER_DIR;  // = std::string(CMAKE_SHADER_OUTPUT_PATH);
-};
-
-std::string SensorConfig::ptx_pre = "ChronoEngine_sensor_generated_";
-std::string SensorConfig::ptx_suff = ".cu.ptx";
-std::string SensorConfig::SENSOR_SHADER_DIR = std::string(CMAKE_SHADER_OUTPUT_PATH);
+static std::string shader_dir = SHADER_OUTPUT_PATH;
 
 void SetSensorShaderDir(const std::string& path) {
-    SensorConfig::SENSOR_SHADER_DIR = path;
+    shader_dir = path;
 }
 
 void GetShaderFromFile(OptixDeviceContext context,
@@ -57,7 +48,7 @@ void GetShaderFromFile(OptixDeviceContext context,
 #ifdef USE_CUDA_NVRTC
     // std::chrono::high_resolution_clock::time_point start_compile = std::chrono::high_resolution_clock::now();
 
-    std::string cuda_file = SensorConfig::SENSOR_SHADER_DIR + file_name + ".cu";
+    std::string cuda_file = shader_dir + "/" + file_name + ".cu";
     std::string str;
     std::ifstream f(cuda_file);
     if (f.good()) {
@@ -121,7 +112,7 @@ void GetShaderFromFile(OptixDeviceContext context,
     // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
 #else
-    std::string ptx_file = SensorConfig::SENSOR_SHADER_DIR + SensorConfig::ptx_pre + file_name + SensorConfig::ptx_suff;
+    std::string ptx_file = shader_dir + "/" +  file_name + ".ptx";
     std::string ptx;
     std::ifstream f(ptx_file);
     if (f.good()) {

@@ -32,8 +32,6 @@
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
-
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"

@@ -30,41 +30,41 @@ namespace chrono {
 /// Chrono multicore qudruple (4-dimensional array).
 class ChApi real4 {
   public:
-    CUDA_HOST_DEVICE inline real4() {}
-    CUDA_HOST_DEVICE inline real4(real a) {
+    inline real4() {}
+    inline real4(real a) {
         array[0] = a;
         array[1] = a;
         array[2] = a;
         array[3] = a;
     }
-    CUDA_HOST_DEVICE inline real4(real a, real b, real c, real d) {
+    inline real4(real a, real b, real c, real d) {
         array[0] = a;
         array[1] = b;
         array[2] = c;
         array[3] = d;
     }
-    CUDA_HOST_DEVICE inline real4(const real3& v, real w) {
+    inline real4(const real3& v, real w) {
         array[0] = v.x;
         array[1] = v.y;
         array[2] = v.z;
         array[3] = w;
     }
-    CUDA_HOST_DEVICE inline real4(const real4& v) {
+    inline real4(const real4& v) {
         array[0] = v.x;
         array[1] = v.y;
         array[2] = v.z;
         array[3] = v.w;
     }
 
-    CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
-    CUDA_HOST_DEVICE inline operator real*() { return &array[0]; }
-    CUDA_HOST_DEVICE inline operator const real*() const { return &array[0]; }
+    inline real operator[](unsigned int i) const { return array[i]; }
+    inline real& operator[](unsigned int i) { return array[i]; }
+    inline operator real*() { return &array[0]; }
+    inline operator const real*() const { return &array[0]; }
 
-    CUDA_HOST_DEVICE inline operator real3() { return real3(x, y, z); }
-    CUDA_HOST_DEVICE inline operator const real3() const { return real3(x, y, z); }
+    inline operator real3() { return real3(x, y, z); }
+    inline operator const real3() const { return real3(x, y, z); }
 
-    CUDA_HOST_DEVICE inline real4& operator=(const real4& rhs) {
+    inline real4& operator=(const real4& rhs) {
         memcpy(array, rhs.array, 4 * sizeof(real));
 
         return *this;  // Return a reference to myself.
@@ -100,63 +100,63 @@ class ChApi real4 {
     };
 };
 
-CUDA_HOST_DEVICE ChApi real4 Set4(real x);
-CUDA_HOST_DEVICE ChApi real4 Set4(real x, real y, real z, real w);
+ChApi real4 Set4(real x);
+ChApi real4 Set4(real x, real y, real z, real w);
 
-CUDA_HOST_DEVICE ChApi real4 operator+(const real4& a, const real4& b);
-CUDA_HOST_DEVICE ChApi real4 operator-(const real4& a, const real4& b);
-CUDA_HOST_DEVICE ChApi real4 operator*(const real4& a, const real4& b);
-CUDA_HOST_DEVICE ChApi real4 operator/(const real4& a, const real4& b);
+ChApi real4 operator+(const real4& a, const real4& b);
+ChApi real4 operator-(const real4& a, const real4& b);
+ChApi real4 operator*(const real4& a, const real4& b);
+ChApi real4 operator/(const real4& a, const real4& b);
 
-CUDA_HOST_DEVICE ChApi real4 operator+(const real4& a, real b);
-CUDA_HOST_DEVICE ChApi real4 operator-(const real4& a, real b);
-CUDA_HOST_DEVICE ChApi real4 operator*(const real4& a, real b);
-CUDA_HOST_DEVICE ChApi real4 operator/(const real4& a, real b);
+ChApi real4 operator+(const real4& a, real b);
+ChApi real4 operator-(const real4& a, real b);
+ChApi real4 operator*(const real4& a, real b);
+ChApi real4 operator/(const real4& a, real b);
 
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(*, real, real4);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(/, real, real4);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(+, real, real4);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(-, real, real4);
+ChApi OPERATOR_EQUALS_PROTO(*, real, real4);
+ChApi OPERATOR_EQUALS_PROTO(/, real, real4);
+ChApi OPERATOR_EQUALS_PROTO(+, real, real4);
+ChApi OPERATOR_EQUALS_PROTO(-, real, real4);
 
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(*, real4, real4);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(/, real4, real4);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(+, real4, real4);
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALS_PROTO(-, real4, real4);
+ChApi OPERATOR_EQUALS_PROTO(*, real4, real4);
+ChApi OPERATOR_EQUALS_PROTO(/, real4, real4);
+ChApi OPERATOR_EQUALS_PROTO(+, real4, real4);
+ChApi OPERATOR_EQUALS_PROTO(-, real4, real4);
 
-CUDA_HOST_DEVICE ChApi real4 operator-(const real4& a);
-CUDA_HOST_DEVICE ChApi real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
+ChApi real4 operator-(const real4& a);
+ChApi real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
 
 /// Chrono multicore quaternion class.
 class ChApi quaternion {
   public:
-    CUDA_HOST_DEVICE quaternion() {}
-    CUDA_HOST_DEVICE quaternion(real a) {
+    quaternion() {}
+    quaternion(real a) {
         array[0] = a;
         array[1] = a;
         array[2] = a;
         array[3] = a;
     }
-    CUDA_HOST_DEVICE quaternion(real _w, real _x, real _y, real _z) {
+    quaternion(real _w, real _x, real _y, real _z) {
         array[0] = _w;
         array[1] = _x;
         array[2] = _y;
         array[3] = _z;
     }
-    CUDA_HOST_DEVICE quaternion(const real3& v, real w) {
+    quaternion(const real3& v, real w) {
         array[0] = w;
         array[1] = v.x;
         array[2] = v.y;
         array[3] = v.z;
     }
-    CUDA_HOST_DEVICE real operator[](unsigned int i) const { return array[i]; }
-    CUDA_HOST_DEVICE real& operator[](unsigned int i) { return array[i]; }
-    CUDA_HOST_DEVICE operator real*() { return &array[0]; }
-    CUDA_HOST_DEVICE operator const real*() const { return &array[0]; };
-    CUDA_HOST_DEVICE quaternion& operator=(const quaternion& rhs) {
+    real operator[](unsigned int i) const { return array[i]; }
+    real& operator[](unsigned int i) { return array[i]; }
+    operator real*() { return &array[0]; }
+    operator const real*() const { return &array[0]; };
+    quaternion& operator=(const quaternion& rhs) {
         memcpy(array, rhs.array, 4 * sizeof(real));
         return *this;  // Return a reference to myself.
     }
-    CUDA_HOST_DEVICE inline real3 vect() const { return real3(x, y, z); }
+    inline real3 vect() const { return real3(x, y, z); }
 
 #if defined(USE_AVX)
     inline quaternion(__m256d m) { _mm256_storeu_pd(&w, m); }
@@ -188,29 +188,29 @@ class ChApi quaternion {
     };
 };
 
-CUDA_HOST_DEVICE ChApi quaternion SetQ(real x);
-CUDA_HOST_DEVICE ChApi quaternion SetQ(real w, real x, real y, real z);
+ChApi quaternion SetQ(real x);
+ChApi quaternion SetQ(real w, real x, real y, real z);
 
-CUDA_HOST_DEVICE ChApi quaternion operator+(const quaternion& a, real b);
-CUDA_HOST_DEVICE ChApi quaternion operator-(const quaternion& a, real b);
-CUDA_HOST_DEVICE ChApi quaternion operator*(const quaternion& a, real b);
-CUDA_HOST_DEVICE ChApi quaternion operator/(const quaternion& a, real b);
-CUDA_HOST_DEVICE ChApi quaternion operator~(const quaternion& a);
-CUDA_HOST_DEVICE ChApi quaternion Inv(const quaternion& a);
-CUDA_HOST_DEVICE ChApi real Dot(const quaternion& v1, const quaternion& v2);
-CUDA_HOST_DEVICE ChApi real Dot(const quaternion& v);
-CUDA_HOST_DEVICE ChApi quaternion Mult(const quaternion& a, const quaternion& b);
-CUDA_HOST_DEVICE ChApi quaternion Normalize(const quaternion& v);
-CUDA_HOST_DEVICE ChApi real3 Rotate(const real3& v, const quaternion& q);
-CUDA_HOST_DEVICE ChApi real3 RotateT(const real3& v, const quaternion& q);
+ChApi quaternion operator+(const quaternion& a, real b);
+ChApi quaternion operator-(const quaternion& a, real b);
+ChApi quaternion operator*(const quaternion& a, real b);
+ChApi quaternion operator/(const quaternion& a, real b);
+ChApi quaternion operator~(const quaternion& a);
+ChApi quaternion Inv(const quaternion& a);
+ChApi real Dot(const quaternion& v1, const quaternion& v2);
+ChApi real Dot(const quaternion& v);
+ChApi quaternion Mult(const quaternion& a, const quaternion& b);
+ChApi quaternion Normalize(const quaternion& v);
+ChApi real3 Rotate(const real3& v, const quaternion& q);
+ChApi real3 RotateT(const real3& v, const quaternion& q);
 
 // Rotate a vector with the absolute value of a rotation matrix generated by a quaternion
-CUDA_HOST_DEVICE ChApi real3 AbsRotate(const quaternion& q, const real3& v);
-CUDA_HOST_DEVICE ChApi quaternion QuatFromAngleAxis(const real& angle, const real3& axis);
-CUDA_HOST_DEVICE ChApi real3 AMatU(const quaternion& q);
-CUDA_HOST_DEVICE ChApi real3 AMatV(const quaternion& q);
-CUDA_HOST_DEVICE ChApi real3 AMatW(const quaternion& q);
-CUDA_HOST_DEVICE ChApi void Print(quaternion v, const char* name);
+ChApi real3 AbsRotate(const quaternion& q, const real3& v);
+ChApi quaternion QuatFromAngleAxis(const real& angle, const real3& axis);
+ChApi real3 AMatU(const quaternion& q);
+ChApi real3 AMatV(const quaternion& q);
+ChApi real3 AMatW(const quaternion& q);
+ChApi void Print(quaternion v, const char* name);
 
 /// @} chrono_mc_math
 

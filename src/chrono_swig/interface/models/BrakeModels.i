@@ -34,8 +34,8 @@
 
 
 
-%import "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
-%import "../chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
+%import "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+%import "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_BrakeSimple)
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_BrakeShafts)

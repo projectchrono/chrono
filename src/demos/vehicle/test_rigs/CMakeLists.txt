@@ -3,7 +3,7 @@
 # These example programs require Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -14,16 +14,16 @@ set(DEMOS
     demo_VEH_TireTestRig
 )
 
-if(ENABLE_MODULE_FSI)
+if(CH_ENABLE_MODULE_FSI)
     set(DEMOS ${DEMOS} demo_VEH_TireTestRig_CRM)
 endif()
 
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
        demo_VEH_SuspensionTestRig
        demo_VEH_TrackTestRig
    )
-   if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS)
+   if(CH_ENABLE_MODULE_PARDISO_MKL OR CH_ENABLE_MODULE_MUMPS)
       set(DEMOS ${DEMOS}
           demo_VEH_TrackTestRig_Band
       )
@@ -37,57 +37,57 @@ set(UTILS "../../SetChronoSolver.h")
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-list(APPEND LIBS "ChronoEngine")
 list(APPEND LIBS "ChronoEngine_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
-if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_irrlicht")
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+if(CH_ENABLE_MODULE_FSI)
+    list(APPEND LIBS "ChronoEngine_fsisph")
 endif()
 
-if(ENABLE_MODULE_VSG)
-    include_directories(${CH_VSG_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_vsg")
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
-endif()
-
-if(ENABLE_MODULE_FSI)
-    include_directories(${CH_FSI_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_fsi_sph")
-endif()
-
-if(ENABLE_MODULE_PARDISO_MKL)
-    include_directories(${CH_MKL_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
     list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+endif()
+
+if(CH_ENABLE_MODULE_VSG)
+    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    if(CH_ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+    endif()
+endif()
+
+if(CH_ENABLE_MODULE_OPENGL)
+    list(APPEND LIBS "ChronoEngine_vehicle_opengl")
+    if(CH_ENABLE_MODULE_FSI)
+      list(APPEND LIBS "ChronoEngine_fsisph_opengl")
+    endif()
 endif()
 
 #--------------------------------------------------------------
 # Create the executables
 
 foreach(PROGRAM ${DEMOS})
-    message(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     add_executable(${PROGRAM} ${PROGRAM}.cpp ${UTILS})
     source_group("" FILES ${PROGRAM}.cpp ${UTILS})
 
-    set_target_properties(${PROGRAM} PROPERTIES COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})

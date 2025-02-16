@@ -488,7 +488,7 @@ void WriteParticleFileCSV(const std::string& outfilename,
         if (rP.w != -1)
             continue;
         Real4 pos = posRadH[i];
-        Real3 vel = velMasH[i] + mR3(1e-20);
+        Real3 vel = velMasH[i] + mR3(Real(1e-20));
 
         Real velMag = length(vel);
         ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps
@@ -497,30 +497,6 @@ void WriteParticleFileCSV(const std::string& outfilename,
     }
     fileNameFluidParticles << ssFluidParticles.str();
     fileNameFluidParticles.close();
-}
-
-void WriteParticleFileCHPF(const std::string& outfilename,
-                           thrust::device_vector<Real4>& posRadD,
-                           thrust::host_vector<int4>& referenceArray) {
-    std::ofstream ptFile(outfilename, std::ios::out | std::ios::binary);
-
-    ParticleFormatWriter pw;
-
-    thrust::host_vector<Real4> posRadH = posRadD;
-    std::vector<float> pos_x(posRadH.size());
-    std::vector<float> pos_y(posRadH.size());
-    std::vector<float> pos_z(posRadH.size());
-
-    bool haveHelper = (referenceArray[0].z == -3) ? true : false;
-    bool haveGhost = (referenceArray[0].z == -2 || referenceArray[1].z == -2) ? true : false;
-
-    for (size_t i = referenceArray[haveHelper + haveGhost].x; i < referenceArray[haveHelper + haveGhost].y; i++) {
-        pos_x[i] = (float)posRadH[i].x;
-        pos_y[i] = (float)posRadH[i].y;
-        pos_z[i] = (float)posRadH[i].z;
-    }
-
-    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, pos_x, pos_y, pos_z);
 }
 
 }  // end namespace sph

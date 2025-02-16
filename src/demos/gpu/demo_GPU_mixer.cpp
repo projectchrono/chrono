@@ -26,7 +26,11 @@
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
-#include "chrono_gpu/utils/ChGpuVisualization.h"
+
+#include "chrono_gpu/visualization/ChGpuVisualization.h"
+#ifdef CHRONO_OPENGL
+    #include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -148,41 +152,44 @@ int main(int argc, char* argv[]) {
     gpu_sys.EnableMeshCollision(true);
     gpu_sys.Initialize();
 
-    ChGpuVisualization gpu_vis(&gpu_sys);
+#if !defined(CHRONO_OPENGL)
+    render = false;
+#endif
+
+    std::shared_ptr<ChGpuVisualization> visGPU;
     std::shared_ptr<ChBody> mixer;
     if (render) {
-        // Create proxy body for mixer mesh
+#ifdef CHRONO_OPENGL
+        visGPU = chrono_types::make_shared<ChGpuVisualizationGL>(&gpu_sys);
+
         mixer = chrono_types::make_shared<ChBody>();
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(mixer_mesh);
         mixer->AddVisualShape(trimesh_shape, ChFrame<>());
-        gpu_vis.AddProxyBody(mixer);
+        visGPU->AddProxyBody(mixer);
 
-        gpu_vis.SetTitle("Chrono::Gpu mixer demo");
-        gpu_vis.AddCamera(ChVector3d(0, -100, 75), ChVector3d(0, 0, 0));
-        gpu_vis.SetCameraMoveScale(1.0f);
-        gpu_vis.Initialize();
+        visGPU->SetTitle("Chrono::Gpu mixer demo");
+        visGPU->AddCamera(ChVector3d(0, -100, 75), ChVector3d(0, 0, 0));
+        visGPU->SetCameraMoveScale(1.0f);
+        visGPU->Initialize();
+#endif
     }
 
-    unsigned int out_steps = (unsigned int)(1 / (out_fps * iteration_step));
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * iteration_step));
-    unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
-    std::cout << "out_steps " << out_steps << std::endl;
+    int sim_frame = 0;
+    int render_frame = 0;
+    int out_frame = 0;
 
-    unsigned int currframe = 0;
-    unsigned int step = 0;
-
-    for (float t = 0; t < params.time_end; t += iteration_step, step++) {
+    for (float t = 0; t < params.time_end; t += iteration_step) {
         ChVector3d mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
         ChQuaternion<> mesh_rot = QuatFromAngleZ(t * ang_vel_Z);
         gpu_sys.ApplyMeshMotion(mixer_mesh_id, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
 
-        if (step % out_steps == 0) {
-            std::cout << "Output frame " << (currframe + 1) << " of " << total_frames << std::endl;
+        if (t >= out_frame / out_fps) {
+            std::cout << "Output at frame " << (sim_frame + 1) << std::endl;
             char filename[100];
             char mesh_filename[100];
-            sprintf(filename, "%s/step%06u.csv", out_dir.c_str(), currframe);
-            sprintf(mesh_filename, "%s/step%06u_mesh", out_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06u.csv", out_dir.c_str(), sim_frame);
+            sprintf(mesh_filename, "%s/step%06u_mesh", out_dir.c_str(), sim_frame);
             gpu_sys.WriteParticleFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(mesh_filename));
 
@@ -190,17 +197,21 @@ int main(int argc, char* argv[]) {
             ChVector3d torque;
             gpu_sys.CollectMeshContactForces(0, force, torque);
             std::cout << "torque: " << torque.x() << ", " << torque.y() << ", " << torque.z() << std::endl;
+
+            out_frame++;
         }
 
-        if (render && step % render_steps == 0) {
+        if (render && t >= render_frame / render_fps) {
             mixer->SetPos(mesh_pos);
             mixer->SetRot(mesh_rot);
-            if (!gpu_vis.Render())
+            if (!visGPU->Render())
                 break;
+            render_frame++;
         }
 
         ////std::cout << "Time = " << t << std::endl;
         gpu_sys.AdvanceSimulation(iteration_step);
+        sim_frame++;
     }
 
     return 0;

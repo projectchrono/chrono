@@ -65,6 +65,7 @@
         @defgroup gpu_physics Physics objects
         @defgroup gpu_cuda CUDA functions
         @defgroup gpu_utils Utilities
+        @defgroup gpu_visualization Run-time visualization
     @}
 */
 

@@ -33,6 +33,9 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactMaterialSMC.h"
+
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #include <thrust/sort.h>

@@ -808,8 +808,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
 }
 
 void ChVehicleCosimTerrainNodeGranularGPU::OutputVisualizationData(int frame) {
-    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CHPF);
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "csv", frame, 5);
+    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
     m_systemGPU->WriteParticleFile(filename);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
