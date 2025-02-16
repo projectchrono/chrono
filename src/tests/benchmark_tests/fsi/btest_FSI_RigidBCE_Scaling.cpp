@@ -24,6 +24,7 @@
 // #include <ctime>
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
