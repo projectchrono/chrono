@@ -27,7 +27,7 @@ Look at the [API section](group__mkl__module.html) of this module for more detai
 ### Linux
 1. The MKL Library can be installed using the APT Package Manager by following the installation instructions spelled out [here](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl-download.html?operatingsystem=linux&distributions=aptpackagemanager). You can also choose various different Installers from the drop down menu on the webpage if you prefer not to use APT.  
 
-2. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure to set `ENABLE_MODULE_PARDISO_MKL` to `ON`.<br>
+2. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure to set `CH_ENABLE_MODULE_PARDISO_MKL` to `ON`.<br>
     The CMake output window on Linux systems should return the following (note that the MATH library is not required.):
 ~~~~~
  Find MKL libraries
@@ -50,7 +50,7 @@ On Linux, the file extension will be .so.
     `<install_folder>/Intel/oneAPI/mkl` (Windows + MKL>=2020)<br>
 	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/mkl` (Windows + MKL=2016..2019)
 	
-2. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure that also the option `ENABLE_MODULE_PARDISO_MKL` is set to `ON`.<br>
+2. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure that also the option `CH_ENABLE_MODULE_PARDISO_MKL` is set to `ON`.<br>
     The CMake output window, on Windows OS, should return the following:<br>(Please mind that the MATH library is not required.)
 ~~~~~
    MKL include dirs:   C:/Program Files (x86)/Intel/oneAPI/mkl/latest/include

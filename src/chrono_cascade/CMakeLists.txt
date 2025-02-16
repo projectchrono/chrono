@@ -1,13 +1,11 @@
 #=============================================================================
 # CMake configuration file for the Chrono OpenCASCADE module
-# 
-# Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
+option(CH_ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_CASCADE)
+if(NOT CH_ENABLE_MODULE_CASCADE)
   mark_as_advanced(FORCE OpenCASCADE_DIR)
   return()
 endif()
@@ -34,7 +32,7 @@ set(ChronoEngine_CASCADE_HEADERS
     ChVisualShapeCascade.h
     ChCascadeBodyEasy.h
 )
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(ChronoEngine_CASCADE_HEADERS ${ChronoEngine_CASCADE_HEADERS}
         ChCascadeIrrMeshTools.h)
 endif()
@@ -47,73 +45,124 @@ source_group("" FILES
 #-----------------------------------------------------------------------------	
 # Find OpenCASCADE
 
-find_package(OpenCASCADE CONFIG)
+message(STATUS "Find OpenCascade")
+find_package(OpenCASCADE REQUIRED CONFIG)
 
 if (NOT OpenCASCADE_FOUND)
-  message("Could not find OpenCASCADE or one of its required modules")
+  message("Could not find OpenCASCADE or one of its required modules; disabling Chrono::Cascade module")
+  set(CH_ENABLE_MODULE_CASCADE OFF CACHE BOOL "Enable the Chrono Cascade module" FORCE)
   return()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    FILE(GLOB OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARY_DIR}/TK*.lib")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    FILE(GLOB OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARY_DIR}/libTK*.so")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    FILE(GLOB OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARY_DIR}/libTK*.dylib")
-    #add_definitions( -DHAVE_LIMITS_H -DHAVE_IOSTREAM )
+message(STATUS "  OpenCASCADE include directory: ${OpenCASCADE_INCLUDE_DIR}")
+message(STATUS "  OpenCASCADE library directory: ${OpenCASCADE_LIBRARY_DIR}")
+
+#-----------------------------------------------------------------------------	
+
+set(OCCT_LIBS
+TKBin
+TKBinL
+TKBinTObj
+TKBinXCAF
+TKBO
+TKBool
+TKBRep
+TKCAF
+TKCDF
+TKernel
+TKFeat
+TKFillet
+TKGeomAlgo
+TKGeomBase
+TKHLR
+TKIGES
+TKLCAF
+TKMath
+TKMesh
+TKOffset
+TKPrim
+TKShHealing
+TKStd
+TKStdL
+TKSTEP
+TKSTEP209
+TKSTEPAttr
+TKSTEPBase
+TKSTL
+TKTObj
+TKTopAlgo
+TKXDEIGES
+TKXDESTEP
+TKXMesh
+TKXml
+TKXmlL
+TKXmlTObj
+TKXSBase
+)
+
+message(STATUS "Linked OpenCascade libraries: ${OCCT_LIBS}")
+
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
+
+set(DEPENDENCIES_CASCADE "")
+if(CH_ENABLE_MODULE_IRRLICHT)
+  list (APPEND DEPENDENCIES_CASCADE "IRRLICHT")
 endif()
 
-message(STATUS "  OpenCASCADE include directory: ${OpenCASCADE_INCLUDE_DIR}")
-message(STATUS "  OpenCASCADE binary directory:  ${OpenCASCADE_BINARY_DIR}")
-message(STATUS "  OpenCASCADE library directory: ${OpenCASCADE_LIBRARY_DIR}")
-##message(STATUS "  OpenCASCADE C++ flags:         ${OpenCASCADE_CXX_FLAGS}")
-message(STATUS "  OpenCASCADE linker flags:      ${OpenCASCADE_LINKER_FLAGS}")
-message(STATUS "  OpenCASCADE libraries:         ${OpenCASCADE_LIBRARIES}")
-
-# Make variables visible also from outside this directory
-
-set(OpenCASCADE_INCLUDE_DIR "${OpenCASCADE_INCLUDE_DIR}" PARENT_SCOPE)
-set(OpenCASCADE_BINARY_DIR "${OpenCASCADE_BINARY_DIR}" PARENT_SCOPE)
-##set(OpenCASCADE_CXX_FLAGS "${OpenCASCADE_CXX_FLAGS}" PARENT_SCOPE)
-set(OpenCASCADE_LINKER_FLAGS "${OpenCASCADE_LINKER_FLAGS}" PARENT_SCOPE)
-set(OpenCASCADE_LIBRARIES "${OpenCASCADE_LIBRARIES}" PARENT_SCOPE)
+set(DEPENDENCIES_CASCADE ${DEPENDENCIES_CASCADE} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------	
 # Add the ChronoEngine_cascade library
 
-include_directories(${OpenCASCADE_INCLUDE_DIR})
-set(LIBRARIES "ChronoEngine")
-
-if(ENABLE_MODULE_IRRLICHT)
-    include_directories(${CH_IRRLICHT_INCLUDES})
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht)
-endif()
-
 add_library(ChronoEngine_cascade ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
+add_library(ChronoEngine::cascade ALIAS ChronoEngine_cascade)
 
-set_target_properties(ChronoEngine_cascade PROPERTIES 
-                      COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    add_definitions( "/DWNT" )
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_definitions(-DHAVE_IOSTREAM)
-    add_definitions(-DHAVE_LIMITS_H)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(ChronoEngine_cascade PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(ChronoEngine_cascade PROPERTIES LINK_FLAGS "/LTCG")
 endif()
+
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_cascade PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_cascade PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+if(WIN32)
+    target_compile_definitions(ChronoEngine_cascade PRIVATE WNT)
+endif()
+
+if(UNIX)
+    target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_IOSTREAM)
+    target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_LIMITS_H)
+endif()
+
+target_include_directories(ChronoEngine_cascade SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
-target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_link_libraries(ChronoEngine_cascade
-        ${OpenCASCADE_LIBRARIES} 
-        ${LIBRARIES})
+target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine)
+if(CH_ENABLE_MODULE_IRRLICHT)
+  target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine_irrlicht)
+endif()
+
+target_link_libraries(ChronoEngine_cascade PUBLIC ${OCCT_LIBS})
 
 install(TARGETS ChronoEngine_cascade
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_cascade)
 
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
 install(FILES ${ChronoEngine_CASCADE_HEADERS}
         DESTINATION include/chrono_cascade)

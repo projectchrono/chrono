@@ -14,14 +14,13 @@ using namespace chrono::vehicle;
 namespace chrono {
 namespace synchrono {
 
-ChMultiPathFollowerACCDriver::ChMultiPathFollowerACCDriver(
-    ChVehicle& vehicle,
-    std::vector<std::shared_ptr<ChBezierCurve>> paths,
-    const std::string& path_name,
-    double target_speed,
-    double target_following_time,
-    double target_min_distance,
-    double current_distance)
+ChMultiPathFollowerACCDriver::ChMultiPathFollowerACCDriver(ChVehicle& vehicle,
+                                                           std::vector<std::shared_ptr<ChBezierCurve>> paths,
+                                                           const std::string& path_name,
+                                                           double target_speed,
+                                                           double target_following_time,
+                                                           double target_min_distance,
+                                                           double current_distance)
     : ChDriver(vehicle),
       m_steeringPID(paths),
       m_target_speed(target_speed),

@@ -37,12 +37,11 @@ These scripts (`buildGL.bat` and `buildGL.sh`, for Windows and Linux, respective
 
 ## Building instructions
 
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
-   the CMake window, you must add the following steps:
+1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
    
-2. Set the `ENABLE_MODULE_OPENGL` as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set `CH_ENABLE_MODULE_OPENGL` to 'on'.
  
-3. When prompted, provide the paths to the various GL project configuration scripts (`GLEW_DIR`, `glfw3_DIR`) as well as the path to tyhe `GLM` include headers. 
+3. When prompted, provide the paths to the various GL project configuration scripts (`GLEW_DIR`, `glfw3_DIR`, and glm_DIR). 
 	 
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

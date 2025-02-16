@@ -23,9 +23,7 @@
 
 #include <cassert>
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
-#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/multicore/ChConvexShape.h"
 
 namespace chrono {

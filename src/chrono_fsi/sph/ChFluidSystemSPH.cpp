@@ -1318,18 +1318,9 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::WriteParticleFile(const std::string& filename, OutputMode mode) const {
-    switch (mode) {
-        case OutputMode::CSV:
-            WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
-            break;
-        case OutputMode::CHPF:
-            WriteParticleFileCHPF(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray);
-            break;
-        default:
-            break;
-    }
+void ChFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
+    WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                         m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
 }
 
 void ChFluidSystemSPH::SaveParticleData(const std::string& dir) const {

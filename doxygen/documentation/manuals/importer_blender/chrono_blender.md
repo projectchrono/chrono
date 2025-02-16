@@ -25,7 +25,7 @@ If you want to test the following features on your PC, first you must do these s
 
 - install the add-on in Blender
 
-- if not yet enabled, turn on *ENABLE_MODULE_POSTPROCESSING* in CMake and rebuild Chrono
+- if not yet enabled, turn on *CH_ENABLE_MODULE_POSTPROCESSING* in CMake and rebuild Chrono
 
 - build *demo_POST_* (also, look at the comments in the source *demo_POST_blender.cpp* in order to learn)
 

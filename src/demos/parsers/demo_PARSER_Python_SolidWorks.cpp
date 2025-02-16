@@ -47,6 +47,14 @@ int main(int argc, char* argv[]) {
     // Create a Chrono Python engine to parse files created using the Chrono SolidWorks add-in
     ChPythonEngine my_python;
 
+    std::cout << "\n\n Check availability of PyChrono in the system\n";
+    try {
+        my_python.Run("import pychrono as chrono");
+    } catch (std::exception) {
+        std::cout << "PyChrono must be available in the system to run this demo." << std::endl;
+        return 0;
+    }
+
     try {
         // This is the instruction that loads the .py (as saved from SolidWorks) and fills the system.
         // In this example, we load a mechanical system that represents a (quite simplified and approximated) clock

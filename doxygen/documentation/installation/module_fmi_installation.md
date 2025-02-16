@@ -38,9 +38,9 @@ The `Chrono::FMI` module has **not** been tested on MacOS.
 
 1. During CMake configuration, ensure that `BUILD_SHARED_LIBRARIES` is set to `OFF`. This will force building Chrono static libraries.
 
-2. On Windows, also ensure that `USE_MSVC_STATIC_RUNTIME` is set to `ON`. This will force using a multi-threaded statically-linked runtime library.
+2. On Windows, also ensure that `CH_USE_MSVC_STATIC_RUNTIME` is set to `ON`. This will force using a multi-threaded statically-linked runtime library.
 
-3. Set `ENABLE_MODULE_FMI` to `ON`.
+3. Set `CH_ENABLE_MODULE_FMI` to `ON`.
 
 4. Set other CMake variables as desired/needed and press/invoke `Configure` until all CMake dependencies are satisfied. Then press/invoke `Generate` to create the build scripts.
 

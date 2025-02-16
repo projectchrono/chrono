@@ -16,7 +16,7 @@
 ##---------------------------------------------------
 
 # The typical build directory
-/build
+/build*
 /compile_commands.json
 CMakeUserPresets.json
 

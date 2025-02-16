@@ -69,7 +69,7 @@ If the Eigen library was installed through a package manager, its location may b
 
     - Press `c` to **Configure** and continue to the next screen.
 
-    - Enable the recommended optional modules: at least tick `ENABLE_MODULE_OPENGL`.<br>
+    - Enable the recommended optional modules: at least tick `CH_ENABLE_MODULE_OPENGL`.<br>
      Other modules might require additional settings and dependencies.
 
     -  Enter `c` to **Configure** and continue to the next screen.

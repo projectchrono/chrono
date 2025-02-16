@@ -28,7 +28,7 @@
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-////#define RUN_TIME_VISUALIZATION
+//#define RUN_TIME_VISUALIZATION
 
 #ifdef RUN_TIME_VISUALIZATION
     #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"

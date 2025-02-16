@@ -26,9 +26,12 @@ endif()
 
 set(PROGRAM demo_FMI2_hydraulic_crane_cosim)
 
-message(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 add_executable(${PROGRAM})
+if(MSVC)
+  set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 source_group("" FILES ${PROGRAM}.cpp)
 target_sources(${PROGRAM} PRIVATE ${PROGRAM}.cpp)
 target_include_directories(${PROGRAM} PUBLIC ${FMU_TOOLS_DIR})

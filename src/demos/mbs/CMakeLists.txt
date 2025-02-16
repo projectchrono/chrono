@@ -1,4 +1,4 @@
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -26,7 +26,7 @@ set(DEMOS
 )
 
 # Add demos that can only work with Irrlicht
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
     set(DEMOS ${DEMOS}
       demo_MBS_cohesion
       demo_MBS_conveyor
@@ -60,13 +60,13 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_custom_contact
     )
 
-    if(THRUST_FOUND)
+    if(CHRONO_THRUST_FOUND)
       set(DEMOS ${DEMOS}
         demo_MBS_collision_object
       )
     endif()
 
-    if(ENABLE_MODULE_PARDISO_MKL)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
       set(DEMOS ${DEMOS}
         demo_MBS_link_mate
       )
@@ -77,62 +77,50 @@ endif()
 
 # Set include paths, compiler & linker flags, and libraries
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(${CH_INCLUDES})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+set(COMPILER_FLAGS "")
+set(LINKER_FLAGS "")
 list(APPEND LIBS "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHT_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
-  include_directories(${CH_MKL_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+if(CH_ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
+if(CH_ENABLE_MODULE_VSG)
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
-endif()
-
-#--------------------------------------------------------------
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 endif()
 
 #--------------------------------------------------------------
 
 # Add executables
 
-message(STATUS "Demo programs for MBS module...")
+message(STATUS "Add demo programs for MBS module")
 
 foreach(PROGRAM ${DEMOS})
-  message(STATUS "...add ${PROGRAM}")
+  # MESSAGE(STATUS "...add ${PROGRAM}")
 
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")
   source_group(""  FILES  "${PROGRAM}.cpp")
 
-  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos COMPILE_FLAGS "${COMPILER_FLAGS}" LINK_FLAGS "${LINKER_FLAGS}")
-  if(MSVC)
-    target_compile_options(${PROGRAM} PRIVATE /bigobj)
-  endif()
+  set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
   if(APPLE)
     set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
   endif()
+  if(MSVC)
+    set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  endif()
   set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   target_link_libraries(${PROGRAM} ${LIBS})  
+
 
   install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

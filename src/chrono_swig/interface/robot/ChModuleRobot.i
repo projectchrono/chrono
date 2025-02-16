@@ -251,17 +251,17 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
-%import(module = "pychrono.core") "../chrono/functions/ChFunctionBase.h"
-%import(module = "pychrono.core") "../chrono/functions/ChFunctionSetpoint.h"
-%import(module = "pychrono.core") "../chrono/functions/ChFunctionPosition.h"
-%import(module = "pychrono.core") "../chrono/functions/ChFunctionPositionLine.h"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
-%import(module = "pychrono.core") "../chrono/fea/ChContinuumMaterial.h"
-%import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionBase.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionSetpoint.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionPosition.h"
+%import(module = "pychrono.core") "chrono/functions/ChFunctionPositionLine.h"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
+%import(module = "pychrono.core") "chrono/fea/ChContinuumMaterial.h"
+%import(module = "pychrono.core") "chrono/physics/ChPhysicsItem.h"
 
-%import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
-%import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
-%import(module = "pychrono.core") "../chrono/assets/ChVisualShapeTriangleMesh.h"
+%import(module = "pychrono.core") "chrono/physics/ChBodyFrame.h"
+%import(module = "pychrono.core") "chrono/physics/ChLinkBase.h"
+%import(module = "pychrono.core") "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 %rename(CollisionFamily_CHASSIS) chrono::robosimian::CollisionFamily::CHASSIS;
 %rename(CollisionFamily_SLED) chrono::robosimian::CollisionFamily::SLED;

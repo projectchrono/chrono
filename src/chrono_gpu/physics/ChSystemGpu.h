@@ -376,7 +376,7 @@ class CH_GPU_API ChSystemGpu {
     /// WriteCheckpointFile() and WriteParticleFile() are their wrappers.
     void WriteCsvParticles(std::ofstream& ptFile) const;
     void WriteRawParticles(std::ofstream& ptFile) const;
-    void WriteChPFParticles(std::ofstream& ptFile) const;
+
 #ifdef USE_HDF5
     void WriteH5Particles(H5::H5File& ptFile) const;
 #endif
