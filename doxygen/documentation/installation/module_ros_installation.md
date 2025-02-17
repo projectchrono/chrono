@@ -36,6 +36,10 @@ NOTE: If you enable Chrono::Parsers with URDF support and you're using a ROS 2 d
 4. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
+<div class="ce-info">
+NOTE: When using the CMake GUI application to build the Chrono::ROS module on Windows, you will need to open the GUI from the same prompt where you sourced your ROS 2 installation (i.e., `cmake-gui`).
+</div>
+
 ## How to use it
 
 - Consult the [reference manual](@ref manual_ros).
