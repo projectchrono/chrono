@@ -1013,8 +1013,16 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "FMI")
-
-    set(CHRONO_FMU_TOOLS_DIR "@FMU_TOOLS_DIR@")
+    
+    if (CHRONO_INSTALL_TREE)
+      set(CHRONO_FMU_TOOLS_DIR "${CHRONO_PACKAGE_PREFIX_DIR}include/chrono_thirdparty/fmu_tools")
+    else()
+      set(CHRONO_FMU_TOOLS_DIR "@FMU_TOOLS_DIR@")
+    endif()
+    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fmi")
+    if (NOT CHRONO_STATIC)
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fmi.dll")
+    endif()
 
   endif() # end if-else for component type
 
