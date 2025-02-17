@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
             chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.3f, 0.6f, 0.0f), -0.3, 0.3);
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
 
-        visFSI->SetTitle("Chrono::FSI cylinder drop");
+        visFSI->SetTitle("Chrono::FSI Embedded Object");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(0.1f);

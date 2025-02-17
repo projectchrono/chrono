@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
         auto v_max = omega * outer_cylinder_radius;
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v_max);
 
-        visFSI->SetTitle("Chrono::FSI BMC Simulation");
+        visFSI->SetTitle("Chrono::FSI Couette Flow");
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraVertical(CameraVerticalDir::Y);
         visFSI->AddCamera(ChVector3<>(1.1 * bxDim, 1.8 * byDim, 0), VNULL);

@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (visFSI) {
-            visFSI->SetTitle("FSI Angle of Repose Demo");
+            visFSI->SetTitle("Chrono::FSI Angle of Repose");
             visFSI->SetSize(1280, 720);
             visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
             visFSI->SetCameraMoveScale(0.1f);

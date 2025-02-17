@@ -270,7 +270,7 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
 
     // TODO (Luning): i think this is messing me up, causing instability
     // let me inflate this to door thickness and see what happens
-    double mini_window_rb = 0.01;  
+    double mini_window_rb = 0.01;
     ////double mini_window_rb = door_thickness/2;
     ////double mini_window_ra = mini_window_height / 2;
     ////double mini_window_angle = 0;   // when angle is 0, all windows are closed!

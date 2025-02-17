@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
 
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
 
-        visFSI->SetTitle("Chrono::FSI cylinder drop");
+        visFSI->SetTitle("Chrono::FSI Cylindrical Tank");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2.5 * r_outer, 2.5 * r_outer, 1.5 * height), ChVector3d(0, 0, 0.5 * height));
         visFSI->SetCameraMoveScale(0.1f);
