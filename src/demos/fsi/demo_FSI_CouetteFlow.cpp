@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 1;                     // default: 1.0
     sph_params.shifting_xsph_eps = 0.1;              // default: 0.5
-    sph_params.shifting_beta_implicit = 1.0;         // default: 1.0
+    sph_params.shifting_beta_implicit = 0.0;         // default: 1.0
     sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
     sph_params.use_density_based_projection = true;  // default: false
     sph_params.num_proximity_search_steps = 1;
