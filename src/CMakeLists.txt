@@ -18,6 +18,10 @@ if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+if(POLICY CMP0104)
+  cmake_policy(SET CMP0104 NEW)
+endif()
+
 #-----------------------------------------------------------------------------
 # Choose to build either shared or static libraries as default
 #-----------------------------------------------------------------------------
@@ -297,39 +301,47 @@ endif()
 
 message(STATUS "Searching for CUDA")
 
+# Notes:
+# - with new policy CM0104, CMake sets CMAKE_CUDA_ARCHITECTURES based on what nvcc reports
+# - nvcc uses as default sm_52
+# - we use our own cached CHRONO_CUDA_ARCHITECTURES variable
+# - for newer CMake versions, we set CHRONO_CUDA_ARCHITECTURES to 'all-major'
+# - for older CMake (e.g. 3.22 as in Ubuntu 22.04), we request the user to set CHRONO_CUDA_ARCHITECTURES
+# - we bypass CMAKE_CUDA_ARCHITECTURES (force it as advanced and set it from CHRONO_CUDA_ARCHITECTURES)
+set(CHRONO_CUDA_ARCHITECTURES "" CACHE STRING "Chrono CUDA architectures")
+mark_as_advanced(FORCE CMAKE_CUDA_ARCHITECTURES)
+
 include(CheckLanguage)
 check_language(CUDA)
 
 # If CUDA was found, enable the CUDA language
 if(CMAKE_CUDA_COMPILER)
-    set(CHRONO_CUDA_FOUND TRUE)
     enable_language(CUDA)
     find_package(CUDAToolkit)
-    message(STATUS "  CUDA compiler:            ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "  CUDA toolkit version:     ${CUDAToolkit_VERSION}")
-    message(STATUS "  CUDA toolkit root dir:    ${CUDAToolkit_LIBRARY_ROOT}")
-    message(STATUS "  CMAKE_CUDA_ARCHITECTURES: ${CMAKE_CUDA_ARCHITECTURES}")
+    message(STATUS "  CUDA compiler:           ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "  CUDA toolkit version:    ${CUDAToolkit_VERSION}")
+    message(STATUS "  CUDA toolkit root dir:   ${CUDAToolkit_LIBRARY_ROOT}")
 
-    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
-      set(CHRONO_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
-      message(STATUS "  CUDA architecture (from CMAKE_CUDA_ARCHITECTURES): ${CHRONO_CUDA_ARCHITECTURES}")
-    elseif(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
-      set(CHRONO_CUDA_ARCHITECTURES "all-major")
-      message(STATUS "  CUDA architecture set to: ${CHRONO_CUDA_ARCHITECTURES}")
+    if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
+      if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
+        set(CHRONO_CUDA_ARCHITECTURES "all-major" CACHE STRING "Chrono CUDA architectures" FORCE)
+        message(STATUS "  CUDA archs (set to):     ${CHRONO_CUDA_ARCHITECTURES}")
+      endif()
     else()
-      set(CHRONO_CUDA_ARCHITECTURES "" CACHE STRING "GPU architectures")
+      message(STATUS "  CUDA archs (from cache): ${CHRONO_CUDA_ARCHITECTURES}")
     endif()
 
-    if(CHRONO_CUDA_ARCHITECTURE STREQUAL "")
+    if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
       set(CHRONO_CUDA_FOUND FALSE)
-      mark_as_advanced(FORCE CHRONO_CUDA_ARCHITECTURES)
-      message("  WARNING: CUDA architecture not found. Set CHRONO_CUDA_ARCHITECTURES")
-    else()    
+      message("  WARNING: CUDA architectures not found. Set CHRONO_CUDA_ARCHITECTURES")
+    else()
+      set(CHRONO_CUDA_FOUND TRUE)
+      message(STATUS "  CUDA found and enabled.")
+      set(CMAKE_CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES} CACHE STRING "CUDA architectures" FORCE)
       ## TODO: DARIOM CUDA_SEPARABLE_COMPILATION has no meaning: either it is set on a target or should be CMAKE_CUDA_SEPARABLE_COMPILATION
       if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         set(CUDA_SEPARABLE_COMPILATION OFF)
       endif()
-      message(STATUS "  CUDA found and enabled.")
     endif()
 else()
     set(CHRONO_CUDA_FOUND FALSE)
