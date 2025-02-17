@@ -789,6 +789,7 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       d0_multiplier(1.2),
       max_velocity(1.0),
       shifting_xsph_eps(0.5),
+      shifting_ppst_push(3.0),
       shifting_ppst_pull(1.0),
       min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
