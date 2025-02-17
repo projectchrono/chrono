@@ -4,7 +4,7 @@
 @rem - Place in an arbitrary temporary directory.
 @rem - Specify the locations for the GL sources OR indicate that these should be downloaded.
 @rem - Specify the install directory.
-@rem - Run the script (.\buildOpenCRG.bat) from a *VS developer console*.
+@rem - IMPORTANT: run the script (.\buildOpenCRG.bat) from an x64 VS command prompt.
 @rem - As provided, this script generates the OpenCRG libraries for 
 @rem   Release, Debug, RelWithDebInfo, and MinSizeRel configurations.
 @rem
@@ -91,7 +91,7 @@ lib/list OpenCRG_rd.lib
 del *.obj
 
 rem build relase with minimal size
-cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc %LINK_MSVC_RUNTIME_FLAG%/O1 /Ob1 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
+cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc %LINK_MSVC_RUNTIME_FLAG% /O1 /Ob1 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
 lib/out:OpenCRG_s.lib *.obj
 lib/list OpenCRG_s.lib
 del *.obj
