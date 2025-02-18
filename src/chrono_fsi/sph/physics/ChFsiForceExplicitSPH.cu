@@ -912,7 +912,8 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
-    Real3 inner_sum = mR3(0.0);
+    Real3 delta_r = mR3(0.0);  // shifting 
+    Real3 gradC_i = mR3(0.0);  // gradient of concentration (for shifting) delta_r = -D * grad_C where D is diffusive parameter 
     Real sum_w_i = W3h(paramsD.kernel_type, 0, paramsD.ooh) * paramsD.volume0;
 
     for (int n = NLStart; n < NLEnd; n++) {
@@ -957,11 +958,18 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                                          rhoPresMuA, rhoPresMuB);
             velzLap += LaplacianOperator(Gi, Li, dist3, sortedPosRad[index], sortedPosRad[j], velMasA.z, velMasB.z,
                                          rhoPresMuA, rhoPresMuB);
+            if (d > paramsD.h * 1.0e-9)
+                sum_w_i = sum_w_i + W3h(paramsD.kernel_type, d, paramsD.ooh) * paramsD.volume0;
+
         }
 
-        if (d > paramsD.h * 1.0e-9)
-            sum_w_i = sum_w_i + W3h(paramsD.kernel_type, d, paramsD.ooh) * paramsD.volume0;
+        // Particle shifting
+        // TODO: move DifVelocityRho to avoid double calculation of the gradient
+        Real3 gradW = GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
+        gradC_i += gradW * paramsD.markerMass / (rhoPresMuB.x + 1.0e-9);  
     }
+
+    
 
     if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
         Real nu = paramsD.mu0 / paramsD.rho0;
@@ -998,12 +1006,14 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
     sortedDerivVelRho[index] = derivVelRho;
 
-    Real det_r_max = 0.05 * vAdT;
-    Real det_r_A = length(inner_sum);
+    Real D = 0.1 * paramsD.h * paramsD.dT;
+    delta_r = -D * gradC_i;
+    Real det_r_max = 0.05 * vAdT;  // maximum amount of particle shifting
+    Real det_r_A = length(delta_r);
     if (det_r_A < det_r_max) {
-        sortedXSPHandShift[index] = inner_sum;
+        sortedXSPHandShift[index] = delta_r;
     } else {
-        sortedXSPHandShift[index] = inner_sum * det_r_max / (det_r_A + 1e-9);
+        sortedXSPHandShift[index] = delta_r * det_r_max / (det_r_A + 1e-9);
     }
 }
 
@@ -1599,7 +1609,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
         Real d = length(dist3);
         deltaV += paramsD.markerMass * (velMasB - velMasA) * W3h(paramsD.kernel_type, d, paramsD.ooh) / rho_bar;
     }
-
+    
     vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + vel_XSPH_Sorted_D[index] / paramsD.dT;
 
     if (!IsFinite(vel_XSPH_Sorted_D[index])) {
@@ -1806,7 +1816,8 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         uint numBlocks, numThreads;
         computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
-        thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(), mR3(0.0));
+        //thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),
+        //             mR3(0.0));  // no this can not be zero ... i computed vel_xsph_d in collid wrapper
 
         // Find the index which is related to the wall boundary particle
         thrust::device_vector<uint> indexOfIndex(m_data_mgr.countersH->numAllMarkers);
