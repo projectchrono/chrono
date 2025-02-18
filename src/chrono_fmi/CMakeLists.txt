@@ -18,7 +18,7 @@ else()
     mark_as_advanced(CLEAR FMU_GUID_NAMESPACE)
 endif()
 
-MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
+message(STATUS "\n==== Chrono FMI module ====\n")
 
 cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "CH_ENABLE_MODULE_FMI" OFF)
 
@@ -179,9 +179,10 @@ install(DIRECTORY ${FMU_TOOLS_DIR}
         DESTINATION include/chrono_thirdparty
         PATTERN ".git" EXCLUDE)
 
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "template_project_fmi2")
-else()
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "share/chrono/template_project_fmi2")
+if(FMU_EXPORT_SUPPORT)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "template_project_fmi2")
+  else()
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "share/chrono/template_project_fmi2")
+  endif()
 endif()
