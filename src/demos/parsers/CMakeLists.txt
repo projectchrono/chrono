@@ -26,7 +26,7 @@ if(HAVE_PYTHON)
     set(DEMOS ${DEMOS}
       demo_PARSER_Python
     )
-    if(CH_ENABLE_MODULE_IRRLICHT)
+    if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_PYTHON)
       set(DEMOS ${DEMOS}
         demo_PARSER_Python_SolidWorks
       )
