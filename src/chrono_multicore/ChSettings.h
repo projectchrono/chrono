@@ -22,10 +22,11 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChOpenMP.h"
+
 #include "chrono/collision/multicore/ChBroadphase.h"
 #include "chrono/collision/multicore/ChNarrowphase.h"
+
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 

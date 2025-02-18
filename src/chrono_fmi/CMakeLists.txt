@@ -2,10 +2,10 @@
 # CMake configuration file for the Chrono::FMI module
 #=============================================================================
 
-option(ENABLE_MODULE_FMI "Enable the Chrono::FMI module" OFF)
+option(CH_ENABLE_MODULE_FMI "Enable the Chrono::FMI module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_FMI)
+if(NOT CH_ENABLE_MODULE_FMI)
     mark_as_advanced(FORCE FMU_EXPORT_SUPPORT)
     mark_as_advanced(FORCE FMU_TOOLS_DIR)
     mark_as_advanced(FORCE FMU_TESTING)
@@ -20,7 +20,7 @@ endif()
 
 MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
 
-cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "ENABLE_MODULE_FMI" OFF)
+cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "CH_ENABLE_MODULE_FMI" OFF)
 
 # -------------------------------------------------
 
@@ -31,8 +31,8 @@ if(FMU_EXPORT_SUPPORT AND BUILD_SHARED_LIBS)
 endif()
 
 if(MSVC)
-  if (FMU_EXPORT_SUPPORT AND NOT USE_MSVC_STATIC_RUNTIME)
-    message(NOTICE "For FMI export support on Windows, Chrono must be configured and built with a statically-linked runtime library. Enable 'USE_MSVC_STATIC_RUNTIME'.")
+  if (FMU_EXPORT_SUPPORT AND NOT CH_USE_MSVC_STATIC_RUNTIME)
+    message(NOTICE "For FMI export support on Windows, Chrono must be configured and built with a statically-linked runtime library. Enable 'CH_USE_MSVC_STATIC_RUNTIME'.")
     message(NOTICE "FMU export capabilities in Chrono::FMI module disabled.")
     set(FMU_EXPORT_SUPPORT OFF CACHE BOOL "Enable FMU export capabilities" FORCE)
   endif()
@@ -147,20 +147,22 @@ add_library(ChronoEngine_fmi
             ${ChronoEngine_FMI_HEADERS}
             ${ChronoEngine_FMI_SOURCES})
 
-set_target_properties(ChronoEngine_fmi PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB}")
-
 target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
 
+if (CH_STATIC)
+  set_target_properties(ChronoEngine_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
+if(MSVC)
+  set_target_properties(ChronoEngine_fmi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
-target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_IGNORE_DEPRECATED")
+target_link_libraries(ChronoEngine_fmi PUBLIC ChronoEngine)
 
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
-
-target_link_libraries(ChronoEngine_fmi ChronoEngine)
 
 add_dependencies(ChronoEngine_fmi ChronoEngine)
 

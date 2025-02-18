@@ -1053,7 +1053,6 @@ inline __host__ __device__ uint4 max(uint4 a, uint4 b) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// lerp
 // - linear interpolation between a and b, based on value t in [0, 1] range
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1172,7 +1171,7 @@ __host__ __device__ inline Real rmaxr(Real a, Real b) {
 }
 
 __host__ __device__ inline Real rsqrtr(Real x) {
-    return 1.0 / sqrt(x);
+    return 1 / sqrt(x);
 }
 
 __host__ __device__ inline Real2 make_Real2(Real b, Real c)  ///
@@ -1592,37 +1591,11 @@ __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
 }
 
 __host__ __device__ inline Real sgn(Real a) {
-    return a > 0 ? +1.0 : -1.0;
+    return a > 0 ? Real(+1.0) : Real(-1.0);
 }
 
 __host__ __device__ inline Real3 sgn(Real3 a) {
     return make_Real3(sgn(a.x), sgn(a.y), sgn(a.z));
-}
-
-__host__ __device__ inline Real4 Cables_ShapeFunctions(Real l, Real xi) {
-    Real N1 = 1 - 3 * square(xi) + 2 * cube(xi);
-    Real N2 = l * (xi - 2 * square(xi) + cube(xi));
-    Real N3 = 3 * square(xi) - 2 * cube(xi);
-    Real N4 = l * (-square(xi) + cube(xi));
-
-    return make_Real4(N1, N2, N3, N4);
-}
-
-__host__ __device__ inline Real4 Cables_ShapeFunctionsDerivatives(Real l, Real xi) {
-    Real N1 = (6 * square(xi) - 6 * xi) / l;
-    Real N2 = 1.0 - 4.0 * xi + 3 * square(xi);
-    Real N3 = -(6.0 * square(xi) - 6 * xi) / l;
-    Real N4 = -2.0 * xi + 3 * square(xi);
-
-    return make_Real4(N1, N2, N3, N4);
-}
-
-__host__ __device__ inline Real4 Shells_ShapeFunctions(Real x, Real y) {
-    Real NA = 0.25 * (1.0 - x) * (1.0 - y);
-    Real NB = 0.25 * (1.0 + x) * (1.0 - y);
-    Real NC = 0.25 * (1.0 + x) * (1.0 + y);
-    Real ND = 0.25 * (1.0 - x) * (1.0 + y);
-    return make_Real4(NA, NB, NC, ND);
 }
 
 __host__ __device__ inline Real3 user_BC_U(Real3 Pos) {

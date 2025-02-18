@@ -3,7 +3,7 @@ Install the GPU module   {#module_gpu_installation}
 
 [TOC]
 
-This is an optional module that enables a GPU solver specialized for simulating very large systems of granular materials with the penalty-based discrete element method (*aka SMC*).
+This is an optional module that enables a GPU solver specialized for simulating very large systems of granular materials with the penalty-based Discrete Element Method (*aka SMC*).
 
 Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono project.
@@ -24,22 +24,24 @@ Here are the main features:
     * centered difference
     * [Chung](https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620372303)
 * single-GPU scaling up to 700 million frictionless elements or 200 million full-history frictional elements
-* triangle meshes in order to facilitate co-simulation with a more full-featured solver (such as the ChSystem)
+* trianglular meshes (`obj` format) in order to facilitate co-simulation with a more full-featured solver (such as the ChSystem)
 
 ## Requirements
 
+- To **build** applications based on this module you must have CUDA installed
 - To **run** applications based on this module you need
     - a Pascal or newer Nvidia GPU (Pascal and newer are officially supported, though Maxwell should be able to emulate the required features)
     - Linux or Windows
-
-- To **build** applications based on this module you must have CUDA installed
-
+- This module has been build/tested on the following:
+   - Windows 11, MS Visual Studio 17 2022, CUDA 12.3.0 (Ampere and Ada Lovelace GPU architecture)
+   - Fedora 40 Linux, GCC 11.3.0, CUDA 12.0.0 (Pascal, Volta, and Ampere GPU architectures)
+   - Arch Linux, GCC 12.2.1, CUDA 12.1.0 (Turing GPU architectures)
 
 ## Building instructions
    
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
    
-2. Set the `ENABLE_MODULE_GPU` as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set the `CH_ENABLE_MODULE_GPU` as 'on', then press 'Configure' (to refresh the variable list) 
 	 
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

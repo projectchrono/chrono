@@ -131,8 +131,8 @@ int main(int argc, char* argv[]) {
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 8.0;
-    sph_params.xsph_coefficient = 0.5;
-    sph_params.shifting_coefficient = 0.0;
+    sph_params.shifting_method = ShiftingMethod::XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = 1;
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     }
     out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        cerr << "Error creating directory " << out_dir << endl; 
+        cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
 
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
 
-        visFSI->SetTitle("Chrono::FSI cylinder drop");
+        visFSI->SetTitle("Chrono::FSI Cylindrical Tank");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(2.5 * r_outer, 2.5 * r_outer, 1.5 * height), ChVector3d(0, 0, 0.5 * height));
         visFSI->SetCameraMoveScale(0.1f);

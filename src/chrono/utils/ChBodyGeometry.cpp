@@ -290,14 +290,14 @@ ChAABB ChBodyGeometry::CalculateAABB() {
     }
 
     for (const auto& cyl : coll_cylinders) {
-        auto axis = cyl.rot.GetAxisY();
+        auto axis = cyl.rot.GetAxisZ();
         auto p1 = cyl.pos - (cyl.length / 2) * axis;
         auto p2 = cyl.pos + (cyl.length / 2) * axis;
         auto e2 = ChVector3d(1.0) - axis * axis;
         ChVector3d e(std::sqrt(e2.x()), std::sqrt(e2.y()), std::sqrt(e2.z()));
 
-        amin = Vmin(amin, p1 - cyl.radius * e);
-        amax = Vmax(amax, p2 + cyl.radius * e);
+        amin = Vmin(amin, Vmin(p1, p2) - cyl.radius * e);
+        amax = Vmax(amax, Vmax(p1, p2) + cyl.radius * e);
     }
 
     for (const auto& hulls_group : coll_hulls) {

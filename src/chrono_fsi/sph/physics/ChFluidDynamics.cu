@@ -335,7 +335,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     //-------------
     // ** position
     //-------------
-    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];  // paramsD.EPS_XSPH *
+    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];
     Real3 posRad = mR3(posRadD[index]);
     Real3 updatedPositon = posRad + vel_XSPH * dT;
     if (!IsFinite(updatedPositon)) {
@@ -350,7 +350,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     //-------------
     // Note that the velocity update should not use the XSPH contribution
     // It adds dissipation to the solution, and provides numerical damping
-    Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];  // paramsD.EPS_XSPH * vel_XSPH_D[index]
+    Real3 velMas = velMasD[index];
     Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
     velMasD[index] = updatedVelocity;
 
@@ -660,7 +660,7 @@ void ChFluidDynamics::CopySortedToOriginal(MarkerGroup group,
 void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     uint numBlocks, numThreads;
 
-    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
     ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                             mR4CAST(sortedSphMarkersD->rhoPresMuD),
                                                             U1CAST(m_data_mgr.activityIdentifierD));
@@ -686,7 +686,7 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
 // This functions needs to be tested.
 void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numBlocks, numThreads;
-    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
     ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
                                                          mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
@@ -707,7 +707,7 @@ void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarker
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::DensityReinitialization() {
     uint numBlocks, numThreads;
-    computeGridSize((int)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
     thrust::device_vector<Real4> dummySortedRhoPreMu(m_data_mgr.countersH->numAllMarkers);
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));

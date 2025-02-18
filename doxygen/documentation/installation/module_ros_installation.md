@@ -2,7 +2,7 @@
 
 [TOC]
 
-This is an optional module that enables direct integration of Chrono with the Robot Operating System (ROS).
+This is an optional module that enables direct integration of Chrono with the [Robot Operating System (ROS)](https://ros.org/).
 
 Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
 
@@ -16,7 +16,7 @@ For more detail, read the [Chrono::ROS](@ref manual_ros) section of the referenc
 
 - To build and run applications based on this module, the following are required:
   - ROS 2 Humble (see [docs.ros.org](https://docs.ros.org/en/humble/Installation.html) for detailed installation instructions). Docker is recommended. A Docker image with Chrono::ROS built is available [here](https://hub.docker.com/r/uwsbel/projectchrono).
-    - **NOTE:** All ROS 2 packages required by Chrono::ROS are included in the base ROS 2 installation.
+  - NOTE: All ROS 2 packages required by Chrono::ROS are included in the base ROS 2 installation.
 
 ## Optional Dependencies
 
@@ -31,10 +31,10 @@ NOTE: If you enable Chrono::Parsers with URDF support and you're using a ROS 2 d
 ## Building instructions
 
 1. To build Chrono::ROS, after installing the above dependencies, ensure you have sourced your ROS 2 installation (e.g. `source /opt/ros/humble/setup.bash`).
-2. Please repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must do the following:
-  - Set the `ENABLE_MODULE_ROS` as 'on', then press 'Configure' (to refresh the variable list)
-  - Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
-3. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
+3. Set `CH_ENABLE_MODULE_ROS` to 'on'.
+4. As mentioned above, to enable URDF support, you must also enable the [Chrono::Parsers](@ref module_parsers_installation) module.
+5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 ## How to use it
 

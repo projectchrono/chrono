@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2021 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -16,58 +16,44 @@
 
 #include <string>
 
-#include "chrono/ChConfig.h"
+#include "chrono_gpu/ChConfigGpu.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 
-#include "chrono/assets/ChVisualSystem.h"
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
-
 namespace chrono {
 namespace gpu {
 
-/// @addtogroup gpu_utils
+/// @addtogroup gpu_visualization
 /// @{
 
-/// Run-time visualization support for Chrono::Gpu systems.
-/// Requires the Chrono::OpenGL module; if not available, most ChGpuVisualization functions are no-op.
-///
-/// Visualization is based on a separate Chrono system which carries proxies for all particles in the Chrono::Gpu
-/// system. This separate system can be provided by the user or else created automatically. Note that using run-time
-/// visualization for a Chrono::Gpu system incurs the penalty of collecting positions of all particles every time the
-/// Render() function is invoked.
+/// Base class for a run-time visualization system for SPH-based FSI systems.
 class CH_GPU_API ChGpuVisualization {
   public:
-    /// Create a run-time visualization object associated with a given Chrono::Gpu system.
-    /// If a supplemental Chrono system is not provided (default), one will be created internally.
-    ChGpuVisualization(ChSystemGpu* sysGPU);
-
-    ~ChGpuVisualization();
+    virtual ~ChGpuVisualization();
 
     /// Set title of the visualization window (default: "").
-    void SetTitle(const std::string& title);
+    virtual void SetTitle(const std::string& title);
 
     /// Set window dimensions (default: 1280x720).
-    void SetSize(int width, int height);
+    virtual void SetSize(int width, int height);
 
     /// Add a camera initially at the specified position and target (look at) point.
-    void AddCamera(const ChVector3d& pos, const ChVector3d& target);
+    virtual void AddCamera(const ChVector3d& pos, const ChVector3d& target);
 
     /// Set camera position and target (look at) point.
-    void UpdateCamera(const ChVector3d& pos, const ChVector3d& target);
+    virtual void UpdateCamera(const ChVector3d& pos, const ChVector3d& target);
 
     /// Set camera up vector (default: Z).
     virtual void SetCameraVertical(CameraVerticalDir up);
 
     /// Set scale for camera movement increments (default: 0.1).
     /// Must be called before Initialize().
-    void SetCameraMoveScale(float scale);
+    virtual void SetCameraMoveScale(float scale);
 
     /// Attach a user-provided Chrono system for rendering.
     /// By default, the GPU run-time visualization renders granular particles.
@@ -82,7 +68,7 @@ class CH_GPU_API ChGpuVisualization {
 
     /// Initialize the run-time visualization system.
     /// If the Chrono::OpenGL module is not available, this function is no-op.
-    void Initialize();
+    virtual void Initialize();
 
     /// Render the current state of the Chrono::Gpu system. This function, typically invoked from within the main
     /// simulation loop, can only be called after construction of the Gpu system was completed (i.e., the system was
@@ -90,24 +76,24 @@ class CH_GPU_API ChGpuVisualization {
     /// positions of the proxy bodies.
     /// Returns false if the visualization window was closed.
     /// If the Chrono::OpenGL module is not available, this function is no-op.
-    bool Render();
+    virtual bool Render() = 0;
 
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL& GetVisualSystem() const { return *m_vsys; }
-#endif
+    /// Return the underlying visualization system.
+    virtual ChVisualSystem* GetVisualSystem() const = 0;
 
-  private:
+  protected:
+    /// Create a run-time visualization object associated with a given Chrono::Gpu system.
+    /// If a supplemental Chrono system is not provided (default), one will be created internally.
+    ChGpuVisualization(ChSystemGpu* sysGPU);
+
     ChSystemGpu* m_systemGPU;  ///< associated Chrono::Gpu system
-    ChSystem* m_system;        ///< supplemental Chrono system (holds proxy bodies)
+    ChSystem* m_system;        ///< internal Chrono system (holds proxy bodies)
     ChSystem* m_user_system;   ///< optional user-provided system
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL* m_vsys;  ///< OpenGL visualization system
-#endif
 
     std::shared_ptr<ChParticleCloud> m_particles;  ///< particle cloud proxy for particles
 };
 
-/// @} gpu_utils
+/// @} gpu_visualization
 
 }  // namespace gpu
 }  // namespace chrono

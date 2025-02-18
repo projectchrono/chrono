@@ -24,7 +24,6 @@
 #include <memory>
 
 #include "chrono/physics/ChContactContainer.h"
-#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/collision/multicore/ChCollisionData.h"
 
 #include "chrono_multicore/ChTimerMulticore.h"

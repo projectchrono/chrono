@@ -27,8 +27,6 @@
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
-#include "chrono_thirdparty/chpf/particle_writer.hpp"
-
 #ifdef USE_HDF5
     #include "H5Cpp.h"
 #endif
@@ -339,38 +337,6 @@ void ChSystemGpu_impl::WriteCsvParticles(std::ofstream& ptFile) const {
     }
 
     ptFile << outstrstream.str();
-}
-
-void ChSystemGpu_impl::WriteChPFParticles(std::ofstream& ptFile) const {
-    ParticleFormatWriter pw;
-
-    std::vector<float> v_x_UU(sphere_local_pos_X.size());
-    std::vector<float> v_y_UU(sphere_local_pos_Y.size());
-    std::vector<float> v_z_UU(sphere_local_pos_Z.size());
-    std::vector<float> sphere_radius(gran_params->nSpheres);
-
-    for (unsigned int n = 0; n < nSpheres; n++) {
-        unsigned int ownerSD = sphere_owner_SDs.at(n);
-        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-        float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
-        float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
-        float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
-
-        x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
-        y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
-        z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
-
-        x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
-        y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
-        z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
-
-        v_x_UU[n] = x_UU;
-        v_y_UU[n] = y_UU;
-        v_z_UU[n] = z_UU;
-        sphere_radius[n] = gran_params->sphereRadius_SU * LENGTH_SU2UU;
-    }
-
-    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, v_x_UU, v_y_UU, v_z_UU, sphere_radius);
 }
 
 #ifdef USE_HDF5

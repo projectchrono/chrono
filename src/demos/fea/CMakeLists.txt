@@ -7,13 +7,13 @@ set(FEA_DEMOS
 )
 
 # Add demos that require IRRLICHT run-time visualization
-if(ENABLE_MODULE_IRRLICHT)
+if(CH_ENABLE_MODULE_IRRLICHT)
 
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_truss
     )
 
-    if(ENABLE_MODULE_PARDISO_MKL)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beams_static
         demo_FEA_beams_extrude
@@ -25,7 +25,7 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 # Add demos that require run-time visualization (IRRLICHT or VSG)
-if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
+if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
 
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_thermal
@@ -38,19 +38,19 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
         demo_FEA_loads_dynamics
     )
     
-    if(ENABLE_MODULE_MUMPS)
+    if(CH_ENABLE_MODULE_MUMPS)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_cablesMUMPS
     )
     endif()
 
-    if(ENABLE_MODULE_MATLAB)
+    if(CH_ENABLE_MODULE_MATLAB)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_cablesMATLAB
     )
     endif()
     
-    if(ENABLE_MODULE_PARDISO_MKL)
+    if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beamsEuler
         demo_FEA_beams_constr
@@ -66,7 +66,7 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
     endif()
     
     # Add demos that require MKL and postprocess
-    if(ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
+    if(CH_ENABLE_MODULE_PARDISO_MKL AND CH_ENABLE_MODULE_POSTPROCESS)
     set(FEA_DEMOS ${FEA_DEMOS}
         demo_FEA_beams_rotor
     )
@@ -79,62 +79,49 @@ endif()
 # Set include paths, compiler & linker flags, and libraries
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-include_directories(${CH_INCLUDES})
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHT_INCLUDES})
-  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_VSG)
-  include_directories(${CH_VSG_INCLUDES})
+if(CH_ENABLE_MODULE_VSG)
   list(APPEND LIBS "ChronoEngine_vsg")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
-  include_directories(${CH_MKL_INCLUDES})
-  #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-  #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+if(CH_ENABLE_MODULE_PARDISO_MKL)
   list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
-if(ENABLE_MODULE_MUMPS)
+if(CH_ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_MATLAB)
-  include_directories(${CH_MATLABINC})
+if(CH_ENABLE_MODULE_MATLAB)
   list(APPEND LIBS "ChronoEngine_matlab")
 endif()
 
-if(ENABLE_MODULE_POSTPROCESS)
+if(CH_ENABLE_MODULE_POSTPROCESS)
   list(APPEND LIBS "ChronoEngine_postprocess")
 endif()
 
 #--------------------------------------------------------------
 
-message(STATUS "Demo programs for FEA module...")
+message(STATUS "Add demo programs for FEA module")
 
 foreach(PROGRAM ${FEA_DEMOS})
-    message(STATUS "...add ${PROGRAM}")
-
     add_executable(${PROGRAM}  "${PROGRAM}.cpp")
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}")
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
     if(APPLE)
       set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
     endif()
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
     
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach(PROGRAM)

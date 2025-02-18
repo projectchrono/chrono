@@ -28,7 +28,7 @@
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-////#define RUN_TIME_VISUALIZATION
+//#define RUN_TIME_VISUALIZATION
 
 #ifdef RUN_TIME_VISUALIZATION
     #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
@@ -93,8 +93,7 @@ double PoiseuilleAnalytical(double Z, double H, double time, const ChFluidSystem
 class InitialVelocityCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
     InitialVelocityCallback(double fluid_height, double time)
-        : ParticlePropertiesCallback(), height(fluid_height), time(time) {
-    }
+        : ParticlePropertiesCallback(), height(fluid_height), time(time) {}
 
     virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double v_x = PoiseuilleAnalytical(pos.z(), height, time, sysSPH);
@@ -171,8 +170,7 @@ int main(int argc, char* argv[]) {
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 0.1;
-    sph_params.xsph_coefficient = 0.0;
-    sph_params.shifting_coefficient = 0.0;
+    sph_params.shifting_method = ShiftingMethod::NONE;
     sph_params.density_reinit_steps = 10000;
     sph_params.viscosity_type = ViscosityType::LAMINAR;
     sph_params.use_delta_sph = false;
@@ -194,7 +192,8 @@ int main(int argc, char* argv[]) {
 
     // Explicitly set computational domain
     ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -10.0 * initial_spacing);
-    ChVector3d c_max(+bxDim / 2 + initial_spacing / 2, +byDim / 2 + initial_spacing / 2, bzDim + 10.0 * initial_spacing);
+    ChVector3d c_max(+bxDim / 2 + initial_spacing / 2, +byDim / 2 + initial_spacing / 2,
+                     bzDim + 10.0 * initial_spacing);
     fsi.SetComputationalDomainSize(ChAABB(c_min, c_max));
 
     // Set particle initial velocity
@@ -237,10 +236,10 @@ int main(int argc, char* argv[]) {
 
         // Extract information in arrays
         for (size_t i = 0; i < num_particles; i++) {
-            v[i] = vel[i].x();                                                  // velocity in flow direction
-            va[i] = PoiseuilleAnalytical(pos[i].z(), bzDim, time, sysSPH);      // analytical velocity
-            d[i] = dpv[i].x();                                                  // density at particle location
-            p[i] = dpv[i].y();                                                  // pressure at particle location
+            v[i] = vel[i].x();                                              // velocity in flow direction
+            va[i] = PoiseuilleAnalytical(pos[i].z(), bzDim, time, sysSPH);  // analytical velocity
+            d[i] = dpv[i].x();                                              // density at particle location
+            p[i] = dpv[i].y();                                              // pressure at particle location
         }
 
         auto v_max = v.max();

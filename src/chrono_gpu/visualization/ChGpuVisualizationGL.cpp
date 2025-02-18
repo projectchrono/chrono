@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2021 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -16,19 +16,12 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 
-#include "chrono_gpu/utils/ChGpuVisualization.h"
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
+#include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
 
 namespace chrono {
 namespace gpu {
 
-ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU) : m_systemGPU(sysGPU), m_user_system(nullptr) {
-#ifdef CHRONO_OPENGL
-    m_system = new ChSystemSMC();
-
+ChGpuVisualizationGL::ChGpuVisualizationGL(ChSystemGpu* sysGPU) : ChGpuVisualization(sysGPU) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_system);
     m_vsys->SetWindowTitle("");
@@ -38,66 +31,39 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU) : m_systemGPU(sysGPU
     m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
     m_vsys->EnableStats(false);
-#else
-    m_system = nullptr;
-    std::cout << "\nWARNING! Chrono::OpenGL not available.  Visualization disabled!\n" << std::endl;
-#endif
 }
 
-ChGpuVisualization::~ChGpuVisualization() {
-#ifdef CHRONO_OPENGL
+ChGpuVisualizationGL::~ChGpuVisualizationGL() {
     delete m_vsys;
-#endif
-    delete m_system;
 }
 
-void ChGpuVisualization::SetSize(int width, int height) {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::SetSize(int width, int height) {
     m_vsys->SetWindowSize(width, height);
-#endif
 }
 
-void ChGpuVisualization::SetTitle(const std::string& title) {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::SetTitle(const std::string& title) {
     m_vsys->SetWindowTitle("");
-#endif
 }
 
-void ChGpuVisualization::AddCamera(const ChVector3d& pos, const ChVector3d& target) {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::AddCamera(const ChVector3d& pos, const ChVector3d& target) {
     m_vsys->UpdateCamera(pos, target);
-#endif
 }
 
-void ChGpuVisualization::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {
     m_vsys->UpdateCamera(pos, target);
-#endif
 }
 
-void ChGpuVisualization::SetCameraVertical(CameraVerticalDir up) {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::SetCameraVertical(CameraVerticalDir up) {
     if (up == CameraVerticalDir::Z)
         m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
     m_vsys->SetCameraVertical(ChVector3d(0, 1, 0));
-#endif
 }
 
-void ChGpuVisualization::SetCameraMoveScale(float scale) {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::SetCameraMoveScale(float scale) {
     m_vsys->SetCameraProperties(scale);
-#endif
 }
 
-void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
-    body->SetFixed(true);
-#ifdef CHRONO_OPENGL
-    m_system->AddBody(body);
-#endif
-}
-
-void ChGpuVisualization::Initialize() {
-#ifdef CHRONO_OPENGL
+void ChGpuVisualizationGL::Initialize() {
     m_particles = chrono_types::make_shared<ChParticleCloud>();
     m_particles->SetFixed(true);
     for (unsigned int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
@@ -111,11 +77,9 @@ void ChGpuVisualization::Initialize() {
         m_vsys->AttachSystem(m_user_system);
 
     m_vsys->Initialize();
-#endif
 }
 
-bool ChGpuVisualization::Render() {
-#ifdef CHRONO_OPENGL
+bool ChGpuVisualizationGL::Render() {
     // Only for display in OpenGL window
     m_system->SetChTime(m_systemGPU->GetSimTime());
 
@@ -127,9 +91,6 @@ bool ChGpuVisualization::Render() {
         return true;
     }
     return false;  // rendering stopped
-#else
-    return true;
-#endif
 }
 
 }  // namespace gpu

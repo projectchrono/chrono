@@ -12,12 +12,14 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 
-#include "chrono_multicore/collision/ChContactContainerMulticore.h"
-#include "chrono_multicore/physics/ChSystemMulticore.h"
-//
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChParticleCloud.h"
+
+#include "chrono/multicore_math/thrust.h"
+
+#include "chrono_multicore/collision/ChContactContainerMulticore.h"
+#include "chrono_multicore/physics/ChSystemMulticore.h"
 
 namespace chrono {
 

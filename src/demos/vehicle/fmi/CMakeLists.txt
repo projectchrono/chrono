@@ -3,7 +3,7 @@
 # These example programs require run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_VEHICLE_FMI)
+if(NOT CH_ENABLE_MODULE_VEHICLE_FMI)
   return()
 endif()
 
@@ -22,7 +22,7 @@ set(DEMOS
 
 foreach(PROGRAM ${DEMOS})
 
-  message(STATUS "...add ${PROGRAM}")
+  # MESSAGE(STATUS "...add ${PROGRAM}")
 
   #message("FMU_TOOLS_DIR = ${FMU_TOOLS_DIR}")
   #message("FMI2_PLATFORM = ${FMI2_PLATFORM}")
@@ -38,6 +38,10 @@ foreach(PROGRAM ${DEMOS})
   target_compile_definitions(${PROGRAM} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
   target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_vehicle)
+
+  if(MSVC)
+    set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  endif()
 
   set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 

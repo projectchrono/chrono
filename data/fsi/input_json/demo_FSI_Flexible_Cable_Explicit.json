@@ -13,8 +13,8 @@
     "Initial Spacing": 0.02,
     "Kernel Multiplier": 1.0,
     "Maximum Velocity": 10.0,
+    "Shifting Method": "XSPH",
     "XSPH Coefficient": 0.5,
-    "Shifting Coefficient": 0.0,
     "Use Delta SPH": true,
     "density diffusion delta": 0.1,
     "Time steps per proximity search": 1

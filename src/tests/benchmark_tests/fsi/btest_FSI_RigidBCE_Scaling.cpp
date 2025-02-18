@@ -24,6 +24,7 @@
 // #include <ctime>
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -104,8 +105,10 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     sph_params.initial_spacing = 0.02;  // 2 cm
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.xsph_coefficient = 0.5;
-    sph_params.shifting_coefficient = 1.0;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.max_velocity = 1.0;
     sph_params.num_proximity_search_steps = 1;

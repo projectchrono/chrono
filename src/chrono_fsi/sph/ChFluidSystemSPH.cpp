@@ -92,6 +92,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
     m_paramsH->boundary_type = BoundaryType::ADAMI;
     m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
+    m_paramsH->shifting_method = ShiftingMethod::XSPH;
 
     m_paramsH->d0 = Real(0.01);
     m_paramsH->ood0 = 1 / m_paramsH->d0;
@@ -102,8 +103,10 @@ void ChFluidSystemSPH::InitParams() {
 
     m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->v_Max = Real(1.0);
-    m_paramsH->EPS_XSPH = Real(0.5);
-    m_paramsH->beta_shifting = Real(1.0);
+    m_paramsH->shifting_xsph_eps = Real(0.5);
+    m_paramsH->shifting_ppst_push = Real(3.0);
+    m_paramsH->shifting_ppst_pull = Real(1.0);
+    m_paramsH->shifting_beta_implicit = Real(1.0);
     m_paramsH->densityReinit = 2147483647;
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
@@ -214,9 +217,11 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             std::string SPH = doc["SPH Parameters"]["Method"].GetString();
             if (m_verbose)
                 cout << "Modeling method is: " << SPH << endl;
-            if (SPH == "I2SPH")
+            if (SPH == "I2SPH") {
                 m_paramsH->sph_method = SPHMethod::I2SPH;
-            else if (SPH == "WCSPH")
+                if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
+                    m_paramsH->shifting_beta_implicit = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
+            } else if (SPH == "WCSPH")
                 m_paramsH->sph_method = SPHMethod::WCSPH;
             else {
                 cerr << "Incorrect SPH method in the JSON file: " << SPH << endl;
@@ -237,8 +242,27 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("Maximum Velocity"))
             m_paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
 
+        if (doc["SPH Parameters"].HasMember("Shifting Method")) {
+            std::string method = doc["SPH Parameters"]["Shifting Method"].GetString();
+            if (method == "XSPH")
+                m_paramsH->shifting_method = ShiftingMethod::XSPH;
+            else if (method == "PPST_XSPH")
+                m_paramsH->shifting_method = ShiftingMethod::PPST_XSPH;
+            else if (method == "PPST")
+                m_paramsH->shifting_method = ShiftingMethod::PPST;
+            else {
+                m_paramsH->shifting_method = ShiftingMethod::NONE;
+            }
+        }
+
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
-            m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
+            m_paramsH->shifting_xsph_eps = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("PPST Push Coefficient"))
+            m_paramsH->shifting_ppst_push = doc["SPH Parameters"]["PPST Push Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("PPST Pull Coefficient"))
+            m_paramsH->shifting_ppst_pull = doc["SPH Parameters"]["PPST Pull Coefficient"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Kernel Type")) {
             std::string type = doc["SPH Parameters"]["Kernel Type"].GetString();
@@ -310,9 +334,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
                 m_paramsH->eos_type = EosType::ISOTHERMAL;
             }
         }
-
-        if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
-            m_paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Density Reinitialization"))
             m_paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
@@ -526,6 +547,10 @@ void ChFluidSystemSPH::SetKernelType(KernelType kernel_type) {
     }
 }
 
+void ChFluidSystemSPH::SetShiftingMethod(ShiftingMethod shifting_method) {
+    m_paramsH->shifting_method = shifting_method;
+}
+
 void ChFluidSystemSPH::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
@@ -596,6 +621,15 @@ void ChFluidSystemSPH::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
+}
+
+void ChFluidSystemSPH::SetShiftingPPSTParameters(double push, double pull) {
+    m_paramsH->shifting_ppst_push = push;
+    m_paramsH->shifting_ppst_pull = pull;
+}
+
+void ChFluidSystemSPH::SetShiftingXSPHParameters(double eps) {
+    m_paramsH->shifting_xsph_eps = eps;
 }
 
 void ChFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
@@ -685,6 +719,28 @@ void ChFluidSystemSPH::CheckSPHParameters() {
                 "boundaries and lead to leakage of particles"
              << endl;
     }
+
+    // Check shifting method and whether defaults have changed
+    if (m_paramsH->shifting_method == ShiftingMethod::NONE) {
+        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 1.0 ||
+            m_paramsH->shifting_ppst_pull != 1.0) {
+            cerr << "WARNING: Shifting method is NONE, but shifting parameters have been modified. These "
+                    "changes will not take effect."
+                 << endl;
+        }
+    } else if (m_paramsH->shifting_method == ShiftingMethod::XSPH) {
+        if (m_paramsH->shifting_ppst_pull != 1.0 || m_paramsH->shifting_ppst_push != 3.0) {
+            cerr << "WARNING: Shifting method is XSPH, but PPST shifting parameters have been modified. These "
+                    "changes will not take effect."
+                 << endl;
+        }
+    } else if (m_paramsH->shifting_method == ShiftingMethod::PPST) {
+        if (m_paramsH->shifting_xsph_eps != 0.5) {
+            cerr << "WARNING: Shifting method is PPST, but XSPH shifting parameters have been modified. These "
+                    "changes will not take effect."
+                 << endl;
+        }
+    }
 }
 
 ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
@@ -732,8 +788,9 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       initial_spacing(0.01),
       d0_multiplier(1.2),
       max_velocity(1.0),
-      xsph_coefficient(0.5),
-      shifting_coefficient(1.0),
+      shifting_xsph_eps(0.5),
+      shifting_ppst_push(3.0),
+      shifting_ppst_pull(1.0),
       min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
       use_density_based_projection(false),
@@ -768,8 +825,10 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
 
     m_paramsH->v_Max = sph_params.max_velocity;
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
-    m_paramsH->EPS_XSPH = sph_params.xsph_coefficient;
-    m_paramsH->beta_shifting = sph_params.shifting_coefficient;
+    m_paramsH->shifting_xsph_eps = sph_params.shifting_xsph_eps;
+    m_paramsH->shifting_ppst_push = sph_params.shifting_ppst_push;
+    m_paramsH->shifting_ppst_pull = sph_params.shifting_ppst_pull;
+    m_paramsH->shifting_beta_implicit = sph_params.shifting_beta_implicit;
     m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
 
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
@@ -1163,6 +1222,21 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                 break;
         }
 
+        switch (m_paramsH->shifting_method) {
+            case ShiftingMethod::XSPH:
+                cout << "  Shifting method: XSPH" << endl;
+                break;
+            case ShiftingMethod::PPST:
+                cout << "  Shifting method: PPST" << endl;
+                break;
+            case ShiftingMethod::PPST_XSPH:
+                cout << "  Shifting method: PPST_XSPH" << endl;
+                break;
+            case ShiftingMethod::NONE:
+                cout << "  Shifting method: None" << endl;
+                break;
+        }
+
         cout << "  num_neighbors: " << m_paramsH->num_neighbors << endl;
         cout << "  rho0: " << m_paramsH->rho0 << endl;
         cout << "  invrho0: " << m_paramsH->invrho0 << endl;
@@ -1186,8 +1260,21 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
         cout << "  v_Max: " << m_paramsH->v_Max << endl;
         cout << "  Cs: " << m_paramsH->Cs << endl;
-        cout << "  EPS_XSPH: " << m_paramsH->EPS_XSPH << endl;
-        cout << "  beta_shifting: " << m_paramsH->beta_shifting << endl;
+
+        if (m_paramsH->shifting_method == ShiftingMethod::XSPH) {
+            cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::PPST) {
+            cout << "  shifting_ppst_push: " << m_paramsH->shifting_ppst_push << endl;
+            cout << "  shifting_ppst_pull: " << m_paramsH->shifting_ppst_pull << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::PPST_XSPH) {
+            cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
+            cout << "  shifting_ppst_push: " << m_paramsH->shifting_ppst_push << endl;
+            cout << "  shifting_ppst_pull: " << m_paramsH->shifting_ppst_pull << endl;
+        }
+        if (m_paramsH->sph_method == SPHMethod::I2SPH) {
+            cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
+            cout << "  shifting_beta_implicit: " << m_paramsH->shifting_beta_implicit << endl;
+        }
         cout << "  densityReinit: " << m_paramsH->densityReinit << endl;
 
         cout << "  Proximity search performed every " << m_paramsH->num_proximity_search_steps << " steps" << endl;
@@ -1318,18 +1405,9 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFluidSystemSPH::WriteParticleFile(const std::string& filename, OutputMode mode) const {
-    switch (mode) {
-        case OutputMode::CSV:
-            WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                                 m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
-            break;
-        case OutputMode::CHPF:
-            WriteParticleFileCHPF(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->referenceArray);
-            break;
-        default:
-            break;
-    }
+void ChFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
+    WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
+                         m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
 }
 
 void ChFluidSystemSPH::SaveParticleData(const std::string& dir) const {
