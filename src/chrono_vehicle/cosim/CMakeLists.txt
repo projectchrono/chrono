@@ -198,6 +198,12 @@ install(TARGETS ChronoEngine_vehicle_cosim
 # Install files
 # -------------------------------------------------------------------------------------------------
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_vehicle_cosim/ DESTINATION "template_project_vehicle_cosim")
+else()
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_vehicle_cosim/ DESTINATION "share/chrono/template_project_vehicle_cosim")
+endif()
+
 # Old way (install headers preserving directory structure)
 #install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 #        DESTINATION include/chrono_vehicle/cosim

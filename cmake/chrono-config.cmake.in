@@ -513,7 +513,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     find_dependency(Irrlicht QUIET)
 
     if (NOT Irrlicht_FOUND)
-      message("WARNING Could not find Irrlicht library; set Irrlicht_INCLUDE_DIRS and Irrlicht_LIBRARIES")
+      message("WARNING: Could not find Irrlicht library; set Irrlicht_INCLUDE_DIRS and Irrlicht_LIBRARIES")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       mark_as_advanced(CLEAR Irrlicht_INCLUDE_DIRS)
       mark_as_advanced(CLEAR Irrlicht_LIBRARIES)
@@ -533,6 +533,14 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "VSG")
 
+    # Note: VSG expects C++ (because of FindThreads); enable CXX if not already done
+    get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+    list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
+    if(LANG_INDEX EQUAL -1)
+      message(STATUS "Enable C++ language")
+      enable_language(CXX)
+    endif()
+
     set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
     set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
     set(vsgXchange_DIR "@vsgXchange_DIR@" CACHE PATH "Path to vsgXchange installation.")
@@ -541,7 +549,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     find_dependency(vsgXchange REQUIRED QUIET)
 
     if(NOT vsg_FOUND OR NOT vsgImGui_FOUND OR NOT vsgXchange_FOUND)
-      message("WARNINIG Could not find one of the VSG libraries")
+      message("WARNING: Could not find one of the VSG libraries")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 
@@ -1005,8 +1013,16 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "FMI")
-
-    set(CHRONO_FMU_TOOLS_DIR "@FMU_TOOLS_DIR@")
+    
+    if (CHRONO_INSTALL_TREE)
+      set(CHRONO_FMU_TOOLS_DIR "${CHRONO_PACKAGE_PREFIX_DIR}include/chrono_thirdparty/fmu_tools")
+    else()
+      set(CHRONO_FMU_TOOLS_DIR "@FMU_TOOLS_DIR@")
+    endif()
+    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fmi")
+    if (NOT CHRONO_STATIC)
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fmi.dll")
+    endif()
 
   endif() # end if-else for component type
 

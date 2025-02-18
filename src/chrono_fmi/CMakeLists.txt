@@ -18,7 +18,7 @@ else()
     mark_as_advanced(CLEAR FMU_GUID_NAMESPACE)
 endif()
 
-MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
+message(STATUS "\n==== Chrono FMI module ====\n")
 
 cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "CH_ENABLE_MODULE_FMI" OFF)
 
@@ -44,8 +44,6 @@ endif()
 # Default: Chrono submodule in src/chrono_thirdparty/
 
 set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools" CACHE PATH "Path to top-level fmu_tools directory")
-
-include_directories(${FMU_TOOLS_DIR})
 
 # -------------------------------------------------
 # Enable testing of generated FMUs
@@ -147,7 +145,7 @@ add_library(ChronoEngine_fmi
             ${ChronoEngine_FMI_HEADERS}
             ${ChronoEngine_FMI_SOURCES})
 
-target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
+target_include_directories(ChronoEngine_fmi PRIVATE "${FMU_TOOLS_DIR}")
 
 if (CH_STATIC)
   set_target_properties(ChronoEngine_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -164,12 +162,27 @@ target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFOR
 target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
 target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-add_dependencies(ChronoEngine_fmi ChronoEngine)
 
 install(TARGETS ChronoEngine_fmi
+        EXPORT ChronoEngineTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)        
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_fmi)
 
-install(FILES ${ChronoEngine_FMI_HEADERS}
-        DESTINATION include/chrono_fmi)
+# Old way
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/chrono_fmi
+        FILES_MATCHING PATTERN "*.h")
+
+install(DIRECTORY ${FMU_TOOLS_DIR}
+        DESTINATION include/chrono_thirdparty
+        PATTERN ".git" EXCLUDE)
+
+if(FMU_EXPORT_SUPPORT)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "template_project_fmi2")
+  else()
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "share/chrono/template_project_fmi2")
+  endif()
+endif()

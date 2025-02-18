@@ -388,3 +388,9 @@ endif()
 install(DIRECTORY ${CMAKE_SWIG_OUTDIR}/
         DESTINATION include/chrono_csharp
         FILES_MATCHING PATTERN "*.cs")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_csharp/ DESTINATION "template_project_csharp")
+else()
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_csharp/ DESTINATION "share/chrono/template_project_csharp")
+endif()
