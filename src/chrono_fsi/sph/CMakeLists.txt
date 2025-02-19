@@ -284,6 +284,7 @@ if(CH_ENABLE_MODULE_OPENGL)
     target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cublas)
     target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cusparse)
 
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE OpenMP::OpenMP_CXX) # TODO DARIOM: if needed we should check that OpenMP is available
     target_link_libraries(Chrono_fsisph_opengl PRIVATE Thrust::Thrust)
     target_compile_definitions(Chrono_fsisph_opengl PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
     target_compile_definitions(Chrono_fsisph_opengl PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")

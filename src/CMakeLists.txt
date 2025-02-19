@@ -239,11 +239,11 @@ message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
 message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
 
 message(STATUS "Searching for OpenMP")
-find_package(OpenMP)
+find_package(OpenMP COMPONENTS CXX)
 
 # Determine OpenMP version (support level)
 # Prepare substitution variables that can be used in generating configuration header files
-if(OpenMP_FOUND)
+if(OpenMP_CXX_FOUND)
   include(CheckOpenMPVersion)
   message(STATUS "  OpenMP version:   ${OMP_VERSION}")
   set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
@@ -282,7 +282,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 message(STATUS "Searching for MPI for C++")
-find_package(MPI)
+find_package(MPI COMPONENTS CXX)
 if(MPI_CXX_FOUND)
   message(STATUS "  MPI compiler:          ${MPI_CXX_COMPILER}")
   message(STATUS "  MPI compile flags:     ${MPI_CXX_COMPILE_FLAGS}")

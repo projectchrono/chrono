@@ -1074,6 +1074,7 @@ set(Chrono_utils_SOURCES
     utils/ChUtilsInputOutput.cpp
     utils/ChUtilsChaseCamera.cpp
     utils/ChUtilsValidation.cpp
+    utils/ChOpenMP.cpp
     utils/ChProfiler.cpp
     utils/ChControllers.cpp
     utils/ChFilters.cpp
@@ -1382,13 +1383,13 @@ if(CHRONO_THRUST_FOUND)
 endif()
 
 if(CH_ENABLE_OPENMP)
-  target_link_libraries(Chrono_core PUBLIC OpenMP::OpenMP_CXX)
+  target_link_libraries(Chrono_core PRIVATE OpenMP::OpenMP_CXX)
 elseif(CH_ENABLE_TBB)
   target_link_libraries(Chrono_core PRIVATE ${TBB_LIBRARIES}) 
 endif()
 
 if(UNIX)
-  target_link_libraries(Chrono_core PUBLIC pthread)
+  target_link_libraries(Chrono_core PRIVATE pthread)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.
@@ -1544,6 +1545,7 @@ endif()
 # Note: this flag may DECREASE the overall calculation performance by approx. 10%
 # For more information, see: https://gitlab.com/libeigen/eigen/-/issues/2379
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32"))
+    message(NOTICE "Enabling strong inlining of Eigen because of Win32 machine. This may decrease performance.")
 	target_compile_definitions(Chrono_core PRIVATE "$<$<CONFIG:RELEASE>:EIGEN_STRONG_INLINE=inline>")
 endif()
 
