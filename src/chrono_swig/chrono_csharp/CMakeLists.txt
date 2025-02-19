@@ -245,7 +245,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   # Create the SWIG module.
   swig_add_library(Chrono_csharp_irrlicht LANGUAGE csharp SOURCES ${INTERFACE_FILE_IRRLICHT})
-  find_package(Irrlicht)
+  find_package(Irrlicht QUIET REQUIRED)
   target_link_libraries(Chrono_csharp_irrlicht PRIVATE Chrono_core Chrono_irrlicht Irrlicht::Irrlicht)
 
 
@@ -320,7 +320,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
 
   if (CH_ENABLE_MODULE_IRRLICHT)
-    find_package(Irrlicht)
+    find_package(Irrlicht QUIET REQUIRED)
     target_link_libraries(Chrono_csharp_vehicle PRIVATE Chrono_irrlicht Chrono_vehicle_irrlicht Irrlicht::Irrlicht)
   endif()
 

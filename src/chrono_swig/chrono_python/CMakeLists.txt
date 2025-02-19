@@ -429,7 +429,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
 
-  find_package(Irrlicht)
+  find_package(Irrlicht QUIET REQUIRED)
 
   swig_add_library(irrlicht LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
   target_link_libraries(irrlicht PRIVATE Python3::Python Chrono_core Chrono_irrlicht Irrlicht::Irrlicht)
@@ -691,7 +691,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   swig_add_library(vehicle LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   target_link_libraries(vehicle PRIVATE Python3::Python Chrono_core Chrono_vehicle ChronoModels_vehicle)
   if(CH_ENABLE_MODULE_IRRLICHT)
-    find_package(Irrlicht)
+    find_package(Irrlicht QUIET REQUIRED)
     target_link_libraries(vehicle PRIVATE Chrono_vehicle_irrlicht Chrono_irrlicht Irrlicht::Irrlicht)
   endif()
 
