@@ -63,8 +63,8 @@ endif()
 
 SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 TARGET_LINK_LIBRARIES(${PROGRAM}
-                      ChronoEngine_vehicle
-                      ChronoEngine_vehicle_irrlicht
+                      Chrono_vehicle
+                      Chrono_vehicle_irrlicht
                       ChronoModels_vehicle)
 
 INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

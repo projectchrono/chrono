@@ -156,12 +156,12 @@ endif()
 set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-# Create the ChronoEngine_fsisph library
+# Create the Chrono_fsisph library
 #-----------------------------------------------------------------------------
 
-message(STATUS "Add ChronoEngine_fsisph library")
+message(STATUS "Add Chrono_fsisph library")
 
-add_library(ChronoEngine_fsisph
+add_library(Chrono_fsisph
     ${FSI_FILES}
     ${FSISPH_BASE_FILES}
     ${FSISPH_PHYSICS_FILES}
@@ -170,80 +170,80 @@ add_library(ChronoEngine_fsisph
     ${FSISPH_VIS_FILES}
     ${FSISPH_STB_FILES}
 )
-add_library(ChronoEngine::fsisph ALIAS ChronoEngine_fsisph)
+add_library(Chrono::fsisph ALIAS Chrono_fsisph)
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_fsisph PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_fsisph PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
   # disable warnings related to missing DLL interface
-  target_compile_options(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-  set_target_properties(ChronoEngine_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  target_compile_options(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+  set_target_properties(Chrono_fsisph PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_link_libraries(ChronoEngine_fsisph PRIVATE ChronoEngine)
+target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
 
-target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cudart_static)
-target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::nvrtc)
-target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cuda_driver)
-target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cublas)
-target_link_libraries(ChronoEngine_fsisph PUBLIC CUDA::cusparse)
+target_link_libraries(Chrono_fsisph PUBLIC CUDA::cudart_static)
+target_link_libraries(Chrono_fsisph PUBLIC CUDA::nvrtc)
+target_link_libraries(Chrono_fsisph PUBLIC CUDA::cuda_driver)
+target_link_libraries(Chrono_fsisph PUBLIC CUDA::cublas)
+target_link_libraries(Chrono_fsisph PUBLIC CUDA::cusparse)
 
-target_link_libraries(ChronoEngine_fsisph PUBLIC Thrust::Thrust)
-target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-target_compile_definitions(ChronoEngine_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+target_link_libraries(Chrono_fsisph PUBLIC Thrust::Thrust)
+target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+target_compile_definitions(Chrono_fsisph PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
-target_compile_definitions(ChronoEngine_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+target_compile_definitions(Chrono_fsisph PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
 
-set_target_properties(ChronoEngine_fsisph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+set_target_properties(Chrono_fsisph PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
-install(TARGETS ChronoEngine_fsisph
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_fsisph
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
 
 #-------------------------------------------------------------------------------
-# Add the ChronoEngine_fsisph_vsg library
+# Add the Chrono_fsisph_vsg library
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_VSG)
-    message(STATUS "Add ChronoEngine_fsisph_vsg library")
+    message(STATUS "Add Chrono_fsisph_vsg library")
 
-    add_library(ChronoEngine_fsisph_vsg
+    add_library(Chrono_fsisph_vsg
         ${FSISPH_VSG_FILES}
     )
-    add_library(ChronoEngine::fsisph_vsg ALIAS ChronoEngine_fsisph_vsg)
+    add_library(Chrono::fsisph_vsg ALIAS Chrono_fsisph_vsg)
    
     if (CH_STATIC)
-      set_target_properties(ChronoEngine_fsisph_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(Chrono_fsisph_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
  
     if(MSVC)
       # disable warnings related to missing DLL interface
-      target_compile_options(ChronoEngine_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-      set_target_properties(ChronoEngine_fsisph_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+      target_compile_options(Chrono_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(Chrono_fsisph_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+    target_compile_definitions(Chrono_fsisph_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
     
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE ChronoEngine ChronoEngine_fsisph)
-    target_link_libraries(ChronoEngine_fsisph_vsg PUBLIC ChronoEngine_vsg)
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE Chrono_core Chrono_fsisph)
+    target_link_libraries(Chrono_fsisph_vsg PUBLIC Chrono_vsg)
 
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE CUDA::cudart_static)
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE CUDA::nvrtc)
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE CUDA::cuda_driver)
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE CUDA::cublas)
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE CUDA::cusparse)
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cudart_static)
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::nvrtc)
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cuda_driver)
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cublas)
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE CUDA::cusparse)
 
-    target_link_libraries(ChronoEngine_fsisph_vsg PRIVATE Thrust::Thrust)
-    target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-    target_compile_definitions(ChronoEngine_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+    target_link_libraries(Chrono_fsisph_vsg PRIVATE Thrust::Thrust)
+    target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+    target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
-    install(TARGETS ChronoEngine_fsisph_vsg
-            EXPORT ChronoEngineTargets
+    install(TARGETS Chrono_fsisph_vsg
+            EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
@@ -252,48 +252,48 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 #-------------------------------------------------------------------------------
-# Add the ChronoEngine_fsisph_opengl library
+# Add the Chrono_fsisph_opengl library
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_OPENGL)
-    message(STATUS "Add ChronoEngine_fsisph_opengl library")
+    message(STATUS "Add Chrono_fsisph_opengl library")
 
-    add_library(ChronoEngine_fsisph_opengl
+    add_library(Chrono_fsisph_opengl
         ${FSISPH_GL_FILES}
     )
-    add_library(ChronoEngine::fsisph_opengl ALIAS ChronoEngine_fsisph_opengl)
+    add_library(Chrono::fsisph_opengl ALIAS Chrono_fsisph_opengl)
    
     if (CH_STATIC)
-      set_target_properties(ChronoEngine_fsisph_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(Chrono_fsisph_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
     
     if(MSVC)
       # disable warnings related to missing DLL interface
-      target_compile_options(ChronoEngine_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-      set_target_properties(ChronoEngine_fsisph_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+      target_compile_options(Chrono_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(Chrono_fsisph_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_compile_definitions(ChronoEngine_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
+    target_compile_definitions(Chrono_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
     
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE ChronoEngine ChronoEngine_fsisph)
-    target_link_libraries(ChronoEngine_fsisph_opengl PUBLIC ChronoEngine_opengl)
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE Chrono_core Chrono_fsisph)
+    target_link_libraries(Chrono_fsisph_opengl PUBLIC Chrono_opengl)
     
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE CUDA::cudart_static)
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE CUDA::nvrtc)
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE CUDA::cuda_driver)
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE CUDA::cublas)
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE CUDA::cusparse)
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cudart_static)
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::nvrtc)
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cuda_driver)
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cublas)
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cusparse)
 
-    target_link_libraries(ChronoEngine_fsisph_opengl PRIVATE Thrust::Thrust)
-    target_compile_definitions(ChronoEngine_fsisph_opengl PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-    target_compile_definitions(ChronoEngine_fsisph_opengl PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
+    target_link_libraries(Chrono_fsisph_opengl PRIVATE Thrust::Thrust)
+    target_compile_definitions(Chrono_fsisph_opengl PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
+    target_compile_definitions(Chrono_fsisph_opengl PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_compile_options(ChronoEngine_fsisph_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
+        target_compile_options(Chrono_fsisph_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
     endif()
 
-    install(TARGETS ChronoEngine_fsisph_opengl
-            EXPORT ChronoEngineTargets
+    install(TARGETS Chrono_fsisph_opengl
+            EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib

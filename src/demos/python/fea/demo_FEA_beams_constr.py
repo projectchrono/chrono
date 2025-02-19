@@ -38,7 +38,7 @@ out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
 
 print( "Copyright (c) 2017 projectchrono.org \n")
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 L = 1

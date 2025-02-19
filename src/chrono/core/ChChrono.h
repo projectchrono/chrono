@@ -16,7 +16,7 @@
 // Definition of the main module and sub-modules in the main Chrono library
 
 /**
-    @defgroup chrono Chrono::Engine
+    @defgroup chrono Chrono
     @brief Core Functionality
     @{
         @defgroup chrono_physics Physics objects

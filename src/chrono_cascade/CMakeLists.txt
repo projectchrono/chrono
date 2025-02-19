@@ -17,14 +17,14 @@ mark_as_advanced(CLEAR OpenCASCADE_DIR)
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE OpenCASCADE LIBRARY
 
-set(ChronoEngine_CASCADE_SOURCES 
+set(Chrono_CASCADE_SOURCES 
     ChCascadeMeshTools.cpp
     ChCascadeDoc.cpp
     ChVisualShapeCascade.cpp
     ChCascadeBodyEasy.cpp
 )
 
-set(ChronoEngine_CASCADE_HEADERS
+set(Chrono_CASCADE_HEADERS
     ChApiCASCADE.h
 	ChCascadeTriangulate.h
     ChCascadeMeshTools.h
@@ -33,13 +33,13 @@ set(ChronoEngine_CASCADE_HEADERS
     ChCascadeBodyEasy.h
 )
 if(CH_ENABLE_MODULE_IRRLICHT)
-    set(ChronoEngine_CASCADE_HEADERS ${ChronoEngine_CASCADE_HEADERS}
+    set(Chrono_CASCADE_HEADERS ${Chrono_CASCADE_HEADERS}
         ChCascadeIrrMeshTools.h)
 endif()
 
 source_group("" FILES 
-    ${ChronoEngine_CASCADE_SOURCES} 
-    ${ChronoEngine_CASCADE_HEADERS}
+    ${Chrono_CASCADE_SOURCES} 
+    ${Chrono_CASCADE_HEADERS}
     )
 
 #-----------------------------------------------------------------------------	
@@ -114,46 +114,46 @@ endif()
 set(DEPENDENCIES_CASCADE ${DEPENDENCIES_CASCADE} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------	
-# Add the ChronoEngine_cascade library
+# Add the Chrono_cascade library
 
-add_library(ChronoEngine_cascade ${ChronoEngine_CASCADE_SOURCES} ${ChronoEngine_CASCADE_HEADERS})
-add_library(ChronoEngine::cascade ALIAS ChronoEngine_cascade)
+add_library(Chrono_cascade ${Chrono_CASCADE_SOURCES} ${Chrono_CASCADE_HEADERS})
+add_library(Chrono::cascade ALIAS Chrono_cascade)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_cascade PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_cascade PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_cascade PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_cascade PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_cascade PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_cascade PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_cascade PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_cascade PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 if(WIN32)
-    target_compile_definitions(ChronoEngine_cascade PRIVATE WNT)
+    target_compile_definitions(Chrono_cascade PRIVATE WNT)
 endif()
 
 if(UNIX)
-    target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_IOSTREAM)
-    target_compile_definitions(ChronoEngine_cascade PRIVATE HAVE_LIMITS_H)
+    target_compile_definitions(Chrono_cascade PRIVATE HAVE_IOSTREAM)
+    target_compile_definitions(Chrono_cascade PRIVATE HAVE_LIMITS_H)
 endif()
 
-target_include_directories(ChronoEngine_cascade SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+target_include_directories(Chrono_cascade SYSTEM PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
-target_compile_definitions(ChronoEngine_cascade PRIVATE "CH_API_COMPILE_CASCADE")
+target_compile_definitions(Chrono_cascade PRIVATE "CH_API_COMPILE_CASCADE")
 
-target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine)
+target_link_libraries(Chrono_cascade PRIVATE Chrono_core)
 if(CH_ENABLE_MODULE_IRRLICHT)
-  target_link_libraries(ChronoEngine_cascade PRIVATE ChronoEngine_irrlicht)
+  target_link_libraries(Chrono_cascade PRIVATE Chrono_irrlicht)
 endif()
 
-target_link_libraries(ChronoEngine_cascade PUBLIC ${OCCT_LIBS})
+target_link_libraries(Chrono_cascade PUBLIC ${OCCT_LIBS})
 
-install(TARGETS ChronoEngine_cascade
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_cascade
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -164,5 +164,5 @@ install(TARGETS ChronoEngine_cascade
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${ChronoEngine_CASCADE_HEADERS}
+install(FILES ${Chrono_CASCADE_HEADERS}
         DESTINATION include/chrono_cascade)

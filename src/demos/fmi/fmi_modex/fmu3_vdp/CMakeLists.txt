@@ -2,7 +2,7 @@ set(COMPONENT_NAME "FMU3_vdp")
 set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
 set(COMPONENT_SOURCES vdpFMU.h vdpFMU.cpp)
 set(COMPONENT_RESOURCES_DIR "")
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine)
+set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core)
 set(COMPONENT_DLL_DEPENDENCIES "")
 
 set(FMU_ME TRUE)
@@ -11,7 +11,7 @@ set(FMU_ME TRUE)
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS Chrono_core)
 
 include_directories(${FMU_TOOLS_DIR})
 

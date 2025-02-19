@@ -36,15 +36,15 @@ endif()
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_parsers")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_parsers")
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-  list(APPEND LIBS "ChronoEngine_vsg")
+  list(APPEND LIBS "Chrono_vsg")
 endif()
 
 #--------------------------------------------------------------

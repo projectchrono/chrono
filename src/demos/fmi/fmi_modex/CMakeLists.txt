@@ -30,7 +30,7 @@ if (${FMU_EXPORT_SUPPORT})
   target_compile_definitions(${PROGRAM} PUBLIC VDP_FMU3_FILENAME="${VDP_FMU3_FILENAME}")
 endif()
 
-target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_fmi)
+target_link_libraries(${PROGRAM} Chrono_core Chrono_fmi)
 
 set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 

@@ -81,22 +81,22 @@ endif()
 
 set(COMPILER_FLAGS "")
 set(LINKER_FLAGS "")
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS Chrono_core)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-  list(APPEND LIBS "ChronoEngine_pardisomkl")
+  list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-  list(APPEND LIBS "ChronoEngine_vsg")
+  list(APPEND LIBS "Chrono_vsg")
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-  list(APPEND LIBS "ChronoEngine_mumps")
+  list(APPEND LIBS "Chrono_mumps")
 endif()
 
 #--------------------------------------------------------------

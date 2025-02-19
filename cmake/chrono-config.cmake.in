@@ -80,7 +80,7 @@ set(CHRONO_CONFIG_INCLUDED TRUE)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 
-include("${CMAKE_CURRENT_LIST_DIR}/ChronoEngineTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/ChronoTargets.cmake")
 
 set(CHRONO_INSTALL_TREE @CH_INSTALL_TREE@)
 
@@ -364,10 +364,10 @@ endif()
 # Initialize output variables for the core Chrono module (always present)
 #-------------------------------------------------------------------------------
 
-list(PREPEND CHRONO_LIB_NAMES "ChronoEngine")
+list(PREPEND CHRONO_LIB_NAMES "Chrono_core")
 list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
 if (NOT CHRONO_STATIC)
-  list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
+  list(APPEND CHRONO_DLL_NAMES "Chrono_core.dll")
   list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
 endif()
 
@@ -450,9 +450,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_opengl")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_opengl.dll")
       endif()
     endif()
 
@@ -480,9 +480,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()    
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_multicore")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_multicore.dll")
       endif()
     endif()
 
@@ -500,9 +500,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_modal")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_modal")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_modal.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_modal.dll")
       endif()
     endif()
 
@@ -523,10 +523,10 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_irrlicht")
 
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_irrlicht.dll")
       endif()
 
     endif()
@@ -554,17 +554,17 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vsg")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_vsg")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
       endif()
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_vehicle")
     if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_vehicle.dll")
     endif()
     list(PREPEND CHRONO_LIB_NAMES "ChronoModels_vehicle")
     if (NOT CHRONO_STATIC)
@@ -572,9 +572,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_vehicle_irrlicht")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_vehicle_irrlicht.dll")
       endif()
       if(@HAVE_IRRKLANG@)
         set(IRRKLANG_ROOT "@IRRKLANG_ROOT@")
@@ -584,9 +584,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_vsg")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_vehicle_vsg")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_vsg.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_vehicle_vsg.dll")
       endif()
     endif()
 
@@ -596,9 +596,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         message("WARNING: Chrono::Vehicle co-sim requires MPI, but MPI was not found")
         set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
       else()
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_vehicle_cosim")
         if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_vehicle_cosim.dll")
         endif()
       endif()
 
@@ -621,22 +621,22 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsisph")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_fsisph")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsisph.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph.dll")
       endif()
 
       if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsisph_vsg")
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_fsisph_vsg")
         if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsisph_vsg.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_vsg.dll")
         endif()
       endif()
 
       if(Chrono_OPENGL_REQUESTED AND Chrono_OPENGL_AVAILABLE)
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsisph_opengl")
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_fsisph_opengl")
         if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsisph_opengl.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_opengl.dll")
         endif()
       endif()
 
@@ -646,12 +646,12 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
       if (NOT CHRONO_STATIC)
         if (Chrono_OPENGL_AVAILABLE)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsisph_opengl.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_opengl.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_opengl.dll")
         endif()
         if (Chrono_VSG_AVAILABLE)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsisph_vsg.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_vsg.dll")
         endif()
       endif()
 
@@ -689,9 +689,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_sensor")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_sensor.dll")
       endif()
     endif()
 
@@ -709,9 +709,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
          find_dependency(fastrtps REQUIRED)
       endif()
       
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_synchrono")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_synchrono.dll")
       endif()
       
       set(CHRONO_SYNCHRONO_FASTDDS @FASTDDS_FOUND@)
@@ -766,9 +766,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_ros")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_ros")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ros.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_ros.dll")
       endif()
     endif()
 
@@ -781,15 +781,15 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
 
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_gpu.dll")
       endif()
 
       if(Chrono_OPENGL_REQUESTED AND Chrono_OPENGL_AVAILABLE)
-        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_gpu_opengl")
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu_opengl")
         if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu_opengl.dll")
+          list(APPEND CHRONO_DLL_NAMES "Chrono_gpu_opengl.dll")
         endif()
       endif()
 
@@ -828,9 +828,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       message(STATUS "MKL::MKL already available")
     endif()
 
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pardisomkl")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_pardisomkl")
     if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisomkl.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_pardisomkl.dll")
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "MUMPS")
@@ -844,24 +844,24 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_mumps")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_mumps.dll")
       endif()
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_postprocess")
     if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_postprocess.dll")
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "CASCADE")
     
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_cascade")
     if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_cascade.dll")
     endif()
 
     set(OpenCASCADE_DIR "@OpenCASCADE_DIR@" CACHE PATH "The directory containing a CMake configuration for OpenCASCADE")
@@ -869,9 +869,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "PARSERS")
 
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_parsers")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_parsers")
     if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parsers.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_parsers.dll")
     endif()
 
     if(@HAVE_URDF@)
@@ -902,9 +902,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_matlab")
       if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
+        list(APPEND CHRONO_DLL_NAMES "Chrono_matlab.dll")
       endif()
     endif()
 
@@ -936,8 +936,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       set(${ret_list} "${intersection}" PARENT_SCOPE)
     endfunction()
 
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_core")
-    list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_core.dll") # valid also in case of static
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_csharp_core")
+    list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_core.dll") # valid also in case of static
 
     set(CHRONO_CSHARP_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../chrono_csharp")
     
@@ -959,8 +959,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endforeach()
     
     if(Chrono_IRRLICHT_REQUESTED AND Chrono_IRRLICHT_AVAILABLE)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_irrlicht")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_irrlicht.dll")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_csharp_irrlicht")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_irrlicht.dll")
 
       set(Chrono_CSHARP_IRRLICHT_DIR "${CHRONO_CSHARP_SOURCE_DIR}/irrlicht")
       file(GLOB Chrono_CSHARP_IRRLICHT_SOURCES
@@ -977,8 +977,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if(Chrono_VEHICLE_REQUESTED AND Chrono_VEHICLE_AVAILABLE)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_vehicle")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_vehicle.dll")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_csharp_vehicle")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_vehicle.dll")
 
       set(Chrono_CSHARP_VEHICLE_DIR "${CHRONO_CSHARP_SOURCE_DIR}/vehicle")
       file(GLOB Chrono_CSHARP_VEHICLE_SOURCES
@@ -995,8 +995,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif() 
 
     if(Chrono_POSTPROCESS_REQUESTED AND Chrono_POSTPROCESS_AVAILABLE)
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_postprocess")
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_postprocess.dll")
+      list(PREPEND CHRONO_LIB_NAMES "Chrono_csharp_postprocess")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_csharp_postprocess.dll")
 
       set(Chrono_CSHARP_POSTPROCESS_DIR "${CHRONO_CSHARP_SOURCE_DIR}/postprocess")
       file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES 
@@ -1019,9 +1019,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     else()
       set(CHRONO_FMU_TOOLS_DIR "@FMU_TOOLS_DIR@")
     endif()
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fmi")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_fmi")
     if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fmi.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_fmi.dll")
     endif()
 
   endif() # end if-else for component type
@@ -1106,7 +1106,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 foreach(lib ${CHRONO_LIB_NAMES})
-  list(APPEND CHRONO_TARGETS "ChronoEngine::${lib}")
+  list(APPEND CHRONO_TARGETS "Chrono::${lib}")
 endforeach()
 
 unset(CHRONO_LIB_NAMES)
@@ -1263,4 +1263,4 @@ endfunction()
 
 
 
-check_required_components(ChronoEngine)
+check_required_components(Chrono_core)

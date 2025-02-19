@@ -81,7 +81,7 @@
   \null
 	\begin{tikzpicture}[remember picture, overlay]
 	\node[inner sep=0pt,anchor=east] at ([yshift=-0.4cm]current page text area.north east)
-     {\includegraphics[height=2cm]{logo_chrono_engine_h200}};
+     {\includegraphics[height=2cm]{logo_chrono_h200}};
   \end{tikzpicture}
   \vskip 4em%
   \let \footnote \thanks

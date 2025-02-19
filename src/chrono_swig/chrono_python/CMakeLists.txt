@@ -180,7 +180,7 @@ endif()
 
 
 swig_add_library(core LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
-target_link_libraries(core PRIVATE Python3::Python ChronoEngine)
+target_link_libraries(core PRIVATE Python3::Python Chrono_core)
 
 # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -196,14 +196,14 @@ endif()
 
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(core PROPERTIES
-                      PROJECT_LABEL "ChronoEngine_python_core"
+                      PROJECT_LABEL "Chrono_python_core"
                       LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                       SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                       )
 
 
 
-add_dependencies(core ChronoEngine)
+add_dependencies(core Chrono_core)
 
 # Copy PY file in a package dir
 set(CHPY_CORE_PY_FILE "${CMAKE_SWIG_OUTDIR}/core.py")
@@ -218,7 +218,7 @@ add_custom_command(TARGET core
 
 # Install .pyd binary module (.so on linux)
 install(TARGETS core
-        EXPORT ChronoEngineTargets
+        EXPORT ChronoTargets
         RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
         LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
         ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -274,7 +274,7 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 
 
   swig_add_library(postprocess LANGUAGE python SOURCES ${CHPY_POSTPROCESS_MODULE_FILE})
-  target_link_libraries(postprocess PRIVATE Python3::Python ChronoEngine ChronoEngine_postprocess)
+  target_link_libraries(postprocess PRIVATE Python3::Python Chrono_core Chrono_postprocess)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -291,15 +291,15 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(postprocess PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_postprocess"
+                        PROJECT_LABEL "Chrono_python_postprocess"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(postprocess ChronoEngine)
-  add_dependencies(postprocess ChronoEngine_postprocess)
+  add_dependencies(postprocess Chrono_core)
+  add_dependencies(postprocess Chrono_postprocess)
   add_dependencies(postprocess core)
 
   # Copy PY file in a package dir
@@ -316,7 +316,7 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS postprocess
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -354,7 +354,7 @@ endif()
   endif()
 
   swig_add_library(fea LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
-  target_link_libraries(fea PRIVATE Python3::Python ChronoEngine)
+  target_link_libraries(fea PRIVATE Python3::Python Chrono_core)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -371,14 +371,14 @@ endif()
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(fea PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_fea"
+                        PROJECT_LABEL "Chrono_python_fea"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(fea ChronoEngine)
+  add_dependencies(fea Chrono_core)
   add_dependencies(fea core)
 
   # Copy PY file in a package dir
@@ -395,7 +395,7 @@ endif()
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS fea
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -432,7 +432,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
   find_package(Irrlicht)
 
   swig_add_library(irrlicht LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
-  target_link_libraries(irrlicht PRIVATE Python3::Python ChronoEngine ChronoEngine_irrlicht Irrlicht::Irrlicht)
+  target_link_libraries(irrlicht PRIVATE Python3::Python Chrono_core Chrono_irrlicht Irrlicht::Irrlicht)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -448,15 +448,15 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(irrlicht PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_irrlicht"
+                        PROJECT_LABEL "Chrono_python_irrlicht"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
   
   target_compile_definitions(irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
 
-  add_dependencies(irrlicht ChronoEngine)
-  add_dependencies(irrlicht ChronoEngine_irrlicht)
+  add_dependencies(irrlicht Chrono_core)
+  add_dependencies(irrlicht Chrono_irrlicht)
   add_dependencies(irrlicht core)
 
   # Copy PY file in a package dir
@@ -473,7 +473,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS irrlicht
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -514,7 +514,7 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   endif()
 
   swig_add_library(pardisomkl LANGUAGE python SOURCES ${CHPY_MKL_MODULE_FILE})
-  target_link_libraries(pardisomkl PRIVATE Python3::Python ChronoEngine ChronoEngine_pardisomkl)
+  target_link_libraries(pardisomkl PRIVATE Python3::Python Chrono_core Chrono_pardisomkl)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -531,15 +531,15 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(pardisomkl PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_pardisomkl"
+                        PROJECT_LABEL "Chrono_python_pardisomkl"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(pardisomkl ChronoEngine)
-  add_dependencies(pardisomkl ChronoEngine_pardisomkl)
+  add_dependencies(pardisomkl Chrono_core)
+  add_dependencies(pardisomkl Chrono_pardisomkl)
   add_dependencies(pardisomkl core)
 
   # Copy PY file in a package dir
@@ -556,7 +556,7 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS pardisomkl
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -590,7 +590,7 @@ if(CH_ENABLE_MODULE_CASCADE)
   set_source_files_properties(${CHPY_CASCADE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   swig_add_library(cascade LANGUAGE python SOURCES ${CHPY_CASCADE_MODULE_FILE})
-  target_link_libraries(cascade PRIVATE Python3::Python ChronoEngine ChronoEngine_cascade)
+  target_link_libraries(cascade PRIVATE Python3::Python Chrono_core Chrono_cascade)
   if(MSVC)
     set_source_files_properties(${CHPY_CASCADE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
   endif()
@@ -621,15 +621,15 @@ if(CH_ENABLE_MODULE_CASCADE)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(cascade PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_cascade"
+                        PROJECT_LABEL "Chrono_python_cascade"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(cascade ChronoEngine)
-  add_dependencies(cascade ChronoEngine_cascade)
+  add_dependencies(cascade Chrono_core)
+  add_dependencies(cascade Chrono_cascade)
   add_dependencies(cascade core)
 
   # Copy PY file in a package dir
@@ -646,7 +646,7 @@ if(CH_ENABLE_MODULE_CASCADE)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS cascade
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -689,10 +689,10 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   endif()
 
   swig_add_library(vehicle LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
-  target_link_libraries(vehicle PRIVATE Python3::Python ChronoEngine ChronoEngine_vehicle ChronoModels_vehicle)
+  target_link_libraries(vehicle PRIVATE Python3::Python Chrono_core Chrono_vehicle ChronoModels_vehicle)
   if(CH_ENABLE_MODULE_IRRLICHT)
     find_package(Irrlicht)
-    target_link_libraries(vehicle PRIVATE ChronoEngine_vehicle_irrlicht ChronoEngine_irrlicht Irrlicht::Irrlicht)
+    target_link_libraries(vehicle PRIVATE Chrono_vehicle_irrlicht Chrono_irrlicht Irrlicht::Irrlicht)
   endif()
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -721,17 +721,17 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(vehicle PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_vehicle"
+                        PROJECT_LABEL "Chrono_python_vehicle"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(vehicle ChronoEngine)
-  add_dependencies(vehicle ChronoEngine_vehicle)
+  add_dependencies(vehicle Chrono_core)
+  add_dependencies(vehicle Chrono_vehicle)
   if(CH_ENABLE_MODULE_IRRLICHT)
-    add_dependencies(vehicle ChronoEngine_irrlicht)
+    add_dependencies(vehicle Chrono_irrlicht)
   endif()
   add_dependencies(vehicle ChronoModels_vehicle)
   add_dependencies(vehicle core)
@@ -750,7 +750,7 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS vehicle
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -787,7 +787,7 @@ if(CH_ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
   endif()
 
   swig_add_library(sensor LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
-  target_link_libraries(sensor PRIVATE Python3::Python Python3::NumPy ChronoEngine ChronoEngine_sensor)
+  target_link_libraries(sensor PRIVATE Python3::Python Python3::NumPy Chrono_core Chrono_sensor)
 
   # Disable additional warnings for generated C++ code TODO: are they all really needed for all targets?
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -803,13 +803,13 @@ if(CH_ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(sensor PROPERTIES
-          PROJECT_LABEL "ChronoEngine_python_sensor"
+          PROJECT_LABEL "Chrono_python_sensor"
           _DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
           SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
           )
 
-  add_dependencies(sensor ChronoEngine)
-  add_dependencies(sensor ChronoEngine_sensor)
+  add_dependencies(sensor Chrono_core)
+  add_dependencies(sensor Chrono_sensor)
   add_dependencies(sensor core)
 
   # Copy PY file in a package dir
@@ -826,7 +826,7 @@ if(CH_ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS sensor
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -864,7 +864,7 @@ endif()
   endif()
 
   swig_add_library(robot LANGUAGE python SOURCES ${CHPY_ROBOT_MODULE_FILE})
-  target_link_libraries(robot PRIVATE Python3::Python ChronoEngine ChronoModels_robot)
+  target_link_libraries(robot PRIVATE Python3::Python Chrono_core ChronoModels_robot)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_compile_definitions(robot PRIVATE "/DWNT")
@@ -892,12 +892,12 @@ endif()
   
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(robot PROPERTIES 
-                        PROJECT_LABEL "ChronoEngine_python_robot"
+                        PROJECT_LABEL "Chrono_python_robot"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
-  add_dependencies(robot ChronoEngine)
+  add_dependencies(robot Chrono_core)
   add_dependencies(robot ChronoModels_robot)
   add_dependencies(robot core)
 
@@ -916,7 +916,7 @@ endif()
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS robot
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -942,7 +942,7 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   endif()
 
   swig_add_library(parsers LANGUAGE python SOURCES ${CHPY_PARSERS_MODULE_FILE})
-  target_link_libraries(parsers PRIVATE Python3::Python ChronoEngine ChronoEngine_parsers)
+  target_link_libraries(parsers PRIVATE Python3::Python Chrono_core Chrono_parsers)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_compile_definitions(parsers PRIVATE "/DWNT")
@@ -965,15 +965,15 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(parsers PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_parsers"
+                        PROJECT_LABEL "Chrono_python_parsers"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(parsers ChronoEngine)
-  add_dependencies(parsers ChronoEngine_parsers)
+  add_dependencies(parsers Chrono_core)
+  add_dependencies(parsers Chrono_parsers)
   add_dependencies(parsers core)
 
   # Copy PY file in a package dir
@@ -990,7 +990,7 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS parsers
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
@@ -1042,7 +1042,7 @@ if(CH_ENABLE_MODULE_ROS)
   endif()
 
   swig_add_library(ros LANGUAGE python SOURCES ${CHPY_ROS_MODULE_FILE})
-  target_link_libraries(ros PRIVATE Python3::Python ChronoEngine ChronoEngine_ros)
+  target_link_libraries(ros PRIVATE Python3::Python Chrono_core Chrono_ros)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_compile_definitions(ros PRIVATE "/DWNT")
@@ -1065,15 +1065,15 @@ if(CH_ENABLE_MODULE_ROS)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(ros PROPERTIES
-                        PROJECT_LABEL "ChronoEngine_python_ros"
+                        PROJECT_LABEL "Chrono_python_ros"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE
                         )
 
   
 
-  add_dependencies(ros ChronoEngine)
-  add_dependencies(ros ChronoEngine_ros)
+  add_dependencies(ros Chrono_core)
+  add_dependencies(ros Chrono_ros)
   add_dependencies(ros core)
 
   # Copy PY file in a package dir
@@ -1090,7 +1090,7 @@ if(CH_ENABLE_MODULE_ROS)
 
   # Install .pyd binary module (.so on linux)
   install(TARGETS ros
-          EXPORT ChronoEngineTargets
+          EXPORT ChronoTargets
           RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
           LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
           ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")

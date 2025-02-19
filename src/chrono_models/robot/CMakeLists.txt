@@ -88,7 +88,7 @@ add_library(ChronoModels_robot
             ${CRM_COPTERS_FILES}
             ${CRM_INDUSTRIAL_FILES}
             )
-add_library(ChronoEngine::models_robot ALIAS ChronoModels_robot)
+add_library(Chrono::models_robot ALIAS ChronoModels_robot)
 
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_robot PROPERTIES COMPILE_FLAGS "/GL")
@@ -105,10 +105,10 @@ endif()
 
 target_compile_definitions(ChronoModels_robot PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODELS>)
 
-target_link_libraries(ChronoModels_robot PUBLIC ChronoEngine)
+target_link_libraries(ChronoModels_robot PUBLIC Chrono_core)
 
 install(TARGETS ChronoModels_robot
-        EXPORT ChronoEngineTargets
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

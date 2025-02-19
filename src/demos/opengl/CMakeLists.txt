@@ -23,8 +23,8 @@ FOREACH(PROGRAM ${DEMOS})
   set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
   SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   TARGET_LINK_LIBRARIES(${PROGRAM}
-    ChronoEngine
-    ChronoEngine_opengl)
+    Chrono_core
+    Chrono_opengl)
 
   if(MSVC)
     set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})

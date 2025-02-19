@@ -269,12 +269,12 @@ endif()
 
 # Allow caller to disable OpenMP use (even if OpenMP found)
 # Note that some modules may override this
-cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON "OPENMP_FOUND" OFF)
+cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono" ON "OPENMP_FOUND" OFF)
 
 if(NOT CH_ENABLE_OPENMP)
 	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
 	find_package(TBB)
-	cmake_dependent_option(CH_ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
+	cmake_dependent_option(CH_ENABLE_TBB "Enable TBB support in Chrono" ON "TBB_FOUND" OFF)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -503,7 +503,7 @@ endif()
 # Propagate the CMake build to other directories
 #------------------------------------------------------------
 
-# Add directory for main ChronoEngine library
+# Add directory for main Chrono library
 add_subdirectory(chrono)
 
 # Add directories to build various optional modules
@@ -820,17 +820,17 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# Export generated ChronoEngineTargets.cmake
+# Export generated ChronoTargets.cmake
 #-----------------------------------------------------------------------------
 
 
-export(EXPORT ChronoEngineTargets
-       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoEngineTargets.cmake"
-       NAMESPACE ChronoEngine::
+export(EXPORT ChronoTargets
+       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoTargets.cmake"
+       NAMESPACE Chrono::
 )
 
-install(EXPORT ChronoEngineTargets
-        FILE ChronoEngineTargets.cmake
-        NAMESPACE ChronoEngine::
+install(EXPORT ChronoTargets
+        FILE ChronoTargets.cmake
+        NAMESPACE Chrono::
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )

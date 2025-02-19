@@ -30,8 +30,8 @@ foreach(PROGRAM ${DEMOS})
     endif()
 
     target_link_libraries(${PROGRAM}
-                          ChronoEngine
-                          ChronoEngine_irrlicht
+                          Chrono_core
+                          Chrono_irrlicht
                           ChronoModels_robot)
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

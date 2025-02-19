@@ -24,12 +24,12 @@ endif()
 
 #-----------------------------------------------------------------------------
 
-set(ChronoEngine_POSTPROCESS_SOURCES 
+set(Chrono_POSTPROCESS_SOURCES 
     ChPovRay.cpp
     ChBlender.cpp
 )
 
-set(ChronoEngine_POSTPROCESS_HEADERS
+set(Chrono_POSTPROCESS_HEADERS
     ChApiPostProcess.h 
     ChPostProcessBase.h
     ChPovRay.h
@@ -37,39 +37,39 @@ set(ChronoEngine_POSTPROCESS_HEADERS
 )
 
 if(GNUPLOT_FOUND)
-  set(ChronoEngine_POSTPROCESS_HEADERS ${ChronoEngine_POSTPROCESS_HEADERS}
+  set(Chrono_POSTPROCESS_HEADERS ${Chrono_POSTPROCESS_HEADERS}
       ChGnuPlot.h)
 endif()
 
 source_group("" FILES 
-            ${ChronoEngine_POSTPROCESS_SOURCES} 
-            ${ChronoEngine_POSTPROCESS_HEADERS})
+            ${Chrono_POSTPROCESS_SOURCES} 
+            ${Chrono_POSTPROCESS_HEADERS})
 
 #-----------------------------------------------------------------------------	
 # In most cases, you do not need to edit the lines below.
 
-add_library(ChronoEngine_postprocess ${ChronoEngine_POSTPROCESS_SOURCES} ${ChronoEngine_POSTPROCESS_HEADERS})
-add_library(ChronoEngine::postprocess ALIAS ChronoEngine_postprocess)
+add_library(Chrono_postprocess ${Chrono_POSTPROCESS_SOURCES} ${Chrono_POSTPROCESS_HEADERS})
+add_library(Chrono::postprocess ALIAS Chrono_postprocess)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_postprocess PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_postprocess PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_postprocess PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_postprocess PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_postprocess PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_postprocess PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_postprocess PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_postprocess PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
+target_compile_definitions(Chrono_postprocess PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_POSTPROCESS>)
 
-target_link_libraries(ChronoEngine_postprocess PRIVATE ChronoEngine)
+target_link_libraries(Chrono_postprocess PRIVATE Chrono_core)
 
-install(TARGETS ChronoEngine_postprocess
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_postprocess
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -80,5 +80,5 @@ install(TARGETS ChronoEngine_postprocess
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${ChronoEngine_POSTPROCESS_HEADERS}
+install(FILES ${Chrono_POSTPROCESS_HEADERS}
         DESTINATION include/chrono_postprocess)

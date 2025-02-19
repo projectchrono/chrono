@@ -1,4 +1,4 @@
-set(LIBRARIES ChronoEngine)
+set(LIBRARIES Chrono_core)
 
 set(TESTS
     utest_COLL_bullet_utils

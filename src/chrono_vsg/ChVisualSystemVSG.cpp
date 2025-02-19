@@ -470,7 +470,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
-    m_logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png");
+    m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
 
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();

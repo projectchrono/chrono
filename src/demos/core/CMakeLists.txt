@@ -21,14 +21,14 @@ set(DEMOS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS Chrono_core)
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-  list(APPEND LIBS "ChronoEngine_pardisomkl")
+  list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-    list(APPEND LIBS "ChronoEngine_mumps")
+    list(APPEND LIBS "Chrono_mumps")
 endif()
 
 #--------------------------------------------------------------

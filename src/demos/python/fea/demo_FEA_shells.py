@@ -33,7 +33,7 @@ except OSError as exc:
        print("Error creating output directory " )
 
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 # Create a mesh, that is a container for groups

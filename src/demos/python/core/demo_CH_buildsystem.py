@@ -13,7 +13,7 @@
 print ("Second tutorial: create and populate a physical system");
 
 
-# Load the Chrono::Engine core module!
+# Load the Chrono core module!
 import pychrono as chrono
 
 

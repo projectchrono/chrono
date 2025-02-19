@@ -13,7 +13,7 @@
 print ("First tutorial for PyChrono: vectors, matrices etc.");
 
 
-# Load the Chrono::Engine core module!
+# Load the Chrono core module!
 import pychrono as chrono
 try:
     import numpy as np

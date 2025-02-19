@@ -25,7 +25,7 @@ import math as m
 
 print("Copyright (c) 2017 projectchrono.org")
 
-# Create a Chrono::Engine physical sys
+# Create a Chrono physical sys
 sys = chrono.ChSystemNSC()
 
 # Contact material shared among all bodies

@@ -19,7 +19,7 @@ import pychrono.irrlicht as chronoirr
 
 print("Copyright (c) 2017 projectchrono.org")
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 

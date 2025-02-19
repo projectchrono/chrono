@@ -1,5 +1,5 @@
 //
-// Script to be executed with POV-Ray for rendering a frame of a Chrono::Engine generated animation.
+// Script to be executed with POV-Ray for rendering a frame of a Chrono generated animation.
 // Most often, in POV-Ray, you run the .INI file, that calls this file multiple times to render
 // the many frames of a complete animation.
 //
@@ -299,7 +299,7 @@ light_source {
         
 // -----------------------------------------------------------------------------
 // OBJECTS TO BE RENDERED ARE AUTOMATICALLY INSERTED AFTER THIS LINE
-// THANKS TO THE POSTPROCESSING UNIT OF CHRONO::ENGINE. YOU SHOULD NOT NEED TO
+// THANKS TO THE POSTPROCESSING MODULE OF CHRONO. YOU SHOULD NOT NEED TO
 // MODIFY WHAT FOLLOWS.
 
 

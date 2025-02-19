@@ -39,19 +39,19 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine_vehicle_cosim")
+list(APPEND LIBS "Chrono_vehicle_cosim")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-    list(APPEND LIBS "ChronoEngine_pardisomkl")
+    list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-    list(APPEND LIBS "ChronoEngine_mumps")
+    list(APPEND LIBS "Chrono_mumps")
 endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
-    list(APPEND LIBS "ChronoEngine_postprocess")
+    list(APPEND LIBS "Chrono_postprocess")
 endif()
 
 # ------------------------------------------------------------------------------
