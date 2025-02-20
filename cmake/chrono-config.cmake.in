@@ -221,6 +221,21 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 endforeach()
 
 #-------------------------------------------------------------------------------
+# Enable C++ if not already done.
+# This allows future use of certain Chrono modules from C#:
+# - Chrono::Multicore which requires OpenMP for C++
+# - Chrono::Vehicle co-simulation which requires MPI for C++
+# - Chrono::VSG which calls FindThreads
+#-------------------------------------------------------------------------------
+
+get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
+if(LANG_INDEX EQUAL -1)
+  message(STATUS "Enable C++ language")
+  enable_language(CXX)
+endif()
+
+#-------------------------------------------------------------------------------
 # Find Eigen3
 #-------------------------------------------------------------------------------
 
@@ -528,14 +543,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "VSG")
-
-    # Note: VSG expects C++ (because of FindThreads); enable CXX if not already done
-    get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
-    list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
-    if(LANG_INDEX EQUAL -1)
-      message(STATUS "Enable C++ language")
-      enable_language(CXX)
-    endif()
 
     set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
     set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
