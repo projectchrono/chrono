@@ -1700,7 +1700,7 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
         ComputeFreeSurfaceNablaDist(index, posA, rhoPreMuA, sortedPosRad, sortedRhoPreMu, neighborList, NLStart, NLEnd, nabla_r);
 
         Real AFSM = 3.0f;
-        Real AFST = 2.75;
+        Real AFST = 2;
 
         result = -paramsD.shifting_diffusion_A * paramsD.h * inner_sum * vA;
 
