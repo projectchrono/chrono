@@ -11,8 +11,8 @@ ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono WOOD module ====\n")
 
-# List all source and header files for the ChronoEngine_wood library
-SET(ChronoEngine_WOOD_SOURCES 
+# List all source and header files for the Chrono_wood library
+SET(Chrono_WOOD_SOURCES 
     ChElementCurvilinearBeamBezier.cpp
     ChElementCurvilinearBeamIGA.cpp
     ChElementCBLCON.cpp
@@ -24,7 +24,7 @@ SET(ChronoEngine_WOOD_SOURCES
     ChVisualShapeWOOD.cpp    
 )
 
-SET(ChronoEngine_WOOD_HEADERS
+SET(Chrono_WOOD_HEADERS
 	ChWoodApi.h
     ChElementCurvilinearBeamBezier.h
     ChElementCurvilinearBeamIGA.h
@@ -40,43 +40,43 @@ SET(ChronoEngine_WOOD_HEADERS
 )
 
 SOURCE_GROUP("" FILES 
-            ${ChronoEngine_WOOD_SOURCES} 
-            ${ChronoEngine_WOOD_HEADERS}
+            ${Chrono_WOOD_SOURCES} 
+            ${Chrono_WOOD_HEADERS}
 )
 
 # Include directories (ensure WOOD_INCLUDE_DIR is defined or specify the correct path)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Create the ChronoEngine_wood library
-ADD_LIBRARY(ChronoEngine_wood
-  ${ChronoEngine_WOOD_SOURCES}
-  ${ChronoEngine_WOOD_HEADERS}
+# Create the Chrono_wood library
+ADD_LIBRARY(Chrono_wood
+  ${Chrono_WOOD_SOURCES}
+  ${Chrono_WOOD_HEADERS}
 )
 
 # Set compiler and linker flags
-SET_TARGET_PROPERTIES(ChronoEngine_wood PROPERTIES
+SET_TARGET_PROPERTIES(Chrono_wood PROPERTIES
   COMPILE_FLAGS "${CH_CXX_FLAGS}"
   LINK_FLAGS "${CH_LINKERFLAG_LIB}"
 )
 
 # Compile definitions
-target_compile_definitions(ChronoEngine_wood PRIVATE "CH_WOOD_API_COMPILE")
-target_compile_definitions(ChronoEngine_wood PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(Chrono_wood PRIVATE "CH_WOOD_API_COMPILE")
+target_compile_definitions(Chrono_wood PRIVATE "CH_IGNORE_DEPRECATED")
 
 # Link required libraries
-TARGET_LINK_LIBRARIES(ChronoEngine_wood
-  ChronoEngine
+TARGET_LINK_LIBRARIES(Chrono_wood
+  Chrono_core
   ${WOOD_LIBRARY}
 )
 
 
 # Add dependencies
-ADD_DEPENDENCIES(ChronoEngine_wood ChronoEngine)
+ADD_DEPENDENCIES(Chrono_wood Chrono_core)
 
 # Handle Windows DLL copying
 #IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 #  ADD_CUSTOM_COMMAND(
-#    TARGET ChronoEngine_wood POST_BUILD
+#    TARGET Chrono_wood POST_BUILD
 #    COMMAND ${CMAKE_COMMAND} -E make_directory
 #            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
 #    COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -88,11 +88,11 @@ ADD_DEPENDENCIES(ChronoEngine_wood ChronoEngine)
 #ENDIF()
 
 # Install the library and headers
-INSTALL(TARGETS ChronoEngine_wood
+INSTALL(TARGETS Chrono_wood
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
 
-INSTALL(FILES ${ChronoEngine_WOOD_HEADERS} DESTINATION include/chrono_wood)
+INSTALL(FILES ${Chrono_WOOD_HEADERS} DESTINATION include/chrono_wood)
 
