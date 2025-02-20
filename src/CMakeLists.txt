@@ -271,12 +271,6 @@ endif()
 # Note that some modules may override this or be disabled without OpenMP support
 cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono" ON "OPENMP_FOUND" OFF)
 
-if(NOT CH_ENABLE_OPENMP)
-	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
-	find_package(TBB)
-	cmake_dependent_option(CH_ENABLE_TBB "Enable TBB support in Chrono" ON "TBB_FOUND" OFF)
-endif()
-
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
@@ -698,13 +692,6 @@ if(CH_ENABLE_OPENMP)
 else()
   set(CHRONO_OPENMP_ENABLED "#undef CHRONO_OPENMP_ENABLED")
 endif()
-
-if(CH_ENABLE_TBB)
-  set(CHRONO_TBB_ENABLED "#define CHRONO_TBB_ENABLED")
-else()
-  set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
-endif()
-
 
 if(CHRONO_CUDA_FOUND)
   set(CHRONO_HAS_CUDA "#define CHRONO_HAS_CUDA")

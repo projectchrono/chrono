@@ -1,13 +1,6 @@
 #===============================================================================
 # CMake configuration file for the Chrono_Multicore library
-#
-# Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #===============================================================================
-
-# The Chrono::Multicore module will build even if OpenMP is not found,
-# it just won't have parallel computation support.
-# If TBB is defined, thrust will use TBB but the rest of the code will be single
-# threaded
 
 option(CH_ENABLE_MODULE_MULTICORE "Enable the Chrono Multicore module" OFF)
 
@@ -179,11 +172,7 @@ if(MSVC)
 endif()
 
 target_link_libraries(Chrono_multicore PRIVATE Chrono_core)
-if(CH_ENABLE_OPENMP)
-  target_link_libraries(Chrono_multicore PRIVATE OpenMP::OpenMP_CXX)
-elseif(CH_ENABLE_TBB)
-  target_link_libraries(Chrono_multicore PRIVATE ${TBB_LIBRARIES})
-endif()
+target_link_libraries(Chrono_multicore PRIVATE OpenMP::OpenMP_CXX)
 target_link_libraries(Chrono_multicore PUBLIC Thrust::Thrust)
 target_link_libraries(Chrono_multicore PUBLIC Blaze::Blaze)
 if(BOOST_REQUIRED)
@@ -194,19 +183,8 @@ target_compile_definitions(Chrono_multicore PRIVATE CH_API_COMPILE_MULTICORE)
 target_compile_definitions(Chrono_multicore PRIVATE BT_THREADSAFE)
 
 # ----- Configure Blaze and Thrust -----
-## TODO: DARIOM shall they be guarded for only CXX?
-if(CH_ENABLE_OPENMP)
-  target_compile_definitions(Chrono_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
-  target_compile_definitions(Chrono_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
-elseif(CH_ENABLE_TBB)
-  target_compile_definitions(Chrono_multicore PUBLIC "BLAZE_USE_CPP_THREADS")
-  target_compile_definitions(Chrono_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB")
-  target_compile_definitions(Chrono_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB")
-else()
-  target_compile_definitions(Chrono_multicore PUBLIC "BLAZE_USE_CPP_THREADS")
-  target_compile_definitions(Chrono_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP")
-  target_compile_definitions(Chrono_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-endif()
+target_compile_definitions(Chrono_multicore PUBLIC "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP")
+target_compile_definitions(Chrono_multicore PUBLIC "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP")
 
 install(TARGETS Chrono_multicore
         EXPORT ChronoTargets

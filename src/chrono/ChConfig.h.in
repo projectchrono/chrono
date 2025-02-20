@@ -105,9 +105,6 @@
 // If OpenMP support was enabled, define CHRONO_OPENMP_ENABLED
 @CHRONO_OPENMP_ENABLED@
 
-// If TBB support was enabled, define CHRONO_TBB_ENABLED
-@CHRONO_TBB_ENABLED@
-
 // -----------------------------------------------------------------------------
 
 // If SSE support was found, then

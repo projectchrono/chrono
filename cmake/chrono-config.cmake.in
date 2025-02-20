@@ -462,7 +462,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     endif()
 
     if (NOT CHRONO_OPENMP_CXX_FOUND)
-      message("WARNING: Chrono::Multicore requires OpenMP for C++, but OpenMPwas not found")
+      message("WARNING: Chrono::Multicore requires OpenMP for C++, but OpenMP was not found")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 
