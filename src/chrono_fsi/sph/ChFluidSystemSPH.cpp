@@ -632,6 +632,10 @@ void ChFluidSystemSPH::SetShiftingXSPHParameters(double eps) {
     m_paramsH->shifting_xsph_eps = eps;
 }
 
+void ChFluidSystemSPH::SetShiftingDiffusionParameter(double A) {
+    m_paramsH->shifting_diffusion_A = A;
+}
+
 void ChFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
     m_paramsH->USE_Consistent_G = consistent_gradient;
     m_paramsH->USE_Consistent_L = consistent_Laplacian;
@@ -829,6 +833,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->shifting_ppst_push = sph_params.shifting_ppst_push;
     m_paramsH->shifting_ppst_pull = sph_params.shifting_ppst_pull;
     m_paramsH->shifting_beta_implicit = sph_params.shifting_beta_implicit;
+    m_paramsH->shifting_diffusion_A = sph_params.shifting_diffusion_A;
     m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
 
     m_paramsH->densityReinit = sph_params.density_reinit_steps;

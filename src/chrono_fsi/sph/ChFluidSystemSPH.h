@@ -84,6 +84,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         double shifting_ppst_push;  ///< PPST pushing coefficient (default: 3.0)
         double shifting_ppst_pull;  ///< shifting beta coefficient (default: 1.0)
         double shifting_beta_implicit;    ///< shifting coefficient used in implicit solver (default: 1.0)
+        double shifting_diffusion_A;      ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
         bool use_density_based_projection;         ///< (ISPH only, default: false)
@@ -154,6 +155,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set the XSPH Shifting parameters
     /// eps: coefficient for the XSPH shifting method
     void SetShiftingXSPHParameters(double eps);
+
+    /// Set the diffusion based shifting parameter A 
+    void SetShiftingDiffusionParameter(double A);
 
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(const double fzDim);

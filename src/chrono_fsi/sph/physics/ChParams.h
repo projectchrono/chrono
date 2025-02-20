@@ -87,6 +87,7 @@ struct SimParams {
                                   ///< sphere is detected
     Real shifting_ppst_pull;      ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
     Real shifting_beta_implicit;  ///< Coefficient for shifting used in implicit scheme
+    Real shifting_diffusion_A;
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to
               ///< use is to run simulations multiple time and find which one is the largest dT that produces a

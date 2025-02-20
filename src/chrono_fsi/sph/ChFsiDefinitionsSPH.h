@@ -38,7 +38,7 @@ enum class SPHMethod {
 };
 
 /// Shifting Methods
-enum class ShiftingMethod { NONE, PPST, XSPH, PPST_XSPH };
+enum class ShiftingMethod { NONE, PPST, XSPH, PPST_XSPH, DIFFUSION, DIFFUSION_XSPH};
 
 /// Equation of State type.
 /// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
