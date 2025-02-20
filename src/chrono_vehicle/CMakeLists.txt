@@ -75,6 +75,7 @@ SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 # ----------------------------------------------------------------------------
 # Find IrrKlang library
 # ----------------------------------------------------------------------------
+
 if(CH_ENABLE_IRRKLANG)
 
   set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
@@ -95,6 +96,10 @@ if(CH_ENABLE_IRRKLANG)
     
 
   set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
+
+else()
+
+  set(HAVE_IRRKLANG FALSE)
 
 endif()
 
