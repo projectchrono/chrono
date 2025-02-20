@@ -268,7 +268,7 @@ else()
 endif()
 
 # Allow caller to disable OpenMP use (even if OpenMP found)
-# Note that some modules may override this
+# Note that some modules may override this or be disabled without OpenMP support
 cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono" ON "OPENMP_FOUND" OFF)
 
 if(NOT CH_ENABLE_OPENMP)

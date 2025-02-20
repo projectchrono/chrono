@@ -1383,13 +1383,13 @@ if(CHRONO_THRUST_FOUND)
 endif()
 
 if(CH_ENABLE_OPENMP)
-  target_link_libraries(Chrono_core PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(Chrono_core PUBLIC OpenMP::OpenMP_CXX)
 elseif(CH_ENABLE_TBB)
-  target_link_libraries(Chrono_core PRIVATE ${TBB_LIBRARIES}) 
+  target_link_libraries(Chrono_core PUBLIC ${TBB_LIBRARIES}) 
 endif()
 
 if(UNIX)
-  target_link_libraries(Chrono_core PRIVATE pthread)
+  target_link_libraries(Chrono_core PUBLIC pthread)
 endif()
 
 # Add the 'socket' library to the linking, depending on platform.

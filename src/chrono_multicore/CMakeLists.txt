@@ -21,15 +21,22 @@ endif()
 
 message(STATUS "\n==== Chrono Multicore module ====\n")
 
+# Return now if OpenMP is disabled
+if(NOT CH_ENABLE_OPENMP)
+  message("Chrono::Multicore requires OpenMP, but OpenMP is disabled; disabling Chrono::Multicore")
+  set(CH_ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
+  return()
+endif()
+
 # Return now if Thrust not available
-if (NOT CHRONO_THRUST_FOUND)
+if(NOT CHRONO_THRUST_FOUND)
   message("Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
   set(CH_ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono Multicore module" FORCE)
   return()
 endif()
 
+# Find Blaze
 find_package(Blaze REQUIRED)
-
 if(Blaze_FOUND)
   mark_as_advanced(FORCE Blaze_ROOT)
 else()

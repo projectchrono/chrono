@@ -20,43 +20,43 @@ namespace chrono {
 
 #ifdef _OPENMP
 
-inline void ChOMP::SetNumThreads(int nthreads) {
+void ChOMP::SetNumThreads(int nthreads) {
     omp_set_num_threads(nthreads);
 }
 
-inline int ChOMP::GetNumThreads() {
+int ChOMP::GetNumThreads() {
     return omp_get_num_threads();
 }
 
-inline int ChOMP::GetThreadNum() {
+int ChOMP::GetThreadNum() {
     return omp_get_thread_num();
 }
 
-inline int ChOMP::GetNumProcs() {
+int ChOMP::GetNumProcs() {
     return omp_get_num_procs();
 }
 
-inline int ChOMP::GetMaxThreads() {
+int ChOMP::GetMaxThreads() {
     return omp_get_max_threads();
 }
 
 #else
 
-inline void ChOMP::SetNumThreads(int nthreads) {}
+void ChOMP::SetNumThreads(int nthreads) {}
 
-inline int ChOMP::GetNumThreads() {
+int ChOMP::GetNumThreads() {
     return 1;
 }
 
-inline int ChOMP::GetThreadNum() {
+int ChOMP::GetThreadNum() {
     return 1;
 }
 
-inline int ChOMP::GetNumProcs() {
+int ChOMP::GetNumProcs() {
     return 1;
 }
 
-inline int ChOMP::GetMaxThreads() {
+int ChOMP::GetMaxThreads() {
     return 1;
 }
 
