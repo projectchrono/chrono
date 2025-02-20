@@ -185,7 +185,6 @@ if(HAVE_URDF AND ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
     get_target_property(TINYXML2_TYPE tinyxml2::tinyxml2 TYPE)
     if(NOT TINYXML2_TYPE STREQUAL STATIC_LIBRARY)
-      message(STATUS "  MUMPS library: dynamic")
       get_target_property(TINYXML2_DLL tinyxml2::tinyxml2 IMPORTED_LOCATION_RELEASE)
       if(EXISTS "${TINYXML2_DLL}")
         install(FILES "${TINYXML2_DLL}" DESTINATION bin)

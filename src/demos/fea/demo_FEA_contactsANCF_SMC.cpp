@@ -51,8 +51,8 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 class PrintContactInfo : public ChContactContainer::AddContactCallback {
   public:
     virtual void OnAddContact(const ChCollisionInfo& cinfo, ChContactMaterialComposite* const material) override {
-        auto contactableA = cinfo.modelA->GetContactable();
-        auto contactableB = cinfo.modelB->GetContactable();
+        ////auto contactableA = cinfo.modelA->GetContactable();
+        ////auto contactableB = cinfo.modelB->GetContactable();
 
         std::cout << "  " << cinfo.vpA.z() << "  |  " << cinfo.vpB.z() << std::endl;
     }
