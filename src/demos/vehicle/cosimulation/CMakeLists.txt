@@ -46,9 +46,9 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
-if(CH_ENABLE_MODULE_MUMPS)
-    list(APPEND LIBS "Chrono_mumps")
-endif()
+##if(CH_ENABLE_MODULE_MUMPS)
+##    list(APPEND LIBS "Chrono_mumps")
+##endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "Chrono_postprocess")

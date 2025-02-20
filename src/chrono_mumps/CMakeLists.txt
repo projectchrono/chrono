@@ -15,19 +15,27 @@ message(STATUS "\n==== Chrono Engine Mumps module ====\n")
 # ------------------------------------------------------------------------------
 # Find MUMPS (required)
 
-message(STATUS "Searching for MUMPS...")
-find_package(MUMPS REQUIRED CONFIG)
-
-if(${MUMPS_FOUND})
-  message(STATUS "MUMPS found.")
-else()
-  message("MUMPS not found. Chrono::Mumps module disabled.")
+message(STATUS "Enabling Fortran language")
+check_language(Fortran)
+if(NOT CMAKE_Fortran_COMPILER)
+  message("  MUMPS requires a Fortran compiler, but none could be found. Chrono::Mumps module disabled.")
   set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
   return()
 endif()
 
 enable_language(Fortran)
 message(STATUS "  Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+
+message(STATUS "Searching for MUMPS")
+find_package(MUMPS QUIET REQUIRED CONFIG)
+
+if(${MUMPS_FOUND})
+  message(STATUS "  MUMPS found.")
+else()
+  message("  MUMPS not found. Chrono::Mumps module disabled.")
+  set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
+  return()
+endif()
 
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mumps module

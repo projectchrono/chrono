@@ -37,6 +37,7 @@
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 
+#undef CHRONO_MUMPS
 #include "demos/SetChronoSolver.h"
 
 using std::cout;
