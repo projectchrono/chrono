@@ -250,6 +250,10 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
                 m_paramsH->shifting_method = ShiftingMethod::PPST_XSPH;
             else if (method == "PPST")
                 m_paramsH->shifting_method = ShiftingMethod::PPST;
+            else if (method == "DIFFUSION")
+                m_paramsH->shifting_method = ShiftingMethod::DIFFUSION;
+            else if (method == "DIFFUSION_XSPH")
+                m_paramsH->shifting_method = ShiftingMethod::DIFFUSION_XSPH;
             else {
                 m_paramsH->shifting_method = ShiftingMethod::NONE;
             }
@@ -263,6 +267,9 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
         if (doc["SPH Parameters"].HasMember("PPST Pull Coefficient"))
             m_paramsH->shifting_ppst_pull = doc["SPH Parameters"]["PPST Pull Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("DIFFUSION A Coefficient"))
+            m_paramsH->shifting_diffusion_A = doc["SPH Parameters"]["DIFFUSION A Coefficient"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Kernel Type")) {
             std::string type = doc["SPH Parameters"]["Kernel Type"].GetString();
@@ -818,6 +825,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->viscosity_type = sph_params.viscosity_type;
     m_paramsH->boundary_type = sph_params.boundary_type;
     m_paramsH->kernel_type = sph_params.kernel_type;
+    m_paramsH->shifting_method = sph_params.shifting_method;
 
     m_paramsH->d0 = sph_params.initial_spacing;
     m_paramsH->volume0 = cube(m_paramsH->d0);
@@ -1236,6 +1244,12 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                 break;
             case ShiftingMethod::PPST_XSPH:
                 cout << "  Shifting method: PPST_XSPH" << endl;
+                break;
+            case ShiftingMethod::DIFFUSION:
+                cout << "  Shifting method: Diffusion" << endl;
+                break;
+            case ShiftingMethod::DIFFUSION_XSPH:
+                cout << "  Shifting method: Diffusion_XSPH" << endl;
                 break;
             case ShiftingMethod::NONE:
                 cout << "  Shifting method: None" << endl;
