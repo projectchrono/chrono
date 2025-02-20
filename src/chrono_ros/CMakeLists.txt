@@ -171,73 +171,73 @@ endif()
 set(DEPENDENCIES_ROS ${DEPENDENCIES_ROS} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-# Create the ChronoEngine_ros library
+# Create the Chrono_ros library
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_ros SHARED
+add_library(Chrono_ros SHARED
             ${CH_ROS_BASE_FILES}
             ${CH_ROS_HANDLER_FILES}
             ${CH_ROS_VEHICLE_HANDLER_FILES}
             ${CH_ROS_SENSOR_HANDLER_FILES}
             ${CH_ROS_ROBOT_HANDLER_FILES}
 )
-add_library(ChronoEngine::ros ALIAS ChronoEngine_ros)
+add_library(Chrono::ros ALIAS Chrono_ros)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_ros PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_ros PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_ros PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_ros PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_ros PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_ros PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_ros PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_ros PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-set_target_properties(ChronoEngine_ros PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(Chrono_ros PROPERTIES LINKER_LANGUAGE CXX)
 
-target_compile_definitions(ChronoEngine_ros PRIVATE "CH_API_COMPILE_ROS")
+target_compile_definitions(Chrono_ros PRIVATE "CH_API_COMPILE_ROS")
 
 # Update compile definitions on optionally found packages
 if (CH_ROS_HAS_INTERFACES)
-  target_compile_definitions(ChronoEngine_ros PUBLIC CHRONO_ROS_HAS_INTERFACES)
+  target_compile_definitions(Chrono_ros PUBLIC CHRONO_ROS_HAS_INTERFACES)
 endif()
 
 # Windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4661>) 
-    target_compile_options(ChronoEngine PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4005>) 
+    target_compile_options(Chrono_ros PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4661>) 
+    target_compile_options(Chrono_ros PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4005>) 
 endif()
 
 # Link libraries
-target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine)
-target_link_libraries(ChronoEngine_ros PUBLIC ChronoModels_robot)
+target_link_libraries(Chrono_ros PUBLIC Chrono_core)
+target_link_libraries(Chrono_ros PUBLIC ChronoModels_robot)
 
 if (CH_ENABLE_MODULE_VEHICLE)
-  target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_vehicle)
+  target_link_libraries(Chrono_ros PUBLIC Chrono_vehicle)
   if (CH_ENABLE_MODULE_VEHICLE_MODELS)
-    target_link_libraries(ChronoEngine_ros PUBLIC ChronoModels_vehicle)
+    target_link_libraries(Chrono_ros PUBLIC ChronoModels_vehicle)
   endif()
 endif()
 
 if (CH_ENABLE_MODULE_SENSOR)
-  target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_sensor)
+  target_link_libraries(Chrono_ros PUBLIC Chrono_sensor)
 endif()
 
 if (CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
-  target_compile_definitions(ChronoEngine_ros PUBLIC CHRONO_PARSERS_URDF)
-  target_link_libraries(ChronoEngine_ros PUBLIC ChronoEngine_parsers)
+  target_compile_definitions(Chrono_ros PUBLIC CHRONO_PARSERS_URDF)
+  target_link_libraries(Chrono_ros PUBLIC Chrono_parsers)
 endif()
 
-target_link_libraries(ChronoEngine_ros PUBLIC ${ROS2_TARGETS})
+target_link_libraries(Chrono_ros PUBLIC ${ROS2_TARGETS})
 
 # Set some variables to be visible outside this directory
 set(CH_ROS_HAS_INTERFACES ${CH_ROS_HAS_INTERFACES} PARENT_SCOPE)
 
-install(TARGETS ChronoEngine_ros
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_ros
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

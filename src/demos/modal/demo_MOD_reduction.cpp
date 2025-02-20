@@ -368,7 +368,7 @@ int main(int argc, char* argv[]) {
 
     // CREATE THE MODEL
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // no gravity used here

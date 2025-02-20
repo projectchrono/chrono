@@ -580,7 +580,6 @@ void ChSystemMulticore::Setup() {
 }
 
 void ChSystemMulticore::RecomputeThreads() {
-#ifdef _OPENMP
     timer_accumulator.insert(timer_accumulator.begin(), data_manager->system_timer.GetTime("step"));
     timer_accumulator.pop_back();
 
@@ -612,7 +611,6 @@ void ChSystemMulticore::RecomputeThreads() {
         omp_set_num_threads(data_manager->settings.min_threads);
     }
     frame_threads++;
-#endif
 }
 
 void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
@@ -696,7 +694,6 @@ settings_container* ChSystemMulticore::GetSettings() {
 void ChSystemMulticore::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
     ChSystem::SetNumThreads(num_threads_chrono, num_threads_chrono, num_threads_eigen);
 
-#ifdef _OPENMP
     int max_avail_threads = omp_get_num_procs();
 
     if (num_threads_chrono > max_avail_threads) {
@@ -704,20 +701,13 @@ void ChSystemMulticore::SetNumThreads(int num_threads_chrono, int num_threads_co
         std::cout << "larger than maximum available (" << max_avail_threads << ")" << std::endl;
     }
     omp_set_num_threads(num_threads_chrono);
-#else
-    std::cout << "WARNING! OpenMP not enabled" << std::endl;
-#endif
 }
 
 void ChSystemMulticore::EnableThreadTuning(int min_threads, int max_threads) {
-#ifdef _OPENMP
     data_manager->settings.perform_thread_tuning = true;
     data_manager->settings.min_threads = min_threads;
     data_manager->settings.max_threads = max_threads;
     omp_set_num_threads(min_threads);
-#else
-    std::cout << "WARNING! OpenMP not enabled" << std::endl;
-#endif
 }
 
 // -------------------------------------------------------------

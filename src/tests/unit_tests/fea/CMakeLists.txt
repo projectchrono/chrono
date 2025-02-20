@@ -41,10 +41,10 @@ else()
   set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-set(LIBRARIES ChronoEngine)
+set(LIBRARIES Chrono_core)
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-    list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
+    list(APPEND LIBRARIES "Chrono_pardisomkl")
     set(TESTS ${TESTS} ${TESTS_MKL})
 endif()
 

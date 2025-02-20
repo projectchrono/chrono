@@ -20,10 +20,10 @@ endif()
 
 #--------------------------------------------------------------
 
-list(APPEND LIBRARIES "ChronoEngine")
-list(APPEND LIBRARIES "ChronoEngine_parsers")
+list(APPEND LIBRARIES Chrono_core)
+list(APPEND LIBRARIES "Chrono_parsers")
 if(HAVE_ROS)
-  list(APPEND LIBRARIES "ChronoEngine_ros")
+  list(APPEND LIBRARIES "Chrono_ros")
 endif()
 
 #--------------------------------------------------------------

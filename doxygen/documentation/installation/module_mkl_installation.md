@@ -40,7 +40,7 @@ Look at the [API section](group__mkl__module.html) of this module for more detai
 
 3. Press 'Generate' and build the project.
 
-Building this module will produce an additional shared library, called **ChronoEngine_pardisomkl**, which can be linked to your application.<br>
+Building this module will produce an additional shared library, called **Chrono_pardisomkl**, which can be linked to your application.<br>
 On Linux, the file extension will be .so.
 
 ### Windows
@@ -62,7 +62,7 @@ On Linux, the file extension will be .so.
 
 3. Press 'Generate' and build the project.
 
-Building this module will produce an additional shared library, called **ChronoEngine_pardisomkl**, which can be linked to your application.<br>
+Building this module will produce an additional shared library, called **Chrono_pardisomkl**, which can be linked to your application.<br>
 On Windows, the file extension will be .dll.
 
 

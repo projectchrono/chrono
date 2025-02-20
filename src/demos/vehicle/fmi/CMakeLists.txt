@@ -37,7 +37,7 @@ foreach(PROGRAM ${DEMOS})
   target_compile_definitions(${PROGRAM} PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
   target_compile_definitions(${PROGRAM} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-  target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_vehicle)
+  target_link_libraries(${PROGRAM} Chrono_core Chrono_vehicle)
 
   if(MSVC)
     set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})

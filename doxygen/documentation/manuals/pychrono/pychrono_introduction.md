@@ -11,13 +11,13 @@ PyChrono {#pychrono_introduction}
 * [Tutorials](@ref tutorial_table_of_content_pychrono)
 * [gym-chrono](https://github.com/projectchrono/gym-chrono): OpenAI Gym robotic environments based on PyChrono
 
-This is an introduction on how to use PyChrono, that is Chrono::Engine for Python.
+This is an introduction on how to use PyChrono, that is Chrono for Python.
 
 PyChrono is a Python module, an alternative way of creating 
-applications based on Chrono::Engine that does not require any C++ programming. 
+applications based on Chrono that does not require any C++ programming. 
 In fact, once you installed PyChrono in your Python environment, 
 you will be able to use the easy Python scripting language to call a big part of the 
-Chrono::Engine API functions, classes, methods, etc.
+Chrono API functions, classes, methods, etc.
 
 
 **Advantages** of Python programming vs. C++ programming:
@@ -30,10 +30,10 @@ Chrono::Engine API functions, classes, methods, etc.
 **Disadvantages** of Python programming vs. C++ programming:
 
 * Python is slower than C++,
-* the Chrono::Engine Python module does not cover all the features of the C++ API. 
+* the Chrono Python module does not cover all the features of the C++ API. 
 	
 	
-The idea is that, once installed, you can open your Python IDE, import the ChronoEngine
+The idea is that, once installed, you can open your Python IDE, import the Chrono
 Python module(s) and start creating Chrono objects as in the following:
 
 ~~~~~~~~~~~~~~~{.py}
@@ -61,7 +61,7 @@ Let's see a first program.
 
 -   First of all, you should use the **import** keyword to specify which
     Python modules must be load and used in your program. Most of the
-    core functionalities of Chrono::Engine are in a module called
+    core functionalities of Chrono are in a module called
     **pychrono**, hence write:
 
 ~~~~~~~~~~~~~~~{.py}
@@ -69,7 +69,7 @@ import pychrono as chrono
 ~~~~~~~~~~~~~~~
 
 Note that the *as chrono* is optional: but if you avoid it you must call
-all Chrono::Engine functions using the syntax
+all Chrono functions using the syntax
 pychrono.ChClassFoo..., whereas if you use *as chrono*
 you simply rename the namespace just like the C++ equivalent:
 chrono.ChClassFoo...
@@ -100,7 +100,7 @@ my_vect2 = chrono.ChVector3d(3,4,5)
 ~~~~~~~~~~~~~
 
 -   Most operator-overloading features that are available in C++ for the
-    Chrono::Engine vectors and matrices are also available in Python,
+    Chrono vectors and matrices are also available in Python,
     for example:
 
 ~~~~~~~~~~~~~~~{.py}

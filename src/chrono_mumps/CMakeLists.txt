@@ -15,13 +15,10 @@ message(STATUS "\n==== Chrono Engine Mumps module ====\n")
 # ------------------------------------------------------------------------------
 # Find MUMPS (required)
 
-message(STATUS "Searching for MUMPS...")
-find_package(MUMPS REQUIRED CONFIG)
-
-if(${MUMPS_FOUND})
-  message(STATUS "MUMPS found.")
-else()
-  message("MUMPS not found. Chrono::Mumps module disabled.")
+message(STATUS "Enabling Fortran language")
+check_language(Fortran)
+if(NOT CMAKE_Fortran_COMPILER)
+  message("  MUMPS requires a Fortran compiler, but none could be found. Chrono::Mumps module disabled.")
   set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
   return()
 endif()
@@ -29,54 +26,65 @@ endif()
 enable_language(Fortran)
 message(STATUS "  Fortran compiler: ${CMAKE_Fortran_COMPILER}")
 
+message(STATUS "Searching for MUMPS")
+find_package(MUMPS QUIET REQUIRED CONFIG)
+
+if(${MUMPS_FOUND})
+  message(STATUS "  MUMPS found.")
+else()
+  message("  MUMPS not found. Chrono::Mumps module disabled.")
+  set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
+  return()
+endif()
+
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mumps module
 
-set(ChronoEngine_MUMPS_HEADERS
+set(Chrono_MUMPS_HEADERS
   ChApiMumps.h
   ChSolverMumps.h
   ChMumpsEngine.h
 )
 
-set(ChronoEngine_MUMPS_SOURCES
+set(Chrono_MUMPS_SOURCES
   ChSolverMumps.cpp
   ChMumpsEngine.cpp
 )
 
-source_group("" FILES ${ChronoEngine_MUMPS_HEADERS} ${ChronoEngine_MUMPS_SOURCES})
+source_group("" FILES ${Chrono_MUMPS_HEADERS} ${Chrono_MUMPS_SOURCES})
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_mumps library
+# Add the Chrono_mumps library
 
 add_definitions("-D_OPENMP_NOFORCE_MANIFEST")
 
-add_library(ChronoEngine_mumps 
-            ${ChronoEngine_MUMPS_SOURCES}
-            ${ChronoEngine_MUMPS_HEADERS})
-add_library(ChronoEngine::mumps ALIAS ChronoEngine_mumps)
+add_library(Chrono_mumps 
+            ${Chrono_MUMPS_SOURCES}
+            ${Chrono_MUMPS_HEADERS})
+add_library(Chrono::mumps ALIAS Chrono_mumps)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_mumps PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_mumps PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_mumps PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_mumps PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_mumps PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_mumps PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_mumps PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_mumps PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(Chrono_mumps PRIVATE "CH_API_COMPILE_MUMPS")
+target_compile_definitions(Chrono_mumps PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_link_libraries(ChronoEngine_mumps
-                      ChronoEngine
+target_link_libraries(Chrono_mumps
+                      Chrono_core
                       MUMPS::MUMPS)
 
-install(TARGETS ChronoEngine_mumps
-  EXPORT ChronoEngineTargets
+install(TARGETS Chrono_mumps
+  EXPORT ChronoTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -87,7 +95,7 @@ install(TARGETS ChronoEngine_mumps
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${ChronoEngine_MUMPS_HEADERS} 
+install(FILES ${Chrono_MUMPS_HEADERS} 
         DESTINATION include/chrono_mumps)
 
 # On Windows, extract DLLs from targets and install (always look for Release DLLs)

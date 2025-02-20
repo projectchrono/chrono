@@ -35,7 +35,7 @@ ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);

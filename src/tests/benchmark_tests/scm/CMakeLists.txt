@@ -18,14 +18,14 @@ set(TESTS
 # ------------------------------------------------------------------------------
 
 set(LIBRARIES
-    ChronoEngine
-    ChronoEngine_vehicle
-    ChronoEngine_synchrono
+    Chrono_core
+    Chrono_vehicle
+    Chrono_synchrono
     ChronoModels_vehicle
     )
 
 if (CH_ENABLE_MODULE_IRRLICHT)
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht ChronoEngine_vehicle_irrlicht)
+    set(LIBRARIES ${LIBRARIES} Chrono_irrlicht Chrono_vehicle_irrlicht)
 endif()
 
 include_directories(${SYN_INCLUDES})

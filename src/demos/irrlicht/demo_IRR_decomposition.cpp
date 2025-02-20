@@ -78,7 +78,7 @@ void DecomposeModel(ChVisualSystemIrrlicht* vis) {
 
     decompositionNode = vis->GetSceneManager()->addEmptySceneNode();
 
-    // Convert the Irrlicht mesh into a Chrono::Engine mesh.
+    // Convert the Irrlicht mesh into a Chrono mesh.
     ChTriangleMeshSoup chmesh;
     // modelNode->getMesh();
     fillChTrimeshFromIrlichtMesh(&chmesh, modelNode->getMesh());  // modelMesh->getMesh(0));
@@ -376,7 +376,7 @@ class MyEventReceiver : public IEventReceiver {
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // 1- Create a ChronoENGINE physical system: all bodies and constraints
+    // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
 

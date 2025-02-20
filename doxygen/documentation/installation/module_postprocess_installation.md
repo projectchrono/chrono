@@ -68,7 +68,7 @@ because the architecture of this system is not limited to POVray.
 
 ## Building instructions
 
-This unit corresponds to an additional shared library, called ChronoEngine_postprocess, that can be linked to your application if you want to use it.
+This unit corresponds to an additional shared library, called Chrono_postprocess, that can be linked to your application if you want to use it.
 The file extension will be .dll for Win and .so on Linux.
 
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 

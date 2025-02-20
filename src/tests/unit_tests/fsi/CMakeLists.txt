@@ -3,11 +3,11 @@ set(TESTS
 )
 #--------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_fsisph")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_fsisph")
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+    list(APPEND LIBS "Chrono_fsisph_vsg")
 endif()
 
 # A hack to set the working directory in which to execute the CTest runs.

@@ -60,46 +60,46 @@ set(UTILS "../../SetChronoSolver.h")
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-list(APPEND LIBS "ChronoEngine_vehicle")
+list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 list(APPEND LIBS "ChronoModels_robot")
 
 if(CH_ENABLE_MODULE_MULTICORE)
-    list(APPEND LIBS "ChronoEngine_multicore")
+    list(APPEND LIBS "Chrono_multicore")
 endif()
 
 if(CH_ENABLE_MODULE_FSI)
-    list(APPEND LIBS "ChronoEngine_fsisph")
+    list(APPEND LIBS "Chrono_fsisph")
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-    list(APPEND LIBS "ChronoEngine_pardisomkl")
+    list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
     include_directories(${CH_MUMPS_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_mumps")
+    list(APPEND LIBS "Chrono_mumps")
 endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
-    list(APPEND LIBS "ChronoEngine_postprocess")
+    list(APPEND LIBS "Chrono_postprocess")
 endif()
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+    list(APPEND LIBS "Chrono_vehicle_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    list(APPEND LIBS "Chrono_vehicle_vsg")
     if(CH_ENABLE_MODULE_FSI)
-      list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+      list(APPEND LIBS "Chrono_fsisph_vsg")
     endif()
 endif()
 
 if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_opengl")
+    list(APPEND LIBS "Chrono_opengl")
     if(CH_ENABLE_MODULE_FSI)
-      list(APPEND LIBS "ChronoEngine_fsisph_opengl")
+      list(APPEND LIBS "Chrono_fsisph_opengl")
     endif()
 endif()
 

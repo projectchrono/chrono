@@ -18,7 +18,7 @@ MARK_AS_ADVANCED(CLEAR Spectra_INCLUDE_DIR)
 
 #-----------------------------------------------------------------------------
 
-SET(ChronoEngine_MODAL_SOURCES 
+SET(Chrono_MODAL_SOURCES 
     ChModalAssembly.cpp
     ChModalDamping.cpp
     ChSymGenEigenvalueSolver.cpp
@@ -30,7 +30,7 @@ SET(ChronoEngine_MODAL_SOURCES
     ChKrylovSchurEig.cpp
 )
 
-SET(ChronoEngine_MODAL_HEADERS
+SET(Chrono_MODAL_HEADERS
     ChApiModal.h 
     ChModalAssembly.h
     ChModalDamping.h
@@ -44,12 +44,12 @@ SET(ChronoEngine_MODAL_HEADERS
 )
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  set(ChronoEngine_MODAL_HEADERS ${ChronoEngine_MODAL_HEADERS}
+  set(Chrono_MODAL_HEADERS ${Chrono_MODAL_HEADERS}
       ChModalVisualSystemIrrlicht.h
   )
 endif()
 
-SOURCE_GROUP("" FILES ${ChronoEngine_MODAL_SOURCES} ${ChronoEngine_MODAL_HEADERS})
+SOURCE_GROUP("" FILES ${Chrono_MODAL_SOURCES} ${Chrono_MODAL_HEADERS})
 
 #-----------------------------------------------------------------------------
 # Find Spectra
@@ -71,32 +71,32 @@ endif()
 set(DEPENDENCIES_MODAL ${DEPENDENCIES_MODAL} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-# Add the ChronoEngine_modal library
+# Add the Chrono_modal library
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_modal ${ChronoEngine_MODAL_SOURCES} ${ChronoEngine_MODAL_HEADERS})
-add_library(ChronoEngine::modal ALIAS ChronoEngine_modal)
+add_library(Chrono_modal ${Chrono_MODAL_SOURCES} ${Chrono_MODAL_HEADERS})
+add_library(Chrono::modal ALIAS Chrono_modal)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_modal PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_modal PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_modal PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_modal PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_modal PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_modal PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_modal PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_modal PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODAL>)
+target_compile_definitions(Chrono_modal PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MODAL>)
 
-target_link_libraries(ChronoEngine_modal PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_modal PRIVATE Spectra::Spectra)
+target_link_libraries(Chrono_modal PRIVATE Chrono_core)
+target_link_libraries(Chrono_modal PRIVATE Spectra::Spectra)
 
-install(TARGETS ChronoEngine_modal
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_modal
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -108,7 +108,7 @@ install(TARGETS ChronoEngine_modal
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${ChronoEngine_MODAL_HEADERS}
+install(FILES ${Chrono_MODAL_HEADERS}
         DESTINATION include/chrono_modal)
 
 # Install files for chrono-config (in both build and install trees)

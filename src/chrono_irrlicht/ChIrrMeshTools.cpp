@@ -699,7 +699,7 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 // This function is based on a modified version of the irrlicht_bullet demo,
 // see  http://www.continuousphysics.com
 // It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
-// for collision detection in Chrono::Engine.
+// for collision detection in Chrono.
 // -----------------------------------------------------------------------------
 void fillChTrimeshFromIrlichtMesh(chrono::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
     chrono::ChVector3d vertices[3];
@@ -720,8 +720,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::ChTriangleMesh* chTrimesh, IMesh* pMes
                 for (k = 0; k < 3; k++) {                   // three verts per triangle
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw std::runtime_error(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
+                        throw std::runtime_error("Cannot convert corrupted Irrlicht mesh in Chrono ChTriangleMesh.");
                     vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
@@ -736,8 +735,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::ChTriangleMesh* chTrimesh, IMesh* pMes
                 for (k = 0; k < 3; k++) {
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw std::runtime_error(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
+                        throw std::runtime_error("Cannot convert corrupted Irrlicht mesh in Chrono ChTriangleMesh.");
                     vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }

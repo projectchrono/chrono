@@ -90,7 +90,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys,
     : ChVisualSystemIrrlicht() {
     AttachSystem(sys);
     SetWindowSize(800, 600);
-    SetWindowTitle("Chrono::Engine");
+    SetWindowTitle("Chrono");
     Initialize();
 
     AddLogo();

@@ -22,19 +22,19 @@ endif()
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-list(APPEND LIBS "ChronoEngine_vehicle")
+list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+    list(APPEND LIBS "Chrono_vehicle_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    list(APPEND LIBS "Chrono_vehicle_vsg")
 endif()
 
 if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_opengl")
+    list(APPEND LIBS "Chrono_opengl")
 endif()
 
 #--------------------------------------------------------------

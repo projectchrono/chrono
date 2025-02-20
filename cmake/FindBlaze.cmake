@@ -1,3 +1,4 @@
+# 2025-02-18 (Radu) modified to assume Blaze newer than 3.2 => no boost dependency
 
 # ----- Blaze library -----
 set(Blaze_ROOT_TEMP ${Blaze_ROOT})
@@ -29,23 +30,9 @@ endif()
 # ----- BOOST -- required only for older versions of Blaze -----
 
 if (Blaze_VERSION VERSION_LESS "3.2")
-  set(BOOST_REQUIRED "TRUE")
-else()
-  set(BOOST_REQUIRED "FALSE")
-endif()
-
-if(BOOST_REQUIRED)
-  set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
-  find_package(Boost REQUIRED)
-
-  if (Boost_FOUND)
-    if(NOT Blaze_FIND_QUIETLY)
-      message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
-    endif()
-  else()
-    mark_as_advanced(CLEAR BOOST_ROOT)
-    message("WARNING Boost required for Blaze version ${Blaze_VERSION}. Specify BOOST_ROOT or use Blaze 3.2 or newer.")
-  endif()
+  mesage("WARNING: Blaze newer than 3.2 required. Blaze support disabled.")
+  set(Blaze_FOUND FALSE)
+  return()
 endif()
 
 # Create Blaze::Blaze target

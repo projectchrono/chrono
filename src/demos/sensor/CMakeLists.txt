@@ -32,17 +32,17 @@ endif()
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-list(APPEND LIBRARIES "ChronoEngine")
-list(APPEND LIBRARIES "ChronoEngine_sensor")
+list(APPEND LIBRARIES Chrono_core)
+list(APPEND LIBRARIES "Chrono_sensor")
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBRARIES "ChronoEngine_irrlicht")
+    list(APPEND LIBRARIES "Chrono_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VEHICLE) 
    if(CH_ENABLE_MODULE_IRRLICHT)
-      list(APPEND LIBRARIES "ChronoEngine_vehicle")
-      list(APPEND LIBRARIES "ChronoEngine_vehicle_irrlicht")
+      list(APPEND LIBRARIES "Chrono_vehicle")
+      list(APPEND LIBRARIES "Chrono_vehicle_irrlicht")
    endif()
    if(CH_ENABLE_MODULE_VEHICLE_MODELS)
       list(APPEND LIBRARIES "ChronoModels_vehicle")

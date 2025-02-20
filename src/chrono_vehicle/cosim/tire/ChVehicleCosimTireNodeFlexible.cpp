@@ -30,9 +30,9 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-#ifdef CHRONO_MUMPS
-    #include "chrono_mumps/ChSolverMumps.h"
-#endif
+////#ifdef CHRONO_MUMPS
+////    #include "chrono_mumps/ChSolverMumps.h"
+////#endif
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -58,10 +58,10 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
     auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     solver->LockSparsityPattern(true);
     m_system->SetSolver(solver);
-#elif defined(CHRONO_MUMPS)
-    auto solver = chrono_types::make_shared<ChSolverMumps>();
-    solver->LockSparsityPattern(true);
-    m_system->SetSolver(solver);
+////#elif defined(CHRONO_MUMPS)
+////    auto solver = chrono_types::make_shared<ChSolverMumps>();
+////    solver->LockSparsityPattern(true);
+////    m_system->SetSolver(solver);
 #else
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->LockSparsityPattern(true);

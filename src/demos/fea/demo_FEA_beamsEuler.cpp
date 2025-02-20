@@ -38,7 +38,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups

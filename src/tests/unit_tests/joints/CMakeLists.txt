@@ -28,7 +28,7 @@ else()
   set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-set(LIBRARIES ChronoEngine)
+set(LIBRARIES Chrono_core)
 
 #--------------------------------------------------------------
 # Add executables

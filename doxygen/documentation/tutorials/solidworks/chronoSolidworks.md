@@ -12,7 +12,7 @@ Ohter examples can be found directly in the Chrono::SolidWorks repository under 
     Learn the basics of Chrono::SolidWorks add-in for SolidWorks:
 
     - model a 3D assembly using SolidWorks,
-    - export it as a .py file containing the Chrono::Engine system description.
+    - export it as a .py file containing the Chrono system description.
     - run a Python simulation of the exported system
     - render the simulation using POVray 
 

@@ -45,7 +45,7 @@ Alternatively, you can download or clone Thrust from its [GitHub repository](htt
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 <div class="ce-warning">
-Not all the features of the standard _serial_ version of Chrono::Engine are supported.
+Not all the features of the standard _serial_ version of Chrono are supported.
 </div>
 
 
