@@ -3,10 +3,9 @@
 
 
 
-#INCLUDE_DIRECTORIES(${CH_WOOD_INCLUDES})
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_wood
+    Chrono_core
+    Chrono_wood
 )
 
 SET(TESTS

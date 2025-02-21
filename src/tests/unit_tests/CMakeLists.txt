@@ -119,7 +119,7 @@ if(CH_ENABLE_MODULE_FSI)
   endif()
 endif()
 
-if(ENABLE_MODULE_WOOD)
+if(CH_ENABLE_MODULE_WOOD)
   option(BUILD_TESTING_WOOD "Build unit tests for WOOD module" TRUE)
   mark_as_advanced(FORCE BUILD_TESTING_WOOD)
   if(BUILD_TESTING_WOOD)

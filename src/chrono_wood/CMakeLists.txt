@@ -2,10 +2,10 @@
 # CMake configuration file for the Chrono wood module
 #===============================================================================
 
-option(ENABLE_MODULE_WOOD "Enable the Chrono wood module" OFF)
+option(CH_ENABLE_MODULE_WOOD "Enable the Chrono wood module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_WOOD)
+IF(NOT CH_ENABLE_MODULE_WOOD)
   RETURN()
 ENDIF()
 
