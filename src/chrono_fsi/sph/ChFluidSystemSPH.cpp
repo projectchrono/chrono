@@ -107,6 +107,9 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->shifting_ppst_push = Real(3.0);
     m_paramsH->shifting_ppst_pull = Real(1.0);
     m_paramsH->shifting_beta_implicit = Real(1.0);
+    m_paramsH->shifting_diffusion_A = Real(1.0);
+    m_paramsH->shifting_diffusion_AFSM = Real(3.0);
+    m_paramsH->shifting_diffusion_AFST = Real(2);
     m_paramsH->densityReinit = 2147483647;
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
@@ -268,8 +271,14 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("PPST Pull Coefficient"))
             m_paramsH->shifting_ppst_pull = doc["SPH Parameters"]["PPST Pull Coefficient"].GetDouble();
 
-        if (doc["SPH Parameters"].HasMember("DIFFUSION A Coefficient"))
-            m_paramsH->shifting_diffusion_A = doc["SPH Parameters"]["DIFFUSION A Coefficient"].GetDouble();
+        if (doc["SPH Parameters"].HasMember("Diffusion A Coefficient"))
+            m_paramsH->shifting_diffusion_A = doc["SPH Parameters"]["Diffusion A Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Diffusion AFSM"))
+            m_paramsH->shifting_diffusion_AFSM = doc["SPH Parameters"]["Diffusion AFSM"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Diffusion AFST"))
+            m_paramsH->shifting_diffusion_AFST = doc["SPH Parameters"]["Diffusion AFST"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Kernel Type")) {
             std::string type = doc["SPH Parameters"]["Kernel Type"].GetString();
@@ -639,8 +648,10 @@ void ChFluidSystemSPH::SetShiftingXSPHParameters(double eps) {
     m_paramsH->shifting_xsph_eps = eps;
 }
 
-void ChFluidSystemSPH::SetShiftingDiffusionParameter(double A) {
+void ChFluidSystemSPH::SetShiftingDiffusionParameters(double A, double AFSM, double AFST) {
     m_paramsH->shifting_diffusion_A = A;
+    m_paramsH->shifting_diffusion_AFSM = AFSM;
+    m_paramsH->shifting_diffusion_AFST = AFST;
 }
 
 void ChFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
@@ -802,6 +813,9 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       shifting_xsph_eps(0.5),
       shifting_ppst_push(3.0),
       shifting_ppst_pull(1.0),
+      shifting_diffusion_A(1.0),
+      shifting_diffusion_AFSM(3.0),
+      shifting_diffusion_AFST(2),
       min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
       use_density_based_projection(false),
@@ -842,6 +856,8 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->shifting_ppst_pull = sph_params.shifting_ppst_pull;
     m_paramsH->shifting_beta_implicit = sph_params.shifting_beta_implicit;
     m_paramsH->shifting_diffusion_A = sph_params.shifting_diffusion_A;
+    m_paramsH->shifting_diffusion_AFSM = sph_params.shifting_diffusion_AFSM;
+    m_paramsH->shifting_diffusion_AFST = sph_params.shifting_diffusion_AFST;
     m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
 
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
@@ -1289,10 +1305,15 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
             cout << "  shifting_ppst_push: " << m_paramsH->shifting_ppst_push << endl;
             cout << "  shifting_ppst_pull: " << m_paramsH->shifting_ppst_pull << endl;
-        }
-        if (m_paramsH->sph_method == SPHMethod::I2SPH) {
+        } else if (m_paramsH->shifting_method == ShiftingMethod::DIFFUSION) {
+            cout << "  shifting_diffusion_A: " << m_paramsH->shifting_diffusion_A << endl;
+            cout << "  shifting_diffusion_AFSM: " << m_paramsH->shifting_diffusion_AFSM << endl;
+            cout << "  shifting_diffusion_AFST: " << m_paramsH->shifting_diffusion_AFST << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::DIFFUSION_XSPH) {
             cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
-            cout << "  shifting_beta_implicit: " << m_paramsH->shifting_beta_implicit << endl;
+            cout << "  shifting_diffusion_A: " << m_paramsH->shifting_diffusion_A << endl;
+            cout << "  shifting_diffusion_AFSM: " << m_paramsH->shifting_diffusion_AFSM << endl;
+            cout << "  shifting_diffusion_AFST: " << m_paramsH->shifting_diffusion_AFST << endl;
         }
         cout << "  densityReinit: " << m_paramsH->densityReinit << endl;
 

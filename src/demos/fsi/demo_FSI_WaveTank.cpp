@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     double output_fps = 20;
     bool render = true;
     double render_fps = 400;
-    bool snapshots = false;
+    bool snapshots = true;
     int ps_freq = 1;
     std::string boundary_type = "adami";
     std::string viscosity_type = "artificial_unilateral";
@@ -223,11 +223,13 @@ int main(int argc, char* argv[]) {
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 4.0;  // maximum velocity should be 2*sqrt(grav * fluid_height)
-    //sph_params.shifting_method = ShiftingMethod::XSPH;
-    //sph_params.shifting_xsph_eps = 0.5;
+    // sph_params.shifting_method = ShiftingMethod::XSPH;
+    // sph_params.shifting_xsph_eps = 0.5;
 
     sph_params.shifting_method = ShiftingMethod::DIFFUSION;
     sph_params.shifting_diffusion_A = 1.;
+    sph_params.shifting_diffusion_AFSM = 3.;
+    sph_params.shifting_diffusion_AFST = 2.;
 
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;

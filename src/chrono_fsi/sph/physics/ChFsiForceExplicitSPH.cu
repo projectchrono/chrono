@@ -954,12 +954,8 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
                                          rhoPresMuA, rhoPresMuB);
             if (d > paramsD.h * 1.0e-9)
                 sum_w_i = sum_w_i + W3h(paramsD.kernel_type, d, paramsD.ooh) * paramsD.volume0;
-
         }
-
     }
-
-    
 
     if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
         Real nu = paramsD.mu0 / paramsD.rho0;
@@ -1525,43 +1521,6 @@ __global__ void NS_SSR(const uint* activityIdentifierD,
     sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
 }
 
-
-// for quantifying how close particles are to free surface
-__device__ void ComputeFreeSurfaceNablaDist(uint index,
-                                            const Real3& posA,
-                                            const Real4& rhoPreMuA,
-                                            const Real4* sortedPosRad,
-                                            const Real4* sortedRhoPreMu,
-                                            const uint* neighborList,
-                                            uint NLStart,
-                                            uint NLEnd,
-                                            Real& nabla_r) {
-    Real SuppRadii = paramsD.h_multiplier * paramsD.h;
-    Real SqRadii = SuppRadii * SuppRadii;
-
-    // TODO: do i need to check this for not boundary? 
-
-    // Loop over neighbors
-    for (uint n = NLStart + 1; n < NLEnd; n++) {
-        uint j = neighborList[n];
-
-        // Distance check
-        Real3 posB = mR3(sortedPosRad[j]);
-        Real3 dist3 = Distance(posA, posB);
-        Real dd = dot(dist3, dist3);
-        if (dd > SqRadii) {
-            continue;
-        }
-        Real d = sqrt(dd);
-
-        // get mass and density of neighbor B
-        Real rhoB = sortedRhoPreMu[j].x;
-
-        nabla_r += paramsD.markerMass / rhoB * dot(-dist3, GradW3h(paramsD.kernel_type, dist3, paramsD.ooh));
-    }
-
-}
-
 template <ShiftingMethod SHIFT>
 __device__ void ShiftingAccumulateNeighborContrib(uint index,
                                                   const Real3& posA,
@@ -1575,7 +1534,8 @@ __device__ void ShiftingAccumulateNeighborContrib(uint index,
                                                   uint NLEnd,
                                                   bool consider_bce,
                                                   Real3& deltaV,
-                                                  Real3& inner_sum) {
+                                                  Real3& inner_sum,
+                                                  Real& nabla_r) {
     Real SuppRadii = paramsD.h_multiplier * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
 
@@ -1613,15 +1573,14 @@ __device__ void ShiftingAccumulateNeighborContrib(uint index,
         if constexpr (SHIFT == ShiftingMethod::PPST || SHIFT == ShiftingMethod::PPST_XSPH) {
             Real delta_ij = (dFictitious - d) * oodFictitious;
             Real beta = (delta_ij > 0.0f) ? paramsD.shifting_ppst_push : paramsD.shifting_ppst_pull;
-            inner_sum += beta * fmax(delta_ij, -0.1f) * (dist3 / d);
+            inner_sum += beta * fmax(delta_ij, static_cast<Real>(-0.1f)) * (dist3 / d);
         }
 
         if constexpr (SHIFT == ShiftingMethod::DIFFUSION || SHIFT == ShiftingMethod::DIFFUSION_XSPH) {
-
             // for diffusion based shifting, inner sum is the gradient of concentration
             Real4 rhoPreMuB = sortedRhoPreMu[j];
             inner_sum += paramsD.markerMass / rhoPreMuB.x * GradW3h(paramsD.kernel_type, dist3, paramsD.ooh);
-
+            nabla_r += paramsD.markerMass / rhoPreMuB.x * dot(-dist3, GradW3h(paramsD.kernel_type, dist3, paramsD.ooh));
         }
     }
 }
@@ -1655,6 +1614,7 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
     // Accumulators for different methods
     Real3 deltaV = mR3(0.0f);
     Real3 inner_sum = mR3(0.0f);
+    Real nabla_r = 0.0f;
 
     bool consider_bce = false;
     if constexpr (SHIFT == ShiftingMethod::DIFFUSION || SHIFT == ShiftingMethod::DIFFUSION_XSPH) {
@@ -1663,7 +1623,8 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 
     // Accumulate neighbor contribution
     ShiftingAccumulateNeighborContrib<SHIFT>(index, posA, rhoPreMuA, velMasA, sortedPosRad, sortedVelMas,
-                                             sortedRhoPreMu, neighborList, NLStart, NLEnd, consider_bce, deltaV, inner_sum);
+                                             sortedRhoPreMu, neighborList, NLStart, NLEnd, consider_bce, deltaV,
+                                             inner_sum, nabla_r);
 
     // Post-process depending on SHIFT
     Real3 result = mR3(0.0f);
@@ -1671,6 +1632,9 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
     // Precompute a few helpful values
     Real vA = length(velMasA);
     Real vAdT = vA * paramsD.dT;
+
+    Real AFSM = paramsD.shifting_diffusion_AFSM;
+    Real AFST = paramsD.shifting_diffusion_AFST;
 
     if constexpr (SHIFT == ShiftingMethod::XSPH) {
         result = paramsD.markerMass * paramsD.shifting_xsph_eps * deltaV;  // XSPH velocity
@@ -1695,26 +1659,25 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
         }
         result = xsphVel + inner_sum / paramsD.dT;  // Update as a velocity
     } else if constexpr (SHIFT == ShiftingMethod::DIFFUSION) {
-        // let's check the kernel nabla r and see what value are we getting here ... 
-        Real nabla_r = 0.0f;
-        ComputeFreeSurfaceNablaDist(index, posA, rhoPreMuA, sortedPosRad, sortedRhoPreMu, neighborList, NLStart, NLEnd, nabla_r);
+        result = -paramsD.shifting_diffusion_A * paramsD.h * inner_sum * vA;
 
-        Real AFSM = 3.0f;
-        Real AFST = 2;
+        if (nabla_r < AFST) {
+            result = result * (nabla_r - AFST) / (AFSM - AFST);
+        }
+
+    } else if constexpr (SHIFT == ShiftingMethod::DIFFUSION_XSPH) {
+        // For now, just add the contribution from XSPH and Diffusion
+        Real3 xsphVel = paramsD.shifting_xsph_eps * paramsD.markerMass * deltaV;
 
         result = -paramsD.shifting_diffusion_A * paramsD.h * inner_sum * vA;
 
         if (nabla_r < AFST) {
-            
-            //printf("Nabla_r: %f, coeff, %f\n", nabla_r, (nabla_r - AFST) / (AFSM - AFST));
+            // printf("Nabla_r: %f, coeff, %f\n", nabla_r, (nabla_r - AFST) / (AFSM - AFST));
             result = result * (nabla_r - AFST) / (AFSM - AFST);
         }
-
-
-    } else if constexpr (SHIFT == ShiftingMethod::DIFFUSION_XSPH) {
-        // Not sure what to do here yet ... 
+        result = xsphVel + result;
     }
-    
+
     // Write out - This is a velocity
     vel_XSPH_Sorted_D[index] = result;
 
@@ -1894,10 +1857,10 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         // execute the kernel
         // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
         Navier_Stokes<<<numBlocks, numThreads>>>(
-            U1CAST(indexOfIndex), mR4CAST(m_data_mgr.derivVelRhoD),
-            mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
-            mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+            U1CAST(indexOfIndex), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_sortedSphMarkers_D->posRadD),
+            mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
+            U1CAST(m_data_mgr.neighborList), error_flagD);
         cudaCheckErrorFlag(error_flagD, "Navier_Stokes");
     }
 
@@ -1924,8 +1887,8 @@ void ChFsiForceExplicitSPH::CalculateShifting() {
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
-        //thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),
-        //             mR3(0.0));  // no this can not be zero ... i computed vel_xsph_d in collid wrapper
+    // thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),
+    //              mR3(0.0));  // no this can not be zero ... i computed vel_xsph_d in collid wrapper
     thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(), mR3(0.0));
 
     switch (m_data_mgr.paramsH->shifting_method) {
@@ -1959,9 +1922,6 @@ void ChFsiForceExplicitSPH::CalculateShifting() {
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
                 U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
             break;
-
-
-
     }
 
     cudaFreeErrorFlag(error_flagD);

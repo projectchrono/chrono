@@ -82,12 +82,14 @@ struct SimParams {
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
     Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
-    Real shifting_xsph_eps;       ///< Coefficient for XSPH shifting
-    Real shifting_ppst_push;      ///< Coefficient for PPST shifting - this is applied when penetration with fictitious
-                                  ///< sphere is detected
-    Real shifting_ppst_pull;      ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
-    Real shifting_beta_implicit;  ///< Coefficient for shifting used in implicit scheme
-    Real shifting_diffusion_A;
+    Real shifting_xsph_eps;        ///< Coefficient for XSPH shifting
+    Real shifting_ppst_push;       ///< Coefficient for PPST shifting - this is applied when penetration with fictitious
+                                   ///< sphere is detected
+    Real shifting_ppst_pull;       ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
+    Real shifting_beta_implicit;   ///< Coefficient for shifting used in implicit scheme
+    Real shifting_diffusion_A;     ///< TODO: Add documentation
+    Real shifting_diffusion_AFSM;  ///< TODO: Add documentation
+    Real shifting_diffusion_AFST;  ///< TODO: Add documentation
 
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to
               ///< use is to run simulations multiple time and find which one is the largest dT that produces a
