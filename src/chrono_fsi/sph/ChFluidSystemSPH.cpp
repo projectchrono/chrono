@@ -969,8 +969,8 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                         std::vector<FsiMeshForce> mesh1D_forces,
                                         std::vector<FsiMeshForce> mesh2D_forces) {
     {
-        thrust::host_vector<Real3> forcesH = m_data_mgr->rigid_FSI_ForcesD;
-        thrust::host_vector<Real3> torquesH = m_data_mgr->rigid_FSI_TorquesD;
+        auto forcesH = m_data_mgr->GetRigidForces();
+        auto torquesH = m_data_mgr->GetRigidTorques();
 
         size_t num_bodies = body_forces.size();
         for (size_t i = 0; i < num_bodies; i++) {
@@ -980,7 +980,7 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
     }
 
     {
-        thrust::host_vector<Real3> forces_H = m_data_mgr->flex1D_FSIforces_D;
+        auto forces_H = m_data_mgr->GetFlex1dForces();
 
         size_t num_meshes = mesh1D_forces.size();
         int index = 0;
@@ -994,7 +994,7 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
     }
 
     {
-        thrust::host_vector<Real3> forces_H = m_data_mgr->flex2D_FSIforces_D;
+        auto forces_H = m_data_mgr->GetFlex2dForces();
 
         size_t num_meshes = mesh2D_forces.size();
         int index = 0;
@@ -1446,35 +1446,18 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
-    WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                         m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
+    WriteParticleFileCSV(filename, *m_data_mgr);
 }
 
 void ChFluidSystemSPH::SaveParticleData(const std::string& dir) const {
-    if (m_paramsH->elastic_SPH) {
-        sph::SaveParticleDataCRM(dir, m_output_level,                                                         //
-                                 m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,        //
-                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->sphMarkers_D->rhoPresMuD,      //
-                                 m_data_mgr->sphMarkers_D->tauXxYyZzD, m_data_mgr->sphMarkers_D->tauXyXzYzD,  //
-                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);                 //
-    } else {
-        sph::SaveParticleDataCFD(dir, m_output_level,                                                     //
-                                 m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,    //
-                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->sphMarkers_D->rhoPresMuD,  //
-                                 m_data_mgr->sr_tau_I_mu_i_Original,                                      //
-                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);             //
-    }
+    if (m_paramsH->elastic_SPH)
+        sph::SaveParticleDataCRM(dir, m_output_level, *m_data_mgr);
+    else
+        sph::SaveParticleDataCFD(dir, m_output_level, *m_data_mgr);
 }
 
 void ChFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
-    sph::SaveSolidData(dir, time,                                                                                 //
-                       m_data_mgr->fsiBodyState_D->pos, m_data_mgr->fsiBodyState_D->rot,                          //
-                       m_data_mgr->fsiBodyState_D->lin_vel,                                                       //
-                       m_data_mgr->rigid_FSI_ForcesD, m_data_mgr->rigid_FSI_TorquesD,                             //
-                       m_data_mgr->fsiMesh1DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh1DState_D->vel_fsi_fea_D,  //
-                       m_data_mgr->flex1D_FSIforces_D,                                                            //
-                       m_data_mgr->fsiMesh2DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->vel_fsi_fea_D,  //
-                       m_data_mgr->flex2D_FSIforces_D);                                                           //
+    sph::SaveSolidData(dir, time, *m_data_mgr);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2626,56 +2609,58 @@ size_t ChFluidSystemSPH::GetNumBoundaryMarkers() const {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticlePositions() const {
-    thrust::host_vector<Real4> posRadH = m_data_mgr->sphMarkers_D->posRadD;
-    std::vector<ChVector3d> pos;
+    auto pos3 = GetPositions();
 
-    for (size_t i = 0; i < posRadH.size(); i++) {
-        pos.push_back(ToChVector(posRadH[i]));
-    }
+    std::vector<ChVector3d> pos;
+    for (const auto& p : pos3)
+        pos.push_back(ToChVector(p));
+
     return pos;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleVelocities() const {
-    thrust::host_vector<Real3> velH = m_data_mgr->sphMarkers_D->velMasD;
-    std::vector<ChVector3d> vel;
+    auto vel3 = GetVelocities();
 
-    for (size_t i = 0; i < velH.size(); i++) {
-        vel.push_back(ToChVector(velH[i]));
-    }
+    std::vector<ChVector3d> vel;
+    for (const auto& v : vel3)
+        vel.push_back(ToChVector(v));
+
     return vel;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleAccelerations() const {
-    thrust::host_vector<Real3> accH = m_data_mgr->GetAccelerations();
+    auto acc3 = GetAccelerations();
+
     std::vector<ChVector3d> acc;
-    for (size_t i = 0; i < accH.size(); i++) {
-        acc.push_back(ToChVector(accH[i]));
-    }
+    for (const auto& a : acc3)
+        acc.push_back(ToChVector(a));
+
     return acc;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleForces() const {
-    thrust::host_vector<Real3> frcH = m_data_mgr->GetForces();
+    auto frc3 = GetForces();
+
     std::vector<ChVector3d> frc;
-    for (size_t i = 0; i < frcH.size(); i++) {
-        frc.push_back(ToChVector(frcH[i]));
-    }
+    for (const auto& f : frc3)
+        frc.push_back(ToChVector(f));
+
     return frc;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleFluidProperties() const {
-    thrust::host_vector<Real4> rhoPresMuH = m_data_mgr->sphMarkers_D->rhoPresMuD;
-    std::vector<ChVector3d> props;
+    auto props3 = GetProperties();
 
-    for (size_t i = 0; i < rhoPresMuH.size(); i++) {
-        props.push_back(ToChVector(rhoPresMuH[i]));
-    }
+    std::vector<ChVector3d> props;
+    for (const auto& p : props3)
+        props.push_back(ToChVector(p));
+
     return props;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-thrust::device_vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
+std::vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
     const ChVector3d& Pos = frame.GetPos();
     ChVector3d Ax = frame.GetRotMat().GetAxisX();
     ChVector3d Ay = frame.GetRotMat().GetAxisY();
@@ -2690,39 +2675,39 @@ thrust::device_vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>&
     return m_data_mgr->FindParticlesInBox(hsize, pos, ax, ay, az);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetPositions() {
+std::vector<sph::Real3> ChFluidSystemSPH::GetPositions() const {
     return m_data_mgr->GetPositions();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetVelocities() {
+std::vector<Real3> ChFluidSystemSPH::GetVelocities() const {
     return m_data_mgr->GetVelocities();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetAccelerations() {
+std::vector<Real3> ChFluidSystemSPH::GetAccelerations() const {
     return m_data_mgr->GetAccelerations();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetForces() {
+std::vector<Real3> ChFluidSystemSPH::GetForces() const {
     return m_data_mgr->GetForces();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetProperties() {
+std::vector<Real3> ChFluidSystemSPH::GetProperties() const {
     return m_data_mgr->GetProperties();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetPositions(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {
     return m_data_mgr->GetPositions(indices);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetVelocities(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetVelocities(const std::vector<int>& indices) const {
     return m_data_mgr->GetVelocities(indices);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetAccelerations(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetAccelerations(const std::vector<int>& indices) const {
     return m_data_mgr->GetAccelerations(indices);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetForces(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetForces(const std::vector<int>& indices) const {
     return m_data_mgr->GetForces(indices);
 }
 

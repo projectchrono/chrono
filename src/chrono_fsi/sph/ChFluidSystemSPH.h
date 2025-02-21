@@ -19,9 +19,6 @@
 #ifndef CH_FLUID_SYSTEM_SPH_H
 #define CH_FLUID_SYSTEM_SPH_H
 
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-
 #include "chrono_fsi/ChFluidSystem.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
@@ -447,44 +444,36 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Utility function for finding indices of SPH particles inside a given OBB.
     /// The object-oriented box, of specified size, is assumed centered at the origin of the provided frame and aligned
-    /// with the axes of that frame. The return value is a device thrust vector.
-    thrust::device_vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
+    /// with the axes of that frame.
+    std::vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
 
     /// Extract positions of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetPositions();
+    std::vector<sph::Real3> GetPositions() const;
 
     /// Extract velocities of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetVelocities();
+    std::vector<sph::Real3> GetVelocities() const;
 
     /// Extract accelerations of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetAccelerations();
+    std::vector<sph::Real3> GetAccelerations() const;
 
     /// Extract forces applied to all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetForces();
+    std::vector<sph::Real3> GetForces() const;
 
     /// Extract fluid properties of all markers (SPH and BCE).
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    thrust::device_vector<sph::Real3> GetProperties();
+    std::vector<sph::Real3> GetProperties() const;
 
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetPositions(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetPositions(const std::vector<int>& indices) const;
 
     /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetVelocities(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetVelocities(const std::vector<int>& indices) const;
 
     /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetAccelerations(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetAccelerations(const std::vector<int>& indices) const;
 
     /// Extract forces applied to allmarkers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetForces(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetForces(const std::vector<int>& indices) const;
 
     // ----------- Utility functions for creating BCE marker points in various volumes
 
