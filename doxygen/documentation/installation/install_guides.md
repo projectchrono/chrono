@@ -61,9 +61,7 @@ The directory `contrib/build-scripts` also includes sample scripts (`buildChrono
 
 ### Building a project that uses Chrono
 
-User projects should start from the template offered in the repository under: [_chrono/template_project_](https://github.com/projectchrono/chrono/tree/main/template_project).
-
-Full instructions can be found in: [Linking to Chrono](@ref tutorial_install_project)
+- [Configure and build an external Chrono project](@ref tutorial_install_project)
 
 ### Building Chrono for WebAssembly
 

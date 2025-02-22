@@ -61,10 +61,11 @@ In addition, for each requested component 'COMPONENT', a variable `CHRONO_<COMPO
 ## Configuring and building an external project
 
 The Chrono distribution includes template projects for different types of Chrono-based external projects. These template projects, available in the top-level directory of the Chrono source tree (or of a Chrono install tree) are:
-- template_project - a simple C++ project that build a simple pendulum mechanism visualized with Irrlicht
-- template_project_csharp - a simple C# project that builds a bouncing ball visualized with Irrlicht
-- template_project_fmi - a simple C++ project that builds an FMU (see the [special instructions](@ref module_fmi_installation) for building Chrono with support for FMU generation)
-- template_project_vehicle_cosim - a simple MPI project that builds a Chrono::Vehicle co-simulation of a single wheel on rigid terrain
+- [template_project](https://github.com/projectchrono/chrono/tree/main/template_project) - a simple C++ project that build a simple pendulum mechanism visualized with Irrlicht
+- [template_project_csharp](https://github.com/projectchrono/chrono/tree/main/template_project_csharp) - a simple C# project that builds a bouncing ball visualized with Irrlicht
+- [template_project_fmi](https://github.com/projectchrono/chrono/tree/main/template_project_fmi2) - a simple C++ project that builds an FMU (see the [special instructions](@ref module_fmi_installation) for building Chrono with support for FMU generation)
+- [template_project_ros](https://github.com/projectchrono/chrono/tree/main/template_project_ros) - a simple C++ project that ilustrates the use of Chrono::ROS from an external project
+- [template_project_vehicle_cosim](https://github.com/projectchrono/chrono/tree/main/template_project_vehicle_cosim) - a simple MPI project that builds a Chrono::Vehicle co-simulation of a single wheel on rigid terrain
 
 #### 1. Check prerequisites
 
@@ -149,6 +150,22 @@ By default, all Chrono modules are built as shared libraries (**DLLs** on Window
 To simplify things, `chrono-config.cmake` provides a function that copies the necessary Chrono DLLs from their location (in the Chrono build tree or in a Chrono installation) to the project's build directory (<my_project_build> in our example).
 This is done by introducing a new build target (`COPY_DLLS`) to the Visual Studio solution which is executed **POST_BUILD**.
 To enable the inclusion of this convenience target, the project's CMakeLists.txt script should call `add_DLL_copy_command()` at the end. Note that this function is a no-op on platforms other than Windows.
+
+### Important information if using Chrono::CSharp
+
+A few of the Chrono modules are SWIG-wrapped for use in C# programs. These can be stand-alone C# programs (see the [C# demos](https://github.com/projectchrono/chrono/tree/main/src/demos/csharp) in the Chrono distribution) or else used in the companion [ChronoUnity](https://github.com/projectchrono/chrono-unity) package.
+
+When configuring your C# project, besides enabling the CSharp language you may want to also enable C++:
+```cpp
+   project(my_csharp_project CSharp CXX)
+```
+
+This is to allow certain Chrono features which require C++:
+- Chrono::Multicore which requires OpenMP for C++
+- Chrono::Vehicle co-simulation which requires MPI for C++
+- Chrono::VSG which calls FindThreads
+
+If C++ is not enabled, `chono-config.cmake` will disable these features and any Chrono modules depending on them.
 
 ### Important information if using Chrono::Sensor
 

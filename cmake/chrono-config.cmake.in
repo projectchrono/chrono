@@ -221,8 +221,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 endforeach()
 
 #-------------------------------------------------------------------------------
-# Enable C++ if not already done.
-# This allows future use of certain Chrono modules from C#:
+# Check if C++ language is enabled.
+# If it is not, certain modules will be disabled:
 # - Chrono::Multicore which requires OpenMP for C++
 # - Chrono::Vehicle co-simulation which requires MPI for C++
 # - Chrono::VSG which calls FindThreads
@@ -231,8 +231,10 @@ endforeach()
 get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
 if(LANG_INDEX EQUAL -1)
-  message(STATUS "Enable C++ language")
-  enable_language(CXX)
+  message("WARNING: C++ language is not enabled. Features that require C++ (e.g., MPI, OpenMP, VSG) will be disabled")
+  set(CHRONO_CXX_FOUND FALSE)
+else()
+  set(CHRONO_CXX_FOUND TRUE)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -267,7 +269,7 @@ endif()
 # Check OpenMP if Chrono was built with OpenMP support
 #-------------------------------------------------------------------------------
 
-if(CHRONO_OPENMP_CXX_AVAILABLE AND @CH_ENABLE_OPENMP@)
+if(CHRONO_OPENMP_CXX_AVAILABLE AND @CH_ENABLE_OPENMP@ AND CHRONO_CXX_FOUND)
   find_package(OpenMP COMPONENTS CXX)
   if(OpenMP_CXX_FOUND)
     if(NOT Chrono_FIND_QUIETLY)
@@ -339,7 +341,7 @@ endif()
 # Check MPI if Chrono was built with MPI support
 #-------------------------------------------------------------------------------
 
-if(CHRONO_MPI_CXX_AVAILABLE)
+if(CHRONO_MPI_CXX_AVAILABLE AND CHRONO_CXX_FOUND)
   find_package(MPI COMPONENTS CXX QUIET)
   if(MPI_CXX_FOUND)
     if(NOT Chrono_FIND_QUIETLY)
@@ -544,22 +546,27 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "VSG")
 
-    set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
-    set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
-    set(vsgXchange_DIR "@vsgXchange_DIR@" CACHE PATH "Path to vsgXchange installation.")
-    find_package(vsg QUIET)
-    find_package(vsgImGui QUIET)
-    find_package(vsgXchange QUIET)
-
-    if(NOT vsg_FOUND OR NOT vsgImGui_FOUND OR NOT vsgXchange_FOUND)
-      message("WARNING: Could not find one of the VSG libraries")
+    if(NOT CHRONO_CXX_FOUND)
+      message("WARNING: Chrono::VSG requires C++, but C++ language was not enabled")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-    endif()
-
-    if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "Chrono_vsg")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+    else()
+      set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
+      set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
+      set(vsgXchange_DIR "@vsgXchange_DIR@" CACHE PATH "Path to vsgXchange installation.")
+      find_package(vsg QUIET)
+      find_package(vsgImGui QUIET)
+      find_package(vsgXchange QUIET)
+      
+      if(NOT vsg_FOUND OR NOT vsgImGui_FOUND OR NOT vsgXchange_FOUND)
+        message("WARNING: Could not find one of the VSG libraries")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+      
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+        endif()
       endif()
     endif()
 

@@ -773,7 +773,8 @@ install(FILES
 if(CH_ENABLE_MODULE_CSHARP)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in" DESTINATION "${PROJECT_BINARY_DIR}/cmake")
 
-  set(CH_CS_DATA ${CH_BUILD_DATA})
+  set(CH_CS_DATA ${CH_BUILD_DATA}/)
+  set(CH_CS_VEHICLE_DATA ${CH_BUILD_DATA}/vehicle/)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
                   "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
                   @ONLY)
