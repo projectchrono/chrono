@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(ChronoDemos CSharp)
+# We're using Csharp here, but adding the CXX language lets CMake know that a C++ compiler is
+# available for configuration checks - openmp and mpi require it (others may also)
+project(ChronoDemos CSharp CXX)
 
 if(NOT Chrono_DIR)
   set(Chrono_DIR "" CACHE PATH "The directory containing a CMake configuration file for Chrono.")

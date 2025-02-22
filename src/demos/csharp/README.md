@@ -13,3 +13,5 @@ The demos in this directory are meant for illustration only, as well as a mechan
 
 To prevent mixing different languages (C++ and C#) in the same build, these demos can not be enabled, configured, and built simultaneously with the rest of the Chrono libraries, C++ demos, and tests.  Instead, we provide a separate CMakeLists.txt hierarchy to generate a C# CMake project that includes all C# demos in the various sub-directories.  These C# demos assume an existing Chrono installation (with the Chrono::Csharp module enabled) and are configured as external projects depending on Chrono.  This setup is very similar to the simpler example provided in `template_project_csharp`, except that the CMake scripts here account for multiple sub-projects. 
 
+As DLL dependencies are no longer copied over, the user will need to copy Irrlicht library and Chrono dll's into the build folder, or set them in PATH environment.
+
