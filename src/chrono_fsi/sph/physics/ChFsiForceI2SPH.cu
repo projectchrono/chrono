@@ -966,13 +966,13 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 
     m_sortedSphMarkers_D = sortedSphMarkers_D;
 
-    thrust::device_vector<Real3>::iterator iter = thrust::max_element(
+    thrust::device_vector<Real3>::iterator iter_vel = thrust::max_element(
         m_sortedSphMarkers_D->velMasD.begin(), m_sortedSphMarkers_D->velMasD.end(), compare_Real3_mag());
-    Real MaxVel = length(*iter);
+    Real MaxVel = length(*iter_vel);
 
-    thrust::device_vector<Real4>::iterator iter_mu = thrust::max_element(
-        m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(), compare_Real4_z());
-    Real Maxmu = length(*iter_mu);
+    ////thrust::device_vector<Real4>::iterator iter_mu = thrust::max_element(
+    ////    m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(), compare_Real4_z());
+    ////Real Maxmu = length(*iter_mu);
 
     size_t end_fluid = cH->numGhostMarkers + cH->numHelperMarkers + cH->numFluidMarkers;
     size_t end_bndry = end_fluid + cH->numBoundaryMarkers;
@@ -1059,12 +1059,12 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 
         Iteration++;
         thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
-        auto position = iter - Residuals.begin();
+        ////auto position = iter - Residuals.begin();
         MaxRes = *iter;
         if (pH->Verbose_monitoring)
-            printf("Iter= %.4d, Res= %.4e\n", Iteration, MaxRes);
+            printf("Iter = %d, Res= %.4e\n", Iteration, MaxRes);
     }
-    //
+
     //    thrust::device_vector<Real3>::iterator iter =
     //        thrust::max_element(V_star_new.begin(), V_star_new.end(), compare_Real3_mag());
     //    unsigned int position = iter - V_star_new.begin();
@@ -1185,11 +1185,11 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 
             Iteration++;
             thrust::device_vector<Real>::iterator iter = thrust::max_element(Residuals.begin(), Residuals.end());
-            auto position = iter - Residuals.begin();
+            ////auto position = iter - Residuals.begin();
             MaxRes = *iter;
 
             if (pH->Verbose_monitoring)
-                printf("Iter= %.4d, Res= %.4e\n", Iteration, MaxRes);
+                printf("Iter = %d, Res= %.4e\n", Iteration, MaxRes);
         }
     }
     //    Real4_y unary_op_p;
@@ -1279,7 +1279,7 @@ void ChFsiForceI2SPH::neighborSearch() {
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    computeGridSize(numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    computeGridSize((uint)numAllMarkers, 256, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
@@ -1338,8 +1338,6 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
 
     cudaCheckErrorFlag(error_flagD, "calcNormalizedRho_Gi_fillInMatrixIndices");
 
-    double A_L_Tensor_GradLaplacian = clock();
-
     if (calcLaplacianOperator && !m_data_mgr.paramsH->Conservative_Form) {
         printf("| calc_A_tensor+");
 
@@ -1361,8 +1359,6 @@ void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), U1CAST(m_data_mgr.neighborList),
         U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
     cudaCheckErrorFlag(error_flagD, "Gradient_Laplacian_Operator");
-
-    double Gradient_Laplacian_Operator = (clock() - A_L_Tensor_GradLaplacian) / (double)CLOCKS_PER_SEC;
 }
 
 }  // namespace sph
