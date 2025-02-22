@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     double step_size = 1e-4;
 
     // Parse command line arguments
-    double t_end = 10.0;
+    double t_end = 12.0;
     bool verbose = true;
     bool output = true;
     double output_fps = 20;
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
     auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                              //
                                       ChVector3d(0, 0, 0), csize, depth,                                   //
                                       fun,                                                                 //
-                                      chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), false);  //
+                                      chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), true);  //
     ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
     ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
     ////                                  fun,                                                                       //
