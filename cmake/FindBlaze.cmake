@@ -45,8 +45,7 @@ if(NOT blaze_FOUND)
   return()
 endif()
 
-find_file(blaze_VERSION_FILENAME "Version.h" PATHS "${blaze_INCLUDE_DIR}/blaze/system")
-mark_as_advanced(FORCE blaze_VERSION_FILENAME)
+find_file(blaze_VERSION_FILENAME "Version.h" PATHS "${blaze_INCLUDE_DIR}/blaze/system" NO_CACHE)
 
 if(blaze_VERSION_FILENAME)
   
