@@ -128,7 +128,8 @@ endif()
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
-message(STATUS "Searching for Eigen3.")
+
+message(STATUS "Searching for Eigen3")
 find_package(Eigen3 3.3 QUIET)
 if(EIGEN3_FOUND)
   message(STATUS "  Eigen3 found. EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")

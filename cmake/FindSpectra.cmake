@@ -1,35 +1,42 @@
-
-#-------------------------------------------------------------------------------
 # Find Spectra
-# ATTENTION: Spectra library (https://github.com/yixuan/spectra) has its own spectra-config.cmake
-# but needs to be installed; we provide an easier way
-
-# This find script requires the following input variables:
-# - Spectra_INCLUDE_DIR: shall contain the subdirectory named 'Spectra'
-# This find script provides the following output variables/targets:
-# - Spectra_FOUND: a boolean indicating whether the library was found
+#
+# This script requires one of the following input variables:
+# - spectra_DIR: directory containing the Spectra package configuration script
+# - spectra_INCLUDE_DIR: directory containing the subdirectory 'Spectra/'
+#
+# This script provides the following outputs:
+# - spectra_FOUND: a boolean variable indicating whether the library was found
 # - Spectra::Spectra: imported target
 
-set(Spectra_FOUND TRUE)
+if(spectra_INCLUDE_DIR)
 
-find_path(Spectra_INCLUDE_DIR_INTERNAL NAMES SymEigsBase.h PATHS "${Spectra_INCLUDE_DIR}/Spectra" NO_CACHE)
-mark_as_advanced(Spectra_INCLUDE_DIR_INTERNAL)
-
-if (NOT Spectra_INCLUDE_DIR_INTERNAL)
-  message(NOTICE "Could not find '${Spectra_INCLUDE_DIR}/Spectra/SymEigsBase.h'. Set Spectra_INCLUDE_DIR to a folder containing the subfolder 'Spectra'.")
-  return()
-endif()
-
-set(Spectra_FOUND TRUE)
-
-if(Spectra_FOUND AND NOT TARGET Spectra::Spectra)
-  add_library(Spectra::Spectra INTERFACE IMPORTED)
-  set_target_properties(Spectra::Spectra PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${Spectra_INCLUDE_DIR}")
-  if(MSVC)
-    set_property(TARGET Spectra::Spectra PROPERTY
-                 INTERFACE_COMPILE_OPTIONS $<$<COMPILE_LANGUAGE:CXX>:/bigobj>)
+  if(EXISTS "${spectra_INCLUDE_DIR}/Spectra/KrylovSchurGEigsSolver.h")
+    if(NOT TARGET Spectra::Spectra)
+      add_library(Spectra::Spectra INTERFACE IMPORTED)
+      set_target_properties(Spectra::Spectra PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${spectra_INCLUDE_DIR}")
+      if(MSVC)
+        set_property(TARGET Spectra::Spectra PROPERTY INTERFACE_COMPILE_OPTIONS $<$<COMPILE_LANGUAGE:CXX>:/bigobj>)
+      endif()             
+    endif()
+    set(spectra_FOUND TRUE)
+    if(NOT Spectra_FIND_QUIETLY)
+      message(STATUS "Found 'Spectra/KrylovSchurGEigsSolver.h' in provided spectra_INCLUDE_DIR=${spectra_INCLUDE_DIR}")
+    endif()
+  else()
+    set(spectra_FOUND FALSE)
+    if(NOT Spectra_FIND_QUIETLY)
+      message(STATUS "Could not find 'Spectra/KrylovSchurGEigsSolver.h' in the provided spectra_INCLUDE_DIR=${spectra_INCLUDE_DIR}")
+    endif()
   endif()
-               
-endif()
 
+else()
+
+  find_package(spectra NO_MODULE)
+  if(spectra_FOUND)
+    get_target_property(spectra_INCLUDE_DIR Spectra::Spectra INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT Spectra_FIND_QUIETLY)
+      message(STATUS "Spectra found through config script")
+    endif()
+  endif()
+
+endif()
