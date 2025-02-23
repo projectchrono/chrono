@@ -207,7 +207,7 @@ auto GetAverageValue3 = [](const double mv1, const double mv2) {
         // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
-    return (mv1 + std::pow(mv1 * mv2, 0.5) + mv2) / 3.0;
+    return (mv1 + std::sqrt(mv1 * mv2) + mv2) / 3.0;
 };
 // For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue5 = [](const double mv1, const double mv2) {
@@ -215,7 +215,7 @@ auto GetAverageValue5 = [](const double mv1, const double mv2) {
         // std::cerr << "WARNING: negative value, error!" << std::endl;
         return GetAverageValue(mv1, mv2);
     }
-    return (mv1 + std::pow(mv1 * mv1 * mv1 * mv2, 0.25) + std::pow(mv1 * mv2, 0.5) +
+    return (mv1 + std::pow(mv1 * mv1 * mv1 * mv2, 0.25) + std::sqrt(mv1 * mv2) +
             std::pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
            5.0;
 };
@@ -424,15 +424,15 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
     double Jmxx = this->avg_sec_par->Jmxx;
 
     // The radii of gyration ry,rz are:
-    // double ry = pow(Iyy / A, 0.5);
-    // double rz = pow(Izz / A, 0.5);
+    // double ry = sqrt(Iyy / A);
+    // double rz = sqrt(Izz / A);
     // We have: Iyy / A == Iyy * pho / (A * pho) = Jyy / mu
     // For wind turbine blade, the above equations are not true, but can be a good approximation.
-    // double ry = pow(Jmyy / mu, 0.5);   // wrong modal results, error up to 5%
-    // double rz = pow(Jmzz / mu, 0.5);   // wrong modal results, error up to 5%
+    // double ry = sqrt(Jmyy / mu);   // wrong modal results, error up to 5%
+    // double rz = sqrt(Jmzz / mu);   // wrong modal results, error up to 5%
 
-    // double ry = pow(EImyy / EA, 0.5);  // run error
-    // double rz = pow(EImzz / EA, 0.5);  // run error
+    // double ry = sqrt(EImyy / EA);  // run error
+    // double rz = sqrt(EImzz / EA);  // run error
 
     // Note: bending inertia has to be switched off!
     double ry = 0;  // Only this setting could give correct modal results

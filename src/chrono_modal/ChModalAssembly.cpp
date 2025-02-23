@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
@@ -669,7 +669,7 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
     double expected_generalized_mass = M_SS.diagonal().mean();
     for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode)
         if (M_DD(i_mode, i_mode))
-            modes_scaling_factor(i_mode) = std::pow(expected_generalized_mass / M_DD(i_mode, i_mode), 0.5);
+            modes_scaling_factor(i_mode) = std::sqrt(expected_generalized_mass / M_DD(i_mode, i_mode));
 
     // Scale eigenvectors of dynamic modes, to improve the numerical stability
     for (unsigned int i_mode = 0; i_mode < m_modal_eigvect.cols(); ++i_mode) {
@@ -707,7 +707,7 @@ void ChModalAssembly::ApplyModeAccelerationTransformation(const ChModalDamping& 
 
         // Scale the eigenvector of the static correction mode, to improve the numerical stability
         ChMatrixDynamic<> M_rr = Psi_Cor.transpose() * M_II_loc * Psi_Cor;
-        double static_scaling_factor = std::pow(expected_generalized_mass / M_rr(0, 0), 0.5);
+        double static_scaling_factor = std::sqrt(expected_generalized_mass / M_rr(0, 0));
         Psi_Cor *= static_scaling_factor;
         if (m_num_constr_internal)
             Psi_Cor_LambdaI *= static_scaling_factor;
@@ -892,7 +892,7 @@ void ChModalAssembly::UpdateStaticCorrectionMode() {
     double expected_generalized_mass =
         M_red.topLeftCorner(m_num_coords_vel_boundary, m_num_coords_vel_boundary).diagonal().mean();
     ChMatrixDynamic<> M_rr = Psi_Cor.transpose() * M_II_loc * Psi_Cor;
-    double static_scaling_factor = std::pow(expected_generalized_mass / M_rr(0, 0), 0.5);
+    double static_scaling_factor = std::sqrt(expected_generalized_mass / M_rr(0, 0));
     Psi_Cor *= static_scaling_factor;
     if (m_num_constr_internal)
         Psi_Cor_LambdaI *= static_scaling_factor;

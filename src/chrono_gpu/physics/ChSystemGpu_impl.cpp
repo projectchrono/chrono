@@ -1469,7 +1469,7 @@ void ChSystemGpu_impl::switchToSimUnits() {
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
     this->LENGTH_SU2UU =
-        std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
+        std::cbrt(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star)) /
         psi_L;
     this->LENGTH_SU2UU = std::min((double)(sphere_radius_UU * psi_R), this->LENGTH_SU2UU);
 

@@ -126,7 +126,7 @@ void ChFunctionConstJerk::Setup(double q0, double q1, double vmax, double amax, 
             m_Tj2 = Tj;
             m_Ta = 0.5 * Tj + std::sqrt(std::pow(0.5 * Tj, 2) + h / m_amax_lim);
         } else {
-            Tj = std::pow(h / (2 * m_jmax_lim), 1. / 3.);
+            Tj = std::cbrt(h / (2 * m_jmax_lim));
             m_Tj1 = Tj;
             m_Tj2 = Tj;
             m_Ta = 2 * Tj;
