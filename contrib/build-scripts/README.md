@@ -6,7 +6,7 @@ The scripts in this directory provide a simple mechanism for installing dependen
 Notes
 - the scripts assume that git, cmake, and a C++ compiler are available
 - additional requirements (if any) are indicated in the comments at the top of each script
-- usage instrauctions are listed in the comments at the top of each script
+- usage instructions are listed in the comments at the top of each script
 
 Currently, scripts are provided for the following packages:
 - Eigen3 -- the only external dependency of the core Chrono module
@@ -19,7 +19,7 @@ Currently, scripts are provided for the following packages:
 - VDB -- OpenVDB packages optionally used in Chrono::Sensor
 - VSG -- VulkanSceneGraph packages required by Chrono::VSG
 
-In addition, each sub-directory includes a sample script for configuring and building Chrono with vrious modules enabled and satisfying the corresponding dependencies.
+In addition, each sub-directory includes a sample script for configuring and building Chrono with various modules enabled and satisfying the corresponding dependencies.
 
 ## Usage
 
