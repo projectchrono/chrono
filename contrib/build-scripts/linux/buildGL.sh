@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ---------------------------------------------------------------------------------------------------------
-# Windows batch script for building GL from sources.
+# Shell script for building GL from sources.
 # - Requires cmake, wget, and unzip
 # - Place in an arbitrary temporary directory.
 # - Specify the locations for the GL sources OR indicate that these should be downloaded.
