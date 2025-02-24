@@ -81,14 +81,15 @@ class ChApi ChElementSpring : public ChElementGeneric {
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
   private:
-    /// Initial setup.
+    /// Initial setup. Precompute rest length
     /// No override needed for the spring element because global K is computed on-the-fly in
     /// ComputeAddKRmatricesGlobal()
-    ////virtual void SetupInitial(ChSystem* system) override {}
+    virtual void SetupInitial(ChSystem* system) override;
 
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     double spring_k;
     double damper_r;
+    double length;
 };
 
 /// @} fea_elements

@@ -13,11 +13,12 @@
 // =============================================================================
 
 #include "chrono/fea/ChElementSpring.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 namespace fea {
 
-ChElementSpring::ChElementSpring() : spring_k(1.0), damper_r(0.01) {
+ChElementSpring::ChElementSpring() : spring_k(1.0), damper_r(0.01), length(0) {
     nodes.resize(2);
 }
 
@@ -36,6 +37,10 @@ void ChElementSpring::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.setZero(this->GetNumCoordsPosLevel());
     mD.segment(0, 3) = this->nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = this->nodes[1]->GetPos().eigen();
+}
+
+void ChElementSpring::SetupInitial(ChSystem* system) {
+    this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
 }
 
 void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -59,7 +64,7 @@ void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
     // add geometric stiffness - in future it might become an option to switch off if not needed.
     // See for ex. http://shodhbhagirathi.iitr.ac.in:8081/jspui/handle/123456789/8433 pag. 14-15
     if (true) {
-        double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+        double L_ref = length;
         double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
         double internal_Kforce_local = this->spring_k * (L - L_ref);
 
@@ -76,26 +81,30 @@ void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
 void ChElementSpring::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 6);
 
-    ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-    double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
-    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    double L_dt = Vdot((nodes[1]->GetPosDt() - nodes[0]->GetPosDt()), dir);
+    ChVector3d dPos = nodes[1]->GetPos() - nodes[0]->GetPos();
+    double L_ref = length;
+    double L = dPos.Length();
+    double Linv = 1.0 / L;
+    ChVector3d dV = nodes[1]->GetPosDt() - nodes[0]->GetPosDt();
     double internal_Kforce_local = this->spring_k * (L - L_ref);
-    double internal_Rforce_local = this->damper_r * L_dt;
-    double internal_force_local = internal_Kforce_local + internal_Rforce_local;
-    ChVector3d int_forceA = dir * internal_force_local;
-    ChVector3d int_forceB = -dir * internal_force_local;
+    double internal_Rforce_local = this->damper_r * Vdot(dV, dPos) * Linv;
+    double internal_force_local = (internal_Kforce_local + internal_Rforce_local) * Linv;
+    ChVector3d int_forceA = dPos * internal_force_local;
+    ChVector3d int_forceB = -dPos * internal_force_local;
     Fi.segment(0, 3) = int_forceA.eigen();
     Fi.segment(3, 3) = int_forceB.eigen();
 }
 
 double ChElementSpring::GetCurrentForce() {
-    ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-    double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
-    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    double L_dt = Vdot((nodes[1]->GetPosDt() - nodes[0]->GetPosDt()), dir);
+    // TODO: This is only used in demo_FEA_truss.cpp to mimick failure when the force it too high
+    // Otherwise not necessary. Think of implementing failure mechanisms / max stress/strain criterion
+    ChVector3d dPos = nodes[1]->GetPos() - nodes[0]->GetPos();
+    double L_ref = length;
+    double L = dPos.Length();
+    double Linv = 1.0 / L;
+    ChVector3d dV = nodes[1]->GetPosDt() - nodes[0]->GetPosDt();
     double internal_Kforce_local = this->spring_k * (L - L_ref);
-    double internal_Rforce_local = this->damper_r * L_dt;
+    double internal_Rforce_local = this->damper_r * Vdot(dV, dPos) * Linv;
     return internal_Kforce_local + internal_Rforce_local;
 }
 
