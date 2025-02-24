@@ -1179,7 +1179,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     m_dky = CalcPeaks(m_inp_y, false);
     m_dkz = CalcPeaks(m_inp_z, true);
 
-    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), 1.0 / 6.0);
+    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), CH_1_6);
 }
 
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
