@@ -71,7 +71,7 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
     // use Roark's formulas for torsion of rectangular sect:
     double t = std::min(width_y, width_z);
     double b = std::max(width_y, width_z);
-    this->J = b * std::pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * std::pow((t / b), 4)));
+    this->J = b * std::pow(t, 3) * (CH_1_3 - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * std::pow((t / b), 4)));
 
     // set Ks using Timoshenko-Gere formula for solid rect.shapes
     double poisson = this->E / (2.0 * this->G) - 1.0;
@@ -471,9 +471,9 @@ void ChElasticityCosseratMesh::ComputeStress(ChVector3d& stress_n,
         double sxy2 = sigma_xy[iv2];
         double sxy3 = sigma_xy[iv3];
 
-        stress_n.x() += (1. / 3.) * A * (s1 + s2 + s3);
-        stress_n.y() += (1. / 3.) * A * (sxy1 + sxy2 + sxy3);
-        stress_n.z() += (1. / 3.) * A * (sxz1 + sxz2 + sxz3);
+        stress_n.x() += CH_1_3 * A * (s1 + s2 + s3);
+        stress_n.y() += CH_1_3 * A * (sxy1 + sxy2 + sxy3);
+        stress_n.z() += CH_1_3 * A * (sxz1 + sxz2 + sxz3);
 
         stress_m.x() +=
             2. * A *

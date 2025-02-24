@@ -322,7 +322,7 @@ void TrajectoryInterpolatorJointSpace::Setup(double motion_time_tot,
                     break;
                 case SpacefunType::CONSTACC:
                     // NB: assume law 1/3 - 1/3 - 1/3
-                    func = chrono_types::make_shared<ChFunctionConstAcc>(path_dist, 1. / 3., 2. / 3., m_durations[w]);
+                    func = chrono_types::make_shared<ChFunctionConstAcc>(path_dist, CH_1_3, 2./ 3., m_durations[w]);
                     break;
                 case SpacefunType::CYCLOIDAL:
                     func = chrono_types::make_shared<ChFunctionCycloidal>(path_dist, m_durations[w]);

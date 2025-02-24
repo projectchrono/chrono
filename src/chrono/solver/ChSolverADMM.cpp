@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "chrono/core/ChSparsityPatternLearner.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono/solver/ChSolverADMM.h"
 
@@ -177,7 +178,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
-                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                     mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 0]->SetSchurComplement(average_g_i);
@@ -590,7 +591,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
-                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                     mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 0]->SetSchurComplement(average_g_i);

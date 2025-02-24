@@ -1791,7 +1791,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
 
         m_data.normal_force = Fn_mag;
         // R_eff is a Rill estimation, not Pacejka. Advantage: it works well with speed = zero.
-        m_states.R_eff = (2.0 * m_par.UNLOADED_RADIUS + (m_par.UNLOADED_RADIUS - m_data.depth)) / 3.0;
+        m_states.R_eff = (2.0 * m_par.UNLOADED_RADIUS + (m_par.UNLOADED_RADIUS - m_data.depth)) * CH_1_3;
         m_states.vx = std::abs(m_data.vel.x());
         m_states.vsx = m_data.vel.x() - wheel_state.omega * m_states.R_eff;
         m_states.vsy = -m_data.vel.y();

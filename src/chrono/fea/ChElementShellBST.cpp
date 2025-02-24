@@ -177,11 +177,11 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
 
     // Compute jacobian
     ShapeVector N;
-    this->ShapeFunctions(N, 1. / 3., 1. / 3.);
+    this->ShapeFunctions(N, CH_1_3, CH_1_3);
     ShapeVector Nu;
-    this->ShapeFunctionsDerivativeU(Nu, 1. / 3., 1. / 3.);
+    this->ShapeFunctionsDerivativeU(Nu, CH_1_3, CH_1_3);
     ShapeVector Nv;
-    this->ShapeFunctionsDerivativeV(Nv, 1. / 3., 1. / 3.);
+    this->ShapeFunctionsDerivativeV(Nv, CH_1_3, CH_1_3);
 
     ChVector3d P0_u = Nu(0, 0) * m_nodes[0]->GetX0() + Nu(0, 1) * m_nodes[1]->GetX0() + Nu(0, 2) * m_nodes[2]->GetX0();
     ChVector3d P0_v = Nv(0, 0) * m_nodes[0]->GetX0() + Nv(0, 1) * m_nodes[1]->GetX0() + Nv(0, 2) * m_nodes[2]->GetX0();
@@ -198,9 +198,9 @@ void ChElementShellBST::SetupInitial(ChSystem* system) {
         std::cerr << "Warning: a ChElementShellBST is not invertible (degenerate triangle?)" << std::endl;
 
     ShapeVector Nx;
-    this->ShapeFunctionsDerivativeX(Nx, this->Jux, 1. / 3., 1. / 3.);
+    this->ShapeFunctionsDerivativeX(Nx, this->Jux, CH_1_3, CH_1_3);
     ShapeVector Ny;
-    this->ShapeFunctionsDerivativeY(Ny, this->Jux, 1. / 3., 1. / 3.);
+    this->ShapeFunctionsDerivativeY(Ny, this->Jux, CH_1_3, CH_1_3);
 
     // Compute initial strain e0
     this->e0 = VNULL;
@@ -259,7 +259,7 @@ void ChElementShellBST::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& e
     // This is simpler than the stiffness-consistent mass matrix that would require
     // integration over gauss points.
 
-    double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
+    double nodemass = CH_1_3 * (this->area * mass_per_area);
     for (int n = 0; n < 3; n++) {
         // xyz masses of first 3 nodes of BST
         Md(m_nodes[n]->NodeGetOffsetVelLevel()) += nodemass * c;
@@ -373,7 +373,7 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
         // This is simpler than the stiffness-consistent mass matrix that would require
         // integration over gauss points.
 
-        double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
+        double nodemass = CH_1_3 * (this->area * mass_per_area);
 
         for (int n = 0; n < 3; n++) {
             int node_off = n * 3;
@@ -421,9 +421,9 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     // no need to do t_1.Normalize() and to orthogonalize t_2 respect to t_1 because not needed later
 
     ShapeVector Nx;
-    this->ShapeFunctionsDerivativeX(Nx, this->Jux, 1. / 3., 1. / 3.);
+    this->ShapeFunctionsDerivativeX(Nx, this->Jux, CH_1_3, CH_1_3);
     ShapeVector Ny;
-    this->ShapeFunctionsDerivativeY(Ny, this->Jux, 1. / 3., 1. / 3.);
+    this->ShapeFunctionsDerivativeY(Ny, this->Jux, CH_1_3, CH_1_3);
 
     // Compute strain
     ChVector3d P_1 = Nx(0) * np[0] + Nx(1) * np[1] + Nx(2) * np[2];

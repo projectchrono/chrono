@@ -484,7 +484,7 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
         /// Calculation of stress tensor STR term to term: I1PC, I2PC, and JPC.
 
         // Stress tensor from first term of Mooney-Rivlin strain energy
-        I1PC = (ChMatrix33<>::Identity() - INVCG * (1.0 / 3.0 * I1)) *cbrtI3inv;
+        I1PC = (ChMatrix33<>::Identity() - INVCG * (CH_1_3 * I1)) * cbrtI3inv;
         // Stress tensor from second term of Mooney-Rivlin strain energy
         I2PC = (((ChMatrix33<>::Identity() * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * cbrtI3inv * cbrtI3inv;
         // Stress tensor from penalty for incompressibility
@@ -532,7 +532,7 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
                  CGN(0, 2) * CGN(1, 0) * CGN(2, 1) - CGN(2, 0) * CGN(1, 1) * CGN(0, 2);
             cbrtI3inv = 1.0 / std::cbrt(I3);
             J = std::sqrt(I3);
-            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * cbrtI3inv;
+            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (CH_1_3 * I1)) * cbrtI3inv;
             I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * cbrtI3inv * cbrtI3inv;
             JPCN = INVCGN * (J / 2.0);
             STRN = I1PCN * (element->CCOM1 * 2.0) + I2PCN * (element->CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
@@ -1002,7 +1002,7 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
         double CCOM3 = 2.0 * (element->CCOM1 + element->CCOM2) / (1.0 - 2.0 * 0.49);  // K:bulk modulus
         double StockEPS;
 
-        I1PC = (ChMatrix33<>::Identity() - INVCG * (1.0 / 3.0 * I1)) * cbrtI3inv;
+        I1PC = (ChMatrix33<>::Identity() - INVCG * (CH_1_3 * I1)) * cbrtI3inv;
         I2PC = (((ChMatrix33<>::Identity() * I1) - CG) - (INVCG * (2.0 / 3.0) * I2)) * cbrtI3inv * cbrtI3inv;
         JPC = INVCG * (J / 2.0);
 
@@ -1042,7 +1042,7 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
                  CGN(0, 2) * CGN(1, 0) * CGN(2, 1) - CGN(2, 0) * CGN(1, 1) * CGN(0, 2);
             cbrtI3inv = 1.0 / std::cbrt(I3);
             J = std::sqrt(I3);
-            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (1.0 / 3.0 * I1)) * cbrtI3inv;
+            I1PCN = (ChMatrix33<>::Identity() - INVCGN * (CH_1_3 * I1)) * cbrtI3inv;
             I2PCN = (((ChMatrix33<>::Identity() * I1) - CGN) - (INVCGN * (2.0 / 3.0) * I2)) * cbrtI3inv * cbrtI3inv;
             JPCN = INVCGN * (J / 2.0);
             STRN = I1PCN * (element->CCOM1 * 2.0) + I2PCN * (element->CCOM2 * 2.0) + JPCN * (CCOM3 * (J - 1.0) * 2.0);
