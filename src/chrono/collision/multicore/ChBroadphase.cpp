@@ -104,7 +104,7 @@ void ChBroadphase::RigidBoundingBox() {
 typedef thrust::pair<real3, real3> bbox;
 
 // Reduce a pair of bounding boxes (a,b) to a bounding box containing a and b.
-struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
+struct bbox_reduction {
     bbox operator()(bbox a, bbox b) {
         real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
                          Min(a.first.z, b.first.z));  // lower left corner
@@ -115,7 +115,7 @@ struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
 };
 
 // Convert a point to a bbox containing that point, (point) -> (point, point).
-struct bbox_transformation : public thrust::unary_function<real3, bbox> {
+struct bbox_transformation {
     bbox operator()(real3 point) { return bbox(point, point); }
 };
 
