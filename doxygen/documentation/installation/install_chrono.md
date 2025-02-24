@@ -5,6 +5,9 @@ Install Chrono {#tutorial_install_chrono}
 
 The Chrono source code can be obtained from the Chrono GitHub [repository](https://github.com/projectchrono/chrono) as zip files (for the current development branch or one of the official [releases](https://github.com/projectchrono/chrono/releases)). Alternatively, you can use [git](https://git-scm.com/) to clone the Chrono repository.
 
+------------------------------------------------------------
+## Prerequisites {#prerequisites}
+
 Building Chrono from sources requires a C++ compiler and the [CMake](https://cmake.org/) build system.
 
 #### Recommended compilers {#compilers}
@@ -27,9 +30,9 @@ CMake will configure and create the necessary solution files (Windows) or make f
 
 For Windows users: make sure to put the CMake executable in your `Path` environmental variable (the installer can do this for you).
 
-On Linux, if not already installed, use the package manager to install `cmake`.  Some distributions may need to install the package `cmake-curses-gui` along with `cmake` to use terminal based GUI for CMake.
+On Linux, if not already installed, use the package manager to install `cmake`.  Some distributions may need to install additional packages along with `cmake` (e.g., `cmake-gui` for the window-based CMake GUI interface or `cmake-curses-gui`  to use the `ccmake` terminal-based GUI for CMake).
 
-For Xcode users: the CMake.app bundle also contains command line tools, you must set appropriate links to use it from the terminal. It is better to install a pure command line version via homebrew: <tt>brew install cmake</tt> in the terminal.
+For Xcode users: while the CMake.app bundle also contains command line tools, you must set appropriate links to use it from the terminal. It is better to install a pure command line version via homebrew: <tt>brew install cmake</tt> in the terminal.
 
 #### Install a GUI git client {#install_git}
 
@@ -40,7 +43,7 @@ On Windows and MacOS, we suggest [SourceTree](http://www.sourcetreeapp.com/), al
 Note that most modern IDEs have git integration (e.g. the free [Visual Studio Code](https://code.visualstudio.com/) available on Windows, Linux, and Mac).
 
 ------------------------------------------------------------
-## Prerequisites {#prerequisites}
+## Third-party dependencies {#dependencies}
 
 The Chrono core module has a single dependency on the [Eigen3](http://eigen.tuxfamily.org/) template library for linear algebra. 
 
@@ -48,7 +51,7 @@ Since optional Chrono modules may bring in additional dependencies we recommend 
 
 #### Install Eigen {#install_eigen}
 
-Eigen is a headers-only library and as such it can be used immmediately as downloaded. However, it can also be configured and installed with `cmake`.
+Eigen is a headers-only library and as such it can be used immmediately as downloaded. However, it can also be configured and installed with `cmake` (see below).
 
 On Linux, Eigen is also available through the system package manager (e.g. <tt>sudo apt install eigen3-dev</tt>).
 
@@ -56,15 +59,58 @@ On the Mac, Eigen can be installed via homebrew: <tt>brew install eigen</tt>. Be
 
 We strongly **recommend** using the latest Eigen3 version 3.4.0.
 
+#### Utility scripts for installing 3rd-party Chrono dependencies {#scripts}
 
-#### Notes on 3rd-party Chrono dependencies {#dependencies}
+The Chrono distribution includes, in the directory `contrib/build-scripts` a set of scripts that provide a simple mechanism for installing dependencies for the various Chrono modules.  The scripts are organized iun sub-directories by OS: Bash shell scripts in `contrib/build-scripts/linux/` and Windows batch scripts in `contrib/build-scripts/windows/`. The directory `contrib/build-scripts/macOS/` contains Bash shell scripts tailored for the specifics of MacOS; if a script is not present in that directory, simply use the Linux script.
 
-- Never mix 64-bit and 32-bit binaries and libraries! <br>
-For example, you must link the 64-bit Irrlicht library. Beginning with MacOS 10.15 Catalina there is no 32-bit support anymore.
+**Notes**<br>
+- the scripts assume that git, cmake, and a C++ compiler are available
+- additional requirements (if any) are indicated in the comments at the top of each script
+- usage instructions are listed in the comments at the top of each script
 
-- Other Chrono module (e.g., the run-time visualization Chrono modules) have additional dependencies. If using shared libraries for these dependencies, you must ensure that these are found at run time.
-  - On Windows, you can either copy the corresponding DLLs (e.g., Irrlicht.dll) to the same directory as the executables or else add the path to these shared libraries to the `PATH` environment variable.
-  - On Linux, you may need to append to the `LD_LIBRARY_PATH` environment variable and/or run the `ldconfig` command.
+Currently, scripts are provided for the following packages:
+- Eigen3 -- the only external dependency of the core Chrono module
+- Blaze -- a linear algebra package required by Chrono::Multicore
+- GL and GLEW -- OpenGL packages used in Chrono::OpenGL and (optionally) in Chrono::Sensor
+- MUMPS -- a direct sparse linear solver required by Chrono::Mumps
+- OpenCRG -- a file format for road description used (optionally) in Chrono::Vehicle
+- Spectra -- an algebra package required by Chrono::Modal
+- URDF -- URDF file parser utilities optionally used by Chrono::Parsers
+- VDB -- OpenVDB packages optionally used in Chrono::Sensor
+- VSG -- VulkanSceneGraph packages required by Chrono::VSG
+
+In addition, each sub-directory includes a sample script for configuring and building Chrono with various modules enabled and satisfying the corresponding dependencies.
+
+**Usage**<br>
+Consult the instructions in the comments at the top of each script.
+The general usage is as follows:
+- copy the desired script(s) in a workspace directory (each script will create temporary directories to download the necessary sources and to configure and build the various packages)
+- edit the script to tailor to your particular machine (at a minimum, set the desired installation directory)
+- run the script
+- verify that the package files were properly installed in the specified install directory
+
+With the exception of OpenCRG, all packages built and installed by these scripts provide CMake configuration scripts which are used during CMake Chrono configuration to find the respective dependencies. To simplify the Chrono CMake configuration process and avoid manually specifying package-specific information every time, we recommend setting the `CMAKE_PREFIX_PATH` environment variable to add the directory containing the CMake project configuration scripts for each installed package. 
+An example of `CMAKE_PREFIX_PATH` (on a Windows machine) is:
+```cpp
+E:\Packages\eigen\share\eigen3\cmake;
+E:\Packages\blaze\share\blaze\cmake;
+E:\Packages\vsg\lib\cmake;
+E:\Packages\urdf\lib\urdfdom\cmake;
+E:\Packages\urdf\CMake;
+E:\Packages\spectra\share\spectra\cmake;
+E:\Packages\gl\lib\cmake;
+E:\Packages\mumps\cmake;
+C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake;
+C:\Program Files (x86)\Intel\oneAPI\mkl\2023.0.0\lib\cmake\mkl;
+```
+
+#### Notes on 3rd-party Chrono dependencies {#notes}
+
+- Never mix 64-bit and 32-bit binaries and libraries. <br>
+For example, you must link the 64-bit Irrlicht library.
+- Since many of the 3rd-party dependency packages create and install shared libraries, the following steps may be required:
+  - on Linux, run `ldconfig` (you will likely need root permissions) to cache the necessary link to the newly created shared libraries or set the `LD_LIBRARY_PATH` environment variable
+  - on Windows, add to the `PATH` environment variable the directories containing the package DLLs (otherwise, these DLLs have to be manually copied next to the binaries so that they can be found at run-time)
 
 ------------------------------------------------------------
 ## Configuring Chrono with CMake {#configure_chrono}

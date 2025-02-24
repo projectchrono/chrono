@@ -128,7 +128,8 @@ endif()
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
-message(STATUS "Searching for Eigen3.")
+
+message(STATUS "Searching for Eigen3")
 find_package(Eigen3 3.3 QUIET)
 if(EIGEN3_FOUND)
   message(STATUS "  Eigen3 found. EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
@@ -773,7 +774,8 @@ install(FILES
 if(CH_ENABLE_MODULE_CSHARP)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in" DESTINATION "${PROJECT_BINARY_DIR}/cmake")
 
-  set(CH_CS_DATA ${CH_BUILD_DATA})
+  set(CH_CS_DATA ${CH_BUILD_DATA}/)
+  set(CH_CS_VEHICLE_DATA ${CH_BUILD_DATA}/vehicle/)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
                   "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
                   @ONLY)

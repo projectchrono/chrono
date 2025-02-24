@@ -221,8 +221,8 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 endforeach()
 
 #-------------------------------------------------------------------------------
-# Enable C++ if not already done.
-# This allows future use of certain Chrono modules from C#:
+# Check if C++ language is enabled.
+# If it is not, certain modules will be disabled:
 # - Chrono::Multicore which requires OpenMP for C++
 # - Chrono::Vehicle co-simulation which requires MPI for C++
 # - Chrono::VSG which calls FindThreads
@@ -231,8 +231,10 @@ endforeach()
 get_property(CURRENT_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
 list(FIND CURRENT_ENABLED_LANGUAGES CXX LANG_INDEX)
 if(LANG_INDEX EQUAL -1)
-  message(STATUS "Enable C++ language")
-  enable_language(CXX)
+  message("WARNING: C++ language is not enabled. Features that require C++ (e.g., MPI, OpenMP, VSG) will be disabled")
+  set(CHRONO_CXX_FOUND FALSE)
+else()
+  set(CHRONO_CXX_FOUND TRUE)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -267,7 +269,7 @@ endif()
 # Check OpenMP if Chrono was built with OpenMP support
 #-------------------------------------------------------------------------------
 
-if(CHRONO_OPENMP_CXX_AVAILABLE AND @CH_ENABLE_OPENMP@)
+if(CHRONO_OPENMP_CXX_AVAILABLE AND @CH_ENABLE_OPENMP@ AND CHRONO_CXX_FOUND)
   find_package(OpenMP COMPONENTS CXX)
   if(OpenMP_CXX_FOUND)
     if(NOT Chrono_FIND_QUIETLY)
@@ -297,16 +299,29 @@ if(Chrono_GPU_REQUESTED OR Chrono_FSI_REQUESTED OR Chrono_SENSOR_REQUESTED)
   
   find_package(CUDAToolkit QUIET)
 
-  if (CMAKE_CUDA_COMPILER AND CUDAToolkit_FOUND)
+  if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.23")
+      set(CHRONO_CUDA_ARCHITECTURES "all-major" CACHE STRING "Chrono CUDA architectures" FORCE)
+    endif()
+  endif()
+
+  if(CHRONO_CUDA_ARCHITECTURES STREQUAL "")
+    set(CHRONO_CUDA_FOUND FALSE)
+    message("WARNING: CUDA architectures not found. Set CHRONO_CUDA_ARCHITECTURES")
+  else()
+    set(CMAKE_CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES} CACHE STRING "CUDA architectures" FORCE)
+  endif()
+
+  if(CHRONO_CUDA_FOUND AND CMAKE_CUDA_COMPILER AND CUDAToolkit_FOUND)
     enable_language(CUDA)
     if(NOT Chrono_FIND_QUIETLY)
-      message(STATUS "CUDA found.")
+      message(STATUS "CUDA found")
     endif()
     mark_as_advanced(FORCE CUDAToolkit_DIR)
   else()
     set(CHRONO_CUDA_FOUND FALSE)
     if (NOT Chrono_FIND_QUIETLY)
-      message("WARNING: CUDA not found.")
+      message("WARNING: CUDA not found")
     endif()
     mark_as_advanced(CLEAR CUDAToolkit_DIR)
   endif()
@@ -339,7 +354,7 @@ endif()
 # Check MPI if Chrono was built with MPI support
 #-------------------------------------------------------------------------------
 
-if(CHRONO_MPI_CXX_AVAILABLE)
+if(CHRONO_MPI_CXX_AVAILABLE AND CHRONO_CXX_FOUND)
   find_package(MPI COMPONENTS CXX QUIET)
   if(MPI_CXX_FOUND)
     if(NOT Chrono_FIND_QUIETLY)
@@ -481,15 +496,17 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
     endif()
 
-    set(Blaze_ROOT "@Blaze_ROOT@" CACHE PATH "Blaze library location (should contain 'blaze/Blaze.h')")
+    set(blaze_INCLUDE_DIR "@blaze_INCLUDE_DIR@" CACHE PATH "Path to Blaze include directory (should contain a subdirectory 'blaze')")
     find_package(Blaze QUIET)
 
-    if (NOT Blaze_FOUND)
-      message("WARNING: Chrono::Multicore requires Blaze, but Blaze was not found; set Blaze_ROOT to the Blaze installation directory")
+    if (NOT blaze_FOUND)
+      message("WARNING: Chrono::Multicore requires Blaze, but Blaze was not found; set blaze_INCLUDE_DIR or blaze_DIR")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR Blaze_ROOT)
+      mark_as_advanced(CLEAR blaze_INCLUDE_DIR)
+      mark_as_advanced(CLEAR blaze_DIR)
     else()
-      mark_as_advanced(FORCE Blaze_ROOT)
+      mark_as_advanced(FORCE blaze_INCLUDE_DIR)
+      mark_as_advanced(FORCE blaze_DIR)
     endif()    
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
@@ -501,15 +518,17 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "MODAL")
 
-    set(Spectra_INCLUDE_DIR "@Spectra_INCLUDE_DIR@" CACHE PATH "Path to Spectra include directory (should contain the subdirectory named 'Spectra')")
+    set(spectra_INCLUDE_DIR "@spectra_INCLUDE_DIR@" CACHE PATH "Path to Spectra include directory (should contain a subdirectory 'Spectra')")
     find_package(Spectra QUIET)
 
-    if (NOT Spectra_FOUND)
-      message("WARNING: Chrono::modal requires Spectra, but Spectra was not found; set Spectra_INCLUDE_DIR to the Spectra include directory")
+    if (NOT spectra_FOUND)
+      message("WARNING: Chrono::modal requires Spectra, but Spectra was not found; set spectra_INCLUDE_DIR or spectra_DIR")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR Spectra_INCLUDE_DIR)
+      mark_as_advanced(CLEAR spectra_INCLUDE_DIR)
+      mark_as_advanced(CLEAR spectra_DIR)
     else()
-      mark_as_advanced(FORCE Spectra_INCLUDE_DIR)
+      mark_as_advanced(FORCE spectra_INCLUDE_DIR)
+      mark_as_advanced(FORCE spectra_DIR)
     endif()
 
     if (CHRONO_${COMPONENT_UPPER}_FOUND)
@@ -544,22 +563,27 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} MATCHES "VSG")
 
-    set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
-    set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
-    set(vsgXchange_DIR "@vsgXchange_DIR@" CACHE PATH "Path to vsgXchange installation.")
-    find_package(vsg QUIET)
-    find_package(vsgImGui QUIET)
-    find_package(vsgXchange QUIET)
-
-    if(NOT vsg_FOUND OR NOT vsgImGui_FOUND OR NOT vsgXchange_FOUND)
-      message("WARNING: Could not find one of the VSG libraries")
+    if(NOT CHRONO_CXX_FOUND)
+      message("WARNING: Chrono::VSG requires C++, but C++ language was not enabled")
       set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-    endif()
-
-    if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "Chrono_vsg")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+    else()
+      set(vsg_DIR "@vsg_DIR@" CACHE PATH "Path to vsg installation.")
+      set(vsgImGui_DIR "@vsgImGui_DIR@" CACHE PATH "Path to vsgImGui installation.")
+      set(vsgXchange_DIR "@vsgXchange_DIR@" CACHE PATH "Path to vsgXchange installation.")
+      find_package(vsg QUIET)
+      find_package(vsgImGui QUIET)
+      find_package(vsgXchange QUIET)
+      
+      if(NOT vsg_FOUND OR NOT vsgImGui_FOUND OR NOT vsgXchange_FOUND)
+        message("WARNING: Could not find one of the VSG libraries")
+        set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
+      endif()
+      
+      if (CHRONO_${COMPONENT_UPPER}_FOUND)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
+        endif()
       endif()
     endif()
 

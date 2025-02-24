@@ -1,15 +1,23 @@
 cmake_minimum_required(VERSION 3.18)
 cmake_policy(SET CMP0091 NEW)
 
-project(MyCSharpProject CSharp)
+# Also enable C++ to have access to Chrono features that require C++ (e.g., OpenMP for C++)
+project(MyCSharpProject CSharp CXX)
 
 if(NOT Chrono_DIR)
   set(Chrono_DIR "" CACHE PATH "The directory containing a CMake configuration file for Chrono.")
   return()
 endif()
 
+# Search for the Chrono package with required components CSharp and Irrlicht
 find_package(Chrono
              COMPONENTS CSharp Irrlicht)
+
+# Return if Chrono or a required component was not found
+if (NOT Chrono_FOUND)
+  message("Could not find Chrono or one of its required modules")
+  return()
+endif()
 
 # Add C# executable
 add_executable(ChronoDemo

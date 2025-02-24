@@ -1,13 +1,3 @@
-ATTENTION
-=========
-
-The structure of the Chrono git repository was changed as follows:
-
-- The main development branch is now called `main` (previously `develop`)
-- The `master` branch, now obsolete, was deleted
-- Releases are located in branches named `release/*.*` and have tags of the form `*.*.*`
-
-
 Project CHRONO
 ==============
 
@@ -48,3 +38,10 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
 ### Support
 
 - [Google Groups user forum](https://groups.google.com/g/projectchrono)
+
+### Note on Chrono repository structure
+
+The structure of the Chrono git repository was changed as follows:
+- The main development branch is now called `main` (previously `develop`)
+- The `master` branch, now obsolete, was deleted
+- Releases are located in branches named `release/*.*` and have tags of the form `*.*.*`

@@ -24,7 +24,7 @@
 #   Modify the CMake configuration below to enable other options (e.g., alternative ordering algorithms).
 # -------------------------------------------------------------------------------------------------------
 
-MUMPS_INSTALL_DIR="/usr/local/mumps"
+MUMPS_INSTALL_DIR="$HOME/Packages/mumps"
 
 # Build MUMPS debug libraries
 BUILD_DEBUG=ON
@@ -45,6 +45,9 @@ mkdir download_mumps
 # Note: use custom fork of scivision/mumps
 git clone "https://github.com/projectchrono/mumps.git" download_mumps
 
+rm -rf ${MUMPS_INSTALL_DIR}
+mkdir ${MUMPS_INSTALL_DIR}
+
 echo -e "\n------------------------ Configure mumps\n"
 rm -rf build_mumps
 cmake -G "${BUILD_SYSTEM}" -B build_mumps -S download_mumps \
@@ -58,11 +61,11 @@ cmake -G "${BUILD_SYSTEM}" -B build_mumps -S download_mumps \
 
 echo -e "\n------------------------ Build and install mumps\n"
 cmake --build build_mumps --config Release
-sudo cmake --install build_mumps --config Release --prefix ${MUMPS_INSTALL_DIR}
+cmake --install build_mumps --config Release --prefix ${MUMPS_INSTALL_DIR}
 if [ ${BUILD_DEBUG} = ON ]
 then
     cmake --build build_mumps --config Debug
-    sudo cmake --install build_mumps --config Debug --prefix ${MUMPS_INSTALL_DIR}
+    cmake --install build_mumps --config Debug --prefix ${MUMPS_INSTALL_DIR}
 else
     echo "No Debug build of mumps"
 fi
