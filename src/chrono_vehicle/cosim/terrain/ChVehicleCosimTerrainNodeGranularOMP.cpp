@@ -752,7 +752,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
     double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
-    double Vs = m_num_particles * (4.0 / 3) * CH_PI * std::pow(m_radius_g, 3);
+    double Vs = m_num_particles * CH_4_3 * CH_PI * std::pow(m_radius_g, 3);
 
     // Packing density = Vs/Vt
     return Vs / Vt;

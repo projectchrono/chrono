@@ -50,7 +50,7 @@ void ChBodyEasySphere::SetupBody(double radius,
                                  bool visualize,
                                  bool collide,
                                  std::shared_ptr<ChContactMaterial> material) {
-    double mmass = density * ((4.0 / 3.0) * CH_PI * std::pow(radius, 3));
+    double mmass = density * (CH_4_3 * CH_PI * std::pow(radius, 3));
     double inertia = (2.0 / 5.0) * mmass * std::pow(radius, 2);
 
     SetMass(mmass);
@@ -589,12 +589,12 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
     ChVector3d baricenter = VNULL;
     totinertia.setZero();
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_PI * std::pow(radii[i], 3));
+        double sphmass = density * (CH_4_3 * CH_PI * std::pow(radii[i], 3));
         baricenter = (baricenter * totmass + positions[i] * sphmass) / (totmass + sphmass);
         totmass += sphmass;
     }
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_PI * std::pow(radii[i], 3));
+        double sphmass = density * (CH_4_3 * CH_PI * std::pow(radii[i], 3));
         double sphinertia = (2.0 / 5.0) * sphmass * std::pow(radii[i], 2);
 
         // Huygens-Steiner parallel axis theorem:

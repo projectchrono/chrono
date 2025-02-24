@@ -82,7 +82,7 @@ double hthick = 0.25;
 int tag_g = 100;  // all particles will have tag at least this value
 double r_g = 0.02;
 double rho_g = 2500;
-double vol_g = (4.0 / 3) * CH_PI * r_g * r_g * r_g;
+double vol_g = CH_4_3 * CH_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
 ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 

@@ -58,7 +58,7 @@ inline real N(const real& dist, const real& h) {
     if (Abs(x) < real(1.0)) {
         return real(0.5) * Cube(Abs(x)) - Sqr(x) + CH_2_3;
     } else if (Abs(x) < real(2.0)) {
-        return -1.0 / 6.0 * Cube(Abs(x)) + Sqr(x) - real(2.0) * Abs(x) + 4.0 / 3.0;
+        return -1.0 / 6.0 * Cube(Abs(x)) + Sqr(x) - real(2.0) * Abs(x) + CH_4_3;
     }
     return real(0.0);
 }
