@@ -52,7 +52,7 @@ void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
     ChVectorN<double, 3> dircolumn = dir.eigen();
 
     // note that stiffness and damping matrices are the same, so join stuff here
-    double commonfactor = this->spring_k * Kfactor + this->damper_r * Rfactor;
+    double commonfactor = this->spring_k * Kfactor + this->damper_r * Rfactor; // TODO: the damping part depends on velocity, is 1/dt passed to Rfactor ? Or should 1/dt be inside the damping matrix calculation here?
     ChMatrix33<> V = dircolumn * dircolumn.transpose();
     ChMatrix33<> keV = commonfactor * V;
 

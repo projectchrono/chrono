@@ -71,7 +71,7 @@ class ChApi ChElementBar : public ChElementGeneric {
     // Custom properties functions
     //
 
-    /// Set the cross sectional area of the bar (m^2) (also changes stiffness keeping same E modulus)
+    /// Set the cross sectional area of the bar (m^2)
     void SetArea(double ma) { this->area = ma; }
     double GetArea() { return this->area; }
 
@@ -79,7 +79,7 @@ class ChApi ChElementBar : public ChElementGeneric {
     void SetDensity(double md) { this->density = md; }
     double GetDensity() { return this->density; }
 
-    /// Set the Young elastic modulus (N/m^2) (also sets stiffness)
+    /// Set the Young elastic modulus (N/m^2)
     void SetYoungModulus(double mE) { this->E = mE; }
     double GetYoungModulus() { return this->E; }
 
@@ -111,7 +111,7 @@ class ChApi ChElementBar : public ChElementGeneric {
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
   private:
-    /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
+    /// Initial setup. Precompute mass, rest length, axial stiffness and matrices that do not change during the simulation, such as the local tangent
     /// stiffness Kl of each element, if needed, etc.
     virtual void SetupInitial(ChSystem* system) override;
 
@@ -120,6 +120,7 @@ class ChApi ChElementBar : public ChElementGeneric {
     double density;
     double E;
     double rdamping;
+    double kstiff;
     double mass;
     double length;
 };
