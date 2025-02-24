@@ -2432,7 +2432,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                     for (int ii = 0; ii < 6; ii++) {
                                         for (int jj = 0; jj < 6; jj++) {
                                             Dep(ii, jj) =
-                                                2.0 * G * FOID(ii, jj) + (K - 2.0 * G * CH_1_3) * SOID(ii) * SOID(jj);
+                                                2.0 * G * FOID(ii, jj) + (K - G * CH_2_3) * SOID(ii) * SOID(jj);
                                         }
                                     }
                                 }

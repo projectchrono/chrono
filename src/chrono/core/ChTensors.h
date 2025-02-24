@@ -146,9 +146,9 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         double I3 = GetInvariant_I3();
         double phi = CH_1_3 * std::acos((2. * I1 * I1 * I1 - 9. * I1 * I2 + 27. * I3) /
                                            (2. * std::pow((I1 * I1 - 3 * I2), (3. / 2.))));
-        double k = (2. / 3.) * (std::sqrt(I1 * I1 - 3. * I2));
+        double k = CH_2_3 * (std::sqrt(I1 * I1 - 3. * I2));
         e1 = (I1 * CH_1_3) + k * std::cos(phi);
-        e2 = (I1 * CH_1_3) + k * std::cos(phi + (2. / 3.) * chrono::CH_PI);
+        e2 = (I1 * CH_1_3) + k * std::cos(phi + CH_2_3 * chrono::CH_PI);
         e3 = (I1 * CH_1_3) + k * std::cos(phi + (4. / 3.) * chrono::CH_PI);
     }
 
@@ -189,7 +189,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     double GetEquivalentOctahedralNormal() const { return GetEquivalentMeanHydrostatic(); }
 
     /// Compute the octahedral deviatoric invariant (aka shear).
-    double GetEquivalentOctahedralDeviatoric() const { return std::sqrt((2. / 3.) * GetInvariant_J2()); }
+    double GetEquivalentOctahedralDeviatoric() const { return std::sqrt(CH_2_3 * GetInvariant_J2()); }
 };
 
 /// Class for stress tensors, in compact Voight notation that is with 6 components in a column.

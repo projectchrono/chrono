@@ -41,7 +41,7 @@ TEST(CompositeInertia, hemispheres) {
 
     double r = 1.5;
     double rho = 50;
-    double mass = (2.0 / 3.0) * CH_PI * rho * std::pow(r, 3);
+    double mass = CH_2_3 * CH_PI * rho * std::pow(r, 3);
     double offset = (3.0 / 8.0) * r;
     double Jxx = (83.0 / 320.0) * mass * r * r;
     double Jyy = Jxx;

@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
             double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
             double loge = std::log(mat.cr_eff);
             double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
-            double kn = (2.0 / 3) * Sn;
+            double kn = CH_2_3 * Sn;
             double gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
 
             double forceN = kn * delta - gn * relvel_n_mag;
