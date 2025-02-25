@@ -23,6 +23,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
