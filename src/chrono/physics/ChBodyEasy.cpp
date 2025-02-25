@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChInertiaUtils.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -25,6 +26,7 @@
 #include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 
 namespace chrono {
@@ -510,21 +512,16 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
 
     if (compute_mass) {
         double mass;
-        ChVector3d baricenter;
+        ChVector3d cog;
         ChMatrix33<> inertia;
-        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+        trimesh->ComputeMassProperties(true, mass, cog, inertia);
+        ChMatrix33<> principal_inertia_rot;
+        ChVector3d principal_I;
+        ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
-        ChMatrix33<> principal_inertia_csys;
-        ChVectorN<double, 3> principal_I;
-        inertia.SelfAdjointEigenSolve(principal_inertia_csys, principal_I);
-        if (principal_inertia_csys.determinant() < 0)
-            principal_inertia_csys.col(0) *= -1;
-
+        SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
         SetMass(mass * density);
-        SetInertiaXX(ChVector3d(principal_I) * density);
-
-        // Set the COG coordinates to barycenter, without displacing the REF reference
-        SetFrameCOMToRef(ChFrame<>(baricenter, principal_inertia_csys));
+        SetInertiaXX(density * principal_I);
     }
 
     if (collide) {
