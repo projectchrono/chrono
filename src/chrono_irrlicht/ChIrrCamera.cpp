@@ -261,7 +261,7 @@ void RTSCamera::setRotationSpeed(f32 value) {
 
 void RTSCamera::pointCameraAtNode(ISceneNode* selected_node) {
     core::vector3df totarget = getPosition() - getTarget();
-    setPosition(selectedn_ode->getPosition() + (totarget.normalize() * 100));
+    setPosition(selected_node->getPosition() + (totarget.normalize() * 100));
     setTarget(selected_node->getPosition());
     updateAnimationState();
 }
