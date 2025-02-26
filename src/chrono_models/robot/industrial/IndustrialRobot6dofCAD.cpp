@@ -34,11 +34,15 @@ IndustrialRobot6dofCAD::IndustrialRobot6dofCAD(ChSystem* sys,
     m_encoder << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
     m_encoder_prev = m_encoder;
 
-    SetupBodies();
-    SetupMarkers();
-    SetupLinks();
+    try {
+        SetupBodies();
+        SetupMarkers();
+        SetupLinks();
 
-    SetBaseFrame(m_base_frame);
+        SetBaseFrame(m_base_frame);
+    } catch (const std::exception& exc) {
+        throw exc;
+    }
 }
 
 void IndustrialRobot6dofCAD::SetupBodies() {
@@ -51,42 +55,16 @@ void IndustrialRobot6dofCAD::SetupBodies() {
         offset = -1;
     }
 
-    // Ground (virtual)
-    m_ground = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody("SLDW_GROUND"));
-    m_ground->SetName(("robot" + std::to_string(m_id) + "_ground").c_str());
-    m_ground->SetFixed(true);
-    m_ground->SetMass(1e-10);  // set it to negligible value to not interfere with overall robot mass
-
-    // Shoulder
-    m_shoulder = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[1 + offset] + "-1").c_str()));
-    m_shoulder->SetName(("robot" + std::to_string(m_id) + "_shoulder").c_str());
-
-    // Biceps
-    m_biceps = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[2 + offset] + "-1").c_str()));
-    m_biceps->SetName(("robot" + std::to_string(m_id) + "_biceps").c_str());
-
-    // Elbow
-    m_elbow = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[3 + offset] + "-1").c_str()));
-    m_elbow->SetName(("robot" + std::to_string(m_id) + "_elbow").c_str());
-
-    // Forearm
-    m_forearm = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[4 + offset] + "-1").c_str()));
-    m_forearm->SetName(("robot" + std::to_string(m_id) + "_forearm").c_str());
-
-    // Wrist
-    m_wrist = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[5 + offset] + "-1").c_str()));
-    m_wrist->SetName(("robot" + std::to_string(m_id) + "_wrist").c_str());
-
-    // End effector
-    m_end_effector =
-        std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[6 + offset] + "-1").c_str()));
-    m_end_effector->SetName(("robot" + std::to_string(m_id) + "_end_effector").c_str());
-
+    // Fetch bodies
+    m_ground = m_sys->SearchBody("SLDW_GROUND");
+    m_shoulder = m_sys->SearchBody(m_bodynames[1 + offset] + "-1");
+    m_biceps = m_sys->SearchBody(m_bodynames[2 + offset] + "-1");
+    m_elbow = m_sys->SearchBody(m_bodynames[3 + offset] + "-1");
+    m_forearm = m_sys->SearchBody(m_bodynames[4 + offset] + "-1");
+    m_wrist = m_sys->SearchBody(m_bodynames[5 + offset] + "-1");
+    m_end_effector = m_sys->SearchBody(m_bodynames[6 + offset] + "-1");
     if (has_base) {
-        // Base (potential robot basement)
-        m_base = std::dynamic_pointer_cast<ChBodyAuxRef>(m_sys->SearchBody((m_bodynames[0] + "-1").c_str()));
-        m_base->SetName(("robot" + std::to_string(m_id) + "_base").c_str());
-
+        m_base = m_sys->SearchBody(m_bodynames[0] + "-1");
         m_bodylist = {m_ground, m_base, m_shoulder, m_biceps, m_elbow, m_forearm, m_wrist, m_end_effector};
     } else {
         m_bodylist = {m_ground, m_shoulder, m_biceps, m_elbow, m_forearm, m_wrist, m_end_effector};
@@ -98,6 +76,21 @@ void IndustrialRobot6dofCAD::SetupBodies() {
             throw std::runtime_error("ERROR: CAD body not found");
         }
     }
+
+    // Customize bodies
+    m_ground->SetName("robot" + std::to_string(m_id) + "_ground");
+    m_ground->SetFixed(true);
+    m_ground->SetMass(1e-10);  // set it to negligible value to not interfere with overall robot mass
+
+    if (has_base) {
+        m_base->SetName("robot" + std::to_string(m_id) + "_base");
+    }
+    m_shoulder->SetName("robot" + std::to_string(m_id) + "_shoulder");
+    m_biceps->SetName("robot" + std::to_string(m_id) + "_biceps");
+    m_elbow->SetName("robot" + std::to_string(m_id) + "_elbow");
+    m_forearm->SetName("robot" + std::to_string(m_id) + "_forearm");
+    m_wrist->SetName("robot" + std::to_string(m_id) + "_wrist");
+    m_end_effector->SetName("robot" + std::to_string(m_id) + "_end_effector");
 }
 
 void IndustrialRobot6dofCAD::SetupMarkers() {
@@ -135,16 +128,22 @@ void IndustrialRobot6dofCAD::SetupLinks() {
 
     m_link_base_shoulder = CreateMotorRotationAngle(m_sys, m_shoulder, m_base ? m_base : m_ground,
                                                     m_marker_base_shoulder->GetAbsFrame(), m_motfunlist[0]);
+    m_link_base_shoulder->SetName("motor_base_shoulder");
     m_link_shoulder_biceps =
         CreateMotorRotationAngle(m_sys, m_biceps, m_shoulder, m_marker_shoulder_biceps->GetAbsFrame(), m_motfunlist[1]);
+    m_link_shoulder_biceps->SetName("motor_shoulder_biceps");
     m_link_biceps_elbow =
         CreateMotorRotationAngle(m_sys, m_elbow, m_biceps, m_marker_biceps_elbow->GetAbsFrame(), m_motfunlist[2]);
+    m_link_biceps_elbow->SetName("motor_biceps_elbow");
     m_link_elbow_forearm =
         CreateMotorRotationAngle(m_sys, m_forearm, m_elbow, m_marker_elbow_forearm->GetAbsFrame(), m_motfunlist[3]);
+    m_link_elbow_forearm->SetName("motor_elbow_forearm");
     m_link_forearm_wrist =
         CreateMotorRotationAngle(m_sys, m_wrist, m_forearm, m_marker_forearm_wrist->GetAbsFrame(), m_motfunlist[4]);
+    m_link_forearm_wrist->SetName("motor_forearm_wrist");
     m_link_wrist_end_effector = CreateMotorRotationAngle(m_sys, m_end_effector, m_wrist,
                                                          m_marker_wrist_end_effector->GetAbsFrame(), m_motfunlist[5]);
+    m_link_wrist_end_effector->SetName("motor_wrist_end_effector");
 
     m_motorlist = {m_link_base_shoulder, m_link_shoulder_biceps, m_link_biceps_elbow,
                    m_link_elbow_forearm, m_link_forearm_wrist,   m_link_wrist_end_effector};
@@ -155,9 +154,12 @@ void IndustrialRobot6dofCAD::SetupLinks() {
 std::shared_ptr<ChMarker> IndustrialRobot6dofCAD::PreprocessMarker(const std::string& name,
                                                                    std::shared_ptr<ChBody> body) {
     auto marker = m_sys->SearchMarker(name);
-    marker->SetName("robot" + std::to_string(m_id) + "_" + name);
-    body->AddMarker(marker);
-    marker->ImposeAbsoluteTransform(marker->GetAbsFrame());
+    if (marker) {
+        marker->SetName("robot" + std::to_string(m_id) + "_" + name);
+        marker->GetBody()->RemoveMarker(marker);
+        body->AddMarker(marker);
+        marker->ImposeAbsoluteTransform(marker->GetAbsFrame());
+    }
     return marker;
 }
 

@@ -110,7 +110,7 @@ double ChFunction::GetMean(double xmin, double xmax, double sampling_step, int d
         numpts++;
         mret += this->GetDerN(mx, derivative);
     }
-    return mret / ((double)numpts);
+    return mret / static_cast<double>(numpts);
 }
 
 double ChFunction::GetSquaredMean(double xmin, double xmax, double sampling_step, int derivative) const {
@@ -120,7 +120,7 @@ double ChFunction::GetSquaredMean(double xmin, double xmax, double sampling_step
         numpts++;
         mret += std::pow(this->GetDerN(mx, derivative), 2.);
     }
-    return sqrt(mret / ((double)numpts));
+    return std::sqrt(mret / static_cast<double>(numpts));
 }
 
 double ChFunction::GetIntegral(double xmin, double xmax, double sampling_step, int derivative) const {
