@@ -43,10 +43,13 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// Note that, in general, this is different from GetFrameCOMToAbs().
     virtual const ChFrameMoving<>& GetFrameRefToAbs() const override { return ref_to_abs; }
 
+    /// Set the body COM frame with respect to the absolute frame.
+    /// This moves the entire body; the body REF is rigidly moved as well.
+    void SetFrameCOMToAbs(const ChFrame<>& frame);
+
     /// Set the COG frame with respect to the auxiliary reference frame.
     /// Note that this also moves the body absolute COG (the REF is fixed).
-    /// The position of contained ChMarker objects, if any, is not changed with respect
-    /// to the reference.
+    /// The position of contained ChMarker objects, if any, is not changed with respect to the reference.
     void SetFrameCOMToRef(const ChFrame<>& frame);
 
     /// Get the COG frame with respect to the auxiliary reference frame.
@@ -70,6 +73,17 @@ class ChApi ChBodyAuxRef : public ChBody {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  public:
+    // These functions override the ChBodyFrame (ChFrame) functions for setting position and rotation.
+    // In addition to setting the COM frame, they also must adjust ref_to_abs. Indeed, any of these 
+    // functions move the entire body and as such the body REF frame must also be moved.
+
+    virtual void SetPos(const ChVector3<>& pos) override;
+    virtual void SetRot(const ChMatrix33<>& R) override;
+    virtual void SetRot(const ChQuaternion<>& q) override;
+    virtual void SetCoordsys(const ChCoordsys<>& C) override;
+    virtual void SetCoordsys(const ChVector3<>& v, const ChQuaternion<>& q) override;
 
   private:
     ChFrameMoving<> ref_to_com;  ///< auxiliary REF location, relative to COM

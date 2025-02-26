@@ -403,30 +403,6 @@ class ChApi ChExtruderBeamEuler {
 /// Class for an object that continuously extrude a beam (composed of ChElementBeamIGA elements) with prescribed
 /// velocity.
 class ChApi ChExtruderBeamIGA {
-  protected:
-    std::vector<std::shared_ptr<ChElementBeamIGA>> beam_elems;
-    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> beam_nodes;
-    std::vector<double> beam_knots;
-    int beam_order;
-
-    std::shared_ptr<ChBody> ground;
-    std::shared_ptr<ChLinkMotorLinearSpeed> actuator;
-    std::shared_ptr<ChLinkMateGeneric> guide;
-
-    ChSystem* mysystem;
-    std::shared_ptr<ChMesh> mesh;
-
-    std::shared_ptr<ChBeamSectionCosserat> beam_section;
-    double h;
-    ChCoordsys<> outlet;
-    double mytime;
-    double speed;
-
-    std::shared_ptr<ChContactMaterialSMC> contact_material;
-
-    std::shared_ptr<ChContactSurfaceNodeCloud> contactcloud;
-    double contact_radius;
-
   public:
     /// Initialize and add required constraints to system
     ChExtruderBeamIGA(ChSystem* msystem,                            ///< system to store the constraints
@@ -456,6 +432,30 @@ class ChApi ChExtruderBeamIGA {
 
     /// Access the list of created nodes.
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& GetLastBeamNodes() { return beam_nodes; }
+
+  private:
+    std::vector<std::shared_ptr<ChElementBeamIGA>> beam_elems;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> beam_nodes;
+    std::vector<double> beam_knots;
+    int beam_order;
+
+    std::shared_ptr<ChBody> ground;
+    std::shared_ptr<ChLinkMotorLinearSpeed> actuator;
+    std::shared_ptr<ChLinkMateGeneric> guide;
+
+    ChSystem* mysystem;
+    std::shared_ptr<ChMesh> mesh;
+
+    std::shared_ptr<ChBeamSectionCosserat> beam_section;
+    double h;
+    ChCoordsys<> outlet;
+    double mytime;
+    double speed;
+
+    std::shared_ptr<ChContactMaterialSMC> contact_material;
+
+    std::shared_ptr<ChContactSurfaceNodeCloud> contactcloud;
+    double contact_radius;
 };
 
 /// @} fea_utils

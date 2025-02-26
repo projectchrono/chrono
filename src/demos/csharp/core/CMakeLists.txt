@@ -13,4 +13,5 @@ CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
 
 foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
+  add_dependencies(${PROGRAM} Chrono_csharp_core)
 endforeach()

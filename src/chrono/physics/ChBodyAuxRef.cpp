@@ -32,9 +32,9 @@ void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
 
     ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(frame));
 
-    SetCoordsys(new_cog_to_abs.GetCoordsys());
-    SetCoordsysDt(new_cog_to_abs.GetCoordsysDt());
-    SetCoordsysDt2(new_cog_to_abs.GetCoordsysDt2());
+    ChBody::SetCoordsys(new_cog_to_abs.GetCoordsys());
+    ChBody::SetCoordsysDt(new_cog_to_abs.GetCoordsysDt());
+    ChBody::SetCoordsysDt2(new_cog_to_abs.GetCoordsysDt2());
 
     ref_to_com = frame.GetInverse();
     ref_to_abs = TransformLocalToParent(ref_to_com);
@@ -62,8 +62,13 @@ void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
 
 void ChBodyAuxRef::SetFrameRefToAbs(const ChFrame<>& frame) {
     auto cog_to_abs = frame.TransformLocalToParent(ref_to_com.GetInverse());
-    SetCoordsys(cog_to_abs.GetCoordsys());
+    ChBody::SetCoordsys(cog_to_abs.GetCoordsys());
     ref_to_abs = frame;
+}
+
+void ChBodyAuxRef::SetFrameCOMToAbs(const ChFrame<>& frame) {
+    ChBody::SetCoordsys(frame.GetCoordsys());
+    ref_to_abs = frame.TransformLocalToParent(ref_to_com);
 }
 
 void ChBodyAuxRef::Update(bool update_assets) {
@@ -74,7 +79,29 @@ void ChBodyAuxRef::Update(bool update_assets) {
     ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
-//////// FILE I/O
+// -----------------------------------------------------------------------------
+
+void ChBodyAuxRef::SetPos(const ChVector3<>& pos) {
+    SetFrameCOMToAbs(ChFramed(pos, GetRot()));
+}
+
+void ChBodyAuxRef::SetRot(const ChMatrix33<>& R) {
+    SetFrameCOMToAbs(ChFramed(GetPos(), R));
+}
+
+void ChBodyAuxRef::SetRot(const ChQuaternion<>& q) {
+    SetFrameCOMToAbs(ChFramed(GetPos(), q));
+}
+
+void ChBodyAuxRef::SetCoordsys(const ChCoordsys<>& C) {
+    SetFrameCOMToAbs(ChFramed(C));
+}
+
+void ChBodyAuxRef::SetCoordsys(const ChVector3<>& v, const ChQuaternion<>& q) {
+    SetFrameCOMToAbs(ChFramed(v, q));
+}
+
+// -----------------------------------------------------------------------------
 
 void ChBodyAuxRef::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
