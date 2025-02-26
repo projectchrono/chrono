@@ -40,7 +40,6 @@ CollectCSharpFiles(CHRONO_CSHARP_SOURCES "${MODULE_LIST}")
 
 foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM} "${PROGRAM}.cs" ${CHRONO_CSHARP_SOURCES})
-  add_dependencies(${PROGRAM} Chrono_csharp_core Chrono_csharp_irrlicht Chrono_csharp_vehicle Chrono_csharp_postprocess)
 
   # Applying specific reference dependencies for CRGTerrain demos (uses dynamic objects)
   if(HAVE_OPENCRG)
@@ -52,5 +51,8 @@ foreach(PROGRAM ${DEMOS})
       find_package(Mono REQUIRED)
     endif()
   endif()
-
+  # set dependencies, so latest SWIG always builds first
+  foreach(module IN LISTS MODULE_LIST)
+    add_dependencies(${PROGRAM} "Chrono_csharp_${module}")
+  endforeach()
 endforeach()
