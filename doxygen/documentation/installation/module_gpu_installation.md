@@ -3,11 +3,7 @@ Install the GPU module   {#module_gpu_installation}
 
 [TOC]
 
-This is an optional module that enables a GPU solver specialized for simulating very large systems of granular materials with the penalty-based Discrete Element Method (*aka SMC*).
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
-
+Chrono::Gpu is an optional module that enables a GPU solver specialized for simulating large systems of granular materials with a penalty-based Discrete Element Method.
 
 ## Features
 
@@ -30,12 +26,9 @@ Here are the main features:
 
 - To **build** applications based on this module you must have CUDA installed
 - To **run** applications based on this module you need
-    - a Pascal or newer Nvidia GPU (Pascal and newer are officially supported, though Maxwell should be able to emulate the required features)
+    - an NVIDIA GPU
     - Linux or Windows
-- This module has been build/tested on the following:
-   - Windows 11, MS Visual Studio 17 2022, CUDA 12.3.0 (Ampere and Ada Lovelace GPU architecture)
-   - Fedora 40 Linux, GCC 11.3.0, CUDA 12.0.0 (Pascal, Volta, and Ampere GPU architectures)
-   - Arch Linux, GCC 12.2.1, CUDA 12.1.0 (Turing GPU architectures)
+- This module has been build/tested on both Windows 11 and Linux (Ubuntu 22.04, Fedora 40, and Arch Linux) with CUDA 12.3 and 12.8.
 
 ## Building instructions
    

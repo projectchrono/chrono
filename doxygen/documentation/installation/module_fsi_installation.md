@@ -3,10 +3,7 @@ Install the FSI module {#module_fsi_installation}
 
 [TOC]
 
-This optional module enables the modeling and simulation of fluid-solid interaction problem. 
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
+Chrono::FSI is a module for modeling and simulation of fluid-solid interaction problem. 
 
 ## Features
 

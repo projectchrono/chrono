@@ -3,12 +3,7 @@ Install the VEHICLE module   {#module_vehicle_installation}
 
 [TOC]
 
-This is an optional module that enables template-based ground vehicle 
-modeling and simulation within Chrono.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
-
+Chrono::Vehicle is a module that enables template-based ground vehicle modeling and simulation within Chrono.
 
 ## Features
 

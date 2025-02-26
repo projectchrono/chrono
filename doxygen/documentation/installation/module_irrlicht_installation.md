@@ -3,10 +3,7 @@ Install the IRRLICHT module {#module_irrlicht_installation}
 
 [TOC]
 
-This is a run-time visualization system for interactive 3D viewing of Chrono simulations.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
-
+Chrono::Irrlicht is a run-time visualization system for interactive 3D viewing of Chrono simulations.
 
 ## Features
 
