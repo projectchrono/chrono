@@ -26,38 +26,26 @@ ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
 }
 
 void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
-    ChFrameMoving<> old_cog_to_abs = *this;
+    ChFrameMoving<> old_com_to_abs = *this;
 
-    ChFrameMoving<> ref_to_abs = TransformLocalToParent(ref_to_com);
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 
-    ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(frame));
+    ChFrameMoving<> new_com_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(frame));
 
-    ChBody::SetCoordsys(new_cog_to_abs.GetCoordsys());
-    ChBody::SetCoordsysDt(new_cog_to_abs.GetCoordsysDt());
-    ChBody::SetCoordsysDt2(new_cog_to_abs.GetCoordsysDt2());
+    ChBody::SetCoordsys(new_com_to_abs.GetCoordsys());
+    ChBody::SetCoordsysDt(new_com_to_abs.GetCoordsysDt());
+    ChBody::SetCoordsysDt2(new_com_to_abs.GetCoordsysDt2());
 
     ref_to_com = frame.GetInverse();
     ref_to_abs = TransformLocalToParent(ref_to_com);
 
     // Restore marker/forces positions, keeping unchanged respect to aux ref.
-    ChFrameMoving<> cog_oldnew = old_cog_to_abs >> new_cog_to_abs.GetInverse();
+    ChFrameMoving<> com_oldnew = old_com_to_abs >> new_com_to_abs.GetInverse();
 
     for (auto& marker : marklist) {
-        marker->ConcatenatePreTransformation(cog_oldnew);
+        marker->ConcatenatePreTransformation(com_oldnew);
         marker->Update(ChTime);
     }
-
-    // Forces: ?? to do...
-    /*
-    HIER_FORCE_INIT
-    while (HIER_FORCE_NOSTOP)
-    {
-        FORCEpointer->
-        FORCEpointer->Update (mytime);
-
-        HIER_FORCE_NEXT
-    }
-    */
 }
 
 void ChBodyAuxRef::SetFrameRefToAbs(const ChFrame<>& frame) {

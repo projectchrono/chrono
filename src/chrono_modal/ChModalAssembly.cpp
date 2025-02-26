@@ -1280,21 +1280,21 @@ void ChModalAssembly::UpdateInternalState(bool update_assets) {
     assembly_x_new.head(m_num_coords_pos_boundary) = x_mod.head(m_num_coords_pos_boundary);
 
     for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
-        unsigned int offset_x = m_num_coords_pos_boundary + 7 * i_int;
+        unsigned int offset = m_num_coords_pos_boundary + 7 * i_int;
         ChVector3d r_IF0 = floating_frame_F0.GetRotMat().transpose() *
-                           (m_full_state_x0.segment(offset_x, 3) - floating_frame_F0.GetPos().eigen());
+                           (m_full_state_x0.segment(offset, 3) - floating_frame_F0.GetPos().eigen());
         ChVector3d r_I =
             floating_frame_F.GetPos() + floating_frame_F.GetRotMat() * (r_IF0 + Dx_internal_loc.segment(6 * i_int, 3));
-        assembly_x_new.segment(offset_x, 3) = r_I.eigen();
+        assembly_x_new.segment(offset, 3) = r_I.eigen();
 
         ChQuaternion<> q_delta;
         q_delta.SetFromRotVec(Dx_internal_loc.segment(6 * i_int + 3, 3));
-        ChQuaternion<> quat_int0 = m_full_state_x0.segment(offset_x + 3, 4);
+        ChQuaternion<> quat_int0 = m_full_state_x0.segment(offset + 3, 4);
         ChQuaternion<> q_refrot = floating_frame_F0.GetRot().GetConjugate() * quat_int0;
         // ChQuaternion<> quat_int = floating_frame_F.GetRot() * q_delta * q_refrot;
         ChQuaternion<> quat_int =
             floating_frame_F.GetRot() * floating_frame_F0.GetRot().GetConjugate() * quat_int0 * q_delta;
-        assembly_x_new.segment(offset_x + 3, 4) = quat_int.eigen();
+        assembly_x_new.segment(offset + 3, 4) = quat_int.eigen();
     }
 
     // the new velocity of both boundary and internal containers

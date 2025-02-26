@@ -52,7 +52,6 @@ ChVector3d ChLine::GetTangent(double parU) const {
 bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approxU, double tol) const {
     double mu;
     int points = 20;
-    bool closed = false;
     double bestU = 0;
     double bestdist = 9999999;
     double dist, d1, d2;
@@ -62,7 +61,6 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
     ChVector3d vres, vp1, vp2;
 
     points = this->GetComplexity();
-    closed = this->IsClosed();
 
     points = points * 4;  // double sampling along line.
 

@@ -48,8 +48,8 @@ ChCollisionModel::~ChCollisionModel() {
     impl = nullptr;
 }
 
-void ChCollisionModel::SetContactable(ChContactable* contactable) {
-    this->contactable = contactable;
+void ChCollisionModel::SetContactable(ChContactable* new_contactable) {
+    contactable = new_contactable;
 }
 
 void ChCollisionModel::Clear() {

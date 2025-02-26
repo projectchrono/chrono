@@ -62,11 +62,11 @@ void ChFluidContainer::AddBodies(const std::vector<real3>& positions, const std:
     vel_fluid.resize(pos_fluid.size());
     data_manager->num_fluid_bodies = (int)pos_fluid.size();
 }
-void ChFluidContainer::Update3DOF(double ChTime) {
+void ChFluidContainer::Update3DOF(double time) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-    uint num_motors = data_manager->num_motors;
+    num_shafts = data_manager->num_shafts;
+    num_motors = data_manager->num_motors;
     real3 g_acc = data_manager->settings.gravity;
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
 
@@ -79,11 +79,11 @@ void ChFluidContainer::Update3DOF(double ChTime) {
     }
 }
 
-void ChFluidContainer::UpdatePosition(double ChTime) {
+void ChFluidContainer::UpdatePosition(double time) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-    uint num_motors = data_manager->num_motors;
+    num_shafts = data_manager->num_shafts;
+    num_motors = data_manager->num_motors;
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
 

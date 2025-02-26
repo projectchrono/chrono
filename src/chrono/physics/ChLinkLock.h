@@ -128,7 +128,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     const ChConstraintMatrixX6& GetCqw2() const { return Cqw2; }
 
     /// The gamma vector used in dynamics,  [Cq]x''=Qc
-    const ChConstraintVectorX& GetQc() const { return Qc; }
+    const ChConstraintVectorX& GetQc() const { return Q_c; }
 
     /// The Ct vector used in kinematics,  [Cq]x'=Ct
     const ChConstraintVectorX& GetCt() const { return Ct; }
@@ -226,14 +226,14 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChConstraintMatrixX6 Cqw1;  ///< Jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
     ChConstraintMatrixX6 Cqw2;  ///< Jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
 
-    ChConstraintVectorX Qc;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
+    ChConstraintVectorX Q_c;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
     ChConstraintVectorX Ct;     ///< partial derivative of the link kin. equation wrt to time
     ChConstraintVectorX react;  ///< {l}, the lagrangians forces in the constraints
 
     // Only for intermediate calculus
     ChMatrixNM<double, 7, BODY_QDOF> Cq1_temp;  //
     ChMatrixNM<double, 7, BODY_QDOF> Cq2_temp;  //   the temporary "lock" jacobians,
-    ChVectorN<double, 7> Qc_temp;               //   i.e. the full x,y,z,r0,r1,r2,r3 joint
+    ChVectorN<double, 7> Q_c_temp;              //   i.e. the full x,y,z,r0,r1,r2,r3 joint
     ChCoordsysd Ct_temp;                        //
 
   public:

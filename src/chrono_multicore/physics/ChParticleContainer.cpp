@@ -54,7 +54,7 @@ void ChParticleContainer::AddBodies(const std::vector<real3>& positions, const s
     vel_fluid.resize(pos_fluid.size());
     data_manager->num_fluid_bodies = (uint)pos_fluid.size();
 }
-void ChParticleContainer::Update3DOF(double ChTime) {
+void ChParticleContainer::Update3DOF(double time) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -70,7 +70,7 @@ void ChParticleContainer::Update3DOF(double ChTime) {
     }
 }
 
-void ChParticleContainer::UpdatePosition(double ChTime) {
+void ChParticleContainer::UpdatePosition(double time) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;

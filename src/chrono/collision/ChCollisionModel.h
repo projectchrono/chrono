@@ -69,7 +69,7 @@ class ChApi ChCollisionModel {
     );
 
     /// Set the pointer to the contactable object.
-    void SetContactable(ChContactable* contactable);
+    void SetContactable(ChContactable* new_contactable);
 
     /// Get the pointer to the contactable object.
     ChContactable* GetContactable() { return contactable; }

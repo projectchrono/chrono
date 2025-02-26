@@ -260,11 +260,11 @@ void ChElementShellBST::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& e
     // integration over gauss points.
 
     double nodemass = CH_1_3 * (this->area * mass_per_area);
-    for (int n = 0; n < 3; n++) {
+    for (int i = 0; i < 3; i++) {
         // xyz masses of first 3 nodes of BST
-        Md(m_nodes[n]->NodeGetOffsetVelLevel()) += nodemass * c;
-        Md(m_nodes[n]->NodeGetOffsetVelLevel() + 1) += nodemass * c;
-        Md(m_nodes[n]->NodeGetOffsetVelLevel() + 2) += nodemass * c;
+        Md(m_nodes[i]->NodeGetOffsetVelLevel()) += nodemass * c;
+        Md(m_nodes[i]->NodeGetOffsetVelLevel() + 1) += nodemass * c;
+        Md(m_nodes[i]->NodeGetOffsetVelLevel() + 2) += nodemass * c;
     }
 }
 
@@ -375,8 +375,8 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 
         double nodemass = CH_1_3 * (this->area * mass_per_area);
 
-        for (int n = 0; n < 3; n++) {
-            int node_off = n * 3;
+        for (int i = 0; i < 3; i++) {
+            int node_off = i * 3;
             H(node_off + 0, node_off + 0) += Mfactor * nodemass;
             H(node_off + 1, node_off + 1) += Mfactor * nodemass;
             H(node_off + 2, node_off + 2) += Mfactor * nodemass;
@@ -560,25 +560,25 @@ void ChElementShellBST::ShapeFunctionsDerivativeV(ShapeVector& Nv, const double 
 }
 
 void ChElementShellBST::ShapeFunctionsDerivativeX(ShapeVector& Nx,
-                                                  const ChMatrixNM<double, 2, 2>& Jux,
+                                                  const ChMatrixNM<double, 2, 2>& Jac_ux,
                                                   const double u,
                                                   const double v) {
     // compute [Nx;Ny]=[Jux]^T*[Nu;Nv], here without calling ShapeFunctionsDerivativeU ShapeFunctionsDerivativeV, in
     // fact unrolling it simplifies to:
-    Nx(0) = Jux(0, 0);               // J(0,0)*Nu(0)+J(1,0)*Nv(0)
-    Nx(1) = Jux(1, 0);               // J(0,0)*Nu(1)+J(1,0)*Nv(1)
-    Nx(2) = -Jux(0, 0) - Jux(1, 0);  // J(0,0)*Nu(3)+J(1,0)*Nv(3)
+    Nx(0) = Jac_ux(0, 0);                  // J(0,0)*Nu(0)+J(1,0)*Nv(0)
+    Nx(1) = Jac_ux(1, 0);                  // J(0,0)*Nu(1)+J(1,0)*Nv(1)
+    Nx(2) = -Jac_ux(0, 0) - Jac_ux(1, 0);  // J(0,0)*Nu(3)+J(1,0)*Nv(3)
 }
 
 void ChElementShellBST::ShapeFunctionsDerivativeY(ShapeVector& Ny,
-                                                  const ChMatrixNM<double, 2, 2>& Jux,
+                                                  const ChMatrixNM<double, 2, 2>& Jac_ux,
                                                   const double u,
                                                   const double v) {
     // compute [Nx;Ny]=[Jux]^T*[Nu;Nv], here without calling ShapeFunctionsDerivativeU ShapeFunctionsDerivativeV, in
     // fact unrolling it simplifies to:
-    Ny(0) = Jux(0, 1);               // J(0,1)*Nu(0)+J(1,1)*Nv(0)
-    Ny(1) = Jux(1, 1);               // J(0,1)*Nu(1)+J(1,1)*Nv(1)
-    Ny(2) = -Jux(0, 1) - Jux(1, 1);  // J(0,1)*Nu(3)+J(1,1)*Nv(3)
+    Ny(0) = Jac_ux(0, 1);                  // J(0,1)*Nu(0)+J(1,1)*Nv(0)
+    Ny(1) = Jac_ux(1, 1);                  // J(0,1)*Nu(1)+J(1,1)*Nv(1)
+    Ny(2) = -Jac_ux(0, 1) - Jac_ux(1, 1);  // J(0,1)*Nu(3)+J(1,1)*Nv(3)
 }
 
 // -----------------------------------------------------------------------------

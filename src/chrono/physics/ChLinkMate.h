@@ -64,13 +64,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMate, this returns the absolute coordinate system of the second body.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return frame2 >> *GetBody2(); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return m_frame2 >> *GetBody2(); }
 
     /// Get the link frame 1, relative to body 1.
-    virtual ChFramed GetFrame1Rel() const override { return frame1; }
+    virtual ChFramed GetFrame1Rel() const override { return m_frame1; }
 
     /// Get the link frame 2, relative to body 2.
-    virtual ChFramed GetFrame2Rel() const override { return frame2; }
+    virtual ChFramed GetFrame2Rel() const override { return m_frame2; }
 
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
@@ -146,8 +146,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     void SetupLinkMask();
     void ChangedLinkMask();
 
-    ChFrame<> frame1;
-    ChFrame<> frame2;
+    ChFrame<> m_frame1;
+    ChFrame<> m_frame2;
 
     bool c_x;
     bool c_y;
