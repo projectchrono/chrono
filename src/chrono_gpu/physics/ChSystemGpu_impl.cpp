@@ -19,8 +19,9 @@
 #include <algorithm>
 #include <climits>
 
-#include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/utils/ChUtils.h"
+#include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
@@ -124,12 +125,12 @@ void ChSystemGpu_impl::CreateWallBCs() {
     size_t plane_BC_Z_top = CreateBCPlane(plane_center_top_Z, plane_normal_top_Z, false, 5);
 
     // verify that we have the right IDs for these walls
-    assert(plane_BC_X_bot == BD_WALL_ID_X_BOT);
-    assert(plane_BC_X_top == BD_WALL_ID_X_TOP);
-    assert(plane_BC_Y_bot == BD_WALL_ID_Y_BOT);
-    assert(plane_BC_Y_top == BD_WALL_ID_Y_TOP);
-    assert(plane_BC_Z_bot == BD_WALL_ID_Z_BOT);
-    assert(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
+    ChAssertAlways(plane_BC_X_bot == BD_WALL_ID_X_BOT);
+    ChAssertAlways(plane_BC_X_top == BD_WALL_ID_X_TOP);
+    ChAssertAlways(plane_BC_Y_bot == BD_WALL_ID_Y_BOT);
+    ChAssertAlways(plane_BC_Y_top == BD_WALL_ID_Y_TOP);
+    ChAssertAlways(plane_BC_Z_bot == BD_WALL_ID_Z_BOT);
+    ChAssertAlways(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
 }
 
 ChSystemGpu_impl::~ChSystemGpu_impl() {

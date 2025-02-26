@@ -323,6 +323,10 @@ int main(int argc, char* argv[]) {
     // Setup the SPH method
     sysSPH.SetSPHMethod(SPHMethod::WCSPH);
 
+    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
+    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
+    sysSPH.SetShiftingXSPHParameters(0.25);
+
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * initSpacing, -bzDim * 10);
     ChVector3d cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * initSpacing, bzDim * 10);

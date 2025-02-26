@@ -705,7 +705,7 @@ void ChVisualSystemIrrlicht::CreateIrrNode(std::shared_ptr<ChPhysicsItem> item) 
     // Create a new ChIrrNodeModel and populate it
     auto node = chrono_types::make_shared<ChIrrNodeModel>(item, m_container, GetSceneManager(), 0);
     bool ok = m_nodes.insert({item.get(), node}).second;
-    assert(ok);
+    ChAssertAlways(ok);
 
     // Remove all Irrlicht scene nodes from the ChIrrNodeModel
     node->removeAll();

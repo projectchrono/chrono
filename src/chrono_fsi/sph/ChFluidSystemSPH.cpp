@@ -92,6 +92,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
     m_paramsH->boundary_type = BoundaryType::ADAMI;
     m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
+    m_paramsH->shifting_method = ShiftingMethod::XSPH;
 
     m_paramsH->d0 = Real(0.01);
     m_paramsH->ood0 = 1 / m_paramsH->d0;
@@ -102,8 +103,13 @@ void ChFluidSystemSPH::InitParams() {
 
     m_paramsH->volume0 = cube(m_paramsH->d0);
     m_paramsH->v_Max = Real(1.0);
-    m_paramsH->EPS_XSPH = Real(0.5);
-    m_paramsH->beta_shifting = Real(1.0);
+    m_paramsH->shifting_xsph_eps = Real(0.5);
+    m_paramsH->shifting_ppst_push = Real(3.0);
+    m_paramsH->shifting_ppst_pull = Real(1.0);
+    m_paramsH->shifting_beta_implicit = Real(1.0);
+    m_paramsH->shifting_diffusion_A = Real(1.0);
+    m_paramsH->shifting_diffusion_AFSM = Real(3.0);
+    m_paramsH->shifting_diffusion_AFST = Real(2);
     m_paramsH->densityReinit = 2147483647;
     m_paramsH->Conservative_Form = true;
     m_paramsH->gradient_type = 0;
@@ -214,9 +220,11 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             std::string SPH = doc["SPH Parameters"]["Method"].GetString();
             if (m_verbose)
                 cout << "Modeling method is: " << SPH << endl;
-            if (SPH == "I2SPH")
+            if (SPH == "I2SPH") {
                 m_paramsH->sph_method = SPHMethod::I2SPH;
-            else if (SPH == "WCSPH")
+                if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
+                    m_paramsH->shifting_beta_implicit = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
+            } else if (SPH == "WCSPH")
                 m_paramsH->sph_method = SPHMethod::WCSPH;
             else {
                 cerr << "Incorrect SPH method in the JSON file: " << SPH << endl;
@@ -237,8 +245,40 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
         if (doc["SPH Parameters"].HasMember("Maximum Velocity"))
             m_paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
 
+        if (doc["SPH Parameters"].HasMember("Shifting Method")) {
+            std::string method = doc["SPH Parameters"]["Shifting Method"].GetString();
+            if (method == "XSPH")
+                m_paramsH->shifting_method = ShiftingMethod::XSPH;
+            else if (method == "PPST_XSPH")
+                m_paramsH->shifting_method = ShiftingMethod::PPST_XSPH;
+            else if (method == "PPST")
+                m_paramsH->shifting_method = ShiftingMethod::PPST;
+            else if (method == "DIFFUSION")
+                m_paramsH->shifting_method = ShiftingMethod::DIFFUSION;
+            else if (method == "DIFFUSION_XSPH")
+                m_paramsH->shifting_method = ShiftingMethod::DIFFUSION_XSPH;
+            else {
+                m_paramsH->shifting_method = ShiftingMethod::NONE;
+            }
+        }
+
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
-            m_paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
+            m_paramsH->shifting_xsph_eps = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("PPST Push Coefficient"))
+            m_paramsH->shifting_ppst_push = doc["SPH Parameters"]["PPST Push Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("PPST Pull Coefficient"))
+            m_paramsH->shifting_ppst_pull = doc["SPH Parameters"]["PPST Pull Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Diffusion A Coefficient"))
+            m_paramsH->shifting_diffusion_A = doc["SPH Parameters"]["Diffusion A Coefficient"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Diffusion AFSM"))
+            m_paramsH->shifting_diffusion_AFSM = doc["SPH Parameters"]["Diffusion AFSM"].GetDouble();
+
+        if (doc["SPH Parameters"].HasMember("Diffusion AFST"))
+            m_paramsH->shifting_diffusion_AFST = doc["SPH Parameters"]["Diffusion AFST"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Kernel Type")) {
             std::string type = doc["SPH Parameters"]["Kernel Type"].GetString();
@@ -310,9 +350,6 @@ void ChFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
                 m_paramsH->eos_type = EosType::ISOTHERMAL;
             }
         }
-
-        if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
-            m_paramsH->beta_shifting = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
 
         if (doc["SPH Parameters"].HasMember("Density Reinitialization"))
             m_paramsH->densityReinit = doc["SPH Parameters"]["Density Reinitialization"].GetInt();
@@ -526,6 +563,10 @@ void ChFluidSystemSPH::SetKernelType(KernelType kernel_type) {
     }
 }
 
+void ChFluidSystemSPH::SetShiftingMethod(ShiftingMethod shifting_method) {
+    m_paramsH->shifting_method = shifting_method;
+}
+
 void ChFluidSystemSPH::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
@@ -596,6 +637,21 @@ void ChFluidSystemSPH::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
+}
+
+void ChFluidSystemSPH::SetShiftingPPSTParameters(double push, double pull) {
+    m_paramsH->shifting_ppst_push = push;
+    m_paramsH->shifting_ppst_pull = pull;
+}
+
+void ChFluidSystemSPH::SetShiftingXSPHParameters(double eps) {
+    m_paramsH->shifting_xsph_eps = eps;
+}
+
+void ChFluidSystemSPH::SetShiftingDiffusionParameters(double A, double AFSM, double AFST) {
+    m_paramsH->shifting_diffusion_A = A;
+    m_paramsH->shifting_diffusion_AFSM = AFSM;
+    m_paramsH->shifting_diffusion_AFST = AFST;
 }
 
 void ChFluidSystemSPH::SetConsistentDerivativeDiscretization(bool consistent_gradient, bool consistent_Laplacian) {
@@ -685,6 +741,28 @@ void ChFluidSystemSPH::CheckSPHParameters() {
                 "boundaries and lead to leakage of particles"
              << endl;
     }
+
+    // Check shifting method and whether defaults have changed
+    if (m_paramsH->shifting_method == ShiftingMethod::NONE) {
+        if (m_paramsH->shifting_xsph_eps != 0.5 || m_paramsH->shifting_ppst_push != 1.0 ||
+            m_paramsH->shifting_ppst_pull != 1.0) {
+            cerr << "WARNING: Shifting method is NONE, but shifting parameters have been modified. These "
+                    "changes will not take effect."
+                 << endl;
+        }
+    } else if (m_paramsH->shifting_method == ShiftingMethod::XSPH) {
+        if (m_paramsH->shifting_ppst_pull != 1.0 || m_paramsH->shifting_ppst_push != 3.0) {
+            cerr << "WARNING: Shifting method is XSPH, but PPST shifting parameters have been modified. These "
+                    "changes will not take effect."
+                 << endl;
+        }
+    } else if (m_paramsH->shifting_method == ShiftingMethod::PPST) {
+        if (m_paramsH->shifting_xsph_eps != 0.5) {
+            cerr << "WARNING: Shifting method is PPST, but XSPH shifting parameters have been modified. These "
+                    "changes will not take effect."
+                 << endl;
+        }
+    }
 }
 
 ChFluidSystemSPH::FluidProperties::FluidProperties() : density(1000), viscosity(0.1), char_length(1) {}
@@ -732,8 +810,12 @@ ChFluidSystemSPH::SPHParameters::SPHParameters()
       initial_spacing(0.01),
       d0_multiplier(1.2),
       max_velocity(1.0),
-      xsph_coefficient(0.5),
-      shifting_coefficient(1.0),
+      shifting_xsph_eps(0.5),
+      shifting_ppst_push(3.0),
+      shifting_ppst_pull(1.0),
+      shifting_diffusion_A(1.0),
+      shifting_diffusion_AFSM(3.0),
+      shifting_diffusion_AFST(2),
       min_distance_coefficient(0.01),
       density_reinit_steps(2e8),
       use_density_based_projection(false),
@@ -757,6 +839,7 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->viscosity_type = sph_params.viscosity_type;
     m_paramsH->boundary_type = sph_params.boundary_type;
     m_paramsH->kernel_type = sph_params.kernel_type;
+    m_paramsH->shifting_method = sph_params.shifting_method;
 
     m_paramsH->d0 = sph_params.initial_spacing;
     m_paramsH->volume0 = cube(m_paramsH->d0);
@@ -768,8 +851,13 @@ void ChFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
 
     m_paramsH->v_Max = sph_params.max_velocity;
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
-    m_paramsH->EPS_XSPH = sph_params.xsph_coefficient;
-    m_paramsH->beta_shifting = sph_params.shifting_coefficient;
+    m_paramsH->shifting_xsph_eps = sph_params.shifting_xsph_eps;
+    m_paramsH->shifting_ppst_push = sph_params.shifting_ppst_push;
+    m_paramsH->shifting_ppst_pull = sph_params.shifting_ppst_pull;
+    m_paramsH->shifting_beta_implicit = sph_params.shifting_beta_implicit;
+    m_paramsH->shifting_diffusion_A = sph_params.shifting_diffusion_A;
+    m_paramsH->shifting_diffusion_AFSM = sph_params.shifting_diffusion_AFSM;
+    m_paramsH->shifting_diffusion_AFST = sph_params.shifting_diffusion_AFST;
     m_paramsH->epsMinMarkersDis = sph_params.min_distance_coefficient;
 
     m_paramsH->densityReinit = sph_params.density_reinit_steps;
@@ -881,8 +969,8 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                         std::vector<FsiMeshForce> mesh1D_forces,
                                         std::vector<FsiMeshForce> mesh2D_forces) {
     {
-        thrust::host_vector<Real3> forcesH = m_data_mgr->rigid_FSI_ForcesD;
-        thrust::host_vector<Real3> torquesH = m_data_mgr->rigid_FSI_TorquesD;
+        auto forcesH = m_data_mgr->GetRigidForces();
+        auto torquesH = m_data_mgr->GetRigidTorques();
 
         size_t num_bodies = body_forces.size();
         for (size_t i = 0; i < num_bodies; i++) {
@@ -892,7 +980,7 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
     }
 
     {
-        thrust::host_vector<Real3> forces_H = m_data_mgr->flex1D_FSIforces_D;
+        auto forces_H = m_data_mgr->GetFlex1dForces();
 
         size_t num_meshes = mesh1D_forces.size();
         int index = 0;
@@ -906,7 +994,7 @@ void ChFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
     }
 
     {
-        thrust::host_vector<Real3> forces_H = m_data_mgr->flex2D_FSIforces_D;
+        auto forces_H = m_data_mgr->GetFlex2dForces();
 
         size_t num_meshes = mesh2D_forces.size();
         int index = 0;
@@ -1163,6 +1251,27 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                 break;
         }
 
+        switch (m_paramsH->shifting_method) {
+            case ShiftingMethod::XSPH:
+                cout << "  Shifting method: XSPH" << endl;
+                break;
+            case ShiftingMethod::PPST:
+                cout << "  Shifting method: PPST" << endl;
+                break;
+            case ShiftingMethod::PPST_XSPH:
+                cout << "  Shifting method: PPST_XSPH" << endl;
+                break;
+            case ShiftingMethod::DIFFUSION:
+                cout << "  Shifting method: Diffusion" << endl;
+                break;
+            case ShiftingMethod::DIFFUSION_XSPH:
+                cout << "  Shifting method: Diffusion_XSPH" << endl;
+                break;
+            case ShiftingMethod::NONE:
+                cout << "  Shifting method: None" << endl;
+                break;
+        }
+
         cout << "  num_neighbors: " << m_paramsH->num_neighbors << endl;
         cout << "  rho0: " << m_paramsH->rho0 << endl;
         cout << "  invrho0: " << m_paramsH->invrho0 << endl;
@@ -1186,8 +1295,26 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 
         cout << "  v_Max: " << m_paramsH->v_Max << endl;
         cout << "  Cs: " << m_paramsH->Cs << endl;
-        cout << "  EPS_XSPH: " << m_paramsH->EPS_XSPH << endl;
-        cout << "  beta_shifting: " << m_paramsH->beta_shifting << endl;
+
+        if (m_paramsH->shifting_method == ShiftingMethod::XSPH) {
+            cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::PPST) {
+            cout << "  shifting_ppst_push: " << m_paramsH->shifting_ppst_push << endl;
+            cout << "  shifting_ppst_pull: " << m_paramsH->shifting_ppst_pull << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::PPST_XSPH) {
+            cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
+            cout << "  shifting_ppst_push: " << m_paramsH->shifting_ppst_push << endl;
+            cout << "  shifting_ppst_pull: " << m_paramsH->shifting_ppst_pull << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::DIFFUSION) {
+            cout << "  shifting_diffusion_A: " << m_paramsH->shifting_diffusion_A << endl;
+            cout << "  shifting_diffusion_AFSM: " << m_paramsH->shifting_diffusion_AFSM << endl;
+            cout << "  shifting_diffusion_AFST: " << m_paramsH->shifting_diffusion_AFST << endl;
+        } else if (m_paramsH->shifting_method == ShiftingMethod::DIFFUSION_XSPH) {
+            cout << "  shifting_xsph_eps: " << m_paramsH->shifting_xsph_eps << endl;
+            cout << "  shifting_diffusion_A: " << m_paramsH->shifting_diffusion_A << endl;
+            cout << "  shifting_diffusion_AFSM: " << m_paramsH->shifting_diffusion_AFSM << endl;
+            cout << "  shifting_diffusion_AFST: " << m_paramsH->shifting_diffusion_AFST << endl;
+        }
         cout << "  densityReinit: " << m_paramsH->densityReinit << endl;
 
         cout << "  Proximity search performed every " << m_paramsH->num_proximity_search_steps << " steps" << endl;
@@ -1319,35 +1446,18 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
-    WriteParticleFileCSV(filename, m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,
-                         m_data_mgr->sphMarkers_D->rhoPresMuD, m_data_mgr->referenceArray);
+    WriteParticleFileCSV(filename, *m_data_mgr);
 }
 
 void ChFluidSystemSPH::SaveParticleData(const std::string& dir) const {
-    if (m_paramsH->elastic_SPH) {
-        sph::SaveParticleDataCRM(dir, m_output_level,                                                         //
-                                 m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,        //
-                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->sphMarkers_D->rhoPresMuD,      //
-                                 m_data_mgr->sphMarkers_D->tauXxYyZzD, m_data_mgr->sphMarkers_D->tauXyXzYzD,  //
-                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);                 //
-    } else {
-        sph::SaveParticleDataCFD(dir, m_output_level,                                                     //
-                                 m_data_mgr->sphMarkers_D->posRadD, m_data_mgr->sphMarkers_D->velMasD,    //
-                                 m_data_mgr->derivVelRhoOriginalD, m_data_mgr->sphMarkers_D->rhoPresMuD,  //
-                                 m_data_mgr->sr_tau_I_mu_i_Original,                                      //
-                                 m_data_mgr->referenceArray, m_data_mgr->referenceArray_FEA);             //
-    }
+    if (m_paramsH->elastic_SPH)
+        sph::SaveParticleDataCRM(dir, m_output_level, *m_data_mgr);
+    else
+        sph::SaveParticleDataCFD(dir, m_output_level, *m_data_mgr);
 }
 
 void ChFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
-    sph::SaveSolidData(dir, time,                                                                                 //
-                       m_data_mgr->fsiBodyState_D->pos, m_data_mgr->fsiBodyState_D->rot,                          //
-                       m_data_mgr->fsiBodyState_D->lin_vel,                                                       //
-                       m_data_mgr->rigid_FSI_ForcesD, m_data_mgr->rigid_FSI_TorquesD,                             //
-                       m_data_mgr->fsiMesh1DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh1DState_D->vel_fsi_fea_D,  //
-                       m_data_mgr->flex1D_FSIforces_D,                                                            //
-                       m_data_mgr->fsiMesh2DState_D->pos_fsi_fea_D, m_data_mgr->fsiMesh2DState_D->vel_fsi_fea_D,  //
-                       m_data_mgr->flex2D_FSIforces_D);                                                           //
+    sph::SaveSolidData(dir, time, *m_data_mgr);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2499,56 +2609,58 @@ size_t ChFluidSystemSPH::GetNumBoundaryMarkers() const {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticlePositions() const {
-    thrust::host_vector<Real4> posRadH = m_data_mgr->sphMarkers_D->posRadD;
-    std::vector<ChVector3d> pos;
+    auto pos3 = GetPositions();
 
-    for (size_t i = 0; i < posRadH.size(); i++) {
-        pos.push_back(ToChVector(posRadH[i]));
-    }
+    std::vector<ChVector3d> pos;
+    for (const auto& p : pos3)
+        pos.push_back(ToChVector(p));
+
     return pos;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleVelocities() const {
-    thrust::host_vector<Real3> velH = m_data_mgr->sphMarkers_D->velMasD;
-    std::vector<ChVector3d> vel;
+    auto vel3 = GetVelocities();
 
-    for (size_t i = 0; i < velH.size(); i++) {
-        vel.push_back(ToChVector(velH[i]));
-    }
+    std::vector<ChVector3d> vel;
+    for (const auto& v : vel3)
+        vel.push_back(ToChVector(v));
+
     return vel;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleAccelerations() const {
-    thrust::host_vector<Real3> accH = m_data_mgr->GetAccelerations();
+    auto acc3 = GetAccelerations();
+
     std::vector<ChVector3d> acc;
-    for (size_t i = 0; i < accH.size(); i++) {
-        acc.push_back(ToChVector(accH[i]));
-    }
+    for (const auto& a : acc3)
+        acc.push_back(ToChVector(a));
+
     return acc;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleForces() const {
-    thrust::host_vector<Real3> frcH = m_data_mgr->GetForces();
+    auto frc3 = GetForces();
+
     std::vector<ChVector3d> frc;
-    for (size_t i = 0; i < frcH.size(); i++) {
-        frc.push_back(ToChVector(frcH[i]));
-    }
+    for (const auto& f : frc3)
+        frc.push_back(ToChVector(f));
+
     return frc;
 }
 
 std::vector<ChVector3d> ChFluidSystemSPH::GetParticleFluidProperties() const {
-    thrust::host_vector<Real4> rhoPresMuH = m_data_mgr->sphMarkers_D->rhoPresMuD;
-    std::vector<ChVector3d> props;
+    auto props3 = GetProperties();
 
-    for (size_t i = 0; i < rhoPresMuH.size(); i++) {
-        props.push_back(ToChVector(rhoPresMuH[i]));
-    }
+    std::vector<ChVector3d> props;
+    for (const auto& p : props3)
+        props.push_back(ToChVector(p));
+
     return props;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-thrust::device_vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
+std::vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
     const ChVector3d& Pos = frame.GetPos();
     ChVector3d Ax = frame.GetRotMat().GetAxisX();
     ChVector3d Ay = frame.GetRotMat().GetAxisY();
@@ -2563,39 +2675,39 @@ thrust::device_vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>&
     return m_data_mgr->FindParticlesInBox(hsize, pos, ax, ay, az);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetPositions() {
+std::vector<sph::Real3> ChFluidSystemSPH::GetPositions() const {
     return m_data_mgr->GetPositions();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetVelocities() {
+std::vector<Real3> ChFluidSystemSPH::GetVelocities() const {
     return m_data_mgr->GetVelocities();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetAccelerations() {
+std::vector<Real3> ChFluidSystemSPH::GetAccelerations() const {
     return m_data_mgr->GetAccelerations();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetForces() {
+std::vector<Real3> ChFluidSystemSPH::GetForces() const {
     return m_data_mgr->GetForces();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetProperties() {
+std::vector<Real3> ChFluidSystemSPH::GetProperties() const {
     return m_data_mgr->GetProperties();
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetPositions(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {
     return m_data_mgr->GetPositions(indices);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetVelocities(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetVelocities(const std::vector<int>& indices) const {
     return m_data_mgr->GetVelocities(indices);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetAccelerations(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetAccelerations(const std::vector<int>& indices) const {
     return m_data_mgr->GetAccelerations(indices);
 }
 
-thrust::device_vector<Real3> ChFluidSystemSPH::GetForces(const thrust::device_vector<int>& indices) {
+std::vector<Real3> ChFluidSystemSPH::GetForces(const std::vector<int>& indices) const {
     return m_data_mgr->GetForces(indices);
 }
 

@@ -56,7 +56,7 @@ ChVector3d csize(0.8, 0.8, 1.6);
 ChVector3d fsize(0.8, 0.8, 1.2);
 
 // Object type
-enum class ObjectType {SPHERE, CYLINDER};
+enum class ObjectType { SPHERE, CYLINDER };
 ObjectType object_type = ObjectType::CYLINDER;
 
 // Object density
@@ -193,8 +193,8 @@ int main(int argc, char* argv[]) {
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 8.0;
-    sph_params.xsph_coefficient = 0.5;
-    sph_params.shifting_coefficient = 0.0;
+    sph_params.shifting_method = ShiftingMethod::XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
     sph_params.artificial_viscosity = 0.03;
     sph_params.eos_type = EosType::TAIT;
     sph_params.consistent_gradient_discretization = false;

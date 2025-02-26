@@ -47,10 +47,9 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
     void neighborSearch();
 
-    /// Function to calculate the XSPH velocity of the particles.
-    /// XSPH velocity is a compromise between Eulerian and Lagrangian velocities, used
-    /// to regularize the particles velocity and reduce noise.
-    void CalculateXSPH_velocity();
+    /// Function to calculate the shifting of the particles
+    /// Can either do PPST, XSPH, or both
+    void CalculateShifting();
 
     /// A wrapper around collide function.
     /// Calculates the force on particles, and copies the sorted XSPH velocities to the original.

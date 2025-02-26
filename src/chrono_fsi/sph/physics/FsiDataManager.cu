@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include <thrust/copy.h>
 #include <thrust/fill.h>
 #include <thrust/gather.h>
@@ -447,130 +449,183 @@ struct scale_functor {
     const Real m_a;
 };
 
-thrust::device_vector<Real3> FsiDataManager::GetPositions() {
-    auto& pos4 = sphMarkers_D->posRadD;
+std::vector<Real3> FsiDataManager::GetPositions() {
+    auto& pos4_D = sphMarkers_D->posRadD;
 
     // Extract positions only (drop radius)
-    thrust::device_vector<Real3> pos3(pos4.size());
-    thrust::transform(pos4.begin(), pos4.end(), pos3.begin(), extract_functor());
+    thrust::device_vector<Real3> pos_D(pos4_D.size());
+    thrust::transform(pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
 
-    return pos3;
+    // Copy to output
+    std::vector<Real3> pos_H(pos_D.size());
+    thrust::copy(pos_D.begin(), pos_D.end(), pos_H.begin());
+    return pos_H;
 }
 
-thrust::device_vector<Real3> FsiDataManager::GetVelocities() {
-    return sphMarkers_D->velMasD;
+std::vector<Real3> FsiDataManager::GetVelocities() {
+    const auto& vel_D = sphMarkers_D->velMasD;
+
+    // Copy to output
+    std::vector<Real3> vel_H(vel_D.size());
+    thrust::copy(vel_D.begin(), vel_D.end(), vel_H.begin());
+    return vel_H;
 }
 
-thrust::device_vector<Real3> FsiDataManager::GetAccelerations() {
-    const auto n = countersH->numFluidMarkers;
-
+std::vector<Real3> FsiDataManager::GetAccelerations() {
     // Copy data for SPH particles only
-    thrust::device_vector<Real4> acc4(n);
-    thrust::copy_n(derivVelRhoD.begin(), n, acc4.begin());
+    const auto n = countersH->numFluidMarkers;
+    thrust::device_vector<Real4> acc4_D(n);
+    thrust::copy_n(derivVelRhoD.begin(), n, acc4_D.begin());
 
     // Extract acceleration (drop density)
-    thrust::device_vector<Real3> acc3(n);
-    thrust::transform(acc4.begin(), acc4.end(), acc3.begin(), extract_functor());
+    thrust::device_vector<Real3> acc_D(n);
+    thrust::transform(acc4_D.begin(), acc4_D.end(), acc_D.begin(), extract_functor());
 
-    return acc3;
+    // Copy to output
+    std::vector<Real3> acc_H(acc_D.size());
+    thrust::copy(acc_D.begin(), acc_D.end(), acc_H.begin());
+    return acc_H;
 }
 
-thrust::device_vector<Real3> FsiDataManager::GetForces() {
-    thrust::device_vector<Real3> frcD = GetAccelerations();
-    thrust::transform(frcD.begin(), frcD.end(), frcD.begin(), scale_functor(paramsH->markerMass));
-
-    return frcD;
+std::vector<Real3> FsiDataManager::GetForces() {
+    std::vector<Real3> frc_H = GetAccelerations();
+    std::transform(frc_H.begin(), frc_H.end(), frc_H.begin(), scale_functor(paramsH->markerMass));
+    return frc_H;
 }
 
-thrust::device_vector<Real3> FsiDataManager::GetProperties() {
-    thrust::device_vector<Real4> prop4 = sphMarkers_D->rhoPresMuD;
+std::vector<Real3> FsiDataManager::GetProperties() {
+    auto& prop4_D = sphMarkers_D->rhoPresMuD;
 
     // Extract fluid properties only (drop particle type)
-    thrust::device_vector<Real3> prop3(prop4.size());
-    thrust::transform(prop4.begin(), prop4.end(), prop3.begin(), extract_functor());
+    thrust::device_vector<Real3> prop_D(prop4_D.size());
+    thrust::transform(prop4_D.begin(), prop4_D.end(), prop_D.begin(), extract_functor());
 
-    return prop3;
+    // Copy to output
+    std::vector<Real3> prop_H(prop_D.size());
+    thrust::copy(prop_D.begin(), prop_D.end(), prop_H.begin());
+    return prop_H;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-// Gather positions from particles with specified indices
-thrust::device_vector<Real3> FsiDataManager::GetPositions(const thrust::device_vector<int>& indices) {
-    const auto& allpos = GetPositions();
+std::vector<Real3> FsiDataManager::GetPositions(const std::vector<int>& indices) {
+    thrust::device_vector<int> indices_D(indices.size());
+    thrust::copy(indices.begin(), indices.end(), indices_D.begin());
 
-    thrust::device_vector<Real3> pos(allpos.size());
+    // Get all extended positions
+    auto& allpos4_D = sphMarkers_D->posRadD;
 
-    auto end = thrust::gather(thrust::device,                  // execution policy
-                              indices.begin(), indices.end(),  // range of gather locations
-                              allpos.begin(),                  // beginning of source
-                              pos.begin()                      // beginning of destination
+    // Gather only those for specified indices
+    thrust::device_vector<Real4> pos4_D(allpos4_D.size());
+    auto end = thrust::gather(thrust::device,                      // execution policy
+                              indices_D.begin(), indices_D.end(),  // range of gather locations
+                              allpos4_D.begin(),                   // beginning of source
+                              pos4_D.begin()                       // beginning of destination
     );
 
-    // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - pos.begin());
-    assert(num_active == indices.size());
-    pos.resize(num_active);
+    // Extract positions only (drop radius)
+    thrust::device_vector<Real3> pos_D(pos4_D.size());
+    thrust::transform(pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
 
-    return pos;
+    // Trim the output vector of particle positions
+    size_t num_active = (size_t)(end - pos4_D.begin());
+    assert(num_active == indices_D.size());
+    pos_D.resize(num_active);
+    
+    // Copy to output
+    std::vector<Real3> pos_H(pos_D.size());
+    thrust::copy(pos_D.begin(), pos_D.end(), pos_H.begin());
+    return pos_H;
 }
 
-// Gather velocities from particles with specified indices
-thrust::device_vector<Real3> FsiDataManager::GetVelocities(const thrust::device_vector<int>& indices) {
-    auto allvel = GetVelocities();
+std::vector<Real3> FsiDataManager::GetVelocities(const std::vector<int>& indices) {
+    thrust::device_vector<int> indices_D(indices.size());
+    thrust::copy(indices.begin(), indices.end(), indices_D.begin());
 
-    thrust::device_vector<Real3> vel(allvel.size());
+    // Get all velocities
+    auto allvel_D = sphMarkers_D->velMasD;
 
-    auto end = thrust::gather(thrust::device,                  // execution policy
-                              indices.begin(), indices.end(),  // range of gather locations
-                              allvel.begin(),                  // beginning of source
-                              vel.begin()                      // beginning of destination
+    // Gather only those for specified indices
+    thrust::device_vector<Real3> vel_D(allvel_D.size());
+    auto end = thrust::gather(thrust::device,                      // execution policy
+                              indices_D.begin(), indices_D.end(),  // range of gather locations
+                              allvel_D.begin(),                    // beginning of source
+                              vel_D.begin()                        // beginning of destination
     );
 
     // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - vel.begin());
-    assert(num_active == indices.size());
-    vel.resize(num_active);
+    size_t num_active = (size_t)(end - vel_D.begin());
+    assert(num_active == indices_D.size());
+    vel_D.resize(num_active);
 
-    return vel;
+    // Copy to output
+    std::vector<Real3> vel_H(vel_D.size());
+    thrust::copy(vel_D.begin(), vel_D.end(), vel_H.begin());
+    return vel_H;
 }
 
-// Gather accelerations from particles with specified indices
-thrust::device_vector<Real3> FsiDataManager::GetAccelerations(const thrust::device_vector<int>& indices) {
-    auto allacc = GetAccelerations();
+std::vector<Real3> FsiDataManager::GetAccelerations(const std::vector<int>& indices) {
+    thrust::device_vector<int> indices_D(indices.size());
+    thrust::copy(indices.begin(), indices.end(), indices_D.begin());
 
-    thrust::device_vector<Real3> acc(allacc.size());
+    // Get all extended accelerations
+    const auto n = countersH->numFluidMarkers;
+    thrust::device_vector<Real4> allacc4_D(n);
+    thrust::copy_n(derivVelRhoD.begin(), n, allacc4_D.begin());
 
-    auto end = thrust::gather(thrust::device,                  // execution policy
-                              indices.begin(), indices.end(),  // range of gather locations
-                              allacc.begin(),                  // beginning of source
-                              acc.begin()                      // beginning of destination
+    // Gather only those for specified indices
+    thrust::device_vector<Real4> acc4_D(allacc4_D.size());
+    auto end = thrust::gather(thrust::device,                      // execution policy
+                              indices_D.begin(), indices_D.end(),  // range of gather locations
+                              allacc4_D.begin(),                   // beginning of source
+                              acc4_D.begin()                       // beginning of destination
     );
 
-    // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - acc.begin());
-    assert(num_active == indices.size());
-    acc.resize(num_active);
+    // Extract acceleration (drop density)
+    thrust::device_vector<Real3> acc_D(n);
+    thrust::transform(acc4_D.begin(), acc4_D.end(), acc_D.begin(), extract_functor());
 
-    return acc;
+    // Trim the output vector of particle positions
+    size_t num_active = (size_t)(end - acc4_D.begin());
+    assert(num_active == indices_D.size());
+    acc_D.resize(num_active);
+
+    // Copy to output
+    std::vector<Real3> acc_H(acc_D.size());
+    thrust::copy(acc_D.begin(), acc_D.end(), acc_H.begin());
+    return acc_H;
 }
 
-thrust::device_vector<Real3> FsiDataManager::GetForces(const thrust::device_vector<int>& indices) {
-    auto allforces = GetForces();
+std::vector<Real3> FsiDataManager::GetForces(const std::vector<int>& indices) {
+    std::vector<Real3> frc_H = GetAccelerations(indices);
+    std::transform(frc_H.begin(), frc_H.end(), frc_H.begin(), scale_functor(paramsH->markerMass));
+    return frc_H;
+}
 
-    thrust::device_vector<Real3> forces(allforces.size());
+//--------------------------------------------------------------------------------------------------------------------------------
 
-    auto end = thrust::gather(thrust::device,                  // execution policy
-                              indices.begin(), indices.end(),  // range of gather locations
-                              allforces.begin(),               // beginning of source
-                              forces.begin()                   // beginning of destination
-    );
+std::vector<Real3> FsiDataManager::GetRigidForces() {
+    std::vector<Real3> out_H(rigid_FSI_ForcesD.size());
+    thrust::copy(rigid_FSI_ForcesD.begin(), rigid_FSI_ForcesD.end(), out_H.begin());
+    return out_H;
+}
 
-    // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - forces.begin());
-    assert(num_active == indices.size());
-    forces.resize(num_active);
+std::vector<Real3> FsiDataManager::GetRigidTorques() {
+    std::vector<Real3> out_H(rigid_FSI_TorquesD.size());
+    thrust::copy(rigid_FSI_TorquesD.begin(), rigid_FSI_TorquesD.end(), out_H.begin());
+    return out_H;
+}
 
-    return forces;
+std::vector<Real3> FsiDataManager::GetFlex1dForces() {
+    std::vector<Real3> out_H(flex1D_FSIforces_D.size());
+    thrust::copy(flex1D_FSIforces_D.begin(), flex1D_FSIforces_D.end(), out_H.begin());
+    return out_H;
+}
+
+std::vector<Real3> FsiDataManager::GetFlex2dForces() {
+    std::vector<Real3> out_H(flex2D_FSIforces_D.size());
+    thrust::copy(flex2D_FSIforces_D.begin(), flex2D_FSIforces_D.end(), out_H.begin());
+    return out_H;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -598,11 +653,11 @@ struct in_box {
     Real3 az;
 };
 
-thrust::device_vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize,
-                                                              const Real3& pos,
-                                                              const Real3& ax,
-                                                              const Real3& ay,
-                                                              const Real3& az) {
+std::vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize,
+                                                    const Real3& pos,
+                                                    const Real3& ax,
+                                                    const Real3& ay,
+                                                    const Real3& az) {
     // Extract indices of SPH particles contained in the OBB
     auto& ref = referenceArray;
     auto& pos_D = sphMarkers_D->posRadD;
@@ -637,7 +692,10 @@ thrust::device_vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize
     size_t num_active = (size_t)(end - indices_D.begin());
     indices_D.resize(num_active);
 
-    return indices_D;
+    // Copy to output
+    std::vector<int> indices_H;
+    thrust::copy(indices_D.begin(), indices_D.end(), indices_H.begin());
+    return indices_H;
 }
 
 }  // namespace sph

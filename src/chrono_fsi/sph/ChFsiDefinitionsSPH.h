@@ -37,6 +37,9 @@ enum class SPHMethod {
     I2SPH   ///< Implicit SPH
 };
 
+/// Shifting Methods
+enum class ShiftingMethod { NONE, PPST, XSPH, PPST_XSPH, DIFFUSION, DIFFUSION_XSPH};
+
 /// Equation of State type.
 /// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
 enum class EosType { TAIT, ISOTHERMAL };
@@ -65,7 +68,7 @@ enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 /// These flags are used to identify sides of a box container and can be combined using unary boolean operations.
 namespace BoxSide {
 enum Enum {
-    NONE = 0x0000,  
+    NONE = 0x0000,
     X_POS = 1 << 0,
     X_NEG = 1 << 1,
     Y_POS = 1 << 2,

@@ -605,8 +605,10 @@ void ChTireTestRig::CreateTerrainCRM() {
     sph_params.initial_spacing = initSpace0;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.xsph_coefficient = 0.25;
-    sph_params.shifting_coefficient = 1.0;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;  // Apply both PPST and XSPH shifting
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = 1;
     sph_params.consistent_gradient_discretization = false;

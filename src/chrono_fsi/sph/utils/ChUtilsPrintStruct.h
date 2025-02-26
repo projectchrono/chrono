@@ -18,10 +18,10 @@
 #ifndef CH_FSI_UTILS_PRINTSTRUCT_H
 #define CH_FSI_UTILS_PRINTSTRUCT_H
 
+#include <iostream>
+
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/math/CustomMath.h"
-#include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
+#include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {

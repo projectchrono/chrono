@@ -170,7 +170,7 @@ vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Optio
     vsg::ref_ptr<vsg::ShaderSet> activeShaderSet = createLineShaderSet(options);
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(activeShaderSet);
 
-    auto& defines = graphicsPipelineConfig->shaderHints->defines;
+    //auto& defines = graphicsPipelineConfig->shaderHints->defines;
 
     // set up graphics pipeline
     vsg::DescriptorSetLayoutBindings descriptorBindings;

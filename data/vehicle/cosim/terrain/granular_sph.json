@@ -14,8 +14,10 @@
     "SPH Parameters": {
         "Method": "WCSPH",
         "Epsilon": 0.001,
-        "XSPH Coefficient": 0.5,
-        "Shifting Coefficient": 1.0,
+        "Shifting Method": "PPST_XSPH",
+        "XSPH Coefficient": 0.25,
+        "PPST Push Coefficient": 3.0,
+        "PPST Pull Coefficient": 1.0,
         "Viscosity Treatment Type": "Artificial Bilateral",
         "Boundary Treatment Type": "Adami",
         "Artificial viscosity alpha": 0.5

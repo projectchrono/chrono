@@ -131,6 +131,11 @@ int main(int argc, char* argv[]) {
     // Set SPH kernel length.
     sysSPH.SetKernelMultiplier(1.2);
 
+    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
+
+    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
+    sysSPH.SetShiftingXSPHParameters(0.25);
+
     // Set density
     sysSPH.SetDensity(bulk_density);
 
@@ -264,7 +269,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (visFSI) {
-            visFSI->SetTitle("FSI Angle of Repose Demo");
+            visFSI->SetTitle("Chrono::FSI Angle of Repose");
             visFSI->SetSize(1280, 720);
             visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
             visFSI->SetCameraMoveScale(0.1f);

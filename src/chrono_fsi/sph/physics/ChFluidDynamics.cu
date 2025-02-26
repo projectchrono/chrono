@@ -336,7 +336,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     //-------------
     // ** position
     //-------------
-    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];  // paramsD.EPS_XSPH *
+    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];
     Real3 posRad = mR3(posRadD[index]);
     Real3 updatedPositon = posRad + vel_XSPH * dT;
     if (!IsFinite(updatedPositon)) {
@@ -351,7 +351,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     //-------------
     // Note that the velocity update should not use the XSPH contribution
     // It adds dissipation to the solution, and provides numerical damping
-    Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];  // paramsD.EPS_XSPH * vel_XSPH_D[index]
+    Real3 velMas = velMasD[index];
     Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
     velMasD[index] = updatedVelocity;
 
