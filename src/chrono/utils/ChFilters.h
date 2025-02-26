@@ -20,7 +20,6 @@
 #define CH_FILTERS_H
 
 #include <cmath>
-#include <valarray>
 #include <vector>
 
 #include "chrono/functions/ChFunctionInterp.h"
@@ -61,7 +60,7 @@ class ChApi ChRunningAverage {
     int m_n;
     int m_index;
     double m_std;
-    std::valarray<double> m_data;
+    ChVectorDynamic<> m_data;
 };
 
 /// Moving average filter for smoothing a data array.
@@ -69,20 +68,20 @@ class ChApi ChMovingAverage {
   public:
     /// Construct a moving average filter (centered).
     /// The average is calculated over 2*n+1 points
-    ChMovingAverage(const std::valarray<double>& data,  ///< input data
-                    int n                               ///< filter half-span
+    ChMovingAverage(const ChVectorDynamic<>& data,  ///< input data
+                    int n                           ///< filter half-span
     );
 
     ~ChMovingAverage() {}
 
     /// Return the filtered output.
-    const std::valarray<double>& Get() const { return m_out; }
+    const ChVectorDynamic<>& Get() const { return m_out; }
 
     /// Return the specified component of the filtered output.
     double Get(int i) const { return m_out[i]; }
 
   private:
-    std::valarray<double> m_out;
+    ChVectorDynamic<> m_out;
 };
 
 // Analogue filters ------------------------------------------------------------

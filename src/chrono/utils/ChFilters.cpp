@@ -29,14 +29,15 @@ namespace utils {
 
 // -----------------------------------------------------------------------------
 ChRunningAverage::ChRunningAverage(int n) : m_n(n), m_index(0), m_std(0) {
-    m_data.resize(n, 0.0);
+    m_data.setZero(n);
 }
 
 double ChRunningAverage::Add(double val) {
     m_data[(m_index++) % m_n] = val;
     int size = std::min(m_index, m_n);
     double mean = m_data.sum() / size;
-    m_std = (size == 1) ? 0 : std::sqrt(std::pow(m_data - mean, 2.0).sum() / (size - 1));
+    ChVectorDynamic<> data_centered = m_data.array() - mean;
+    m_std = (size == 1) ? 0 : std::sqrt((data_centered.cwiseProduct(data_centered)).sum() / (size - 1));
     return mean;
 }
 
@@ -46,8 +47,8 @@ void ChRunningAverage::Reset() {
 }
 
 // -----------------------------------------------------------------------------
-ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
-    int np = (int)data.size();
+ChMovingAverage::ChMovingAverage(const ChVectorDynamic<>& data, int n) {
+    int np = static_cast<int>(data.size());
     m_out.resize(np);
 
     // Start and end of data
