@@ -89,7 +89,7 @@ void ChElasticityKirchhoffIsothropic::ComputeStress(ChVector3d& n,
         double G = m_E / (2. * (1. + m_nu));
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
-        double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
+        double h3 = CH_1_3 * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
         ChMatrix33<> Q;
         Q(0, 0) = m_E / (1. - m_nu * m_nu);
         Q(0, 1) = m_nu * Q(0, 0);
@@ -137,7 +137,7 @@ void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
         double G = m_E / (2. * (1. + m_nu));
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
-        double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
+        double h3 = CH_1_3 * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
         ChMatrix33<> Q;
         Q(0, 0) = m_E / (1. - m_nu * m_nu);
         Q(0, 1) = m_nu * Q(0, 0);
@@ -232,7 +232,7 @@ void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
 
     double h1 = z_sup - z_inf;
     double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
-    double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
+    double h3 = CH_1_3 * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
 
     mC.block<3, 3>(0, 0) = Q * h1;
     mC.block<3, 3>(0, 3) = Q * h2;

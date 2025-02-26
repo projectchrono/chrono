@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            (float)CH_PI / 3,                               // FOV
+            (float)CH_PI_3,                               // FOV
             1,                                              // samples per pixel for antialiasing
             CameraLensModelType::PINHOLE);                  // camera type
 

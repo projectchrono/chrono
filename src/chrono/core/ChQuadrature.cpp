@@ -99,8 +99,8 @@ ChQuadratureTables::ChQuadratureTables(int order_from, int order_to) {
 ChQuadratureTablesTriangle::ChQuadratureTablesTriangle() {
     // initialize table with precomputed weights and coordinates
     {  // i=0: 1pt  deg 1
-        std::vector<double> xa = {1. / 3.};
-        std::vector<double> ya = {1. / 3.};
+        std::vector<double> xa = {CH_1_3};
+        std::vector<double> ya = {CH_1_3};
         std::vector<double> wt = {1};
         this->LrootsU.push_back(xa);
         this->LrootsV.push_back(ya);

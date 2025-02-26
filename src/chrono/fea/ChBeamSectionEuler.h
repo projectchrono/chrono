@@ -246,7 +246,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
         // use Roark's formulas for torsion of rectangular sect:
         double t = std::min(width_y, width_z);
         double b = std::max(width_y, width_z);
-        this->J = b * std::pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * std::pow((t / b), 4)));
+        this->J = b * std::pow(t, 3) * (CH_1_3 - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * std::pow((t / b), 4)));
 
         // set Ks using Timoshenko-Gere formula for solid rect.shapes
         double poisson = this->E / (2.0 * this->G) - 1.0;

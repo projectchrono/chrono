@@ -1309,7 +1309,7 @@ float ChSystemGpu_impl::ComputeTotalKE() {
     v2_UU *= VEL_SU2UU * VEL_SU2UU;
     float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
     w2_UU /= TIME_SU2UU * TIME_SU2UU;
-    float m = (4. / 3.) * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    float m = CH_4_3 * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
 
     // Then, KE = 0.5 * m * sum(v^2) + 0.2 * m * r^2 * sum(w^2)
     return 0.5 * m * v2_UU + 0.2 * m * sphere_radius_UU * sphere_radius_UU * w2_UU;
@@ -1453,7 +1453,7 @@ void ChSystemGpu_impl::combineMaterialSurface() {
 // Convert unit parameters from UU to SU
 void ChSystemGpu_impl::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere = (4. / 3.) * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere = CH_4_3 * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
@@ -1469,7 +1469,7 @@ void ChSystemGpu_impl::switchToSimUnits() {
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
     this->LENGTH_SU2UU =
-        std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
+        std::cbrt(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star)) /
         psi_L;
     this->LENGTH_SU2UU = std::min((double)(sphere_radius_UU * psi_R), this->LENGTH_SU2UU);
 

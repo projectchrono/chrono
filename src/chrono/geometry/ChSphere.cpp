@@ -28,7 +28,7 @@ ChSphere::ChSphere(const ChSphere& source) {
 // -----------------------------------------------------------------------------
 
 double ChSphere::GetVolume(double radius) {
-    return (4.0 / 3.0) * CH_PI * radius * radius * radius;
+    return CH_4_3 * CH_PI * radius * radius * radius;
 }
 
 double ChSphere::GetVolume() const {

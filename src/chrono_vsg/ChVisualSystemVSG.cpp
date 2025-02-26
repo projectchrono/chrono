@@ -243,7 +243,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
 
         float alpha = 1.0f;
         float cv = 0.9f;
-        float cv13 = cv / 3;
+        float cv13 = cv * CH_1_3;
         float cv23 = 2 * cv13;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
         snprintf(label, nstr, "%.3f", m_min_val);
@@ -251,13 +251,13 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
         double stride = m_max_val - m_min_val;
-        double val = m_min_val + stride * 1.0 / 6.0;
+        double val = m_min_val + stride * CH_1_6;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
         snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
-        val = m_min_val + stride * 2.0 / 6.0;
+        val = m_min_val + stride * CH_1_3;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
         snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
@@ -269,7 +269,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::Button(label);
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
-        val = m_min_val + stride * 4.0 / 6.0;
+        val = m_min_val + stride * CH_2_3;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
         snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);

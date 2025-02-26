@@ -1179,7 +1179,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     m_dky = CalcPeaks(m_inp_y, false);
     m_dkz = CalcPeaks(m_inp_z, true);
 
-    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), 1.0 / 6.0);
+    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), CH_1_6);
 }
 
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
@@ -1335,10 +1335,10 @@ double ChMotionFilterThirdOrder::Filter(double raw_setpos, double raw_setvel, do
                    sign_delta / 4. * std::sqrt(2. * std::pow(m_err_acc * m_err_acc + 2. * m_err_vel * sign_delta, 3));
     double ni_p = err_pos - m_errmax_acc * (m_err_acc * m_err_acc - 2. * m_err_vel) / 4. -
                   std::pow(m_err_acc * m_err_acc - 2. * m_err_vel, 2) / (8. * m_errmax_acc) -
-                  m_err_acc * (3. * m_err_vel - m_err_acc * m_err_acc) / 3.;
+                  m_err_acc * (3. * m_err_vel - m_err_acc * m_err_acc) * CH_1_3;
     double ni_m = err_pos - m_errmin_acc * (m_err_acc * m_err_acc + 2. * m_err_vel) / 4. -
                   std::pow(m_err_acc * m_err_acc + 2. * m_err_vel, 2) / (8. * m_errmin_acc) +
-                  m_err_acc * (3. * m_err_vel + m_err_acc * m_err_acc) / 3.;
+                  m_err_acc * (3. * m_err_vel + m_err_acc * m_err_acc) * CH_1_3;
     double S = sigma;
     if (m_err_acc <= m_errmax_acc && m_err_vel <= m_err_acc * m_err_acc / 2. - m_errmax_acc * m_errmax_acc)
         S = ni_p;

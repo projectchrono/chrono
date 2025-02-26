@@ -40,8 +40,8 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
 
 void ChTimestepperHHT::SetAlpha(double val) {
     alpha = val;
-    if (alpha < -1.0 / 3.0)
-        alpha = -1.0 / 3.0;
+    if (alpha < -CH_1_3)
+        alpha = -CH_1_3;
     if (alpha > 0)
         alpha = 0;
     gamma = (1.0 - 2.0 * alpha) / 2.0;

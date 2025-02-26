@@ -331,7 +331,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetFixed(true);
     {
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim / 3, dim / 3);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim * CH_1_3, dim * CH_1_3);
         m_ground_body->AddVisualShape(box);
     }
 
@@ -351,7 +351,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
                                                         dim / 2,                     //
                                                         mat);
 
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(dim / 3, dim / 3, 10 * dim);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(dim * CH_1_3, dim * CH_1_3, 10 * dim);
         box->AddMaterial(mat);
         m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -5 * dim)));
     }
