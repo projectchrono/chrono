@@ -427,10 +427,9 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 const Real3* pos_nodes2D_D,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
-                                const int2 updatePortion,
                                 volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= updatePortion.y - updatePortion.x) {
+    if (index >= countersD.numAllMarkers) {
         return;
     }
 
@@ -568,9 +567,6 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
                                    Real time,
                                    bool firstHalfStep) {
     if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
-        // During settling phase, all particles are active
-        if (time > m_data_mgr.paramsH->settlingTime)
-            UpdateActivity(sortedSphMarkers1_D, sortedSphMarkers2_D);
         forceSystem->ForceSPH(sortedSphMarkers2_D, time, firstHalfStep);
         UpdateFluid(sortedSphMarkers1_D, dT);
     } else {
@@ -581,24 +577,19 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                     std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D) {
+void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    // Update portion of the SPH particles (should be all particles here)
-    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
-
     //------------------------
     uint numBlocks, numThreads;
-    computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+    computeGridSize(m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
     UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D),
-        mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D), U1CAST(m_data_mgr.activityIdentifierD),
-        U1CAST(m_data_mgr.extendedActivityIdD), updatePortion, error_flagD);
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
+        U1CAST(m_data_mgr.activityIdentifierOriginalD), U1CAST(m_data_mgr.extendedActivityIdOriginalD), error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
 
     cudaFreeErrorFlag(error_flagD);

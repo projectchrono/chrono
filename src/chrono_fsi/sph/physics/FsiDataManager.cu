@@ -407,6 +407,8 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
 
     activityIdentifierD.resize(countersH->numAllMarkers, 1);
     extendedActivityIdD.resize(countersH->numAllMarkers, 1);
+    activityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
+    extendedActivityIdOriginalD.resize(countersH->numAllMarkers, 1);
 
     // Number of neighbors for the particle of given index
     numNeighborsPerPart.resize(countersH->numAllMarkers + 1, 0);
@@ -531,7 +533,7 @@ std::vector<Real3> FsiDataManager::GetPositions(const std::vector<int>& indices)
     size_t num_active = (size_t)(end - pos4_D.begin());
     assert(num_active == indices_D.size());
     pos_D.resize(num_active);
-    
+
     // Copy to output
     std::vector<Real3> pos_H(pos_D.size());
     thrust::copy(pos_D.begin(), pos_D.end(), pos_H.begin());

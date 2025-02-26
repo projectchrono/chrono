@@ -115,19 +115,21 @@ __global__ void findCellStartEndD(uint* cellStartD,       // output: cell start 
 }
 // ------------------------------------------------------------------------------
 __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted particle indices
-                             uint* extendedActivityIdD,  // input: particles in an extended active sub-domain
                              uint* mapOriginalToSorted,  // input: original index to sorted index
                              Real4* sortedPosRadD,       // output: sorted positions
                              Real3* sortedVelMasD,       // output: sorted velocities
                              Real4* sortedRhoPreMuD,     // output: sorted density pressure
                              Real3* sortedTauXxYyZzD,    // output: sorted total stress xxyyzz
-                             Real3* sortedTauXyXzYzD,    // output: sorted total stress xyzxyz
-                             Real4* posRadD,             // input: original position array
-                             Real3* velMasD,             // input: original velocity array
-                             Real4* rhoPresMuD,          // input: original density pressure
-                             Real3* tauXxYyZzD,          // input: original total stress xxyyzz
-                             Real3* tauXyXzYzD           // input: original total stress xyzxyz
-) {
+                             Real3* sortedTauXyXzYzD,    // output: sorted total stress xyzxyz.
+                             uint* activityIdentifierD,
+                             uint* extendedActivityIdD,
+                             Real4* posRadD,     // input: original position array
+                             Real3* velMasD,     // input: original velocity array
+                             Real4* rhoPresMuD,  // input: original density pressure
+                             Real3* tauXxYyZzD,  // input: original total stress xxyyzz
+                             Real3* tauXyXzYzD,  // input: original total stress xyzxyz
+                             uint* activityIdentifierOriginalD,
+                             uint* extendedActivityIdOriginalD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= countersD.numAllMarkers)
         return;
@@ -166,6 +168,7 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
     sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
     sortedVelMasD[index] = velMas;
     sortedRhoPreMuD[index] = rhoPreMu;
+    activityIdentifierD[index] = activityIdentifierOriginalD[originalIndex];
 
     // For granular material
     if (paramsD.elastic_SPH) {
@@ -277,12 +280,14 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // Reorder the arrays according to the sorted index of all particles
     // =========================================================================================================
     reorderDataD<<<numBlocks, numThreads>>>(
-        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.extendedActivityIdD),
+        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->rhoPresMuD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD),
-        mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD));
+        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.extendedActivityIdD), mR4CAST(m_sphMarkersD->posRadD),
+        mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
+        mR3CAST(m_sphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.activityIdentifierOriginalD),
+        U1CAST(m_data_mgr.extendedActivityIdOriginalD));
 
     cudaDeviceSynchronize();
     cudaCheckError();

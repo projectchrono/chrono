@@ -318,7 +318,11 @@ class FsiDataManager {
     thrust::device_vector<Real3> bceAcc;  ///< Acceleration for boundary/rigid/flex body particles
 
     thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
+    thrust::device_vector<uint>
+        activityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
     thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
+    thrust::device_vector<uint>
+        extendedActivityIdOriginalD;  ///< Identifies if a particle is in an extended active domain - unsorted
     thrust::device_vector<uint>
         numNeighborsPerPart;                   ///< Stores the number of neighbors the particle, given by the index, has
     thrust::device_vector<uint> neighborList;  ///< Stores the neighbor list - all neighbors are just stored one by one
