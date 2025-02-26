@@ -22,10 +22,13 @@ SET(Chrono_WOOD_SOURCES
     ChBuilderCBLCON.cpp
     ChLineBezier.cpp
     ChVisualShapeWOOD.cpp    
+    ChNodeFEAxyzPP.cpp
+    ChMeshFileLoaderBeam.cpp
+    ChElementSpringP.cpp
 )
 
 SET(Chrono_WOOD_HEADERS
-	ChWoodApi.h
+	  ChWoodApi.h
     ChElementCurvilinearBeamBezier.h
     ChElementCurvilinearBeamIGA.h
     ChElementCBLCON.h
@@ -37,6 +40,11 @@ SET(Chrono_WOOD_HEADERS
     ChLineBezier.h
     ChBasisToolsBeziers.h
     ChVisualShapeWOOD.h      
+    ChNodeFEAxyzPP.h
+    ChMeshFileLoaderBeam.h
+    ChElementSpringP.h
+    ChContinuumPoisson2D.h
+    ChContinuumHydroThermal2D.h
 )
 
 SOURCE_GROUP("" FILES 
@@ -66,12 +74,7 @@ target_compile_definitions(Chrono_wood PRIVATE "CH_IGNORE_DEPRECATED")
 # Link required libraries
 TARGET_LINK_LIBRARIES(Chrono_wood
   Chrono_core
-  ${WOOD_LIBRARY}
 )
-
-
-# Add dependencies
-ADD_DEPENDENCIES(Chrono_wood Chrono_core)
 
 # Handle Windows DLL copying
 #IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -89,6 +92,7 @@ ADD_DEPENDENCIES(Chrono_wood Chrono_core)
 
 # Install the library and headers
 INSTALL(TARGETS Chrono_wood
+  EXPORT ChronoTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
