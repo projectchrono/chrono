@@ -29,7 +29,7 @@ namespace chrono {
 namespace wood {
 
 /// Geometric object representing a Bezier spline.
-class ChWoodApi ChLineBezier : public ChLine {
+class ChWoodApi ChLineBezierCBL : public ChLine {
   public:
     std::vector<ChVector3d > points;
     ChVectorDynamic<> knots;
@@ -38,21 +38,21 @@ class ChWoodApi ChLineBezier : public ChLine {
 
   public:
     /// Constructor. By default, a segment (order = 1, two points on X axis, at -1, +1)
-    ChLineBezier();
+    ChLineBezierCBL();
 
     /// Constructor from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    ChLineBezier(
+    ChLineBezierCBL(
         int morder,                               ///< order p: 1= linear, 2=quadratic, etc.
         const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
-    ChLineBezier(const ChLineBezier& source);
-    ~ChLineBezier() {}
+    ChLineBezierCBL(const ChLineBezierCBL& source);
+    ~ChLineBezierCBL() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLineBezier* Clone() const override { return new ChLineBezier(*this); }
+    virtual ChLineBezierCBL* Clone() const override { return new ChLineBezierCBL(*this); }
 
     virtual int GetComplexity() const override { return (int)points.size(); }
 
@@ -115,7 +115,7 @@ class ChWoodApi ChLineBezier : public ChLine {
 
 }  // end namespace wood
 
-CH_CLASS_VERSION(wood::ChLineBezier, 0)
+CH_CLASS_VERSION(wood::ChLineBezierCBL, 0)
 
 }  // end namespace chrono
 

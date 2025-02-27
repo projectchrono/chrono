@@ -12,22 +12,22 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono_wood/ChLineBezier.h"
+#include "chrono_wood/ChLineBezierCBL.h"
 #include "chrono_wood/ChBasisToolsBeziers.h"
 
 namespace chrono {
 namespace wood {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLineBezier)
+CH_FACTORY_REGISTER(ChLineBezierCBL)
 
-ChLineBezier::ChLineBezier() {
+ChLineBezierCBL::ChLineBezierCBL() {
     const std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
     this->closed = false;
     this->SetupData(1, mpoints);
 }
 
-ChLineBezier::ChLineBezier(
+ChLineBezierCBL::ChLineBezierCBL(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
@@ -36,14 +36,14 @@ ChLineBezier::ChLineBezier(
     this->SetupData(morder, mpoints, mknots);
 }
 
-ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
+ChLineBezierCBL::ChLineBezierCBL(const ChLineBezierCBL& source) : ChLine(source) {
     this->points = source.points;
     this->p = source.p;
     this->knots = source.knots;
 	this->closed = source.closed;
 }
 
-ChVector3d ChLineBezier::Evaluate(const double parU) const {
+ChVector3d ChLineBezierCBL::Evaluate(const double parU) const {
 	double mU;
 	/*if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -67,7 +67,7 @@ ChVector3d ChLineBezier::Evaluate(const double parU) const {
     return pos;
 }
 
-void ChLineBezier::Derive(ChVector3d& dir, const double parU) {
+void ChLineBezierCBL::Derive(ChVector3d& dir, const double parU) {
 	double mU;
 	/*if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -88,19 +88,19 @@ void ChLineBezier::Derive(ChVector3d& dir, const double parU) {
     }    
 }
 
-void ChLineBezier::SetupData(
+void ChLineBezierCBL::SetupData(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw std::invalid_argument("ChLineBezier::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineBezierCBL::SetupData requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw std::invalid_argument("ChLineBezier::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineBezierCBL::SetupData requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw std::invalid_argument("ChLineBezier::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineBezierCBL::SetupData: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->points = mpoints;
@@ -116,7 +116,7 @@ void ChLineBezier::SetupData(
     }
 }
 
-void ChLineBezier::SetClosed(bool mc) {
+void ChLineBezierCBL::SetClosed(bool mc) {
 	if (this->closed == mc)
 		return;
 
@@ -151,9 +151,9 @@ void ChLineBezier::SetClosed(bool mc) {
 	this->closed = mc;
 }
 
-void ChLineBezier::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineBezierCBL::ArchiveOut(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChLineBezier>();
+    marchive.VersionWrite<ChLineBezierCBL>();
     // serialize parent class
     ChLine::ArchiveOut(marchive);
     // serialize all member data:
@@ -163,9 +163,9 @@ void ChLineBezier::ArchiveOut(ChArchiveOut& marchive) {
 	marchive << CHNVP(closed);
 }
 
-void ChLineBezier::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineBezierCBL::ArchiveIn(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineBezier>();
+    /*int version =*/ marchive.VersionRead<ChLineBezierCBL>();
     // deserialize parent class
     ChLine::ArchiveIn(marchive);
     // stream in all member data:

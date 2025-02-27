@@ -14,7 +14,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono_wood/ChBuilderCurvilinearBeam.h"
-#include "chrono_wood/ChLineBezier.h"
+#include "chrono_wood/ChLineBezierCBL.h"
 
 
 
@@ -248,7 +248,7 @@ void ChBuilderCurvilinearBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,       
 /*
 void ChBuilderCurvilinearBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
                                  std::shared_ptr<CurvedBeamSection> sect,  // section material for beam elements
-                                 ChLineBezier& bezier,  // the B-spline to be used as the centerline
+                                 ChLineBezierCBL& bezier,  // the B-spline to be used as the centerline
                                  const ChVector3d Ydir             // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
@@ -1037,7 +1037,7 @@ void ChBuilderCurvilinearBeamIGA::read_CBL_info_ElBased(std::shared_ptr<ChMesh> 
 
 void ChBuilderCurvilinearBeamBezier::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
                                  std::shared_ptr<CurvedBeamSection> sect,  // section material for beam elements
-                                 ChLineBezier& bezier,  // the B-spline to be used as the centerline
+                                 ChLineBezierCBL& bezier,  // the B-spline to be used as the centerline
                                  const ChVector3d Ydir             // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
@@ -1105,7 +1105,7 @@ void ChBuilderCurvilinearBeamBezier::BuildBeam(std::shared_ptr<ChMesh> mesh,    
     // compute N of spans (excluding start and end multiple knots with zero lenght span):
     int N = (int)knots.size() - p - p - 1;  // = n+p+1 -p-p-1 = n-p
 	
-    ChLineBezier my_bezier(p, my_points);
+    ChLineBezierCBL my_bezier(p, my_points);
     
     // Create the 'complete' stl vector of control points, with uniform distribution
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
@@ -1172,7 +1172,7 @@ void ChBuilderCurvilinearBeamBezier::BuildBeam(std::shared_ptr<ChMesh> mesh,    
     }
     
     //create bezier curve to find local sytem of reference
-    ChLineBezier my_bezier(p, my_points);    
+    ChLineBezierCBL my_bezier(p, my_points);
     
     
     // Create the 'complete' stl vector of control points, with uniform distribution    
