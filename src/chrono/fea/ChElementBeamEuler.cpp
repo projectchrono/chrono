@@ -15,6 +15,10 @@
 // #define BEAM_VERBOSE
 
 #include <cmath>
+#include <memory>
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector3.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 
@@ -22,8 +26,10 @@ namespace chrono {
 namespace fea {
 
 ChElementBeamEuler::ChElementBeamEuler()
-    : q_refrotA(QUNIT),
-      q_refrotB(QUNIT),
+    : q_elemref_to_nodeAref_conj(QUNIT),
+      q_elemref_to_nodeBref_conj(QUNIT),
+      yabs_in_elemref_to_nodeAref_frame(0, 1, 0),
+      yabs_in_elemref_to_nodeBref_frame(0, 1, 0),
       q_element_abs_rot(QUNIT),
       q_element_ref_rot(QUNIT),
       disable_corotate(false),
@@ -93,66 +99,55 @@ void ChElementBeamEuler::Update() {
 }
 
 void ChElementBeamEuler::UpdateRotation() {
-    ChMatrix33<> A0(this->q_element_ref_rot);
+    if (!this->disable_corotate) {
+        ChMatrix33<> Aabs;
+        ChQuaternion<> q_element_ref_rot_previous(q_element_ref_rot);
 
-    ChMatrix33<> Aabs;
-    if (this->disable_corotate) {
-        Aabs = A0;
-        q_element_abs_rot = q_element_ref_rot;
-    } else {
         ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
         // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
         //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
-        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector3d(0, 1, 0)));
+        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeAref_frame);
         // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
         //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
-        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0)));
+        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeBref_frame);
         // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
         ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
         Aabs.SetFromAxisX(mXele_w, myele_w);
         q_element_abs_rot = Aabs.GetQuaternion();
-    }
 
-    this->A = A0.transpose() * Aabs;
+        this->A.SetFromQuaternion(q_element_ref_rot_previous.GetConjugate() * q_element_abs_rot);
+    }
 }
 
 void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
-    ChVector3d delta_rot_dir;
-    double delta_rot_angle;
+    // Node displacement in local element frame
+    // d = [Atw]' Xt - [A0w]'X0
+    auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
+        return (q_element_abs_rot.RotateBack(node->Frame().GetPos()) -
+                q_element_ref_rot.RotateBack(node->GetX0().GetPos()));
+    };
 
-    // Node 0, displacement (in local element frame, corotated back)
-    //     d = [Atw]' Xt - [A0w]'X0
-    ChVector3d displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
-                       this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
-    mD.segment(0, 3) = displ.eigen();
-
-    // Node 0, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() * nodes[0]->Frame().GetRot() * q_refrotA.GetConjugate();
+    // Node small rotations in local element frame
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);
+    auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node, ChQuaternion<> q_elemref_to_noderef_conj) {
+        ChVector3d delta_rot_dir;
+        double delta_rot_angle;
+        ChQuaternion<> q_delta = q_element_abs_rot.GetConjugate() * node->Frame().GetRot() * q_elemref_to_noderef_conj;
+        // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
+        // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
+        // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
+        // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
+        q_delta.GetAngleAxis(delta_rot_angle, delta_rot_dir);
+        return delta_rot_angle * delta_rot_dir;
+    };
 
-    if (delta_rot_angle > CH_PI)
-        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180
+    mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
+    mD.segment(3, 3) = getRotation(nodes[0], q_elemref_to_nodeAref_conj).eigen();
 
-    mD.segment(3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-
-    // Node 1, displacement (in local element frame, corotated back)
-    //     d = [Atw]' Xt - [A0w]'X0
-    displ = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) -
-            this->q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
-    mD.segment(6, 3) = displ.eigen();
-
-    // Node 1, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() * nodes[1]->Frame().GetRot() * q_refrotB.GetConjugate();
-    // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);
-
-    if (delta_rot_angle > CH_PI)
-        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180
-
-    mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
+    mD.segment(6, 3) = getDisplacement(nodes[1]).eigen();
+    mD.segment(9, 3) = getRotation(nodes[1], q_elemref_to_nodeBref_conj).eigen();
 }
 
 void ChElementBeamEuler::GetFieldDt(ChVectorDynamic<>& mD_dt) {
@@ -444,13 +439,8 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
     this->mass = this->length * this->section->GetMassPerUnitLength();
 
-    // Compute initial rotation
-    ChMatrix33<> A0;
-    ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector3d myele =
-        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
-    A0.SetFromAxisX(mXele, myele);
-    q_element_ref_rot = A0.GetQuaternion();
+    // Set initial rotation
+    q_element_abs_rot = q_element_ref_rot;
 
     // Compute local stiffness matrix:
     ComputeStiffnessMatrix();
