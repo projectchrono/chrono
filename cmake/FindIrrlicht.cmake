@@ -94,8 +94,8 @@ if(NOT Irrlicht_FOUND)
   # MacOS
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   
-    set(IRRLICHT_INCLUDE_PATHS "${Irrlicht_ROOT}" "${Irrlicht_ROOT}/include" "/usr/include/irrlicht" "/usr/local/include/irrlicht")
-    set(IRRLICHT_LIBRARY_PATHS "${Irrlicht_ROOT}/lib/Linux" "/usr/local/lib")
+    set(IRRLICHT_INCLUDE_PATHS "${Irrlicht_ROOT}" "${Irrlicht_ROOT}/include" "${Irrlicht_ROOT}/include/irrlicht" "/usr/include/irrlicht" "/usr/local/include/irrlicht")
+    set(IRRLICHT_LIBRARY_PATHS "${Irrlicht_ROOT}/lib" "/usr/local/lib")
   
   # Other
   else()
