@@ -344,6 +344,7 @@ endif()
   set(CHPY_FEA_MODULE_FILE
       ../interface/fea/ChModuleFea.i
       )
+  set(CHPY_FEA_MODULE_FILE ChModuleFea_python.i)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -501,9 +502,7 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   set(CHPY_MKL pardisomkl)
 
   # Interface files
-  set(CHPY_MKL_MODULE_FILE
-      ../interface/pardisomkl/ChModulePardisoMkl.i
-      )
+  set(CHPY_MKL_MODULE_FILE ChModulePardisoMkl_python.i)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_MKL_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -850,9 +849,7 @@ endif()
   set(CHPY_RS robot)
 
   # Interface files
-  set(CHPY_ROBOT_MODULE_FILE 
-      ../interface/robot/ChModuleRobot.i
-      )
+  set(CHPY_ROBOT_MODULE_FILE ChModuleRobot_python.i)
 
   set_source_files_properties(${CHPY_ROBOT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
   if(MSVC)
@@ -1015,6 +1012,7 @@ if(CH_ENABLE_MODULE_ROS)
   set(CHPY_ROS_MODULE_FILE
     ../interface/ros/ChModuleROS.i
   )
+  set(CHPY_ROS_MODULE_FILE ChModuleROS_python.i)
 
   set_source_files_properties(${CHPY_ROS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
