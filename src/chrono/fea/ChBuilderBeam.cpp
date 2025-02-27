@@ -54,6 +54,8 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
         element->SetSection(sect);
+
+        element->SetRefRotation(mrot.GetQuaternion());
     }
 }
 
@@ -96,6 +98,8 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
         element->SetNodeBreferenceRot(elrot.GetConjugate() * element->GetNodeB()->Frame().GetRot());
 
         element->SetSection(sect);
+
+        element->SetRefRotation(mrot.GetQuaternion());
     }
 }
 
@@ -135,6 +139,8 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
         // std::cout << "   Qa=" << element->GetNodeAreferenceRot() << std::endl;
         // std::cout << "   Qb=" << element->GetNodeBreferenceRot() << std::endl << std::endl;
         element->SetSection(sect);
+
+        element->SetRefRotation(mrot.GetQuaternion());
     }
 }
 

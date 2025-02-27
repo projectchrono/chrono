@@ -15,6 +15,10 @@
 // #define BEAM_VERBOSE
 
 #include <cmath>
+#include <memory>
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector3.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 
@@ -444,13 +448,8 @@ void ChElementBeamEuler::SetupInitial(ChSystem* system) {
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
     this->mass = this->length * this->section->GetMassPerUnitLength();
 
-    // Compute initial rotation
-    ChMatrix33<> A0;
-    ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector3d myele =
-        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
-    A0.SetFromAxisX(mXele, myele);
-    q_element_ref_rot = A0.GetQuaternion();
+    // Set initial rotation
+    q_element_abs_rot = q_element_ref_rot;
 
     // Compute local stiffness matrix:
     ComputeStiffnessMatrix();

@@ -15,6 +15,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
+#include "chrono/core/ChQuaternion.h"
 #include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementCorotational.h"
@@ -83,6 +84,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// This is not the same of Rotation() , that expresses
     /// the accumulated rotation from starting point.
     ChQuaternion<> GetAbsoluteRotation() { return q_element_abs_rot; }
+
+    /// Set the original reference rotation of element in space
+    void SetRefRotation(ChQuaternion<> q_initial) { q_element_ref_rot = q_initial; }
 
     /// Get the original reference rotation of element in space
     ChQuaternion<> GetRefRotation() { return q_element_ref_rot; }
