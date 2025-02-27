@@ -68,7 +68,7 @@ ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const 
     m_system->SetSolver(solver);
 #endif
 
-    auto integrator = chrono_types::make_shared<ChTimestepperHHT>();
+    auto integrator = chrono_types::make_shared<ChTimestepperHHT>(m_system);
     integrator->SetAlpha(-0.2);
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-04, 1e2);
