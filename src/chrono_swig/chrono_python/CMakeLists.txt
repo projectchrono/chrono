@@ -581,9 +581,7 @@ if(CH_ENABLE_MODULE_CASCADE)
   message(STATUS "Add python CASCADE module")
 
   # Interface files
-  set(CHPY_CASCADE_MODULE_FILE
-      ../interface/cascade/ChModuleCascade.i
-      )
+  set(CHPY_CASCADE_MODULE_FILE ChModuleCascade_python.i)
 
   include_directories(${OpenCASCADE_INCLUDE_DIR})
 
@@ -774,9 +772,7 @@ if(CH_ENABLE_MODULE_SENSOR AND Python3_NumPy_FOUND)
   message(STATUS "Add python SENSOR module")
 
   # Interface files
-  set(CHPY_SENSOR_MODULE_FILE
-          ../interface/sensor/ChModuleSensor.i
-          )
+  set(CHPY_SENSOR_MODULE_FILE ChModuleSensor_python.i)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -932,9 +928,7 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   message(STATUS "Add python PARSERS module")
 
   # Interface files
-  set(CHPY_PARSERS_MODULE_FILE
-    ../interface/parsers/ChModuleParsers.i
-  )
+  set(CHPY_PARSERS_MODULE_FILE ChModuleParsers_python.i)
 
   set_source_files_properties(${CHPY_PARSERS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
   if(MSVC)
