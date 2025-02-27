@@ -1774,6 +1774,12 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
+    // Perform Proxmity search at specified frequency
+    if (firstHalfStep &&
+        (time < 1e-6 ||
+         int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
+        neighborSearch();
+
     // Re-Initialize the density after several time steps if needed
     if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
         thrust::device_vector<Real4> rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
@@ -1786,12 +1792,6 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
         density_initialization = 0;
     }
     density_initialization++;
-
-    // Perform Proxmity search at specified frequency
-    if (firstHalfStep &&
-        (time < 1e-6 ||
-         int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
-        neighborSearch();
 
     // Execute the kernel
     if (m_data_mgr.paramsH->elastic_SPH) {  // For granular material
