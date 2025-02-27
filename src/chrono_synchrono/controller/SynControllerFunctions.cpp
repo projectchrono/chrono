@@ -170,8 +170,8 @@ double GetProximityToPointCloud(std::shared_ptr<sensor::ChLidarSensor> lidar,
         recent_lidar_data = recent_lidar;
 
     if (recent_lidar_data && recent_lidar_data->Buffer) {
-        for (int i = 0; i < recent_lidar_data->Height; i++) {
-            for (int j = 0; j < recent_lidar_data->Width; j++) {
+        for (unsigned int i = 0; i < recent_lidar_data->Height; i++) {
+            for (unsigned int j = 0; j < recent_lidar_data->Width; j++) {
                 double lidar_range = recent_lidar_data->Buffer[i * recent_lidar_data->Width + j].range;
                 double lidar_intensity = recent_lidar_data->Buffer[i * recent_lidar_data->Width + j].intensity;
 

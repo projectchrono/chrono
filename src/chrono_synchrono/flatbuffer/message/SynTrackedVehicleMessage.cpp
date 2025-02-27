@@ -31,18 +31,18 @@ namespace TrackedVehicle = SynFlatBuffers::Agent::TrackedVehicle;
 SynTrackedVehicleStateMessage::SynTrackedVehicleStateMessage(AgentKey source_key, AgentKey destination_key)
     : SynMessage(source_key, destination_key) {}
 
-void SynTrackedVehicleStateMessage::SetState(double time,
-                                             SynPose chassis,
-                                             std::vector<SynPose> track_shoes,
-                                             std::vector<SynPose> sprockets,
-                                             std::vector<SynPose> idlers,
-                                             std::vector<SynPose> road_wheels) {
-    this->time = time;
-    this->chassis = chassis;
-    this->track_shoes = track_shoes;
-    this->sprockets = sprockets;
-    this->idlers = idlers;
-    this->road_wheels = road_wheels;
+void SynTrackedVehicleStateMessage::SetState(double t,
+                                             SynPose chassis_pose,
+                                             std::vector<SynPose> track_shoe_poses,
+                                             std::vector<SynPose> sprocket_poses,
+                                             std::vector<SynPose> idler_poses,
+                                             std::vector<SynPose> road_wheel_poses) {
+    time = time;
+    chassis = chassis_pose;
+    track_shoes = track_shoe_poses;
+    sprockets = sprocket_poses;
+    idlers = idler_poses;
+    road_wheels = road_wheel_poses;
 }
 
 void SynTrackedVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -77,36 +77,36 @@ void SynTrackedVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers:
 
 /// Generate FlatBuffers message from this message's state
 FlatBufferMessage SynTrackedVehicleStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
-    auto chassis = this->chassis.ToFlatBuffers(builder);
+    auto chassis_fb = chassis.ToFlatBuffers(builder);
 
-    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> track_shoes;
-    track_shoes.reserve(this->track_shoes.size());
-    for (const auto& track_shoe : this->track_shoes)
-        track_shoes.push_back(track_shoe.ToFlatBuffers(builder));
+    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> track_shoes_fb;
+    track_shoes_fb.reserve(track_shoes.size());
+    for (const auto& track_shoe : track_shoes)
+        track_shoes_fb.push_back(track_shoe.ToFlatBuffers(builder));
 
-    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> sprockets;
-    sprockets.reserve(this->sprockets.size());
-    for (const auto& sprocket : this->sprockets)
-        sprockets.push_back(sprocket.ToFlatBuffers(builder));
+    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> sprockets_fb;
+    sprockets_fb.reserve(sprockets.size());
+    for (const auto& sprocket : sprockets)
+        sprockets_fb.push_back(sprocket.ToFlatBuffers(builder));
 
-    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> idlers;
-    idlers.reserve(this->idlers.size());
-    for (const auto& idler : this->idlers)
-        idlers.push_back(idler.ToFlatBuffers(builder));
+    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> idlers_fb;
+    idlers_fb.reserve(idlers.size());
+    for (const auto& idler : idlers)
+        idlers_fb.push_back(idler.ToFlatBuffers(builder));
 
-    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> road_wheels;
-    road_wheels.reserve(this->road_wheels.size());
-    for (const auto& road_wheel : this->road_wheels)
-        road_wheels.push_back(road_wheel.ToFlatBuffers(builder));
+    std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> road_wheels_fb;
+    road_wheels_fb.reserve(road_wheels.size());
+    for (const auto& road_wheel : road_wheels)
+        road_wheels_fb.push_back(road_wheel.ToFlatBuffers(builder));
 
     auto vehicle_type = Agent::Type_TrackedVehicle_State;
-    auto vehicle_state = TrackedVehicle::CreateStateDirect(builder,        //
-                                                           this->time,     //
-                                                           chassis,        //
-                                                           &track_shoes,   //
-                                                           &sprockets,     //
-                                                           &idlers,        //
-                                                           &road_wheels);  //
+    auto vehicle_state = TrackedVehicle::CreateStateDirect(builder,           //
+                                                           this->time,        //
+                                                           chassis_fb,        //
+                                                           &track_shoes_fb,   //
+                                                           &sprockets_fb,     //
+                                                           &idlers_fb,        //
+                                                           &road_wheels_fb);  //
 
     auto flatbuffer_state = Agent::CreateState(builder, vehicle_type, vehicle_state.Union());
     auto flatbuffer_message =
@@ -244,32 +244,33 @@ void SynTrackedVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(co
     this->num_road_wheels = d["Zombie"]["Number of Road Wheels"].GetInt();
 }
 
-void SynTrackedVehicleDescriptionMessage::SetVisualizationFiles(const std::string& chassis_vis_file,
-                                                                const std::string& track_shoe_vis_file,
-                                                                const std::string& left_sprocket_vis_file,
-                                                                const std::string& right_sprocket_vis_file,
-                                                                const std::string& left_idler_vis_file,
-                                                                const std::string& right_idler_vis_file,
-                                                                const std::string& left_road_wheel_vis_file,
-                                                                const std::string& right_road_wheel_vis_file) {
-    this->chassis_vis_file = chassis_vis_file;
-    this->track_shoe_vis_file = track_shoe_vis_file;
-    this->left_sprocket_vis_file = left_sprocket_vis_file;
-    this->right_sprocket_vis_file = right_sprocket_vis_file;
-    this->left_idler_vis_file = left_idler_vis_file;
-    this->right_idler_vis_file = right_idler_vis_file;
-    this->left_road_wheel_vis_file = left_road_wheel_vis_file;
-    this->right_road_wheel_vis_file = right_road_wheel_vis_file;
+void SynTrackedVehicleDescriptionMessage::SetVisualizationFiles(
+    const std::string& chassis_visualization_file,
+    const std::string& track_shoe_visualization_file,
+    const std::string& left_sprocket_visualization_file,
+    const std::string& right_sprocket_visualization_file,
+    const std::string& left_idler_visualization_file,
+    const std::string& right_idler_visualization_file,
+    const std::string& left_road_wheel_visualization_file,
+    const std::string& right_road_wheel_visualization_file) {
+    chassis_vis_file = chassis_visualization_file;
+    track_shoe_vis_file = track_shoe_visualization_file;
+    left_sprocket_vis_file = left_sprocket_visualization_file;
+    right_sprocket_vis_file = right_sprocket_visualization_file;
+    left_idler_vis_file = left_idler_visualization_file;
+    right_idler_vis_file = right_idler_visualization_file;
+    left_road_wheel_vis_file = left_road_wheel_visualization_file;
+    right_road_wheel_vis_file = right_road_wheel_visualization_file;
 }
 
-void SynTrackedVehicleDescriptionMessage::SetNumAssemblyComponents(int num_track_shoes,
-                                                                   int num_sprockets,
-                                                                   int num_idlers,
-                                                                   int num_road_wheels) {
-    this->num_track_shoes = num_track_shoes;
-    this->num_sprockets = num_sprockets;
-    this->num_idlers = num_idlers;
-    this->num_road_wheels = num_road_wheels;
+void SynTrackedVehicleDescriptionMessage::SetNumAssemblyComponents(int number_track_shoes,
+                                                                   int number_sprockets,
+                                                                   int number_idlers,
+                                                                   int number_road_wheels) {
+    num_track_shoes = number_track_shoes;
+    num_sprockets = number_sprockets;
+    num_idlers = number_idlers;
+    num_road_wheels = number_road_wheels;
 }
 
 }  // namespace synchrono

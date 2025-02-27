@@ -1301,14 +1301,14 @@ void ChSystemGpu_impl::SetParticlePosition(int nSphere, double3 position) {
 }
 
 float ChSystemGpu_impl::ComputeTotalKE() {
-    size_t nSpheres = pos_X_dt.size();
-    if (nSpheres == 0)
+    unsigned int num_spheres = (unsigned int)pos_X_dt.size();
+    if (num_spheres == 0)
         return 0.f;
 
     // Compute sum(v^2) and sum(w^2)
-    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, nSpheres);
+    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, num_spheres);
     v2_UU *= VEL_SU2UU * VEL_SU2UU;
-    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
+    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, num_spheres);
     w2_UU /= TIME_SU2UU * TIME_SU2UU;
     float m = CH_4_3 * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
 

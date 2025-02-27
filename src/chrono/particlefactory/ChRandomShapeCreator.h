@@ -418,13 +418,13 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
 
         // normalize probability of already generated particles
         generated_probability.resize(generated_stats.size());
-        double sum = 0;
+        double s = 0;
         for (unsigned int i = 0; i < generated_stats.size(); ++i) {
-            sum += generated_stats[i];
+            s += generated_stats[i];
         }
-        if (sum > 0) {
+        if (s > 0) {
             for (unsigned int i = 0; i < generated_stats.size(); ++i) {
-                generated_probability[i] = generated_stats[i] / sum;
+                generated_probability[i] = generated_stats[i] / s;
             }
         }
         // Scan families, starting from randomized index, and see which is
