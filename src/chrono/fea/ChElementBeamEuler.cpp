@@ -26,8 +26,10 @@ namespace chrono {
 namespace fea {
 
 ChElementBeamEuler::ChElementBeamEuler()
-    : q_refrotA(QUNIT),
-      q_refrotB(QUNIT),
+    : q_elemref_to_nodeAref_conj(QUNIT),
+      q_elemref_to_nodeBref_conj(QUNIT),
+      yabs_in_elemref_to_nodeAref_frame(0, 1, 0),
+      yabs_in_elemref_to_nodeBref_frame(0, 1, 0),
       q_element_abs_rot(QUNIT),
       q_element_ref_rot(QUNIT),
       disable_corotate(false),
@@ -104,10 +106,10 @@ void ChElementBeamEuler::UpdateRotation() {
         ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
         // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
         //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
-        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector3d(0, 1, 0))); // TODO: q_refrotA.RotateBack(ChVector3d(0, 1, 0)) dodes not change through the sim and is expensive to compute: store it
+        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeAref_frame);
         // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
         //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
-        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0))); // TODO: q_refrotB.RotateBack(ChVector3d(0, 1, 0)) dodes not change through the sim and is expensive to compute: store it
+        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeBref_frame);
         // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
         ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
         Aabs.SetFromAxisX(mXele_w, myele_w);
@@ -129,10 +131,10 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
 
     // Node small rotations in local element frame
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node, ChQuaternion<> q_elemref_to_noderef) {
+    auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node, ChQuaternion<> q_elemref_to_noderef_conj) {
         ChVector3d delta_rot_dir;
         double delta_rot_angle;
-        ChQuaternion<> q_delta = q_element_abs_rot.GetConjugate() * node->Frame().GetRot() * q_elemref_to_noderef.GetConjugate();
+        ChQuaternion<> q_delta = q_element_abs_rot.GetConjugate() * node->Frame().GetRot() * q_elemref_to_noderef_conj;
         // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
         // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
         // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
@@ -142,10 +144,10 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     };
 
     mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
-    mD.segment(3, 3) = getRotation(nodes[0], q_refrotA).eigen();
+    mD.segment(3, 3) = getRotation(nodes[0], q_elemref_to_nodeAref_conj).eigen();
 
     mD.segment(6, 3) = getDisplacement(nodes[1]).eigen();
-    mD.segment(9, 3) = getRotation(nodes[1], q_refrotB).eigen();
+    mD.segment(9, 3) = getRotation(nodes[1], q_elemref_to_nodeBref_conj).eigen();
 }
 
 void ChElementBeamEuler::GetFieldDt(ChVectorDynamic<>& mD_dt) {

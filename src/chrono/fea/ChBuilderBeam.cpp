@@ -94,12 +94,12 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
         ChQuaternion<> elrot = mrot.GetQuaternion();
-        element->SetNodeAreferenceRot(elrot.GetConjugate() * element->GetNodeA()->Frame().GetRot());
-        element->SetNodeBreferenceRot(elrot.GetConjugate() * element->GetNodeB()->Frame().GetRot());
+        element->SetRefRotation(elrot);
+        element->SetElemToNodeArefRot(elrot.GetConjugate() * element->GetNodeA()->Frame().GetRot());
+        element->SetElemToNodeBrefRot(elrot.GetConjugate() * element->GetNodeB()->Frame().GetRot());
 
         element->SetSection(sect);
 
-        element->SetRefRotation(mrot.GetQuaternion());
     }
 }
 
@@ -133,14 +133,12 @@ void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,              //
         element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
 
         ChQuaternion<> elrot = mrot.GetQuaternion();
-        element->SetNodeAreferenceRot(elrot.GetConjugate() * element->GetNodeA()->Frame().GetRot());
-        element->SetNodeBreferenceRot(elrot.GetConjugate() * element->GetNodeB()->Frame().GetRot());
-        // std::cout << "Element n." << i << " with rotations:" << std::endl;
-        // std::cout << "   Qa=" << element->GetNodeAreferenceRot() << std::endl;
-        // std::cout << "   Qb=" << element->GetNodeBreferenceRot() << std::endl << std::endl;
+        element->SetRefRotation(elrot);
+        element->SetElemToNodeArefRot(elrot.GetConjugate() * element->GetNodeA()->Frame().GetRot());
+        element->SetElemToNodeBrefRot(elrot.GetConjugate() * element->GetNodeB()->Frame().GetRot());
+
         element->SetSection(sect);
 
-        element->SetRefRotation(mrot.GetQuaternion());
     }
 }
 
