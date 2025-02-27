@@ -1,3 +1,4 @@
+#pragma SWIG nowarn=302
 #pragma SWIG nowarn=362
 #pragma SWIG nowarn=389
 #pragma SWIG nowarn=401
