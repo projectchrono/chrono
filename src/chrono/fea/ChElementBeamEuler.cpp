@@ -122,40 +122,32 @@ void ChElementBeamEuler::UpdateRotation() {
 void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
-    ChVector3d delta_rot_dir;
-    double delta_rot_angle;
+    // Node displacement in local element frame
+    // d = [Atw]' Xt - [A0w]'X0
+    auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
+        return (q_element_abs_rot.RotateBack(node->Frame().GetPos()) -
+                q_element_ref_rot.RotateBack(node->GetX0().GetPos()));
+    };
 
-    // Node 0, displacement (in local element frame, corotated back)
-    //     d = [Atw]' Xt - [A0w]'X0
-    ChVector3d displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
-                       this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
-    mD.segment(0, 3) = displ.eigen();
-
-    // Node 0, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() * nodes[0]->Frame().GetRot() * q_refrotA.GetConjugate();
+    // Node small rotations in local element frame
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);
+    auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node, ChQuaternion<> q_elemref_to_noderef) {
+        ChVector3d delta_rot_dir;
+        double delta_rot_angle;
+        ChQuaternion<> q_delta = q_element_abs_rot.GetConjugate() * node->Frame().GetRot() * q_elemref_to_noderef.GetConjugate();
+        // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
+        // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
+        // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
+        // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
+        q_delta.GetAngleAxis(delta_rot_angle, delta_rot_dir);
+        return delta_rot_angle * delta_rot_dir;
+    };
 
-    if (delta_rot_angle > CH_PI)
-        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180
+    mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
+    mD.segment(3, 3) = getRotation(nodes[0], q_refrotA).eigen();
 
-    mD.segment(3, 3) = delta_rot_angle * delta_rot_dir.eigen();
-
-    // Node 1, displacement (in local element frame, corotated back)
-    //     d = [Atw]' Xt - [A0w]'X0
-    displ = this->q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos()) -
-            this->q_element_ref_rot.RotateBack(nodes[1]->GetX0().GetPos());
-    mD.segment(6, 3) = displ.eigen();
-
-    // Node 1, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() * nodes[1]->Frame().GetRot() * q_refrotB.GetConjugate();
-    // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);
-
-    if (delta_rot_angle > CH_PI)
-        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180
-
-    mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
+    mD.segment(6, 3) = getDisplacement(nodes[1]).eigen();
+    mD.segment(9, 3) = getRotation(nodes[1], q_refrotB).eigen();
 }
 
 void ChElementBeamEuler::GetFieldDt(ChVectorDynamic<>& mD_dt) {
