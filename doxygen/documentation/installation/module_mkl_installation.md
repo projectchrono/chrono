@@ -24,6 +24,12 @@ Note that Intel MKL can be installed stand-alone or as part of the Intel oneAPI 
 - On Windows, follow the Intel MKL Library [installation instructions](https://software.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html). 
 
 
+<div class="ce-warning">
+<span style="color:red; font-weight:bold">ATTENTION!</span><br>
+Eigen3 was **not** updated to work with oneAPI and MKL 2025.<br>
+Intel MKL 2023 is known to work fine with Eigen (and therefore Chrono) on both Linux and Windows.
+</div>
+
 ## Building instructions
 	
 1. Follow the guide for the [full installation](@ref tutorial_install_chrono) of Chrono, but when running CMake make sure that also the option `CH_ENABLE_MODULE_PARDISO_MKL` is set to `ON`.
