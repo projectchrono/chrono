@@ -115,8 +115,6 @@ void ChElementBeamEuler::UpdateRotation() {
 
         this->A.SetFromQuaternion(q_element_ref_rot_previous.GetConjugate() * q_element_abs_rot);
     }
-
-    this->A = A0.transpose() * Aabs;
 }
 
 void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
