@@ -89,7 +89,7 @@ function(CollectCSharpFiles out_list module_list)
   endif()
   
   # Vehicle module
-  list (FIND module_list "postprocess" index)
+  list (FIND module_list "vehicle" index)
   if (${index} GREATER -1)
     set(Chrono_CSHARP_VEHICLE_DIR "${PROJECT_BINARY_DIR}/chrono_csharp/vehicle")
     file(GLOB Chrono_CSHARP_VEHICLE_SOURCES
