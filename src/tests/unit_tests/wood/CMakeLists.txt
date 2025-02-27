@@ -23,10 +23,9 @@ else()
 endif()
 
 
-message(STATUS "Unit tests for Chrono WOOD module...")
+message(STATUS "Add unit test programs for WOOD module")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
