@@ -354,8 +354,14 @@ class ChGnuPlot {
         commandfile += "\n";
     }
 
-    /// Set axes to equal size (i.e., square box).
-    void SetAxesEqual() { commandfile += " set size square \n"; }
+    /// Set axes to equal size (i.e., square box) or restore default.
+    void SetAxesEqual(bool axequal) { 
+        if (axequal) {
+            commandfile += " set size square \n"; 
+        } else {
+            commandfile += " set size nosquare \n"; 
+        }
+    }
 
     /// Set plot in a window.
     /// For multiple windows, call this with increasing windownum, interleaving with Plot() statements etc.
