@@ -6,7 +6,7 @@ ARG PACKAGE_DIR
 ARG USERSHELLPROFILE
 
 # Build the URDF dependencies
-RUN cd ${CHRONO_DIR}/contrib/build-scripts/urdf/ && \
+RUN cd ${CHRONO_DIR}/contrib/build-scripts/linux/ && \
     bash buildURDF.sh ${PACKAGE_DIR}/urdf
 
 # Update shell config

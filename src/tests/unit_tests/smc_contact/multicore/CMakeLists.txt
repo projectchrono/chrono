@@ -2,13 +2,13 @@
 # ==================================================================
 
 #--------------------------------------------------------------
-# Additional include paths (for ChronoEngine_Utils)
+# Additional include paths (for Chrono_Utils)
 INCLUDE_DIRECTORIES(${CH_MULTICORE_INCLUDES})
 
 # Libraries
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_multicore
+    Chrono_core
+    Chrono_multicore
 )
 
 #--------------------------------------------------------------

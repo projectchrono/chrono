@@ -87,7 +87,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
     sys.Add(mrigidBall);
 }
 
-// Create a bunch of ChronoENGINE rigid bodies that represent bricks in a Jenga tower
+// Create a bunch of Chrono rigid bodies that represent bricks in a Jenga tower
 void create_jengatower_bodies(ChSystemNSC& sys) {
     // Create a material that will be shared among all collision shapes
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();

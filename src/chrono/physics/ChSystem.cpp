@@ -797,20 +797,20 @@ void ChSystem::VariablesQbLoadSpeed() {
     contact_container->VariablesQbLoadSpeed();
 }
 
-void ChSystem::VariablesQbSetSpeed(double step) {
+void ChSystem::VariablesQbSetSpeed(double step_size) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.VariablesQbSetSpeed(step);
+    assembly.VariablesQbSetSpeed(step_size);
 
     // Use also on contact container:
-    contact_container->VariablesQbSetSpeed(step);
+    contact_container->VariablesQbSetSpeed(step_size);
 }
 
-void ChSystem::VariablesQbIncrementPosition(double dt_step) {
+void ChSystem::VariablesQbIncrementPosition(double step_size) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.VariablesQbIncrementPosition(dt_step);
+    assembly.VariablesQbIncrementPosition(step_size);
 
     // Use also on contact container:
-    contact_container->VariablesQbIncrementPosition(dt_step);
+    contact_container->VariablesQbIncrementPosition(step_size);
 }
 
 void ChSystem::InjectConstraints(ChSystemDescriptor& sys_descriptor) {

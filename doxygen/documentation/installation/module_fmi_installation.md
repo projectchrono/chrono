@@ -3,12 +3,7 @@ Install the FMI module {#module_fmi_installation}
 
 [TOC]
 
-This optional module provides support for creation (export) and use (import) of FMUs encapsulating Chrono models and/or simulations. 
-
-
-
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
+Chrono::FMI provides support for creation (export) and use (import) of FMUs encapsulating Chrono models and/or simulations. 
 
 ## Features
 

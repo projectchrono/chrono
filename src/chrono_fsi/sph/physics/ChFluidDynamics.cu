@@ -15,6 +15,7 @@
 // Class for performing time integration in fluid system.
 // =============================================================================
 
+#include "chrono/utils/ChConstants.h"
 #include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
 
@@ -247,11 +248,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
         Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
 
         // check if there is a plastic flow
-        p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);
+        p_n = -CH_1_3 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);
         tauXxYyZz.x += p_n;
         tauXxYyZz.y += p_n;
         tauXxYyZz.z += p_n;
-        p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
+        p_tr = -CH_1_3 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
         updatedTauXxYyZz.x += p_tr;
         updatedTauXxYyZz.y += p_tr;
         updatedTauXxYyZz.z += p_tr;
@@ -335,7 +336,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     //-------------
     // ** position
     //-------------
-    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];  // paramsD.EPS_XSPH *
+    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];
     Real3 posRad = mR3(posRadD[index]);
     Real3 updatedPositon = posRad + vel_XSPH * dT;
     if (!IsFinite(updatedPositon)) {
@@ -350,7 +351,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     //-------------
     // Note that the velocity update should not use the XSPH contribution
     // It adds dissipation to the solution, and provides numerical damping
-    Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];  // paramsD.EPS_XSPH * vel_XSPH_D[index]
+    Real3 velMas = velMasD[index];
     Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
     velMasD[index] = updatedVelocity;
 

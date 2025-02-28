@@ -26,6 +26,10 @@
 
 namespace chrono {
 
+namespace soa {
+class ChSoaAssembly;
+}
+
 /// Physics element that carries its own dynamics, described as an index-3 DAE IVP of the form:
 /// <pre>
 ///   M * y'' + (Cy)^T * lambda = F
@@ -58,7 +62,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     /// Get number of states (dimension of y).
     virtual unsigned int GetNumStates() const = 0;
 
-    /// Get number of state derivatives (dimension of yd).
+    /// Get number of state derivatives (dimension of yd and ydd).
     /// The default implementation assumes equal number of states and state derivatives.
     /// If this is not the case, a derived class must implement the functions IncrementState, CalculateStateIncrement,
     /// and (if stiff) CalculateForceJacobians.
@@ -311,6 +315,8 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with item
 
     static const double m_FD_delta;  ///< perturbation for finite-difference Jacobian approximation
+
+    friend class chrono::soa::ChSoaAssembly;
 };
 
 }  // end namespace chrono

@@ -88,8 +88,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool IsUsingGyroTorque() const;
 
     /// Enable/disable option for setting bodies to 'sleep'.
-    /// If the sleeping is allowed, bodies which stay in same place for long enough time will be deactivated, for
-    /// optimization.
+    /// If sleeping is allowed, bodies which stay in same place for long enough time will be deactivated.
     /// By default the sleeping is enabled.
     void SetSleepingAllowed(bool state);
 

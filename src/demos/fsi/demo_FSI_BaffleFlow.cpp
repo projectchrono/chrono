@@ -71,8 +71,7 @@ bool show_particles_sph = true;
 class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
     SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity)
-        : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {
-    }
+        : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {}
 
     virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
@@ -244,8 +243,10 @@ int main(int argc, char* argv[]) {
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.1;
-    sph_params.xsph_coefficient = 0.25;
-    sph_params.shifting_coefficient = 1.0;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = ps_freq;
 
@@ -367,7 +368,7 @@ int main(int argc, char* argv[]) {
 
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v0.Length());
 
-        visFSI->SetTitle("Chrono::FSI baffle flow");
+        visFSI->SetTitle("Chrono::FSI Baffle Flow");
         visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(0.1f);
@@ -393,7 +394,7 @@ int main(int argc, char* argv[]) {
         if (output && time >= out_frame / output_fps) {
             fsi.SaveOutputData(time, out_dir + "/particles", out_dir + "/fsi");
             out_frame++;
-        } 
+        }
 
         // Render SPH particles
         if (render && time >= render_frame / render_fps) {

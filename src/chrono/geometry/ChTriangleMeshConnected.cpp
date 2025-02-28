@@ -144,7 +144,6 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
                                                     double& mass,
                                                     ChVector3d& center,
                                                     ChMatrix33<>& inertia) {
-    const double oneDiv6 = (double)(1.0 / 6.0);
     const double oneDiv24 = (double)(1.0 / 24.0);
     const double oneDiv60 = (double)(1.0 / 60.0);
     const double oneDiv120 = (double)(1.0 / 120.0);
@@ -212,7 +211,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
         integral[9] += N.z() * (v0.x() * g0z + v1.x() * g1z + v2.x() * g2z);
     }
 
-    integral[0] *= oneDiv6;
+    integral[0] *= CH_1_6;
     integral[1] *= oneDiv24;
     integral[2] *= oneDiv24;
     integral[3] *= oneDiv24;

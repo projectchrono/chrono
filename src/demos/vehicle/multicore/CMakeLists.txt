@@ -27,9 +27,9 @@ foreach(PROGRAM ${DEMOS})
 
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM}
-                          ChronoEngine_multicore
-                          ChronoEngine_opengl
-                          ChronoEngine_vehicle
+                          Chrono_multicore
+                          Chrono_opengl
+                          Chrono_vehicle
                           ChronoModels_vehicle)
     if(MSVC)
       set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})

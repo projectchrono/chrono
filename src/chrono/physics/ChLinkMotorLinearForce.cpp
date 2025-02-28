@@ -37,8 +37,8 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
     // compute instant force
     double mF = m_func->GetVal(this->GetChTime());
 
-    ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
-    ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
+    ChFrame<> aframe1 = m_frame1 >> (*this->m_body1);
+    ChFrame<> aframe2 = m_frame2 >> (*this->m_body2);
 
     // application point is always marker1
     ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
@@ -62,8 +62,8 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     // compute instant force
     double mF = m_func->GetVal(this->GetChTime());
 
-    ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
-    ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
+    ChFrame<> aframe1 = m_frame1 >> (*this->m_body1);
+    ChFrame<> aframe2 = m_frame2 >> (*this->m_body2);
 
     // application point is always marker1
     ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);

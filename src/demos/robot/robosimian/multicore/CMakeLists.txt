@@ -28,10 +28,10 @@ foreach(PROGRAM ${DEMOS})
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
     target_link_libraries(${PROGRAM}
-                          ChronoEngine
-                          ChronoEngine_multicore
-                          ChronoEngine_vehicle
-                          ChronoEngine_opengl
+                          Chrono_core
+                          Chrono_multicore
+                          Chrono_vehicle
+                          Chrono_opengl
                           ChronoModels_robot)
 
                           

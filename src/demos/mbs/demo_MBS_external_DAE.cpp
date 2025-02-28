@@ -49,7 +49,7 @@ using std::endl;
 /// - 0 constraints.
 class Pendulum2D_ODE : public ChExternalDynamicsDAE {
   public:
-    Pendulum2D_ODE(double L, double mass) : g(9.8), L(L), m(mass), I(mass * L * L / 3) {}
+    Pendulum2D_ODE(double L, double mass) : g(9.8), L(L), m(mass), I(mass * L * L * CH_1_3) {}
 
     virtual Pendulum2D_ODE* Clone() const override { return new Pendulum2D_ODE(*this); }
 
@@ -98,7 +98,7 @@ class Pendulum2D_ODE : public ChExternalDynamicsDAE {
 /// - 2 constraints.
 class Pendulum2D_DAE : public ChExternalDynamicsDAE {
   public:
-    Pendulum2D_DAE(double L, double mass) : g(9.8), L(L), m(mass), I(mass * L * L / 3) {}
+    Pendulum2D_DAE(double L, double mass) : g(9.8), L(L), m(mass), I(mass * L * L * CH_1_3) {}
 
     virtual Pendulum2D_DAE* Clone() const override { return new Pendulum2D_DAE(*this); }
 
@@ -178,7 +178,7 @@ class Pendulum3D_DAE : public ChExternalDynamicsDAE {
         : g(9.8),
           L(L),
           m(mass),
-          I(0.01, mass * L * L / 3, mass * L * L / 3),
+          I(0.01, mass * L * L * CH_1_3, mass * L * L * CH_1_3),
           frame_loc(ChFrame<>(ChVector3d(-L, 0, 0), QUNIT)) {}
 
     virtual Pendulum3D_DAE* Clone() const override { return new Pendulum3D_DAE(*this); }

@@ -270,7 +270,7 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
 
     // TODO (Luning): i think this is messing me up, causing instability
     // let me inflate this to door thickness and see what happens
-    double mini_window_rb = 0.01;  
+    double mini_window_rb = 0.01;
     ////double mini_window_rb = door_thickness/2;
     ////double mini_window_ra = mini_window_height / 2;
     ////double mini_window_angle = 0;   // when angle is 0, all windows are closed!
@@ -406,9 +406,8 @@ int main(int argc, char* argv[]) {
     sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 4;
-    sph_params.xsph_coefficient = 0.5;
-    sph_params.shifting_coefficient = 0.0;
-    // sph_params.density_reinit_steps = 10000;
+    sph_params.shifting_method = ShiftingMethod::XSPH;
+    sph_params.shifting_xsph_eps = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;

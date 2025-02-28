@@ -26,29 +26,29 @@ endif()
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries
 
-list(APPEND LIBS "ChronoEngine_vehicle")
+list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_pardisomkl")
+    list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-    list(APPEND LIBS "ChronoEngine_mumps")
+    list(APPEND LIBS "Chrono_mumps")
 endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
-    list(APPEND LIBS "ChronoEngine_postprocess")
+    list(APPEND LIBS "Chrono_postprocess")
 endif()
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+    list(APPEND LIBS "Chrono_vehicle_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_vehicle_vsg")
+    list(APPEND LIBS "Chrono_vehicle_vsg")
 endif()
 
 #--------------------------------------------------------------

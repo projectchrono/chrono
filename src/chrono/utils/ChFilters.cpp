@@ -29,14 +29,15 @@ namespace utils {
 
 // -----------------------------------------------------------------------------
 ChRunningAverage::ChRunningAverage(int n) : m_n(n), m_index(0), m_std(0) {
-    m_data.resize(n, 0.0);
+    m_data.setZero(n);
 }
 
 double ChRunningAverage::Add(double val) {
     m_data[(m_index++) % m_n] = val;
     int size = std::min(m_index, m_n);
     double mean = m_data.sum() / size;
-    m_std = (size == 1) ? 0 : std::sqrt(std::pow(m_data - mean, 2.0).sum() / (size - 1));
+    ChVectorDynamic<> data_centered = m_data.array() - mean;
+    m_std = (size == 1) ? 0 : std::sqrt((data_centered.cwiseProduct(data_centered)).sum() / (size - 1));
     return mean;
 }
 
@@ -46,8 +47,8 @@ void ChRunningAverage::Reset() {
 }
 
 // -----------------------------------------------------------------------------
-ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
-    int np = (int)data.size();
+ChMovingAverage::ChMovingAverage(const ChVectorDynamic<>& data, int n) {
+    int np = static_cast<int>(data.size());
     m_out.resize(np);
 
     // Start and end of data
@@ -1179,7 +1180,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     m_dky = CalcPeaks(m_inp_y, false);
     m_dkz = CalcPeaks(m_inp_z, true);
 
-    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), 1.0 / 6.0);
+    return std::pow(std::pow(m_mx * m_dkx, 6.0) + std::pow(m_my * m_dky, 6.0) + std::pow(m_mz * m_dkz, 6.0), CH_1_6);
 }
 
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
@@ -1335,10 +1336,10 @@ double ChMotionFilterThirdOrder::Filter(double raw_setpos, double raw_setvel, do
                    sign_delta / 4. * std::sqrt(2. * std::pow(m_err_acc * m_err_acc + 2. * m_err_vel * sign_delta, 3));
     double ni_p = err_pos - m_errmax_acc * (m_err_acc * m_err_acc - 2. * m_err_vel) / 4. -
                   std::pow(m_err_acc * m_err_acc - 2. * m_err_vel, 2) / (8. * m_errmax_acc) -
-                  m_err_acc * (3. * m_err_vel - m_err_acc * m_err_acc) / 3.;
+                  m_err_acc * (3. * m_err_vel - m_err_acc * m_err_acc) * CH_1_3;
     double ni_m = err_pos - m_errmin_acc * (m_err_acc * m_err_acc + 2. * m_err_vel) / 4. -
                   std::pow(m_err_acc * m_err_acc + 2. * m_err_vel, 2) / (8. * m_errmin_acc) +
-                  m_err_acc * (3. * m_err_vel + m_err_acc * m_err_acc) / 3.;
+                  m_err_acc * (3. * m_err_vel + m_err_acc * m_err_acc) * CH_1_3;
     double S = sigma;
     if (m_err_acc <= m_errmax_acc && m_err_vel <= m_err_acc * m_err_acc / 2. - m_errmax_acc * m_errmax_acc)
         S = ni_p;

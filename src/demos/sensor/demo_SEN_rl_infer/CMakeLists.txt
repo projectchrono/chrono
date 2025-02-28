@@ -24,19 +24,19 @@ IF(CH_USE_TENSOR_RT AND CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_VEHICLE A
   ENDIF()
 
   TARGET_LINK_LIBRARIES(demo_SEN_rl_infer
-    ChronoEngine
-    ChronoEngine_sensor
-    ChronoEngine_irrlicht
-    ChronoEngine_vehicle
-    ChronoEngine_vehicle_irrlicht
+    Chrono_core
+    Chrono_sensor
+    Chrono_irrlicht
+    Chrono_vehicle
+    Chrono_vehicle_irrlicht
     ChronoModels_vehicle
     )
   ADD_DEPENDENCIES (demo_SEN_rl_infer
-      ChronoEngine
-      ChronoEngine_sensor
-      ChronoEngine_irrlicht
-      ChronoEngine_vehicle
-      ChronoEngine_vehicle_irrlicht
+      Chrono_core
+      Chrono_sensor
+      Chrono_irrlicht
+      Chrono_vehicle
+      Chrono_vehicle_irrlicht
       ChronoModels_vehicle
   )
 

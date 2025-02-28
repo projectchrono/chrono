@@ -213,7 +213,7 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
     // Create the mechanical system
     // ----------------------------
 
-    // Create a ChronoENGINE physical system: all bodies and constraints will be
+    // Create a Chrono physical system: all bodies and constraints will be
     // handled by this ChSystem object.
 
     std::cout << "  Create system..." << std::endl;

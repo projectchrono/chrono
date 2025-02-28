@@ -378,9 +378,9 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     double dCy = Cy2 - Cy1;
     double dCz = Cz2 - Cz1;
     double LN = L;
-    double LG = std::pow(LN * LN - dCy * dCy - dCz * dCz, 0.5);
+    double LG = std::sqrt(LN * LN - dCy * dCy - dCz * dCz);
     double LA = LG;
-    double LB = std::pow(LG * LG + dCy * dCy, 0.5);
+    double LB = std::sqrt(LG * LG + dCy * dCy);
     ChMatrix33<> rc;
     rc.setIdentity();
     rc(0, 0) = LA / LN;
@@ -427,8 +427,8 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     double dSy = Sy1 - Sy2;
     double dSz = Sz1 - Sz2;
 
-    double Lsy = std::pow(LG * LG + dSy * dSy, 0.5);
-    double Lsyz = std::pow(LG * LG + dSy * dSy + dSz * dSz, 0.5);
+    double Lsy = std::sqrt(LG * LG + dSy * dSy);
+    double Lsyz = std::sqrt(LG * LG + dSy * dSy + dSz * dSz);
     double C1 = Lsyz / LG;
     double C2 = dSy * Lsyz / (LG * Lsy);
     double C3 = dSz / Lsy;

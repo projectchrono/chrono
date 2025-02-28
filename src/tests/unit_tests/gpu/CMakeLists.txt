@@ -5,8 +5,8 @@
 INCLUDE_DIRECTORIES(${CH_GPU_INCLUDES})
 
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_gpu
+    Chrono_core
+    Chrono_gpu
 )
 
 # ------------------------------------------------------------------------------

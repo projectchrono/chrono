@@ -97,9 +97,6 @@ void ChSoaAssembly::Initialize() {
     m_y0.resize(m_num_q);
     m_yd0.resize(m_num_u);
 
-    // Set size of assembly-wide acceleration vector
-    m_ydd.resize(m_num_u);
-
     // Traverse bodies a second time and load initial conditions
     for (auto& body : m_bodies) {
         for (int iq = 0; iq < body->getNumQ(); iq++)

@@ -231,7 +231,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     std::ofstream ini_file(base_path + out_script_filename + ".ini");
 
     ini_file << "; Script for rendering an animation with POV-Ray. " << std::endl;
-    ini_file << "; Generated automatically by Chrono::Engine.\n" << std::endl;
+    ini_file << "; Generated automatically by Chrono.\n" << std::endl;
     ini_file << "Version=3.7" << std::endl;
     ini_file << "Antialias=" << (antialias ? "On" : "Off") << "" << std::endl;
     ini_file << "Antialias_Threshold=" << antialias_treshold << "" << std::endl;

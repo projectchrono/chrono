@@ -23,6 +23,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -73,7 +74,7 @@ void ChCubicSpline::Process() {
             break;
         case FIRST_BC:
             m_ypp[0] = (m_y[1] - m_y[0]) / (m_t[1] - m_t[0]) - m_left_bc;
-            A(1, 0) = (m_t[1] - m_t[0]) / 3;
+            A(1, 0) = (m_t[1] - m_t[0]) * CH_1_3;
             A(0, 1) = (m_t[1] - m_t[0]) / 6;
             break;
         case SECOND_BC:
@@ -88,7 +89,7 @@ void ChCubicSpline::Process() {
         double dtm = m_t[i] - m_t[i - 1];
         m_ypp[i] = (m_y[i + 1] - m_y[i]) / dtp - (m_y[i] - m_y[i - 1]) / dtm;
         A(0, i + 1) = dtp / 6;
-        A(1, i + 0) = (dtp + dtm) / 3;
+        A(1, i + 0) = (dtp + dtm) * CH_1_3;
         A(2, i - 1) = dtm / 6;
     }
 
@@ -101,7 +102,7 @@ void ChCubicSpline::Process() {
         case FIRST_BC:
             m_ypp[n - 1] = m_right_bc - (m_y[n - 1] - m_y[n - 2]) / (m_t[n - 1] - m_t[n - 2]);
             A(2, n - 2) = (m_t[n - 1] - m_t[n - 2]) / 6;
-            A(1, n - 1) = (m_t[n - 1] - m_t[n - 2]) / 3;
+            A(1, n - 1) = (m_t[n - 1] - m_t[n - 2]) * CH_1_3;
             break;
         case SECOND_BC:
             m_ypp[n - 1] = m_left_bc;

@@ -122,9 +122,9 @@ class ChApi ChHydraulicDirectionalValve4x3 {
     /// <pre>
     ///    Cv = (24e-3 / 60) / (1.0 * sqrt(35e5))
     /// </pre>
-    void SetCharacteristicParameters(double linear_limit,  ///< laminar flow rate limit of 2 bar [N/m^2]
-                                     double Q,             ///< nominal flow (full opening) [m^3/s]
-                                     double dp             ///< nominal presure difference [N/m^2]
+    void SetCharacteristicParameters(double limit,  ///< laminar flow rate limit of 2 bar [N/m^2]
+                                     double Q,      ///< nominal flow (full opening) [m^3/s]
+                                     double dp      ///< nominal presure difference [N/m^2]
     );
 
     /// Set the Bode diagram frequency at -45 degrees phase shift (default: 35 Hz).
@@ -134,7 +134,7 @@ class ChApi ChHydraulicDirectionalValve4x3 {
     /// Set the input threshold for shut valve (default: 1e-5).
     /// This is a non-dimensional quantity so that volume flows through the valve are set to 0 whenever the normalized
     /// input U is below this limit.
-    void SetValveDeadZone(double dead_zone);
+    void SetValveDeadZone(double deadzone);
 
     /// Set the normalized initial spool position, U0 = U(0) (default: 0).
     void SetInitialSpoolPosition(double U);
@@ -176,8 +176,8 @@ class ChApi ChHydraulicThrottleValve {
     /// Set valve parameters.
     void SetParameters(double valve_diameter,  ///< valve orifice diameter [m]
                        double oil_density,     ///< oil density [kg/m^3]
-                       double linear_limit,    ///< laminar flow rate limit of 2 bar [N/m^2]
-                       double Cd               ///< flow discharge coefficient of the orifice
+                       double limit,           ///< laminar flow rate limit of 2 bar [N/m^2]
+                       double discharge_coeff  ///< flow discharge coefficient of the orifice
     );
 
     /// Compute volume flow through the valve.

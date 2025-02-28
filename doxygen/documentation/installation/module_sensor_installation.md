@@ -3,10 +3,7 @@ Install the SENSOR module   {#module_sensor_installation}
 
 [TOC]
 
-This is an optional module that enables the modeling and simulation of sensors for the purpose of simulating robotics and autonomous agents within Chrono.
-
-Read [the introduction to modules](modularity.html) for a technical
-background on the modularity of the Chrono project.
+Chrono::Sensor is an optional module that enables the modeling and simulation of sensors for the purpose of simulating robotics and autonomous agents within Chrono.
 
 
 ## Features

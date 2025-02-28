@@ -68,7 +68,7 @@ unsigned int rl_image_width = 80;
 unsigned int rl_image_height = 45;
 
 // Camera's horizontal field of view
-float fov = CH_PI / 3.;
+float fov = CH_PI_3;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;

@@ -1,4 +1,4 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_sensor)
+SET(LIBRARIES Chrono_core Chrono_sensor)
 
 SET(TESTS
     utest_SEN_gps

@@ -67,8 +67,8 @@ void ChShaft::SetInertia(double newJ) {
     variables.SetInertia(newJ);
 }
 
-void ChShaft::SetFixed(bool fixed) {
-    this->fixed = fixed;
+void ChShaft::SetFixed(bool state) {
+    fixed = state;
     variables.SetDisabled(fixed);
 }
 

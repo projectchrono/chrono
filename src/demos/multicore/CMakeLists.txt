@@ -5,13 +5,13 @@
 INCLUDE_DIRECTORIES(${CH_MULTICORE_INCLUDES})
 
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_multicore
+    Chrono_core
+    Chrono_multicore
 )
 
 IF(CH_ENABLE_MODULE_OPENGL)
     INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+    SET(LIBRARIES ${LIBRARIES} Chrono_opengl)
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ endif()
 
 # Add programs that require Irrlicht
 if(CH_ENABLE_MODULE_IRRLICHT)
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht)
+    set(LIBRARIES ${LIBRARIES} Chrono_irrlicht)
 
 	set(DEMOS
         ${DEMOS}

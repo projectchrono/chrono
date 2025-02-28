@@ -71,9 +71,9 @@ AssemblyAnalysis::ExitFlag ChAssemblyAnalysis::AssemblyAnalysis(int action, doub
 
             integrable->StateScatter(X, V, T, true);  // state -> system
 
-            double m_last_update_norm = Dx.lpNorm<Eigen::Infinity>();
+            double last_update_norm = Dx.lpNorm<Eigen::Infinity>();
 
-            if (m_last_update_norm < m_abs_tol_update) {
+            if (last_update_norm < m_abs_tol_update) {
                 exit_flag = AssemblyAnalysis::ExitFlag::ABSTOL_UPDATE;
                 break;
             }

@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     }
     fileMid.close();
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
     unsigned int num_steps = 200;
     utils::Data m_data;  // Matrices to store data

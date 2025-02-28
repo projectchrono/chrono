@@ -31,7 +31,7 @@ print ("Example: FEA of the Jeffcott rotor passing through resonance.");
 #
 
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 mesh = fea.ChMesh()

@@ -636,8 +636,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void VariablesFbLoadForces(double factor = 1);
     void VariablesQbLoadSpeed();
     void VariablesFbIncrementMq();
-    void VariablesQbSetSpeed(double step = 0);
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbSetSpeed(double step_size = 0);
+    void VariablesQbIncrementPosition(double step_size);
     void ConstraintsBiReset();
     void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false);
     void ConstraintsBiLoad_Ct(double factor = 1);

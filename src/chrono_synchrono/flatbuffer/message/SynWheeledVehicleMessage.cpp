@@ -31,10 +31,10 @@ namespace WheeledVehicle = SynFlatBuffers::Agent::WheeledVehicle;
 SynWheeledVehicleStateMessage::SynWheeledVehicleStateMessage(AgentKey source_key, AgentKey destination_key)
     : SynMessage(source_key, destination_key) {}
 
-void SynWheeledVehicleStateMessage::SetState(double time, SynPose chassis, std::vector<SynPose> wheels) {
-    this->time = time;
-    this->chassis = chassis;
-    this->wheels = wheels;
+void SynWheeledVehicleStateMessage::SetState(double t, SynPose chassis_pose, std::vector<SynPose> wheel_poses) {
+    time = t;
+    chassis = chassis_pose;
+    wheels = wheel_poses;
 }
 
 void SynWheeledVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -58,16 +58,16 @@ void SynWheeledVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers:
 
 /// Generate FlatBuffers message from this message's state
 FlatBufferMessage SynWheeledVehicleStateMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
-    auto flatbuffer_chassis = this->chassis.ToFlatBuffers(builder);
+    auto flatbuffer_chassis = chassis.ToFlatBuffers(builder);
 
     std::vector<flatbuffers::Offset<SynFlatBuffers::Pose>> flatbuffer_wheels;
-    flatbuffer_wheels.reserve(this->wheels.size());
-    for (const auto& wheel : this->wheels)
+    flatbuffer_wheels.reserve(wheels.size());
+    for (const auto& wheel : wheels)
         flatbuffer_wheels.push_back(wheel.ToFlatBuffers(builder));
 
     auto vehicle_type = Agent::Type_WheeledVehicle_State;
     auto vehicle_state =
-        WheeledVehicle::CreateStateDirect(builder, this->time, flatbuffer_chassis, &flatbuffer_wheels).Union();
+        WheeledVehicle::CreateStateDirect(builder, time, flatbuffer_chassis, &flatbuffer_wheels).Union();
 
     auto flatbuffer_state = Agent::CreateState(builder, vehicle_type, vehicle_state);
     auto flatbuffer_message =
@@ -95,7 +95,7 @@ void SynWheeledVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
     m_destination_key = message->destination_key();
 
     if (description->json()->size())
-        this->json = description->json()->str();
+        json = description->json()->str();
     else {
         auto vehicle_description = description->description_as_WheeledVehicle_Description();
 
@@ -109,16 +109,16 @@ void SynWheeledVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
 /// Generate FlatBuffers message from this agent's description
 FlatBufferMessage SynWheeledVehicleDescriptionMessage::ConvertToFlatBuffers(
     flatbuffers::FlatBufferBuilder& builder) const {
-    auto flatbuffer_json = builder.CreateString(this->json);
+    auto flatbuffer_json = builder.CreateString(json);
     auto flatbuffer_type = Agent::Type_WheeledVehicle_Description;
 
     flatbuffers::Offset<WheeledVehicle::Description> vehicle_description = 0;
-    if (this->json.empty()) {
-        vehicle_description = WheeledVehicle::CreateDescriptionDirect(builder,                         //
-                                                                      this->chassis_vis_file.c_str(),  //
-                                                                      this->wheel_vis_file.c_str(),    //
-                                                                      this->tire_vis_file.c_str(),     //
-                                                                      this->num_wheels);               //
+    if (json.empty()) {
+        vehicle_description = WheeledVehicle::CreateDescriptionDirect(builder,                   //
+                                                                      chassis_vis_file.c_str(),  //
+                                                                      wheel_vis_file.c_str(),    //
+                                                                      tire_vis_file.c_str(),     //
+                                                                      num_wheels);               //
     }
 
     auto flatbuffer_description = Agent::CreateDescription(builder,                      //
@@ -162,24 +162,24 @@ void SynWheeledVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(co
     assert(d["Zombie"].HasMember("Number of Wheels"));
 
     // Set the zombie visualization files
-    this->chassis_vis_file = d["Zombie"]["Chassis Visualization File"].GetString();
-    this->wheel_vis_file = d["Zombie"]["Wheel Visualization File"].GetString();
-    this->tire_vis_file = d["Zombie"]["Tire Visualization File"].GetString();
+    chassis_vis_file = d["Zombie"]["Chassis Visualization File"].GetString();
+    wheel_vis_file = d["Zombie"]["Wheel Visualization File"].GetString();
+    tire_vis_file = d["Zombie"]["Tire Visualization File"].GetString();
 
     // Set number of wheels
-    this->num_wheels = d["Zombie"]["Number of Wheels"].GetInt();
+    num_wheels = d["Zombie"]["Number of Wheels"].GetInt();
 }
 
-void SynWheeledVehicleDescriptionMessage::SetVisualizationFiles(const std::string& chassis_vis_file,
-                                                                const std::string& wheel_vis_file,
-                                                                const std::string& tire_vis_file) {
-    this->chassis_vis_file = chassis_vis_file;
-    this->wheel_vis_file = wheel_vis_file;
-    this->tire_vis_file = tire_vis_file;
+void SynWheeledVehicleDescriptionMessage::SetVisualizationFiles(const std::string& chassis_visualization_file,
+                                                                const std::string& wheel_visualization_file,
+                                                                const std::string& tire_visualization_file) {
+    chassis_vis_file = chassis_visualization_file;
+    wheel_vis_file = wheel_visualization_file;
+    tire_vis_file = tire_visualization_file;
 }
 
-void SynWheeledVehicleDescriptionMessage::SetNumWheels(int num_wheels) {
-    this->num_wheels = num_wheels;
+void SynWheeledVehicleDescriptionMessage::SetNumWheels(int number_wheels) {
+    num_wheels = number_wheels;
 }
 
 }  // namespace synchrono

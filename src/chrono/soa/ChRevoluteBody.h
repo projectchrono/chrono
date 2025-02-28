@@ -48,13 +48,11 @@ class ChApi ChRevoluteBody : public ChMobilizedBodyT<1> {
 
     virtual int getNumQ() const override { return 1; }
 
-    // Set the internal coordinates for the ChRevoluteBody so they best approximate the
-    // specified (relative) orientation, angular velocity, and angular acceleration,
-    // respectively.
-    // A pin joint can only represent a rotation about the z-axis, but no
-    // translation. As such, setRelRot() calculates the angle of rotation about the
-    // z-axis that best approximates (in the Frobenius norm sense) the given
-    // rotation matrix.
+    // Set the internal coordinates for the ChRevoluteBody so they best approximate the specified
+    // (relative) orientation, angular velocity, and angular acceleration, respectively.
+    // A pin joint can only represent a rotation about the z-axis, but no translation.
+    // As such, setRelRot() calculates the angle of rotation about the z-axis that best approximates
+    // (in the Frobenius norm sense) the given rotation matrix.
 
     virtual void setRelRot(const ChMatrix33d& relRot) override;
     virtual void setRelLoc(const ChVector3d& relLoc) override {}

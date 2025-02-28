@@ -20,6 +20,8 @@
 #ifndef CH_FSI_DATA_MANAGER_H
 #define CH_FSI_DATA_MANAGER_H
 
+#include <vector>
+
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 #include <thrust/iterator/detail/normal_iterator.h>
@@ -231,47 +233,51 @@ class FsiDataManager {
                     unsigned int num_fsi_elements2D);
 
     /// Find indices of all SPH particles inside the specified OBB.
-    thrust::device_vector<int> FindParticlesInBox(const Real3& hsize,
-                                                  const Real3& pos,
-                                                  const Real3& ax,
-                                                  const Real3& ay,
-                                                  const Real3& az);
+    std::vector<int> FindParticlesInBox(const Real3& hsize,
+                                        const Real3& pos,
+                                        const Real3& ax,
+                                        const Real3& ay,
+                                        const Real3& az);
 
     /// Extract positions of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetPositions();
+    std::vector<Real3> GetPositions();
 
     /// Extract velocities of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetVelocities();
+    std::vector<Real3> GetVelocities();
 
     /// Extract accelerations of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetAccelerations();
+    std::vector<Real3> GetAccelerations();
 
     /// Extract forces applied to all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetForces();
+    std::vector<Real3> GetForces();
 
     /// Extract fluid properties of all markers (SPH and BCE).
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    thrust::device_vector<Real3> GetProperties();
+    std::vector<Real3> GetProperties();
 
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetPositions(const thrust::device_vector<int>& indices);
+    std::vector<Real3> GetPositions(const std::vector<int>& indices);
 
     /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetVelocities(const thrust::device_vector<int>& indices);
+    std::vector<Real3> GetVelocities(const std::vector<int>& indices);
 
     /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetAccelerations(const thrust::device_vector<int>& indices);
+    std::vector<Real3> GetAccelerations(const std::vector<int>& indices);
 
     /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<Real3> GetForces(const thrust::device_vector<int>& indices);
+    std::vector<Real3> GetForces(const std::vector<int>& indices);
+
+    /// Extract FSI forces on rigid bodies.
+    std::vector<Real3> GetRigidForces();
+
+    /// Extract FSI torques on rigid bodies.
+    std::vector<Real3> GetRigidTorques();
+
+    /// Extract FSI forces on flex1D nodes.
+    std::vector<Real3> GetFlex1dForces();
+
+    /// Extract FSI forces on flex2D nodes.
+    std::vector<Real3> GetFlex2dForces();
 
     std::shared_ptr<SimParams> paramsH;   ///< simulation parameters (host)
     std::shared_ptr<Counters> countersH;  ///< problem counters (host)

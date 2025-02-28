@@ -147,8 +147,7 @@ class CH_MULTICORE_API ChSolverMulticoreAPGDREF : public ChSolverMulticore {
     real Res4(ChSchurProduct& SchurProduct,   ///< Schur product
               ChProjectConstraints& Project,  ///< Constraints
               DynamicVector<real>& gamma,     ///< The vector of unknowns
-              const DynamicVector<real>& r,   ///< Rhs vector
-              DynamicVector<real>& tmp        ///< temporary vector
+              const DynamicVector<real>& r    ///< Rhs vector
     );
 
     /// APGD specific vectors.
@@ -241,7 +240,7 @@ class CH_MULTICORE_API ChSolverMulticoreSPGQP : public ChSolverMulticore {
     void UpdateR();
 
     // BB specific vectors
-    real alpha, f_max, xi, beta_bar, beta_tilde, beta_k, gam;
+    real alpha, f_max, xi, beta_bar, beta_tilde, beta_k;
     DynamicVector<real> g, d_k, x, temp, Ad_k, g_alpha, x_candidate;
     std::vector<real> f_hist;
 };

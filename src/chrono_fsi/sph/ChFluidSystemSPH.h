@@ -19,9 +19,6 @@
 #ifndef CH_FLUID_SYSTEM_SPH_H
 #define CH_FLUID_SYSTEM_SPH_H
 
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-
 #include "chrono_fsi/ChFluidSystem.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
@@ -70,17 +67,23 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        SPHMethod sph_method;          ///< SPH method (default: WCSPH)
-        EosType eos_type;              ///< equation of state (default: ISOTHERMAL)
-        ViscosityType viscosity_type;  ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
-        BoundaryType boundary_type;    ///< boundary treatment (default: ADAMI)
-        KernelType kernel_type;        ///< kernel type (default: CUBIC_CPLINE)
-        int num_bce_layers;            ///< number of BCE layers (boundary and solids, default: 3)
-        double initial_spacing;        ///< initial particle spacing (default: 0.01)
-        double d0_multiplier;          ///< kernel length multiplier, h = d0_multiplier * initial_spacing (default: 1.2)
-        double max_velocity;           ///< maximum velocity (default: 1.0)
-        double xsph_coefficient;       ///< XSPH coefficient (default: 0.5)
-        double shifting_coefficient;   ///< shifting beta coefficient (default: 1.0)
+        SPHMethod sph_method;            ///< SPH method (default: WCSPH)
+        EosType eos_type;                ///< equation of state (default: ISOTHERMAL)
+        ViscosityType viscosity_type;    ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
+        BoundaryType boundary_type;      ///< boundary treatment (default: ADAMI)
+        KernelType kernel_type;          ///< kernel type (default: CUBIC_CPLINE)
+        ShiftingMethod shifting_method;  ///< shifting method (default: XSPH)
+        int num_bce_layers;              ///< number of BCE layers (boundary and solids, default: 3)
+        double initial_spacing;          ///< initial particle spacing (default: 0.01)
+        double d0_multiplier;       ///< kernel length multiplier, h = d0_multiplier * initial_spacing (default: 1.2)
+        double max_velocity;        ///< maximum velocity (default: 1.0)
+        double shifting_xsph_eps;   ///< XSPH coefficient (default: 0.5)
+        double shifting_ppst_push;  ///< PPST pushing coefficient (default: 3.0)
+        double shifting_ppst_pull;  ///< shifting beta coefficient (default: 1.0)
+        double shifting_beta_implicit;    ///< shifting coefficient used in implicit solver (default: 1.0)
+        double shifting_diffusion_A;      ///< shifting coefficient used in diffusion (default: 2.0, range 1 to 6)
+        double shifting_diffusion_AFSM;   ///< shifting coefficient used in diffusion (default: 3.0)
+        double shifting_diffusion_AFST;   ///< shifting coefficient used in diffusion (default: 2.0)
         double min_distance_coefficient;  ///< min inter-particle distance as fraction of kernel radius (default: 0.01)
         int density_reinit_steps;         ///< number of steps between density reinitializations (default: 2e8)
         bool use_density_based_projection;         ///< (ISPH only, default: false)
@@ -118,6 +121,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// h = multiplier * initial_spacing.
     void SetKernelMultiplier(double multiplier);
 
+    /// Set the shifting method.
+    void SetShiftingMethod(ShiftingMethod shifting_method);
+
     /// Set the fluid container dimension
     void SetContainerDim(const ChVector3d& boxDim);
 
@@ -139,6 +145,21 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Set (initial) density.
     void SetDensity(double rho0);
+
+    /// Set the PPST Shifting parameters
+    /// push: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
+    /// pull: coefficient for the pulling term in the PPST shifting method
+    void SetShiftingPPSTParameters(double push, double pull);
+
+    /// Set the XSPH Shifting parameters
+    /// eps: coefficient for the XSPH shifting method
+    void SetShiftingXSPHParameters(double eps);
+
+    /// Set the diffusion based shifting parameters
+    /// A: coefficient for the diffusion based shifting method
+    /// AFSM: coefficient for the AFSM in the diffusion based shifting method
+    /// AFST: coefficient for the AFST in the diffusion based shifting method
+    void SetShiftingDiffusionParameters(double A, double AFSM, double AFST);
 
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(const double fzDim);
@@ -423,44 +444,36 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
     /// Utility function for finding indices of SPH particles inside a given OBB.
     /// The object-oriented box, of specified size, is assumed centered at the origin of the provided frame and aligned
-    /// with the axes of that frame. The return value is a device thrust vector.
-    thrust::device_vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
+    /// with the axes of that frame.
+    std::vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
 
     /// Extract positions of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetPositions();
+    std::vector<sph::Real3> GetPositions() const;
 
     /// Extract velocities of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetVelocities();
+    std::vector<sph::Real3> GetVelocities() const;
 
     /// Extract accelerations of all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetAccelerations();
+    std::vector<sph::Real3> GetAccelerations() const;
 
     /// Extract forces applied to all markers (SPH and BCE).
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetForces();
+    std::vector<sph::Real3> GetForces() const;
 
     /// Extract fluid properties of all markers (SPH and BCE).
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    thrust::device_vector<sph::Real3> GetProperties();
+    std::vector<sph::Real3> GetProperties() const;
 
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetPositions(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetPositions(const std::vector<int>& indices) const;
 
     /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetVelocities(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetVelocities(const std::vector<int>& indices) const;
 
     /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetAccelerations(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetAccelerations(const std::vector<int>& indices) const;
 
     /// Extract forces applied to allmarkers (SPH and BCE) with indices in the provided array.
-    /// The return value is a device thrust vector.
-    thrust::device_vector<sph::Real3> GetForces(const thrust::device_vector<int>& indices);
+    std::vector<sph::Real3> GetForces(const std::vector<int>& indices) const;
 
     // ----------- Utility functions for creating BCE marker points in various volumes
 

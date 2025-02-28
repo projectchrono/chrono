@@ -1,4 +1,4 @@
-set(LIBRARIES ChronoEngine)
+set(LIBRARIES Chrono_core)
 include_directories( ${CH_INCLUDES} )
 
 set(TESTS
@@ -14,10 +14,6 @@ foreach(PROGRAM ${TESTS})
     add_executable(${PROGRAM}  ${PROGRAM}.cpp ${BULLET_FILES})
     source_group(""  FILES "${PROGRAM}.cpp")
 
-    set_target_properties(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
 

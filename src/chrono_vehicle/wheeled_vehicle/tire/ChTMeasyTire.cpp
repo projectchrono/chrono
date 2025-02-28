@@ -150,7 +150,7 @@ void ChTMeasyTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.q = ChClamp(Fn_mag, 0.0, m_par.pn_max) / m_par.pn;
         double r_stat = m_unloaded_radius - m_data.depth;
         m_states.omega = wheel_state.omega;
-        m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) / 3.0;
+        m_states.R_eff = (2.0 * m_unloaded_radius + r_stat) * CH_1_3;
         m_states.P_len = 2.0 * std::sqrt(m_unloaded_radius * m_data.depth);
         m_states.vta = m_states.R_eff * std::abs(m_states.omega) + m_vnum;
         m_states.vsx = m_data.vel.x() - m_states.omega * m_states.R_eff;

@@ -66,7 +66,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     /// valve spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator
     /// state is set to the user specified values (which may be inconsistent with the configuration of the cylinder
     /// piston).
-    void SetInitialLoad(double F0);
+    void SetInitialLoad(double initial_load);
 
     /// Initialize the hydraulic actuator stand-alone.
     /// In this case, actuator position and rate are supposed to be provided from the outside.

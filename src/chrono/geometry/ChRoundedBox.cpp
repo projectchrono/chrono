@@ -40,7 +40,7 @@ ChVector3d ChRoundedBox::Evaluate(double parU, double parV, double parW) const {
 double ChRoundedBox::GetVolume(const ChVector3d& lengths, double srad) {
     return lengths.x() * lengths.y() * lengths.z() +
            0.5 * srad * (lengths.x() * lengths.y() + lengths.y() * lengths.z() + lengths.z() * lengths.x()) +
-           (4.0 * CH_PI / 3.0) * srad * srad * srad;
+           (4.0 * CH_PI_3) * srad * srad * srad;
 }
 
 double ChRoundedBox::GetVolume() const {

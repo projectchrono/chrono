@@ -22,8 +22,7 @@
 #include <thrust/host_vector.h>
 
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/sph/physics/ChParams.h"
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 
 struct SimParams;
 
@@ -38,6 +37,7 @@ namespace sph {
 /// Create separate files to write fluid, boundary BCE, rigid BCE, and flex BCE marker information.
 /// The amount of data saved for each marker is controlled by the specified OutputLevel (e.g., for level CFD_FULL, the
 /// output includes shear rate).
+void SaveParticleDataCFD(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
 void SaveParticleDataCFD(const std::string& dir,
                          OutputLevel level,
                          const thrust::device_vector<Real4>& posRadD,
@@ -52,6 +52,7 @@ void SaveParticleDataCFD(const std::string& dir,
 /// Create separate files to write fluid, boundary BCE, rigid BCE, and flex BCE marker information.
 /// The amount of data saved for each marker is controlled by the specified OutputLevel (e.g., for level CRM_FULL, the
 /// output includes stress).
+void SaveParticleDataCRM(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
 void SaveParticleDataCRM(const std::string& dir,
                          OutputLevel level,
                          const thrust::device_vector<Real4>& posRadD,
@@ -65,6 +66,7 @@ void SaveParticleDataCRM(const std::string& dir,
 
 /// Save current FSI solid data.
 /// Append states and fluid forces at current time for all solids in the FSI problem.
+void SaveSolidData(const std::string& dir, double time, FsiDataManager& data_mgr);
 void SaveSolidData(const std::string& dir,
                    double time,
                    const thrust::device_vector<Real3>& posRigidD,
@@ -81,6 +83,7 @@ void SaveSolidData(const std::string& dir,
 
 /// Save current particle data to a CSV file.
 /// Write particle positions, velocities, rho, pressure, and mu.
+void WriteParticleFileCSV(const std::string& filename, FsiDataManager& data_mgr);
 void WriteParticleFileCSV(const std::string& filename,
                           thrust::device_vector<Real4>& posRadD,
                           thrust::device_vector<Real3>& velMasD,

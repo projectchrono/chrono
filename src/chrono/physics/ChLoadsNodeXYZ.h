@@ -63,9 +63,9 @@ class ChLoadNodeXYZ : public ChLoad {
   public:
     ChLoadNodeXYZ(std::shared_ptr<ChNodeXYZ> node) { SetLoader(chrono_types::make_shared<ChLoaderNodeXYZ>(node)); }
     ChLoadNodeXYZ(std::shared_ptr<ChNodeXYZ> node, const ChVector3d& force) {
-        auto loader = chrono_types::make_shared<ChLoaderNodeXYZ>(node);
-        loader->SetForce(force);
-        SetLoader(loader);
+        auto node_loader = chrono_types::make_shared<ChLoaderNodeXYZ>(node);
+        node_loader->SetForce(force);
+        SetLoader(node_loader);
     }
     virtual ChLoadNodeXYZ* Clone() const override { return new ChLoadNodeXYZ(*this); }
 };

@@ -66,8 +66,8 @@ unsigned int horizontal_samples = 100;
 unsigned int vertical_samples = 100;
 
 // Field of View
-float horizontal_fov = float(CH_PI / 2);  // 20 degree scan
-float vertical_fov = float(CH_PI / 3);    // 12 degrees down
+float horizontal_fov = float(CH_PI_2);  // 20 degree scan
+float vertical_fov = float(CH_PI_3);    // 12 degrees down
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / vertical_fov;

@@ -12,13 +12,13 @@ set(TESTS
 
 # ------------------------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_vehicle")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
-  list(APPEND LIBS "ChronoEngine_vehicle_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
+  list(APPEND LIBS "Chrono_vehicle_irrlicht")
 endif()
 
 # ------------------------------------------------------------------------------

@@ -2,14 +2,14 @@ set(COMPONENT_NAME "FMU2_WheeledVehiclePtrain")
 set(COMPONENT_SOURCES FMU_WheeledVehiclePtrain.h FMU_WheeledVehiclePtrain.cpp)
 set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/wheeled_vehicle_ptrain)
 if (CH_ENABLE_MODULE_IRRLICHT)
-  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle ChronoEngine_irrlicht  ChronoEngine_vehicle_irrlicht)
+  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_vehicle Chrono_irrlicht  Chrono_vehicle_irrlicht)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
   else()
     set(COMPONENT_DLL_DEPENDENCIES "")
   endif()
 else()
-  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle)
+  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_vehicle)
 endif()
 
 set(FMU_CS ON)
@@ -17,14 +17,14 @@ set(FMU_CS ON)
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS ChronoEngine_vehicle)
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS Chrono_vehicle)
 
 include_directories(${FMU_TOOLS_DIR})
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
-  list(APPEND LIBS ChronoEngine_vehicle_irrlicht)
+  list(APPEND LIBS "Chrono_irrlicht")
+  list(APPEND LIBS Chrono_vehicle_irrlicht)
 endif()
 
 #==============================================================

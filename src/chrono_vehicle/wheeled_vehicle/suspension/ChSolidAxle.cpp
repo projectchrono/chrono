@@ -368,7 +368,7 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
         // Create and initialize bell crank body (one side only).
         m_bellCrank = chrono_types::make_shared<ChBody>();
         m_bellCrank->SetName(m_name + "_bellCrank");
-        m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) / 3);
+        m_bellCrank->SetPos((points[BELLCRANK_DRAGLINK] + points[BELLCRANK_AXLE] + points[BELLCRANK_TIEROD]) * CH_1_3);
         m_bellCrank->SetRot(rot.GetQuaternion());
         m_bellCrank->SetMass(getBellCrankMass());
         m_bellCrank->SetInertiaXX(getBellCrankInertia());

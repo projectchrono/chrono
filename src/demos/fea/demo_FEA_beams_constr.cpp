@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         std::cout << " Ki_num:\n"<< mKi_num << std::endl;
      return 1;
      */
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);

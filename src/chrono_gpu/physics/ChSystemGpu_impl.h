@@ -354,7 +354,7 @@ class ChSystemGpu_impl {
     float computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
                                   std::vector<float, cudallocator<float>>& arrY,
                                   std::vector<float, cudallocator<float>>& arrZ,
-                                  size_t nSpheres);
+                                  unsigned int num_spheres);
 
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;

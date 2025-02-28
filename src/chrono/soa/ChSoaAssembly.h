@@ -163,8 +163,6 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
     ChVectorDynamic<> m_y0;   ///< vector of initial states
     ChVectorDynamic<> m_yd0;  ///< vector of initial state derivatives
 
-    ChVectorDynamic<> m_ydd;  ///< vector of accelerations (DAE generalized forces)
-
     friend class ChMobilizedBody;
 };
 

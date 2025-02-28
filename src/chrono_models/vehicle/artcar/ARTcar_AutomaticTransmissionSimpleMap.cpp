@@ -25,8 +25,8 @@ ARTcar_AutomaticTransmissionSimpleMap::ARTcar_AutomaticTransmissionSimpleMap(con
     : ChAutomaticTransmissionSimpleMap(name) {}
 
 void ARTcar_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -1.0 / 3;
-    fwd.push_back(1.0 / 3);
+    rev = -CH_1_3;
+    fwd.push_back(CH_1_3);
 }
 
 void ARTcar_AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

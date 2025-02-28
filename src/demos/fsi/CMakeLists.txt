@@ -30,19 +30,19 @@ endif()
 
 #--------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_fsisph")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_fsisph")
 
 if(CH_ENABLE_MODULE_VSG)
-    list(APPEND LIBS "ChronoEngine_fsisph_vsg")
+    list(APPEND LIBS "Chrono_fsisph_vsg")
 endif()
 
 if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_fsisph_opengl")
+    list(APPEND LIBS "Chrono_fsisph_opengl")
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-    list(APPEND LIBS "ChronoEngine_pardisomkl")
+    list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 #--------------------------------------------------------------

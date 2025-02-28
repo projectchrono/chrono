@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
     sysFSI.AddFsiBody(floating_plate);
     sysSPH.AddBoxBCE(floating_plate, ChFrame<>(), plate_size, true);
 
-    ChVector3d veh_init_pos(-bxDim / 2 - bxDim / 3, 0, 1.8);
+    ChVector3d veh_init_pos(-bxDim / 2 - bxDim * CH_1_3, 0, 1.8);
     auto vehicle = CreateVehicle(sysMBS, sysSPH, sysFSI, ChCoordsys<>(veh_init_pos, QUNIT));
 
     // Complete construction of the FSI system
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     int render_frame = 0;
 
-    double x_max = bxDim / 2 + bxDim / 3;
+    double x_max = bxDim / 2 + bxDim * CH_1_3;
     ChTimer timer;
     timer.start();
     while (time < t_end) {

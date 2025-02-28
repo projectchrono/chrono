@@ -4,7 +4,7 @@
 @rem - Place in an arbitrary temporary directory.
 @rem - Specify the locations for the GL sources OR indicate that these should be downloaded.
 @rem - Specify the install directory.
-@rem - Run the script (.\buildOpenCRG.bat) from a *VS developer console*.
+@rem - IMPORTANT: run the script (.\buildOpenCRG.bat) from an x64 VS command prompt.
 @rem - As provided, this script generates the OpenCRG libraries for 
 @rem   Release, Debug, RelWithDebInfo, and MinSizeRel configurations.
 @rem
@@ -13,6 +13,8 @@
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
+@rem Link to the MSVC static runtime in case you selected the same in the Chrono CMake configuration (e.g. for FMI).
+set LINK_MSVC_STATIC_RUNTIME=OFF
 
 set CRG_INSTALL_DIR="C:\Packages\openCRG"
 
@@ -46,6 +48,14 @@ if "%~1" NEQ "" (
 
 echo "Sources in " %CRG_SOURCE_DIR%
 
+@if %LINK_MSVC_STATIC_RUNTIME% EQU ON (
+    echo "Linking to MSVC static runtime."
+    set LINK_MSVC_RUNTIME_FLAG=/MT
+) else (
+    echo "Linking to MSVC dynamic runtime."
+    set LINK_MSVC_RUNTIME_FLAG=/MD
+)
+
 @rem ------------------------------------------------------------------------
 
 rmdir /S/Q %CRG_INSTALL_DIR% 2>nul
@@ -63,25 +73,25 @@ cd build_crg
 del /S/Q *.lib *.obj
 
 rem build release
-cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
+cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc %LINK_MSVC_RUNTIME_FLAG% /O2 /Ob2 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
 lib/out:OpenCRG.lib *.obj
 lib/list OpenCRG.lib
 del *.obj
 
 rem build debug
-cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
+cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc %LINK_MSVC_RUNTIME_FLAG%d /Zi /Ob0 /Od /RTC1 -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
 lib/out:OpenCRG_d.lib *.obj
 lib/list OpenCRG_d.lib
 del *.obj
 
 rem build release with debug info
-cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /Zi /O2 /Ob1 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
+cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc %LINK_MSVC_RUNTIME_FLAG% /Zi /O2 /Ob1 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
 lib/out:OpenCRG_rd.lib *.obj
 lib/list OpenCRG_rd.lib
 del *.obj
 
 rem build relase with minimal size
-cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O1 /Ob1 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
+cl /c /DWIN32 /D_WINDOWS /W3 /GR /EHsc %LINK_MSVC_RUNTIME_FLAG% /O1 /Ob1 /DNDEBUG -I%CRG_SOURCE_DIR%\inc %CRG_SOURCE_DIR%\src\*.c
 lib/out:OpenCRG_s.lib *.obj
 lib/list OpenCRG_s.lib
 del *.obj

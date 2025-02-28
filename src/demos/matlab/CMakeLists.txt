@@ -15,7 +15,7 @@ foreach(PROGRAM ${DEMOS})
     source_group(""  FILES "${PROGRAM}.cpp")
     
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    target_link_libraries(${PROGRAM} ${CH_MATLABLIB} ChronoEngine ChronoEngine_matlab)
+    target_link_libraries(${PROGRAM} ${CH_MATLABLIB} Chrono_core Chrono_matlab)
 
     if(MSVC)
       set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})

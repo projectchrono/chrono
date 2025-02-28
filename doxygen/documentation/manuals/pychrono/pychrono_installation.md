@@ -107,7 +107,7 @@ The reason for the specific dependency versions and order of installation of dep
 
 ## B) Build Python modules from the C++ API
 
-Advanced users that use the entire Chrono::Engine C++ API can build PyChrono from scratch. 
+Advanced users that use the entire Chrono C++ API can build PyChrono from scratch. 
 This is the preferred way to have the most updated PyChrono, but it is more complicated.
 Do this:
 

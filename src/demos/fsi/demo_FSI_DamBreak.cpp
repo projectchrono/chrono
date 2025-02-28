@@ -95,7 +95,7 @@ bool GetProblemSpecs(int argc,
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Granular.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_DamBreak_Explicit.json");
     double t_end = 10.0;
     bool verbose = true;
     bool output = false;
@@ -131,6 +131,10 @@ int main(int argc, char* argv[]) {
 
     // Set frequency of proximity search
     sysSPH.SetNumProximitySearchSteps(ps_freq);
+
+    // Set the shifting method
+    sysSPH.SetShiftingMethod(ShiftingMethod::XSPH);
+    sysSPH.SetShiftingXSPHParameters(0.5);
 
     // Set up the periodic boundary condition (only in Y direction)
     auto initSpace0 = sysSPH.GetInitialSpacing();

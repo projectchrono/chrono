@@ -616,7 +616,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     std::string models[] = {"static analysis", "curved beam connected to body", "plasticity", "Jeffcott rotor"};

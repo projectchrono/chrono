@@ -18,7 +18,7 @@ else()
     mark_as_advanced(CLEAR FMU_GUID_NAMESPACE)
 endif()
 
-MESSAGE(STATUS "\n==== Chrono FMI module ====\n")
+message(STATUS "\n==== Chrono FMI module ====\n")
 
 cmake_dependent_option(FMU_EXPORT_SUPPORT "Enable FMU export capabilities" ON "CH_ENABLE_MODULE_FMI" OFF)
 
@@ -44,8 +44,6 @@ endif()
 # Default: Chrono submodule in src/chrono_thirdparty/
 
 set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools" CACHE PATH "Path to top-level fmu_tools directory")
-
-include_directories(${FMU_TOOLS_DIR})
 
 # -------------------------------------------------
 # Enable testing of generated FMUs
@@ -124,11 +122,11 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h"
 #=============================================================================
 # Create the Chrono::FMI library
 
-set(ChronoEngine_FMI_SOURCES 
+set(Chrono_FMI_SOURCES 
     ChExternalFmu.cpp
 )
 
-set(ChronoEngine_FMI_HEADERS
+set(Chrono_FMI_HEADERS
     ChApiFMI.h 
     ChExternalFmu.h
     fmi2/ChFmuToolsImport.h
@@ -138,38 +136,53 @@ set(ChronoEngine_FMI_HEADERS
 )
 
 source_group("" FILES 
-            ${ChronoEngine_FMI_HEADERS} 
-            ${ChronoEngine_FMI_SOURCES})
+            ${Chrono_FMI_HEADERS} 
+            ${Chrono_FMI_SOURCES})
 
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_fmi
-            ${ChronoEngine_FMI_HEADERS}
-            ${ChronoEngine_FMI_SOURCES})
+add_library(Chrono_fmi
+            ${Chrono_FMI_HEADERS}
+            ${Chrono_FMI_SOURCES})
 
-target_include_directories(ChronoEngine_fmi PUBLIC ${FMU_TOOLS_DIR})
+target_include_directories(Chrono_fmi PRIVATE "${FMU_TOOLS_DIR}")
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_fmi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_fmi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
-target_link_libraries(ChronoEngine_fmi PUBLIC ChronoEngine)
+target_compile_definitions(Chrono_fmi PRIVATE "CH_API_COMPILE_FMI")
+target_link_libraries(Chrono_fmi PUBLIC Chrono_core)
 
-target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
-target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
-target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
+target_compile_definitions(Chrono_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
+target_compile_definitions(Chrono_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
+target_compile_definitions(Chrono_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
-add_dependencies(ChronoEngine_fmi ChronoEngine)
 
-install(TARGETS ChronoEngine_fmi
+install(TARGETS Chrono_fmi
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)        
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include/chrono_fmi)
 
-install(FILES ${ChronoEngine_FMI_HEADERS}
-        DESTINATION include/chrono_fmi)
+# Old way
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/chrono_fmi
+        FILES_MATCHING PATTERN "*.h")
+
+install(DIRECTORY ${FMU_TOOLS_DIR}
+        DESTINATION include/chrono_thirdparty
+        PATTERN ".git" EXCLUDE)
+
+if(FMU_EXPORT_SUPPORT)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "template_project_fmi2")
+  else()
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_fmi2/ DESTINATION "share/chrono/template_project_fmi2")
+  endif()
+endif()

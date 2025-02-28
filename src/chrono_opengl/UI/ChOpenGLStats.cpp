@@ -207,12 +207,12 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
 #ifdef CHRONO_MULTICORE
     auto parallel_system = dynamic_cast<ChSystemMulticore*>(&sys);
     if (parallel_system) {
-        num_shapes =
-            parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
-        num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNumOtherPhysicsItemsActive();
-        num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
+        auto dm = parallel_system->data_manager;
+        num_shapes = dm->cd_data ? dm->cd_data->num_rigid_shapes + dm->num_fluid_bodies : 0;
+        num_rigid_bodies = dm->num_rigid_bodies + parallel_system->GetNumOtherPhysicsItemsActive();
+        num_fluid_bodies = dm->num_fluid_bodies;
         num_contacts = parallel_system->GetNumContacts();
-        num_bilaterals = parallel_system->data_manager->num_bilaterals;
+        num_bilaterals = dm->num_bilaterals;
     }
     double left_b = screen.LEFT + screen.RIGHT;
     double right_b = -screen.LEFT;
@@ -227,13 +227,14 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
     bars.AddBar(lcp_v, right_b, screen.BOTTOM + thick, screen.BOTTOM, ColorConverter(0xFFCE54));
 
     if (parallel_system) {
-        real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_M");
-        real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_D");
-        real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_E");
-        real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_R");
-        real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_N");
-        real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Stab");
-        real schur = parallel_system->data_manager->system_timer.GetTime("SchurProduct");
+        auto dm = parallel_system->data_manager;
+        real build_m = dm->system_timer.GetTime("ChIterativeSolverMulticore_M");
+        real build_d = dm->system_timer.GetTime("ChIterativeSolverMulticore_D");
+        real build_e = dm->system_timer.GetTime("ChIterativeSolverMulticore_E");
+        real build_r = dm->system_timer.GetTime("ChIterativeSolverMulticore_R");
+        real build_n = dm->system_timer.GetTime("ChIterativeSolverMulticore_N");
+        real stab = dm->system_timer.GetTime("ChIterativeSolverMulticore_Stab");
+        real schur = dm->system_timer.GetTime("SchurProduct");
 
         real number = build_m;
         real build_m_v = glm::mix(left_b, right_b, number / timer_lcp);
@@ -342,11 +343,13 @@ void ChOpenGLStatsDefault::GenerateCD(ChSystem& sys) {
         snprintf(buffer, sizeof(buffer), "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y,
                  bin_size_vec.z);
         text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 18, screen.SX, screen.SY);
-        snprintf(buffer, sizeof(buffer), "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
-                 parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
-                 parallel_sys->data_manager->cd_data->num_fluid_contacts);
-        text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
-
+        if (parallel_sys->data_manager->cd_data) {
+            snprintf(buffer, sizeof(buffer), "R: %d B: %d F: %d",
+                     parallel_sys->data_manager->cd_data->num_rigid_contacts,
+                     parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
+                     parallel_sys->data_manager->cd_data->num_fluid_contacts);
+            text.Render(buffer, screen.LEFT, screen.TOP - screen.SPACING * 20, screen.SX, screen.SY);
+        }
         text.Render("--------------------------------", screen.LEFT, screen.TOP - screen.SPACING * 21, screen.SX,
                     screen.SY);
     }

@@ -79,30 +79,30 @@ endif()
 # Set include paths, compiler & linker flags, and libraries
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS Chrono_core)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-  list(APPEND LIBS "ChronoEngine_vsg")
+  list(APPEND LIBS "Chrono_vsg")
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-  list(APPEND LIBS "ChronoEngine_pardisomkl")
+  list(APPEND LIBS "Chrono_pardisomkl")
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-  list(APPEND LIBS "ChronoEngine_mumps")
+  list(APPEND LIBS "Chrono_mumps")
 endif()
 
 if(CH_ENABLE_MODULE_MATLAB)
-  list(APPEND LIBS "ChronoEngine_matlab")
+  list(APPEND LIBS "Chrono_matlab")
 endif()
 
 if(CH_ENABLE_MODULE_POSTPROCESS)
-  list(APPEND LIBS "ChronoEngine_postprocess")
+  list(APPEND LIBS "Chrono_postprocess")
 endif()
 
 #--------------------------------------------------------------

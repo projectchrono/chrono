@@ -267,11 +267,11 @@ bool ChFsiVisualizationVSG::Render() {
         return false;
 
     // Copy SPH particle positions from device to host
-    thrust::host_vector<Real3> posH = m_sysSPH->GetPositions();
-    thrust::host_vector<Real3> velH = m_sysSPH->GetVelocities();
-    ////thrust::host_vector<Real3> accH = m_sysSPH->GetAccelerations();
-    ////thrust::host_vector<Real3> frcH = m_sysSPH->GetForces();
-    thrust::host_vector<Real3> propH = m_sysSPH->GetProperties();
+    std::vector<Real3> posH = m_sysSPH->GetPositions();
+    std::vector<Real3> velH = m_sysSPH->GetVelocities();
+    ////std::vector<Real3> accH = m_sysSPH->GetAccelerations();
+    ////std::vector<Real3> frcH = m_sysSPH->GetForces();
+    std::vector<Real3> propH = m_sysSPH->GetProperties();
 
     // Set members for the callback functors (if defined)
     if (m_color_fun) {

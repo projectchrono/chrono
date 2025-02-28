@@ -3,11 +3,9 @@ Install the MODAL module {#module_modal_installation}
 
 [TOC]
 
-This module allows Chrono to perform **modal analysis** and **modal reduction** also on large Chrono systems thanks to iterative shift-and-invert eigenvalue solvers leveraging sparse matrices.
+Chrono::Modal enables **modal analysis** and **modal reduction** on large Chrono systems thanks to iterative shift-and-invert eigenvalue solvers leveraging sparse matrices.
 
 An extended description of the module can be found in the [Chrono::Modal](@ref manual_modal) user manual.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
 
 
 ## Requirements

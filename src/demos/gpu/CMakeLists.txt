@@ -12,11 +12,11 @@ set(DEMOS
 
 # ------------------------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_gpu")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_gpu")
 
 if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "ChronoEngine_gpu_opengl")
+    list(APPEND LIBS "Chrono_gpu_opengl")
 endif()
 
 # ------------------------------------------------------------------------------

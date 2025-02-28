@@ -31,7 +31,7 @@
     @defgroup irrlicht_module IRRLICHT module
     @brief Runtime visualization with Irrlicht
 
-    This module can be used to provide 3D realtime rendering in Chrono::Engine.
+    This module can be used to provide 3D realtime rendering in Chrono.
 
     For additional information, see:
     - the [installation guide](@ref module_irrlicht_installation)

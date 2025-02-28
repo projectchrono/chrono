@@ -65,7 +65,7 @@ void RunSlewingBeam(bool do_modal_reduction,
     double time_step_prt = 0.5;
     double time_length = 50;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
