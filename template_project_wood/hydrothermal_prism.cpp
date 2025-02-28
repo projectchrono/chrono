@@ -189,9 +189,10 @@ int main(int argc, char** argv) {
     ground->SetFixed(true);
     sys.Add(ground);
 
-    // Prepare output diectory and file name
-    // std::string current_dir = std::filesystem::current_path();
-    std::string current_dir = GetChronoOutputPath();
+    // Prepare output diectory and file name 
+    // CHANGE FOR WINDOWS VS LINUX
+    // std::string current_dir = std::filesystem::current_path(); // LINUX
+    std::string current_dir = GetChronoOutputPath(); // WINDOWS
     std::string out_dir = current_dir + "/out/";
     std::string history_filename = "hist.dat";
     int pos = current_dir.find_last_of("/");
