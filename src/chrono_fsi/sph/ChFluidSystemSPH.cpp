@@ -1394,6 +1394,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFluidSystemSPH::OnDoStepDynamics(double step) {
+    printf("m_time: %f\n", m_time);
     if (m_time > m_paramsH->settlingTime) {
         m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D);
     }

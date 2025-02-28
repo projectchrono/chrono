@@ -23,7 +23,7 @@
 
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
-
+#include <fstream>
 namespace chrono {
 namespace fsi {
 namespace sph {
@@ -310,6 +310,7 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
 
     uint rigidMarkerIndex = bceIndex + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
+    // printf("rigidMarkerIndex: %d, sortedIndex: %d\n", rigidMarkerIndex, sortedIndex);
 
     int rigidBodyIndex = rigid_BCEsolids_D[bceIndex];
 
@@ -411,6 +412,9 @@ __global__ void UpdateBodyMarkerState_D(Real4* posRadD,
 
     uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
+    // if (rigidMarkerIndex == 1158564) {
+    //     printf("rigidMarkerIndex: %d, sortedIndex: %d\n", rigidMarkerIndex, sortedIndex);
+    // }
     int rigidBodyIndex = rigid_BCEsolids_D[index];
 
     Real4 q4 = qD[rigidBodyIndex];

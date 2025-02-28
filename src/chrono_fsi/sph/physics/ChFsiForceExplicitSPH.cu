@@ -386,7 +386,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   Real2* sortedKernelSupport,
-                                  const uint* mapOriginalToSorted,
                                   const uint* numNeighborsPerPart,
                                   const uint* neighborList,
                                   const uint numActive,
@@ -1788,8 +1787,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
             // Calculate the kernel support of each particle
             calcKernelSupport<<<numBlocks, numThreads>>>(
                 mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
+                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                numActive, error_flagD);
             cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
             // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
             Boundary_Elastic_Holmes<<<numBlocks, numThreads>>>(
@@ -1823,8 +1822,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
             // Calculate the kernel support of each particle
             calcKernelSupport<<<numBlocks, numThreads>>>(
                 mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
+                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                numActive, error_flagD);
             cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
             // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
             Boundary_NavierStokes_Holmes<<<numBlocks, numThreads>>>(

@@ -426,7 +426,8 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     // Check the activity of this particle
     uint isNotActive = 0;
 
-    Real3 Acdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
+    // Real3 Acdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
+    Real3 Acdomain = paramsD.bodyActiveDomain;
 
     Real3 posRadA = mR3(posRadD[index]);
 
