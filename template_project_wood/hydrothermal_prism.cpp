@@ -252,6 +252,9 @@ int main(int argc, char** argv) {
         }
     }
 
+    // We do not want gravity effect on FEA elements in this demo
+    my_mesh->SetAutomaticGravity(false);
+    
     // Create the Irrlicht visualization system (doesn't work with Windows currently)
     // auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     // vis->SetWindowSize(1200, 600);
