@@ -59,6 +59,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <string>
+#include <string_view>
 #include <typeinfo>
 #include <map>
 
@@ -190,13 +191,11 @@ int main(int argc, char** argv) {
     sys.Add(ground);
 
     // Prepare output diectory and file name 
-    // CHANGE FOR WINDOWS VS LINUX
-    // std::string current_dir = std::filesystem::current_path(); // LINUX
-    std::string current_dir = GetChronoOutputPath(); // WINDOWS
+    std::filesystem::path path_to_this_file(__FILE__);
+    std::string current_dir = path_to_this_file.remove_filename().string();
     std::string out_dir = current_dir + "/out/";
     std::string history_filename = "hist.dat";
-    int pos = current_dir.find_last_of("/");
-    std::string mesh_dir = current_dir.substr(0, pos + 1);
+    std::string mesh_dir = current_dir;
 
     // Create oputput directories
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
