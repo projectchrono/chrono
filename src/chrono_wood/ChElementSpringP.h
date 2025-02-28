@@ -28,6 +28,8 @@
 #include "chrono/core/ChTensors.h"
 #include "chrono/core/ChMatrix.h"
 
+#include "chrono_wood/ChWoodApi.h"
+
 namespace chrono {
 namespace fea {
 
@@ -37,7 +39,7 @@ namespace fea {
 /// Simple finite element with two nodes and a spring/damper between the two nodes.
 /// This element is mass-less, so if used in dynamic analysis, the two nodes must
 /// be set with non-zero point mass.
-class ChApi ChElementSpringP : public ChElementGeneric, 
+class ChWoodApi ChElementSpringP : public ChElementGeneric, 
                                public ChElementCorotational, 
                                public ChLoadableUVW {
   public:

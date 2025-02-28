@@ -25,6 +25,8 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/core/ChMatrix.h"
 
+#include "chrono_wood/ChWoodApi.h"
+
 namespace chrono {
 namespace fea {
 
@@ -32,7 +34,7 @@ namespace fea {
 /// @{
 
 /// Collection of mesh file loader utilities.
-class ChApi ChMeshFileLoaderBeam {
+class ChWoodApi ChMeshFileLoaderBeam {
   public:
     /// Load tetrahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:

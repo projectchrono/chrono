@@ -19,6 +19,8 @@
 #include "chrono/solver/ChVariablesGeneric.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 
+#include "chrono_wood/ChWoodApi.h"
+
 namespace chrono {
 namespace fea {
 
@@ -28,7 +30,7 @@ namespace fea {
 /// Class for a generic finite element node in 3D space, with two scalar fields P & P.
 /// This can be used for typical Poisson-type problems with two scalar fields 
 /// (In this case temperature T and moisture content h are the two scalar fields)
-class ChApi ChNodeFEAxyzPP : public ChNodeFEAbase, public ChNodeXYZ {
+class ChWoodApi ChNodeFEAxyzPP : public ChNodeFEAbase, public ChNodeXYZ {
   public:
     ChNodeFEAxyzPP(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyzPP(const ChNodeFEAxyzPP& other);

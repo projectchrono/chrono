@@ -16,6 +16,7 @@
 #define CHCONTINUUMPOISSON2D_H
 
 #include "chrono/fea/ChContinuumMaterial.h"
+#include "chrono_wood/ChWoodApi.h"
 
 namespace chrono {
 namespace fea {
@@ -26,7 +27,7 @@ namespace fea {
 /// Class for the basic properties of scalar fields P in 3D FEM problems
 /// that can be described by Laplace PDEs of type
 ///    rho dP/dt + div [C] grad P = 0
-class ChApi ChContinuumPoisson2D : public ChContinuumMaterial {
+class ChWoodApi ChContinuumPoisson2D : public ChContinuumMaterial {
   protected:
     ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
 
