@@ -1279,15 +1279,16 @@ void ChFsiForceI2SPH::neighborSearch() {
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    computeGridSize((uint)numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    int numActive = m_data_mgr.countersH->numActiveParticles;
+    computeGridSize((uint)numActive, 256, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
 
     neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+        U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
     cudaCheckErrorFlag(error_flagD, "neighborSearchNum");
 
     // in-place exclusive scan for num of neighbors
@@ -1299,9 +1300,8 @@ void ChFsiForceI2SPH::neighborSearch() {
     // second pass
     neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-        error_flagD);
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
     cudaCheckErrorFlag(error_flagD, "neighborSearchID");
 }
 

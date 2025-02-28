@@ -526,7 +526,7 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   const uint* cellStart,
                                   const uint* cellEnd,
-                                  const uint* activityIdentifierD,
+                                  const uint numActive,
                                   uint* numNeighborsPerPart,
                                   volatile bool* error_flag);
 
@@ -534,7 +534,7 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                  const Real4* sortedRhoPreMu,
                                  const uint* cellStart,
                                  const uint* cellEnd,
-                                 const uint* activityIdentifierD,
+                                 const uint numActive,
                                  const uint* numNeighborsPerPart,
                                  uint* neighborList,
                                  volatile bool* error_flag);
