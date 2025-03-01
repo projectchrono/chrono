@@ -50,7 +50,7 @@ class ChApi ChShaftsTorque : public ChShaftsCouple {
   protected:
     double torque;  ///< current value of torque
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
 

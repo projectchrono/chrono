@@ -138,26 +138,28 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // UPDATE FUNCTIONS
 
+    /// Update time-dependent quantities in link state (e.g., motion laws, moving markers, etc.).
+    virtual void UpdateTime(double mytime);
+
     /// Given current time and body state, computes the constraint differentiation to get the the state matrices Cq1,
     /// Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.
     virtual void UpdateState();
 
     /// Updates the local F, M forces adding penalties from ChLinkLimit objects, if any.
-    virtual void UpdateForces(double mytime) override;
+    virtual void UpdateForces(double time) override;
 
     /// Updates Cqw1 and Cqw2  given updated  Cq1 and Cq2, i.e. computes the jacobians with 'Wl' rotational coordinates
     /// knowing the jacobians for body rotations in quaternion coordinates.
     void UpdateCqw();
 
     /// Full update. Fills-in all the matrices of the link, and does all required calculations by calling specific
-    /// Update functions in sequence: <pre>
-    ///     UpdateTime;
-    ///     UpdateRelMarkerCoords;
-    ///     UpdateState;
-    ///     UpdateCqw
-    ///     UpdateForces;
-    /// </pre>
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Update functions in sequence:
+    /// - UpdateTime;
+    /// - UpdateRelMarkerCoords;
+    /// - UpdateState;
+    /// - UpdateCqw
+    /// - UpdateForces;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -361,8 +363,8 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     ChCoordsysd deltaC_dt;    ///< user-imposed rel. speed
     ChCoordsysd deltaC_dtdt;  ///< user-imposed rel. acceleration
 
-    /// Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
-    virtual void UpdateTime(double mytime) override;
+    /// Update time-dependent quantities in link state.
+    virtual void UpdateTime(double time);
 
     /// Given current time and body state, computes the constraint differentiation to get the
     /// the state matrices Cq1,  Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.

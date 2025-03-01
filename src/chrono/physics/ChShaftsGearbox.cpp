@@ -66,9 +66,9 @@ bool ChShaftsGearbox::Initialize(std::shared_ptr<ChShaft> shaft_1,    // first (
     return true;
 }
 
-void ChShaftsGearbox::Update(double mytime, bool update_assets) {
+void ChShaftsGearbox::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...

@@ -56,19 +56,8 @@ ChWrenchd ChLink::GetReaction2() const {
 
 // -----------------------------------------------------------------------------
 
-void ChLink::UpdateTime(double time) {
-    ChTime = time;
-}
-
 void ChLink::Update(double time, bool update_assets) {
-    UpdateTime(time);
-
-    // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
-}
-
-void ChLink::Update(bool update_assets) {
-    Update(ChTime, update_assets);  // use the same time
+    ChPhysicsItem::Update(time, update_assets);
 }
 
 void ChLink::ArchiveOut(ChArchiveOut& archive_out) {

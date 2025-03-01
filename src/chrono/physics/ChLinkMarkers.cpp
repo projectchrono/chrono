@@ -288,19 +288,18 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     relWacc = relGw * relM_dtdt.rot;
 }
 
-void ChLinkMarkers::UpdateForces(double mytime) {
+void ChLinkMarkers::UpdateForces(double time) {
     // reset internal force accumulators
     C_force = VNULL;  // initialize int.forces accumulators
     C_torque = VNULL;
 }
 
 void ChLinkMarkers::Update(double time, bool update_assets) {
-    UpdateTime(time);
+    // Update time and assets
+    ChPhysicsItem::Update(time, update_assets);
+
     UpdateRelMarkerCoords();
     UpdateForces(time);
-
-    // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

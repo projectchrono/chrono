@@ -79,7 +79,7 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     double mrot_dt;
     double mrot_dtdt;
 
-    virtual void Update(double mytime, bool update_assets) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotation, 0)

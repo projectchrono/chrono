@@ -378,14 +378,9 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     void SetSleepMinAngVel(float m_t) { sleep_minwvel = m_t; }
     float GetSleepMinAngVel() const { return sleep_minwvel; }
 
-    // UPDATE FUNCTIONS
-
     /// Update all auxiliary data of the particles
-    virtual void Update(double mytime, bool update_assets = true) override;
-    /// Update all auxiliary data of the particles
-    virtual void Update(bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
-    // SERIALIZATION
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 

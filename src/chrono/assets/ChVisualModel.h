@@ -28,7 +28,7 @@ namespace chrono {
 /// @{
 
 // Forward declaration
-class ChPhysicsItem;
+class ChObj;
 
 /// Base class for a visual model which encapsulates a set of visual shapes.
 /// Visual models can be instantiated and shared among different Chrono physics items.
@@ -87,7 +87,7 @@ class ChApi ChVisualModel {
   private:
     /// Update this visual model with information for the owning physical object.
     /// Since a visual model can be shared in multiple instances, this function may be called with different owners.
-    void Update(ChPhysicsItem* owner, const ChFrame<>& frame);
+    void Update(ChObj* owner, const ChFrame<>& frame);
 
     std::vector<ShapeInstance> m_shapes;
     std::vector<std::shared_ptr<ChVisualShapeFEA>> m_shapesFEA;
@@ -112,9 +112,9 @@ class ChApi ChVisualModelInstance {
     ChVisualModelInstance(std::shared_ptr<ChVisualModel> model);
 
     std::shared_ptr<ChVisualModel> m_model;
-    ChPhysicsItem* m_owner;
+    ChObj* m_owner;
 
-    friend class ChPhysicsItem;
+    friend class ChObj;
 };
 
 /// @} chrono_assets

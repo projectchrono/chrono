@@ -29,8 +29,8 @@ ChLinkMotorLinearForce::ChLinkMotorLinearForce(const ChLinkMotorLinearForce& oth
 
 ChLinkMotorLinearForce::~ChLinkMotorLinearForce() {}
 
-void ChLinkMotorLinearForce::Update(double mytime, bool update_assets) {
-    ChLinkMotorLinear::Update(mytime, update_assets);
+void ChLinkMotorLinearForce::Update(double time, bool update_assets) {
+    ChLinkMotorLinear::Update(time, update_assets);
 }
 
 void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {

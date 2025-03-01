@@ -46,9 +46,9 @@ ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed(const ChLinkMotorRotationSpee
 
 ChLinkMotorRotationSpeed::~ChLinkMotorRotationSpeed() {}
 
-void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
+void ChLinkMotorRotationSpeed::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotorRotation::Update(mytime, update_assets);
+    ChLinkMotorRotation::Update(time, update_assets);
 
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:

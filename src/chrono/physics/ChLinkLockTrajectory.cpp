@@ -54,7 +54,7 @@ void ChLinkLockTrajectory::SetTrajectory(std::shared_ptr<ChLine> mline) {
 }
 
 void ChLinkLockTrajectory::UpdateTime(double time) {
-    ChTime = time;
+    ChLinkLock::UpdateTime(time);
 
     double tstep = FD_STEP_HIGH;
     double tr_time = space_fx->GetVal(time);

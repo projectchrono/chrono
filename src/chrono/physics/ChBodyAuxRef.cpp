@@ -44,7 +44,7 @@ void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
 
     for (auto& marker : marklist) {
         marker->ConcatenatePreTransformation(com_oldnew);
-        marker->Update(ChTime);
+        marker->Update(GetChTime(), true);
     }
 }
 
@@ -59,9 +59,9 @@ void ChBodyAuxRef::SetFrameCOMToAbs(const ChFrame<>& frame) {
     ref_to_abs = frame.TransformLocalToParent(ref_to_com);
 }
 
-void ChBodyAuxRef::Update(bool update_assets) {
+void ChBodyAuxRef::Update(double time, bool update_assets) {
     // update parent class
-    ChBody::Update(update_assets);
+    ChBody::Update(time, update_assets);
 
     // update own data
     ref_to_abs = TransformLocalToParent(ref_to_com);

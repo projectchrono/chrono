@@ -165,12 +165,6 @@ void ChForce::GetBodyForceTorque(ChVector3d& body_force, ChVector3d& body_torque
 
 // Updating
 
-void ChForce::UpdateTime(double mytime) {
-    ChTime = mytime;
-
-    //... put time-dependent stuff here..
-}
-
 void ChForce::UpdateState() {
     ChBody* my_body;
     double modforce;
@@ -267,8 +261,8 @@ void ChForce::UpdateState() {
     }
 }
 
-void ChForce::Update(double mytime) {
-    UpdateTime(mytime);
+void ChForce::Update(double time, bool update_assets) {
+    ChObj::Update(time, update_assets);
     UpdateState();
 }
 

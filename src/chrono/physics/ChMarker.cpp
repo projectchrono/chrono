@@ -139,15 +139,13 @@ void ChMarker::ImposeAbsoluteTransform(const ChFrame<>& frame) {
 }
 
 // This handles the time-varying functions for the relative coordinates
-void ChMarker::UpdateTime(double mytime) {
+void ChMarker::UpdateTime(double time) {
     ChCoordsysd csys, csys_dt, csys_dtdt;
     ChQuaterniond qtemp;
     double ang, ang_dt, ang_dtdt;
 
-    ChTime = mytime;
-
-    // If an imposed motion (keyframed movement) affects the marker position, compute the speed and acceleration values
-    // by finite differenting so the updating via motion laws can be skipped
+    // If an imposed motion (keyframed movement) affects the marker position, compute the speed and acceleration
+    // values by finite differenting so the updating via motion laws can be skipped
     if (m_motion_type == MotionType::KEYFRAMED)
         return;
 
@@ -156,25 +154,25 @@ void ChMarker::UpdateTime(double mytime) {
         return;
 
     // update positions
-    csys.pos.x() = m_motion_X->GetVal(mytime);
-    csys.pos.y() = m_motion_Y->GetVal(mytime);
-    csys.pos.z() = m_motion_Z->GetVal(mytime);
+    csys.pos.x() = m_motion_X->GetVal(time);
+    csys.pos.y() = m_motion_Y->GetVal(time);
+    csys.pos.z() = m_motion_Z->GetVal(time);
     csys.pos += m_rest_csys.pos;
 
     // update speeds
-    csys_dt.pos.x() = m_motion_X->GetDer(mytime);
-    csys_dt.pos.y() = m_motion_Y->GetDer(mytime);
-    csys_dt.pos.z() = m_motion_Z->GetDer(mytime);
+    csys_dt.pos.x() = m_motion_X->GetDer(time);
+    csys_dt.pos.y() = m_motion_Y->GetDer(time);
+    csys_dt.pos.z() = m_motion_Z->GetDer(time);
 
     // update accelerations
-    csys_dtdt.pos.x() = m_motion_X->GetDer2(mytime);
-    csys_dtdt.pos.y() = m_motion_Y->GetDer2(mytime);
-    csys_dtdt.pos.z() = m_motion_Z->GetDer2(mytime);
+    csys_dtdt.pos.x() = m_motion_X->GetDer2(time);
+    csys_dtdt.pos.y() = m_motion_Y->GetDer2(time);
+    csys_dtdt.pos.z() = m_motion_Z->GetDer2(time);
 
     // rotations
-    ang = m_motion_ang->GetVal(mytime);
-    ang_dt = m_motion_ang->GetDer(mytime);
-    ang_dtdt = m_motion_ang->GetDer2(mytime);
+    ang = m_motion_ang->GetVal(time);
+    ang_dt = m_motion_ang->GetDer(time);
+    ang_dtdt = m_motion_ang->GetDer2(time);
 
     if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
         // update q
@@ -192,13 +190,13 @@ void ChMarker::UpdateTime(double mytime) {
     }
 
     // Set the position, speed and acceleration in relative space, automatically getting also the absolute values
-    if (!(csys == this->m_csys))
+    if (!(csys == m_csys))
         SetCoordsys(csys);
 
-    if (!(csys_dt == this->m_csys_dt) || !(csys_dt.rot == QNULL))
+    if (!(csys_dt == m_csys_dt) || !(csys_dt.rot == QNULL))
         SetCoordsysDt(csys_dt);
 
-    if (!(csys_dtdt == this->m_csys_dtdt) || !(csys_dtdt.rot == QNULL))
+    if (!(csys_dtdt == m_csys_dtdt) || !(csys_dtdt.rot == QNULL))
         SetCoordsysDt2(csys_dtdt);
 }
 
@@ -208,8 +206,10 @@ void ChMarker::UpdateState() {
     m_abs_frame = GetBody()->TransformLocalToParent(*this);
 }
 
-void ChMarker::Update(double mytime) {
-    UpdateTime(mytime);
+void ChMarker::Update(double time, bool update_assets) {
+    ChObj::Update(time, update_assets);
+
+    UpdateTime(time);
     UpdateState();
 }
 
@@ -221,11 +221,11 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
     // do not try to switch on the KEYFRAMED mode if we are already in the EXTERNAL mode, maybe because a link
     // point-surface is already moving the marker and it will handle the accelerations by itself
-    if (this->m_motion_type == MotionType::EXTERNAL)
+    if (m_motion_type == MotionType::EXTERNAL)
         return;
 
     // otherwise see if finite differencing is needed, beccause an external 3rd party is moving the marker
-    this->m_motion_type = MotionType::FUNCTIONS;
+    m_motion_type = MotionType::FUNCTIONS;
 
     // if POSITION or ROTATION ("rel_pos") has been changed in acceptable time step...
     if ((!(Vequal(m_csys.pos, m_last_rel_csys.pos)) || !(Qequal(m_csys.rot, m_last_rel_csys.rot))) &&
@@ -249,10 +249,10 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
             SetCoordsysDt2(rel_pos_dtdt);
 
             // update the remaining state variables
-            this->UpdateState();
+            UpdateState();
 
             // that the movement of this marker does need further update of speed and acc. via motion laws
-            this->m_motion_type = MotionType::KEYFRAMED;
+            m_motion_type = MotionType::KEYFRAMED;
         }
     }
 

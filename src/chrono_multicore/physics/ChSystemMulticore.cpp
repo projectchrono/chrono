@@ -149,7 +149,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
             body->VariablesQbIncrementPosition(this->GetStep());
             body->VariablesQbSetSpeed(this->GetStep());
 
-            body->Update(ch_time);
+            body->Update(ch_time, true);
 
             // update the position and rotation vectors
             pos_pointer[i] = (real3(body->GetPos().x(), body->GetPos().y(), body->GetPos().z()));
@@ -166,7 +166,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
             shaft->Variables().State()(0) = velocities[offset + i];
             shaft->VariablesQbIncrementPosition(GetStep());
             shaft->VariablesQbSetSpeed(GetStep());
-            shaft->Update(ch_time);
+            shaft->Update(ch_time, true);
         }
     }
 
@@ -187,7 +187,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     }
 
     for (int i = 0; i < assembly.otherphysicslist.size(); i++) {
-        assembly.otherphysicslist[i]->Update(ch_time);
+        assembly.otherphysicslist[i]->Update(ch_time, true);
     }
 
     data_manager->node_container->UpdatePosition(ch_time);

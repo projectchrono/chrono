@@ -34,9 +34,8 @@ ChLinkLockLinActuator::ChLinkLockLinActuator(const ChLinkLockLinActuator& other)
     dist_funct = std::shared_ptr<ChFunction>(other.dist_funct->Clone());
 }
 
-void ChLinkLockLinActuator::UpdateTime(double mytime) {
-    // First, inherit to parent class
-    ChLinkLockLock::UpdateTime(mytime);
+void ChLinkLockLinActuator::UpdateTime(double time) {
+    ChLinkLockLock::UpdateTime(time);
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
