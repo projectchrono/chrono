@@ -34,9 +34,9 @@ ChLinkMotionImposed::ChLinkMotionImposed(const ChLinkMotionImposed& other) : ChL
 
 ChLinkMotionImposed::~ChLinkMotionImposed() {}
 
-void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
+void ChLinkMotionImposed::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMateGeneric::Update(mytime, update_assets);
+    ChLinkMateGeneric::Update(time, update_assets);
 
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame2:
@@ -45,8 +45,8 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
         ChFrame<> frame1W = m_frame1 >> (*this->m_body1);
         ChFrame<> frame2W = m_frame2 >> (*this->m_body2);
 
-        frameM2.SetRot(rotation_function->GetQuat(mytime));
-        frameM2.SetPos(position_function->GetPos(mytime));
+        frameM2.SetRot(rotation_function->GetQuat(time));
+        frameM2.SetPos(position_function->GetPos(time));
 
         frameMb2 = frameM2 >> m_frame2;
 

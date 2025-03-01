@@ -122,7 +122,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;

@@ -62,9 +62,9 @@ int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     return true;
 }
 
-void ChLinkNodeFace::Update(double mytime, bool update_assets) {
+void ChLinkNodeFace::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...
@@ -405,9 +405,9 @@ int ChLinkNodeFaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
     return true;
 }
 
-void ChLinkNodeFaceRot::Update(double mytime, bool update_assets) {
+void ChLinkNodeFaceRot::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...

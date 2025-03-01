@@ -150,7 +150,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,

@@ -26,7 +26,7 @@ namespace chrono {
 /// @addtogroup chrono_assets
 /// @{
 
-class ChPhysicsItem;
+class ChObj;
 
 /// Base class for a visualization asset for rendering (run-time or post processing).
 /// Encapsulates basic information about the shape position, materials, and visibility.
@@ -105,9 +105,9 @@ class ChApi ChVisualShape {
   protected:
     ChVisualShape();
 
-    /// Update this visual shape with information for the owning physical object.
+    /// Update this visual shape with information for the owning object.
     /// Since a visual shape can be shared in multiple instances, this function may be called with different updaters.
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {}
+    virtual void Update(ChObj* updater, const ChFrame<>& frame) {}
 
     bool visible;     ///< shape visibility flag
     bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable

@@ -144,7 +144,7 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
                               ChVectorDynamic<>& rhs       ///< output ODE right-hand side vector
                               ) override;
 
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     bool m_verbose;
     bool m_initialized;

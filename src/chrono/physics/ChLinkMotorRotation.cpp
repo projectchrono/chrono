@@ -79,9 +79,9 @@ void ChLinkMotorRotation::SetSpindleConstraint(const SpindleConstraint mconstrai
     }
 }
 
-void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
+void ChLinkMotorRotation::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotor::Update(mytime, update_assets);
+    ChLinkMotor::Update(time, update_assets);
 
     // compute aux data for future reference (istantaneous pos speed accel)
     ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*this->m_body1);

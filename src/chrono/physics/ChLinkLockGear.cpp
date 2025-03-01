@@ -89,9 +89,9 @@ ChVector3d ChLinkLockGear::GetPosShaft2() const {
         return VNULL;
 }
 
-void ChLinkLockGear::UpdateTime(double mytime) {
+void ChLinkLockGear::UpdateTime(double time) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLock::UpdateTime(time);
 
     // Move markers 1 and 2 to align them as gear teeth
 

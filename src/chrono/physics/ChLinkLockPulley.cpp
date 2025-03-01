@@ -102,9 +102,9 @@ ChVector3d ChLinkLockPulley::GetPosShaft2() {
         return VNULL;
 }
 
-void ChLinkLockPulley::UpdateTime(double mytime) {
+void ChLinkLockPulley::UpdateTime(double time) {
     // First, inherit to parent class
-    ChLinkLockLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(time);
 
     ChFrame<double> abs_shaft1 = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
     ChFrame<double> abs_shaft2 = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);

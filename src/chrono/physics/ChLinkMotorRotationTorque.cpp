@@ -31,8 +31,8 @@ ChLinkMotorRotationTorque::ChLinkMotorRotationTorque(const ChLinkMotorRotationTo
 
 ChLinkMotorRotationTorque::~ChLinkMotorRotationTorque() {}
 
-void ChLinkMotorRotationTorque::Update(double mytime, bool update_assets) {
-    ChLinkMotorRotation::Update(mytime, update_assets);
+void ChLinkMotorRotationTorque::Update(double time, bool update_assets) {
+    ChLinkMotorRotation::Update(time, update_assets);
 }
 
 void ChLinkMotorRotationTorque::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {

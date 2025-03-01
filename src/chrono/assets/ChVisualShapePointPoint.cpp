@@ -24,7 +24,7 @@
 namespace chrono {
 
 // Extract two positions from updater if it has any, and then update line geometry from these positions.
-void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+void ChVisualShapePointPoint::Update(ChObj* updater, const ChFrame<>& frame) {
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
         point1 = link_markers->GetMarker1()->GetAbsCoordsys().pos;
         point2 = link_markers->GetMarker2()->GetAbsCoordsys().pos;
@@ -91,7 +91,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     this->SetLineGeometry(std::static_pointer_cast<ChLine>(linepath));
 }
 
-void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+void ChVisualShapeRotSpring::Update(ChObj* updater, const ChFrame<>& frame) {
     // Do nothing if not associated with an RSDA.
     auto rsda = dynamic_cast<ChLinkRSDA*>(updater);
     if (!rsda)

@@ -119,9 +119,9 @@ void ChLinkMateGeneric::SetBroken(bool mbro) {
         ChangedLinkMask();
 }
 
-void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
+void ChLinkMateGeneric::Update(double time, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::Update(mytime, update_assets);
+    ChLink::Update(time, update_assets);
 
     if (this->m_body1 && this->m_body2) {
         this->mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
@@ -1100,12 +1100,12 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> body1,
     }
 
     // do this asap otherwise the following Update() won't work..
-    this->m_body1 = body1.get();
-    this->m_body2 = body2.get();
+    m_body1 = body1.get();
+    m_body2 = body2.get();
 
     // Force the alignment of frames so that the Z axis is cross product of two dirs, etc.
     // by calling the custom update function of ChLinkMateOrthogonal.
-    this->Update(this->ChTime);
+    Update(ChTime, true);
 
     // Perform initialization (set pointers to variables, etc.)
     ChLinkMateGeneric::Initialize(body1, body2,
@@ -1274,9 +1274,9 @@ ChVector3d ChLinkMateRackPinion::GetAbsRackPos() {
         return VNULL;
 }
 
-void ChLinkMateRackPinion::UpdateTime(double mytime) {
+void ChLinkMateRackPinion::Update(double time, bool update_assets) {
     // First, inherit to parent class
-    ChLinkMateGeneric::UpdateTime(mytime);
+    ChLinkMateGeneric::Update(time, update_assets);
 
     ChFrame<double> abs_pinion = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_pinion);
     ChFrame<double> abs_rack = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_rack);

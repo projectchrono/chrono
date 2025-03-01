@@ -494,13 +494,12 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         ChLoadContainer::Update(ChTime, true);
     }
 
-    virtual void Update(double mytime, bool update_assets = true) override {
+    virtual void Update(double time, bool update_assets) override {
         // Note!!! we cannot call ComputeInternalForces here, because Update() could
         // be called multiple times per timestep and not necessarily in time-increasing order;
         // this is a problem because in this force model the force is dissipative and keeps a 'history'.
         // Instead, we invoke ComputeInternalForces only at the beginning of the timestep in Setup().
-
-        ChTime = mytime;
+        ChPhysicsItem::Update(time, update_assets);
     }
 
     // Synchronize information for a moving patch
