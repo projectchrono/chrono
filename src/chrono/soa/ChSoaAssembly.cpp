@@ -52,11 +52,13 @@ std::shared_ptr<ChMobilizedBody> ChSoaAssembly::findBody(const std::string& name
 // -----------------------------------------------------------------------------
 
 double ChSoaAssembly::getY(int which) const {
-    return GetStates()[which];
+    ////return GetStates()[which];
+    return m_y[which];
 }
 
 double ChSoaAssembly::getYd(int which) const {
-    return GetStateDerivatives()[which];
+    ////return GetStateDerivatives()[which];
+    return m_yd[which];
 }
 
 double ChSoaAssembly::getYdd(int which) const {
@@ -64,13 +66,11 @@ double ChSoaAssembly::getYdd(int which) const {
 }
 
 void ChSoaAssembly::setY(int which, double val) {
-    //// TODO
-    ////m_y0(which) = val;
+    m_y[which] = val;
 }
 
 void ChSoaAssembly::setYd(int which, double val) {
-    //// TODO
-    ////m_yd0(which) = val;
+    m_yd[which] = val;
 }
 
 void ChSoaAssembly::setYdd(int which, double val) {
@@ -121,6 +121,10 @@ void ChSoaAssembly::Initialize() {
 
     // Mark SOA assembly as initialized
     m_initialized = true;
+}
+
+void ChSoaAssembly::DoForwardKinematics() {
+    calcPosAndVel(m_y, m_yd);
 }
 
 void ChSoaAssembly::calcPosAndVel(const ChVectorDynamic<double>& y, const ChVectorDynamic<>& yd) {

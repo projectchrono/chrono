@@ -31,6 +31,10 @@ ChRevoluteBody::ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
     m_H_FM_dot.lin().setZero();
 }
 
+ChRevoluteBody::ChRevoluteBody(const ChRevoluteBody& other) : ChMobilizedBodyT<1>(other) {
+  //// TODO
+}
+
 void ChRevoluteBody::setRelPos(double rotAngle) {
     if (m_assembly && m_assembly->IsInitialized())
         setQ(0, std::fmod(rotAngle, CH_2PI));

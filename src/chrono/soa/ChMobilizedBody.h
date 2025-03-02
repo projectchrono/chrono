@@ -34,6 +34,7 @@
 #define CH_MOBILIZED_BODY_H
 
 #include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChObject.h"
 
 #include "chrono/soa/ChSpatial.h"
 #include "chrono/soa/ChMassProps.h"
@@ -51,7 +52,7 @@ class ChSoaAssembly;
 /// This abstract class implements an articulated rigid body which is part of a multibody mechanical SOA assembly. This
 /// object encapsulates all quantities required for recursive operations on a multibody tree that are not dependent on
 /// the actual number of degrees of freedom.
-class ChApi ChMobilizedBody {
+class ChApi ChMobilizedBody : public ChObj {
   public:
     virtual ~ChMobilizedBody();
 
@@ -154,6 +155,9 @@ class ChApi ChMobilizedBody {
     void applyBodyForce(const ChSpatialVec& force) { m_bodyForce += force; }
     const ChSpatialVec& getBodyForce() const { return m_bodyForce; }
 
+    /// A visual model attached to this mobilized body is expected relative to the inboard frame.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return m_absPos; }
+
   protected:
     struct MobilityForce {
         int dof;
@@ -166,7 +170,9 @@ class ChApi ChMobilizedBody {
                     const ChFramed& X_BM,
                     const std::string& name = "");
 
-    void ApplyMobilityForces();
+    ChMobilizedBody(const ChMobilizedBody& other);
+
+    // Direct access to state vectors
 
     double getQ(int dof) const;
     double getU(int dof) const;
@@ -175,6 +181,8 @@ class ChApi ChMobilizedBody {
     void setQ(int dof, double val) const;
     void setU(int dof, double val) const;
     void setUdot(int dof, double val) const;
+
+    void ApplyMobilityForces();
 
     // Outward recursive functions
     // ---------------------------
@@ -360,11 +368,11 @@ class ChApi ChMobilizedBody {
 
     // SOA quantities
 
-    ChFramed m_X_PF;
-    ChFramed m_X_BM;
+    ChFramed m_X_PF;  ///< inboard (fixed) frame expressed in parent frame
+    ChFramed m_X_BM;  ///< inboard (moving) frame expressed in body frame
 
-    ChFramed m_X_FM;
-    ChFramed m_X_PB;
+    ChFramed m_X_FM;  ///< inboard joint transition frame (includes DOFs)
+    ChFramed m_X_PB;  ///< body frame expressed in parent frame
 
     ChShiftMat m_Phi;
 
@@ -405,7 +413,12 @@ class ChApi ChMobilizedBody {
 class ChApi ChGroundBody : public ChMobilizedBody {
   public:
     ChGroundBody();
+    ChGroundBody(const ChGroundBody& other);
+
     ~ChGroundBody() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChGroundBody* Clone() const override { return new ChGroundBody(*this); }
 
     virtual bool isGround() const override { return true; }
 

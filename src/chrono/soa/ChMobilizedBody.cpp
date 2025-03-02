@@ -37,6 +37,10 @@ ChMobilizedBody::ChMobilizedBody(std::shared_ptr<ChMobilizedBody> parent,
         m_parent->m_children.push_back(this);
 }
 
+ChMobilizedBody::ChMobilizedBody(const ChMobilizedBody& other) : ChObj(other) {
+    //// TODO
+}
+
 ChMobilizedBody::~ChMobilizedBody() {
     if (m_parent) {
         auto itr = std::find(std::begin(m_parent->m_children), std::end(m_parent->m_children), this);
@@ -240,6 +244,10 @@ ChGroundBody::ChGroundBody() : ChMobilizedBody(nullptr, ChMassProps(), ChFramed(
     m_V_FM.setZero();
     m_absVel.setZero();
     m_absAcc.setZero();
+}
+
+ChGroundBody::ChGroundBody(const ChGroundBody& other) : ChMobilizedBody(other) {
+    //// TODO
 }
 
 }  // namespace soa

@@ -46,6 +46,11 @@ class ChApi ChRevoluteBody : public ChMobilizedBodyT<1> {
                    const ChFramed& outbFrame,
                    const std::string& name = "");
 
+    ChRevoluteBody(const ChRevoluteBody& other);
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChRevoluteBody* Clone() const override { return new ChRevoluteBody(*this); }
+
     virtual int getNumQ() const override { return 1; }
 
     // Set the internal coordinates for the ChRevoluteBody so they best approximate the specified

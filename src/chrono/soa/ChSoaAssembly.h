@@ -38,13 +38,15 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
 
     void RemoveBody(std::shared_ptr<ChMobilizedBody> body);
 
-    virtual void Initialize() override;
-    bool IsInitialized() const { return m_initialized; }
-
     std::shared_ptr<ChGroundBody> getGroundBody() const { return m_ground_body; }
     std::vector<std::shared_ptr<ChMobilizedBody>> getBodies() const { return m_bodies; }
 
     std::shared_ptr<ChMobilizedBody> findBody(const std::string& name) const;
+
+    virtual void Initialize() override;
+    bool IsInitialized() const { return m_initialized; }
+
+    void DoForwardKinematics();
 
   private:
     // SOA assembly recursive traversal functions
@@ -140,6 +142,7 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
     virtual void CalculateStateIncrement(const ChVectorDynamic<>& x,
                                          const ChVectorDynamic<>& x_new,
                                          ChVectorDynamic<>& Dv) override {}
+
     // Direct access to state vectors
 
     double getY(int which) const;
