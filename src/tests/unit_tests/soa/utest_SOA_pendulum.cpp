@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2024 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Tests for a 3D simple pendulum1 modeled using SOA relative coordinates
+// Tests for 3D simple pendulum modeled using SOA relative coordinates
 //
 // =============================================================================
 

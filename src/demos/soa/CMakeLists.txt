@@ -1,11 +1,22 @@
-set(LIBRARIES Chrono_core)
+if(NOT CH_ENABLE_MODULE_IRRLICHT AND NOT CH_ENABLE_MODULE_VSG)
+    return()
+endif()
 
 set(TESTS
-    utest_SOA_spatial_matrices
-    utest_SOA_pendulum
+    demo_SOA_pendulum
 )
 
-message(STATUS "Add unit test programs for SOA module")
+list(APPEND LIBS Chrono_core)
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+  list(APPEND LIBS "Chrono_irrlicht")
+endif()
+
+if(CH_ENABLE_MODULE_VSG)
+  list(APPEND LIBS "Chrono_vsg")
+endif()
+
+message(STATUS "Add demo programs for SOA module")
 
 foreach(PROGRAM ${TESTS})
     #message(STATUS "...add ${PROGRAM}")
@@ -14,10 +25,9 @@ foreach(PROGRAM ${TESTS})
     source_group(""  FILES "${PROGRAM}.cpp")
 
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    target_link_libraries(${PROGRAM} ${LIBRARIES} gtest_main)
+    target_link_libraries(${PROGRAM} ${LIBS})
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 endforeach(PROGRAM)
 
 

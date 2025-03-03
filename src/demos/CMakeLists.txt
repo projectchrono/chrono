@@ -47,6 +47,12 @@ if(BUILD_DEMOS_FEA)
     add_subdirectory(fea)
 endif()
 
+option(BUILD_DEMOS_SOA "Build demo programs for SOA" TRUE)
+mark_as_advanced(FORCE BUILD_DEMOS_SOA)
+if(BUILD_DEMOS_SOA)
+    add_subdirectory(soa)
+endif()
+
 option(BUILD_DEMOS_ROBOT "Build robot demo programs" ON)
 mark_as_advanced(FORCE BUILD_DEMOS_ROBOT)
 if(BUILD_DEMOS_ROBOT)
