@@ -46,6 +46,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChParticleCloud.h"
+#include "chrono/soa/ChSoaAssembly.h"
 
 #include "chrono_vsg/ChApiVSG.h"
 #include "chrono_vsg/ChGuiComponentVSG.h"
@@ -97,15 +98,18 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// </pre>
     virtual void Render() override;
 
+    /// Render ref frames for all objects in the system.
+    void RenderRefFrames(double axis_length = 1);
+    void SetRefFrameScale(double axis_length);
+    void ToggleRefFrameVisibility();
+
     /// Render COG frames for all bodies in the system.
     virtual void RenderCOGFrames(double axis_length = 1) override;
-
     void SetCOGFrameScale(double axis_length);
     void ToggleCOGFrameVisibility();
 
     /// Render joint frames for all links in the system.
     void RenderJointFrames(double axis_length = 1);
-
     void SetJointFrameScale(double axis_length);
     void ToggleJointFrameVisibility();
 
@@ -273,6 +277,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Group> m_deformableScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
+    vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
 
@@ -311,8 +316,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void exportScreenImage();
 
   private:
-    /// Bind the visual model associated with a body.
-    void BindBody(const std::shared_ptr<ChBody>& body);
+    /// Bind the visual model associated with an arbitrary ChObj.
+    void BindObject(const std::shared_ptr<ChObj>& obj);
 
     /// Bind deformable meshes in the visual model associated with the given physics item.
     void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item);
@@ -323,17 +328,24 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 
-    /// Bind the body COG frame.
-    void BindBodyFrame(const std::shared_ptr<ChBody>& body);
+    /// Bind the visual models associated with the given SOA assembly.
+    void BindSoaAssembly(const std::shared_ptr<soa::ChSoaAssembly>& soa);
+
+    /// Bind the reference frame for the given ChObj.
+    void BindReferenceFrame(const std::shared_ptr<ChObj>& obj);
+
+    /// Bind the body COM frame.
+    void BindCOMFrame(const std::shared_ptr<ChBody>& body);
+    void BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>& mbody);
 
     /// Bind the joint frames.
     void BindLinkFrame(const std::shared_ptr<ChLink>& link);
 
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
-    /// The visual model may or may not be associated with a Chrono physics item.
+    /// The visual model may or may not be associated with a Chrono object.
     void PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                        std::shared_ptr<ChVisualModel> model,
-                       std::shared_ptr<ChPhysicsItem> phitem);
+                       std::shared_ptr<ChObj> obj);
 
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
@@ -358,6 +370,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_elevation = 0;
     double m_azimuth = 0;
     float m_guiFontSize = 20.0f;
+
+    bool m_show_ref_frames;    ///< flag to toggle object reference frame visibility
+    double m_ref_frame_scale;  ///< current reference frame scale
 
     bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
     double m_cog_frame_scale;  ///< current COG frame scale

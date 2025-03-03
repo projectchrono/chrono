@@ -147,10 +147,23 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::TextUnformatted("COG:");
+            ImGui::TextUnformatted("Ref:");
+            ImGui::TableNextColumn();
+            static bool bRef_frame_active = false;
+            if (ImGui::Checkbox("Ref", &bRef_frame_active))
+                m_app->ToggleRefFrameVisibility();
+            ImGui::TableNextColumn();
+            float ref_frame_scale = m_app->m_ref_frame_scale;
+            ImGui::PushItemWidth(120.0f);
+            ImGui::SliderFloat("scale##ref", &ref_frame_scale, 0.1f, 10.0f);
+            ImGui::PopItemWidth();
+            m_app->m_ref_frame_scale = ref_frame_scale;
+
+            ImGui::TableNextRow();
+            ImGui::TextUnformatted("COM:");
             ImGui::TableNextColumn();
             static bool bCOG_frame_active = false;
-            if (ImGui::Checkbox("COG", &bCOG_frame_active))
+            if (ImGui::Checkbox("COM", &bCOG_frame_active))
                 m_app->ToggleCOGFrameVisibility();
             ImGui::TableNextColumn();
             float cog_frame_scale = m_app->m_cog_frame_scale;
@@ -455,9 +468,11 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_gui(true),
       m_show_base_gui(true),
       m_camera_trackball(true),
+      m_ref_frame_scale(1),
       m_cog_frame_scale(1),
-      m_show_cog_frames(false),
       m_joint_frame_scale(1),
+      m_show_ref_frames(false),
+      m_show_cog_frames(false),
       m_show_joint_frames(false),
       m_frame_number(0),
       m_start_time(0),
@@ -474,6 +489,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     // creation here allows to set entries before initialize
     m_bodyScene = vsg::Group::create();
+    m_refFrameScene = vsg::Switch::create();
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
     m_pointpointScene = vsg::Group::create();
@@ -813,6 +829,7 @@ void ChVisualSystemVSG::Initialize() {
         m_scene->addChild(absoluteTransform);
     }
     m_scene->addChild(m_bodyScene);
+    m_scene->addChild(m_refFrameScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_pointpointScene);
@@ -1082,6 +1099,29 @@ void ChVisualSystemVSG::Render() {
     m_fps = 1.0 / m_current_time;
 }
 
+void ChVisualSystemVSG::RenderRefFrames(double axis_length) {
+    m_ref_frame_scale = axis_length;
+    m_show_ref_frames = true;
+
+    if (m_initialized) {
+        for (auto& child : m_refFrameScene->children)
+            child.mask = m_show_ref_frames;
+    }
+}
+
+void ChVisualSystemVSG::SetRefFrameScale(double axis_length) {
+    m_ref_frame_scale = axis_length;
+}
+
+void ChVisualSystemVSG::ToggleRefFrameVisibility() {
+    m_show_ref_frames = !m_show_ref_frames;
+
+    if (m_initialized) {
+        for (auto& child : m_refFrameScene->children)
+            child.mask = m_show_ref_frames;
+    }
+}
+
 void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
     m_cog_frame_scale = axis_length;
     m_show_cog_frames = true;
@@ -1149,10 +1189,10 @@ ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& di
 }
 
 // Utility function to populate a VSG group with shape groups (from the given visual model).
-// The visual model may or may not be associated with a Chrono physics item.
+// The visual model may or may not be associated with a Chrono object.
 void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                                       std::shared_ptr<ChVisualModel> model,
-                                      std::shared_ptr<ChPhysicsItem> phitem) {
+                                      std::shared_ptr<ChObj> obj) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& X_SM = shape_instance.second;
@@ -1231,21 +1271,21 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             auto grp = m_shapeBuilder->CreatePbrSurfaceShape(surface, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            const auto& objFilename = obj->GetFilename();
-            const auto& scale = obj->GetScale();
-            size_t objHashValue = m_stringHash(objFilename);
+        } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+            const auto& filename = model_file->GetFilename();
+            const auto& scale = model_file->GetScale();
+            size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
-            // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
+            // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, filename, m_options));
             map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
             objIt = m_objCache.find(objHashValue);
             if (objIt == m_objCache.end()) {
-                auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
+                auto node = vsg::read_cast<vsg::Node>(filename, m_options);
                 if (node) {
                     transform->addChild(node);
                     group->addChild(grp);
@@ -1268,9 +1308,9 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
     }  // end loop over visual shapes
 }
 
-void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
-    const auto& vis_model = body->GetVisualModel();
-    const auto& vis_frame = body->GetVisualModelFrame();
+void ChVisualSystemVSG::BindObject(const std::shared_ptr<ChObj>& obj) {
+    const auto& vis_model = obj->GetVisualModel();
+    const auto& vis_frame = obj->GetVisualModelFrame();
 
     if (!vis_model)
         return;
@@ -1285,7 +1325,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     auto shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateGroup(shapes_group, vis_model, body);
+    PopulateGroup(shapes_group, vis_model, obj);
 
     // Attach a transform to the group and initialize it with the body current position
     auto model_transform = vsg::MatrixTransform::create();
@@ -1299,7 +1339,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     modelGroup->addChild(model_transform);
 
     // Set group properties
-    modelGroup->setValue("Body", body);
+    modelGroup->setValue("Object", obj);
     modelGroup->setValue("Transform", model_transform);
 
     // Add the group to the global holder
@@ -1501,12 +1541,44 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     m_clouds.push_back(cloud);
 }
 
-void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
+void ChVisualSystemVSG::BindSoaAssembly(const std::shared_ptr<soa::ChSoaAssembly>& soa) {
+    for (const auto& mbody : soa->getBodies()) {
+        BindReferenceFrame(mbody);
+        BindCOMFrame(mbody);
+        BindObject(mbody);
+    }
+}
+
+void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
+    auto transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_ref_frame_scale);
+    vsg::Mask mask = m_show_ref_frames;
+    auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f);
+    node->setValue("Object", obj);
+    node->setValue("Transform", transform);
+    m_refFrameScene->addChild(mask, node);
+}
+
+//// TODO: change COM visualization to forward-facing card with only COM location
+
+void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
     auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
     cog_node->setValue("Body", body);
+    cog_node->setValue("MobilizedBody", nullptr);
+    cog_node->setValue("Transform", cog_transform);
+    m_cogFrameScene->addChild(mask, cog_node);
+}
+
+void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>& mbody) {
+    auto cog_transform = vsg::MatrixTransform::create();
+    cog_transform->matrix = vsg::dmat4CH(ChFramed(mbody->getAbsCOMLoc(), QUNIT), m_cog_frame_scale);
+    vsg::Mask mask = m_show_cog_frames;
+    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
+    cog_node->setValue("Body", nullptr);
+    cog_node->setValue("MobilizedBody", mbody);
     cog_node->setValue("Transform", cog_transform);
     m_cogFrameScene->addChild(mask, cog_node);
 }
@@ -1537,8 +1609,9 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
-        BindBodyFrame(body);
-        BindBody(body);
+        BindReferenceFrame(body);
+        BindCOMFrame(body);
+        BindObject(body);
         return;
     }
 
@@ -1554,11 +1627,19 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+    if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+        BindParticleCloud(pcloud);
+        return;
+    }
+
+    if (const auto& soa = std::dynamic_pointer_cast<soa::ChSoaAssembly>(item)) {
+        BindSoaAssembly(soa);
+        return;
+    }
+
     if (item->GetVisualModel()) {
         BindDeformableMesh(item);
         BindPointPoint(item);
-        if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
-            BindParticleCloud(pcloud);
     }
 }
 
@@ -1566,8 +1647,9 @@ void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
         // Bind visual models associated with bodies in the system
         for (const auto& body : sys->GetAssembly().GetBodies()) {
-            BindBodyFrame(body);
-            BindBody(body);
+            BindReferenceFrame(body);
+            BindCOMFrame(body);
+            BindObject(body);
         }
 
         // Bind visual models associated with links in the system
@@ -1590,6 +1672,8 @@ void ChVisualSystemVSG::BindAll() {
             BindPointPoint(item);
             if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
                 BindParticleCloud(pcloud);
+            if (const auto& soa = std::dynamic_pointer_cast<soa::ChSoaAssembly>(item))
+                BindSoaAssembly(soa);
         }
     }  // end loop over systems
 }
@@ -1597,17 +1681,36 @@ void ChVisualSystemVSG::BindAll() {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::UpdateFromMBS() {
-    // Update VSG nodes for body COG frame visualization
-    if (m_show_cog_frames) {
-        for (auto& child : m_cogFrameScene->children) {
-            std::shared_ptr<ChBody> body;
+    // Update VSG nodes for object reference frame visualization
+    if (m_show_ref_frames) {
+        for (auto& child : m_refFrameScene->children) {
+            std::shared_ptr<ChObj> obj;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
-            if (!child.node->getValue("Body", body))
+            if (!child.node->getValue("Object", obj))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
+            transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_ref_frame_scale);
+        }
+    }
+
+    // Update VSG nodes for body COM visualization
+    if (m_show_cog_frames) {
+        for (auto& child : m_cogFrameScene->children) {
+            std::shared_ptr<ChBody> body;
+            std::shared_ptr<soa::ChMobilizedBody> mbody;
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+
+            if (!child.node->getValue("Transform", transform))
+                continue;
+
+            if (child.node->getValue("Body", body))
+                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
+            else if (child.node->getValue("MobilizedBody", mbody))
+                transform->matrix = vsg::dmat4CH(ChFramed(mbody->getAbsCOMLoc(), QUNIT), m_cog_frame_scale);
+            else
+                continue;
         }
     }
 
@@ -1633,13 +1736,13 @@ void ChVisualSystemVSG::UpdateFromMBS() {
 
     // Update VSG nodes for body visualization
     for (const auto& child : m_bodyScene->children) {
-        std::shared_ptr<ChBody> body;
+        std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child->getValue("Body", body))
-            continue;
+        if (!child->getValue("Object", obj))
+          continue;
         if (!child->getValue("Transform", transform))
             continue;
-        transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
+        transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
     }
 
     // Update all VSG nodes with point-point visualization assets
