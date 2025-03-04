@@ -118,7 +118,7 @@ LMTV_Vehicle::~LMTV_Vehicle() {}
 // -----------------------------------------------------------------------------
 void LMTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystems.
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(this, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
     m_chassis_rear[0]->Initialize(m_chassis, WheeledCollisionFamily::CHASSIS);
 
     // Initialize the connection between front and rear chassis

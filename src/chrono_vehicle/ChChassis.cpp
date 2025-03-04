@@ -23,6 +23,7 @@
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
+#include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
@@ -30,7 +31,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed) {
+ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed), m_vehicle(nullptr) {
     m_container_bushings = chrono_types::make_shared<ChLoadContainer>();
     m_container_external = chrono_types::make_shared<ChLoadContainer>();
     m_container_terrain = chrono_types::make_shared<ChLoadContainer>();
@@ -51,6 +52,14 @@ ChChassis::~ChChassis() {
 }
 
 // -----------------------------------------------------------------------------
+
+uint16_t ChChassis::GetVehicleTag() const {
+    ChAssertAlways(m_vehicle != nullptr);
+    return m_vehicle->GetVehicleTag();
+}
+
+// -----------------------------------------------------------------------------
+
 const ChVector3d& ChChassis::GetPos() const {
     return m_body->GetFrameRefToAbs().GetPos();
 }
@@ -111,10 +120,14 @@ double ChChassis::GetTurnRate() const {
     return Vdot(w, ChWorldFrame::Vertical());
 }
 
-void ChChassis::Initialize(ChSystem* system,
+void ChChassis::Initialize(ChVehicle* vehicle,
                            const ChCoordsys<>& chassisPos,
                            double chassisFwdVel,
                            int collision_family) {
+    ChAssertAlways(vehicle != nullptr);
+    m_vehicle = vehicle;
+    ChSystem* system = vehicle->GetSystem();
+
     // Initial pose and velocity assumed to be given in current WorldFrame
     ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
 

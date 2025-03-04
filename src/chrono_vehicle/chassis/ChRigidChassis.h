@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     const std::string& GetMeshFilename() const { return m_geometry.vis_mesh_file; }
 
     /// Initialize the chassis at the specified global position and orientation.
-    virtual void Initialize(ChSystem* system,                ///< [in] containing system
+    virtual void Initialize(ChVehicle* vehicle,              ///< [in] containing vehicle
                             const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
                             double chassisFwdVel,            ///< [in] initial chassis forward velocity
                             int collision_family = 0         ///< [in] chassis collision family

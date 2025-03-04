@@ -149,7 +149,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
 
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<ChTrackTestRigChassis>();
-    m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
+    m_chassis->Initialize(this, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
     // Disable detracking control if requested

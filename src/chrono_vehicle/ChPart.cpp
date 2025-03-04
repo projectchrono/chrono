@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <stdexcept>
+
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -29,11 +31,20 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 ChPart::ChPart(const std::string& name)
     : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0) {}
 
 // -----------------------------------------------------------------------------
+
+uint16_t ChPart::GetVehicleTag() const {
+    if (m_parent)
+      return m_parent->GetVehicleTag();
+
+    throw std::runtime_error("Vehicle tag not available until after call to Initialize");
+}
+
+// -----------------------------------------------------------------------------
+
 void ChPart::Create(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));

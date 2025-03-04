@@ -66,6 +66,10 @@ class CH_VEHICLE_API ChPart {
     /// Return flag indicating whether or not the part is fully constructed.
     bool IsInitialized() const { return m_initialized; }
 
+    /// Get the tag of the associated vehicle.
+    /// This method can only be called after part initialization.
+    virtual uint16_t GetVehicleTag() const;
+
     /// Get the subsystem mass.
     /// Note that the correct value is reported only *after* the subsystem is initialized.
     double GetMass() const { return m_mass; }

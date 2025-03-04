@@ -24,6 +24,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -35,19 +36,19 @@ namespace vehicle {
 
 ChRigidChassis::ChRigidChassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {}
 
-void ChRigidChassis::Initialize(ChSystem* system,
+void ChRigidChassis::Initialize(ChVehicle* vehicle,
                                 const ChCoordsys<>& chassisPos,
                                 double chassisFwdVel,
                                 int collision_family) {
     // Invoke the base class method to construct the frame body.
-    ChChassis::Initialize(system, chassisPos, chassisFwdVel);
+    ChChassis::Initialize(vehicle, chassisPos, chassisFwdVel);
 
     // If collision shapes were defined, create the contact geometry and enable contact
     // for the chassis's rigid body.
     // NOTE: setting the collision family is deferred to the containing vehicle system
     // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_geometry.HasCollision()) {
-        m_geometry.CreateCollisionShapes(m_body, collision_family, system->GetContactMethod());
+        m_geometry.CreateCollisionShapes(m_body, collision_family, vehicle->GetSystem()->GetContactMethod());
     }
 }
 

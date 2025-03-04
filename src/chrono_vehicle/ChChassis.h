@@ -32,6 +32,8 @@
 namespace chrono {
 namespace vehicle {
 
+class ChVehicle;
+
 /// @addtogroup vehicle
 /// @{
 
@@ -47,6 +49,10 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     );
 
     virtual ~ChChassis();
+
+    /// Get the tag of the associated vehicle.
+    /// This method can only be called after initialization of the chassis subsystem.
+    virtual uint16_t GetVehicleTag() const override;
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -112,7 +118,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Initialize the chassis at the specified global position and orientation.
     /// The initial position and forward velocity are assumed to be given in the current world frame.
-    virtual void Initialize(ChSystem* system,                ///< [in] containing system
+    virtual void Initialize(ChVehicle* vehicle,              ///< [in] containing vehicle
                             const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
                             double chassisFwdVel,            ///< [in] initial chassis forward velocity
                             int collision_family = 0         ///< [in] chassis collision family
@@ -191,6 +197,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual ChFrame<> GetBodyCOMFrame() const = 0;
     virtual ChMatrix33<> GetBodyInertia() const = 0;
 
+    ChVehicle* m_vehicle;                                                ///< associated vehicle
     std::shared_ptr<ChBodyAuxRef> m_body;                                ///< handle to the chassis body
     std::shared_ptr<ChLoadContainer> m_container_bushings;               ///< load container for vehicle bushings
     std::shared_ptr<ChLoadContainer> m_container_external;               ///< load container for external forces
@@ -227,7 +234,7 @@ class CH_VEHICLE_API ChChassisRear : public ChChassis {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override final { return ChCoordsys<>(); }
 
     /// A rear chassis cannot be initialized as a root body.
-    virtual void Initialize(ChSystem* system,
+    virtual void Initialize(ChVehicle* vehicle,
                             const ChCoordsys<>& chassisPos,
                             double chassisFwdVel,
                             int collision_family = 0) override final {}
