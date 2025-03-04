@@ -283,7 +283,6 @@ void ChFsiProblemSPH::Initialize() {
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& m : m_meshes) {
         m_sysFSI.AddFsiMesh(m.mesh);
-        assert(m.mesh->GetNumContactSurfaces() > 0);
         for (const auto& surf : m.mesh->GetContactSurfaces()) {
             aabb += surf->GetAABB();
         }
