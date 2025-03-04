@@ -27,7 +27,7 @@
 
 #include "chrono_wood/ChBeamSectionCurvedIGA.h"
 
-using namespace chrono::wood;
+using namespace chrono::fea;
 using namespace chrono;
 
 namespace chrono {

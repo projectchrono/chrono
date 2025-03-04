@@ -21,8 +21,11 @@
 
 #include "chrono_wood/ChWoodApi.h"
 
+using namespace chrono::fea;
+using namespace chrono;
+
 namespace chrono {
-namespace fea {
+namespace wood {
 
 /// @addtogroup fea_nodes
 /// @{

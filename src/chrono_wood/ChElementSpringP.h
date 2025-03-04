@@ -15,7 +15,7 @@
 #ifndef CHELEMENTSPRINGP_H
 #define CHELEMENTSPRINGP_H
 
-#include "ChNodeFEAxyzPP.h"
+#include "chrono_wood/ChNodeFEAxyzPP.h"
 
 #include <cmath>
 
@@ -30,8 +30,11 @@
 
 #include "chrono_wood/ChWoodApi.h"
 
+using namespace chrono::fea;
+using namespace chrono;
+
 namespace chrono {
-namespace fea {
+namespace wood {
 
 /// @addtogroup fea_elements
 /// @{
@@ -192,7 +195,7 @@ class ChWoodApi ChElementSpringP : public ChElementGeneric,
 
 /// @} fea_elements
 
-}  // end namespace fea
+}  // end namespace wood
 }  // end namespace chrono
 
 #endif

@@ -105,3 +105,5 @@ build_chrono_website.sh
 .htaccess
 refman.pdf
 src/chrono_granular/DoxyGenDocs/
+*.vtk
+template_project_wood/out/hist.dat

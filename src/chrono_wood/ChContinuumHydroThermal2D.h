@@ -15,10 +15,10 @@
 #ifndef CHCONTINUUMHYDROTHERMAL2D_H
 #define CHCONTINUUMHYDROTHERMAL2D_H
 
-#include "ChContinuumPoisson2D.h"
+#include "chrono_wood/ChContinuumPoisson2D.h"
 
 namespace chrono {
-namespace fea {
+namespace wood {
 
 /// Class for thermal fields, for FEA problems involving temperature, heat, etc.
 
@@ -71,7 +71,7 @@ class ChContinuumHydroThermal2D : public ChContinuumPoisson2D {
     virtual double Get_DtMultiplier() override { return m_density * c_mass_specific_heat_capacity; }
 };
 
-}  // end namespace fea
+}  // end namespace wood
 }  // end namespace chrono
 
 #endif

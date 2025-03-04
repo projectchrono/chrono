@@ -41,9 +41,11 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 
-namespace chrono {
+using namespace chrono::fea;
+using namespace chrono;
 
-using namespace fea;
+namespace chrono {
+namespace wood {
 
 ChVisualShapeWOOD::ChVisualShapeWOOD(std::shared_ptr<fea::ChMesh> fea_mesh) {
     FEMmesh = fea_mesh;
@@ -1253,4 +1255,5 @@ void ChVisualShapeWOOD::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         }
 }
 
-}  // end namespace chrono
+}  // end of namespace wood
+}  // end of namespace chrono

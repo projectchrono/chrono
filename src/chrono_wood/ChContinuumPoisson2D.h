@@ -18,8 +18,10 @@
 #include "chrono/fea/ChContinuumMaterial.h"
 #include "chrono_wood/ChWoodApi.h"
 
+using namespace chrono::fea;
+
 namespace chrono {
-namespace fea {
+namespace wood {
 
 /// @addtogroup chrono_fea
 /// @{
@@ -47,7 +49,7 @@ class ChWoodApi ChContinuumPoisson2D : public ChContinuumMaterial {
 
 /// @} chrono_fea
 
-}  // end namespace fea
+}  // end namespace wood
 }  // end namespace chrono
 
 #endif

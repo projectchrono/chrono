@@ -27,7 +27,7 @@
 #include "chrono/geometry/ChBasisToolsNurbs.h"
 #include "chrono/core/ChQuadrature.h"
 
-using namespace chrono::wood;
+using namespace chrono::fea;
 using namespace chrono;
 
 namespace chrono {

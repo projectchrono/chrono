@@ -66,6 +66,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
+using namespace chrono::wood;
 using namespace irr;
 
 void WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename) {

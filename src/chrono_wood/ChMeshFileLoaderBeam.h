@@ -19,7 +19,7 @@
 
 #include <map>
 
-#include "ChElementSpringP.h"
+#include "chrono_wood/ChElementSpringP.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChMesh.h"
@@ -27,8 +27,11 @@
 
 #include "chrono_wood/ChWoodApi.h"
 
+using namespace chrono::fea;
+using namespace chrono;
+
 namespace chrono {
-namespace fea {
+namespace wood {
 
 /// @addtogroup fea_utils
 /// @{
@@ -98,7 +101,7 @@ class ChWoodApi ChMeshFileLoaderBeam {
 
 /// @} fea_utils
 
-}  // end namespace fea
+}  // end namespace wood
 }  // end namespace chrono
 
 #endif

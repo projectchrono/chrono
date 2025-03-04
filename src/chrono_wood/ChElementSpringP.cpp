@@ -12,10 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "ChElementSpringP.h"
+#include "chrono_wood/ChElementSpringP.h"
+
 
 namespace chrono {
-namespace fea {
+namespace wood {
 
 ChElementSpringP::ChElementSpringP() : Volume(0) {
     nodes.resize(2);
@@ -194,5 +195,5 @@ void ChElementSpringP::ComputeNF(const double U,
     //detJ /= 4.0;  // because volume
 }
 
-}  // end namespace fea
+}  // end namespace wood
 }  // end namespace chrono
