@@ -36,7 +36,7 @@ CH_SENSOR_API ChLidarSensor::ChLidarSensor(
     float max_vertical_angle,     // highest vertical angle
     float min_vertical_angle,     // lowest ray angle
     float max_distance,           // maximum distance for lidar
-    LidarBeamShape beam_shape,    // beam shape, only rectangular and eliptical are supported
+    LidarBeamShape beam_shape,    // beam shape, only rectangular and elliptical are supported
     unsigned int sample_radius,   // radius of the beam samples
     float vert_divergence_angle,  // vertical divergence angle of the beam
     float hori_divergence_angle,  // horizontal divergence angle of the beam
