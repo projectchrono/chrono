@@ -185,36 +185,40 @@ void ChElementCBLCON::UpdateRotation() {
 void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
-    ChVector3d delta_rot_dir;
-    double delta_rot_angle;
-
-    // Node 0, displacement (in local element frame, corotated back)
-    //     d = [Atw]' Xt - [A0w]'X0	
-	
-    ChVector3d displ = nodes[0]->Frame().GetPos() - nodes[0]->GetX0().GetPos();
-	mD.segment(0, 3) = displ.eigen();    
-    // Node 0, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta0 =  nodes[0]->Frame().GetRot() ;    
-    q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);	
-    if (delta_rot_angle > CH_PI) 
-        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180	
-    mD.segment(3, 3) = delta_rot_angle * delta_rot_dir.eigen();
+    // Node displacement
+    // If large deflection disabled, return displacement in global frame
+    // TODO: Go back to this function when we decide how to enable and formulate large deflection
+    auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
+        ChVector3d local_disp;
+        if (!LargeDeflection)
+            local_disp = node->Frame().GetPos() - node->GetX0().GetPos();
+        else
+            local_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
+        return local_disp;
+    };
     
+    // Node rotations
+    // If Large deflection disabled, return rotation in global frame
+    // TODO: Go back to this function when we decide how to enable and formulate large deflection
+    auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
+        ChVector3d delta_rot_dir;
+        double delta_rot_angle;
+        if (!LargeDeflection)
+            node->Frame().GetRot().GetAngleAxis(delta_rot_angle, delta_rot_dir);
+        else
+            node->Frame().GetRot().GetAngleAxis(delta_rot_angle, delta_rot_dir); // TODO: temporary
+        // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
+        // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
+        // TODO: We may want to use GetRotVec directly, but the angle is not within [-PI .. PI]
+        // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
+        return delta_rot_angle * delta_rot_dir;
+    };
 	
+	mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
+    mD.segment(3, 3) = getRotation(nodes[0]).eigen();
 
-    // Node 1, displacement (in local element frame, corotated back)
-    //     d = [Atw]' Xt - [A0w]'X0
-    displ = nodes[1]->Frame().GetPos() - nodes[1]->GetX0().GetPos();	
-    mD.segment(6, 3) = displ.eigen();
-
-    // Node 1, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta1 =  nodes[1]->Frame().GetRot() ;    
-    q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);	
-    if (delta_rot_angle > CH_PI)
-        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180    
-    mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
-	
-	
+    mD.segment(6, 3) = getDisplacement(nodes[1]).eigen();
+    mD.segment(9, 3) = getRotation(nodes[1]).eigen();
 }
 
 
