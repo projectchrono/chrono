@@ -13,12 +13,12 @@ endif()
 set(DEMOS
     demo_VEH_M113
     demo_VEH_M113_Band
+    demo_VEH_Marder
+    demo_VEH_TrackedJSON
 )
 
 if(CH_ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_Marder
-       demo_VEH_TrackedJSON
        demo_VEH_TrackedJSON_Band
    )
 endif()

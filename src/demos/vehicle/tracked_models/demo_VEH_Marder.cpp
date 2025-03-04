@@ -20,16 +20,25 @@
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
-
-#include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/marder/Marder.h"
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -44,6 +53,10 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+// Run-time visualization system (IRRLICHT or VSG)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+
 // Initial vehicle position
 ChVector3d initLoc(-40, 0, 0.9);
 
@@ -202,36 +215,72 @@ int main(int argc, char* argv[]) {
     ////AddFallingObjects(vehicle.GetSystem());
 
     // ---------------------------------------
-    // Create the vehicle Irrlicht application
+    // Create the vehicle run-time visualization
+    // and driver system
     // ---------------------------------------
 
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Marder Vehicle Demo");
-    vis->SetChaseCamera(trackPoint, 10.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&marder.GetVehicle());
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    std::shared_ptr<ChDriver> driver;
 
-    // ------------------------
-    // Create the driver system
-    // ------------------------
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("Marder Vehicle Demo");
+            vis_irr->SetChaseCamera(trackPoint, 10.0, 0.5);
+            ////vis_irr->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
+            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&marder.GetVehicle());
 
-    ChInteractiveDriverIRR driver(*vis);
+            auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
+            double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            irr_driver->SetSteeringDelta(render_step_size / steering_time);
+            irr_driver->SetThrottleDelta(render_step_size / throttle_time);
+            irr_driver->SetBrakingDelta(render_step_size / braking_time);
+            irr_driver->SetGains(2, 5, 5);
 
-    // Set the time response for keyboard inputs.
-    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
-    driver.SetGains(2, 5, 5);
+            vis = vis_irr;
+            driver = irr_driver;
 
-    driver.Initialize();
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("Marder Vehicle Demo");
+            vis_vsg->SetChaseCamera(trackPoint, 10.0, 0.5);
+            vis_vsg->AttachVehicle(&marder.GetVehicle());
+            ////vis_vsg->ShowAllCoGs(0.3);
+            vis_vsg->Initialize();
+
+            auto vsg_driver = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
+            double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            vsg_driver->SetSteeringDelta(render_step_size / steering_time);
+            vsg_driver->SetThrottleDelta(render_step_size / throttle_time);
+            vsg_driver->SetBrakingDelta(render_step_size / braking_time);
+            vsg_driver->SetGains(2, 5, 5);
+
+            vis = vis_vsg;
+            driver = vsg_driver;
+
+#endif
+            break;
+        }
+    }
+
+    driver->Initialize();
 
     // -----------------
     // Initialize output
@@ -387,17 +436,17 @@ int main(int argc, char* argv[]) {
         }
 
         // Current driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+        DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
         double time = marder.GetVehicle().GetChTime();
-        driver.Synchronize(time);
+        driver->Synchronize(time);
         terrain.Synchronize(time);
         marder.Synchronize(time, driver_inputs);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
+        driver->Advance(step_size);
         terrain.Advance(step_size);
         marder.Advance(step_size);
         vis->Advance(step_size);
