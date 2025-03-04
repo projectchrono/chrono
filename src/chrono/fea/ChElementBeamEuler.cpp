@@ -94,29 +94,27 @@ void ChElementBeamEuler::Update() {
     // parent class update:
     ChElementGeneric::Update();
 
-    // always keep updated the rotation matrix A:
-    this->UpdateRotation();
+    // Update the rotation matrix A when necessary:
+    if (!this->disable_corotate)
+        this->UpdateRotation();
 }
 
 void ChElementBeamEuler::UpdateRotation() {
-    if (!this->disable_corotate) {
-        ChMatrix33<> Aabs;
-        ChQuaternion<> q_element_ref_rot_previous(q_element_ref_rot);
+    ChMatrix33<> Aabs;
 
-        ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-        // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
-        //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
-        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeAref_frame);
-        // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
-        //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
-        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeBref_frame);
-        // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
-        ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
-        Aabs.SetFromAxisX(mXele_w, myele_w);
-        q_element_abs_rot = Aabs.GetQuaternion();
+    ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+    // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
+    //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
+    ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeAref_frame);
+    // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
+    //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
+    ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(yabs_in_elemref_to_nodeBref_frame);
+    // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
+    ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
+    Aabs.SetFromAxisX(mXele_w, myele_w);
+    q_element_abs_rot = Aabs.GetQuaternion();
 
-        this->A.SetFromQuaternion(q_element_ref_rot_previous.GetConjugate() * q_element_abs_rot);
-    }
+    this->A.SetFromQuaternion(q_element_ref_rot.GetConjugate() * q_element_abs_rot);
 }
 
 void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
@@ -124,9 +122,15 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
 
     // Node displacement in local element frame
     // d = [Atw]' Xt - [A0w]'X0
+    // If corotational disabled, [Atw] == [A0w] and we can do a single rotation.
     auto getDisplacement = [&](std::shared_ptr<ChNodeFEAxyzrot> node) {
-        return (q_element_abs_rot.RotateBack(node->Frame().GetPos()) -
-                q_element_ref_rot.RotateBack(node->GetX0().GetPos()));
+        ChVector3d local_disp;
+        if (disable_corotate)
+            local_disp = q_element_ref_rot.RotateBack(node->Frame().GetPos() - node->GetX0().GetPos());
+        else
+            local_disp = q_element_abs_rot.RotateBack(node->Frame().GetPos()) -
+                         q_element_ref_rot.RotateBack(node->GetX0().GetPos());
+        return local_disp;
     };
 
     // Node small rotations in local element frame
@@ -134,6 +138,7 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     auto getRotation = [&](std::shared_ptr<ChNodeFEAxyzrot> node, ChQuaternion<> q_elemref_to_noderef_conj) {
         ChVector3d delta_rot_dir;
         double delta_rot_angle;
+        // If corotational disabled, no efficiency gain by rotating qt * q0^-1 into local frame. Use corotational formula
         ChQuaternion<> q_delta = q_element_abs_rot.GetConjugate() * node->Frame().GetRot() * q_elemref_to_noderef_conj;
         // TODO: GetAngleAxis already returns in the range [-PI..PI], no need to change range
         // TODO: the previous range was only shifted if delta_rot_angle > CH_PI. How about delta_rot_angle < - CH_PI ? Was that a bug?
