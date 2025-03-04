@@ -192,23 +192,31 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             static bool body_obj_visible = true;
-            if (ImGui::Checkbox("Bodies", &body_obj_visible))
-                m_app->ToggleBodyObjVisibility();
+            if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
+                m_app->m_show_body_objs = !m_app->m_show_body_objs;
+                m_app->SetBodyObjVisibility(m_app->m_show_body_objs, -1);
+            }
 
             ImGui::TableNextColumn();
             static bool link_obj_visible = true;
-            if (ImGui::Checkbox("Links", &link_obj_visible))
-                m_app->ToggleLinkObjVisibility();
+            if (ImGui::Checkbox("Links", &link_obj_visible)) {
+                m_app->m_show_link_objs = !m_app->m_show_link_objs;
+                m_app->SetLinkObjVisibility(m_app->m_show_link_objs, -1);
+            }
 
             ImGui::TableNextColumn();
             static bool fea_mesh_visible = true;
-            if (ImGui::Checkbox("FEA meshes", &fea_mesh_visible))
-                m_app->ToggleFeaMeshVisibility();
+            if (ImGui::Checkbox("FEA meshes", &fea_mesh_visible)) {
+                m_app->m_show_fea_meshes = !m_app->m_show_fea_meshes;
+                m_app->SetFeaMeshVisibility(m_app->m_show_fea_meshes, -1);
+            }
 
             ImGui::TableNextColumn();
             static bool spring_visible = true;
-            if (ImGui::Checkbox("Springs", &spring_visible))
-                m_app->ToggleSpringVisibility();
+            if (ImGui::Checkbox("Springs", &spring_visible)) {
+                m_app->m_show_springs = !m_app->m_show_springs;
+                m_app->SetSpringVisibility(m_app->m_show_springs, -1);
+            }
 
             ImGui::EndTable();
         }
@@ -1128,66 +1136,71 @@ void ChVisualSystemVSG::Render() {
     m_fps = 1.0 / m_current_time;
 }
 
-void ChVisualSystemVSG::ToggleBodyObjVisibility() {
-    m_show_body_objs = !m_show_body_objs;
+void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_objScene->children) {
-            ObjectType type;
-            child.node->getValue("Type", type);
-            if (type == ObjectType::BODY)
-                child.mask = m_show_body_objs;
-        }
+    for (auto& child : m_objScene->children) {
+        ObjectType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
+            child.mask = m_show_body_objs;
     }
 }
 
-void ChVisualSystemVSG::ToggleLinkObjVisibility() {
-    m_show_link_objs = !m_show_link_objs;
+void ChVisualSystemVSG::SetLinkObjVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_objScene->children) {
-            ObjectType type;
-            child.node->getValue("Type", type);
-            if (type == ObjectType::LINK)
-                child.mask = m_show_link_objs;
-        }
+    for (auto& child : m_objScene->children) {
+        ObjectType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == ObjectType::LINK && (c_tag == tag || tag == -1))
+            child.mask = m_show_link_objs;
     }
 }
 
-void ChVisualSystemVSG::ToggleFeaMeshVisibility() {
-    m_show_fea_meshes = !m_show_fea_meshes;
+void ChVisualSystemVSG::SetFeaMeshVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_deformableScene->children) {
-            DeformableType type;
-            child.node->getValue("Type", type);
-            if (type == DeformableType::FEA)
-                child.mask = m_show_fea_meshes;
-        }
+    for (auto& child : m_deformableScene->children) {
+        DeformableType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == DeformableType::FEA && (c_tag == tag || tag == -1))
+            child.mask = m_show_fea_meshes;
     }
 }
 
-void ChVisualSystemVSG::ToggleSpringVisibility() {
-    m_show_springs = !m_show_springs;
+void ChVisualSystemVSG::SetSpringVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
 
-    if (m_initialized) {
-        for (auto& child : m_pointpointScene->children) {
-            PointPointType type;
-            child.node->getValue("Type", type);
-            if (type == PointPointType::SPRING)
-                child.mask = m_show_springs;
-        }
+    for (auto& child : m_pointpointScene->children) {
+        PointPointType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == PointPointType::SPRING && (c_tag == tag || tag == -1))
+            child.mask = m_show_springs;
     }
 }
 
 void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
-    if (m_initialized) {
-        for (auto& child : m_particleScene->children) {
-            int c_tag;
-            child.node->getValue("Tag", c_tag);
-            if (c_tag == tag || tag == -1)
-                child.mask = vis;
-        }
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_particleScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
     }
 }
 
@@ -1457,6 +1470,7 @@ void ChVisualSystemVSG::BindObject(const std::shared_ptr<ChObj>& obj, ObjectType
     // Set group properties
     modelGroup->setValue("Object", obj);
     modelGroup->setValue("Type", type);
+    modelGroup->setValue("Tag", obj->GetTag());
     modelGroup->setValue("Transform", model_transform);
 
     // Add the group to the global holder
@@ -1501,6 +1515,7 @@ void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>&
                          ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
                          : m_shapeBuilder->CreateTrimeshColShape(trimesh, transform, trimesh->IsWireframe());
         child->setValue("Type", type);
+        child->setValue("Tag", item->GetTag());
         vsg::Mask mask;
         switch (type) {
             case DeformableType::FEA:
@@ -1575,6 +1590,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
             transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
             auto group = m_shapeBuilder->CreateUnitSegment(shape_instance, material, transform);
             group->setValue("Type", PointPointType::SEGMENT);
+            group->setValue("Tag", item->GetTag());
             m_pointpointScene->addChild(mask_segments, group);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
             double rad = sprshape->GetRadius();
@@ -1587,6 +1603,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
             auto group = m_shapeBuilder->CreateSpringShape(shape_instance, material, transform, sprshape);
             group->setValue("Type", PointPointType::SPRING);
+            group->setValue("Tag", item->GetTag());
             m_pointpointScene->addChild(mask_springs, group);
         }
     }
@@ -1849,7 +1866,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
         if (!child.node->getValue("Object", obj))
-          continue;
+            continue;
         if (!child.node->getValue("Transform", transform))
             continue;
         transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
@@ -2159,7 +2176,8 @@ void ChVisualSystemVSG::exportScreenImage() {
         ok = stbi_write_tga(m_imageFilename.c_str(), width, height, 4, outPtr);
     } else if (m_imageFilename.rfind(".bmp") != std::string::npos) {
         ok = stbi_write_bmp(m_imageFilename.c_str(), width, height, 4, outPtr);
-    } else if (m_imageFilename.rfind(".jpg") != std::string::npos || m_imageFilename.rfind(".jpeg") != std::string::npos) {
+    } else if (m_imageFilename.rfind(".jpg") != std::string::npos ||
+               m_imageFilename.rfind(".jpeg") != std::string::npos) {
         ok = stbi_write_jpg(m_imageFilename.c_str(), width, height, 4, outPtr, 90);
     } else {
         vsg::info("Couldn't figure out desired graphics format! Use one of (*.png | *.tga | *.bmp | *.jpg | *.jpeg)");

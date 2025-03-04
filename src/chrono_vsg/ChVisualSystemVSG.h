@@ -97,17 +97,21 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// </pre>
     virtual void Render() override;
 
-    /// Toggle visibility of all body assets.
-    void ToggleBodyObjVisibility();
+    /// Set the visibility of bodies with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetBodyObjVisibility(bool vis, int tag = -1);
 
-    /// Toggle visibility of all link assets.
-    void ToggleLinkObjVisibility();
+    /// Set the visibility of links with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetLinkObjVisibility(bool vis, int tag = -1);
 
-    /// Toggle visibility of all FEA meshes.
-    void ToggleFeaMeshVisibility();
+    /// Set the visibility of FEA meshes with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetFeaMeshVisibility(bool vis, int tag = -1);
 
-    /// Toggle visibility of all spring assets.
-    void ToggleSpringVisibility();
+    /// Set the visibility of springs with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetSpringVisibility(bool vis, int tag = -1);
 
     /// Set the visibility of particle clouds with specified tag to the provided value.
     /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
