@@ -109,6 +109,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Toggle visibility of all spring assets.
     void ToggleSpringVisibility();
 
+    /// Set the visibility of particle clouds with specified tag to the provided value.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
+    void SetParticleCloudVisibility(bool vis, int tag = -1);
+
     /// Render ref frames for all objects in the system.
     void RenderRefFrames(double axis_length = 1);
     void SetRefFrameScale(double axis_length);

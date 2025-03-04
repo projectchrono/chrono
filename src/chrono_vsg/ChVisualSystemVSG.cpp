@@ -1180,6 +1180,17 @@ void ChVisualSystemVSG::ToggleSpringVisibility() {
     }
 }
 
+void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
+    if (m_initialized) {
+        for (auto& child : m_particleScene->children) {
+            int c_tag;
+            child.node->getValue("Tag", c_tag);
+            if (c_tag == tag || tag == -1)
+                child.mask = vis;
+        }
+    }
+}
+
 void ChVisualSystemVSG::RenderRefFrames(double axis_length) {
     m_ref_frame_scale = axis_length;
     m_show_ref_frames = true;
