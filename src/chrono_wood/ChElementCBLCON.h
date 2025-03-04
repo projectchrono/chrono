@@ -172,7 +172,7 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	///
 	/// Compute strain at a CBLCON facet 
 	///
-	void ComputeStrain(ChVectorDynamic<>& mStrain, ChVectorDynamic<>& curvature);
+	void ComputeStrain(ChVectorDynamic<>& displ_incr, ChVectorDynamic<>& mStrain, ChVectorDynamic<>& curvature);
 	///
 	///
 	/// Compute stress at a CBLCON facet 

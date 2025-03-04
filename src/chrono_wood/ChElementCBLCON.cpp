@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale
+// Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
 // Class for CBLCON elements:  
 //
@@ -244,15 +244,11 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 }
 
 
-void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& curvature) {
+void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& displ_incr, ChVectorDynamic<>& mstrain, ChVectorDynamic<>& curvature) {
     mstrain.resize(3);
 	// 
-	// Displacement of nodes:
-	ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
-	//this->GetStateBlock(displ);
-	this->GetLatticeStateBlock(displ);
-	auto dispN1=displ.segment(0,6);
-	auto dispN2=displ.segment(6,6);	
+	auto dispN1=displ_incr.segment(0,6);
+	auto dispN2=displ_incr.segment(6,6);
 	//dispN1.setConstant(1E-4);
 	//dispN2.setConstant(1.2E-4);
 	//
@@ -277,7 +273,6 @@ void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& mstrain, ChVectorDynamic<
 	this->ComputeAmatrix( AJ, this->section->Get_center() , 
 							  this->nodes[1]->GetX0().GetPos());
 									
-			
 	ChVectorN<double,3> n; //
 	for (int id=0;id<3;id++) {			
 			//
@@ -300,7 +295,7 @@ void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& mstrain, ChVectorDynamic<
 		
 	if (ChElementCBLCON::EnableCoupleForces){
 		//nmL=this->section->Get_facetFrame();
-		curvature=(displ.segment(9,3)-displ.segment(3,3))/length;
+		curvature=(displ_incr.segment(9,3)-displ_incr.segment(3,3))/length;
 		curvature=nmL*curvature;		
 		
 	}	
@@ -314,7 +309,10 @@ void ChElementCBLCON::ComputeStress(ChVectorDynamic<>& mstress) {
     mstress.resize(3);
 	ChVectorDynamic<> mstrain;
 	ChVectorDynamic<> curvature;
-	this->ComputeStrain(mstrain, curvature);
+    // Displacement increment of nodes:
+	ChVectorDynamic<> displ_incr(this->GetNumCoordsPosLevel());
+	this->GetLatticeStateBlock(displ_incr);
+	this->ComputeStrain(displ_incr, mstrain, curvature);
 	//std::cout<<"\nmstrain:\n"<<mstrain<<std::endl;	
 	//
 	double E0=this->section-> Get_material()->Get_E0();
@@ -765,6 +763,9 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     this->GetStateBlock(displ);
     DUn_1=displ-Un_1;
     Un_1=displ;	
+    // Displacement increment of nodes:
+	ChVectorDynamic<> displ_incr(this->GetNumCoordsPosLevel());
+	this->GetLatticeStateBlock(displ_incr);
 	//
 	// Get facet area and length of beam
 	//
@@ -821,7 +822,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 	ChVectorDynamic<> mcouple;
 	ChVectorDynamic<> dcurvature;
 	ChVectorDynamic<> statev;
-	this->ComputeStrain(dmstrain,dcurvature);
+	this->ComputeStrain(displ_incr, dmstrain, dcurvature);
 	statev=mysection->Get_StateVar();
 	// compute volumetric strain
 	double epsV=0;
