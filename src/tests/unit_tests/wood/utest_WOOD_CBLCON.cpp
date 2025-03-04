@@ -100,64 +100,64 @@ TEST(CBLConnectorTest, compute_strain){
 
     double disp = 0.01;
     double rot = 0.01;
-    ChVectorDynamic<> strain;
-    ChVectorDynamic<> curvature;
-    ChVectorDynamic<> displ_incr;
+    ChVector3d strain;
+    ChVector3d curvature;
+    ChVectorN<double, 12> displ_incr;
     displ_incr.setZero(12);
 
     // Translation of node A
     for (int i = 0; i<3 ; i++) {
         displ_incr(i) = disp; // X, Y, Z direction
-        connector->ComputeStrain(displ_incr, strain, curvature);
-        ASSERT_DOUBLE_EQ(strain(i), -disp / length);
-        ASSERT_DOUBLE_EQ(strain((i+1)%3), 0.0);
-        ASSERT_DOUBLE_EQ(strain((i+2)%3), 0.0);
+        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        ASSERT_DOUBLE_EQ(strain[i], -disp / length);
+        ASSERT_DOUBLE_EQ(strain[(i+1)%3], 0.0);
+        ASSERT_DOUBLE_EQ(strain[(i+2)%3], 0.0);
         displ_incr(i) = 0.0;
     }
         // XYZ direction
         displ_incr(0) = displ_incr(1) = displ_incr(2) = disp;
-        connector->ComputeStrain(displ_incr, strain, curvature);
-        ASSERT_DOUBLE_EQ(strain(0), -disp / length);
-        ASSERT_DOUBLE_EQ(strain(1), -disp / length);
-        ASSERT_DOUBLE_EQ(strain(2), -disp / length);
+        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        ASSERT_DOUBLE_EQ(strain[0], -disp / length);
+        ASSERT_DOUBLE_EQ(strain[1], -disp / length);
+        ASSERT_DOUBLE_EQ(strain[2], -disp / length);
         displ_incr(0) = displ_incr(1) = displ_incr(2) = 0.0;
 
     // Rotation of node A
     double dir[3][3] = {{0, 0, 0}, {0, 0, 1}, {0, -1, 0}}; // Direction of vector product: rot x (x_A - X_Center)
     for (int i = 0; i<3 ; i++) {
         displ_incr(3+i) = rot; // X, Y, Z direction
-        connector->ComputeStrain(displ_incr, strain, curvature);
-        ASSERT_DOUBLE_EQ(strain(0), rot * center_from_A * dir[i][0]);
-        ASSERT_DOUBLE_EQ(strain(1), rot * center_from_A * dir[i][1]);
-        ASSERT_DOUBLE_EQ(strain(2), rot * center_from_A * dir[i][2]);
+        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        ASSERT_DOUBLE_EQ(strain[0], rot * center_from_A * dir[i][0]);
+        ASSERT_DOUBLE_EQ(strain[1], rot * center_from_A * dir[i][1]);
+        ASSERT_DOUBLE_EQ(strain[2], rot * center_from_A * dir[i][2]);
         displ_incr(3+i) = 0.0;
     }
 
     // Translation of node B
     for (int i = 0; i<3 ; i++) {
         displ_incr(6+i) = disp; // X, Y, Z direction
-        connector->ComputeStrain(displ_incr, strain, curvature);
-        ASSERT_DOUBLE_EQ(strain(i), disp / length);
-        ASSERT_DOUBLE_EQ(strain((i+1)%3), 0.0);
-        ASSERT_DOUBLE_EQ(strain((i+2)%3), 0.0);
+        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        ASSERT_DOUBLE_EQ(strain[i], disp / length);
+        ASSERT_DOUBLE_EQ(strain[(i+1)%3], 0.0);
+        ASSERT_DOUBLE_EQ(strain[(i+2)%3], 0.0);
         displ_incr(6+i) = 0.0;
     }
         // XYZ direction
         displ_incr(6) = displ_incr(7) = displ_incr(8) = disp;
-        connector->ComputeStrain(displ_incr, strain, curvature);
-        ASSERT_DOUBLE_EQ(strain(0), disp / length);
-        ASSERT_DOUBLE_EQ(strain(1), disp / length);
-        ASSERT_DOUBLE_EQ(strain(2), disp / length);
+        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        ASSERT_DOUBLE_EQ(strain[0], disp / length);
+        ASSERT_DOUBLE_EQ(strain[1], disp / length);
+        ASSERT_DOUBLE_EQ(strain[2], disp / length);
         displ_incr(6) = displ_incr(7) = displ_incr(8) = 0.0;
 
     // Rotation of node B
     // Direction of vector product: rot x (x_B - X_Center) is the same as for node A
     for (int i = 0; i<3 ; i++) {
         displ_incr(9+i) = rot; // X, Y, Z direction
-        connector->ComputeStrain(displ_incr, strain, curvature);
-        ASSERT_DOUBLE_EQ(strain(0), rot * (1 - center_from_A) * dir[i][0]);
-        ASSERT_DOUBLE_EQ(strain(1), rot * (1 - center_from_A) * dir[i][1]);
-        ASSERT_DOUBLE_EQ(strain(2), rot * (1 - center_from_A) * dir[i][2]);
+        connector->ComputeStrainIncrement(displ_incr, strain, curvature);
+        ASSERT_DOUBLE_EQ(strain[0], rot * (1 - center_from_A) * dir[i][0]);
+        ASSERT_DOUBLE_EQ(strain[1], rot * (1 - center_from_A) * dir[i][1]);
+        ASSERT_DOUBLE_EQ(strain[2], rot * (1 - center_from_A) * dir[i][2]);
         displ_incr(9+i) = 0.0;
     }
 
@@ -165,4 +165,8 @@ TEST(CBLConnectorTest, compute_strain){
     // ASSERT_DOUBLE_EQ(mstrain(0), 0.0);
     // ASSERT_DOUBLE_EQ(mstrain(1), 0.0);
     // ASSERT_DOUBLE_EQ(mstrain(2), 0.0);
+}
+
+TEST(CBLConnectorTest, update_rotation){
+    // TODO when we implement large displacement
 }

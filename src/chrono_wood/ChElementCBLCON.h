@@ -47,6 +47,7 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
   public:
     using ShapeVector = ChMatrixNM<double, 1, 10>;
     using Amatrix = ChMatrixNM<double,3,6> ;
+    using StateVarVector = ChVectorN<double, 18>;
 
     ChElementCBLCON();
 
@@ -158,8 +159,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     /// Given that this element includes rotations at nodes, this gives:
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
-    
-    void GetLatticeStateBlock(ChVectorDynamic<>& mD);
 
     /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
@@ -172,12 +171,12 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	///
 	/// Compute strain at a CBLCON facet 
 	///
-	void ComputeStrain(ChVectorDynamic<>& displ_incr, ChVectorDynamic<>& mStrain, ChVectorDynamic<>& curvature);
+	void ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mStrain, ChVector3d& curvature);
 	///
 	///
-	/// Compute stress at a CBLCON facet 
+	/// Compute stress at a CBLCON facet . TODO : seems unused
 	///
-	void ComputeStress(ChVectorDynamic<>& mstress);
+	void ComputeStress(ChVector3d& mstress);
 	///
 	///	
 	virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
@@ -358,8 +357,8 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     ChQuaternion<> q_element_abs_rot;
     ChQuaternion<> q_element_ref_rot;
     
-    ChVectorDynamic<> DUn_1;
-    ChVectorDynamic<> Un_1;
+    ChVectorN<double, 12> dofs_increment;
+    ChVectorN<double, 12> dofs_old;
 
     bool disable_corotate;
     bool force_symmetric_stiffness;

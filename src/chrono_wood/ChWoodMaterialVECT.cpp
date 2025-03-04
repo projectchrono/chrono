@@ -18,6 +18,8 @@
 // =============================================================================
 
 #include "chrono_wood/ChWoodMaterialVECT.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 namespace wood {
@@ -69,17 +71,15 @@ ChWoodMaterialVECT::~ChWoodMaterialVECT()	{};
 // statec(10): internal work
 // statec(11): crack opening
 
-void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDynamic<>& dmcurvature,double &len, double &epsV, ChVectorDynamic<>& statev,  double& area, double& width, double& height, ChVectorDynamic<>& mstress, ChVectorDynamic<>& mcouple) {
-    	mstress.resize(3);   
-    	mcouple.resize(3); 
-    	ChVectorDynamic<> mstrain(3);
-    	ChVectorDynamic<> mcurvature(3);	
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature,double &len, double &epsV, StateVarVector& statev,  double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple) {  
+    	ChVector3d mstrain;
+    	ChVector3d mcurvature;	
 	//
 	double E0=this->Get_E0();
 	double alpha=this->Get_alpha();	
 	//std::cout<<"E0: "<<E0<<" alpha: "<<alpha<<std::endl;	
 	// 	
-	mstrain=statev.segment(0,3)+dmstrain;	
+	mstrain=statev.segment(0,3)+dmstrain.eigen();	
 	//	
 	//
 	double epsQ;
@@ -88,23 +88,23 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 	double w2=width*width;
 	
 	if (!this->GetCoupleMultiplier()){		
-		epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5);
-		epsT = pow(mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2), 0.5);
+		epsQ = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]), 0.5);
+		epsT = pow(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2], 0.5);
 	}else{	
 		double multiplier=this->GetCoupleMultiplier()/3.;					
-		mcurvature=statev.segment(12,3)+dmcurvature;
+		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
 		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
 		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
 				
-		epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2))+
-					multiplier*(alpha*mcurvature(0)*mcurvature(0)*(w2+h2)+ mcurvature(1)*mcurvature(1)*w2+
-					mcurvature(2)*mcurvature(2)*h2), 0.5);
-		epsT = pow(mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)+multiplier*mcurvature(0)*mcurvature(0)*(w2+h2), 0.5);
+		epsQ = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2])+
+					multiplier*(alpha*mcurvature[0]*mcurvature[0]*(w2+h2)+ mcurvature[1]*mcurvature[1]*w2+
+					mcurvature[2]*mcurvature[2]*h2), 0.5);
+		epsT = pow(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]+multiplier*mcurvature[0]*mcurvature[0]*(w2+h2), 0.5);
 	
 	}
 	
-	if (statev(6) < mstrain(0)) {
-		statev(6) = mstrain(0);
+	if (statev(6) < mstrain[0]) {
+		statev(6) = mstrain[0];
 	}
 	if (statev(7) < epsT) {
 		statev(7) = epsT;
@@ -116,32 +116,32 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 	// INELASTIC ANALYSIS
 	//
 	if (epsQ != 0) {
-		if (mstrain(0) > 10e-16) {     // fracture behaivor
+		if (mstrain[0] > 10e-16) {     // fracture behaivor
 			double strsQ = FractureBC(mstrain, len, epsQ, epsT, statev);
-			mstress(0) = strsQ * mstrain(0) / epsQ;
-			mstress(1) = alpha * strsQ * mstrain(1) / epsQ;
-			mstress(2) = alpha * strsQ * mstrain(2) / epsQ;
+			mstress[0] = strsQ * mstrain[0] / epsQ;
+			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
+			mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
 			//
 			if(this->GetCoupleMultiplier()){
 				double multiplier=this->GetCoupleMultiplier()/3.;
-				mcouple(0)=multiplier*alpha*strsQ*mcurvature(0)*(w2+h2)/epsQ;
-				mcouple(1)=multiplier*strsQ*mcurvature(1)*w2/epsQ;
-				mcouple(2)=multiplier*strsQ*mcurvature(2)*h2/epsQ;						
+				mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
+				mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
+				mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
 			}
 		}
 		else {
 			
 			 double strsQ = CompressBC(mstrain, len, epsQ, epsT, statev);;
 			 
-			 mstress(0) = strsQ * mstrain(0) / epsQ;
-			 mstress(1) = alpha * strsQ * mstrain(1) / epsQ;
-			 mstress(2) = alpha * strsQ * mstrain(2) / epsQ;
+			 mstress[0] = strsQ * mstrain[0] / epsQ;
+			 mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
+			 mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
 			 //
 			 if(this->GetCoupleMultiplier()){
 				 double multiplier=this->GetCoupleMultiplier()/3.;
-				 mcouple(0)=multiplier*alpha*strsQ*mcurvature(0)*(w2+h2)/epsQ;
-				 mcouple(1)=multiplier*strsQ*mcurvature(1)*w2/epsQ;
-				 mcouple(2)=multiplier*strsQ*mcurvature(2)*h2/epsQ;						
+				 mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
+				 mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
+				 mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
 			 }
 			 
 			 /*
@@ -151,54 +151,54 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 			double sigmaL = sigmaT[1];
 			double coupleN = sigmaT[2];
 						
-			mstress(0)=statev(3)+(mstrain(0)-statev(0))*E0;
-			mstress(1)=sigmaM;
-			mstress(2)=sigmaL;
+			mstress[0]=statev(3)+(mstrain[0]-statev(0))*E0;
+			mstress[1]=sigmaM;
+			mstress[2]=sigmaL;
 			if(this->GetCoupleMultiplier()){
 				double multiplier=this->GetCoupleMultiplier()/3.;
-				mcouple(0)=coupleN;
-				//mcouple(1)=multiplier*sigmaN*mcurvature(1)*w2/epsQN;
-				//mcouple(2)=multiplier*sigmaN*mcurvature(2)*h2/epsQN;	
+				mcouple[0]=coupleN;
+				//mcouple[1]=multiplier*sigmaN*mcurvature[1]*w2/epsQN;
+				//mcouple[2]=multiplier*sigmaN*mcurvature[2]*h2/epsQN;	
 				////
-				//mcouple(0)=multiplier*alpha*mcurvature(0)*(w2+h2)*E0;
-				//mcouple(1)=multiplier*mcurvature(1)*w2*E0;
-				//mcouple(2)=multiplier*mcurvature(2)*h2*E0;
-				mcouple(1)=statev(16)+multiplier*(mcurvature(1) - statev(13))*w2*E0;
-				mcouple(2)=statev(17)+multiplier*(mcurvature(2) - statev(14))*h2*E0;
+				//mcouple[0]=multiplier*alpha*mcurvature[0]*(w2+h2)*E0;
+				//mcouple[1]=multiplier*mcurvature[1]*w2*E0;
+				//mcouple[2]=multiplier*mcurvature[2]*h2*E0;
+				mcouple[1]=statev(16)+multiplier*(mcurvature[1] - statev(13))*w2*E0;
+				mcouple[2]=statev(17)+multiplier*(mcurvature[2] - statev(14))*h2*E0;
 			}
 			*/
 		}
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
-		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
-		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
+		double Wint = len * area * ((mstress[0]+ statev(3))/2 * dmstrain[0] + (mstress[1]+statev(4)) / 2 * dmstrain[1] +( mstress[2] + statev(5))/2 * dmstrain[2]);
+		double w_N = len * (mstrain[0] - mstress[0] / E0);
+		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
+		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
 
 		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
 
-		statev(0) = mstrain(0);
-		statev(1) = mstrain(1);
-		statev(2) = mstrain(2);
-		statev(3) = mstress(0);
-		statev(4) = mstress(1);
-		statev(5) = mstress(2);
+		statev(0) = mstrain[0];
+		statev(1) = mstrain[1];
+		statev(2) = mstrain[2];
+		statev(3) = mstress[0];
+		statev(4) = mstress[1];
+		statev(5) = mstress[2];
 		statev(8) = pow(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)), 0.5);
 		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5);
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
 		//
 		if(this->GetCoupleMultiplier()){				
-				statev(12) = mcurvature(0);
-				statev(13) = mcurvature(1);
-				statev(14) = mcurvature(2);	
+				statev(12) = mcurvature[0];
+				statev(13) = mcurvature[1];
+				statev(14) = mcurvature[2];	
 				//
-				statev(15) = mcouple(0);
-				statev(16) = mcouple(1);
-				statev(17) = mcouple(2);
+				statev(15) = mcouple[0];
+				statev(16) = mcouple[1];
+				statev(17) = mcouple[2];
 		}
 	}
 	else {
-		mstress << 0.0, 0.0, 0.0;
-		mcouple << 0.0, 0.0, 0.0;
+		mstress.Set(0.0);
+		mcouple.Set(0.0);
 	}
 	//std::cout << "stress: " << mstress << std::endl;
 	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
@@ -210,24 +210,24 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 	//
 	if (epsQ!=0) {
 	    double strsQ=E0*epsQ;
-		mstress(0)=strsQ*mstrain(0)/epsQ;
-		mstress(1)=alpha*strsQ*mstrain(1)/epsQ;
-		mstress(2)=alpha*strsQ*mstrain(2)/epsQ;		
+		mstress[0]=strsQ*mstrain[0]/epsQ;
+		mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
+		mstress[2]=alpha*strsQ*mstrain[2]/epsQ;		
 		
 		
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
-		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
-		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
+		double Wint = len * area * ((mstress[0]+ statev(3))/2 * dmstrain[0] + (mstress[1]+statev(4)) / 2 * dmstrain[1] +( mstress[2] + statev(5))/2 * dmstrain[2]);
+		double w_N = len * (mstrain[0] - mstress[0] / E0);
+		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
+		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
 
 		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
 		
-		statev(0) = mstrain(0);
-		statev(1) = mstrain(1);
-		statev(2) = mstrain(2);
-		statev(3) = mstress(0);
-		statev(4) = mstress(1);
-		statev(5) = mstress(2);
+		statev(0) = mstrain[0];
+		statev(1) = mstrain[1];
+		statev(2) = mstrain[2];
+		statev(3) = mstress[0];
+		statev(4) = mstress[1];
+		statev(5) = mstress[2];
 		statev(8) = pow(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)), 0.5); 
 		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5);
 		statev(10) = Wint + statev(10);
@@ -236,49 +236,45 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 		
 		if(this->GetCoupleMultiplier()){
 			double multiplier=this->GetCoupleMultiplier()/3.;
-			mcouple(0)=multiplier*alpha*strsQ*mcurvature(0)*(w2+h2)/epsQ;
-			mcouple(1)=multiplier*strsQ*mcurvature(1)*w2/epsQ;
-			mcouple(2)=multiplier*strsQ*mcurvature(2)*h2/epsQ;
+			mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
+			mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
+			mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;
 			//
-			statev(12) = mcurvature(0);
-			statev(13) = mcurvature(1);
-			statev(14) = mcurvature(2);
+			statev(12) = mcurvature[0];
+			statev(13) = mcurvature[1];
+			statev(14) = mcurvature[2];
 			//std::cout<<"mcurvature: "<<mcurvature.x()<<"\t"<<mcurvature.y()<<"\t"<<mcurvature.z()<<std::endl;
 			//std::cout<<"mcouple: "<<mcouple.x()<<"\t"<<mcouple.y()<<"\t"<<mcouple.z()<<std::endl;
 			//
-			statev(15) = mcouple(0);
-			statev(16) = mcouple(1);
-			statev(17) = mcouple(2);
+			statev(15) = mcouple[0];
+			statev(16) = mcouple[1];
+			statev(17) = mcouple[2];
 		}
 		
 	}else{
-		mstress<< 0.0, 0.0, 0.0;
-		mcouple<< 0.0, 0.0, 0.0;
-		//statev.setZero();		
-		//mstress.setZero();
+		mstress.Set(0.0);
+		mcouple.Set(0.0);
 	}
 	
 	}
 	
 	//std::cout<<"mstress: "<<mstress<<"  mcouple: "<<mcouple<<" w2, h2 "<<w2<<" "<<h2<<std::endl;
-	//if (mstrain(0)<0) 
+	//if (mstrain[0]<0) 
 	//	exit(1);
 	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
 }
 
 
 
-void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDynamic<>& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, double &epsV, ChVectorDynamic<>& statev,  double& area, double& width, double& height, ChVectorDynamic<>& mstress, ChVectorDynamic<>& mcouple) {
-    	mstress.resize(3);   
-    	mcouple.resize(3); 
-    	ChVectorDynamic<> mstrain(3);
-    	ChVectorDynamic<> mcurvature(3);	
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, double &epsV, StateVarVector& statev,  double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple) {  
+    	ChVector3d mstrain;
+    	ChVector3d mcurvature;	
 	//
 	double E0=this->Get_E0();
 	double alpha=this->Get_alpha();	
 	//std::cout<<"E0: "<<E0<<" alpha: "<<alpha<<std::endl;	
 	// 	
-	mstrain=statev.segment(0,3)+dmstrain-eigenstrain;	
+	mstrain=statev.segment(0,3)+dmstrain.eigen()-eigenstrain;	
 	//	
 	//
 	double epsQ;
@@ -287,23 +283,23 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 	double w2=width*width;
 	
 	if (!this->GetCoupleMultiplier()){		
-		epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5);
-		epsT = pow(mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2), 0.5);
+		epsQ = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]), 0.5);
+		epsT = pow(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2], 0.5);
 	}else{	
 		double multiplier=this->GetCoupleMultiplier()/3.;					
-		mcurvature=statev.segment(12,3)+dmcurvature;
+		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
 		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
 		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
 				
-		epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2))+
-					multiplier*(alpha*mcurvature(0)*mcurvature(0)*(w2+h2)+ mcurvature(1)*mcurvature(1)*w2+
-					mcurvature(2)*mcurvature(2)*h2), 0.5);
-		epsT = pow(mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)+multiplier*mcurvature(0)*mcurvature(0)*(w2+h2), 0.5);
+		epsQ = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2])+
+					multiplier*(alpha*mcurvature[0]*mcurvature[0]*(w2+h2)+ mcurvature[1]*mcurvature[1]*w2+
+					mcurvature[2]*mcurvature[2]*h2), 0.5);
+		epsT = pow(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]+multiplier*mcurvature[0]*mcurvature[0]*(w2+h2), 0.5);
 	
 	}
 	
-	if (statev(6) < mstrain(0)) {
-		statev(6) = mstrain(0);
+	if (statev(6) < mstrain[0]) {
+		statev(6) = mstrain[0];
 	}
 	if (statev(7) < epsT) {
 		statev(7) = epsT;
@@ -315,32 +311,32 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 	// INELASTIC ANALYSIS
 	//
 	if (epsQ != 0) {
-		if (mstrain(0) > 10e-16) {     // fracture behaivor
+		if (mstrain[0] > 10e-16) {     // fracture behaivor
 			double strsQ = FractureBC(mstrain, len, epsQ, epsT, statev);
-			mstress(0) = strsQ * mstrain(0) / epsQ;
-			mstress(1) = alpha * strsQ * mstrain(1) / epsQ;
-			mstress(2) = alpha * strsQ * mstrain(2) / epsQ;
+			mstress[0] = strsQ * mstrain[0] / epsQ;
+			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
+			mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
 			//
 			if(this->GetCoupleMultiplier()){
 				double multiplier=this->GetCoupleMultiplier()/3.;
-				mcouple(0)=multiplier*alpha*strsQ*mcurvature(0)*(w2+h2)/epsQ;
-				mcouple(1)=multiplier*strsQ*mcurvature(1)*w2/epsQ;
-				mcouple(2)=multiplier*strsQ*mcurvature(2)*h2/epsQ;						
+				mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
+				mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
+				mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
 			}
 		}
 		else {
 			
 			 double strsQ = CompressBC(mstrain, len, epsQ, epsT, statev);;
 			 
-			 mstress(0) = strsQ * mstrain(0) / epsQ;
-			 mstress(1) = alpha * strsQ * mstrain(1) / epsQ;
-			 mstress(2) = alpha * strsQ * mstrain(2) / epsQ;
+			 mstress[0] = strsQ * mstrain[0] / epsQ;
+			 mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
+			 mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
 			 //
 			 if(this->GetCoupleMultiplier()){
 				 double multiplier=this->GetCoupleMultiplier()/3.;
-				 mcouple(0)=multiplier*alpha*strsQ*mcurvature(0)*(w2+h2)/epsQ;
-				 mcouple(1)=multiplier*strsQ*mcurvature(1)*w2/epsQ;
-				 mcouple(2)=multiplier*strsQ*mcurvature(2)*h2/epsQ;						
+				 mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
+				 mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
+				 mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
 			 }
 			 
 			 /*
@@ -350,59 +346,59 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 			double sigmaL = sigmaT[1];
 			double coupleN = sigmaT[2];
 						
-			//mstress(0)=statev(3)+(mstrain(0)-statev(0))*E0;
-			mstress(0)=statev(3)+dmstrain(0)*E0;
-			mstress(1)=sigmaM;
-			mstress(2)=sigmaL;
+			//mstress[0]=statev(3)+(mstrain[0]-statev(0))*E0;
+			mstress[0]=statev(3)+dmstrain[0]*E0;
+			mstress[1]=sigmaM;
+			mstress[2]=sigmaL;
 			if(this->GetCoupleMultiplier()){
 				double multiplier=this->GetCoupleMultiplier()/3.;
-				mcouple(0)=coupleN;
-				//mcouple(1)=multiplier*sigmaN*mcurvature(1)*w2/epsQN;
-				//mcouple(2)=multiplier*sigmaN*mcurvature(2)*h2/epsQN;	
+				mcouple[0]=coupleN;
+				//mcouple[1]=multiplier*sigmaN*mcurvature[1]*w2/epsQN;
+				//mcouple[2]=multiplier*sigmaN*mcurvature[2]*h2/epsQN;	
 				////
-				//mcouple(0)=multiplier*alpha*mcurvature(0)*(w2+h2)*E0;
-				//mcouple(1)=multiplier*mcurvature(1)*w2*E0;
-				//mcouple(2)=multiplier*mcurvature(2)*h2*E0;
-				//mcouple(1)=statev(16)+multiplier*(mcurvature(1) - statev(13))*w2*E0;
-				//mcouple(2)=statev(17)+multiplier*(mcurvature(2) - statev(14))*h2*E0;
-				mcouple(1)=statev(16)+multiplier*dmcurvature(1) * w2*E0;
-				mcouple(2)=statev(17)+multiplier*dmcurvature(2) * h2*E0;
+				//mcouple[0]=multiplier*alpha*mcurvature[0]*(w2+h2)*E0;
+				//mcouple[1]=multiplier*mcurvature[1]*w2*E0;
+				//mcouple[2]=multiplier*mcurvature[2]*h2*E0;
+				//mcouple[1]=statev(16)+multiplier*(mcurvature[1] - statev(13))*w2*E0;
+				//mcouple[2]=statev(17)+multiplier*(mcurvature[2] - statev(14))*h2*E0;
+				mcouple[1]=statev(16)+multiplier*dmcurvature[1] * w2*E0;
+				mcouple[2]=statev(17)+multiplier*dmcurvature[2] * h2*E0;
 			}
 			*/
 		}
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
-		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
-		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
+		double Wint = len * area * ((mstress[0]+ statev(3))/2 * dmstrain[0] + (mstress[1]+statev(4)) / 2 * dmstrain[1] +( mstress[2] + statev(5))/2 * dmstrain[2]);
+		double w_N = len * (mstrain[0] - mstress[0] / E0);
+		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
+		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
 
 		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
 
 		
-		statev(8) = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5); 
-		statev(9) = pow(mstress(0) * mstress(0) + (mstress(1) * mstress(1) + mstress(2) * mstress(2)) / alpha, 0.5);		
+		statev(8) = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]), 0.5); 
+		statev(9) = pow(mstress[0] * mstress[0] + (mstress[1] * mstress[1] + mstress[2] * mstress[2]) / alpha, 0.5);		
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
 		
-		statev(0) = mstrain(0);
-		statev(1) = mstrain(1);
-		statev(2) = mstrain(2);
-		statev(3) = mstress(0);
-		statev(4) = mstress(1);
-		statev(5) = mstress(2);
+		statev(0) = mstrain[0];
+		statev(1) = mstrain[1];
+		statev(2) = mstrain[2];
+		statev(3) = mstress[0];
+		statev(4) = mstress[1];
+		statev(5) = mstress[2];
 		//
 		if(this->GetCoupleMultiplier()){				
-				statev(12) = mcurvature(0);
-				statev(13) = mcurvature(1);
-				statev(14) = mcurvature(2);	
+				statev(12) = mcurvature[0];
+				statev(13) = mcurvature[1];
+				statev(14) = mcurvature[2];	
 				//
-				statev(15) = mcouple(0);
-				statev(16) = mcouple(1);
-				statev(17) = mcouple(2);
+				statev(15) = mcouple[0];
+				statev(16) = mcouple[1];
+				statev(17) = mcouple[2];
 		}
 	}
 	else {
-		mstress << 0.0, 0.0, 0.0;
-		mcouple << 0.0, 0.0, 0.0;
+		mstress.Set(0.0);
+		mcouple.Set(0.0);
 	}
 	//std::cout << "stress: " << mstress << std::endl;
 	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
@@ -414,60 +410,59 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 	//
 	if (epsQ!=0) {
 	    double strsQ=E0*epsQ;
-		mstress(0)=strsQ*mstrain(0)/epsQ;
-		mstress(1)=alpha*strsQ*mstrain(1)/epsQ;
-		mstress(2)=alpha*strsQ*mstrain(2)/epsQ;		
+		mstress[0]=strsQ*mstrain[0]/epsQ;
+		mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
+		mstress[2]=alpha*strsQ*mstrain[2]/epsQ;		
 		
 		
-		double Wint = len * area * ((mstress(0)+ statev(3))/2 * dmstrain(0) + (mstress(1)+statev(4)) / 2 * dmstrain(1) +( mstress(2) + statev(5))/2 * dmstrain(2));
-		double w_N = len * (mstrain(0) - mstress(0) / E0);
-		double w_M = len * (mstrain(1) - mstress(1) / (E0*alpha));
-		double w_L = len * (mstrain(2) - mstress(2) / (E0 * alpha));
+		double Wint = len * area * ((mstress[0]+ statev(3))/2 * dmstrain[0] + (mstress[1]+statev(4)) / 2 * dmstrain[1] +( mstress[2] + statev(5))/2 * dmstrain[2]);
+		double w_N = len * (mstrain[0] - mstress[0] / E0);
+		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
+		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
 
 		double w = pow(w_N * w_N + w_M * w_M + w_L * w_L, 0.5);
 		
 		
-		statev(8) = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5); 
-		statev(9) = pow(mstress(0) * mstress(0) + (mstress(1) * mstress(1) + mstress(2) * mstress(2)) / alpha, 0.5);
+		statev(8) = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]), 0.5); 
+		statev(9) = pow(mstress[0] * mstress[0] + (mstress[1] * mstress[1] + mstress[2] * mstress[2]) / alpha, 0.5);
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
 		
-		statev(0) = mstrain(0)+eigenstrain(0);
-		statev(1) = mstrain(1)+eigenstrain(1);
-		statev(2) = mstrain(2)+eigenstrain(2);
-		statev(3) = mstress(0);
-		statev(4) = mstress(1);
-		statev(5) = mstress(2);
+		statev(0) = mstrain[0]+eigenstrain(0);
+		statev(1) = mstrain[1]+eigenstrain(1);
+		statev(2) = mstrain[2]+eigenstrain(2);
+		statev(3) = mstress[0];
+		statev(4) = mstress[1];
+		statev(5) = mstress[2];
 		
 		
 		if(this->GetCoupleMultiplier()){
 			double multiplier=this->GetCoupleMultiplier()/3.;
-			mcouple(0)=multiplier*alpha*strsQ*mcurvature(0)*(w2+h2)/epsQ;
-			mcouple(1)=multiplier*strsQ*mcurvature(1)*w2/epsQ;
-			mcouple(2)=multiplier*strsQ*mcurvature(2)*h2/epsQ;
+			mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
+			mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
+			mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;
 			//
-			statev(12) = mcurvature(0);
-			statev(13) = mcurvature(1);
-			statev(14) = mcurvature(2);
+			statev(12) = mcurvature[0];
+			statev(13) = mcurvature[1];
+			statev(14) = mcurvature[2];
 			//std::cout<<"mcurvature: "<<mcurvature.x()<<"\t"<<mcurvature.y()<<"\t"<<mcurvature.z()<<std::endl;
 			//std::cout<<"mcouple: "<<mcouple.x()<<"\t"<<mcouple.y()<<"\t"<<mcouple.z()<<std::endl;
 			//
-			statev(15) = mcouple(0);
-			statev(16) = mcouple(1);
-			statev(17) = mcouple(2);
+			statev(15) = mcouple[0];
+			statev(16) = mcouple[1];
+			statev(17) = mcouple[2];
 		}
 		
 	}else{
-		mstress<< 0.0, 0.0, 0.0;
-		mcouple<< 0.0, 0.0, 0.0;
+		mstress.Set(0.0);
+		mcouple.Set(0.0);
 		//statev.setZero();		
-		//mstress.setZero();
 	}
 	
 	}
 	
 	//std::cout<<"mstress: "<<mstress<<"  mcouple: "<<mcouple<<" w2, h2 "<<w2<<" "<<h2<<std::endl;
-	//if (mstrain(0)<0) 
+	//if (mstrain[0]<0) 
 	//	exit(1);
 	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
 }
@@ -477,7 +472,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVectorDynamic<>& dmstrain, ChVectorDyna
 
 
 
-double ChWoodMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, double& epsQ, double& epsT, ChVectorDynamic<>& statev) {
+double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev) {
 	//
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
@@ -488,8 +483,8 @@ double ChWoodMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, d
 	double kt = this->Get_kt();
 	//double Gt = this->Get_Gt();
 	//
-	//double epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5);
-	//double epsT = pow(mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2), 0.5);
+	//double epsQ = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]), 0.5);
+	//double epsT = pow(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2], 0.5);
 
 	// calculate stress boudary sigma_bt for tension
 	double omega, sinw, cosw, cosw2, sigma0;
@@ -498,7 +493,7 @@ double ChWoodMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, d
 	if (this->GetCoupleContrib2EquStrainFlag()){
 		omega = atan(epsQ / (pow(alpha, 0.5) * epsT));
 	}else{
-		omega = atan(mstrain(0) / pow(alpha*(mstrain(1)*mstrain(1)+mstrain(2)*mstrain(2)), 0.5));
+		omega = atan(mstrain[0] / pow(alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5));
 	}
 	
 	sinw = sin(omega);
@@ -510,7 +505,7 @@ double ChWoodMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, d
 		sigma0 = sigmat;
 	}
 	else {
-		//omega = atan(mstrain(0) / (pow(alpha, 0.5) * epsT));
+		//omega = atan(mstrain[0] / (pow(alpha, 0.5) * epsT));
 		sigma0 = sigmat * (-sin(omega) + pow((sin(omega) * sin(omega) + 4 * alpha * cosw2 / r_st / r_st), 0.5)) / (2 * alpha * cosw2 / r_st / r_st);
 
 	}
@@ -538,7 +533,7 @@ double ChWoodMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, d
 }
 
 
-double ChWoodMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& len, double& epsQ, double& epsT, ChVectorDynamic<>& statev) {
+double ChWoodMaterialVECT::CompressBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev) {
 	//
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
@@ -566,8 +561,8 @@ double ChWoodMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& len, d
 
 	//double Gt = this->Get_Gt();
 	//
-	//double epsQ = pow(mstrain(0) * mstrain(0) + alpha * (mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2)), 0.5);
-	//double epsT = pow(mstrain(1) * mstrain(1) + mstrain(2) * mstrain(2), 0.5);
+	//double epsQ = pow(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]), 0.5);
+	//double epsT = pow(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2], 0.5);
 
 	// calculate stress boudary sigma_bt for tension
 	double omega, sinw, cosw, cosw2, beta2, sigma0;
@@ -575,7 +570,7 @@ double ChWoodMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& len, d
 	if (this->GetCoupleContrib2EquStrainFlag()){
 		omega = atan(epsQ / (pow(alpha, 0.5) * epsT));
 	}else{
-		omega = atan(mstrain(0) / pow(alpha*(mstrain(1)*mstrain(1)+mstrain(2)*mstrain(2)), 0.5));
+		omega = atan(mstrain[0] / pow(alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5));
 	}
 	
 	beta2 = (sigmas * sigmas) / (sigmac0 * sigmac0);
@@ -624,7 +619,7 @@ double ChWoodMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& epsV, 
 	double kc2 = this->Get_kc2();
 	double kc3 = this->Get_kc3();
 
-	double epsD = mstrain(0) - epsV;
+	double epsD = mstrain[0] - epsV;
 	double epsDV = epsV + beta * epsD;
 	double epsc0 = sigmac0 / E0;
 	double epsc1 = epsc0 * kc0;
@@ -668,7 +663,7 @@ double ChWoodMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& epsV, 
 		ENc = Ed;
 	}
 
-	double sigma_ela = statev(3) + ENc * (mstrain(0) - statev(0));
+	double sigma_ela = statev(3) + ENc * (mstrain[0] - statev(0));
 	double sigma_com = std::min(std::max(sigma_ela, -sigma_bc), 0.0);
 	return sigma_com;
 }
@@ -676,7 +671,7 @@ double ChWoodMaterialVECT::CompressBC(ChVectorDynamic<>& mstrain, double& epsV, 
 
 
 
-std::pair<double, double> ChWoodMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& statev) {
+std::pair<double, double> ChWoodMaterialVECT::ShearBC(ChVector3d& mstrain, StateVarVector& statev) {
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
 	double mu0 = this->Get_mu0();
@@ -688,8 +683,8 @@ std::pair<double, double> ChWoodMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain
 	//double sigmabs = sigmas - muinf * statev(3);
 	
 	double ET = alpha * E0;
-	double sigmaM_ela = statev(4) + (mstrain(1) - statev(1)) * ET;
-	double sigmaL_ela = statev(5) + (mstrain(2) - statev(2)) * ET;
+	double sigmaM_ela = statev(4) + (mstrain[1] - statev(1)) * ET;
+	double sigmaL_ela = statev(5) + (mstrain[2] - statev(2)) * ET;
 	double sigmaT_ela = pow(sigmaM_ela * sigmaM_ela + sigmaL_ela * sigmaL_ela, 0.5);
 
 	double sigmaT = std::min(std::max(sigmaT_ela, 0.0), sigmabs);
@@ -710,7 +705,7 @@ std::pair<double, double> ChWoodMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain
 
 
 
-std::vector<double> ChWoodMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& mcurvature, double rN2, ChVectorDynamic<>& statev) {
+std::vector<double> ChWoodMaterialVECT::ShearBC(ChVector3d& mstrain, ChVector3d& mcurvature, double rN2, StateVarVector& statev) {
 	double E0 = this->Get_E0();
 	double alpha = this->Get_alpha();
 	double mu0 = this->Get_mu0();
@@ -723,9 +718,9 @@ std::vector<double> ChWoodMaterialVECT::ShearBC(ChVectorDynamic<>& mstrain, ChVe
 	double sigmabs = sigmas - mu0 * statev(3);
 	
 	double ET = alpha * E0;
-	double sigmaM_ela = statev(4) + (mstrain(1) - statev(1)) * ET;
-	double sigmaL_ela = statev(5) + (mstrain(2) - statev(2)) * ET;
-	double coupleN_ela = statev(15) + multiplier*(mcurvature(0) - statev(12)) * rN2* ET;	
+	double sigmaM_ela = statev(4) + (mstrain[1] - statev(1)) * ET;
+	double sigmaL_ela = statev(5) + (mstrain[2] - statev(2)) * ET;
+	double coupleN_ela = statev(15) + multiplier*(mcurvature[0] - statev(12)) * rN2* ET;	
 	double sigmaT_ela = pow(sigmaM_ela * sigmaM_ela + sigmaL_ela * sigmaL_ela + coupleN_ela* coupleN_ela/rN2/multiplier, 0.5);
 
 	double sigmaT = std::min(std::max(sigmaT_ela, 0.0), sigmabs);

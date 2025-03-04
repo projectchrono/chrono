@@ -29,6 +29,7 @@
 #include <memory>
 #include <string>
 
+#include "chrono/core/ChMatrix.h"
 #include "chrono_wood/ChWoodApi.h"
 #include "chrono_wood/ChWoodMaterialVECT.h"
 #include "chrono/core/ChMatrix33.h"
@@ -48,6 +49,9 @@ namespace wood {
 //class ChWoodApi ChBeamSectionCBLCON : public ChBeamSection {
 class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection { 
   public:
+
+    using StateVarVector = ChVectorN<double, 18>;
+
     ChBeamSectionCBLCON(  std::shared_ptr<ChWoodMaterialVECT> material,  // material 
                                     double area,    // Projected total area of the facet
                                     ChVector3d center,    // Center point of the facet area      
@@ -88,8 +92,8 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     ChMatrix33<double> Get_facetFrame() const { return m_facetFrame; }
     void Set_facetFrame( ChMatrix33<double> facetFrame) { m_facetFrame=facetFrame; }
   
-    ChVectorDynamic<>  Get_StateVar() const { return m_state; };
-    void Set_StateVar(ChVectorDynamic<>  state) { m_state=state; }  
+    StateVarVector  Get_StateVar() const { return m_state; };
+    void Set_StateVar(StateVarVector  state) { m_state=state; }
     
     enum ConSectionType { transverse_generic, transverse_top, transverse_bot, longitudinal };
     
@@ -123,7 +127,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     std::shared_ptr<ChWoodMaterialVECT> m_material;
     ChVector3d m_center;
     ChMatrix33<double> m_facetFrame;
-    ChVectorDynamic<>  m_state; 
+    StateVarVector m_state;
 	ChVectorDynamic<>  m_nonMechanicStrain;
     //std::shared_ptr<ChInternalDataCSL> m_state;  
     double mcon_width=1.0;  

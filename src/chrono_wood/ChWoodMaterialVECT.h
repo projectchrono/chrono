@@ -20,6 +20,7 @@
 #ifndef CHWOODMATERIALVECT_H
 #define CHWOODMATERIALVECT_H
 
+#include "chrono/core/ChVector3.h"
 #include "chrono_wood/ChWoodApi.h"
 #include "chrono/core/ChMatrix33.h"
 #include <vector>
@@ -35,6 +36,8 @@ namespace wood {
 /// Definition of materials to be used for CSL beams and LDPM tets utilizing the lattice discrete particle model.
 class ChWoodApi ChWoodMaterialVECT {
   public:
+    using StateVarVector = ChVectorN<double, 18>;
+
     /// Construct an isotropic elastic material.
     ChWoodMaterialVECT(double rho,  		///< material density
                        double E0,    	///< Mesoscale Young's modulus
@@ -163,18 +166,18 @@ class ChWoodApi ChWoodMaterialVECT {
     double GetCoupleContrib2EquStrainFlag() const { return m_CoupleContrib2EquStrain; }
     void SetCoupleContrib2EquStrainFlag(double CoupleContrib2EquStrain) { m_CoupleContrib2EquStrain = CoupleContrib2EquStrain; }	
     /// Compute stresses from given strains and state variables.
-    void ComputeStress(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& curvature, double &len, double& epsV, ChVectorDynamic<>& statev, double& area, double& width, double& height, ChVectorDynamic<>& mstress, ChVectorDynamic<>& mcouple);
+    void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple);
     //
-	void ComputeStress(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& curvature, ChVectorDynamic<>& eigenstrain, double &len, double& epsV, ChVectorDynamic<>& statev, double& area, double& width, double& height, ChVectorDynamic<>& mstress, ChVectorDynamic<>& mcouple);
+	void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, ChVectorDynamic<>& eigenstrain, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple);
     
-    double FractureBC(ChVectorDynamic<>& mstrain, double& len, double& epsQ, double& epsT, ChVectorDynamic<>& statev);
+    double FractureBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev);
 
     //double CompressBC(ChVectorDynamic<>& mstrain, double& epsV, ChVectorDynamic<>& statev);
-	double CompressBC(ChVectorDynamic<>& mstrain, double& len, double& epsQ, double& epsT, ChVectorDynamic<>& statev);
+	double CompressBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev);
 
-    std::pair<double, double> ShearBC(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& statev);
+    std::pair<double, double> ShearBC(ChVector3d& mstrain, StateVarVector& statev);
 	
-	std::vector<double> ShearBC(ChVectorDynamic<>& mstrain, ChVectorDynamic<>& curvature, double rN2, ChVectorDynamic<>& statev);
+	std::vector<double> ShearBC(ChVector3d& mstrain, ChVector3d& curvature, double rN2, StateVarVector& statev);
     
   private:
     

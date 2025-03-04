@@ -25,6 +25,7 @@
 
 #include "chrono_wood/ChElementCBLCON.h"
 #include <iomanip>
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 namespace wood {
@@ -123,7 +124,7 @@ void ChElementCBLCON::Update() {
 
     // always keep updated the rotation matrix A:
 	if (ChElementCBLCON::LargeDeflection){
-		this->UpdateRotation();    
+		this->UpdateRotation();
 		this->section->Set_Length((nodes[1]->GetPos() - nodes[0]->GetPos()).Length());
 	}	
 	//
@@ -134,8 +135,8 @@ void ChElementCBLCON::Update() {
     // update total displacement increment 
     //ChVectorDynamic<> displ(12);
     //this->GetStateBlock(displ);
-    //DUn_1=displ-Un_1;
-    //Un_1=displ;  
+    //dofs_increment=displ-dofs_old;
+    //dofs_old=displ;
     //
     // Compute local stiffness matrix:
     //
@@ -222,15 +223,6 @@ void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 
-
-void ChElementCBLCON::GetLatticeStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(12);
-    mD.segment(0, 6)=DUn_1.segment(0,6); 
-    mD.segment(6, 6)=DUn_1.segment(6,6); 
-}
-
-
-
 void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
     mD_dt.resize(12);
 
@@ -248,8 +240,7 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 }
 
 
-void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& displ_incr, ChVectorDynamic<>& mstrain, ChVectorDynamic<>& curvature) {
-    mstrain.resize(3);
+void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mstrain, ChVector3d& curvature) {
 	// 
 	auto dispN1=displ_incr.segment(0,6);
 	auto dispN2=displ_incr.segment(6,6);
@@ -293,7 +284,7 @@ void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& displ_incr, ChVectorDynam
 			ChMatrixNM<double,1,6> BJ= n.transpose()*AJ/length;			
 			//std::cout << "matrix BJ:\n" << BJ << std::endl; 
 			//
-			mstrain(id)=double (BJ*dispN2)+ double (-BI*dispN1); 
+			mstrain[id]=double (BJ*dispN2)+ double (-BI*dispN1);
 
 		}
 		
@@ -309,29 +300,25 @@ void ChElementCBLCON::ComputeStrain(ChVectorDynamic<>& displ_incr, ChVectorDynam
 
 
 
-void ChElementCBLCON::ComputeStress(ChVectorDynamic<>& mstress) {
-    mstress.resize(3);
-	ChVectorDynamic<> mstrain;
-	ChVectorDynamic<> curvature;
-    // Displacement increment of nodes:
-	ChVectorDynamic<> displ_incr(this->GetNumCoordsPosLevel());
-	this->GetLatticeStateBlock(displ_incr);
-	this->ComputeStrain(displ_incr, mstrain, curvature);
+void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
+	ChVector3d mstrain;
+	ChVector3d curvature;
+    // Displacement and rotation increment of nodes:
+	this->ComputeStrainIncrement(dofs_increment, mstrain, curvature);
 	//std::cout<<"\nmstrain:\n"<<mstrain<<std::endl;	
 	//
 	double E0=this->section-> Get_material()->Get_E0();
 	double alpha=this->section-> Get_material()->Get_alpha();	
 	//
-	double epsQ=pow(mstrain(0)*mstrain(0)+alpha*(mstrain(1)*mstrain(1)+mstrain(2)*mstrain(2)), 0.5);
+	double epsQ=pow(mstrain[0]*mstrain[0]+alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5);
 	double strsQ=E0*epsQ;	
 	//
 	if (epsQ!=0) {
-		mstress(0)=strsQ*mstrain(0)/epsQ;
-		mstress(1)=alpha*strsQ*mstrain(1)/epsQ;
-		mstress(2)=alpha*strsQ*mstrain(2)/epsQ;
+		mstress[0]=strsQ*mstrain[0]/epsQ;
+		mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
+		mstress[2]=alpha*strsQ*mstrain[2]/epsQ;
 	}else{
-		mstress<< 0.0, 0.0, 0.0;
-		//mstress.setZero();
+		mstress.Set(0.0);
 	}	
 }
 
@@ -541,21 +528,19 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);
-    Un_1=displ;
+    dofs_old=displ;
     //
     // Initiliaze state variables:
     //
-	
-    auto statev= this->section->Get_StateVar();
-    statev.resize(18);
-    statev.setZero();
-    this->section->Set_StateVar(statev); 
+	// TODO: JBC, this should arguably be set in the section's constructor initialization list ?
+    this->section->Get_StateVar().setZero();
+
     //
 	if(this->macro_strain){
 			this->section->ComputeProjectionMatrix();
 			this->section->ComputeEigenStrain(this->macro_strain);			
 	}
-    	
+
     //
     // Compute local stiffness matrix:
     //
@@ -573,7 +558,6 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
     //
     // The K stiffness matrix and R damping matrix of this element:
     //
-
     if (Kfactor || Rfactor) {    
 
         if (use_numerical_diff_for_KR) {
@@ -596,7 +580,7 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
                 ChVector3d paD = pa0; 
                 paD[i] += delta_p;
                 this->GetNodeA()->SetPos(paD);
-                this->ComputeInternalForces(FiD);                
+                this->ComputeInternalForces(FiD);              
                 H_num.block<12,1>(0, i) = (FiD - Fi0) / delta_p;
                 this->GetNodeA()->SetPos(pa0);
             }
@@ -763,13 +747,12 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
     assert(section);
     
+    // Displacement and rotation increment of nodes:
     ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);
-    DUn_1=displ-Un_1;
-    Un_1=displ;	
-    // Displacement increment of nodes:
-	ChVectorDynamic<> displ_incr(this->GetNumCoordsPosLevel());
-	this->GetLatticeStateBlock(displ_incr);
+    dofs_increment = displ - dofs_old;
+    dofs_old = displ;
+
 	//
 	// Get facet area and length of beam
 	//
@@ -821,12 +804,12 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 	//this->ComputeStress(mstress);
 	
 	auto mysection=this->section;
-	ChVectorDynamic<> mstress;	
-	ChVectorDynamic<> dmstrain;
-	ChVectorDynamic<> mcouple;
-	ChVectorDynamic<> dcurvature;
-	ChVectorDynamic<> statev;
-	this->ComputeStrain(displ_incr, dmstrain, dcurvature);
+	ChVector3d mstress;
+	ChVector3d dmstrain;
+	ChVector3d mcouple;
+	ChVector3d dcurvature;
+	StateVarVector statev;
+	this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
 	statev=mysection->Get_StateVar();
 	// compute volumetric strain
 	double epsV=0;
@@ -855,8 +838,8 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
     ChVectorDynamic<> Fi_local(12);
 	
-	Fi_local.segment(0,6)=-area*length*(mstress.transpose()*mBI);
-	Fi_local.segment(6,6)= area*length*(mstress.transpose()*mBJ);	
+	Fi_local.segment(0,6)=-area*length*(mstress.eigen().transpose()*mBI);
+	Fi_local.segment(6,6)= area*length*(mstress.eigen().transpose()*mBJ);
 	
 	//std::cout<<"\nFi_local-1:\n"<<Fi_local<<std::endl;
 	ChVectorDynamic<> Fmu(6);
@@ -869,7 +852,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 		Bx.block<3,3>(0,0)=-Bx.block<3,3>(3,0);
 		
 		//ChVectorDynamic<> Fmu(6);
-		Fmu=area*(Bx*mcouple);
+		Fmu=area*(Bx*mcouple.eigen());
 		//std::cout<<"length:\t"<<length<<"area:\t"<<area<<std::endl;
 		//std::cout<<"mcouple:\t"<<mcouple<<std::endl;
 		//std::cout<<"nmL:\n"<<nmL<<std::endl;	
