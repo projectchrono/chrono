@@ -258,7 +258,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     double force1 = -50;
     nodetip->SetForce(ChVector3d(0.0, 0.0, force1));
@@ -457,7 +457,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetVerbose(false);
 
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     if (genRefFile) {
         outputfile = fopen("SwingingShellRef.txt", "w");
@@ -652,7 +652,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     if (genRefFile) {
         outputfile = fopen("UT_J2PlasticBrick9Ref.txt", "w");
@@ -861,7 +861,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     if (genRefFile) {
         outputfile = fopen("UT_DruckerPragerPlasticBrick9Ref.txt", "w");

@@ -36,8 +36,7 @@ class ChApi ChLinkLockBrake : public ChLinkLock {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockBrake* Clone() const override { return new ChLinkLockBrake(*this); }
 
-    virtual void UpdateTime(double time) override;
-    virtual void UpdateForces(double mytime) override;
+    virtual void UpdateForces(double time) override;
 
     virtual void SetDisabled(bool mdis) override;
 

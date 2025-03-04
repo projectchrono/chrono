@@ -146,7 +146,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Update time dependent data, for all elements.
     /// Updates all [A] coord.systems for all (corotational) elements.
-    virtual void Update(double m_time, bool update_assets = true) override;
+    virtual void Update(double m_time, bool update_assets) override;
 
     /// Add the mesh contact surfaces (if any) to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;

@@ -47,7 +47,7 @@ void ChLinkLockPointSpline::SetTrajectory(std::shared_ptr<ChLine> mline) {
 // UPDATE TIME
 
 void ChLinkLockPointSpline::UpdateTime(double time) {
-    ChTime = time;
+    ChLinkLock::UpdateTime(time);
 
     if (trajectory_line) {
         ChVector3d param, vdir, vdir2, vnorm, vrad, vpoint;

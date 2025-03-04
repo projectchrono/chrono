@@ -104,9 +104,9 @@ int ChLinkBeamIGAFrame::Initialize(std::vector<std::shared_ptr<fea::ChElementBea
     return true;
 }
 
-void ChLinkBeamIGAFrame::Update(double mytime, bool update_assets) {
+void ChLinkBeamIGAFrame::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     this->UpdateNodes();

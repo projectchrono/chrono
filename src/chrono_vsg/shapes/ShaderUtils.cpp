@@ -158,7 +158,8 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 }
 
 vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
-                                                   VkPrimitiveTopology topology) {
+                                                   VkPrimitiveTopology topology,
+                                                   float line_width) {
     vsg::ref_ptr<vsg::SharedObjects> sharedObjects;
     if (!sharedObjects) {
         if (options)
@@ -179,15 +180,18 @@ vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Optio
     graphicsPipelineConfig->enableArray("inColor", VK_VERTEX_INPUT_RATE_VERTEX, 12);
 
     struct SetPipelineStates : public vsg::Visitor {
-        VkPrimitiveTopology topology;
-        SetPipelineStates(VkPrimitiveTopology in) : topology(in) {}
+        SetPipelineStates(VkPrimitiveTopology topo, float width) : topology(topo), line_width(width) {}
 
         void apply(vsg::Object& object) { object.traverse(*this); }
-        void apply(vsg::RasterizationState& rs) { rs.lineWidth = 1; }
+        void apply(vsg::RasterizationState& rs) { rs.lineWidth = line_width; }
         void apply(vsg::InputAssemblyState& ias) { ias.topology = topology; }
         void apply(vsg::ColorBlendState& cbs) { cbs.configureAttachments(false); }
-    } sps(topology);
 
+        VkPrimitiveTopology topology;
+        float line_width;
+    };
+
+    SetPipelineStates sps(topology, line_width);
     graphicsPipelineConfig->accept(sps);
 
     // if required initialize GraphicsPipeline/Layout etc.

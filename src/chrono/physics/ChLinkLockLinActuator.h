@@ -53,7 +53,7 @@ class ChApi ChLinkLockLinActuator : public ChLinkLockLock {
 
   private:
     /// Updates motion laws, marker positions, etc.
-    virtual void UpdateTime(double mytime) override;
+    virtual void UpdateTime(double time) override;
 
     std::shared_ptr<ChFunction> dist_funct;  ///< distance function
     double offset;                           ///< distance offset

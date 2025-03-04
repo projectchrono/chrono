@@ -36,15 +36,15 @@ ChLinkMotorLinearPosition::ChLinkMotorLinearPosition(const ChLinkMotorLinearPosi
 
 ChLinkMotorLinearPosition::~ChLinkMotorLinearPosition() {}
 
-void ChLinkMotorLinearPosition::Update(double mytime, bool update_assets) {
+void ChLinkMotorLinearPosition::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotorLinear::Update(mytime, update_assets);
+    ChLinkMotorLinear::Update(time, update_assets);
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
     // with d_error = z_pos_1 - z_pos_2, and d_setpoint = z(t)
 
-    C(m_actuated_idx) = this->mpos - m_func->GetVal(mytime) - this->pos_offset;
+    C(m_actuated_idx) = this->mpos - m_func->GetVal(time) - this->pos_offset;
 }
 
 void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {

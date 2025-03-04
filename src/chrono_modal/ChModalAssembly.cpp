@@ -1376,7 +1376,7 @@ void ChModalAssembly::SetFullStateReset() {
 
     this->IntStateScatter(0, m_full_state_x0, 0, assembly_v, fooT, true);
 
-    this->Update();
+    this->Update(ChTime, false);
 }
 
 //---------------------------------------------------------------------------------------
@@ -1610,7 +1610,7 @@ void ChModalAssembly::GetSubassemblyMatrices(ChSparseMatrix* K,
                                              ChSparseMatrix* Cq) {
     this->SetupInitial();
     this->Setup();
-    this->Update();
+    this->Update(ChTime, false);
 
     ChSystemDescriptor temp_descriptor;
 
@@ -1927,8 +1927,8 @@ void ChModalAssembly::Initialize() {
 // Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.
 // Updates all forces (automatic, as children of bodies)
 // Updates all markers (automatic, as children of bodies).
-void ChModalAssembly::Update(bool update_assets) {
-    ChAssembly::Update(update_assets);
+void ChModalAssembly::Update(double time, bool update_assets) {
+    ChAssembly::Update(time, update_assets);
 
     if (m_is_model_reduced) {
         // If in modal reduced state, the internal parts would not be updated (actually, these could even be
@@ -1942,16 +1942,16 @@ void ChModalAssembly::Update(bool update_assets) {
 
     } else {
         for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-            internal_bodylist[ip]->Update(ChTime, update_assets);
+            internal_bodylist[ip]->Update(time, update_assets);
         }
         for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
-            internal_meshlist[ip]->Update(ChTime, update_assets);
+            internal_meshlist[ip]->Update(time, update_assets);
         }
         for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
-            internal_otherphysicslist[ip]->Update(ChTime, update_assets);
+            internal_otherphysicslist[ip]->Update(time, update_assets);
         }
         for (unsigned int ip = 0; ip < internal_linklist.size(); ++ip) {
-            internal_linklist[ip]->Update(ChTime, update_assets);
+            internal_linklist[ip]->Update(time, update_assets);
         }
     }
 }
@@ -2141,7 +2141,7 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
         this->modal_q_dt = v.segment(off_v + m_num_coords_vel_boundary, m_num_coords_modal);
 
         // Update:
-        this->Update(update_assets);
+        this->Update(T, update_assets);
     }
 
     SetChTime(T);

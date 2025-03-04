@@ -496,7 +496,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                         float color_factor) {
+                                                         float color_factor,
+                                                         float line_width) {
     // Set red, green, and blue colors at specified darkness level
     ChColor R(1, 0, 0);
     ChColor G(0, 1, 0);
@@ -537,7 +538,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     colors->set(4, vsg::vec3CH(B));
     colors->set(5, vsg::vec3CH(B));
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -582,7 +583,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInsta
         colors->set(i, vsg::vec3CH(material->GetDiffuseColor()));
     }
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, 1.0f);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -626,7 +627,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(ChVisualModel::ShapeInsta
         colors->set(i, vsg::vec3CH(material->GetDiffuseColor()));
     }
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, 1.0f);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -681,7 +682,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(ChVisualModel::ShapeIns
         colors->set(iu, cv);
     }
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, 2.0f);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -724,7 +725,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(ChVisualModel::ShapeIns
     colors->set(0, cv);
     colors->set(1, cv);
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, 2.0f);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -792,7 +793,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
         colors->set(i, cv);
     }
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, 1.0f);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();

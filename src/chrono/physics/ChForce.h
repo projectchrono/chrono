@@ -137,17 +137,12 @@ class ChApi ChForce : public ChObj {
     /// and torque vector (in body coords).
     void GetBodyForceTorque(ChVector3d& body_force, ChVector3d& body_torque) const;
 
-    //
     // UPDATING
-    //
 
-    void UpdateTime(double mytime);
     void UpdateState();
-    void Update(double mytime);
+    virtual void Update(double time, bool update_assets) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -273,7 +273,7 @@ void CreateCantilever(ChSystem& sys,
         sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     sys.Setup();
-    sys.Update();
+    sys.Update(true);
 
     // modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
 

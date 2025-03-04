@@ -46,9 +46,9 @@ bool ChShaftBodyRotation::Initialize(std::shared_ptr<ChShaft> mshaft,
     return true;
 }
 
-void ChShaftBodyRotation::Update(double mytime, bool update_assets) {
+void ChShaftBodyRotation::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...
@@ -214,9 +214,9 @@ bool ChShaftBodyTranslation::Initialize(std::shared_ptr<ChShaft> mshaft,
     return true;
 }
 
-void ChShaftBodyTranslation::Update(double mytime, bool update_assets) {
+void ChShaftBodyTranslation::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
     // ...

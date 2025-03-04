@@ -32,7 +32,7 @@ class ChApi ChVisualShapePointPoint : public ChVisualShapeLine {
     ChVisualShapePointPoint() = default;
 
     // Update the underlying line geometry and set current locations of the end points.
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+    virtual void Update(ChObj* updater, const ChFrame<>& coords) override;
 
     const ChVector3d& GetPoint1Abs() const { return point1; }
     const ChVector3d& GetPoint2Abs() const { return point2; }
@@ -81,7 +81,7 @@ class ChApi ChVisualShapeRotSpring : public ChVisualShapeLine {
   public:
     ChVisualShapeRotSpring(double radius, int resolution = 65) : m_radius(radius), m_resolution(resolution) {}
 
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& coords) override;
+    virtual void Update(ChObj* updater, const ChFrame<>& coords) override;
 
   private:
     double m_radius;
