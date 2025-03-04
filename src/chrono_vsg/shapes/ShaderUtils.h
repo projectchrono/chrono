@@ -29,7 +29,8 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
                                                 std::shared_ptr<ChVisualMaterial> material);
 
 vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
-                                                   VkPrimitiveTopology topology);
+                                                   VkPrimitiveTopology topology,
+                                                   float line_width);
 
 vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Options> options,
                                                   std::shared_ptr<ChVisualMaterial> material,
