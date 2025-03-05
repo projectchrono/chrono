@@ -306,29 +306,6 @@ void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
 }
 
 
-
-
-/*
-void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
-    M.setZero();
-    // Mass Matrix 
-	ChVector3d pNA=this->GetNodeA()->GetX0().GetPos();
-	ChVector3d pNB=this->GetNodeB()->GetX0().GetPos();
-	
-	auto vertices=this->V_vert_nodes;
-	for(auto verts: vertices){
-		auto pC=verts[0]->GetX0().GetPos();
-		auto pA=verts[1]->GetX0().GetPos();
-		auto pB=verts[2]->GetX0().GetPos();		
-		
-		M.block<6,6>(0,0)+=mA;
-		M.block<6,6>(6,6)+=mB;
-	}
-	
-}
-*/
-
-
 void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
     M.setZero();
     // Mass Matrix 
