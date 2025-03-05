@@ -25,6 +25,7 @@
 
 #include "chrono_wood/ChElementCBLCON.h"
 #include <iomanip>
+#include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector3.h"
 
 namespace chrono {
@@ -244,11 +245,23 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 
 void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mstrain, ChVector3d& curvature) {
 	// 
-	auto dispN1=displ_incr.segment(0,6);
-	auto dispN2=displ_incr.segment(6,6);
-	//dispN1.setConstant(1E-4);
-	//dispN2.setConstant(1.2E-4);
-	//
+    ChVector3d ui = displ_incr.segment(0,3);
+    ChVector3d ri = displ_incr.segment(3,3);
+    ChVector3d uj = displ_incr.segment(6,3);
+    ChVector3d rj = displ_incr.segment(9,3);
+    ChVector3d xc_xi;
+    ChVector3d xc_xj;
+    // For small deflection, use the initial position of the nodes and facet centers
+    // to determine the displacement induced by the node rotation
+    if (!LargeDeflection) {
+        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
+        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
+    }
+    else { // TODO: Find out how to evolve position of the center for large displacement
+        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
+        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
+    }
+
 	ChMatrix33<double> nmL=this->section->Get_facetFrame();
 	if(ChElementCBLCON::LargeDeflection){	// TODO: JBC: I think that should go into Update()
 		ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
@@ -256,42 +269,15 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
 			nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
 		}	
 	}
-	//
-	Amatrix AI; 	Amatrix AJ;
-	// A matrix is calculated based on initial coordinates
-	this->ComputeAmatrix(AI, this->section->Get_center() , 
-						     this->nodes[0]->GetX0().GetPos());
-									
-	this->ComputeAmatrix( AJ, this->section->Get_center() , 
-							  this->nodes[1]->GetX0().GetPos());
-									
-	ChVectorN<double,3> n; //
-	for (int id=0;id<3;id++) {			
-			//
-			// NodeA
-			//			
-			n<< nmL(id,0), nmL(id,1), nmL(id,2);
-			//std::cout<<id<<" n: \n"<<n<<std::endl;
-			//n<< nmL(id,0), nmL(id,1), nmL(id,2);			
-			ChMatrixNM<double,1,6> BI= n.transpose()*AI/length;
-			//std::cout << "matrix BI:\n" << BI << std::endl; 	
-			//
-			// NodeB
-			//		
-			ChMatrixNM<double,1,6> BJ= n.transpose()*AJ/length;			
-			//std::cout << "matrix BJ:\n" << BJ << std::endl; 
-			//
-			mstrain[id]=double (BJ*dispN2)+ double (-BI*dispN1);
 
-		}
-		
+    // Strain
+    ChVector3d strain_increment = (uj + rj.Cross(xc_xj) - (ui + ri.Cross(xc_xi))) / this->length;
+    mstrain = nmL * strain_increment;
+
+    // Curvature
 	if (ChElementCBLCON::EnableCoupleForces){
-		//nmL=this->section->Get_facetFrame();
-		curvature=(displ_incr.segment(9,3)-displ_incr.segment(3,3))/length;
-		curvature=nmL*curvature;		
-		
-	}	
-	
+		curvature = nmL * (rj - ri) / this->length;
+	}
 }
 
 
