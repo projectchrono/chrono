@@ -53,15 +53,15 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "AntirollBarRSD"; }
 
-    /// Initialize this anti-roll bar subsystem.
+    /// Construct this anti-roll bar subsystem.
     /// The anti-roll bar subsystem is initialized by attaching it to the specified chassis at the given location (with
     /// respect to and expressed in the reference frame of the chassis) and associating it with the specified suspension
     /// subsystem (assumed to be independent). It is assumed that the anti-roll bar reference frame is always aligned
     /// with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
-                            std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
-                            const ChVector3d& location                 ///< [in] location relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
+                           std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
+                           const ChVector3d& location                 ///< [in] location relative to the chassis frame
+                           ) override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

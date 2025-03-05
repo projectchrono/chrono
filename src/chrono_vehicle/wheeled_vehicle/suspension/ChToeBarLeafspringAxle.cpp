@@ -81,18 +81,12 @@ ChToeBarLeafspringAxle::~ChToeBarLeafspringAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                                        std::shared_ptr<ChSubchassis> subchassis,
-                                        std::shared_ptr<ChSteering> steering,
-                                        const ChVector3d& location,
-                                        double left_ang_vel,
-                                        double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChToeBarLeafspringAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                                       std::shared_ptr<ChSubchassis> subchassis,
+                                       std::shared_ptr<ChSteering> steering,
+                                       const ChVector3d& location,
+                                       double left_ang_vel,
+                                       double right_ang_vel) {
     m_left_knuckle_steers = isLeftKnuckleActuated();
 
     // Unit vectors for orientation matrices.

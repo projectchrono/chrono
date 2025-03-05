@@ -38,7 +38,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRigidPinnedAxle::ChRigidPinnedAxle(const std::string& name) : ChSuspension(name) {}
 
 ChRigidPinnedAxle::~ChRigidPinnedAxle() {
@@ -54,18 +53,12 @@ ChRigidPinnedAxle::~ChRigidPinnedAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   std::shared_ptr<ChSubchassis> subchassis,
-                                   std::shared_ptr<ChSteering> steering,
-                                   const ChVector3d& location,
-                                   double left_ang_vel,
-                                   double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChRigidPinnedAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                                  std::shared_ptr<ChSubchassis> subchassis,
+                                  std::shared_ptr<ChSteering> steering,
+                                  const ChVector3d& location,
+                                  double left_ang_vel,
+                                  double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());

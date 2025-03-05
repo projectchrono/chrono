@@ -63,18 +63,12 @@ ChPushPipeAxle::~ChPushPipeAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                                std::shared_ptr<ChSubchassis> subchassis,
-                                std::shared_ptr<ChSteering> steering,
-                                const ChVector3d& location,
-                                double left_ang_vel,
-                                double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChPushPipeAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                               std::shared_ptr<ChSubchassis> subchassis,
+                               std::shared_ptr<ChSteering> steering,
+                               const ChVector3d& location,
+                               double left_ang_vel,
+                               double right_ang_vel) {
     // Unit vectors for orientation matrices.
     ChVector3d u;
     ChVector3d v;

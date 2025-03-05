@@ -70,6 +70,9 @@ class CH_VEHICLE_API ChPart {
     /// This method can only be called after part initialization.
     virtual uint16_t GetVehicleTag() const;
 
+    /// Get the tag for component bodies.
+    int GetBodyTag() const { return m_body_tag; }
+
     /// Get the subsystem mass.
     /// Note that the correct value is reported only *after* the subsystem is initialized.
     double GetMass() const { return m_mass; }
@@ -200,6 +203,7 @@ class CH_VEHICLE_API ChPart {
     ChMatrix33<> m_inertia;            ///< inertia tensor (relative to subsystem COM)
     ChFrame<> m_com;                   ///< COM frame (relative to subsystem reference frame)
     ChFrame<> m_xform;                 ///< subsystem frame expressed in the global frame
+    int m_body_tag;                    ///< tag for part bodies
 
   private:
     friend class ChAxle;

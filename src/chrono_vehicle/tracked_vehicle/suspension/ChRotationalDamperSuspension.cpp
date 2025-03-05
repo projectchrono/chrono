@@ -41,9 +41,9 @@ ChRotationalDamperSuspension::~ChRotationalDamperSuspension() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                              const ChVector3d& location,
-                                              ChTrackAssembly* track) {
+void ChRotationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis,
+                                             const ChVector3d& location,
+                                             ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -117,10 +117,6 @@ void ChRotationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis
         m_shock->RegisterTorqueFunctor(GetShockTorqueCallback());
         chassis->GetSystem()->AddLink(m_shock);
     }
-
-    // Invoke the base class implementation. This initializes the associated road wheel.
-    // Note: we must call this here, after the m_arm body is created.
-    ChTrackSuspension::Initialize(chassis, location, track);
 }
 
 void ChRotationalDamperSuspension::InitializeInertiaProperties() {

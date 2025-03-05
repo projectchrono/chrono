@@ -64,10 +64,10 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// to an axle with a single tire. A positive offset corresponds to an "outer" wheel, while a negative offset
     /// corresponds to an "inner" wheel. The wheel mass and inertia are used to increment those of the associated
     /// spindle body.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
-                            std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
-                            VehicleSide side,                    ///< wheel mounted on left/right side
-                            double offset = 0                    ///< offset from associated spindle center
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
+                    std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                    VehicleSide side,                    ///< wheel mounted on left/right side
+                    double offset = 0                    ///< offset from associated spindle center
     );
 
     /// Enable/disable contact for the wheel.
@@ -118,6 +118,17 @@ class CH_VEHICLE_API ChWheel : public ChPart {
   protected:
     /// Construct a wheel subsystem with given name.
     ChWheel(const std::string& name);
+
+    /// Construct the concrete wheel subsystem by associating it to an existing spindle of a suspension subsystem.
+    /// The optional 'offset' argument allows models with double wheels(tires). The default value offset=0 corresponds
+    /// to an axle with a single tire. A positive offset corresponds to an "outer" wheel, while a negative offset
+    /// corresponds to an "inner" wheel. The wheel mass and inertia are used to increment those of the associated
+    /// spindle body.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
+                           std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                           VehicleSide side,                    ///< wheel mounted on left/right side
+                           double offset                        ///< offset from associated spindle center
+    ) {}
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

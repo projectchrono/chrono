@@ -44,16 +44,18 @@ ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector3d& location,
-                                      const ChQuaternion<>& rotation) {
-    ChTrackShoeSegmented::Initialize(chassis, location, rotation);
+void ChTrackShoeSinglePin::Construct(std::shared_ptr<ChChassis> chassis,
+                                     const ChVector3d& location,
+                                     const ChQuaternion<>& rotation) {
+    ChTrackShoeSegmented::Construct(chassis, location, rotation);
 
     ChSystem* sys = chassis->GetSystem();
 
     // Create the shoe body.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    auto chassis_body = chassis->GetBody();
+
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetName(m_name + "_shoe");
     m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);

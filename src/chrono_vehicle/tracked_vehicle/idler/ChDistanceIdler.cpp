@@ -68,7 +68,7 @@ ChDistanceIdler::~ChDistanceIdler() {
     }
 }
 
-void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
+void ChDistanceIdler::Construct(std::shared_ptr<ChChassis> chassis,
                                  const ChVector3d& location,
                                  ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system
@@ -114,10 +114,6 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tensioner->SetActuatorFunction(motfun);
     m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);
-
-    // Invoke the base class implementation. This initializes the associated idler wheel.
-    // Note: we must call this here, after the m_carrier body is created.
-    ChIdler::Initialize(chassis, location, track);
 }
 
 void ChDistanceIdler::InitializeInertiaProperties() {

@@ -73,16 +73,17 @@ ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector3d& location,
-                                      const ChQuaternion<>& rotation) {
-    ChTrackShoeSegmented::Initialize(chassis, location, rotation);
+void ChTrackShoeDoublePin::Construct(std::shared_ptr<ChChassis> chassis,
+                                     const ChVector3d& location,
+                                     const ChQuaternion<>& rotation) {
+    ChTrackShoeSegmented::Construct(chassis, location, rotation);
 
     ChSystem* sys = chassis->GetSystem();
 
     // Express the track shoe location and orientation in global frame.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    auto chassis_body = chassis->GetBody();
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     ChVector3d xdir = rot.GetAxisX();
     ChVector3d ydir = rot.GetAxisY();
 
@@ -145,30 +146,32 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_connector_R->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
 }
 
-void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const ChVector3d& loc_shoe,
                                       const ChQuaternion<>& rot_shoe,
                                       const ChVector3d& loc_connector_L,
                                       const ChVector3d& loc_connector_R,
                                       const ChQuaternion<>& rot_connector) {
     // Initialize at origin.
-    Initialize(chassis, VNULL, QUNIT);
+    ChTrackShoe::Initialize(chassis, VNULL, QUNIT);
 
     // Overwrite absolute body locations and orientations.
-    m_shoe->SetPos(chassis->TransformPointLocalToParent(loc_shoe));
-    m_shoe->SetRot(chassis->GetRot() * rot_shoe);
+    auto chassis_body = chassis->GetBody();
+
+    m_shoe->SetPos(chassis_body->TransformPointLocalToParent(loc_shoe));
+    m_shoe->SetRot(chassis_body->GetRot() * rot_shoe);
 
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:
-            m_connector_L->SetPos(chassis->TransformPointLocalToParent(loc_connector_L));
-            m_connector_L->SetRot(chassis->GetRot() * rot_connector);
+            m_connector_L->SetPos(chassis_body->TransformPointLocalToParent(loc_connector_L));
+            m_connector_L->SetRot(chassis_body->GetRot() * rot_connector);
 
-            m_connector_R->SetPos(chassis->TransformPointLocalToParent(loc_connector_R));
-            m_connector_R->SetRot(chassis->GetRot() * rot_connector);
+            m_connector_R->SetPos(chassis_body->TransformPointLocalToParent(loc_connector_R));
+            m_connector_R->SetRot(chassis_body->GetRot() * rot_connector);
             break;
         case DoublePinTrackShoeType::ONE_CONNECTOR:
-            m_connector_L->SetPos(chassis->TransformPointLocalToParent(0.5 * (loc_connector_L + loc_connector_R)));
-            m_connector_L->SetRot(chassis->GetRot() * rot_connector);
+            m_connector_L->SetPos(chassis_body->TransformPointLocalToParent(0.5 * (loc_connector_L + loc_connector_R)));
+            m_connector_L->SetRot(chassis_body->GetRot() * rot_connector);
             break;
     }
 }

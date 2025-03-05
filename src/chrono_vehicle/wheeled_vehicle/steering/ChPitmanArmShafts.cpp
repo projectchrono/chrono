@@ -52,14 +52,9 @@ ChPitmanArmShafts::~ChPitmanArmShafts() {
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   const ChVector3d& location,
-                                   const ChQuaternion<>& rotation) {
-    ChSteering::Initialize(chassis, location, rotation);
-
-    m_parent = chassis;
-    m_rel_xform = ChFrame<>(location, rotation);
-
+void ChPitmanArmShafts::Construct(std::shared_ptr<ChChassis> chassis,
+                                  const ChVector3d& location,
+                                  const ChQuaternion<>& rotation) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 

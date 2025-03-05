@@ -149,6 +149,8 @@ int main(int argc, char* argv[]) {
     marder.SetRoadWheelVisualizationType(track_vis);
     marder.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
+    auto& vehicle = marder.GetVehicle();
+
     // Disable gravity in this simulation
     ////marder.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
@@ -162,35 +164,35 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////marder.GetVehicle().EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////marder.GetVehicle().EnableCollision(TrackedCollisionFlag::NONE);
+    ////vehicle.EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
-    ////marder.GetVehicle().SetChassisCollide(false);
+    ////vehicle.SetChassisCollide(false);
 
     // Disable only contact between chassis and track shoes (if chassis collision was defined)
-    ////marder.GetVehicle().SetChassisVehicleCollide(false);
+    ////vehicle.SetChassisVehicleCollide(false);
 
     // Monitor internal contacts for the chassis, left sprocket, left idler, and first shoe on the left track.
-    ////marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
     ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
     // Monitor contacts involving one of the sprockets.
-    marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
+    vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
 
     // Monitor only contacts involving the chassis.
-    ////marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
     // Render contact normals and/or contact forces.
-    marder.GetVehicle().SetRenderContactNormals(true);
-    ////marder.GetVehicle().SetRenderContactForces(true, 1e-4);
+    vehicle.SetRenderContactNormals(true);
+    ////vehicle.SetRenderContactForces(true, 1e-4);
 
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
-    ////marder.GetVehicle().SetContactCollection(true);
+    ////vehicle.SetContactCollection(true);
 
     // ------------------
     // Create the terrain
@@ -235,7 +237,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&marder.GetVehicle());
+            vis_irr->AttachVehicle(&vehicle);
 
             auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
             double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -259,7 +261,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Marder Vehicle Demo");
             vis_vsg->SetChaseCamera(trackPoint, 10.0, 0.5);
-            vis_vsg->AttachVehicle(&marder.GetVehicle());
+            vis_vsg->AttachVehicle(&vehicle);
             ////vis_vsg->ShowAllCoGs(0.3);
             vis_vsg->Initialize();
 
@@ -311,12 +313,12 @@ int main(int argc, char* argv[]) {
     }
 
     // Set up vehicle output
-    ////marder.GetVehicle().SetChassisOutput(true);
-    ////marder.GetVehicle().SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    ////marder.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////vehicle.SetChassisOutput(true);
+    ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    ////vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    ////marder.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    ////vehicle.ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------------
     // Solver and integrator settings
@@ -369,6 +371,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    std::cout << "\n============ Vehicle subsystems ============" << std::endl;
+    vehicle.LogSubsystemTypes();
+
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
@@ -376,16 +381,16 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    marder.GetVehicle().EnableRealtime(true);
+    vehicle.EnableRealtime(true);
     while (vis->Run()) {
         // Debugging output
         if (dbg_output) {
-            auto track_L = marder.GetVehicle().GetTrackAssembly(LEFT);
-            auto track_R = marder.GetVehicle().GetTrackAssembly(RIGHT);
+            auto track_L = vehicle.GetTrackAssembly(LEFT);
+            auto track_R = vehicle.GetTrackAssembly(RIGHT);
             cout << "Time: " << marder.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << marder.GetSystem()->GetNumContacts() << endl;
             const ChFrameMoving<>& c_ref = marder.GetChassisBody()->GetFrameRefToAbs();
-            const ChVector3d& c_pos = marder.GetVehicle().GetPos();
+            const ChVector3d& c_pos = vehicle.GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector3d& i_pos_abs = track_L->GetIdler()->GetWheelBody()->GetPos();
@@ -439,7 +444,7 @@ int main(int argc, char* argv[]) {
         DriverInputs driver_inputs = driver->GetInputs();
 
         // Update modules (process inputs from other modules)
-        double time = marder.GetVehicle().GetChTime();
+        double time = vehicle.GetChTime();
         driver->Synchronize(time);
         terrain.Synchronize(time);
         marder.Synchronize(time, driver_inputs);
@@ -452,7 +457,7 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
 
         // Report if the chassis experienced a collision
-        if (marder.GetVehicle().IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
+        if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
             std::cout << time << "  chassis contact" << std::endl;
         }
 
@@ -460,7 +465,7 @@ int main(int argc, char* argv[]) {
         step_number++;
     }
 
-    marder.GetVehicle().WriteContacts("Marder_contacts.out");
+    vehicle.WriteContacts("Marder_contacts.out");
 
     return 0;
 }

@@ -128,6 +128,9 @@ void ChChassis::Initialize(ChVehicle* vehicle,
     m_vehicle = vehicle;
     ChSystem* system = vehicle->GetSystem();
 
+    // Set body tag
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS);
+
     // Initial pose and velocity assumed to be given in current WorldFrame
     ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
 
@@ -152,6 +155,8 @@ void ChChassis::Initialize(ChVehicle* vehicle,
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", ChFrame<>(GetLocalDriverCoordsys()));
     AddMarker("COM", GetCOMFrame());
+
+    Construct(vehicle, chassisPos, chassisFwdVel, collision_family);
 
     // Mark as initialized
     m_initialized = true;
@@ -277,6 +282,9 @@ void ChChassis::Synchronize(double time) {
 ChChassisRear::ChChassisRear(const std::string& name) : ChChassis(name, false) {}
 
 void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
+    m_parent = chassis;
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS_REAR);
+
     // Express the rear chassis reference frame in the absolute coordinate system.
     // Set rear chassis orientation to be the same as the front chassis and
     // translate based on local positions of the connector point.
@@ -307,6 +315,8 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
     // Add pre-defined marker (COM) on the chassis body.
     AddMarker("COM", GetBodyCOMFrame());
+
+    Construct(chassis, collision_family);
 
     // Mark as initialized
     m_initialized = true;

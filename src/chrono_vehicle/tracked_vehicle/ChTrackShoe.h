@@ -78,9 +78,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// All actual work is deferred to derived classes (subsystem templates) which
     /// must create the bodies, joints, etc.  In addition, a derived class must set
     /// the track shoe body's tag to TrackedVehicleBodyTag::SHOES.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] handle to the chassis body
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
     );
 
     /// Set the index of this track shoe within its containing track assembly.
@@ -97,6 +97,17 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
   protected:
     /// Construct a track shoe subsystem with given name.
     ChTrackShoe(const std::string& name);
+
+    /// Construct the concrete track shoe subsystem.
+    /// The track shoe is created within the specified system and initialized
+    /// at the specified location and orientation (expressed in the global frame).
+    /// All actual work is deferred to derived classes (subsystem templates) which
+    /// must create the bodies, joints, etc.  In addition, a derived class must set
+    /// the track shoe body's tag to TrackedVehicleBodyTag::SHOES.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] handle to the chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) = 0;
 
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body

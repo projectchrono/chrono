@@ -48,6 +48,7 @@ ChSprocket::~ChSprocket() {
 void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::SPROCKET);
 
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
     ChVector3d loc = chassis->GetBody()->GetFrameRefToAbs().TransformPointLocalToParent(location);

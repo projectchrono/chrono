@@ -43,6 +43,9 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                          std::shared_ptr<ChBody> spindle,
                          VehicleSide side,
                          double offset) {
+    m_parent = chassis;
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::WHEEL);
+
     m_spindle = spindle;
     m_side = side;
     m_offset = (side == LEFT) ? offset : -offset;
@@ -76,6 +79,8 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
         load_container->Add(m_spindle_terrain_force);
         load_container->Add(m_spindle_terrain_torque);
     }
+
+    Construct(chassis, spindle, side, offset);
 
     // Mark as initialized
     m_initialized = true;

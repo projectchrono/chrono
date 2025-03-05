@@ -26,7 +26,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackWheel::ChTrackWheel(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 ChTrackWheel::~ChTrackWheel() {
@@ -38,12 +37,13 @@ ChTrackWheel::~ChTrackWheel() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                               std::shared_ptr<ChBody> carrier,
                               const ChVector3d& location,
                               ChTrackAssembly* track) {
     m_track = track;
+    m_parent = chassis;
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::TRACK_WHEEL);
 
     // Express the wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
@@ -66,6 +66,8 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute->Initialize(carrier, m_wheel,
                            ChFrame<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
+
+    Construct(chassis, carrier, location, track);
 
     // Mark as initialized
     m_initialized = true;

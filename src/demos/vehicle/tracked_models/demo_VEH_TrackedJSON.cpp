@@ -456,6 +456,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    std::cout << "\n============ Vehicle subsystems ============" << std::endl;
+    vehicle.LogSubsystemTypes();
+
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
 

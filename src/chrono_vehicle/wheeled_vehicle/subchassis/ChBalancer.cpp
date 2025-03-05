@@ -38,12 +38,7 @@ ChBalancer::~ChBalancer() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
-    ChSubchassis::Initialize(chassis, location);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChBalancer::Construct(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
     to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());

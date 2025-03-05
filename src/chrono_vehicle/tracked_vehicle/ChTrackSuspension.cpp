@@ -35,6 +35,10 @@ void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::TRACK_SUSPENSION);
+
+    // Call concrete construction function here, to create the arm (carrier) body!
+    Construct(chassis, location, track);
 
     m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
 

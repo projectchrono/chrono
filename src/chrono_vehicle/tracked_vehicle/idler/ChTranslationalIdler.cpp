@@ -46,7 +46,7 @@ ChTranslationalIdler::~ChTranslationalIdler() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
+void ChTranslationalIdler::Construct(std::shared_ptr<ChChassis> chassis,
                                       const ChVector3d& location,
                                       ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system.
@@ -92,10 +92,6 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
     m_tensioner->SetRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
-
-    // Invoke the base class implementation. This initializes the associated idler wheel.
-    // Note: we must call this here, after the m_carrier body is created.
-    ChIdler::Initialize(chassis, location, track);
 }
 
 void ChTranslationalIdler::InitializeInertiaProperties() {

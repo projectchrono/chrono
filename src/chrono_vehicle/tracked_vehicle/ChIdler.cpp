@@ -32,6 +32,10 @@ void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& l
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
+    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::IDLER);
+
+    // Call concrete construction function here, to create the carrier body!
+    Construct(chassis, location, track);
 
     m_idler_wheel->Initialize(chassis, GetCarrierBody(), location, track);
 

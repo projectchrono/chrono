@@ -322,17 +322,12 @@ std::shared_ptr<ChBody> ChGenericWheeledSuspension::FindBody(BodyIdentifier body
     }
 }
 
-void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                            std::shared_ptr<ChSubchassis> subchassis,
-                                            std::shared_ptr<ChSteering> steering,
-                                            const ChVector3d& location,
-                                            double left_ang_vel,
-                                            double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
+                                           std::shared_ptr<ChSubchassis> subchassis,
+                                           std::shared_ptr<ChSteering> steering,
+                                           const ChVector3d& location,
+                                           double left_ang_vel,
+                                           double right_ang_vel) {
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();

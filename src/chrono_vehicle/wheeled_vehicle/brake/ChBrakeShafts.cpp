@@ -35,11 +35,9 @@ ChBrakeShafts::~ChBrakeShafts() {
     sys->Remove(m_clutch);
 }
 
-void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
-                               std::shared_ptr<ChSuspension> suspension,
-                               VehicleSide side) {
-    ChBrake::Initialize(chassis, suspension, side);
-
+void ChBrakeShafts::Construct(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChSuspension> suspension,
+                              VehicleSide side) {
     // Create and initialize the brake shaft
     m_shaft = chrono_types::make_shared<ChShaft>();
     m_shaft->SetName(m_name + "_shaft");
