@@ -61,6 +61,7 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChWheel> wheel) {
 
     // Create the tire mesh
     m_mesh = chrono_types::make_shared<ChMesh>();
+    m_mesh->SetTag(m_obj_tag);
     system->Add(m_mesh);
 
     // Create the FEA nodes and elements

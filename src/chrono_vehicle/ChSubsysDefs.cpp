@@ -26,15 +26,15 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-int VehicleBodyTag::Generate(uint16_t vehicle_tag, uint16_t part_tag) {
+int VehicleObjTag::Generate(uint16_t vehicle_tag, uint16_t part_tag) {
     return (int32_t)(vehicle_tag << 16 | part_tag);
 }
 
-uint16_t VehicleBodyTag::ExtractVehicleTag(int tag) {
+uint16_t VehicleObjTag::ExtractVehicleTag(int tag) {
   return (uint16_t)(tag >> 16);
 }
 
-uint16_t VehicleBodyTag::ExtractPartTag(int tag) {
+uint16_t VehicleObjTag::ExtractPartTag(int tag) {
     return (uint16_t)tag;
 }
 

@@ -347,6 +347,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         item.second.body->SetPos(pos);
         item.second.body->SetRot(rot);
         item.second.body->SetName(Name(item.first));
+        item.second.body->SetTag(m_obj_tag);
         chassis->GetSystem()->AddBody(item.second.body);
     }
 
@@ -382,6 +383,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
                                                                       body2,                //
                                                                       ChFrame<>(pos, rot),  //
                                                                       item.second.bdata);
+        item.second.joint->SetTag(m_obj_tag);
         chassis->AddJoint(item.second.joint);
     }
 
@@ -413,6 +415,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         ChVector3d point2 = TransformPosition(item.second.point2, item.first.side);
         item.second.dist = chrono_types::make_shared<ChLinkDistance>();
         item.second.dist->SetName(Name(item.first));
+        item.second.dist->SetTag(m_obj_tag);
         item.second.dist->Initialize(body1, body2, false, point1, point2);
         chassis->GetSystem()->AddLink(item.second.dist);
     }
@@ -445,6 +448,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
 
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revolute[side]->SetName(Name({"spindle_rev", side}));
+        m_revolute[side]->SetTag(m_obj_tag);
         m_revolute[side]->Initialize(m_spindle[side], abody,
                                      ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -452,6 +456,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         // Axle shaft
         m_axle[side] = chrono_types::make_shared<ChShaft>();
         m_axle[side]->SetName(Name({"axle", side}));
+        m_axle[side]->SetTag(m_obj_tag);
         m_axle[side]->SetInertia(getAxleInertia());
         m_axle[side]->SetPosDt(-ang_vel);
         chassis->GetSystem()->AddShaft(m_axle[side]);
@@ -491,6 +496,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         ChVector3d point2 = TransformPosition(item.second.point2, item.first.side);
         item.second.tsda = chrono_types::make_shared<ChLinkTSDA>();
         item.second.tsda->SetName(Name(item.first));
+        item.second.tsda->SetTag(m_obj_tag);
         item.second.tsda->Initialize(body1, body2, false, point1, point2);
         item.second.tsda->SetRestLength(item.second.rest_length);
         item.second.tsda->RegisterForceFunctor(item.second.force);
@@ -528,6 +534,7 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
         item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
         item.second.rsda->SetName(Name(item.first));
+        item.second.rsda->SetTag(m_obj_tag);
         item.second.rsda->Initialize(body1, body2, ChFrame<>(pos, quat));
         item.second.rsda->SetRestAngle(item.second.rest_angle);
         item.second.rsda->RegisterTorqueFunctor(item.second.torque);

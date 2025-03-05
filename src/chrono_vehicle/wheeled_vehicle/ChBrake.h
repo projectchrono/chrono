@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     virtual void Construct(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
                            std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
                            VehicleSide side                           ///< brake mounted on left/right side
-    ) = 0;
+                           ) = 0;
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

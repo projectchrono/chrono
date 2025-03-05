@@ -39,7 +39,7 @@ void ChSteering::Initialize(std::shared_ptr<ChChassis> chassis,
                             const ChQuaternion<>& rotation) {
     m_parent = chassis;
     m_rel_xform = ChFrame<>(location, rotation);
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::STEERING);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::STEERING);
 
     Construct(chassis, location, rotation);
 

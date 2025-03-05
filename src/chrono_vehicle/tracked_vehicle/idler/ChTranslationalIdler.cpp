@@ -64,6 +64,7 @@ void ChTranslationalIdler::Construct(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the carrier body.
     m_carrier = chrono_types::make_shared<ChBody>();
     m_carrier->SetName(m_name + "_carrier");
+    m_carrier->SetTag(m_obj_tag);
     m_carrier->SetPos(points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
@@ -80,6 +81,7 @@ void ChTranslationalIdler::Construct(std::shared_ptr<ChChassis> chassis,
     // of the idler reference frame.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetName(m_name + "_prismatic");
+    m_prismatic->SetTag(m_obj_tag);
     m_prismatic->Initialize(
         chassis->GetBody(), m_carrier,
         ChFrame<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleY(CH_PI_2 + GetPrismaticPitchAngle())));
@@ -88,6 +90,7 @@ void ChTranslationalIdler::Construct(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the tensioner force element.
     m_tensioner = chrono_types::make_shared<ChLinkTSDA>();
     m_tensioner->SetName(m_name + "_tensioner");
+    m_tensioner->SetTag(m_obj_tag);
     m_tensioner->Initialize(chassis->GetBody(), m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
     m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
     m_tensioner->SetRestLength(GetTensionerFreeLength());

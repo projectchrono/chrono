@@ -94,7 +94,7 @@ void ChSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
                               double right_ang_vel) {
     m_parent = chassis;
     m_rel_loc = location;
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::SUSPENSION);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::SUSPENSION);
 
     Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
 

@@ -44,11 +44,13 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                          VehicleSide side,
                          double offset) {
     m_parent = chassis;
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::WHEEL);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::WHEEL);
 
     m_spindle = spindle;
     m_side = side;
     m_offset = (side == LEFT) ? offset : -offset;
+
+    m_spindle->SetTag(m_obj_tag);
 
     //// RADU TODO
     //// Properly account for offset in adjusting inertia.

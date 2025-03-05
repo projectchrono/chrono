@@ -40,7 +40,7 @@ void ChTrackShoe::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector3d& location,
                              const ChQuaternion<>& rotation) {
     m_parent = chassis;
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::SHOE);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::SHOE);
 
     Construct(chassis, location, rotation);
 

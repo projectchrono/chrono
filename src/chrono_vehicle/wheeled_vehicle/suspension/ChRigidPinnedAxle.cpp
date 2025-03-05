@@ -77,6 +77,7 @@ void ChRigidPinnedAxle::Construct(std::shared_ptr<ChChassis> chassis,
     ChVector3d axleCOM = suspension_to_abs.TransformPointLocalToParent(getAxleTubeCOM());
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetName(m_name + "_axleTube");
+    m_axleTube->SetTag(m_obj_tag);
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -87,6 +88,7 @@ void ChRigidPinnedAxle::Construct(std::shared_ptr<ChChassis> chassis,
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axlePin = chrono_types::make_shared<ChLinkLockRevolute>();
     m_axlePin->SetName(m_name + "_axlePin");
+    m_axlePin->SetTag(m_obj_tag);
     m_axlePin->Initialize(m_axleTube, chassis->GetBody(),
                           ChFrame<>(m_axlePinLoc, chassisRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axlePin);
@@ -119,6 +121,7 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     // Create and initialize joints
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_axleTube, m_spindle[side],
                                  ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -127,6 +130,7 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);

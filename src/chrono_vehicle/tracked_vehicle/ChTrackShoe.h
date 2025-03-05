@@ -73,11 +73,9 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     void EnableCollision(bool val) { m_shoe->EnableCollision(val); }
 
     /// Initialize this track shoe subsystem.
-    /// The track shoe is created within the specified system and initialized
-    /// at the specified location and orientation (expressed in the global frame).
-    /// All actual work is deferred to derived classes (subsystem templates) which
-    /// must create the bodies, joints, etc.  In addition, a derived class must set
-    /// the track shoe body's tag to TrackedVehicleBodyTag::SHOES.
+    /// The track shoe is created within the specified system and initialized at the specified location and orientation
+    /// (expressed in the global frame). All actual work is deferred to derived classes (subsystem templates) which must
+    /// create the bodies, joints, etc.
     void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] handle to the chassis body
                     const ChVector3d& location,          ///< [in] location relative to the chassis frame
                     const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
@@ -99,11 +97,8 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     ChTrackShoe(const std::string& name);
 
     /// Construct the concrete track shoe subsystem.
-    /// The track shoe is created within the specified system and initialized
-    /// at the specified location and orientation (expressed in the global frame).
-    /// All actual work is deferred to derived classes (subsystem templates) which
-    /// must create the bodies, joints, etc.  In addition, a derived class must set
-    /// the track shoe body's tag to TrackedVehicleBodyTag::SHOES.
+    /// The track shoe is created within the specified system and initialized at the specified location and orientation
+    /// (expressed in the global frame).
     virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] handle to the chassis body
                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                            const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame

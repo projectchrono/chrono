@@ -403,8 +403,8 @@ void ChTrackedVehicle::LogSubsystemTypes() {
         cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
 
         int body_tag = m_chassis->GetBodyTag();
-        auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-        auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+        auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+        auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
         cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
         cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
@@ -426,8 +426,8 @@ void ChTrackedVehicle::LogSubsystemTypes() {
             cout << "  Sprocket:   " << sprocket->GetTemplateName() << "\n";
 
             int body_tag = sprocket->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << sprocket->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
@@ -437,8 +437,8 @@ void ChTrackedVehicle::LogSubsystemTypes() {
             cout << "  Idler:   " << idler->GetTemplateName() << "\n";
 
             int body_tag = idler->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << idler->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
@@ -448,8 +448,8 @@ void ChTrackedVehicle::LogSubsystemTypes() {
             cout << "  Suspension:   " << suspension->GetTemplateName() << "\n";
 
             int body_tag = suspension->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << suspension->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
@@ -459,8 +459,8 @@ void ChTrackedVehicle::LogSubsystemTypes() {
             cout << "  Road-wheel:   " << road_wheel->GetTemplateName() << "\n";
 
             int body_tag = road_wheel->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << road_wheel->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
@@ -470,8 +470,8 @@ void ChTrackedVehicle::LogSubsystemTypes() {
             cout << "  Roller:   " << roller->GetTemplateName() << "\n";
 
             int body_tag = roller->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << roller->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }

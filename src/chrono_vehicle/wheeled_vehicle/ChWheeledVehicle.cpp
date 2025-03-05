@@ -430,8 +430,8 @@ void ChWheeledVehicle::LogSubsystemTypes() {
         cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
 
         int body_tag = m_chassis->GetBodyTag();
-        auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-        auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+        auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+        auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
         cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
         cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
@@ -449,8 +449,8 @@ void ChWheeledVehicle::LogSubsystemTypes() {
         cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
 
         int body_tag = m_steerings[i]->GetBodyTag();
-        auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-        auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+        auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+        auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
         cout << "         vehicle tag: " << m_steerings[i]->GetVehicleTag();
         cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
@@ -462,8 +462,8 @@ void ChWheeledVehicle::LogSubsystemTypes() {
             cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_suspension->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << m_axles[i]->m_suspension->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
@@ -472,8 +472,8 @@ void ChWheeledVehicle::LogSubsystemTypes() {
             cout << "  Antiroll bar: " << m_axles[i]->m_antirollbar->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_antirollbar->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << m_axles[i]->m_antirollbar->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }
@@ -487,8 +487,8 @@ void ChWheeledVehicle::LogSubsystemTypes() {
             cout << "  Wheel:        " << m_axles[i]->m_wheels[0]->GetTemplateName() << "\n";
 
             int body_tag = m_axles[i]->m_wheels[0]->GetBodyTag();
-            auto vehicle_tag = VehicleBodyTag::ExtractVehicleTag(body_tag);
-            auto part_tag = VehicleBodyTag::ExtractPartTag(body_tag);
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
             cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
             cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
         }

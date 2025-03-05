@@ -40,6 +40,14 @@ ChVehicleJoint::ChVehicleJoint(Type type,
 
 ChVehicleJoint::~ChVehicleJoint() {}
 
+void ChVehicleJoint::SetTag(int tag) {
+    if (m_joint.index() == 0) {
+        mpark::get<Link>(m_joint)->SetTag(tag);
+    } else {
+        mpark::get<Bushing>(m_joint)->SetTag(tag);
+    }
+}
+
 bool ChVehicleJoint::IsKinematic() const {
     return m_joint.index() == 0;
 }

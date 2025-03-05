@@ -33,6 +33,10 @@ void ChTrackBrake::InitializeInertiaProperties() {
 void ChTrackBrake::UpdateInertiaProperties() {}
 
 void ChTrackBrake::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
+    m_parent = chassis;
+
+    Construct(chassis, sprocket);
+
     // Mark as initialized
     m_initialized = true;
 }

@@ -32,7 +32,7 @@ namespace chrono {
 namespace vehicle {
 
 ChPart::ChPart(const std::string& name)
-    : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0), m_body_tag(-1) {}
+    : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0), m_obj_tag(-1) {}
 
 // -----------------------------------------------------------------------------
 

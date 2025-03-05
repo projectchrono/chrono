@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
             ////vis_irr->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
+            vis_irr->AddLightDirectional(60, -90);
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
             vis_irr->AttachVehicle(&vehicle);

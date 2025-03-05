@@ -58,7 +58,7 @@ void ChTrackShoeSinglePin::Construct(std::shared_ptr<ChChassis> chassis,
     ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetName(m_name + "_shoe");
-    m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);
+    m_shoe->SetTag(m_obj_tag);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
@@ -106,6 +106,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot),
                                                             track->GetBushingData());
+        m_joint->SetTag(m_obj_tag);
         chassis->AddJoint(m_joint);
     } else if (m_index == 0) {
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph",
@@ -115,6 +116,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
         auto rot = m_shoe->GetRot() * QuatFromAngleY(-CH_PI_2);
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_univ",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot));
+        m_joint->SetTag(m_obj_tag);
         chassis->AddJoint(m_joint);
     }
 
@@ -125,6 +127,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
         m_rsda = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda->SetName(m_name + "_rsda");
+        m_rsda->SetTag(m_obj_tag);
         m_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChFrame<>(p_shoe, z2y), ChFrame<>(p_next, z2y));
         m_rsda->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda);

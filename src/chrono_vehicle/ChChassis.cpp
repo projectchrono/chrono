@@ -129,13 +129,13 @@ void ChChassis::Initialize(ChVehicle* vehicle,
     ChSystem* system = vehicle->GetSystem();
 
     // Set body tag
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS);
 
     // Initial pose and velocity assumed to be given in current WorldFrame
     ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
 
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetTag(0);
+    m_body->SetTag(m_obj_tag);
     m_body->SetName(m_name + " body");
     m_body->SetMass(GetBodyMass());
     m_body->SetFrameCOMToRef(GetBodyCOMFrame());
@@ -283,7 +283,7 @@ ChChassisRear::ChChassisRear(const std::string& name) : ChChassis(name, false) {
 
 void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
     m_parent = chassis;
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS_REAR);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS_REAR);
 
     // Express the rear chassis reference frame in the absolute coordinate system.
     // Set rear chassis orientation to be the same as the front chassis and
@@ -297,7 +297,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     auto system = chassis->GetBody()->GetSystem();
 
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetTag(0);
+    m_body->SetTag(m_obj_tag);
     m_body->SetName(m_name + " body");
     m_body->SetMass(GetBodyMass());
     m_body->SetFrameCOMToRef(GetBodyCOMFrame());

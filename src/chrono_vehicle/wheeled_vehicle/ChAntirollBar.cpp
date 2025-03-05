@@ -28,7 +28,7 @@ void ChAntirollBar::Initialize(std::shared_ptr<ChChassis> chassis,
                                const ChVector3d& location) {
     m_parent = chassis;
     m_rel_loc = location;
-    m_body_tag = VehicleBodyTag::Generate(GetVehicleTag(), VehiclePartTag::ANTIROLLBAR);
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::ANTIROLLBAR);
 
     Construct(chassis, suspension, location);
 

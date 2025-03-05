@@ -403,11 +403,12 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
 
 // -----------------------------------------------------------------------------
 
-/// Utilities to encode and decode vehicle body tags.
-/// A body tag (int) encodes the vehicle tag (uint16_t) and the tag of the containing subsystem type (uint16_t). 
-namespace VehicleBodyTag {
+/// Utilities to encode and decode vehicle object tags.
+/// An object tag (int) encodes the vehicle tag (uint16_t) and the tag of the containing part/subsystem type (uint16_t).
+/// These are assigned to the ChObj objects (bodies, links, etc) that compose a given part/subsystem.
+namespace VehicleObjTag {
 
-/// Generate a vehicle tag and a subsystem tag into a body tag.
+/// Generate a vehicle tag and a subsystem tag into an object tag.
 CH_VEHICLE_API int Generate(uint16_t vehicle_tag, uint16_t part_tag);
 
 /// Extract the vehicle tag from a body tag.
@@ -416,7 +417,7 @@ CH_VEHICLE_API uint16_t ExtractVehicleTag(int tag);
 /// Extract the subsystem (part) tag from a body tag.
 CH_VEHICLE_API uint16_t ExtractPartTag(int tag);
 
-}  // end namespace VehicleBodyTag
+}  // end namespace VehicleObjTag
 
 /// Tags for specific parts of a wheeled vehicle.
 enum VehiclePartTag : uint16_t {
@@ -428,22 +429,13 @@ enum VehiclePartTag : uint16_t {
     STEERING = 0xEE02,
     ANTIROLLBAR = 0xEE03,
     WHEEL = 0xEE04,
+    TIRE = 0xEE05,
     
     SPROCKET = 0xFF00,
     IDLER = 0xFF01,
     TRACK_WHEEL = 0xFF02,
     SHOE = 0xFF03,
     TRACK_SUSPENSION = 0xFF04
-};
-
-/// Tags for specific parts of a tracked vehicle.
-enum TrackedVehicleBodyTag {
-    CHASSIS_BODY = 99990,
-    SPROCKET_BODY = 99991,
-    IDLER_BODY = 99992,
-    WHEEL_BODY = 99993,
-    ROLER_BODY = 99994,
-    SHOE_BODY = 99995
 };
 
 // -----------------------------------------------------------------------------
