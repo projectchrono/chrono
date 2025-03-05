@@ -67,9 +67,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	// CBLCON functions
 	//
 	
-	void SetTetIDs(std::vector<int> mtetIDs) { tetIDs=mtetIDs; }
-	std::vector<int> GetTetIDs() { return tetIDs; }
-	
 	int GetVertNodeVec_Size() { return V_vert_nodes.size(); }
 	
 	std::vector<std::shared_ptr<ChNodeFEAxyzrot>> GetVertNodeVec(int n) { return this->V_vert_nodes[n]; }
@@ -318,9 +315,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override;
 	
-	double ComputeTetVol(ChVector3d p1, ChVector3d p2, ChVector3d p3, ChVector3d p4);
-	
-	ChMatrixNM<double,6,6> ComputeTetMassN(ChVector3d pN, ChVector3d pC, ChVector3d pA, ChVector3d pB);
     
     void SetLargeDeflection(bool mtrue) { LargeDeflection=mtrue; }
     bool GetLargeDeflection() { return LargeDeflection; }
@@ -343,8 +337,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
     std::shared_ptr<ChBeamSectionCBLCON> section;
-	
-    std::vector<int> tetIDs;
 	
     std::vector<std::vector<std::shared_ptr<ChNodeFEAxyzrot>>> V_vert_nodes;
 

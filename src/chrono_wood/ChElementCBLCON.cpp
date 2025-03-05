@@ -335,8 +335,6 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
 		auto pA=verts[1]->GetX0().GetPos();
 		auto pB=verts[2]->GetX0().GetPos();		
 		
-		ChMatrixNM<double,6,6> mA=this->ComputeTetMassN(pNA, pC, pA, pB);
-		ChMatrixNM<double,6,6> mB=this->ComputeTetMassN(pNB, pC, pA, pB);
 		M.block<6,6>(0,0)+=mA;
 		M.block<6,6>(6,6)+=mB;
 	}
@@ -355,8 +353,6 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
 	double LB=(pC-pNB).Length();
 	ChMatrixNM<double,6,6> mA=this->section->calculate_MI(LA, pNA, pC);
 	ChMatrixNM<double,6,6> mB=this->section->calculate_MI(-LB, pNB, pC);
-	//ChMatrixNM<double,6,6> mA=this->ComputeTetMassN(pNA, pC, pA, pB);
-	//ChMatrixNM<double,6,6> mB=this->ComputeTetMassN(pNB, pC, pA, pB);
 	ChMatrix33<double> nmL=this->section->Get_facetFrame();
 	//std::cout<<"nmL: "<<nmL<<std::endl;
 	//M.block<6,6>(0,0) = mA;
@@ -799,14 +795,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 	this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
 	statev=mysection->Get_StateVar();
 	// compute volumetric strain
-	double epsV=0;
-	/*for (int itet:this->tetIDs){ 
-    		auto vols=ChElementCBLCON::mTetVols[itet]; 
-    		if (vols[1]!=0)
-    			epsV+=(vols[1]-vols[0])/vols[0];   			
-    	}
-    	epsV=epsV/(3.0*this->tetIDs.size());*/  
-    	//    	
+	double epsV=0;	
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;  
 	
@@ -1096,61 +1085,6 @@ void ChElementCBLCON::ComputeNF(const double U,
 double ChElementCBLCON::GetDensity() {
 	return 1;
     //return this->section->GetMassPerUnitLength();
-}
-
-double ChElementCBLCON::ComputeTetVol(ChVector3d p1, ChVector3d p2, ChVector3d p3, ChVector3d p4){
-	double tetvol=0;
-	tetvol = p2[0]*(p3[1]*p4[2]-p4[1]*p3[2])-p3[0]*(p2[1]*p4[2]-p4[1]*p2[2])+p4[0]*(p2[1]*p3[2]-p3[1]*p2[2]);
-    tetvol = tetvol-(p3[0]*(p4[1]*p1[2]-p1[1]*p4[2])-p4[0]*(p3[1]*p1[2]-p1[1]*p3[2])+p1[0]*(p3[1]*p4[2]-p4[1]*p3[2]));
-    tetvol = tetvol+p4[0]*(p1[1]*p2[2]-p2[1]*p1[2])-p1[0]*(p4[1]*p2[2]-p2[1]*p4[2])+p2[0]*(p4[1]*p1[2]-p1[1]*p4[2]);
-    tetvol = tetvol-(p1[0]*(p2[1]*p3[2]-p3[1]*p2[2])-p2[0]*(p1[1]*p3[2]-p3[1]*p1[2])+p3[0]*(p1[1]*p2[2]-p2[1]*p1[2]));
-    tetvol = abs(tetvol)/6.0;
-	return tetvol;
-}
-
-ChMatrixNM<double,6,6> ChElementCBLCON::ComputeTetMassN(ChVector3d pN, ChVector3d pC, ChVector3d pA, ChVector3d pB){
-	
-	double density=this->section->Get_material()->Get_density();
-	//
-	ChMatrix33<double> coef={{1.0, 0.05, 0.05},{0.05, 0.1, 0.05},{0.05, 0.05, 0.1}};
-	//
-	double vol=this->ComputeTetVol(pN, pC, pA, pB);
-	double tetmass=vol*density;
-	ChVector3d pG=(pN+pC+pA+pB)/4.0;
-	ChVectorN<double,3> X={pA[0]-pN[0], pB[0]-pN[0], pC[0]-pN[0]};
-	ChVectorN<double,3> Y={pA[1]-pN[1], pB[1]-pN[1], pC[1]-pN[1]};
-	ChVectorN<double,3> Z={pA[2]-pN[2], pB[2]-pN[2], pC[2]-pN[2]};
-	// first moment of area
-	double Sx=(pG[0]-pN[0])*tetmass;
-	double Sy=(pG[1]-pN[1])*tetmass;
-	double Sz=(pG[2]-pN[2])*tetmass;
-	// Moment of inertia
-	double Ixx=double (X.transpose()*(coef*X))*tetmass;
-	double Iyy=double(Y.transpose()*(coef*Y))*tetmass;
-	double Izz=double(Z.transpose()*(coef*Z))*tetmass;
-	double Ixy=double(X.transpose()*(coef*Y))*tetmass;
-	double Ixz=double(X.transpose()*(coef*Z))*tetmass;
-	double Iyz=double(Y.transpose()*(coef*Z))*tetmass;
-	//
-	ChMatrixNM<double,6,6> MN;
-	MN.setZero();
-	if (ChElementCBLCON::LumpedMass){ //lumped mass
-		MN(0,0)=tetmass; 
-		MN(1,1)=tetmass; 
-		MN(2,2)=tetmass; 
-		MN(3,3)=Iyy+Izz;
-		MN(4,4)=Ixx+Izz; 
-		MN(5,5)=Ixx+Iyy; 
-	}else{ //consistent mass
-		MN(0,0)=tetmass; MN(0,4)=Sz; MN(0,5)=-Sy;
-		MN(1,1)=tetmass; MN(1,3)=-Sz; MN(1,5)=Sx;
-		MN(2,2)=tetmass; MN(2,3)=Sy; MN(2,4)=-Sx;
-		MN(3,1)=-Sz; MN(3,2)=Sy; MN(3,3)=Iyy+Izz; MN(3,4)=-Ixy; MN(3,5)=-Ixz;
-		MN(4,0)=Sz; MN(4,2)=-Sx; MN(4,3)=-Ixy; 	MN(4,4)=Ixx+Izz; MN(4,5)=-Iyz;
-		MN(5,0)=-Sy; MN(5,1)= Sx; MN(5,3)=-Ixz; MN(5,4)=-Iyz; MN(5,5)=Ixx+Iyy; 
-	}
-	//
-	return MN;
 }
 
 

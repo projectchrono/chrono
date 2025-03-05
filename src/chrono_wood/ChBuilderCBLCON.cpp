@@ -179,7 +179,6 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 				std::string& CBLCON_GeoName){
 	//
 	std::vector<std::vector<double>> Mfacet;
-	std::vector<std::vector<int>> MtetIDs;
 	//std::vector<vertdata> MvertIDs;
 	//
 	//
@@ -278,7 +277,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
     	//
     	// Assign element and section properties to each element, such as;
 	//       Area of facet, sytem of referans, center point
-	//			tetIDs, vertices coordinates
+	//			vertices coordinates
 	//
 	////////////////////////////////////////////////////////////////////////  
 	chrono::ChVector3d facetC;
@@ -397,7 +396,6 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
 	
 	//
 	std::vector<std::vector<double>> Mfacet;
-	std::vector<std::vector<int>> MtetIDs;
 	//std::vector<vertdata> MvertIDs;
 	//
 	//
@@ -468,7 +466,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
     	//
     	// Assign element and section properties to each element, such as;
 	//       Area of facet, sytem of referans, center point
-	//			tetIDs, vertices coordinates
+	//			vertices coordinates
 	//
 	////////////////////////////////////////////////////////////////////////  
 	chrono::ChVector3d facetC;
