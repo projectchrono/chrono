@@ -69,9 +69,6 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     // Setter & Getter for projected facet area
     double Get_area() const { return m_area; }
     void Set_area(double area) { m_area=area; }
-	// Setter & Getter for length of connector
-    double Get_Length() const { return m_length; }
-    void Set_Length(double length) { m_length=length; }
     //
     double GetWidth() const { return mcon_width; }
     void SetWidth(double con_width) { mcon_width=con_width; }
@@ -133,7 +130,6 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     double mcon_width=1.0;  
     double mcon_height=1.0; 
     double m_area=1.0; 
-	double m_length=1.0;
 	double m_randomField=0.0;
     ConSectionType mysectype;
 	

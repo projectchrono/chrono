@@ -123,9 +123,11 @@ void ChElementCBLCON::Update() {
     ChElementGeneric::Update();
 
     // always keep updated the rotation matrix A:
+    // TODO JBC: Because we inherit from a corotational element, I think we should keep that updated
+    //  and use the disable_corotational on top / instead of LargeDeflection flag we defiend here
 	if (ChElementCBLCON::LargeDeflection){
 		this->UpdateRotation();
-		this->section->Set_Length((nodes[1]->GetPos() - nodes[0]->GetPos()).Length());
+		this->length = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
 	}	
 	//
 	if(this->macro_strain){		
@@ -247,17 +249,12 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
 	//dispN1.setConstant(1E-4);
 	//dispN2.setConstant(1.2E-4);
 	//
-	// Length is calculated 
-	double length;
 	ChMatrix33<double> nmL=this->section->Get_facetFrame();
-	if(ChElementCBLCON::LargeDeflection){	
-		length = (this->GetNodeA()->Frame().GetPos() - this->GetNodeB()->Frame().GetPos()).Length();
+	if(ChElementCBLCON::LargeDeflection){	// TODO: JBC: I think that should go into Update()
 		ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
 		for (int id=0; id<3; id++){				
 			nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
 		}	
-	}else{
-		length = (this->GetNodeA()->GetX0().GetPos() - this->GetNodeB()->GetX0().GetPos()).Length();
 	}
 	//
 	Amatrix AI; 	Amatrix AJ;
@@ -394,15 +391,11 @@ void ChElementCBLCON::ComputeStiffnessMatrix() {
 		// Get initial section frame
 		ChMatrix33<double> nmL=this->section->Get_facetFrame();
 		//
-		double length;
-		if(ChElementCBLCON::LargeDeflection){	
-			length = (this->GetNodeA()->Frame().GetPos() - this->GetNodeB()->Frame().GetPos()).Length();
+		if(ChElementCBLCON::LargeDeflection){	// TODO JBC: I believe this should be moved to Update()
 			ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
 			for (int id=0; id<3; id++){				
 				nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
 			}	
-		}else{
-			length = (this->GetNodeA()->GetX0().GetPos() - this->GetNodeB()->GetX0().GetPos()).Length();
 		}
 		// 
 		Amatrix AI; 	
@@ -509,7 +502,7 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     assert(section);
 
     // Compute rest length, mass:
-    this->section->Set_Length((nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length());
+    this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
 	//this->mass = this->length * this->section->GetMassPerUnitLength();
     //this->mass = this->length * 1.0;
     // Compute initial rotation
@@ -758,18 +751,12 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 	//
 	double area=this->section->Get_area();	
 	ChMatrix33<double> nmL=this->section->Get_facetFrame();	
-	double length;
-	if(ChElementCBLCON::LargeDeflection){	
-		length = (this->GetNodeA()->Frame().GetPos() - this->GetNodeB()->Frame().GetPos()).Length();
+	if(ChElementCBLCON::LargeDeflection){	// TODO JBC: I believe this should go into Update()
 		ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());		
 		for (int id=0; id<3; id++){				
 			nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
 		}
-		
-		//std::cout<<"nmL: "<<nmL<<std::endl;
-	}else{
-		length = (this->GetNodeA()->GetX0().GetPos() - this->GetNodeB()->GetX0().GetPos()).Length();
-	 }   			
+	}
 	// 
 	Amatrix AI; 	
 	Amatrix AJ;
@@ -1170,10 +1157,9 @@ ChMatrixNM<double,6,6> ChElementCBLCON::ComputeTetMassN(ChVector3d pN, ChVector3
 
 ChMatrixNM<double, 1, 9> ChElementCBLCON::ComputeMacroStressContribution(){
 	ChMatrixNM<double, 1, 9> macro_stress;
-	double length=this->section->Get_Length();		 	
 	double area =this->section->Get_area();	
 	auto statev= this->section->Get_StateVar();		
-	macro_stress =(this->section->GetProjectionMatrix()).transpose()*statev.segment(3,3)*area*length;		
+	macro_stress =(this->section->GetProjectionMatrix()).transpose()*statev.segment(3,3)*area*this->length;
 	
 	return macro_stress;
 }
