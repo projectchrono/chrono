@@ -62,19 +62,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 	virtual std::shared_ptr<ChNodeFEAxyzrot> GetConnectorNode(unsigned int n) { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB);
-	
-	//
-	// CBLCON functions
-	//
-	
-	int GetVertNodeVec_Size() { return V_vert_nodes.size(); }
-	
-	std::vector<std::shared_ptr<ChNodeFEAxyzrot>> GetVertNodeVec(int n) { return this->V_vert_nodes[n]; }
-    void SetVertNodeVec(std::vector<std::vector<std::shared_ptr<ChNodeFEAxyzrot>>> mVvert) { V_vert_nodes=mVvert; }
-	void AddVertNodeVec(std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mvec) {
-		//m_node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
-		V_vert_nodes.push_back(mvec);
-	}
 
     //
     // FEM functions
@@ -337,8 +324,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
     std::shared_ptr<ChBeamSectionCBLCON> section;
-	
-    std::vector<std::vector<std::shared_ptr<ChNodeFEAxyzrot>>> V_vert_nodes;
 
     ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
     ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
