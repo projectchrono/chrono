@@ -159,7 +159,7 @@ class DriverWrapper : public ChDriver {
             irr_driver->Advance(step);
     }
 
-    void Set(std::shared_ptr<ChInteractiveDriverIRR> irr_driver) { this->irr_driver = irr_driver; }
+    void Set(std::shared_ptr<ChInteractiveDriverIRR> irrlicht_driver) { irr_driver = irrlicht_driver; }
 
     std::shared_ptr<ChInteractiveDriverIRR> irr_driver;
 };
@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
 
         // Update modules (process inputs from other modules)
         // std::async(&syn_manager.Synchronize, time);  // Synchronize between nodes
-        std::async(std::launch::async, &SynChronoManager::Synchronize, &syn_manager, time);
+        auto ret = std::async(std::launch::async, &SynChronoManager::Synchronize, &syn_manager, time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         driver.Synchronize(time);

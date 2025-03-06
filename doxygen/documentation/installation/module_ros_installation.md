@@ -2,9 +2,7 @@
 
 [TOC]
 
-This is an optional module that enables direct integration of Chrono with the [Robot Operating System (ROS)](https://ros.org/).
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
+Chrono::ROS is an optional module that enables direct integration of Chrono with the [Robot Operating System (ROS)](https://ros.org/).
 
 ## Features
 

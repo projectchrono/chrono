@@ -51,5 +51,8 @@ foreach(PROGRAM ${DEMOS})
       find_package(Mono REQUIRED)
     endif()
   endif()
-
+  # set dependencies, so latest SWIG always builds first
+  foreach(module IN LISTS MODULE_LIST)
+    add_dependencies(${PROGRAM} "Chrono_csharp_${module}")
+  endforeach()
 endforeach()

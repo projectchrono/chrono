@@ -229,7 +229,7 @@ void RunSlewingBeam(bool do_modal_reduction,
     }
 
     sys.Setup();
-    sys.Update();
+    sys.Update(true);
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {

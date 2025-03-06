@@ -3,13 +3,10 @@ Install the POSTPROCESS module {#module_postprocess_installation}
 
 [TOC]
 
-This is an optional unit that can be used to export scripts for 
+Chrono::Postprocess is an optional unit that can be used to export scripts for 
 postprocessing simulation data. For example, it can generate files that can be
 load in Blender for high quality photorealistic rendering, or in the POVray rendering tool. 
 It is also used to output files for GNUplot.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
 
 
 ## Features

@@ -637,34 +637,31 @@ void ChAssembly::Setup() {
     }
 }
 
-// Update assembly's own properties first (ChTime and assets, if any).
-// Then update all contents of this assembly.
-void ChAssembly::Update(double mytime, bool update_assets) {
-    ChPhysicsItem::Update(mytime, update_assets);
-    Update(update_assets);
-}
+// Update assembly's own properties first (time and assets, if any)
+// Then update all contents of this assembly:
+// - Update all physical items (bodies, links, meshes, etc), including their auxiliary variables
+// - Update all forces (automatic, as children of bodies)
+// - Update all markers (automatic, as children of bodies)
+void ChAssembly::Update(double time, bool update_assets) {
+    ChPhysicsItem::Update(time, update_assets);
 
-// Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.
-// Updates all forces (automatic, as children of bodies)
-// Updates all markers (automatic, as children of bodies).
-void ChAssembly::Update(bool update_assets) {
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
     for (auto& body : bodylist) {
-        body->Update(ChTime, update_assets);
+        body->Update(time, update_assets);
     }
     for (auto& shaft : shaftlist) {
-        shaft->Update(ChTime, update_assets);
+        shaft->Update(time, update_assets);
     }
     for (auto& mesh : meshlist) {
-        mesh->Update(ChTime, update_assets);
+        mesh->Update(time, update_assets);
     }
     for (auto& otherphysics : otherphysicslist) {
-        otherphysics->Update(ChTime, update_assets);
+        otherphysics->Update(time, update_assets);
     }
     // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
     // thus the update of linklist must be at the end.
     for (auto& link : linklist) {
-        link->Update(ChTime, update_assets);
+        link->Update(time, update_assets);
     }
 }
 

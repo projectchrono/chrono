@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 #endif
     }
 
-    float step = 1e-3;
+    float step = 1e-3f;
     float time = 0.f;
     int sim_frame = 0;
     int render_frame = 0;

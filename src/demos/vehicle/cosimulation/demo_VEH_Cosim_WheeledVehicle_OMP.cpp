@@ -80,8 +80,7 @@ int main(int argc, char** argv) {
     // - step_cosim:      co-simulation meta-step (controls frequency of data exchange)
     // - step_mbs:        step size for vehicle dynamics
     // - step_terrain:    step size for FSI terrain simulation
-    // - step_rigid_tire: step size for rigid tire dynamics
-    // - step_fea_tire:   step size for flexible tire dynamics
+    // - step_tire: step size for tire dynamics
 
     auto contact_method = ChContactMethod::SMC;
 
@@ -90,8 +89,7 @@ int main(int argc, char** argv) {
     double step_cosim = 1e-3;
     double step_mbs = 1e-3;
     double step_terrain = (contact_method == ChContactMethod::SMC ? 1e-4 : 1e-3);
-    double step_rigid_tire = 1e-3;
-    double step_fea_tire = 1e-4;
+    double step_tire = 1e-3;  // 1e-4 for FEA
 
     bool fix_chassis = false;
 
@@ -215,7 +213,7 @@ int main(int argc, char** argv) {
 
         auto tire = new ChVehicleCosimTireNodeRigid(rank - 2, vehicle::GetDataFile(tire_specfile));
         tire->SetVerbose(verbose);
-        tire->SetStepSize(step_rigid_tire);
+        tire->SetStepSize(step_tire);
         tire->SetOutDir(out_dir);
 
         tire->GetSystem().SetNumThreads(1);

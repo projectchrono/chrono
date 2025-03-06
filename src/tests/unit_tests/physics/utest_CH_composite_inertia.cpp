@@ -41,7 +41,7 @@ TEST(CompositeInertia, hemispheres) {
 
     double r = 1.5;
     double rho = 50;
-    double mass = (2.0 / 3.0) * CH_PI * rho * std::pow(r, 3);
+    double mass = CH_2_3 * CH_PI * rho * std::pow(r, 3);
     double offset = (3.0 / 8.0) * r;
     double Jxx = (83.0 / 320.0) * mass * r * r;
     double Jyy = Jxx;
@@ -132,8 +132,8 @@ TEST(CompositeInertia, hollow_sphere) {
     // Hollow sphere as a composite
     utils::CompositeInertia comp;
 
-    double mass_out = (4.0 / 3.0) * CH_PI * rho * std::pow(r_out, 3);
-    double mass_in = (4.0 / 3.0) * CH_PI * rho * std::pow(r_in, 3);
+    double mass_out = CH_4_3 * CH_PI * rho * std::pow(r_out, 3);
+    double mass_in = CH_4_3 * CH_PI * rho * std::pow(r_in, 3);
 
     double J_out = (2.0 / 5.0) * mass_out * r_out * r_out;
     double J_in = (2.0 / 5.0) * mass_in * r_in * r_in;
@@ -146,7 +146,7 @@ TEST(CompositeInertia, hollow_sphere) {
     ChMatrix33<> c_inertia = comp.GetInertia();
 
     // Inertia properties of hollow sphere
-    double s_mass = (4.0 / 3.0) * CH_PI * rho * (std::pow(r_out, 3) - std::pow(r_in, 3));
+    double s_mass = CH_4_3 * CH_PI * rho * (std::pow(r_out, 3) - std::pow(r_in, 3));
     double s_J =
         (2.0 / 5.0) * s_mass * (std::pow(r_out, 5) - std::pow(r_in, 5)) / (std::pow(r_out, 3) - std::pow(r_in, 3));
     ChMatrix33<> s_inertia(s_J);

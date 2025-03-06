@@ -1,10 +1,7 @@
 Install the SYNCHRONO module   {#module_synchrono_installation}
 ===============================
 
-This is an optional module that enables the parallelization of Chrono::Vehicle simulation across different computing entities.
-
-Read [the introduction to modules](modularity.html) for a technical
-background on the modularity of the Chrono project.
+Chrono::Synchrono is an optional module that enables the parallelization of Chrono::Vehicle simulation across different computing entities.
 
 
 ## Features

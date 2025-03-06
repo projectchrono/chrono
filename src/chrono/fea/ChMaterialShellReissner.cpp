@@ -118,7 +118,7 @@ void ChElasticityReissnerIsothropic::ComputeStress(ChVector3d& n_u,
         double Qdd = m_beta * 2 * G;
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
-        double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
+        double h3 = CH_1_3 * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
 
         n_u.x() = h1 * (eps_u.x() * Q11 + eps_v.y() * Q12) + h2 * (kur_u.y() * Q11 + kur_v.x() * Q12);
         n_u.y() = h1 * (eps_u.y() * Q33) + h2 * (kur_u.x() * Q33);
@@ -183,7 +183,7 @@ void ChElasticityReissnerIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
         double Qdd = m_beta * 2 * G;
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (std::pow(z_sup, 2) - std::pow(z_inf, 2));
-        double h3 = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
+        double h3 = CH_1_3 * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
 
         mC(0, 0) = h1 * Q11;
         mC(0, 4) = h1 * Q12;
@@ -370,7 +370,7 @@ void ChElasticityReissnerOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     mC(5, 2) = h * alpha * Qs(1, 0);
     mC(5, 5) = h * alpha * Qs(1, 1);
     // lower right part
-    double H = (1. / 3.) * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
+    double H = CH_1_3 * (std::pow(z_sup, 3) - std::pow(z_inf, 3));
     mC(6, 6) = H * Qm(2, 2);
     mC(6, 7) = H * Qm(2, 0);
     mC(6, 9) = H * Qm(2, 1);

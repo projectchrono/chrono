@@ -695,9 +695,8 @@ void ChSystem::Setup() {
 // - updates all forces  (automatic, as children of bodies)
 // - updates all markers (automatic, as children of bodies).
 
-void ChSystem::Update(double mytime, bool update_assets) {
-    ch_time = mytime;
-    assembly.ChTime = mytime;
+void ChSystem::Update(double time, bool update_assets) {
+    ch_time = time;
     Update(update_assets);
 }
 
@@ -709,7 +708,7 @@ void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
 
     // Update underlying assembly (recursively update sub objects bodies, links, etc)
-    assembly.Update(update_assets);
+    assembly.Update(ch_time, update_assets);
 
     // Update all contacts, if any
     contact_container->Update(ch_time, update_assets);
@@ -797,20 +796,20 @@ void ChSystem::VariablesQbLoadSpeed() {
     contact_container->VariablesQbLoadSpeed();
 }
 
-void ChSystem::VariablesQbSetSpeed(double step) {
+void ChSystem::VariablesQbSetSpeed(double step_size) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.VariablesQbSetSpeed(step);
+    assembly.VariablesQbSetSpeed(step_size);
 
     // Use also on contact container:
-    contact_container->VariablesQbSetSpeed(step);
+    contact_container->VariablesQbSetSpeed(step_size);
 }
 
-void ChSystem::VariablesQbIncrementPosition(double dt_step) {
+void ChSystem::VariablesQbIncrementPosition(double step_size) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.VariablesQbIncrementPosition(dt_step);
+    assembly.VariablesQbIncrementPosition(step_size);
 
     // Use also on contact container:
-    contact_container->VariablesQbIncrementPosition(dt_step);
+    contact_container->VariablesQbIncrementPosition(step_size);
 }
 
 void ChSystem::InjectConstraints(ChSystemDescriptor& sys_descriptor) {
@@ -1414,7 +1413,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
-    Update();
+    Update(false);
     DescriptorPrepareInject(*descriptor);
 
     ChSparseMatrix Cq;
@@ -1526,7 +1525,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
-    Update();
+    Update(false);
     DescriptorPrepareInject(*descriptor);
 
     if (verbose) {
@@ -1686,7 +1685,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
@@ -1719,7 +1718,7 @@ AssemblyAnalysis::ExitFlag ChSystem::DoStepKinematics(double step_size) {
     step = step_size;
     ch_time += step_size;
 
-    Update();
+    Update(true);
     AssemblyAnalysis::ExitFlag exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
     return exit_flag;
@@ -1767,7 +1766,7 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     DescriptorPrepareInject(*descriptor);
     analysis.SetIntegrable(this);
@@ -1789,7 +1788,7 @@ bool ChSystem::DoStaticLinear() {
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1849,7 +1848,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1893,7 +1892,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;

@@ -97,15 +97,38 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// </pre>
     virtual void Render() override;
 
+    /// Set the visibility of bodies with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetBodyObjVisibility(bool vis, int tag = -1);
+
+    /// Set the visibility of links with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetLinkObjVisibility(bool vis, int tag = -1);
+
+    /// Set the visibility of FEA meshes with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetFeaMeshVisibility(bool vis, int tag = -1);
+
+    /// Set the visibility of springs with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    void SetSpringVisibility(bool vis, int tag = -1);
+
+    /// Set the visibility of particle clouds with specified tag to the provided value.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
+    void SetParticleCloudVisibility(bool vis, int tag = -1);
+
+    /// Render ref frames for all objects in the system.
+    void RenderRefFrames(double axis_length = 1);
+    void SetRefFrameScale(double axis_length);
+    void ToggleRefFrameVisibility();
+
     /// Render COG frames for all bodies in the system.
     virtual void RenderCOGFrames(double axis_length = 1) override;
-
     void SetCOGFrameScale(double axis_length);
     void ToggleCOGFrameVisibility();
 
     /// Render joint frames for all links in the system.
     void RenderJointFrames(double axis_length = 1);
-
     void SetJointFrameScale(double axis_length);
     void ToggleJointFrameVisibility();
 
@@ -255,7 +278,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
     bool m_camera_trackball;  ///< create a camera trackball control?
 
-    //  m_scene +- skybox, lights +- m_bodyScene
+    //  m_scene +- skybox, lights +- m_objScene
     //                            |
     //                            +- m_cogScene
     //                            |
@@ -267,14 +290,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     //                            |
     //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
-    vsg::ref_ptr<vsg::Group> m_bodyScene;
-    vsg::ref_ptr<vsg::Group> m_pointpointScene;
-    vsg::ref_ptr<vsg::Group> m_particleScene;
-    vsg::ref_ptr<vsg::Group> m_deformableScene;
-    vsg::ref_ptr<vsg::Group> m_decoScene;
 
+    vsg::ref_ptr<vsg::Switch> m_objScene;
+    vsg::ref_ptr<vsg::Switch> m_pointpointScene;
+    vsg::ref_ptr<vsg::Switch> m_deformableScene;
+    vsg::ref_ptr<vsg::Switch> m_particleScene;
+    vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
+
+    vsg::ref_ptr<vsg::Group> m_decoScene;
 
     vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
@@ -311,11 +336,27 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void exportScreenImage();
 
   private:
-    /// Bind the visual model associated with a body.
+    enum class ObjectType { BODY, LINK, OTHER };
+    enum class PointPointType { SPRING, SEGMENT };
+    enum class DeformableType { FEA, OTHER };
+
+    /// Bind assets associated with a ChBody.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
+    /// Bind assets associated with a ChLink.
+    void BindLink(const std::shared_ptr<ChLinkBase>& link);
+
+    /// Bind assets associated with a ChMesh.
+    void BindMesh(const std::shared_ptr<fea::ChMesh>& mesh);
+
+    /// Bind all assets associated with the given ChAssembly.
+    void BindAssembly(const ChAssembly& assembly);
+
+    /// Bind the visual model associated with a ChObj (body, link, or other).
+    void BindObject(const std::shared_ptr<ChObj>& obj, ObjectType type);
+
     /// Bind deformable meshes in the visual model associated with the given physics item.
-    void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item);
+    void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item, DeformableType type);
 
     /// Bind point-point visual assets in the visual model associated with the given physics item.
     void BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item);
@@ -323,17 +364,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the visual model assoicated with a particle cloud.
     void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 
-    /// Bind the body COG frame.
-    void BindBodyFrame(const std::shared_ptr<ChBody>& body);
+    /// Bind the reference frame for the given ChObj.
+    void BindReferenceFrame(const std::shared_ptr<ChObj>& obj);
+
+    /// Bind the body COM frame.
+    void BindCOMFrame(const std::shared_ptr<ChBody>& body);
 
     /// Bind the joint frames.
-    void BindLinkFrame(const std::shared_ptr<ChLink>& link);
+    void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
     /// Utility function to populate a VSG group with shape groups (from the given visual model).
-    /// The visual model may or may not be associated with a Chrono physics item.
+    /// The visual model may or may not be associated with a Chrono object.
     void PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                        std::shared_ptr<ChVisualModel> model,
-                       std::shared_ptr<ChPhysicsItem> phitem);
+                       std::shared_ptr<ChObj> obj);
 
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
@@ -359,10 +403,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_azimuth = 0;
     float m_guiFontSize = 20.0f;
 
+    bool m_show_body_objs;     ///< flag to toggle body asset visibility
+    bool m_show_link_objs;     ///< flag to toggle link asset visibility
+    bool m_show_springs;       ///< flag to toggle spring visibility
+    bool m_show_fea_meshes;    ///< flag to toggle FEA mesh visibility
+    bool m_show_ref_frames;    ///< flag to toggle object reference frame visibility
     bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
-    double m_cog_frame_scale;  ///< current COG frame scale
+    bool m_show_joint_frames;  ///< flag to toggle COG frame visibility
 
-    bool m_show_joint_frames;    ///< flag to toggle COG frame visibility
+    double m_ref_frame_scale;    ///< current reference frame scale
+    double m_cog_frame_scale;    ///< current COG frame scale
     double m_joint_frame_scale;  ///< current joint frame scale
 
     unsigned int m_frame_number;                      ///< current number of rendered frames

@@ -150,7 +150,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     ChVector3d shaft2_rotation_dir;
 
     /// Update this object. Also relinks the innerconstraints.
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override;
     virtual unsigned int GetNumConstraints() override;

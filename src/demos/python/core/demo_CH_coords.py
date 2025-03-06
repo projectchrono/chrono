@@ -10,7 +10,7 @@
 #
 # =============================================================================
 
-print ("First tutorial for PyChrono: vectors, matrices etc.");
+print ("First tutorial for PyChrono: vectors, matrices etc.")
 
 
 # Load the Chrono core module!
@@ -58,7 +58,7 @@ prod = v * npmat   # you can perform linear algebra operations with numpy and th
 mb.SetMatr(v.tolist())    # create a ChMatrixDynamicd from the numpy eigenvectors
 mr = chrono.ChMatrix33d()
 mr.SetMatr([[1,2,3], [4,5,6], [7,8,9]])
-print (mr*my_vect1);
+print (mr*my_vect1)
 
 
 # Test frames -

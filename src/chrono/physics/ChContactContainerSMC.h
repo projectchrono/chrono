@@ -189,7 +189,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
 
     /// Update state of this contact container: compute jacobians, violations, etc.
     /// and store results in inner structures of contacts.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double mtime, bool update_assets) override;
 
     /// Compute contact forces on all contactable objects in this container.
     /// This function caches contact forces in a map.

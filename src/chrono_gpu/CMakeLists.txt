@@ -135,6 +135,11 @@ if(MSVC)
 endif()
 
 target_compile_definitions(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
+if(MSVC)
+  target_compile_options(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4996>)  # deprecated function or class member
+  target_compile_options(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>) # CUDA Deprecation: The type will be removed in the next major release
+  target_compile_options(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>) # CUDA unreferenced formal parameter
+endif()
 
 target_link_libraries(Chrono_gpu PRIVATE Chrono_core)
 

@@ -150,17 +150,23 @@ void IndustrialRobot6dof::SetupLinks() {
                     chrono_types::make_shared<ChFunctionSetpoint>(), chrono_types::make_shared<ChFunctionSetpoint>()};
 
     m_link_base_shoulder =
-        CreateMotorRotationAngle(m_sys, m_shoulder, m_base, ChFrame<>(m_joint_frames[0]), m_motfunlist[0]);
+        CreateMotorRotationAngle(m_sys, m_shoulder, m_base, ChFramed(m_joint_frames[0]), m_motfunlist[0]);
+    m_link_base_shoulder->SetName("motor_base_shoulder");
     m_link_shoulder_biceps =
-        CreateMotorRotationAngle(m_sys, m_biceps, m_shoulder, ChFrame<>(m_joint_frames[1]), m_motfunlist[1]);
+        CreateMotorRotationAngle(m_sys, m_biceps, m_shoulder, ChFramed(m_joint_frames[1]), m_motfunlist[1]);
+    m_link_shoulder_biceps->SetName("motor_shoulder_biceps");
     m_link_biceps_elbow =
-        CreateMotorRotationAngle(m_sys, m_elbow, m_biceps, ChFrame<>(m_joint_frames[2]), m_motfunlist[2]);
+        CreateMotorRotationAngle(m_sys, m_elbow, m_biceps, ChFramed(m_joint_frames[2]), m_motfunlist[2]);
+    m_link_biceps_elbow->SetName("motor_biceps_elbow");
     m_link_elbow_forearm =
-        CreateMotorRotationAngle(m_sys, m_forearm, m_elbow, ChFrame<>(m_joint_frames[3]), m_motfunlist[3]);
+        CreateMotorRotationAngle(m_sys, m_forearm, m_elbow, ChFramed(m_joint_frames[3]), m_motfunlist[3]);
+    m_link_elbow_forearm->SetName("motor_elbow_forearm");
     m_link_forearm_wrist =
-        CreateMotorRotationAngle(m_sys, m_wrist, m_forearm, ChFrame<>(m_joint_frames[4]), m_motfunlist[4]);
+        CreateMotorRotationAngle(m_sys, m_wrist, m_forearm, ChFramed(m_joint_frames[4]), m_motfunlist[4]);
+    m_link_forearm_wrist->SetName("motor_forearm_wrist");
     m_link_wrist_end_effector =
-        CreateMotorRotationAngle(m_sys, m_end_effector, m_wrist, ChFrame<>(m_joint_frames[5]), m_motfunlist[5]);
+        CreateMotorRotationAngle(m_sys, m_end_effector, m_wrist, ChFramed(m_joint_frames[5]), m_motfunlist[5]);
+    m_link_wrist_end_effector->SetName("motor_wrist_end_effector");
 
     m_motorlist = {m_link_base_shoulder, m_link_shoulder_biceps, m_link_biceps_elbow,
                    m_link_elbow_forearm, m_link_forearm_wrist,   m_link_wrist_end_effector};

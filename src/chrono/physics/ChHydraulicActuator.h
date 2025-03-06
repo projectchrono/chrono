@@ -66,7 +66,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     /// valve spool position and the initial cylinder pressures as initial guesses. Otherwise, the initial actuator
     /// state is set to the user specified values (which may be inconsistent with the configuration of the cylinder
     /// piston).
-    void SetInitialLoad(double F0);
+    void SetInitialLoad(double initial_load);
 
     /// Initialize the hydraulic actuator stand-alone.
     /// In this case, actuator position and rate are supposed to be provided from the outside.
@@ -129,7 +129,7 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     virtual bool IsStiff() const override { return true; }
 
     /// Update the physics item at current state.
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Load generalized forces.
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

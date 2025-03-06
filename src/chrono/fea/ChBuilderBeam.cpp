@@ -689,14 +689,12 @@ void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
 // ChExtruderBeamEuler
 // ------------------------------------------------------------------
 
-ChExtruderBeamEuler::ChExtruderBeamEuler(
-    ChSystem* msystem,                         // system to store the constraints
-    std::shared_ptr<ChMesh> mmesh,             // mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionEuler> sect,  // section material for beam elements
-    double mh,                                 // element length
-    const ChCoordsys<> moutlet,                // outlet pos & orientation (x is extrusion direction)
-    double mspeed                              // speed
-) {
+ChExtruderBeamEuler::ChExtruderBeamEuler(ChSystem* msystem,
+                                         std::shared_ptr<ChMesh> mmesh,
+                                         std::shared_ptr<ChBeamSectionEuler> sect,
+                                         double mh,
+                                         const ChCoordsys<> moutlet,
+                                         double mspeed) {
     h = mh;
     outlet = moutlet;
     mysystem = msystem;
@@ -710,7 +708,7 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
-    nodeA->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    nodeA->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_Z * this->speed));
     nodeA->SetX0(ChFrame<>());
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
@@ -746,7 +744,7 @@ void ChExtruderBeamEuler::SetContact(std::shared_ptr<ChContactMaterialSMC> mcont
 void ChExtruderBeamEuler::Update() {
     auto node1 = beam_nodes.back();
     ChVector3d P1 = node1->GetPos();
-    double d1 = (outlet.TransformPointParentToLocal(P1)).x();
+    double d1 = (outlet.TransformPointParentToLocal(P1)).z();
 
     // std::cout << " d1=" << d1 << std::endl;
 
@@ -754,13 +752,13 @@ void ChExtruderBeamEuler::Update() {
         double d0 = d1 - this->h;
         ChCoordsys<> C0;
         C0.rot = outlet.rot;
-        C0.pos = outlet.pos + outlet.TransformPointLocalToParent(VECT_X * d0);
+        C0.pos = outlet.pos + outlet.TransformPointLocalToParent(VECT_Z * d0);
         ChCoordsys<> C0_ref;
         C0_ref.rot = node1->GetX0().GetRot();
-        C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
+        C0_ref.pos = node1->GetX0().GetPos() - VECT_Z * this->h;
 
         auto node0 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(C0));
-        node0->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+        node0->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_Z * this->speed));
         node0->SetX0(ChFrame<>(C0_ref));
         mesh->AddNode(node0);
         beam_nodes.push_back(node0);
@@ -795,14 +793,13 @@ void ChExtruderBeamEuler::Update() {
 // ChExtruderBeamIGA
 // ------------------------------------------------------------------
 
-ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system to store the constraints
-                                     std::shared_ptr<ChMesh> mmesh,  // mesh to store the resulting elements
-                                     std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
-                                     double mh,                                    // element length
-                                     const ChCoordsys<> moutlet,  // outlet pos & orientation (x is extrusion direction)
-                                     double mspeed,               // speed
-                                     int morder                   // element order
-) {
+ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,
+                                     std::shared_ptr<ChMesh> mmesh,
+                                     std::shared_ptr<ChBeamSectionCosserat> sect,
+                                     double mh,
+                                     const ChCoordsys<> moutlet,
+                                     double mspeed,
+                                     int morder) {
     beam_order = morder;
     h = mh;
     outlet = moutlet;
@@ -817,7 +814,7 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
-    nodeA->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    nodeA->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_Z * this->speed));
     nodeA->SetX0(ChFrame<>());
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
@@ -828,8 +825,8 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     }
     beam_knots.push_back(100.);
 
-    std::cout << "Create node n." << beam_nodes.size() << " at x=" << nodeA->GetPos().x()
-              << " x0=" << nodeA->GetX0().GetPos().x() << std::endl;
+    ////std::cout << "Create node n." << beam_nodes.size() << " at z=" << nodeA->GetPos().z()
+    ////          << " z0=" << nodeA->GetX0().GetPos().z() << std::endl;
 
     actuator = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
     mysystem->Add(actuator);
@@ -855,7 +852,7 @@ void ChExtruderBeamIGA::SetContact(std::shared_ptr<ChContactMaterialSMC> mcontac
 bool ChExtruderBeamIGA::Update() {
     auto node1 = beam_nodes.back();
     ChVector3d P1 = node1->GetPos();
-    double d1 = (outlet.TransformPointParentToLocal(P1)).x();
+    double d1 = (outlet.TransformPointParentToLocal(P1)).z();
 
     mytime = mysystem->GetChTime();
 
@@ -869,13 +866,13 @@ bool ChExtruderBeamIGA::Update() {
     double d0 = d1 - this->h;
     ChCoordsys<> C0;
     C0.rot = outlet.rot;
-    C0.pos = outlet.pos + outlet.TransformPointLocalToParent(VECT_X * d0);
+    C0.pos = outlet.pos + outlet.TransformPointLocalToParent(VECT_Z * d0);
     ChCoordsys<> C0_ref;
     C0_ref.rot = node1->GetX0().GetRot();
-    C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
+    C0_ref.pos = node1->GetX0().GetPos() - VECT_Z * this->h;
 
     auto node0 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(C0));
-    node0->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    node0->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_Z * this->speed));
     node0->SetX0(ChFrame<>(C0_ref));
     mesh->AddNode(node0);
     beam_nodes.push_back(node0);
@@ -912,7 +909,7 @@ bool ChExtruderBeamIGA::Update() {
             // std::cout << "Adjust row" << std::endl;
             for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node) {
                 ChVector3d rect_pos =
-                    beam_nodes.back()->GetPos() + outlet.TransformDirectionLocalToParent(VECT_X * h * i_el_node);
+                    beam_nodes.back()->GetPos() + outlet.TransformDirectionLocalToParent(VECT_Z * h * i_el_node);
                 my_el_nodes[i_el_node]->SetPos(rect_pos);
             }
             // (fix singularity for single first cable?) to improve
@@ -929,7 +926,7 @@ bool ChExtruderBeamIGA::Update() {
             std::cout << "   " << i;
         std::cout << "\nCTRLP: ";
         for (auto& i : my_el_nodes)
-            std::cout << "   " << i->GetPos().x();
+            std::cout << "   " << i->GetPos().z();
         std::cout << std::endl;
         */
 

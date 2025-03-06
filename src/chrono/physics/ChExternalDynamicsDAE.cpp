@@ -87,7 +87,8 @@ ChVectorDynamic<> ChExternalDynamicsDAE::GetInitialStateDerivatives() {
 // -----------------------------------------------------------------------------
 
 void ChExternalDynamicsDAE::Update(double time, bool update_assets) {
-    ChTime = time;
+    // Update time and assets
+    ChPhysicsItem::Update(time, update_assets);
 
     OnUpdate(time, m_y, m_yd);
 
@@ -104,9 +105,6 @@ void ChExternalDynamicsDAE::Update(double time, bool update_assets) {
     if (IsRheonomous()) {
         ComputeConstraintDerivative(time);
     }
-
-    // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 // -----------------------------------------------------------------------------

@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
 
             previous_current_example_id = current_example_id;
 
-            sys.Update();
+            sys.Update(true);
             vis.BindAll();
 
             modal_solver.Solve(sys.GetAssembly(), eigvects, eigvals, freq, damping_ratios);

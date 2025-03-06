@@ -15,6 +15,7 @@
 // Class for performing time integration in fluid system.
 // =============================================================================
 
+#include "chrono/utils/ChConstants.h"
 #include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
 
@@ -236,11 +237,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
         Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
 
         // check if there is a plastic flow
-        p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);
+        p_n = -CH_1_3 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);
         tauXxYyZz.x += p_n;
         tauXxYyZz.y += p_n;
         tauXxYyZz.z += p_n;
-        p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
+        p_tr = -CH_1_3 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
         updatedTauXxYyZz.x += p_tr;
         updatedTauXxYyZz.y += p_tr;
         updatedTauXxYyZz.z += p_tr;

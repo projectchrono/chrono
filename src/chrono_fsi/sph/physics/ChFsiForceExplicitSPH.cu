@@ -493,9 +493,9 @@ __device__ inline Real3 CubicSolve(Real aa, Real bb, Real cc, Real dd) {
     // All roots real, at least two are equal.
     if (disc == 0) {
         if (r < 0) {
-            r13 = pow(-r, (1 / 3.0));
+            r13 = std::cbrt(-r);
         } else {
-            r13 = pow(r, (1 / 3.0));
+            r13 = std::cbrt(r);
         }
         xRex = -term1 + 2 * r13;
         xRey = -(r13 + term1);

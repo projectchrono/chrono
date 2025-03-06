@@ -300,7 +300,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     // Average orientation matrix
     ChVector3d phi_tilde_i[NUMIP];
     ChVector3d phi_tilde_A[NUMSSEP];
-    ChVector3d phi_tilde_0;
+
     // Average orientation matrix
     //    .. in reference configuration
     ChMatrix33<> T0_overline;

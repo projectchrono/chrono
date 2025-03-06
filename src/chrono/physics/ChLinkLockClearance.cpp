@@ -108,9 +108,9 @@ double ChLinkLockClearance::GetContactSpeedTangential() const {
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_V_abs).y();
 }
 
-void ChLinkLockClearance::UpdateForces(double mytime) {
+void ChLinkLockClearance::UpdateForces(double time) {
     // May avoid inheriting parent class force computation, since not needed
-    ////LinkLock::UpdateForces(mytime);
+    ////LinkLock::UpdateForces(time);
 
     ChVector3d m_friction_F_abs = VNULL;
     double m_norm_force = -react_force.x();
@@ -148,9 +148,9 @@ void ChLinkLockClearance::SetRestitution(double mset) {
     limit_X->SetSpringCoefficientMax(c_restitution);
 }
 
-void ChLinkLockClearance::UpdateTime(double mytime) {
+void ChLinkLockClearance::UpdateTime(double time) {
     // First, inherit to parent class
-    ChLinkLockLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(time);
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
 

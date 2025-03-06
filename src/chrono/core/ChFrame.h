@@ -177,14 +177,14 @@ class ChFrame {
 
     /// Impose both translation and rotation as a single ChCoordsys.
     /// Note: the quaternion part must be already normalized.
-    void SetCoordsys(const ChCoordsys<Real>& C) {
+    virtual void SetCoordsys(const ChCoordsys<Real>& C) {
         m_csys = C;
         m_rmat.SetFromQuaternion(C.rot);
     }
 
     /// Impose both translation and rotation.
     /// Note: the quaternion part must be already normalized.
-    void SetCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q) {
+    virtual void SetCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q) {
         m_csys.pos = v;
         m_csys.rot = q;
         m_rmat.SetFromQuaternion(q);
@@ -192,20 +192,20 @@ class ChFrame {
 
     /// Impose the rotation as a quaternion.
     /// Note: the quaternion must be already normalized.
-    void SetRot(const ChQuaternion<Real>& q) {
+    virtual void SetRot(const ChQuaternion<Real>& q) {
         m_csys.rot = q;
         m_rmat.SetFromQuaternion(q);
     }
 
     /// Impose the rotation as a 3x3 matrix.
     /// Note: the rotation matrix must be already orthogonal.
-    void SetRot(const ChMatrix33<Real>& R) {
+    virtual void SetRot(const ChMatrix33<Real>& R) {
         m_csys.rot = R.GetQuaternion();
         m_rmat = R;
     }
 
     /// Impose the translation vector.
-    void SetPos(const ChVector3<Real>& pos) { m_csys.pos = pos; }
+    virtual void SetPos(const ChVector3<Real>& pos) { m_csys.pos = pos; }
 
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 

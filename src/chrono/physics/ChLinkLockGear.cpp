@@ -89,9 +89,9 @@ ChVector3d ChLinkLockGear::GetPosShaft2() const {
         return VNULL;
 }
 
-void ChLinkLockGear::UpdateTime(double mytime) {
+void ChLinkLockGear::UpdateTime(double time) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLock::UpdateTime(time);
 
     // Move markers 1 and 2 to align them as gear teeth
 
@@ -111,7 +111,7 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     ////ChVector3d Trad1 = Vnorm(Vcross(GetDirShaft1(), Vnorm(Vcross(GetDirShaft1(), vbdist))));
     ////ChVector3d Trad2 = Vnorm(Vcross(Vnorm(Vcross(GetDirShaft2(), vbdist)), GetDirShaft2()));
 
-    double dist = Vlength(vbdist);
+    double bdist = Vlength(vbdist);
 
     // compute actual rotation of the two wheels (relative to truss).
     ChVector3d md1 = abs_shaft1.GetRotMat().transpose() * (-vbdist);
@@ -200,7 +200,7 @@ void ChLinkLockGear::UpdateTime(double mytime) {
         }
         double al = CH_PI - std::acos(Vdot(GetDirShaft2(), my));
         double te = CH_PI - al - be;
-        double fd = sin(te) * (dist / sin(be));
+        double fd = sin(te) * (bdist / sin(be));
         r2 = fd * tan(gamma2);
         r1 = r2 * tau;
     }

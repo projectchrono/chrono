@@ -3,12 +3,8 @@ Install the CASCADE module {#module_cascade_installation}
 
 [TOC]
 
-This is an optional module that adds 3D CAD file support (STEP format) for Chrono
+Chrono::Cascade is an optional module that adds 3D CAD file support (STEP format) for Chrono
 using the [OpenCASCADE](http://www.opencascade.org) library. 
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
-
 
 ## Features
 

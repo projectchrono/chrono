@@ -79,8 +79,6 @@ endif()
 
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(COMPILER_FLAGS "")
-set(LINKER_FLAGS "")
 list(APPEND LIBS Chrono_core)
 
 if(CH_ENABLE_MODULE_IRRLICHT)

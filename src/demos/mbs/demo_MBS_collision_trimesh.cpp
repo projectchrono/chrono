@@ -187,9 +187,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, 1, -1));
-    vis->AddLight(ChVector3d(30, 80, +30), 80, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector3d(30, 80, -30), 80, ChColor(0.7f, 0.7f, 0.7f));
-    vis->EnableShadows();
+    vis->AddTypicalLights();
 
     ////vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 

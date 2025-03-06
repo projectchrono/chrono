@@ -12,7 +12,7 @@ Building Chrono from sources requires a C++ compiler and the [CMake](https://cma
 
 #### Recommended compilers {#compilers}
 
-- Windows: **MSVC** from Visual Studio 2019 or newer.
+- Windows: **MSVC** Visual Studio 2019 or newer.
   ([VS 2022 Community Edition](https://visualstudio.microsoft.com/downloads/) free download)<br>
   Note: the C++ compiler is not installed by default; make sure to install the C++ toolchain during VS setup.
 - Linux: **GNU** C++ compiler for Linux-based platforms (version 4.9 or newer)
@@ -41,6 +41,39 @@ While `git` can be used through command line we recommend using a [GUI git clien
 On Windows and MacOS, we suggest [SourceTree](http://www.sourcetreeapp.com/), also used for illustration below.
 
 Note that most modern IDEs have git integration (e.g. the free [Visual Studio Code](https://code.visualstudio.com/) available on Windows, Linux, and Mac).
+
+------------------------------------------------------------
+## Optional support {#optional}
+
+During CMake configuration, Chrono also checks availability of additional support in terms of compiler capabilities (e.g., SIMD-level support, OpenMP availability) and environments (e.g., availability of MPI and CUDA). If any of these is not found, specific optimizations in building Chrono and some modules is disabled (e.g., no multi-threaded support in FEA, Bullet collision, and Eigen if the C++ compiler is not OpenMP capable), some features are disabled (e.g., no multi-core collision detectino algorithm if OpenMP or Thrust), or entire modules are disabled (e.g., Chrono::FSI, Chrono::GPU, and Chrono::Sensor cannot be built without CUDA, Chrono::Multicore cannot be built without OpenMP and Thrust, and Chrono::Synchrono and the Chrono::Vehicle co-simulation module cannot be built without MPI).
+
+Additional support is checked if enabling specific Chrono modules. For example, a Fortran compiler is required to enable the Chrono::MUMPS module.
+
+#### CUDA support {#cuda}
+
+Chrono can be configured and built with CUDA versions newer than 12.3. Use of CUDA and therefore of the CUDA-based Chrono modules (Chrono::FSI, Chrono::GPU, and Chrono::Sensor) require an NVIDIA GPU. Consult the [NVIDIA website](https://developer.nvidia.com/cuda-downloads) for instructions on installing CUDA and the necessary NVIDIA drivers for your machine and operating system.
+
+If using a CMake version newer than 3.23, the Chrono configuration sets the CUDA architectures to `all-major` (this can be changed to `native` or any other specific architecture). For older CMake versions, it is the user's responsibility to properly set `CHRONO_CUDA_ARCHITECTURES` to a value appropriate for their GPU card (note that a compute capability of "8.9" must be entered as `89`).
+
+For users with multiple side-by-side CUDA installations, the desired version can be selected by specifying the appropriate toolchain in CMake (e.g., `-T cuda=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8`). On Linux, multiple CUDA environments can also be managed using environment modules (see for example this [GitHub Gist](https://gist.github.com/garg-aayush/156ec6ddda3d62e2c0ddad00b7e66956)).
+
+#### Thrust support {#thrust}
+
+The Thrust library is used, with different back-ends, in various Chrono features and modules. For example, the multicore collision detection library (alternative to the default Bullet-based collision detection), as well as the Chrono::Multicore module require Thrust with the OpenMP back-end. The Chrono::FSI module requires Thrust with the CUDA-backend.
+
+The easiest way to obtain the Thrust (headers-only) library is as part of a recent CUDA distribution. This allows using the latest Thrust version (2.2.0 in CUDA 12.3; 2.7.0 in CUDA 12.8).
+
+It is possible to use Thrust stand-alone (e.g., for use on machines without an NVIDIA GPU to enable the Chrono::Multicore module). However, that requires using an older version of Thrust from its [GitHub repository](https://github.com/NVIDIA/thrust). Note that the latest version available there is 2.1.0.
+
+#### MPI support {#mpi}
+
+An MPI installation is necessary for Chrono::Synchrono and for the co-simulation framework available in Chrono::Vehicle (for vehicle-terrain interaction). Chrono has been successfully built with Intel MPI (also included in the [Intel oneAPI HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), [Microsoft MPI](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi), [OpenMPI](https://www.open-mpi.org/), and [MPICH](https://www.mpich.org/).
+
+#### OpenMP support {#openmp}
+
+All recent versions of common compilers support OpenMP and as such it is likely that OpenMP support will be detected automatically during Chrono configuration. Even then, users are given the option to disable use of OpenMP (unselect the `CH_ENABLE_OPENMP` CMake option).
+
+Note for Windows users: MSVC only supports the OpenMP 2.0 standard (see the [Microsoft website](https://learn.microsoft.com/en-us/cpp/build/reference/openmp-enable-openmp-2-0-support?view=msvc-170) for details). This is not a problem for use in Chrono, as only features already available in OpenMP 2.0 are used.
 
 ------------------------------------------------------------
 ## Third-party dependencies {#dependencies}

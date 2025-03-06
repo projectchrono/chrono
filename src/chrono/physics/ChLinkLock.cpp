@@ -248,7 +248,7 @@ void ChLinkLock::SetBroken(bool mbro) {
 
 void ChLinkLock::SetupMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMarkers::SetupMarkers(mark1, mark2);
-    assert(this->m_body1 && this->m_body2);
+    assert(m_body1 && m_body2);
 
     mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
@@ -268,7 +268,7 @@ void ChLinkLock::BuildLink() {
     C_dt.resize(m_num_constr);
     C_dtdt.resize(m_num_constr);
     react.resize(m_num_constr);
-    Qc.resize(m_num_constr);
+    Q_c.resize(m_num_constr);
     Ct.resize(m_num_constr);
     Cq1.resize(m_num_constr, BODY_QDOF);
     Cq2.resize(m_num_constr, BODY_QDOF);
@@ -363,6 +363,10 @@ void ChLinkLock::ChangeType(Type new_link_type) {
 // -----------------------------------------------------------------------------
 // UPDATING PROCEDURES
 
+void ChLinkLock::UpdateTime(double time) {
+    ChTime = time;
+}
+
 // Complete update.
 void ChLinkLock::Update(double time, bool update_assets) {
     UpdateTime(time);
@@ -372,10 +376,10 @@ void ChLinkLock::Update(double time, bool update_assets) {
     UpdateForces(time);
 
     // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 }
 
-// Updates Cq1_temp, Cq2_temp, Qc_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
+// Updates Cq1_temp, Cq2_temp, Q_c_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
 void ChLinkLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
@@ -400,8 +404,8 @@ void ChLinkLock::UpdateState() {
 
     Ct_temp.rot = q_AD;
 
-    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Qc_temp VECTOR.
-    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
+    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Q_c_temp VECTOR.
+    // [Cq_temp]= [[CqxT] [CqxR]]     {Q_c_temp} ={[Qcx]}
     //            [[ 0  ] [CqrR]]                {[Qcr]}
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
@@ -452,13 +456,13 @@ void ChLinkLock::UpdateState() {
     Qcx = Vadd(Qcx, vtemp2);
     Qcx = Vadd(Qcx, q_4);  // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
 
-    Qc_temp.segment(0, 3) = Qcx.eigen();  // * Qc_temp, for all translational coords
-    Qc_temp.segment(3, 4) = q_8.eigen();  // * Qc_temp, for all rotational coords (Qcr = q_8)
+    Q_c_temp.segment(0, 3) = Qcx.eigen();  // * Q_c_temp, for all translational coords
+    Q_c_temp.segment(3, 4) = q_8.eigen();  // * Q_c_temp, for all rotational coords (Qcr = q_8)
 
     // *** NOTE! The final Qc must change sign, to be used in
     // lagrangian equation:    [Cq]*q_dtdt = Qc
     // because until now we have computed it as [Cq]*q_dtdt + "Qc" = 0
-    Qc_temp *= -1;
+    Q_c_temp *= -1;
 
     // ---------------------
     // Updates Cq1, Cq2, Qc,
@@ -470,7 +474,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
-        Qc(index) = Qc_temp(0);
+        Q_c(index) = Q_c_temp(0);
 
         C(index) = relM.pos.x();
         C_dt(index) = relM_dt.pos.x();
@@ -485,7 +489,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
-        Qc(index) = Qc_temp(1);
+        Q_c(index) = Q_c_temp(1);
 
         C(index) = relM.pos.y();
         C_dt(index) = relM_dt.pos.y();
@@ -500,7 +504,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
-        Qc(index) = Qc_temp(2);
+        Q_c(index) = Q_c_temp(2);
 
         C(index) = relM.pos.z();
         C_dt(index) = relM_dt.pos.z();
@@ -515,7 +519,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
-        Qc(index) = Qc_temp(3);
+        Q_c(index) = Q_c_temp(3);
 
         C(index) = relM.rot.e0();
         C_dt(index) = relM_dt.rot.e0();
@@ -530,7 +534,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
-        Qc(index) = Qc_temp(4);
+        Q_c(index) = Q_c_temp(4);
 
         C(index) = relM.rot.e1();
         C_dt(index) = relM_dt.rot.e1();
@@ -545,7 +549,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
 
-        Qc(index) = Qc_temp(5);
+        Q_c(index) = Q_c_temp(5);
 
         C(index) = relM.rot.e2();
         C_dt(index) = relM_dt.rot.e2();
@@ -560,7 +564,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
 
-        Qc(index) = Qc_temp(6);
+        Q_c(index) = Q_c_temp(6);
 
         C(index) = relM.rot.e3();
         C_dt(index) = relM_dt.rot.e3();
@@ -599,8 +603,8 @@ void ChLinkLock::UpdateCqw() {
 }
 
 // Override UpdateForces to include possible contributions from joint limits.
-void ChLinkLock::UpdateForces(double mytime) {
-    ChLinkMarkers::UpdateForces(mytime);
+void ChLinkLock::UpdateForces(double time) {
+    ChLinkMarkers::UpdateForces(time);
 
     ChVector3d m_force = VNULL;
     ChVector3d m_torque = VNULL;
@@ -1055,7 +1059,7 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     if (!do_clamp)
         recovery_clamp = 1e24;
 
-    unsigned int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1155,7 +1159,7 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
         }
     }
 
-    unsigned int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1243,7 +1247,7 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
         }
     }
 
-    unsigned int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1308,7 +1312,7 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
 }
 
 void ChLinkLock::InjectConstraints(ChSystemDescriptor& descriptor) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
@@ -1593,7 +1597,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * Qc(cnt));
+            mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * Q_c(cnt));
             cnt++;
         }
     }
@@ -2209,7 +2213,7 @@ void ChLinkLockLock::UpdateTime(double time) {
     }
 }
 
-// Updates Cq1_temp, Cq2_temp, Qc_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
+// Updates Cq1_temp, Cq2_temp, Q_c_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
 void ChLinkLockLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
@@ -2258,8 +2262,8 @@ void ChLinkLockLock::UpdateState() {
     // deltaC^*(q_AD) + deltaC_dt^*q_pq
     Ct_temp.rot = Qcross(Qconjugate(deltaC.rot), q_AD) + Qcross(Qconjugate(deltaC_dt.rot), relM.rot);
 
-    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Qc_temp VECTOR.
-    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
+    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Q_c_temp VECTOR.
+    // [Cq_temp]= [[CqxT] [CqxR]]     {Q_c_temp} ={[Qcx]}
     //            [[ 0  ] [CqrR]]                {[Qcr]}
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
@@ -2319,14 +2323,14 @@ void ChLinkLockLock::UpdateState() {
     Qcr = Qadd(Qcr, Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot));  // = deltaC'*q_8 + 2*deltaC_dt'*q_dt,po +
                                                                      // deltaC_dtdt'*q,po
 
-    Qc_temp.segment(0, 3) = Qcx.eigen();  // * Qc_temp, for all translational coords
-    Qc_temp.segment(3, 4) = Qcr.eigen();  // * Qc_temp, for all rotational coords
+    Q_c_temp.segment(0, 3) = Qcx.eigen();  // * Q_c_temp, for all translational coords
+    Q_c_temp.segment(3, 4) = Qcr.eigen();  // * Q_c_temp, for all rotational coords
 
     // *** NOTE! The definitive  Qc must change sign, to be used in
     // lagrangian equation:    [Cq]*q_dtdt = Qc
     // because until now we have computed it as [Cq]*q_dtdt + "Qc" = 0,
     // but the most used form is the previous, so let's change sign!!
-    Qc_temp *= -1;
+    Q_c_temp *= -1;
 
     // ---------------------
     // Updates Cq1, Cq2, Qc,
@@ -2338,7 +2342,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
-        Qc(index) = Qc_temp(0);
+        Q_c(index) = Q_c_temp(0);
 
         C(index) = relC.pos.x();
         C_dt(index) = relC_dt.pos.x();
@@ -2353,7 +2357,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
-        Qc(index) = Qc_temp(1);
+        Q_c(index) = Q_c_temp(1);
 
         C(index) = relC.pos.y();
         C_dt(index) = relC_dt.pos.y();
@@ -2368,7 +2372,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
-        Qc(index) = Qc_temp(2);
+        Q_c(index) = Q_c_temp(2);
 
         C(index) = relC.pos.z();
         C_dt(index) = relC_dt.pos.z();
@@ -2383,7 +2387,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
-        Qc(index) = Qc_temp(3);
+        Q_c(index) = Q_c_temp(3);
 
         C(index) = relC.rot.e0();
         C_dt(index) = relC_dt.rot.e0();
@@ -2398,7 +2402,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
-        Qc(index) = Qc_temp(4);
+        Q_c(index) = Q_c_temp(4);
 
         C(index) = relC.rot.e1();
         C_dt(index) = relC_dt.rot.e1();
@@ -2413,7 +2417,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
 
-        Qc(index) = Qc_temp(5);
+        Q_c(index) = Q_c_temp(5);
 
         C(index) = relC.rot.e2();
         C_dt(index) = relC_dt.rot.e2();
@@ -2428,7 +2432,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
 
-        Qc(index) = Qc_temp(6);
+        Q_c(index) = Q_c_temp(6);
 
         C(index) = relC.rot.e3();
         C_dt(index) = relC_dt.rot.e3();

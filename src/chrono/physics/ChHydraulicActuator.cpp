@@ -40,9 +40,9 @@ void ChHydraulicActuatorBase::SetActuatorLength(double len, double vel) {
     sd = vel;
 }
 
-void ChHydraulicActuatorBase::SetInitialLoad(double F0) {
-    this->calculate_consistent_IC = true;
-    this->F0 = F0;
+void ChHydraulicActuatorBase::SetInitialLoad(double initial_load) {
+    calculate_consistent_IC = true;
+    F0 = initial_load;
 }
 
 void ChHydraulicActuatorBase::Initialize() {

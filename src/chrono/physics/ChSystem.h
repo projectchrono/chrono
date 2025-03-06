@@ -592,12 +592,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup();
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
-    void Update(double mytime, bool update_assets = true);
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
+    void Update(double time, bool update_assets);
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(bool update_assets = true);
+    void Update(bool update_assets);
 
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
@@ -636,8 +635,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void VariablesFbLoadForces(double factor = 1);
     void VariablesQbLoadSpeed();
     void VariablesFbIncrementMq();
-    void VariablesQbSetSpeed(double step = 0);
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbSetSpeed(double step_size = 0);
+    void VariablesQbIncrementPosition(double step_size);
     void ConstraintsBiReset();
     void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false);
     void ConstraintsBiLoad_Ct(double factor = 1);

@@ -68,7 +68,7 @@ class ChGnuPlot {
     /// If false, the output window will close soon after the plot.
     /// For plotting in windows, it is better to use the default 'true' setting.
     /// When plotting to a file (EPS, PNG, PDF), this setting is usually set to 'false'.
-    void SetPersist(bool persist) { this->persist = persist; }
+    void SetPersist(bool state) { persist = state; }
 
     /// Add arbitrary GnuPlot commands in the gnuplot script.
     /// Basically you would just need calls to SetCommand() followed by an Output() at the end, however to make things
@@ -354,8 +354,14 @@ class ChGnuPlot {
         commandfile += "\n";
     }
 
-    /// Set axes to equal size (i.e., square box).
-    void SetAxesEqual() { commandfile += " set size square \n"; }
+    /// Set axes to equal size (i.e., square box) or restore default.
+    void SetAxesEqual(bool axequal) { 
+        if (axequal) {
+            commandfile += " set size square \n"; 
+        } else {
+            commandfile += " set size nosquare \n"; 
+        }
+    }
 
     /// Set plot in a window.
     /// For multiple windows, call this with increasing windownum, interleaving with Plot() statements etc.

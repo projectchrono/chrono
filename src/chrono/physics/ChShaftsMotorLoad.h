@@ -55,7 +55,7 @@ class ChApi ChShaftsMotorLoad : public ChShaftsMotor {
   private:
     std::shared_ptr<ChFunction> motor_function;
 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void VariablesFbLoadForces(double factor) override;
 };

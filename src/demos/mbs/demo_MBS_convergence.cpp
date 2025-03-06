@@ -60,7 +60,7 @@ void create_items(ChSystem& sys) {
         for (int bi = 0; bi < num_bodies; bi++) {
             double sphrad = sphrad_base;
             if (do_oddmass && bi == (num_bodies - 1))
-                sphrad = sphrad * std::pow(oddfactor, 1. / 3.);
+                sphrad = sphrad * std::cbrt(oddfactor);
 
             std::shared_ptr<ChBody> rigidBody;
 

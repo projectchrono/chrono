@@ -94,6 +94,8 @@ class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
     virtual ChVisualSystem* GetVisualSystem() const override { return m_vsys; }
 
   private:
+    enum ParticleCloudTag {SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3};
+
     vsg3d::ChVisualSystemVSG* m_vsys;  ///< VSG visualization system
 
     friend class FSIStatsVSG;

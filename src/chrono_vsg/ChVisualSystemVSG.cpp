@@ -147,10 +147,23 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::TextUnformatted("COG:");
+            ImGui::TextUnformatted("Ref:");
+            ImGui::TableNextColumn();
+            static bool bRef_frame_active = false;
+            if (ImGui::Checkbox("Ref", &bRef_frame_active))
+                m_app->ToggleRefFrameVisibility();
+            ImGui::TableNextColumn();
+            float ref_frame_scale = m_app->m_ref_frame_scale;
+            ImGui::PushItemWidth(120.0f);
+            ImGui::SliderFloat("scale##ref", &ref_frame_scale, 0.1f, 10.0f);
+            ImGui::PopItemWidth();
+            m_app->m_ref_frame_scale = ref_frame_scale;
+
+            ImGui::TableNextRow();
+            ImGui::TextUnformatted("COM:");
             ImGui::TableNextColumn();
             static bool bCOG_frame_active = false;
-            if (ImGui::Checkbox("COG", &bCOG_frame_active))
+            if (ImGui::Checkbox("COM", &bCOG_frame_active))
                 m_app->ToggleCOGFrameVisibility();
             ImGui::TableNextColumn();
             float cog_frame_scale = m_app->m_cog_frame_scale;
@@ -171,6 +184,39 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::SliderFloat("scale##joint", &joint_frame_scale, 0.1f, 5.0f);
             ImGui::PopItemWidth();
             m_app->m_joint_frame_scale = joint_frame_scale;
+
+            ImGui::EndTable();
+        }
+
+        if (ImGui::BeginTable("Shapes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            ImGui::TableNextColumn();
+            static bool body_obj_visible = true;
+            if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
+                m_app->m_show_body_objs = !m_app->m_show_body_objs;
+                m_app->SetBodyObjVisibility(m_app->m_show_body_objs, -1);
+            }
+
+            ImGui::TableNextColumn();
+            static bool link_obj_visible = true;
+            if (ImGui::Checkbox("Links", &link_obj_visible)) {
+                m_app->m_show_link_objs = !m_app->m_show_link_objs;
+                m_app->SetLinkObjVisibility(m_app->m_show_link_objs, -1);
+            }
+
+            ImGui::TableNextColumn();
+            static bool fea_mesh_visible = true;
+            if (ImGui::Checkbox("FEA meshes", &fea_mesh_visible)) {
+                m_app->m_show_fea_meshes = !m_app->m_show_fea_meshes;
+                m_app->SetFeaMeshVisibility(m_app->m_show_fea_meshes, -1);
+            }
+
+            ImGui::TableNextColumn();
+            static bool spring_visible = true;
+            if (ImGui::Checkbox("Springs", &spring_visible)) {
+                m_app->m_show_springs = !m_app->m_show_springs;
+                m_app->SetSpringVisibility(m_app->m_show_springs, -1);
+            }
 
             ImGui::EndTable();
         }
@@ -243,7 +289,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
 
         float alpha = 1.0f;
         float cv = 0.9f;
-        float cv13 = cv / 3;
+        float cv13 = cv * CH_1_3;
         float cv23 = 2 * cv13;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
         snprintf(label, nstr, "%.3f", m_min_val);
@@ -251,13 +297,13 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
         double stride = m_max_val - m_min_val;
-        double val = m_min_val + stride * 1.0 / 6.0;
+        double val = m_min_val + stride * CH_1_6;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
         snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
-        val = m_min_val + stride * 2.0 / 6.0;
+        val = m_min_val + stride * CH_1_3;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
         snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
@@ -269,7 +315,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::Button(label);
         ImGui::PopStyleColor(1);
         ImGui::SameLine();
-        val = m_min_val + stride * 4.0 / 6.0;
+        val = m_min_val + stride * CH_2_3;
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
         snprintf(label, nstr, "%.3f", val);
         ImGui::Button(label);
@@ -455,9 +501,15 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_gui(true),
       m_show_base_gui(true),
       m_camera_trackball(true),
+      m_ref_frame_scale(1),
       m_cog_frame_scale(1),
-      m_show_cog_frames(false),
       m_joint_frame_scale(1),
+      m_show_body_objs(true),
+      m_show_link_objs(true),
+      m_show_springs(true),
+      m_show_fea_meshes(true),
+      m_show_ref_frames(false),
+      m_show_cog_frames(false),
       m_show_joint_frames(false),
       m_frame_number(0),
       m_start_time(0),
@@ -473,13 +525,14 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
 
     // creation here allows to set entries before initialize
-    m_bodyScene = vsg::Group::create();
+    m_objScene = vsg::Switch::create();
+    m_refFrameScene = vsg::Switch::create();
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
-    m_pointpointScene = vsg::Group::create();
-    m_particleScene = vsg::Group::create();
+    m_pointpointScene = vsg::Switch::create();
+    m_deformableScene = vsg::Switch::create();
+    m_particleScene = vsg::Switch::create();
     m_decoScene = vsg::Group::create();
-    m_deformableScene = vsg::Group::create();
 
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
@@ -812,7 +865,8 @@ void ChVisualSystemVSG::Initialize() {
         absoluteTransform->addChild(overheadLight);
         m_scene->addChild(absoluteTransform);
     }
-    m_scene->addChild(m_bodyScene);
+    m_scene->addChild(m_objScene);
+    m_scene->addChild(m_refFrameScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_pointpointScene);
@@ -1082,6 +1136,97 @@ void ChVisualSystemVSG::Render() {
     m_fps = 1.0 / m_current_time;
 }
 
+void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_objScene->children) {
+        ObjectType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
+            child.mask = m_show_body_objs;
+    }
+}
+
+void ChVisualSystemVSG::SetLinkObjVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_objScene->children) {
+        ObjectType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == ObjectType::LINK && (c_tag == tag || tag == -1))
+            child.mask = m_show_link_objs;
+    }
+}
+
+void ChVisualSystemVSG::SetFeaMeshVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_deformableScene->children) {
+        DeformableType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == DeformableType::FEA && (c_tag == tag || tag == -1))
+            child.mask = m_show_fea_meshes;
+    }
+}
+
+void ChVisualSystemVSG::SetSpringVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_pointpointScene->children) {
+        PointPointType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == PointPointType::SPRING && (c_tag == tag || tag == -1))
+            child.mask = m_show_springs;
+    }
+}
+
+void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_particleScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
+    }
+}
+
+void ChVisualSystemVSG::RenderRefFrames(double axis_length) {
+    m_ref_frame_scale = axis_length;
+    m_show_ref_frames = true;
+
+    if (m_initialized) {
+        for (auto& child : m_refFrameScene->children)
+            child.mask = m_show_ref_frames;
+    }
+}
+
+void ChVisualSystemVSG::SetRefFrameScale(double axis_length) {
+    m_ref_frame_scale = axis_length;
+}
+
+void ChVisualSystemVSG::ToggleRefFrameVisibility() {
+    m_show_ref_frames = !m_show_ref_frames;
+
+    if (m_initialized) {
+        for (auto& child : m_refFrameScene->children)
+            child.mask = m_show_ref_frames;
+    }
+}
+
 void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
     m_cog_frame_scale = axis_length;
     m_show_cog_frames = true;
@@ -1135,24 +1280,48 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 
 // -----------------------------------------------------------------------------
 
-// Utility function for creating a frame with its X axis defined by 2 points.
-ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& dist) {
-    ChVector3d dir = P2 - P1;
-    dist = dir.Length();
-    dir.Normalize();
-    ChVector3d mx, my, mz;
-    dir.GetDirectionAxesAsX(my, mz, mx);
-    ChMatrix33<> R_CS;
-    R_CS.SetFromDirectionAxes(mx, my, mz);
+void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
+    BindReferenceFrame(body);
+    BindCOMFrame(body);
+    BindObject(body, ObjectType::BODY);
+}
 
-    return ChFrame<>(0.5 * (P2 + P1), R_CS);
+void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
+    BindLinkFrame(link);
+    BindPointPoint(link);
+    BindObject(link, ObjectType::LINK);
+}
+
+void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
+    mesh->UpdateVisualModel();
+    BindDeformableMesh(mesh, DeformableType::FEA);
+}
+
+void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
+    for (const auto& body : assembly.GetBodies())
+        BindBody(body);
+
+    for (const auto& link : assembly.GetLinks())
+        BindLink(link);
+
+    for (const auto& mesh : assembly.GetMeshes())
+        BindMesh(mesh);
+
+    for (const auto& item : assembly.GetOtherPhysicsItems()) {
+        BindDeformableMesh(item, DeformableType::OTHER);
+        BindPointPoint(item);
+        if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
+            BindParticleCloud(pcloud);
+        if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item))
+            BindAssembly(*assmbly);
+    }
 }
 
 // Utility function to populate a VSG group with shape groups (from the given visual model).
-// The visual model may or may not be associated with a Chrono physics item.
+// The visual model may or may not be associated with a Chrono object.
 void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
                                       std::shared_ptr<ChVisualModel> model,
-                                      std::shared_ptr<ChPhysicsItem> phitem) {
+                                      std::shared_ptr<ChObj> obj) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.first;
         const auto& X_SM = shape_instance.second;
@@ -1231,21 +1400,21 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
             auto grp = m_shapeBuilder->CreatePbrSurfaceShape(surface, material, transform, m_wireframe);
             group->addChild(grp);
-        } else if (auto obj = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            const auto& objFilename = obj->GetFilename();
-            const auto& scale = obj->GetScale();
-            size_t objHashValue = m_stringHash(objFilename);
+        } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+            const auto& filename = model_file->GetFilename();
+            const auto& scale = model_file->GetScale();
+            size_t objHashValue = m_stringHash(filename);
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
-            // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, objFilename, m_options));
+            // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, filename, m_options));
             map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
             objIt = m_objCache.find(objHashValue);
             if (objIt == m_objCache.end()) {
-                auto node = vsg::read_cast<vsg::Node>(objFilename, m_options);
+                auto node = vsg::read_cast<vsg::Node>(filename, m_options);
                 if (node) {
                     transform->addChild(node);
                     group->addChild(grp);
@@ -1268,9 +1437,9 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
     }  // end loop over visual shapes
 }
 
-void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
-    const auto& vis_model = body->GetVisualModel();
-    const auto& vis_frame = body->GetVisualModelFrame();
+void ChVisualSystemVSG::BindObject(const std::shared_ptr<ChObj>& obj, ObjectType type) {
+    const auto& vis_model = obj->GetVisualModel();
+    const auto& vis_frame = obj->GetVisualModelFrame();
 
     if (!vis_model)
         return;
@@ -1285,7 +1454,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     auto shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateGroup(shapes_group, vis_model, body);
+    PopulateGroup(shapes_group, vis_model, obj);
 
     // Attach a transform to the group and initialize it with the body current position
     auto model_transform = vsg::MatrixTransform::create();
@@ -1299,14 +1468,28 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     modelGroup->addChild(model_transform);
 
     // Set group properties
-    modelGroup->setValue("Body", body);
+    modelGroup->setValue("Object", obj);
+    modelGroup->setValue("Type", type);
+    modelGroup->setValue("Tag", obj->GetTag());
     modelGroup->setValue("Transform", model_transform);
 
     // Add the group to the global holder
-    m_bodyScene->addChild(modelGroup);
+    vsg::Mask mask;
+    switch (type) {
+        case ObjectType::BODY:
+            mask = m_show_body_objs;
+            break;
+        case ObjectType::LINK:
+            mask = m_show_link_objs;
+            break;
+        default:
+            mask = true;
+            break;
+    }
+    m_objScene->addChild(mask, modelGroup);
 }
 
-void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item) {
+void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item, DeformableType type) {
     const auto& vis_model = item->GetVisualModel();
 
     if (!vis_model)
@@ -1331,7 +1514,18 @@ void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>&
         auto child = (trimesh->GetNumMaterials() > 0)
                          ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
                          : m_shapeBuilder->CreateTrimeshColShape(trimesh, transform, trimesh->IsWireframe());
-        m_deformableScene->addChild(child);
+        child->setValue("Type", type);
+        child->setValue("Tag", item->GetTag());
+        vsg::Mask mask;
+        switch (type) {
+            case DeformableType::FEA:
+                mask = m_show_fea_meshes;
+                break;
+            default:
+                mask = true;
+                break;
+        }
+        m_deformableScene->addChild(mask, child);
 
         def_mesh.mesh_soup = true;
 
@@ -1362,11 +1556,27 @@ void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>&
     }
 }
 
+// Utility function for creating a frame with its X axis defined by 2 points.
+ChFrame<> PointPointFrame(const ChVector3d& P1, const ChVector3d& P2, double& dist) {
+    ChVector3d dir = P2 - P1;
+    dist = dir.Length();
+    dir.Normalize();
+    ChVector3d mx, my, mz;
+    dir.GetDirectionAxesAsX(my, mz, mx);
+    ChMatrix33<> R_CS;
+    R_CS.SetFromDirectionAxes(mx, my, mz);
+
+    return ChFrame<>(0.5 * (P2 + P1), R_CS);
+}
+
 void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item) {
     const auto& vis_model = item->GetVisualModel();
 
     if (!vis_model)
         return;
+
+    vsg::Mask mask_segments = true;
+    vsg::Mask mask_springs = m_show_springs;
 
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
@@ -1378,7 +1588,10 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
-            m_pointpointScene->addChild(m_shapeBuilder->CreateUnitSegment(shape_instance, material, transform));
+            auto group = m_shapeBuilder->CreateUnitSegment(shape_instance, material, transform);
+            group->setValue("Type", PointPointType::SEGMENT);
+            group->setValue("Tag", item->GetTag());
+            m_pointpointScene->addChild(mask_segments, group);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
             double rad = sprshape->GetRadius();
             double length;
@@ -1388,8 +1601,10 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
-            m_pointpointScene->addChild(
-                m_shapeBuilder->CreateSpringShape(shape_instance, material, transform, sprshape));
+            auto group = m_shapeBuilder->CreateSpringShape(shape_instance, material, transform, sprshape);
+            group->setValue("Type", PointPointType::SPRING);
+            group->setValue("Tag", item->GetTag());
+            m_pointpointScene->addChild(mask_springs, group);
         }
     }
 }
@@ -1477,48 +1692,68 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     stateInfo.instance_positions_vec3 = true;
 
     // Add child node for this cloud
+    vsg::ref_ptr<vsg::Node> node = nullptr;
     switch (shape_type) {
         case ShapeType::SPHERE:
         case ShapeType::ELLIPSOID:
-            m_particleScene->addChild(m_vsgBuilder->createSphere(geomInfo, stateInfo));
+            node = m_vsgBuilder->createSphere(geomInfo, stateInfo);
             break;
         case ShapeType::BOX:
-            m_particleScene->addChild(m_vsgBuilder->createBox(geomInfo, stateInfo));
+            node = m_vsgBuilder->createBox(geomInfo, stateInfo);
             break;
         case ShapeType::CAPSULE:
-            m_particleScene->addChild(m_vsgBuilder->createCapsule(geomInfo, stateInfo));
+            node = m_vsgBuilder->createCapsule(geomInfo, stateInfo);
             break;
         case ShapeType::CYLINDER:
-            m_particleScene->addChild(m_vsgBuilder->createCylinder(geomInfo, stateInfo));
+            node = m_vsgBuilder->createCylinder(geomInfo, stateInfo);
             break;
         case ShapeType::CONE:
-            m_particleScene->addChild(m_vsgBuilder->createCone(geomInfo, stateInfo));
+            node = m_vsgBuilder->createCone(geomInfo, stateInfo);
             break;
         default:
             break;
     }
 
+    if (node) {
+        node->setValue("Tag", pcloud->GetTag());
+        vsg::Mask mask = true;
+        m_particleScene->addChild(mask, node);
+    }
+
     m_clouds.push_back(cloud);
 }
 
-void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
+void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
+    auto transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_ref_frame_scale);
+    vsg::Mask mask = m_show_ref_frames;
+    auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+    node->setValue("Object", obj);
+    node->setValue("Transform", transform);
+    m_refFrameScene->addChild(mask, node);
+}
+
+//// TODO: change COM visualization to forward-facing card with only COM location
+
+void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
-    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
+    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f, 2.0f);
     cog_node->setValue("Body", body);
+    cog_node->setValue("MobilizedBody", nullptr);
     cog_node->setValue("Transform", cog_transform);
     m_cogFrameScene->addChild(mask, cog_node);
 }
 
-void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
+void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     vsg::Mask mask = m_show_cog_frames;
 
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
-        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f);
-        joint_node->setValue("Joint", link);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f, 1.0f);
+        joint_node->setValue("Link", link);
         joint_node->setValue("Body", 1);
         joint_node->setValue("Transform", joint_transform);
         m_jointFrameScene->addChild(mask, joint_node);
@@ -1527,8 +1762,8 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
-        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f);
-        joint_node->setValue("Joint", link);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f, 1.0f);
+        joint_node->setValue("Link", link);
         joint_node->setValue("Body", 2);
         joint_node->setValue("Transform", joint_transform);
         m_jointFrameScene->addChild(mask, joint_node);
@@ -1537,87 +1772,82 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLink>& link) {
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
-        BindBodyFrame(body);
         BindBody(body);
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
-        BindLinkFrame(link);
-        BindPointPoint(link);
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+        BindLink(link);
         return;
     }
 
     if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-        mesh->UpdateVisualModel();
-        BindDeformableMesh(mesh);
+        BindMesh(mesh);
+        return;
+    }
+
+    if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+        BindParticleCloud(pcloud);
+        return;
+    }
+
+    if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item)) {
+        BindAssembly(*assmbly);
         return;
     }
 
     if (item->GetVisualModel()) {
-        BindDeformableMesh(item);
+        BindDeformableMesh(item, DeformableType::OTHER);
         BindPointPoint(item);
-        if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
-            BindParticleCloud(pcloud);
     }
 }
 
 void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
-        // Bind visual models associated with bodies in the system
-        for (const auto& body : sys->GetAssembly().GetBodies()) {
-            BindBodyFrame(body);
-            BindBody(body);
-        }
-
-        // Bind visual models associated with links in the system
-        for (const auto& link : sys->GetLinks()) {
-            if (auto link1 = std::dynamic_pointer_cast<ChLink>(link)) {
-                BindLinkFrame(link1);
-                BindPointPoint(link1);
-            }
-        }
-
-        // Bind visual models associated with FEA meshes
-        for (const auto& mesh : sys->GetAssembly().GetMeshes()) {
-            mesh->UpdateVisualModel();
-            BindDeformableMesh(mesh);
-        }
-
-        // Bind visual models associated with other physics items in the system
-        for (const auto& item : sys->GetOtherPhysicsItems()) {
-            BindDeformableMesh(item);
-            BindPointPoint(item);
-            if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
-                BindParticleCloud(pcloud);
-        }
-    }  // end loop over systems
+        BindAssembly(sys->GetAssembly());
+    }
 }
 
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::UpdateFromMBS() {
-    // Update VSG nodes for body COG frame visualization
-    if (m_show_cog_frames) {
-        for (auto& child : m_cogFrameScene->children) {
-            std::shared_ptr<ChBody> body;
+    // Update VSG nodes for object reference frame visualization
+    if (m_show_ref_frames) {
+        for (auto& child : m_refFrameScene->children) {
+            std::shared_ptr<ChObj> obj;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
-            if (!child.node->getValue("Body", body))
+            if (!child.node->getValue("Object", obj))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
+            transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), m_ref_frame_scale);
+        }
+    }
+
+    // Update VSG nodes for body COM visualization
+    if (m_show_cog_frames) {
+        for (auto& child : m_cogFrameScene->children) {
+            std::shared_ptr<ChBody> body;
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+
+            if (!child.node->getValue("Transform", transform))
+                continue;
+
+            if (child.node->getValue("Body", body))
+                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
+            else
+                continue;
         }
     }
 
     // Update VSG nodes for joint frame visualization
     if (m_show_joint_frames) {
         for (auto& child : m_jointFrameScene->children) {
-            std::shared_ptr<ChLink> link;
+            std::shared_ptr<ChLinkBase> link;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
             int body;
-            if (!child.node->getValue("Joint", link))
+            if (!child.node->getValue("Link", link))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
@@ -1631,24 +1861,24 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         }
     }
 
-    // Update VSG nodes for body visualization
-    for (const auto& child : m_bodyScene->children) {
-        std::shared_ptr<ChBody> body;
+    // Update VSG nodes for object visualization
+    for (const auto& child : m_objScene->children) {
+        std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child->getValue("Body", body))
+        if (!child.node->getValue("Object", obj))
             continue;
-        if (!child->getValue("Transform", transform))
+        if (!child.node->getValue("Transform", transform))
             continue;
-        transform->matrix = vsg::dmat4CH(body->GetVisualModelFrame(), 1.0);
+        transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
     }
 
     // Update all VSG nodes with point-point visualization assets
     for (const auto& child : m_pointpointScene->children) {
         ChVisualModel::ShapeInstance shapeInstance;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child->getValue("ShapeInstance", shapeInstance))
+        if (!child.node->getValue("ShapeInstance", shapeInstance))
             continue;
-        if (!child->getValue("Transform", transform))
+        if (!child.node->getValue("Transform", transform))
             continue;
 
         auto& shape = shapeInstance.first;
@@ -1946,7 +2176,8 @@ void ChVisualSystemVSG::exportScreenImage() {
         ok = stbi_write_tga(m_imageFilename.c_str(), width, height, 4, outPtr);
     } else if (m_imageFilename.rfind(".bmp") != std::string::npos) {
         ok = stbi_write_bmp(m_imageFilename.c_str(), width, height, 4, outPtr);
-    } else if (m_imageFilename.rfind(".jpg") != std::string::npos || m_imageFilename.rfind(".jpeg") != std::string::npos) {
+    } else if (m_imageFilename.rfind(".jpg") != std::string::npos ||
+               m_imageFilename.rfind(".jpeg") != std::string::npos) {
         ok = stbi_write_jpg(m_imageFilename.c_str(), width, height, 4, outPtr, 90);
     } else {
         vsg::info("Couldn't figure out desired graphics format! Use one of (*.png | *.tga | *.bmp | *.jpg | *.jpeg)");

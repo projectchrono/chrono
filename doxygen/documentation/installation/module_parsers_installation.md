@@ -3,9 +3,7 @@ Install the PARSERS module {#module_parsers_installation}
 
 [TOC]
 
-This module provides various import utilities.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
+Chrono::Parsers provides various import utilities.
 
 
 ## Features

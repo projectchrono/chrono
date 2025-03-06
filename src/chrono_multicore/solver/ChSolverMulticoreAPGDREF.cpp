@@ -21,8 +21,7 @@ using namespace chrono;
 real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct,
                                     ChProjectConstraints& Project,
                                     DynamicVector<real>& gamma,
-                                    const DynamicVector<real>& r,
-                                    DynamicVector<real>& tmp) {
+                                    const DynamicVector<real>& r) {
     real gdiff = 1.0 / std::pow(data_manager->num_constraints, 2.0);
     SchurProduct(gamma, tmp);
     tmp = tmp - r;
@@ -152,7 +151,7 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
         yNew = gammaNew + Beta * (gammaNew - gamma);
 
         // (18) r = r(gamma_(k+1))
-        real res = Res4(SchurProduct, Project, gammaNew, r, tmp);
+        real res = Res4(SchurProduct, Project, gammaNew, r);
 
         // (19) if r < epsilon_min
         if (res < residual) {

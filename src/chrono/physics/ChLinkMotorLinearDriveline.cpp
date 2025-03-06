@@ -95,9 +95,9 @@ void ChLinkMotorLinearDriveline::Setup() {
     innerconstraint2rot->SetOffset_L(this->offset_L + nc + 2);
 }
 
-void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
+void ChLinkMotorLinearDriveline::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotorLinear::Update(mytime, update_assets);
+    ChLinkMotorLinear::Update(time, update_assets);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
     ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_Z);

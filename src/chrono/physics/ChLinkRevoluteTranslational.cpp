@@ -191,8 +191,8 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
 // Link update function
 // -----------------------------------------------------------------------------
 void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
-    // Inherit time changes of parent class (ChLink)
-    ChLink::UpdateTime(time);
+    // Inherit time changes of parent class
+    ChLink::Update(time, update_assets);
 
     // Express the body locations and direction in absolute frame
     ChVector3d p1_abs = m_body1->TransformPointLocalToParent(m_p1);

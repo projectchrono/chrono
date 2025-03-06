@@ -48,7 +48,7 @@ void IndustrialRobot::SetMotorsDisabled(bool disable) {
 void IndustrialRobot::SetBaseFrame(const ChFramed& base_frame) {
     for (auto& body : m_bodylist)
         body->ConcatenatePreTransformation(ChFrameMoving<>(base_frame));
-    m_sys->Update();
+    m_sys->Update(true);
 }
 
 AssemblyAnalysis::ExitFlag IndustrialRobot::SetPoseTCP(const ChFramed& target_frame, unsigned int max_iters) {
@@ -88,7 +88,7 @@ void IndustrialRobot::AttachBody(std::shared_ptr<ChBody> body_attach,
     m_link_attach->Initialize(body_attach, robot_body, frame);
     body_attach->SetFixed(false);
     m_sys->AddLink(m_link_attach);
-    m_sys->Update();
+    m_sys->Update(true);
 }
 
 void IndustrialRobot::DetachBody(std::shared_ptr<ChBody> body_attach, bool setfix) {
@@ -96,7 +96,7 @@ void IndustrialRobot::DetachBody(std::shared_ptr<ChBody> body_attach, bool setfi
         m_body_attached = false;
         m_sys->RemoveLink(m_link_attach);
         body_attach->SetFixed(setfix);
-        m_sys->Update();
+        m_sys->Update(true);
     }
 }
 

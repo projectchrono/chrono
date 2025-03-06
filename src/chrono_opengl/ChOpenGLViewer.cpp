@@ -267,8 +267,8 @@ void ChOpenGLViewer::Render(bool render_stats) {
 
     if (render_mode == POINTS) {
         cloud.Update(cloud_data);
-        glm::mat4 model(10);
-        cloud.Draw(projection, view * model);
+        glm::mat4 mdl(10);
+        cloud.Draw(projection, view * mdl);
     }
 
     RenderFluid();
@@ -535,9 +535,9 @@ void ChOpenGLViewer::RenderAABB() {
             real3 radius = (max_p - min_p) * .5;
             real3 center = (min_p + max_p) * .5;
 
-            glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
-            model = glm::scale(model, glm::vec3(radius.x, radius.y, radius.z));
-            model_box[start + i] = (model);
+            glm::mat4 mdl = glm::translate(glm::mat4(1), glm::vec3(center.x, center.y, center.z));
+            mdl = glm::scale(mdl, glm::vec3(radius.x, radius.y, radius.z));
+            model_box[start + i] = (mdl);
         }
 
         start += data_manager->cd_data->num_rigid_shapes;
@@ -590,8 +590,8 @@ void ChOpenGLViewer::RenderFluid() {
     }
 
     fluid.Update(fluid_data);
-    glm::mat4 model(1);
-    fluid.Draw(projection, view * model);
+    glm::mat4 mdl(1);
+    fluid.Draw(projection, view * mdl);
 #endif
 }
 
@@ -640,8 +640,8 @@ void ChOpenGLViewer::RenderParticles() {
     particle_data.resize(num_particles);
     particles.SetPointSize(particle_radius);
     particles.Update(particle_data);
-    glm::mat4 model(1);
-    particles.Draw(projection, view * model);
+    glm::mat4 mdl(1);
+    particles.Draw(projection, view * mdl);
 }
 
 void ChOpenGLViewer::RenderFEA() {
@@ -723,8 +723,8 @@ void ChOpenGLViewer::RenderGrid() {
 
     grid.Update(grid_data);
 #endif
-    glm::mat4 model(1);
-    grid.Draw(projection, view * model);
+    glm::mat4 mdl(1);
+    grid.Draw(projection, view * mdl);
 }
 
 void ChOpenGLViewer::RenderPlots() {

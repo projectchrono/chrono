@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
 
     double timestep = 0.1;
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     ChFunctionInterp rec_X;
     ChFunctionInterp rec_Y;
