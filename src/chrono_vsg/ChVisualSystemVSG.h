@@ -102,16 +102,20 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetBodyObjVisibility(bool vis, int tag = -1);
 
     /// Set the visibility of links with specified tag.
-    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all links.
     void SetLinkObjVisibility(bool vis, int tag = -1);
 
     /// Set the visibility of FEA meshes with specified tag.
-    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all meshes.
     void SetFeaMeshVisibility(bool vis, int tag = -1);
 
     /// Set the visibility of springs with specified tag.
-    /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all springs.
     void SetSpringVisibility(bool vis, int tag = -1);
+
+    /// Set the visibility of segments with specified tag.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all segments.
+    void SetSegmentVisibility(bool vis, int tag = -1);
 
     /// Set the visibility of particle clouds with specified tag to the provided value.
     /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
@@ -332,8 +336,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     };
     std::vector<ParticleCloud> m_clouds;
 
-    /// export screen image as file (png, bmp, tga, jpg)
-    void exportScreenImage();
+    bool m_show_visibility_controls;  ///< enable/disable global visibility controls
+
+    /// Export screen image as file (png, bmp, tga, jpg).
+    void ExportScreenImage();
 
   private:
     enum class ObjectType { BODY, LINK, OTHER };

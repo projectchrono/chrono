@@ -188,7 +188,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        if (ImGui::BeginTable("Shapes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+        if (m_app->m_show_visibility_controls &&  //
+            ImGui::BeginTable("Shapes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             static bool body_obj_visible = true;
@@ -504,6 +505,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_ref_frame_scale(1),
       m_cog_frame_scale(1),
       m_joint_frame_scale(1),
+      m_show_visibility_controls(true),
       m_show_body_objs(true),
       m_show_link_objs(true),
       m_show_springs(true),
@@ -1120,8 +1122,7 @@ void ChVisualSystemVSG::Render() {
     m_viewer->recordAndSubmit();
 
     if (m_capture_image) {
-        // exportScreenshot(m_window, m_options, m_imageFilename);
-        exportScreenImage();
+        ExportScreenImage();
         m_capture_image = false;
     }
 
@@ -1146,7 +1147,7 @@ void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {
         child.node->getValue("Type", type);
         child.node->getValue("Tag", c_tag);
         if (type == ObjectType::BODY && (c_tag == tag || tag == -1))
-            child.mask = m_show_body_objs;
+            child.mask = vis;
     }
 }
 
@@ -1160,7 +1161,7 @@ void ChVisualSystemVSG::SetLinkObjVisibility(bool vis, int tag) {
         child.node->getValue("Type", type);
         child.node->getValue("Tag", c_tag);
         if (type == ObjectType::LINK && (c_tag == tag || tag == -1))
-            child.mask = m_show_link_objs;
+            child.mask = vis;
     }
 }
 
@@ -1174,7 +1175,7 @@ void ChVisualSystemVSG::SetFeaMeshVisibility(bool vis, int tag) {
         child.node->getValue("Type", type);
         child.node->getValue("Tag", c_tag);
         if (type == DeformableType::FEA && (c_tag == tag || tag == -1))
-            child.mask = m_show_fea_meshes;
+            child.mask = vis;
     }
 }
 
@@ -1188,7 +1189,21 @@ void ChVisualSystemVSG::SetSpringVisibility(bool vis, int tag) {
         child.node->getValue("Type", type);
         child.node->getValue("Tag", c_tag);
         if (type == PointPointType::SPRING && (c_tag == tag || tag == -1))
-            child.mask = m_show_springs;
+            child.mask = vis;
+    }
+}
+
+void ChVisualSystemVSG::SetSegmentVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_pointpointScene->children) {
+        PointPointType type;
+        int c_tag;
+        child.node->getValue("Type", type);
+        child.node->getValue("Tag", c_tag);
+        if (type == PointPointType::SEGMENT && (c_tag == tag || tag == -1))
+            child.mask = vis;
     }
 }
 
@@ -1959,7 +1974,7 @@ void ChVisualSystemVSG::AddGrid(double x_step, double y_step, int nx, int ny, Ch
     m_decoScene->addChild(m_shapeBuilder->CreateGrid(x_step, y_step, nx, ny, pos, col));
 }
 
-void ChVisualSystemVSG::exportScreenImage() {
+void ChVisualSystemVSG::ExportScreenImage() {
     auto width = m_window->extent2D().width;
     auto height = m_window->extent2D().height;
 

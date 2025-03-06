@@ -55,7 +55,7 @@ using std::endl;
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
 ChVector3d initLoc(-40, 0, 0.9);
@@ -231,7 +231,6 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Marder Vehicle Demo");
             vis_irr->SetChaseCamera(trackPoint, 10.0, 0.5);
-            ////vis_irr->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional(60, -90);
@@ -260,9 +259,9 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Marder Vehicle Demo");
-            vis_vsg->SetChaseCamera(trackPoint, 10.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetChaseCamera(trackPoint, 12.0, 0.75);
             vis_vsg->AttachVehicle(&vehicle);
-            ////vis_vsg->ShowAllCoGs(0.3);
             vis_vsg->Initialize();
 
             auto vsg_driver = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
