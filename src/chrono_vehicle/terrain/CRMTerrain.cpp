@@ -30,6 +30,10 @@ void CRMTerrain::SetActiveDomain(const ChVector3d& half_dim) {
     GetFluidSystemSPH().SetActiveDomain(half_dim);
 }
 
+void CRMTerrain::SetActiveDomainDelay(double delay) {
+    GetFluidSystemSPH().SetActiveDomainDelay(delay);
+}
+
 void CRMTerrain::Advance(double step) {
     DoStepDynamics(step);
 }

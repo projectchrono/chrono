@@ -60,14 +60,10 @@ __device__ void collideCellDensityReInit(Real& numerator,
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
+__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    uint activity = activityIdentifierD[index];
-    if (activity == 0)
-        return;  // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
     // no need to do anything if it is a BCE marker
@@ -93,9 +89,9 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, 
 
 // -----------------------------------------------------------------------------
 // Kernel to apply inlet/outlet BC along x
-__global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD) {
+__global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
 
     Real4 rhoPresMu = rhoPresMuD[index];
@@ -129,14 +125,10 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
+__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    uint activity = activityIdentifierD[index];
-    if (activity == 0)
-        return;  // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
     // no need to do anything if it is a BCE marker
@@ -164,14 +156,10 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along z
-__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, uint* activityIdentifierD) {
+__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    uint activity = activityIdentifierD[index];
-    if (activity == 0)
-        return;  // no need to do anything if it is not an active particle
 
     Real4 rhoPresMu = rhoPresMuD[index];
     // no need to do anything if it is a BCE marker
@@ -211,19 +199,20 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* derivTauXxYyZzD,
                              Real3* derivTauXyXzYzD,
                              Real4* sr_tau_I_mu_iD,
-                             uint* activityIdentifierD,
                              uint* freeSurfaceIdD,
-                             int2 updatePortion,
+                             uint* activityIdentifierSortedD,
+                             const uint numActive,
                              Real dT,
                              volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= updatePortion.y - updatePortion.x) {
+    if (index >= numActive) {
         return;
     }
 
-    uint activity = activityIdentifierD[index];
-    if (activity == 0)
+    // Only update active particles not extended active particles
+    if(activityIdentifierSortedD[index] == 0){
         return;
+    }
 
     Real4 rhoPresMu = rhoPresMuD[index];
     if (IsBceMarker(rhoPresMu.w)) {
@@ -428,10 +417,10 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 const Real3* pos_nodes2D_D,
                                 uint* activityIdentifierD,
                                 uint* extendedActivityIdD,
-                                const int2 updatePortion,
+                                const Real4* rhoPreMuD,
                                 volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= updatePortion.y - updatePortion.x) {
+    if (index >= countersD.numAllMarkers) {
         return;
     }
 
@@ -447,7 +436,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     // Check the activity of this particle
     uint isNotActive = 0;
     uint isNotExtended = 0;
-
+    // Real3 Acdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
     Real3 Acdomain = paramsD.bodyActiveDomain;
     Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
 
@@ -497,6 +486,7 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
                                        const Real3* sortedTauXyXXzYz,
                                        const Real4* derivVelRho,
                                        const Real4* sr_tau_I_mu_i,
+                                       const uint numActive,
                                        Real4* posRadOriginal,
                                        Real3* velMasOriginal,
                                        Real4* rhoPresMuOriginal,
@@ -505,15 +495,9 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
                                        Real4* derivVelRhoOriginal,
                                        Real4* sr_tau_I_mu_i_Original,
                                        uint* gridMarkerIndex,
-                                       uint* activityIdentifierD,
                                        volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
-        return;
-
-    // Check the activity of this particle
-    uint activity = activityIdentifierD[id];
-    if (activity == 0)
+    if (id >= numActive)
         return;
 
     Real type = sortedRhoPresMu[id].w;
@@ -569,9 +553,6 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
                                    Real time,
                                    bool firstHalfStep) {
     if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
-        // During settling phase, all particles are active
-        if (time > m_data_mgr.paramsH->settlingTime)
-            UpdateActivity(sortedSphMarkers1_D, sortedSphMarkers2_D);
         forceSystem->ForceSPH(sortedSphMarkers2_D, time, firstHalfStep);
         UpdateFluid(sortedSphMarkers1_D, dT);
     } else {
@@ -582,24 +563,20 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                     std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D) {
+void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    // Update portion of the SPH particles (should be all particles here)
-    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
-
     //------------------------
     uint numBlocks, numThreads;
-    computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+    computeGridSize(m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
     UpdateActivityD<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkers2_D->posRadD), mR3CAST(sortedSphMarkers1_D->velMasD),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D),
-        mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D), U1CAST(m_data_mgr.activityIdentifierD),
-        U1CAST(m_data_mgr.extendedActivityIdD), updatePortion, error_flagD);
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
+        U1CAST(m_data_mgr.activityIdentifierOriginalD), U1CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
+        mR4CAST(sphMarkersD->rhoPresMuD), error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
 
     cudaFreeErrorFlag(error_flagD);
@@ -611,19 +588,17 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarke
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    // Update portion of the SPH particles (should be fluid particles only here)
-    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
-
     //------------------------
     uint numBlocks, numThreads;
-    computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
+    computeGridSize(numActive, 256, numBlocks, numThreads);
 
     UpdateFluidD<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
         mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.freeSurfaceIdD), updatePortion, dT, error_flagD);
+        U1CAST(m_data_mgr.freeSurfaceIdD), U1CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateFluidD");
 
     cudaFreeErrorFlag(error_flagD);
@@ -637,20 +612,20 @@ void ChFluidDynamics::CopySortedToOriginal(MarkerGroup group,
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    int2 updatePortion = mI2(0, (int)m_data_mgr.countersH->numAllMarkers);
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
 
     //------------------------
     uint numBlocks, numThreads;
-    computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+    computeGridSize(numActive, 1024, numBlocks, numThreads);
 
     CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
         group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
+        numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoOriginalD),
         mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.activityIdentifierD), error_flagD);
+        error_flagD);
     cudaCheckErrorFlag(error_flagD, "CopySortedToOriginal_D");
 
     cudaFreeErrorFlag(error_flagD);
@@ -660,23 +635,20 @@ void ChFluidDynamics::CopySortedToOriginal(MarkerGroup group,
 // Apply periodic boundary conditions in x, y, and z directions
 void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     uint numBlocks, numThreads;
-
-    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
+    computeGridSize(numActive, 1024, numBlocks, numThreads);
     ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                                            mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                                            U1CAST(m_data_mgr.activityIdentifierD));
+                                                            mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
     cudaDeviceSynchronize();
     cudaCheckError();
 
     ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                                            mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                                            U1CAST(m_data_mgr.activityIdentifierD));
+                                                            mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
     cudaDeviceSynchronize();
     cudaCheckError();
 
     ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
-                                                            mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                                            U1CAST(m_data_mgr.activityIdentifierD));
+                                                            mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
     cudaDeviceSynchronize();
     cudaCheckError();
 }
@@ -687,20 +659,21 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
 // This functions needs to be tested.
 void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numBlocks, numThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
+    computeGridSize(numActive, 256, numBlocks, numThreads);
     ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-                                                         mR4CAST(sphMarkersD->rhoPresMuD));
+                                                         mR4CAST(sphMarkersD->rhoPresMuD), numActive);
     cudaDeviceSynchronize();
     cudaCheckError();
 
     // these are useful anyway for out of bound particles
-    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.activityIdentifierD));
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
+                                                            mR4CAST(sphMarkersD->rhoPresMuD), numActive);
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.activityIdentifierD));
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
+                                                            mR4CAST(sphMarkersD->rhoPresMuD), numActive);
     cudaDeviceSynchronize();
     cudaCheckError();
 }

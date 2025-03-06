@@ -88,16 +88,15 @@ class ChFluidDynamics {
     /// Return the ChFsiForce type used in the simulation.
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
+    /// Update activity of SPH particles.
+    /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
+    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+
   protected:
     FsiDataManager& m_data_mgr;               ///< FSI data manager
     std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
 
     bool m_verbose;
-
-    /// Update activity of SPH particles.
-    /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
-    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D);
 
     /// Update SPH particles data for explicit integration.
     void UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT);

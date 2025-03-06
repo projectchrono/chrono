@@ -698,16 +698,14 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   const uint* cellStart,
                                   const uint* cellEnd,
-                                  const uint* activityIdentifierD,
+                                  const uint numActive,
                                   uint* numNeighborsPerPart,
                                   volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers) {
+    if (index >= numActive) {
         return;
     }
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
+
     Real3 posRadA = mR3(sortedPosRad[index]);
     int3 gridPos = calcGridPos(posRadA);
     Real SuppRadii = 2.0f * paramsD.h;
@@ -739,15 +737,12 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                  const Real4* sortedRhoPreMu,
                                  const uint* cellStart,
                                  const uint* cellEnd,
-                                 const uint* activityIdentifierD,
+                                 const uint numActive,
                                  const uint* numNeighborsPerPart,
                                  uint* neighborList,
                                  volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers) {
-        return;
-    }
-    if (activityIdentifierD[index] == 0) {
+    if (index >= numActive) {
         return;
     }
     Real3 posRadA = mR3(sortedPosRad[index]);

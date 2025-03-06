@@ -355,7 +355,6 @@ void FsiDataManager::ResetData() {
     thrust::fill(sr_tau_I_mu_i.begin(), sr_tau_I_mu_i.end(), zero4);
     thrust::fill(freeSurfaceIdD.begin(), freeSurfaceIdD.end(), 0);
 
-    //// TODO: WCSPH only
     thrust::fill(vel_XSPH_D.begin(), vel_XSPH_D.end(), zero3);
 
     //// TODO: ISPH only
@@ -405,9 +404,11 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     //// TODO: why is this sized for both WCSPH and ISPH?!?
     bceAcc.resize(countersH->numAllMarkers, mR3(0));  // Rigid/flex body accelerations from motion
 
-    activityIdentifierD.resize(countersH->numAllMarkers, 1);
-    extendedActivityIdD.resize(countersH->numAllMarkers, 1);
-
+    activityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
+    activityIdentifierSortedD.resize(countersH->numAllMarkers, 1);
+    extendedActivityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
+    prefixSumExtendedActivityIdD.resize(countersH->numAllMarkers, 1);
+    activeListD.resize(countersH->numAllMarkers, 1);
     // Number of neighbors for the particle of given index
     numNeighborsPerPart.resize(countersH->numAllMarkers + 1, 0);
     freeSurfaceIdD.resize(countersH->numAllMarkers, 0);
@@ -531,7 +532,7 @@ std::vector<Real3> FsiDataManager::GetPositions(const std::vector<int>& indices)
     size_t num_active = (size_t)(end - pos4_D.begin());
     assert(num_active == indices_D.size());
     pos_D.resize(num_active);
-    
+
     // Copy to output
     std::vector<Real3> pos_H(pos_D.size());
     thrust::copy(pos_D.begin(), pos_D.end(), pos_H.begin());

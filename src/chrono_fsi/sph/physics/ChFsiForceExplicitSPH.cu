@@ -31,12 +31,11 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                                          Real* G_i,
                                          const uint* numNeighborsPerPart,
                                          const uint* neighborList,
-                                         uint* indexOfIndex) {
+                                         const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
+    if (id >= numActive)
         return;
 
-    // uint index = indexOfIndex[id];
     uint index = id;
 
     if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
@@ -108,12 +107,11 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
                                          Real* G_i,
                                          const uint* numNeighborsPerPart,
                                          const uint* neighborList,
-                                         uint* indexOfIndex) {
+                                         const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
+    if (id >= numActive)
         return;
 
-    // uint index = indexOfIndex[id];
     uint index = id;
 
     if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
@@ -184,12 +182,11 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                                          Real* G_i,
                                          const uint* numNeighborsPerPart,
                                          const uint* neighborList,
-                                         uint* indexOfIndex) {
+                                         const uint numActive) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
+    if (id >= numActive)
         return;
 
-    // uint index = indexOfIndex[id];
     uint index = id;
 
     if (sortedRhoPreMu[index].w > -0.5f && sortedRhoPreMu[index].w < 0.5f)
@@ -332,10 +329,11 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                Real4* sortedRhoPreMu_old,
                                const uint* numNeighborsPerPart,
                                const uint* neighborList,
+                               const uint numActive,
                                int density_reinit,
                                volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
 
     if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
@@ -388,12 +386,12 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   const Real4* sortedRhoPreMu,
                                   Real2* sortedKernelSupport,
-                                  const uint* mapOriginalToSorted,
                                   const uint* numNeighborsPerPart,
                                   const uint* neighborList,
+                                  const uint numActive,
                                   volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
 
     uint NLStart = numNeighborsPerPart[index];
@@ -833,17 +831,17 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
 //    sortedRhoPreMu[index].y = Eos(sortedRhoPreMu[index].x);
 //}
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void Navier_Stokes(uint* indexOfIndex,
-                              Real4* sortedDerivVelRho,
+__global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                               Real4* sortedPosRad,
                               Real3* sortedVelMas,
                               Real4* sortedRhoPreMu,
                               uint* gridMarkerIndex,
                               const uint* numNeighborsPerPart,
                               const uint* neighborList,
+                              const uint numActive,
                               volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
+    if (id >= numActive)
         return;
 
     // uint index = indexOfIndex[id];
@@ -868,14 +866,14 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real G_i[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     Real L_i[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     if (paramsD.USE_Consistent_G)
-        calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, numNeighborsPerPart, neighborList, indexOfIndex);
+        calc_G_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, G_i, numNeighborsPerPart, neighborList, numActive);
 
     if (paramsD.USE_Consistent_L) {
         Real A_i[27] = {0};
         calc_A_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, G_i, numNeighborsPerPart, neighborList,
-                      indexOfIndex);
+                      numActive);
         calc_L_Matrix(sortedPosRad, sortedVelMas, sortedRhoPreMu, A_i, L_i, G_i, numNeighborsPerPart, neighborList,
-                      indexOfIndex);
+                      numActive);
     }
     float Gi[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     float Li[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
@@ -999,22 +997,18 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 // See https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898 (for velocity
 // and https://www.sciencedirect.com/science/article/pii/S002199911200229X?ref=cra_js_challenge&fr=RR-1 (for pressure
 // and density extrapolation)
-__global__ void Boundary_NavierStokes_Holmes(const uint* activityIdentifierD,
-                                             const uint* numNeighborsPerPart,
+__global__ void Boundary_NavierStokes_Holmes(const uint* numNeighborsPerPart,
                                              const uint* neighborList,
                                              const Real4* sortedPosRadD,
                                              const Real2* sortedKernelSupport,
+                                             const uint numActive,
                                              Real3* bceAcc,
                                              Real4* sortedRhoPresMuD,
                                              Real3* sortedVelMasD,
                                              volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
 
     // Ignore all fluid particles
     if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
@@ -1087,11 +1081,11 @@ __global__ void Boundary_NavierStokes_Holmes(const uint* activityIdentifierD,
 // See https://www.sciencedirect.com/science/article/pii/S0266352X19300941 (for stress extrapolation)
 // and https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898 (for velocity
 // extrapolation)
-__global__ void Boundary_Elastic_Holmes(const uint* activityIdentifierD,
-                                        const uint* numNeighborsPerPart,
+__global__ void Boundary_Elastic_Holmes(const uint* numNeighborsPerPart,
                                         const uint* neighborList,
                                         const Real4* sortedPosRadD,
                                         const Real2* sortedKernelSupport,
+                                        const uint numActive,
                                         Real3* bceAcc,
                                         Real4* sortedRhoPresMuD,
                                         Real3* sortedVelMasD,
@@ -1099,12 +1093,8 @@ __global__ void Boundary_Elastic_Holmes(const uint* activityIdentifierD,
                                         Real3* sortedTauXyXzYz,
                                         volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
 
     // Ignore all fluid particles
     if (IsFluidParticle(
@@ -1178,21 +1168,17 @@ __global__ void Boundary_Elastic_Holmes(const uint* activityIdentifierD,
 // Boundary condition application for Navier-Stokes with Adami's method
 // The pressure and density of the BCE markers are extrapolated along with the velocity (no-slip)
 // See https://www.sciencedirect.com/science/article/pii/S002199911200229X?ref=cra_js_challenge&fr=RR-1
-__global__ void Boundary_NavierStokes_Adami(const uint* activityIdentifierD,
-                                            const uint* numNeighborsPerPart,
+__global__ void Boundary_NavierStokes_Adami(const uint* numNeighborsPerPart,
                                             const uint* neighborList,
                                             const Real4* sortedPosRadD,
+                                            const uint numActive,
                                             Real3* bceAcc,
                                             Real4* sortedRhoPresMuD,
                                             Real3* sortedVelMasD,
                                             volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
 
     // Ignore all fluid particles
     if (IsFluidParticle(sortedRhoPresMuD[index].w)) {
@@ -1243,10 +1229,10 @@ __global__ void Boundary_NavierStokes_Adami(const uint* activityIdentifierD,
 // See https://www.sciencedirect.com/science/article/pii/S0266352X19300941 (for stress extrapolation)
 // and https://www.sciencedirect.com/science/article/pii/S002199911200229X?ref=cra_js_challenge&fr=RR-1 (for velocity
 // extrapolation)
-__global__ void Boundary_Elastic_Adami(const uint* activityIdentifierD,
-                                       const uint* numNeighborsPerPart,
+__global__ void Boundary_Elastic_Adami(const uint* numNeighborsPerPart,
                                        const uint* neighborList,
                                        const Real4* sortedPosRadD,
+                                       const uint numActive,
                                        Real3* bceAcc,
                                        Real4* sortedRhoPresMuD,
                                        Real3* sortedVelMasD,
@@ -1254,12 +1240,8 @@ __global__ void Boundary_Elastic_Adami(const uint* activityIdentifierD,
                                        Real3* sortedTauXyXzYz,
                                        volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
-
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
 
     // Ignore all fluid particles
     if (IsFluidParticle(
@@ -1309,28 +1291,24 @@ __global__ void Boundary_Elastic_Adami(const uint* activityIdentifierD,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void NS_SSR(const uint* activityIdentifierD,
-                       const Real4* sortedPosRad,
+__global__ void NS_SSR(const Real4* sortedPosRad,
                        const Real3* sortedVelMas,
                        const Real4* sortedRhoPreMu,
                        const Real3* sortedTauXxYyZz,
                        const Real3* sortedTauXyXzYz,
                        const uint* numNeighborsPerPart,
                        const uint* neighborList,
+                       const uint numActive,
                        Real4* sortedDerivVelRho,
                        Real3* sortedDerivTauXxYyZz,
                        Real3* sortedDerivTauXyXzYz,
                        uint* sortedFreeSurfaceIdD,
                        volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= countersD.numAllMarkers)
+    if (id >= numActive)
         return;
 
-    // uint index = sortedActivityIdD[id];
     uint index = id;
-    if (activityIdentifierD[index] == 0) {
-        return;
-    }
 
     if (IsBceWallMarker(sortedRhoPreMu[index].w))
         return;
@@ -1593,9 +1571,10 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
                                 Real4* sortedRhoPreMu,
                                 const uint* numNeighborsPerPart,
                                 const uint* neighborList,
+                                const uint numActive,
                                 volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numAllMarkers)
+    if (index >= numActive)
         return;
 
     // If not fluid, do nothing
@@ -1733,7 +1712,8 @@ void ChFsiForceExplicitSPH::neighborSearch() {
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocksShort, numThreadsShort);
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
+    computeGridSize((uint)numActive, 1024, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
@@ -1742,23 +1722,22 @@ void ChFsiForceExplicitSPH::neighborSearch() {
     // first pass
     neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+        U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
     cudaCheckErrorFlag(error_flagD, "neighborSearchNum");
 
     // in-place exclusive scan for num of neighbors
     thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
                            m_data_mgr.numNeighborsPerPart.begin());
-    // std::cout << "numNeighbors: " << m_data_mgr.numNeighborsPerPart.back() << std::endl;
+
     m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
     thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
 
     // second pass
     neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
         mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
-        U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-        error_flagD);
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
     cudaCheckErrorFlag(error_flagD, "neighborSearchID");
 
     cudaFreeErrorFlag(error_flagD);
@@ -1770,24 +1749,25 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    // thread per particle
-    uint numBlocks, numThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
-
     // Perform Proxmity search at specified frequency
     if (firstHalfStep &&
         (time < 1e-6 ||
          int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
         neighborSearch();
 
+    // thread per particle
+    uint numBlocks, numThreads;
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
+    computeGridSize((uint)numActive, 1024, numBlocks, numThreads);
+
     // Re-Initialize the density after several time steps if needed
     if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
         thrust::device_vector<Real4> rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
-        calcRho_kernel<<<numBlocks, numThreads>>>(mR4CAST(m_sortedSphMarkers_D->posRadD),
-                                                  mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-                                                  U1CAST(m_data_mgr.numNeighborsPerPart),
-                                                  U1CAST(m_data_mgr.neighborList), density_initialization, error_flagD);
+        calcRho_kernel<<<numBlocks, numThreads>>>(
+            mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
+            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, density_initialization,
+            error_flagD);
         cudaCheckErrorFlag(error_flagD, "calcRho_kernel");
         density_initialization = 0;
     }
@@ -1797,35 +1777,35 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     if (m_data_mgr.paramsH->elastic_SPH) {  // For granular material
         if (m_data_mgr.paramsH->boundary_type == BoundaryType::ADAMI) {
             Boundary_Elastic_Adami<<<numBlocks, numThreads>>>(
-                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
-                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc),
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                mR4CAST(m_sortedSphMarkers_D->posRadD), numActive, mR3CAST(m_data_mgr.bceAcc),
                 mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(m_sortedSphMarkers_D->velMasD),
                 mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
             cudaCheckErrorFlag(error_flagD, "Boundary_ElasticSPH_Adami");
         } else {
-            thrust::device_vector<Real2> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
+            thrust::device_vector<Real2> sortedKernelSupport(numActive);
             // Calculate the kernel support of each particle
             calcKernelSupport<<<numBlocks, numThreads>>>(
                 mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                numActive, error_flagD);
             cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
             // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
             Boundary_Elastic_Holmes<<<numBlocks, numThreads>>>(
-                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
-                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR2CAST(sortedKernelSupport),
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                mR4CAST(m_sortedSphMarkers_D->posRadD), mR2CAST(sortedKernelSupport), numActive,
                 mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
                 mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
             cudaCheckErrorFlag(error_flagD, "Boundary_ElasticSPH_Holmes");
         }
-
+        computeGridSize((uint)numActive, 256, numBlocks, numThreads);
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         NS_SSR<<<numBlocks, numThreads>>>(
-            U1CAST(m_data_mgr.activityIdentifierD), mR4CAST(m_sortedSphMarkers_D->posRadD),
-            mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-            mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), mR4CAST(m_data_mgr.derivVelRhoD),
+            mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
+            mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
+            mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart),
+            U1CAST(m_data_mgr.neighborList), numActive, mR4CAST(m_data_mgr.derivVelRhoD),
             mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), U1CAST(m_data_mgr.freeSurfaceIdD),
             error_flagD);
         cudaCheckErrorFlag(error_flagD, "NS_SSR");
@@ -1833,8 +1813,8 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
     } else {  // For fluid
         if (m_data_mgr.paramsH->boundary_type == BoundaryType::ADAMI) {
             Boundary_NavierStokes_Adami<<<numBlocks, numThreads>>>(
-                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
-                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_data_mgr.bceAcc),
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                mR4CAST(m_sortedSphMarkers_D->posRadD), numActive, mR3CAST(m_data_mgr.bceAcc),
                 mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(m_sortedSphMarkers_D->velMasD), error_flagD);
             cudaCheckErrorFlag(error_flagD, "Boundary_NavierStokes_Adami");
         } else {
@@ -1842,32 +1822,25 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
             // Calculate the kernel support of each particle
             calcKernelSupport<<<numBlocks, numThreads>>>(
                 mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                mR2CAST(sortedKernelSupport), U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                numActive, error_flagD);
             cudaCheckErrorFlag(error_flagD, "calcKernelSupport");
             // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
             Boundary_NavierStokes_Holmes<<<numBlocks, numThreads>>>(
-                U1CAST(m_data_mgr.activityIdentifierD), U1CAST(m_data_mgr.numNeighborsPerPart),
-                U1CAST(m_data_mgr.neighborList), mR4CAST(m_sortedSphMarkers_D->posRadD), mR2CAST(sortedKernelSupport),
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                mR4CAST(m_sortedSphMarkers_D->posRadD), mR2CAST(sortedKernelSupport), numActive,
                 mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), error_flagD);
             cudaCheckErrorFlag(error_flagD, "Boundary_NavierStokes_Holmes");
         }
-
-        // Find the index which is related to the wall boundary particle
-        thrust::device_vector<uint> indexOfIndex(m_data_mgr.countersH->numAllMarkers);
-        thrust::device_vector<uint> identityOfIndex(m_data_mgr.countersH->numAllMarkers);
-        calIndexOfIndex<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex),
-                                                   U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
-        thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), thrust::identity<int>());
-
+        computeGridSize((uint)numActive, 256, numBlocks, numThreads);
         // execute the kernel
         // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
         Navier_Stokes<<<numBlocks, numThreads>>>(
-            U1CAST(indexOfIndex), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_sortedSphMarkers_D->posRadD),
+            mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_sortedSphMarkers_D->posRadD),
             mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.numNeighborsPerPart),
-            U1CAST(m_data_mgr.neighborList), error_flagD);
+            U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
         cudaCheckErrorFlag(error_flagD, "Navier_Stokes");
     }
 
@@ -1881,6 +1854,7 @@ void ChFsiForceExplicitSPH::CalculateShifting() {
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
+    // TODO: Is this check necessary?
     // Calculate vel_XSPH
     if (m_data_mgr.vel_XSPH_D.size() != m_data_mgr.countersH->numAllMarkers) {
         printf("m_data_mgr.vel_XSPH_D.size() %zd countersH->numAllMarkers %zd \n", m_data_mgr.vel_XSPH_D.size(),
@@ -1892,42 +1866,43 @@ void ChFsiForceExplicitSPH::CalculateShifting() {
 
     // thread per particle
     uint numBlocks, numThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
+    computeGridSize((uint)numActive, 1024, numBlocks, numThreads);
 
     // thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),
     //              mR3(0));  // no this can not be zero ... i computed vel_xsph_d in collid wrapper
-    thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(), mR3(0));
+    thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.begin() + numActive, mR3(0));
 
     switch (m_data_mgr.paramsH->shifting_method) {
         case ShiftingMethod::XSPH:
             Calc_Shifting_D<ShiftingMethod::XSPH><<<numBlocks, numThreads>>>(
                 mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
             break;
         case ShiftingMethod::PPST:
             Calc_Shifting_D<ShiftingMethod::PPST><<<numBlocks, numThreads>>>(
                 mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
             break;
         case ShiftingMethod::PPST_XSPH:
             Calc_Shifting_D<ShiftingMethod::PPST_XSPH><<<numBlocks, numThreads>>>(
                 mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
             break;
         case ShiftingMethod::DIFFUSION:
             Calc_Shifting_D<ShiftingMethod::DIFFUSION><<<numBlocks, numThreads>>>(
                 mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
             break;
         case ShiftingMethod::DIFFUSION_XSPH:
             Calc_Shifting_D<ShiftingMethod::DIFFUSION_XSPH><<<numBlocks, numThreads>>>(
                 mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_sortedSphMarkers_D->posRadD),
                 mR3CAST(m_sortedSphMarkers_D->velMasD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+                U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, error_flagD);
             break;
     }
 

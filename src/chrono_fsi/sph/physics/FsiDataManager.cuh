@@ -202,6 +202,8 @@ struct Counters {
     size_t startRigidMarkers;   ///< index of first BCE marker on first rigid body
     size_t startFlexMarkers1D;  ///< index of first BCE marker on first flex segment
     size_t startFlexMarkers2D;  ///< index of first BCE marker on first flex face
+    size_t numActiveParticles;  ///< number of active particles
+    size_t numExtendedParticles;  ///< number of extended particles
 };
 
 // -----------------------------------------------------------------------------
@@ -317,8 +319,14 @@ class FsiDataManager {
         sr_tau_I_mu_i_Original;  ///< I2SPH strain-rate, stress, inertia number, friction - unsorted for writing
     thrust::device_vector<Real3> bceAcc;  ///< Acceleration for boundary/rigid/flex body particles
 
-    thrust::device_vector<uint> activityIdentifierD;  ///< Identifies if a particle is an active particle or not
-    thrust::device_vector<uint> extendedActivityIdD;  ///< Identifies if a particle is in an extended active domain
+    thrust::device_vector<uint>
+        activityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
+    thrust::device_vector<uint>
+        activityIdentifierSortedD;  ///< Identifies if a particle is an active particle or not - sorted
+    thrust::device_vector<uint>
+        extendedActivityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
+    thrust::device_vector<uint> prefixSumExtendedActivityIdD;  ///< Prefix sum of extended particles
+    thrust::device_vector<uint> activeListD;         ///< Active list of particles
     thrust::device_vector<uint>
         numNeighborsPerPart;                   ///< Stores the number of neighbors the particle, given by the index, has
     thrust::device_vector<uint> neighborList;  ///< Stores the neighbor list - all neighbors are just stored one by one
