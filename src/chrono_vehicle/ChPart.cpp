@@ -40,7 +40,8 @@ uint16_t ChPart::GetVehicleTag() const {
     if (m_parent)
       return m_parent->GetVehicleTag();
 
-    throw std::runtime_error("Vehicle tag not available until after call to Initialize");
+    // If no parent and an override is not provided, assume single "vehicle"
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
