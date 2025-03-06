@@ -484,8 +484,8 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     // Initiliaze state variables:
     //
-	// TODO: JBC, this should arguably be set in the section's constructor initialization list ?
-    this->section->Get_StateVar().setZero();
+	// All state variables initialized at zero, which is the value in the Section constructor
+    // Nothing to do here
 
     //
 	if(this->macro_strain){

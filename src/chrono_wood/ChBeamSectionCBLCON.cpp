@@ -34,10 +34,12 @@ ChBeamSectionCBLCON::ChBeamSectionCBLCON( std::shared_ptr<ChWoodMaterialVECT> ma
                                     ChMatrix33<double> facetFrame    /// local system of frame of facet 
                                        )
     : m_material{material}, m_area{area}, m_center{center}, m_facetFrame{facetFrame} {
-        
+        m_state.setZero();
 }
 
-ChBeamSectionCBLCON::ChBeamSectionCBLCON() {};
+ChBeamSectionCBLCON::ChBeamSectionCBLCON() {
+	m_state.setZero();
+};
 
 ChBeamSectionCBLCON::~ChBeamSectionCBLCON() {};
 
