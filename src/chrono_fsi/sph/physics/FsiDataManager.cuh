@@ -203,6 +203,7 @@ struct Counters {
     size_t startFlexMarkers1D;  ///< index of first BCE marker on first flex segment
     size_t startFlexMarkers2D;  ///< index of first BCE marker on first flex face
     size_t numActiveParticles;  ///< number of active particles
+    size_t numExtendedParticles;  ///< number of extended particles
 };
 
 // -----------------------------------------------------------------------------
@@ -320,7 +321,11 @@ class FsiDataManager {
 
     thrust::device_vector<uint>
         activityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
-    thrust::device_vector<uint> prefixSumActiveIdD;  ///< Prefix sum of active particles]
+    thrust::device_vector<uint>
+        activityIdentifierSortedD;  ///< Identifies if a particle is an active particle or not - sorted
+    thrust::device_vector<uint>
+        extendedActivityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
+    thrust::device_vector<uint> prefixSumExtendedActivityIdD;  ///< Prefix sum of extended particles
     thrust::device_vector<uint> activeListD;         ///< Active list of particles
     thrust::device_vector<uint>
         numNeighborsPerPart;                   ///< Stores the number of neighbors the particle, given by the index, has

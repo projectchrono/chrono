@@ -1279,7 +1279,7 @@ void ChFsiForceI2SPH::neighborSearch() {
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    int numActive = m_data_mgr.countersH->numActiveParticles;
+    int numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize((uint)numActive, 256, numBlocksShort, numThreadsShort);
 
     // Execute the kernel

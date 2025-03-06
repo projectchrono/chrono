@@ -42,9 +42,6 @@ class ChCollisionSystemFsi {
 
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
-    void WriteMapToFile();
-    int m_mapFileCounter;
-
     // Note: this is cached on every call to ArrangeData()
     std::shared_ptr<SphMarkerDataD> m_sphMarkersD;  ///< Information of the particles in the original array
 };

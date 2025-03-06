@@ -144,11 +144,13 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
                              Real4* __restrict__ sortedRhoPreMuD,
                              Real3* __restrict__ sortedTauXxYyZzD,
                              Real3* __restrict__ sortedTauXyXzYzD,
+                             uint* __restrict__ activityIdentifierSortedD,
                              const Real4* __restrict__ posRadD,
                              const Real3* __restrict__ velMasD,
                              const Real4* __restrict__ rhoPresMuD,
                              const Real3* __restrict__ tauXxYyZzD,
                              const Real3* __restrict__ tauXyXzYzD,
+                             const uint* __restrict__ activityIdentifierOriginalD,
                              const uint numActive) {
     uint tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= numActive)
@@ -160,6 +162,7 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     Real4 posRadVal = posRadD[originalIndex];
     Real3 velMasVal = velMasD[originalIndex];
     Real4 rhoPreMuVal = rhoPresMuD[originalIndex];
+    uint activityIdentifierVal = activityIdentifierOriginalD[originalIndex];
 
     if (!IsFinite(mR3(posRadVal))) {
         printf("Error! reorderDataD_ActiveOnly: posRad is NAN at original index %u\n", originalIndex);
@@ -169,6 +172,7 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     sortedPosRadD[tid] = posRadVal;
     sortedVelMasD[tid] = velMasVal;
     sortedRhoPreMuD[tid] = rhoPreMuVal;
+    activityIdentifierSortedD[tid] = activityIdentifierVal;
 
     // For elastic SPH or granular
     if (paramsD.elastic_SPH) {
@@ -196,7 +200,7 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerInd
 }
 // ------------------------------------------------------------------------------
 ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr)
-    : m_data_mgr(data_mgr), m_sphMarkersD(nullptr), m_mapFileCounter(0) {}
+    : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 // ------------------------------------------------------------------------------
@@ -218,40 +222,31 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // Create active list where all active particles are at the front of the array
     //=========================================================================================================
 
-    // First lets do a prefix sum - this will also give us the number of active particles
-    thrust::exclusive_scan(thrust::device, m_data_mgr.activityIdentifierOriginalD.begin(),
-                           m_data_mgr.activityIdentifierOriginalD.end(), m_data_mgr.prefixSumActiveIdD.begin());
+    // Exclusive scan for extended activity identifier
+    thrust::exclusive_scan(thrust::device, m_data_mgr.extendedActivityIdentifierOriginalD.begin(),
+                           m_data_mgr.extendedActivityIdentifierOriginalD.end(),
+                           m_data_mgr.prefixSumExtendedActivityIdD.begin());
 
     // copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
-    uint lastPrefixVal = m_data_mgr.prefixSumActiveIdD[m_data_mgr.countersH->numAllMarkers - 1];
+    uint lastPrefixVal = m_data_mgr.prefixSumExtendedActivityIdD[m_data_mgr.countersH->numAllMarkers - 1];
     uint lastFlag;
     cudaMemcpy(
         &lastFlag,
-        thrust::raw_pointer_cast(&m_data_mgr.activityIdentifierOriginalD[m_data_mgr.countersH->numAllMarkers - 1]),
+        thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[m_data_mgr.countersH->numAllMarkers - 1]),
         sizeof(uint), cudaMemcpyDeviceToHost);
 
-    uint numActive = lastPrefixVal + lastFlag;
+    uint numExtended = lastPrefixVal + lastFlag;
 
-    m_data_mgr.countersH->numActiveParticles = numActive;
+    m_data_mgr.countersH->numExtendedParticles = numExtended;
 
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
-    fillActiveListD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.prefixSumActiveIdD),
-                                               U1CAST(m_data_mgr.activityIdentifierOriginalD),
+    fillActiveListD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.prefixSumExtendedActivityIdD),
+                                               U1CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
                                                U1CAST(m_data_mgr.activeListD), m_data_mgr.countersH->numAllMarkers);
     cudaDeviceSynchronize();
     cudaCheckErrorFlag(error_flagD, "fillActiveListD");
-
-    // // Copy activeListD from device to host before printing
-    // thrust::host_vector<uint> activeListH(numActive);
-    // thrust::copy(m_data_mgr.activeListD.begin(), m_data_mgr.activeListD.begin() + numActive, activeListH.begin());
-    // printf("numActive: %d\n", numActive);
-    // printf("Active list:\n");
-    // for (uint i = 0; i < numActive; i++) {
-    //     printf("%d\n", activeListH[i]);
-    // }
-    // printf("\n");
 
     // Reset cell size
     int3 cellsDim = m_data_mgr.paramsH->gridSize;
@@ -263,18 +258,18 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // Calculate Hash
     // =========================================================================================================
     // Now only need to launch active particles
-    computeGridSize((uint)m_data_mgr.countersH->numActiveParticles, 1024, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     // Execute Kernel
     calcHashD<<<numBlocks, numThreads>>>(
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), numActive, error_flagD);
+        U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD), numExtended, error_flagD);
     cudaCheckErrorFlag(error_flagD, "calcHashD");
 
     // =========================================================================================================
     // Sort Particles based on Hash
     // =========================================================================================================
     thrust::sort_by_key(m_data_mgr.markersProximity_D->gridMarkerHashD.begin(),
-                        m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + numActive,
+                        m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + numExtended,
                         m_data_mgr.markersProximity_D->gridMarkerIndexD.begin());
 
     // =========================================================================================================
@@ -285,65 +280,41 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     thrust::fill(m_data_mgr.markersProximity_D->cellEndD.begin(), m_data_mgr.markersProximity_D->cellEndD.end(), 0);
 
     // TODO - Check if 256 is optimal here
-    computeGridSize((uint)m_data_mgr.countersH->numActiveParticles, 256, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 256, numBlocks, numThreads);
     uint smemSize = sizeof(uint) * (numThreads + 1);
     findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        numActive);
+        numExtended);
 
     // =========================================================================================================
     // Launch a kernel to find the location of original particles in the sorted arrays.
     // This is faster than using thrust::sort_by_key()
     // =========================================================================================================
-    computeGridSize((uint)m_data_mgr.countersH->numActiveParticles, 1024, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
-                                                 U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), numActive);
+                                                 U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), numExtended);
 
     // =========================================================================================================
     // Reorder the arrays according to the sorted index of all particles
     // =========================================================================================================
-    computeGridSize((uint)m_data_mgr.countersH->numActiveParticles, 1024, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     reorderDataD<<<numBlocks, numThreads>>>(
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->rhoPresMuD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD),
+        U1CAST(m_data_mgr.activityIdentifierSortedD),
         mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), numActive);
+        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.activityIdentifierOriginalD),
+        numExtended);
 
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    // WriteMapToFile();
 
     cudaFreeErrorFlag(error_flagD);
 }
 
-void ChCollisionSystemFsi::WriteMapToFile() {
-    // Create a host vector to store the map
-    thrust::host_vector<uint> h_mapOriginalToSorted = m_data_mgr.markersProximity_D->mapOriginalToSorted;
-
-    // Create filename with counter
-    std::string filename = "mapOriginalToSorted_" + std::to_string(m_mapFileCounter) + ".txt";
-
-    // Open file for writing
-    std::ofstream outFile(filename);
-    if (!outFile.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-        return;
-    }
-
-    // Write the map to the file
-    outFile << "# Index\tOriginal\tSorted" << std::endl;
-    for (size_t i = 0; i < h_mapOriginalToSorted.size(); i++) {
-        outFile << i << "\t" << i << "\t" << h_mapOriginalToSorted[i] << std::endl;
-    }
-
-    outFile.close();
-
-    // Increment the counter for the next file
-    m_mapFileCounter++;
-}
 
 }  // namespace sph
 }  // end namespace fsi

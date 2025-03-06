@@ -110,6 +110,7 @@ int main(int argc, char* argv[]) {
 
     // CRM (moving) active box dimension
     double active_box_hdim = 0.4;
+    double settling_time = 0;
 
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
@@ -198,7 +199,7 @@ int main(int argc, char* argv[]) {
     // Add vehicle wheels as FSI solids
     CreateFSIWheels(vehicle, terrain);
     terrain.SetActiveDomain(ChVector3d(active_box_hdim));
-
+    terrain.SetActiveDomainDelay(settling_time);
     // Construct the terrain and associated path
     cout << "Create terrain..." << endl;
     std::shared_ptr<ChBezierCurve> path;

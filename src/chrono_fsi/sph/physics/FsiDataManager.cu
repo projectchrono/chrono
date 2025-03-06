@@ -405,7 +405,9 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     bceAcc.resize(countersH->numAllMarkers, mR3(0));  // Rigid/flex body accelerations from motion
 
     activityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
-    prefixSumActiveIdD.resize(countersH->numAllMarkers, 1);
+    activityIdentifierSortedD.resize(countersH->numAllMarkers, 1);
+    extendedActivityIdentifierOriginalD.resize(countersH->numAllMarkers, 1);
+    prefixSumExtendedActivityIdD.resize(countersH->numAllMarkers, 1);
     activeListD.resize(countersH->numAllMarkers, 1);
     // Number of neighbors for the particle of given index
     numNeighborsPerPart.resize(countersH->numAllMarkers + 1, 0);

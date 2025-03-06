@@ -1712,7 +1712,7 @@ void ChFsiForceExplicitSPH::neighborSearch() {
 
     // thread per particle
     uint numBlocksShort, numThreadsShort;
-    uint numActive = m_data_mgr.countersH->numActiveParticles;
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize((uint)numActive, 1024, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
@@ -1757,7 +1757,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
     // thread per particle
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numActiveParticles;
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize((uint)numActive, 1024, numBlocks, numThreads);
 
     // Re-Initialize the density after several time steps if needed
@@ -1866,7 +1866,7 @@ void ChFsiForceExplicitSPH::CalculateShifting() {
 
     // thread per particle
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numActiveParticles;
+    uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize((uint)numActive, 1024, numBlocks, numThreads);
 
     // thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),

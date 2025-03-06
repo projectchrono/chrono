@@ -45,6 +45,9 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::ChFsiProblemCart
     /// interacting with the "fluid" phase.
     void SetActiveDomain(const ChVector3d& half_dim);
 
+    /// Set the delay time for the active domain.
+    void SetActiveDomainDelay(double delay);
+
     virtual void Synchronize(double time) override {}
     virtual void Advance(double step) override;
     virtual double GetHeight(const ChVector3d& loc) const override { return 0.0; }
