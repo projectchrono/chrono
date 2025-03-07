@@ -48,6 +48,9 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     /// Set driver system.
     void SetDriver(std::shared_ptr<ChSuspensionTestRigDriver> driver);
 
+    /// Get the attached driver (if any).
+    std::shared_ptr<ChSuspensionTestRigDriver> GetDriver() const { return m_driver; }
+
     /// Set the initial ride height (relative to the chassis reference frame).
     /// If not specified, the reference height is the suspension design configuration.
     void SetInitialRideHeight(double height) { m_ride_height = height; }
@@ -121,9 +124,6 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     /// This estimate uses the average of the left and right posts.
     /// Note: 'axle' is the index in the set of tested axles.
     virtual double GetRideHeight(int axle) const = 0;
-
-    /// Return the info message from the STR driver.
-    std::string GetDriverMessage() const { return m_driver->GetInfoMessage(); }
 
     /// Return true when driver stopped producing inputs.
     bool DriverEnded() const { return m_driver->Ended(); }

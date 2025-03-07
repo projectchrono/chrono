@@ -64,7 +64,7 @@ void ChTrackedVehicleVisualSystemVSG::AppendGUIStats() {
         ImGui::EndTable();
     }
 
-    if (ImGui::BeginTable("Susbsystems", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+    if (ImGui::BeginTable("Subsystems", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         uint16_t vtag = m_vehicle->GetVehicleTag();
 

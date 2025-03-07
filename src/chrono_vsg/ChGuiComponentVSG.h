@@ -15,6 +15,8 @@
 #ifndef CH_GUI_COMPONENT_VSG_H
 #define CH_GUI_COMPONENT_VSG_H
 
+#include <vsgImGui/imgui.h>
+
 #include "chrono_vsg/ChApiVSG.h"
 
 namespace chrono {
@@ -40,6 +42,15 @@ class CH_VSG_API ChGuiComponentVSG {
 
     /// Return boolean indicating whether or not this GUI component visible.
     bool IsVisible() const { return m_visible; }
+
+    /// Utility function to draw a gauge.
+    static void DrawGauge(float val, float v_min, float v_max) {
+        ImGui::PushItemWidth(150.0f);
+        ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
+        ImGui::SliderFloat("", &val, v_min, v_max, "%.2f");
+        ImGui::PopStyleColor();
+        ImGui::PopItemWidth();
+    }
 
   protected:
     bool m_visible;
