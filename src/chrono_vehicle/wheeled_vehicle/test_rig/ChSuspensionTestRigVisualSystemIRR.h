@@ -54,7 +54,7 @@ class CH_VEHICLE_API ChSuspensionTestRigVisualSystemIRR : public irrlicht::ChVis
 
 /// @} vehicle_wheeled_test_rig
 
-class ChSTRKeyboardHandlerIRR : public irr::IEventReceiver {
+class CH_VEHICLE_API ChSTRKeyboardHandlerIRR : public irr::IEventReceiver {
   public:
     ChSTRKeyboardHandlerIRR(ChSuspensionTestRigVisualSystemIRR* app);
     bool OnEvent(const irr::SEvent& event) override;

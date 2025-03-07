@@ -218,9 +218,14 @@ void ChSuspensionTestRigVisualSystemVSG::Initialize() {
         // Invoke the base Initialize method
         // Note: this must occur only *after* adding custom GUI components and event handlers
         ChVisualSystemVSG::Initialize();
-    }
-
+    } 
+    
     if (m_rig) {
+        ChVector3d target =
+            0.5 * (m_rig->GetSpindlePos(0, LEFT) + m_rig->GetSpindlePos(0, RIGHT)) + ChVector3d(0, 0, 0.5);
+        ChVector3d position = target - ChVector3d(5, 0, 0);
+        SetCameraPosition(position);
+        SetCameraTarget(target);
     }
 }
 
