@@ -122,6 +122,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::Text("%8.3f s", m_app->GetSimulationTime());
 
             ImGui::TableNextRow();
+
             double current_time = double(clock()) / double(CLOCKS_PER_SEC);
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Wall Clock Time:");
@@ -129,12 +130,14 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::Text("%8.3f s", current_time - m_app->m_start_time);
 
             ImGui::TableNextRow();
+
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Real Time Factor:");
             ImGui::TableNextColumn();
             ImGui::Text("%8.3f", m_app->GetSimulationRTF());
 
             ImGui::TableNextRow();
+            
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Rendering FPS:");
             ImGui::TableNextColumn();
@@ -145,9 +148,89 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         ImGui::Spacing();
 
+        if (ImGui::BeginTable("Counters", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Counters");
+            ImGui::TableNextColumn();
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. active bodies:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumBodies());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. active shafts:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumShafts());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. active links:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumLinks());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. FEA meshes:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumMeshes());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. contacts:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumContacts());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. states");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumStates());
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Num. constraints:");
+            ImGui::TableNextColumn();
+            ImGui::Text("%8d", m_app->GetNumConstraints());
+
+            ImGui::EndTable();
+        }
+
+        ImGui::Spacing();
+
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::TextUnformatted("Ref:");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Show frames");
+            ImGui::TableNextColumn();
+
+            ImGui::TableNextRow();
+
+            ImGui::TextUnformatted("Global:");
+            ImGui::TableNextColumn();
+            static bool abs_frame_active = false;
+            if (ImGui::Checkbox("Global", &abs_frame_active))
+                m_app->ToggleAbsFrameVisibility();
+            ImGui::TableNextColumn();
+            float abs_frame_scale = m_app->m_abs_frame_scale;
+            ImGui::PushItemWidth(120.0f);
+            ImGui::SliderFloat("scale##abs", &abs_frame_scale, 0.1f, 10.0f);
+            ImGui::PopItemWidth();
+            m_app->m_abs_frame_scale = abs_frame_scale;
+
+            ImGui::TableNextRow();
+
+            ImGui::TextUnformatted("Body ref:");
             ImGui::TableNextColumn();
             static bool bRef_frame_active = false;
             if (ImGui::Checkbox("Ref", &bRef_frame_active))
@@ -160,7 +243,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             m_app->m_ref_frame_scale = ref_frame_scale;
 
             ImGui::TableNextRow();
-            ImGui::TextUnformatted("COM:");
+
+            ImGui::TextUnformatted("Body COM:");
             ImGui::TableNextColumn();
             static bool bCOG_frame_active = false;
             if (ImGui::Checkbox("COM", &bCOG_frame_active))
@@ -173,6 +257,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             m_app->m_cog_frame_scale = cog_frame_scale;
 
             ImGui::TableNextRow();
+
             ImGui::TextUnformatted("Joint:");
             ImGui::TableNextColumn();
             static bool bJoint_frame_active = false;
@@ -192,6 +277,12 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::BeginTable("Shapes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Show components");
+            ImGui::TableNextColumn();
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
             static bool body_obj_visible = true;
             if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
                 m_app->m_show_body_objs = !m_app->m_show_body_objs;
@@ -204,6 +295,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
                 m_app->m_show_link_objs = !m_app->m_show_link_objs;
                 m_app->SetLinkObjVisibility(m_app->m_show_link_objs, -1);
             }
+
+            ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
             static bool fea_mesh_visible = true;
@@ -502,6 +595,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_gui(true),
       m_show_base_gui(true),
       m_camera_trackball(true),
+      m_abs_frame_scale(1),
       m_ref_frame_scale(1),
       m_cog_frame_scale(1),
       m_joint_frame_scale(1),
@@ -510,6 +604,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_link_objs(true),
       m_show_springs(true),
       m_show_fea_meshes(true),
+      m_show_abs_frame(false),
       m_show_ref_frames(false),
       m_show_cog_frames(false),
       m_show_joint_frames(false),
@@ -528,6 +623,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     // creation here allows to set entries before initialize
     m_objScene = vsg::Switch::create();
+    m_absFrameScene = vsg::Switch::create();
     m_refFrameScene = vsg::Switch::create();
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
@@ -868,6 +964,7 @@ void ChVisualSystemVSG::Initialize() {
         m_scene->addChild(absoluteTransform);
     }
     m_scene->addChild(m_objScene);
+    m_scene->addChild(m_absFrameScene);
     m_scene->addChild(m_refFrameScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
@@ -980,6 +1077,16 @@ void ChVisualSystemVSG::Initialize() {
     auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
     renderGraph->addChild(renderImGui);
 
+    // Use the ImGui drak (default) style, with adjusted transparency 
+    ImGui::StyleColorsDark();
+    auto& style = ImGui::GetStyle();
+    ImVec4 bg_color = style.Colors[ImGuiCol_WindowBg];
+    bg_color.w = 0.75f;
+    style.Colors[ImGuiCol_WindowBg] = bg_color;
+    style.Colors[ImGuiCol_ChildBg] = bg_color;
+    style.Colors[ImGuiCol_TitleBg] = bg_color;
+
+    // Create main GUI window
     m_base_gui = chrono_types::make_shared<ChBaseGuiComponentVSG>(this);
     m_base_gui->SetVisibility(m_show_base_gui);
     AddGuiComponent(m_base_gui);
@@ -1219,6 +1326,19 @@ void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
     }
 }
 
+void ChVisualSystemVSG::SetAbsFrameScale(double axis_length) {
+    m_abs_frame_scale = axis_length;
+}
+
+void ChVisualSystemVSG::ToggleAbsFrameVisibility() {
+    m_show_abs_frame = !m_show_abs_frame;
+
+    if (m_initialized) {
+        for (auto& child : m_absFrameScene->children)
+            child.mask = m_show_abs_frame;
+    }
+}
+
 void ChVisualSystemVSG::RenderRefFrames(double axis_length) {
     m_ref_frame_scale = axis_length;
     m_show_ref_frames = true;
@@ -1296,8 +1416,10 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
-    BindReferenceFrame(body);
-    BindCOMFrame(body);
+    if (!body->IsFixed()) {
+        BindReferenceFrame(body);
+        BindCOMFrame(body);
+    }
     BindObject(body, ObjectType::BODY);
 }
 
@@ -1818,6 +1940,15 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChVisualSystemVSG::BindAll() {
+    {
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
+        vsg::Mask mask = m_show_abs_frame;
+        auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+        node->setValue("Transform", transform);
+        m_absFrameScene->addChild(mask, node);
+    }
+
     for (auto sys : m_systems) {
         BindAssembly(sys->GetAssembly());
     }
@@ -1826,6 +1957,16 @@ void ChVisualSystemVSG::BindAll() {
 // -----------------------------------------------------------------------------
 
 void ChVisualSystemVSG::UpdateFromMBS() {
+    if (m_show_abs_frame) {
+        for (auto& child : m_absFrameScene->children) {
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            if (!child.node->getValue("Transform", transform))
+                continue;
+
+            transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
+        }
+    }
+
     // Update VSG nodes for object reference frame visualization
     if (m_show_ref_frames) {
         for (auto& child : m_refFrameScene->children) {

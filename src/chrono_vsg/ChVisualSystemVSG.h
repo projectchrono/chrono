@@ -121,6 +121,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
     void SetParticleCloudVisibility(bool vis, int tag = -1);
 
+    /// Render the absolute (global) reference frame
+    void SetAbsFrameScale(double axis_length);
+    void ToggleAbsFrameVisibility();
+
     /// Render ref frames for all objects in the system.
     void RenderRefFrames(double axis_length = 1);
     void SetRefFrameScale(double axis_length);
@@ -299,6 +303,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Switch> m_pointpointScene;
     vsg::ref_ptr<vsg::Switch> m_deformableScene;
     vsg::ref_ptr<vsg::Switch> m_particleScene;
+    vsg::ref_ptr<vsg::Switch> m_absFrameScene;
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
@@ -413,10 +418,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_show_link_objs;     ///< flag to toggle link asset visibility
     bool m_show_springs;       ///< flag to toggle spring visibility
     bool m_show_fea_meshes;    ///< flag to toggle FEA mesh visibility
+    bool m_show_abs_frame;     ///< flag to toggle absolute frame visibility
     bool m_show_ref_frames;    ///< flag to toggle object reference frame visibility
     bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
     bool m_show_joint_frames;  ///< flag to toggle COG frame visibility
 
+    double m_abs_frame_scale;    ///< current absolute frame scale
     double m_ref_frame_scale;    ///< current reference frame scale
     double m_cog_frame_scale;    ///< current COG frame scale
     double m_joint_frame_scale;  ///< current joint frame scale
