@@ -282,6 +282,8 @@ void ChChassis::Synchronize(double time) {
 ChChassisRear::ChChassisRear(const std::string& name) : ChChassis(name, false) {}
 
 void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
+    m_vehicle = chassis->m_vehicle;
+
     m_parent = chassis;
     m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::CHASSIS_REAR);
 

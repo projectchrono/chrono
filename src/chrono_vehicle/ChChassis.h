@@ -213,6 +213,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     std::vector<std::shared_ptr<ExternalForceTorque>> m_external_loads;  ///< external loads
     std::vector<std::shared_ptr<ChMarker>> m_markers;                    ///< list of user-defined markers
     bool m_fixed;                                                        ///< is the chassis body fixed to ground?
+
+    friend class ChChassisRear;
 };
 
 // -----------------------------------------------------------------------------
