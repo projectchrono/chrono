@@ -55,9 +55,9 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
     auto chassis_ct_model = m_chassis->GetBody()->GetCollisionModel();
     if (chassis_ct_model) {
         // Disable contacts between chassis with all other tracked vehicle subsystems, except the track shoes.
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::IDLERS);
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::WHEELS);
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::ROLLERS);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::IDLER_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::ROLLER_FAMILY);
     }
     ChVehicle::Initialize(chassisPos, chassisFwdVel);
 }
@@ -308,14 +308,14 @@ void ChTrackedVehicle::EnableCollision(int flags) {
 void ChTrackedVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with track shoes
-        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(TrackedCollisionFamily::SHOES);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
         for (auto& c : m_chassis_rear)
-            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(TrackedCollisionFamily::SHOES);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
     } else {
         // Chassis does not collide with track shoes
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
         for (auto& c : m_chassis_rear)
-            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
     }
 }
 

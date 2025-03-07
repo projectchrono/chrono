@@ -24,7 +24,7 @@ namespace vehicle {
 ChWheeledTrailer::ChWheeledTrailer(const std::string& name, ChSystem* system) : m_name(name) {}
 
 void ChWheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
-    m_chassis->Initialize(frontChassis, WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(frontChassis, VehicleCollisionFamily::CHASSIS_FAMILY);
     m_connector->Initialize(frontChassis, m_chassis);
 }
 

@@ -43,8 +43,8 @@ void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
 
     // Set collision flags for the road wheel body
-    m_road_wheel->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
-    m_road_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::IDLERS);
+    m_road_wheel->GetBody()->GetCollisionModel()->SetFamily(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
+    m_road_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::IDLER_FAMILY);
 }
 
 void ChTrackSuspension::SetOutput(bool state) {

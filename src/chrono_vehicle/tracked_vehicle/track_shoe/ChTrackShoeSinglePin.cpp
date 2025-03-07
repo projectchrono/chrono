@@ -67,8 +67,8 @@ void ChTrackShoeSinglePin::Construct(std::shared_ptr<ChChassis> chassis,
     chassis->GetSystem()->AddBody(m_shoe);
 
     // Add contact geometry on shoe body
-    m_geometry.CreateCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
-    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    m_geometry.CreateCollisionShapes(m_shoe, VehicleCollisionFamily::SHOE_FAMILY, sys->GetContactMethod());
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 }
 
 void ChTrackShoeSinglePin::InitializeInertiaProperties() {

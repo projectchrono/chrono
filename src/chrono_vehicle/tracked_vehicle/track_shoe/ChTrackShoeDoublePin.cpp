@@ -138,8 +138,8 @@ void ChTrackShoeDoublePin::Construct(std::shared_ptr<ChChassis> chassis,
     }
 
     // Add contact geometry on shoe body
-    m_geometry.CreateCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES, sys->GetContactMethod());
-    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    m_geometry.CreateCollisionShapes(m_shoe, VehicleCollisionFamily::SHOE_FAMILY, sys->GetContactMethod());
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 
     // Create collision model for connector bodies
     // Note: even though the connector bodies only collide with the sprocket (through a custom collision detection

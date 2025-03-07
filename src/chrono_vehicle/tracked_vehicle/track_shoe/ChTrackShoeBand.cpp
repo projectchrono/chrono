@@ -143,8 +143,8 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     auto t_shape = chrono_types::make_shared<ChCollisionShapeBox>(pad_material, t_dims.x(), t_dims.y(), t_dims.z());
     m_shoe->AddCollisionShape(t_shape, ChFrame<>(t_loc, QUNIT));
 
-    m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 }
 
 // -----------------------------------------------------------------------------

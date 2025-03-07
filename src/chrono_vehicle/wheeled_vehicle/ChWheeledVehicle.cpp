@@ -224,19 +224,19 @@ void ChWheeledVehicle::SetWheelCollide(bool state) {
 void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with tires
-        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::TIRE);
-        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::WHEEL);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         for (auto& c : m_chassis_rear) {
-            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::TIRE);
-            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::WHEEL);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         }
     } else {
         // Chassis does not collide with tires
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::TIRE);
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         for (auto& c : m_chassis_rear) {
-            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::TIRE);
-            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         }
     }
 }

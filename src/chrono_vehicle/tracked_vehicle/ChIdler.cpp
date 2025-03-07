@@ -42,8 +42,8 @@ void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& l
     m_idler_wheel->GetBody()->SetTag(m_obj_tag);
 
     // Set collision flags for the idler wheel body
-    m_idler_wheel->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
-    m_idler_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::WHEELS);
+    m_idler_wheel->GetBody()->GetCollisionModel()->SetFamily(VehicleCollisionFamily::IDLER_FAMILY);
+    m_idler_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
 
     // Mark as initialized
     m_initialized = true;

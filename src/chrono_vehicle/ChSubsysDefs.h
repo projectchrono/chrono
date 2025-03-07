@@ -526,16 +526,6 @@ enum class DrivelineTypeTV {
     SIMPLE  ///< simple kinematic driveline
 };
 
-/// Enumerations for wheeled vehicle collision families.
-namespace WheeledCollisionFamily {
-// Note: we cannot use strongly typed enums, since these are passed as integers
-enum Enum {
-    CHASSIS = 0,  ///< chassis collision family
-    TIRE = 1,     ///< collision family for tire systems
-    WHEEL = 2     ///< collision family for wheel systems
-};
-}  // namespace WheeledCollisionFamily
-
 /// Enum for track shoe types.
 enum class TrackShoeType {
     SINGLE_PIN,    ///< single-pin track shoe and sprocket
@@ -580,17 +570,21 @@ enum Enum {
 };
 }  // namespace TrackedCollisionFlag
 
-/// Enumerations for tracked vehicle collision families.
-namespace TrackedCollisionFamily {
+/// Enumerations for vehicle collision families.
+namespace VehicleCollisionFamily {
 // Note: we cannot use strongly typed enums, since these are passed as integers
 enum Enum {
-    CHASSIS = 0,  ///< chassis collision family
-    IDLERS = 1,   ///< collision family for idler subsystems
-    WHEELS = 2,   ///< collision family for road-wheel assemblies
-    ROLLERS = 3,  ///< collision family for roller subsystems
-    SHOES = 4     ///< collision family for track shoe subsystems
+    CHASSIS_FAMILY = 0,  ///< chassis collision family
+
+    TIRE_FAMILY = 1,   ///< collision family for tire systems
+    WHEEL_FAMILY = 2,  ///< collision family for wheel systems
+
+    IDLER_FAMILY = 3,        ///< collision family for idler subsystems
+    TRACK_WHEEL_FAMILY = 4,  ///< collision family for road-wheel assemblies
+    ROLLER_FAMILY = 5,       ///< collision family for roller subsystems
+    SHOE_FAMILY = 6          ///< collision family for track shoe subsystems
 };
-}  // namespace TrackedCollisionFamily
+}  // namespace VehicleCollisionFamily
 
 /// Flags for output (log/debug).
 /// These flags can be bit-wise ORed and used as a mask.
