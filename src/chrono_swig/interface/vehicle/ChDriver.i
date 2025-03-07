@@ -18,13 +18,13 @@
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"// For the csharp module, these can be found in the ChVehicleVisualSystemIrrlicht
 #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"// For the csharp module, these can be found in the ChVehicleVisualSystemIrrlicht
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
@@ -71,11 +71,11 @@
 %shared_ptr(chrono::vehicle::ChPathFollowerACCDriver)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigDriver)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigDataDriver)
+%shared_ptr(chrono::vehicle::ChSuspensionTestRigInteractiveDriver)
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_IRRLICHT
 %shared_ptr(chrono::vehicle::ChInteractiveDriverIRR)
-%shared_ptr(chrono::vehicle::ChSuspensionTestRigInteractiveDriverIRR)
 #endif
 #endif             // --------------------------------------------------------------------- PYTHON
 
@@ -99,6 +99,7 @@
 %include "../../../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h"
 %include "../../../chrono_vehicle/utils/ChSpeedController.h"
 %include "../../../chrono_vehicle/utils/ChSteeringController.h"
 %include "../../../chrono_vehicle/utils/ChAdaptiveSpeedController.h"
@@ -110,7 +111,6 @@
 #ifdef CHRONO_IRRLICHT
 %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 %include "irrTypes.h"

@@ -17,8 +17,8 @@
 // Driver inputs for a suspension test rig include left/right post displacements
 // and steering input (the latter being ignored if the tested suspension is not
 // attached to a steering mechanism).  These driver inputs can be obtained from
-// an interactive driver system (of type ChSuspensionTestRigInteractiveDriverIRR) or from a data file
-// (using a driver system of type ChSuspensionTestRigDataDriver).
+// an interactive driver system of type ChSuspensionTestRigInteractiveDriver or
+// from a data file using a driver system of type ChSuspensionTestRigDataDriver.
 //
 // See the description of ChSuspensionTestRig::PlotOutput for details on data
 // collected (if output is enabled).
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChSuspensionTestRigVisualSystemIRR>();
-            vis_irr->SetWindowSize(1200, 900);
+            vis_irr->SetWindowSize(1280, 1024);
             vis_irr->SetWindowTitle("Suspension Test Rig");
             vis_irr->AttachSTR(rig.get());
             vis_irr->Initialize();
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChSuspensionTestRigVisualSystemVSG>();
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowSize(ChVector2i(1280, 1024));
             vis_vsg->SetWindowTitle("Suspension Test Rig");
             vis_vsg->AttachSTR(rig.get());
             vis_vsg->Initialize();
