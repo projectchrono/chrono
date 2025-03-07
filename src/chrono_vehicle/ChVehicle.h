@@ -269,18 +269,18 @@ class CH_VEHICLE_API ChVehicle {
     virtual void Advance(double step);
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations() = 0;
+    virtual void LogConstraintViolations() {}
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
-    virtual std::string ExportComponentList() const = 0;
+    virtual std::string ExportComponentList() const { return ""; }
 
     /// Write a JSON-format file with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
-    virtual void ExportComponentList(const std::string& filename) const = 0;
+    virtual void ExportComponentList(const std::string& filename) const {}
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(int frame, ChVehicleOutput& database) const = 0;
+    virtual void Output(int frame, ChVehicleOutput& database) const {}
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.

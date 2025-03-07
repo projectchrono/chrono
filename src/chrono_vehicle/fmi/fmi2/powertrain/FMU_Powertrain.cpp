@@ -20,6 +20,7 @@
 #include <algorithm>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
+#include "chrono_vehicle/ChVehicle.h"
 
 #include "FMU_Powertrain.h"
 
@@ -116,13 +117,25 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddPostStepFunction([this]() { this->CalculatePowertrainOutputs(); });
 }
 
+class Vehicle : public ChVehicle {
+  public:
+    Vehicle(ChSystem* system) : ChVehicle("vehicle", system) {}
+    virtual std::string GetTemplateName() const override { return ""; }
+    virtual void InitializeInertiaProperties() override {}
+    virtual void UpdateInertiaProperties() {}
+};
+
+
 class Chassis : public ChChassis {
   public:
     Chassis() : ChChassis("chassis") {}
     virtual std::string GetTemplateName() const override { return ""; }
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsysd(); }
     virtual void EnableCollision(bool state) override {}
-
+    virtual void Construct(ChVehicle* vehicle,
+                           const ChCoordsys<>& chassisPos,
+                           double chassisFwdVel,
+                           int collision_family) override {}
     virtual double GetBodyMass() const override { return 1; }
     virtual ChFrame<> GetBodyCOMFrame() const override { return ChFramed(); }
     virtual ChMatrix33<> GetBodyInertia() const override { return ChMatrix33<>(1); }
@@ -137,9 +150,10 @@ void FmuComponent::CreatePowertrain() {
     transmission = ReadTransmissionJSON(transmission_JSON);
     powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
 
-    // Create a placeholder chassis (fixed)
+    // Create placeholder vehicle and chassis (fixed)
+    auto vehicle = chrono_types::make_shared<Vehicle>(&sys);
     auto chassis = chrono_types::make_shared<Chassis>();
-    chassis->Initialize(&sys, ChCoordsysd(), 0.0);
+    chassis->Initialize(vehicle.get(), ChCoordsysd(), 0.0);
     chassis->SetFixed(true);
 
     powertrain->Initialize(chassis);
