@@ -22,6 +22,8 @@
 
 #include "chrono/utils/ChUtils.h"
 
+#include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
+
 #include "chrono_vsg/ChVisualSystemVSG.h"
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 #include "chrono_vsg/utils/ChUtilsVSG.h"
@@ -146,8 +148,6 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        ImGui::Spacing();
-
         if (ImGui::BeginTable("Counters", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
@@ -206,8 +206,6 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        ImGui::Spacing();
-
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
@@ -216,9 +214,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
             ImGui::TableNextRow();
 
-            ImGui::TextUnformatted("Global:");
             ImGui::TableNextColumn();
-            static bool abs_frame_active = false;
+            static bool abs_frame_active = m_app->m_show_abs_frame;
             if (ImGui::Checkbox("Global", &abs_frame_active))
                 m_app->ToggleAbsFrameVisibility();
             ImGui::TableNextColumn();
@@ -230,9 +227,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
             ImGui::TableNextRow();
 
-            ImGui::TextUnformatted("Body ref:");
             ImGui::TableNextColumn();
-            static bool bRef_frame_active = false;
+            static bool bRef_frame_active = m_app->m_show_ref_frames;
             if (ImGui::Checkbox("Ref", &bRef_frame_active))
                 m_app->ToggleRefFrameVisibility();
             ImGui::TableNextColumn();
@@ -244,9 +240,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
             ImGui::TableNextRow();
 
-            ImGui::TextUnformatted("Body COM:");
             ImGui::TableNextColumn();
-            static bool bCOG_frame_active = false;
+            static bool bCOG_frame_active = m_app->m_show_cog_frames;
             if (ImGui::Checkbox("COM", &bCOG_frame_active))
                 m_app->ToggleCOGFrameVisibility();
             ImGui::TableNextColumn();
@@ -258,9 +253,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
             ImGui::TableNextRow();
 
-            ImGui::TextUnformatted("Joint:");
             ImGui::TableNextColumn();
-            static bool bJoint_frame_active = false;
+            static bool bJoint_frame_active = m_app->m_show_joint_frames;
             if (ImGui::Checkbox("Joint", &bJoint_frame_active))
                 m_app->ToggleJointFrameVisibility();
             ImGui::TableNextColumn();
@@ -269,6 +263,31 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::SliderFloat("scale##joint", &joint_frame_scale, 0.1f, 5.0f);
             ImGui::PopItemWidth();
             m_app->m_joint_frame_scale = joint_frame_scale;
+
+            ImGui::EndTable();
+        }
+
+        if (ImGui::BeginTable("Collision", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Show collision");
+            ImGui::TableNextColumn();
+
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            static bool show_collision = m_app->m_show_collision;
+            if (ImGui::Checkbox("Collision shapes", &show_collision)) {
+                m_app->m_show_collision = !m_app->m_show_collision;
+                m_app->SetCollisionVisibility(m_app->m_show_collision, -1);
+            }
+            ImGui::TableNextColumn();
+            ImVec4 color(m_app->m_collision_color.R, m_app->m_collision_color.G, m_app->m_collision_color.B, 0);
+            ImGuiColorEditFlags flags =
+                ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoDragDrop;
+            if (ImGui::ColorEdit3("color##collision", (float*)&color, flags)) {
+                m_app->SetCollisionColor(ChColor(color.x, color.y, color.z));
+            }
 
             ImGui::EndTable();
         }
@@ -283,14 +302,14 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            static bool body_obj_visible = true;
+            static bool body_obj_visible = m_app->m_show_body_objs;
             if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
                 m_app->m_show_body_objs = !m_app->m_show_body_objs;
                 m_app->SetBodyObjVisibility(m_app->m_show_body_objs, -1);
             }
 
             ImGui::TableNextColumn();
-            static bool link_obj_visible = true;
+            static bool link_obj_visible = m_app->m_show_link_objs;
             if (ImGui::Checkbox("Links", &link_obj_visible)) {
                 m_app->m_show_link_objs = !m_app->m_show_link_objs;
                 m_app->SetLinkObjVisibility(m_app->m_show_link_objs, -1);
@@ -299,14 +318,14 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            static bool fea_mesh_visible = true;
+            static bool fea_mesh_visible = m_app->m_show_fea_meshes;
             if (ImGui::Checkbox("FEA meshes", &fea_mesh_visible)) {
                 m_app->m_show_fea_meshes = !m_app->m_show_fea_meshes;
                 m_app->SetFeaMeshVisibility(m_app->m_show_fea_meshes, -1);
             }
 
             ImGui::TableNextColumn();
-            static bool spring_visible = true;
+            static bool spring_visible = m_app->m_show_springs;
             if (ImGui::Checkbox("Springs", &spring_visible)) {
                 m_app->m_show_springs = !m_app->m_show_springs;
                 m_app->SetSpringVisibility(m_app->m_show_springs, -1);
@@ -599,11 +618,14 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_ref_frame_scale(1),
       m_cog_frame_scale(1),
       m_joint_frame_scale(1),
+      m_collision_color(ChColor(0.9f, 0.4f, 0.2f)),
+      m_collision_color_changed(false),
       m_show_visibility_controls(true),
       m_show_body_objs(true),
       m_show_link_objs(true),
       m_show_springs(true),
       m_show_fea_meshes(true),
+      m_show_collision(false),
       m_show_abs_frame(false),
       m_show_ref_frames(false),
       m_show_cog_frames(false),
@@ -623,13 +645,14 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     // creation here allows to set entries before initialize
     m_objScene = vsg::Switch::create();
+    m_pointpointScene = vsg::Switch::create();
+    m_deformableScene = vsg::Switch::create();
+    m_particleScene = vsg::Switch::create();
+    m_collisionScene = vsg::Switch::create();
     m_absFrameScene = vsg::Switch::create();
     m_refFrameScene = vsg::Switch::create();
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
-    m_pointpointScene = vsg::Switch::create();
-    m_deformableScene = vsg::Switch::create();
-    m_particleScene = vsg::Switch::create();
     m_decoScene = vsg::Group::create();
 
     // set up defaults and read command line arguments to override them
@@ -964,14 +987,15 @@ void ChVisualSystemVSG::Initialize() {
         m_scene->addChild(absoluteTransform);
     }
     m_scene->addChild(m_objScene);
+    m_scene->addChild(m_pointpointScene);
+    m_scene->addChild(m_particleScene);
+    m_scene->addChild(m_deformableScene);
+    m_scene->addChild(m_collisionScene);
     m_scene->addChild(m_absFrameScene);
     m_scene->addChild(m_refFrameScene);
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
-    m_scene->addChild(m_pointpointScene);
-    m_scene->addChild(m_particleScene);
     m_scene->addChild(m_decoScene);
-    m_scene->addChild(m_deformableScene);
 
     BindAll();
 
@@ -1081,7 +1105,7 @@ void ChVisualSystemVSG::Initialize() {
     ImGui::StyleColorsDark();
     auto& style = ImGui::GetStyle();
     ImVec4 bg_color = style.Colors[ImGuiCol_WindowBg];
-    bg_color.w = 0.75f;
+    bg_color.w = 0.5f;
     style.Colors[ImGuiCol_WindowBg] = bg_color;
     style.Colors[ImGuiCol_ChildBg] = bg_color;
     style.Colors[ImGuiCol_TitleBg] = bg_color;
@@ -1159,7 +1183,7 @@ void ChVisualSystemVSG::Render() {
     m_timer_render.reset();
     m_timer_render.start();
 
-    UpdateFromMBS();
+    Update();
 
     if (!m_viewer->advanceToNextFrame()) {
         return;
@@ -1170,9 +1194,18 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->update();
 
+    // Dynamic data transfer CPU->GPU for collision models
+    if (m_collision_color_changed) {
+        for (const auto& colors : m_collision_colors) {
+            for (auto& c : *colors)
+                c = vsg::vec4CH(m_collision_color);
+            colors->dirty();
+        }
+        m_collision_color_changed = false;
+    }
+
     // Dynamic data transfer CPU->GPU for point clouds
     auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
-
     for (const auto& cloud : m_clouds) {
         if (cloud.dynamic_positions) {
             unsigned int k = 0;
@@ -1326,6 +1359,25 @@ void ChVisualSystemVSG::SetParticleCloudVisibility(bool vis, int tag) {
     }
 }
 
+void ChVisualSystemVSG::SetCollisionVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_collisionScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
+    }
+}
+
+void ChVisualSystemVSG::SetCollisionColor(const ChColor& color) {
+    m_collision_color = color;
+
+    if (m_initialized)
+        m_collision_color_changed = true;
+}
+
 void ChVisualSystemVSG::SetAbsFrameScale(double axis_length) {
     m_abs_frame_scale = axis_length;
 }
@@ -1415,18 +1467,68 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 
 // -----------------------------------------------------------------------------
 
+void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
+    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
+        BindBody(body);
+        return;
+    }
+
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
+        BindLink(link);
+        return;
+    }
+
+    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
+        BindMesh(mesh);
+        return;
+    }
+
+    if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
+        BindParticleCloud(pcloud, m_wireframe);
+        return;
+    }
+
+    if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item)) {
+        BindAssembly(*assmbly);
+        return;
+    }
+
+    if (item->GetVisualModel()) {
+        BindDeformableMesh(item, DeformableType::OTHER);
+        BindPointPoint(item);
+    }
+}
+
+void ChVisualSystemVSG::BindAll() {
+    {
+        auto transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
+        vsg::Mask mask = m_show_abs_frame;
+        auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
+        node->setValue("Transform", transform);
+        m_absFrameScene->addChild(mask, node);
+    }
+
+    for (auto sys : m_systems) {
+        BindAssembly(sys->GetAssembly());
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     if (!body->IsFixed()) {
         BindReferenceFrame(body);
         BindCOMFrame(body);
     }
-    BindObject(body, ObjectType::BODY);
+    BindObjectVisualModel(body, ObjectType::BODY);
+    BindObjectCollisionModel(body, body->GetTag());
 }
 
 void ChVisualSystemVSG::BindLink(const std::shared_ptr<ChLinkBase>& link) {
     BindLinkFrame(link);
     BindPointPoint(link);
-    BindObject(link, ObjectType::LINK);
+    BindObjectVisualModel(link, ObjectType::LINK);
 }
 
 void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
@@ -1448,133 +1550,13 @@ void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
         BindDeformableMesh(item, DeformableType::OTHER);
         BindPointPoint(item);
         if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
-            BindParticleCloud(pcloud);
+            BindParticleCloud(pcloud, m_wireframe);
         if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item))
             BindAssembly(*assmbly);
     }
 }
 
-// Utility function to populate a VSG group with shape groups (from the given visual model).
-// The visual model may or may not be associated with a Chrono object.
-void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
-                                      std::shared_ptr<ChVisualModel> model,
-                                      std::shared_ptr<ChObj> obj) {
-    for (const auto& shape_instance : model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
-        const auto& X_SM = shape_instance.second;
-
-        if (!shape->IsVisible())
-            continue;
-
-        // Material for primitive shapes (assumed at most one defined)
-        std::shared_ptr<ChVisualMaterial> material =
-            shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
-
-        if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
-
-            // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
-            // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
-            auto grp = !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != string::npos
-                           ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE_SHAPE, material, transform,
-                                                            m_wireframe)
-                           : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX_SHAPE, material, transform,
-                                                            m_wireframe);
-            group->addChild(grp);
-        } else if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
-            auto grp =
-                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE_SHAPE, material, transform, m_wireframe);
-            group->addChild(grp);
-        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
-            auto grp =
-                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE_SHAPE, material, transform, m_wireframe);
-            group->addChild(grp);
-        } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
-            double rad = cylinder->GetRadius();
-            double height = cylinder->GetHeight();
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER_SHAPE, material, transform,
-                                                      m_wireframe);
-            group->addChild(grp);
-        } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
-            double rad = capsule->GetRadius();
-            double height = capsule->GetHeight();
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
-            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE_SHAPE, material, transform,
-                                                      m_wireframe);
-            group->addChild(grp);
-        } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
-            //// TODO
-        } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
-            double rad = cone->GetRadius();
-            double height = cone->GetHeight();
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
-            auto grp =
-                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE_SHAPE, material, transform, m_wireframe);
-            group->addChild(grp);
-        } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
-            /*
-            auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->createTrimeshPhongMatShape(trimesh, transform, m_wireframe)
-                           : m_shapeBuilder->createTrimeshColShape(trimesh, transform, m_wireframe);
-            */
-            auto grp = trimesh->GetNumMaterials() > 0
-                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, m_wireframe)
-                           : m_shapeBuilder->CreateTrimeshColShape(trimesh, transform, m_wireframe);
-            group->addChild(grp);
-        } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(surface, material, transform, m_wireframe);
-            group->addChild(grp);
-        } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
-            const auto& filename = model_file->GetFilename();
-            const auto& scale = model_file->GetScale();
-            size_t objHashValue = m_stringHash(filename);
-            auto grp = vsg::Group::create();
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
-            grp->addChild(transform);
-            // needed, when BindAll() is called after Initialization
-            // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
-            // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, filename, m_options));
-            map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
-            objIt = m_objCache.find(objHashValue);
-            if (objIt == m_objCache.end()) {
-                auto node = vsg::read_cast<vsg::Node>(filename, m_options);
-                if (node) {
-                    transform->addChild(node);
-                    group->addChild(grp);
-                    m_objCache[objHashValue] = node;
-                }
-            } else {
-                transform->addChild(m_objCache[objHashValue]);
-                group->addChild(grp);
-            }
-        } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->CreateLineShape(shape_instance, material, transform, line));
-        } else if (auto path = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
-            auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->CreatePathShape(shape_instance, material, transform, path));
-        }
-
-    }  // end loop over visual shapes
-}
-
-void ChVisualSystemVSG::BindObject(const std::shared_ptr<ChObj>& obj, ObjectType type) {
+void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj, ObjectType type) {
     const auto& vis_model = obj->GetVisualModel();
     const auto& vis_frame = obj->GetVisualModelFrame();
 
@@ -1585,30 +1567,30 @@ void ChVisualSystemVSG::BindObject(const std::shared_ptr<ChObj>& obj, ObjectType
     //     modelGroup->model_transform->shapes_group
 
     // Create a group to hold this visual model
-    auto modelGroup = vsg::Group::create();
+    auto vis_model_group = vsg::Group::create();
 
     // Create a group to hold the shapes with their subtransforms
-    auto shapes_group = vsg::Group::create();
+    auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateGroup(shapes_group, vis_model, obj);
+    PopulateVisGroup(vis_shapes_group, vis_model, m_wireframe);
 
     // Attach a transform to the group and initialize it with the body current position
-    auto model_transform = vsg::MatrixTransform::create();
-    model_transform->matrix = vsg::dmat4CH(vis_frame, 1.0);
-    model_transform->subgraphRequiresLocalFrustum = false;
+    auto vis_model_transform = vsg::MatrixTransform::create();
+    vis_model_transform->matrix = vsg::dmat4CH(vis_frame, 1.0);
+    vis_model_transform->subgraphRequiresLocalFrustum = false;
     if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(modelGroup);
-        m_options->sharedObjects->share(model_transform);
+        m_options->sharedObjects->share(vis_model_group);
+        m_options->sharedObjects->share(vis_model_transform);
     }
-    model_transform->addChild(shapes_group);
-    modelGroup->addChild(model_transform);
+    vis_model_transform->addChild(vis_shapes_group);
+    vis_model_group->addChild(vis_model_transform);
 
     // Set group properties
-    modelGroup->setValue("Object", obj);
-    modelGroup->setValue("Type", type);
-    modelGroup->setValue("Tag", obj->GetTag());
-    modelGroup->setValue("Transform", model_transform);
+    vis_model_group->setValue("Object", obj);
+    vis_model_group->setValue("Type", type);
+    vis_model_group->setValue("Tag", obj->GetTag());
+    vis_model_group->setValue("Transform", vis_model_transform);
 
     // Add the group to the global holder
     vsg::Mask mask;
@@ -1623,7 +1605,52 @@ void ChVisualSystemVSG::BindObject(const std::shared_ptr<ChObj>& obj, ObjectType
             mask = true;
             break;
     }
-    m_objScene->addChild(mask, modelGroup);
+    m_objScene->addChild(mask, vis_model_group);
+}
+
+void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContactable>& obj, int tag) {
+    const auto& coll_model = obj->GetCollisionModel();
+    const auto& coll_frame = obj->GetCollisionModelFrame();
+
+    if (!coll_model)
+        return;
+
+    // Important for update: keep the correct scenegraph hierarchy
+    //     modelGroup->model_transform->shapes_group
+
+    // Create a group to hold this visual model
+    auto coll_model_group = vsg::Group::create();
+
+    // Create a group to hold the shapes with their subtransforms
+    auto coll_shapes_group = vsg::Group::create();
+
+    // Populate the group with shapes in the visual model
+    PopulateCollGroup(coll_shapes_group, coll_model);
+
+    // Attach a transform to the group and initialize it with the body current position
+    auto vis_model_transform = vsg::MatrixTransform::create();
+    vis_model_transform->matrix = vsg::dmat4CH(coll_frame, 1.0);
+    vis_model_transform->subgraphRequiresLocalFrustum = false;
+    if (m_options->sharedObjects) {
+        m_options->sharedObjects->share(coll_model_group);
+        m_options->sharedObjects->share(vis_model_transform);
+    }
+    vis_model_transform->addChild(coll_shapes_group);
+    coll_model_group->addChild(vis_model_transform);
+
+    // Set group properties
+    coll_model_group->setValue("Object", obj);
+    coll_model_group->setValue("Tag", tag);
+    coll_model_group->setValue("Transform", vis_model_transform);
+
+    // Find colors array in current collision model group and set them to dynamic.
+    auto colors = vsg::visit<FindVec4BufferData<3>>(coll_model_group).getBufferData();
+    colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+    m_collision_colors.push_back(colors);
+
+    // Add the group to the global holder
+    vsg::Mask mask = m_show_collision;
+    m_collisionScene->addChild(mask, coll_model_group);
 }
 
 void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item, DeformableType type) {
@@ -1649,8 +1676,10 @@ void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>&
 
         auto transform = vsg::MatrixTransform::create();
         auto child = (trimesh->GetNumMaterials() > 0)
-                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh, transform, trimesh->IsWireframe())
-                         : m_shapeBuilder->CreateTrimeshColShape(trimesh, transform, trimesh->IsWireframe());
+                         ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
+                                                                    trimesh->GetMaterials(), trimesh->IsWireframe())
+                         : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
+                                                                 trimesh->IsWireframe());
         child->setValue("Type", type);
         child->setValue("Tag", item->GetTag());
         vsg::Mask mask;
@@ -1746,7 +1775,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
     }
 }
 
-void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
+void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud, bool wireframe) {
     const auto& vis_model = pcloud->GetVisualModel();
     auto num_particles = pcloud->GetNumParticles();
 
@@ -1825,7 +1854,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     }
 
     vsg::StateInfo stateInfo;
-    stateInfo.wireframe = m_wireframe;
+    stateInfo.wireframe = wireframe;
     stateInfo.instance_positions_vec3 = true;
 
     // Add child node for this cloud
@@ -1871,7 +1900,6 @@ void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
 }
 
 //// TODO: change COM visualization to forward-facing card with only COM location
-
 void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
@@ -1885,7 +1913,6 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
 
 void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     vsg::Mask mask = m_show_cog_frames;
-
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
@@ -1895,7 +1922,6 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         joint_node->setValue("Transform", joint_transform);
         m_jointFrameScene->addChild(mask, joint_node);
     }
-
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
@@ -1907,56 +1933,188 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     }
 }
 
-void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
-    if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
-        BindBody(body);
-        return;
-    }
+// -----------------------------------------------------------------------------
 
-    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
-        BindLink(link);
-        return;
-    }
+// Utility function to populate a VSG group with visualization shapes (from the given visual model).
+void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
+                                         std::shared_ptr<ChVisualModel> model,
+                                         bool wireframe) {
+    for (const auto& shape_instance : model->GetShapeInstances()) {
+        const auto& shape = shape_instance.first;
+        const auto& X_SM = shape_instance.second;
 
-    if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(item)) {
-        BindMesh(mesh);
-        return;
-    }
+        if (!shape->IsVisible())
+            continue;
 
-    if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-        BindParticleCloud(pcloud);
-        return;
-    }
+        // Material for primitive shapes (assumed at most one defined)
+        std::shared_ptr<ChVisualMaterial> material =
+            shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
-    if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item)) {
-        BindAssembly(*assmbly);
-        return;
-    }
+        if (auto box = std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
 
-    if (item->GetVisualModel()) {
-        BindDeformableMesh(item, DeformableType::OTHER);
-        BindPointPoint(item);
-    }
+            // We have boxes and dice. Dice take cubetextures, boxes take 6 identical textures.
+            // Use a die if a kd map exists and its name contains "cubetexture". Otherwise, use a box.
+            auto grp =
+                !material->GetKdTexture().empty() && material->GetKdTexture().find("cubetexture") != string::npos
+                    ? m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::DIE, material, transform, wireframe)
+                    : m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto sphere = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto cylinder = std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape)) {
+            double rad = cylinder->GetRadius();
+            double height = cylinder->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
+            auto grp =
+                m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto capsule = std::dynamic_pointer_cast<ChVisualShapeCapsule>(shape)) {
+            double rad = capsule->GetRadius();
+            double height = capsule->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto barrel = std::dynamic_pointer_cast<ChVisualShapeBarrel>(shape)) {
+            //// TODO
+        } else if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
+            double rad = cone->GetRadius();
+            double height = cone->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, trimesh->GetScale());
+            auto grp = trimesh->GetNumMaterials() > 0
+                           ? m_shapeBuilder->CreateTrimeshPbrMatShape(trimesh->GetMesh(), transform,
+                                                                      trimesh->GetMaterials(), wireframe)
+                           : m_shapeBuilder->CreateTrimeshColShape(trimesh->GetMesh(), transform, trimesh->GetColor(),
+                                                                   wireframe);
+            group->addChild(grp);
+        } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
+            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(surface, material, transform, wireframe);
+            group->addChild(grp);
+        } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
+            const auto& filename = model_file->GetFilename();
+            const auto& scale = model_file->GetScale();
+            size_t objHashValue = m_stringHash(filename);
+            auto grp = vsg::Group::create();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
+            grp->addChild(transform);
+            // needed, when BindAll() is called after Initialization
+            // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
+            // m_loadThreads->add(LoadOperation::create(observer_viewer, transform, filename, m_options));
+            map<size_t, vsg::ref_ptr<vsg::Node>>::iterator objIt;
+            objIt = m_objCache.find(objHashValue);
+            if (objIt == m_objCache.end()) {
+                auto node = vsg::read_cast<vsg::Node>(filename, m_options);
+                if (node) {
+                    transform->addChild(node);
+                    group->addChild(grp);
+                    m_objCache[objHashValue] = node;
+                }
+            } else {
+                transform->addChild(m_objCache[objHashValue]);
+                group->addChild(grp);
+            }
+        } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
+            group->addChild(m_shapeBuilder->CreateLineShape(shape_instance, material, transform, line));
+        } else if (auto path = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, 1.0);
+            group->addChild(m_shapeBuilder->CreatePathShape(shape_instance, material, transform, path));
+        }
+
+    }  // end loop over visual shapes
 }
 
-void ChVisualSystemVSG::BindAll() {
-    {
-        auto transform = vsg::MatrixTransform::create();
-        transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
-        vsg::Mask mask = m_show_abs_frame;
-        auto node = m_shapeBuilder->createFrameSymbol(transform, 1.0f, 2.0f);
-        node->setValue("Transform", transform);
-        m_absFrameScene->addChild(mask, node);
-    }
+// Utility function to populate a VSG group with collision shapes (from the given collision model).
+void ChVisualSystemVSG::PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model) {
+    // Default visualization material for collision shapes
+    auto material = chrono_types::make_shared<ChVisualMaterial>();
+    material->SetDiffuseColor(m_collision_color);
 
-    for (auto sys : m_systems) {
-        BindAssembly(sys->GetAssembly());
+    for (const auto& shape_instance : model->GetShapeInstances()) {
+        const auto& shape = shape_instance.first;
+        const auto& X_SM = shape_instance.second;
+
+        if (auto box = std::dynamic_pointer_cast<ChCollisionShapeBox>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, box->GetHalflengths());
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::BOX, material, transform, true);
+            group->addChild(grp);
+        } else if (auto sphere = std::dynamic_pointer_cast<ChCollisionShapeSphere>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, sphere->GetRadius());
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true);
+            group->addChild(grp);
+        } else if (auto ellipsoid = std::dynamic_pointer_cast<ChCollisionShapeEllipsoid>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ellipsoid->GetSemiaxes());
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::SPHERE, material, transform, true);
+            group->addChild(grp);
+        } else if (auto cylinder = std::dynamic_pointer_cast<ChCollisionShapeCylinder>(shape)) {
+            double rad = cylinder->GetRadius();
+            double height = cylinder->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CYLINDER, material, transform, true);
+            group->addChild(grp);
+        } else if (auto capsule = std::dynamic_pointer_cast<ChCollisionShapeCapsule>(shape)) {
+            double rad = capsule->GetRadius();
+            double height = capsule->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, rad / 2 + height / 4));
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CAPSULE, material, transform, true);
+            group->addChild(grp);
+        } else if (auto cone = std::dynamic_pointer_cast<ChCollisionShapeCone>(shape)) {
+            double rad = cone->GetRadius();
+            double height = cone->GetHeight();
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(rad, rad, height));
+            auto grp = m_shapeBuilder->CreatePbrShape(ShapeBuilder::ShapeType::CONE, material, transform, true);
+            group->addChild(grp);
+        } else if (auto trimesh = std::dynamic_pointer_cast<ChCollisionShapeTriangleMesh>(shape)) {
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
+            auto trimesh_connected = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh->GetMesh());
+            if (!trimesh_connected)  //// TODO: ChTriangleMeshSoup
+                continue;
+            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
+            group->addChild(grp);
+        } else if (auto hull = std::dynamic_pointer_cast<ChCollisionShapeConvexHull>(shape)) {
+            auto trimesh_connected = chrono_types::make_shared<ChTriangleMeshConnected>();
+            bt_utils::ChConvexHullLibraryWrapper lh;
+            lh.ComputeHull(hull->GetPoints(), *trimesh_connected);
+            auto transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X_SM, ChVector3d(1, 1, 1));
+            auto grp = m_shapeBuilder->CreateTrimeshColShape(trimesh_connected, transform, m_collision_color, true);
+            group->addChild(grp);
+        }
     }
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVisualSystemVSG::UpdateFromMBS() {
+void ChVisualSystemVSG::Update() {
     if (m_show_abs_frame) {
         for (auto& child : m_absFrameScene->children) {
             vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -2017,7 +2175,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         }
     }
 
-    // Update VSG nodes for object visualization
+    // Update all VSG nodes with object visualization
     for (const auto& child : m_objScene->children) {
         std::shared_ptr<ChObj> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
@@ -2026,6 +2184,18 @@ void ChVisualSystemVSG::UpdateFromMBS() {
         if (!child.node->getValue("Transform", transform))
             continue;
         transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
+    }
+
+    // Update all VSG nodes with collision visualization
+    //// TODO: change color to use current m_collision_color
+    for (const auto& child : m_collisionScene->children) {
+        std::shared_ptr<ChContactable> obj;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Object", obj))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        transform->matrix = vsg::dmat4CH(obj->GetCollisionModelFrame(), 1.0);
     }
 
     // Update all VSG nodes with point-point visualization assets
@@ -2062,30 +2232,30 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     //     model_group->model_transform->shapes_group
 
     // Create a group to hold this visual model
-    auto model_group = vsg::Group::create();
+    auto vis_model_group = vsg::Group::create();
 
     // Create a group to hold the shapes with their subtransforms
-    auto shapes_group = vsg::Group::create();
+    auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateGroup(shapes_group, model, nullptr);
+    PopulateVisGroup(vis_shapes_group, model, m_wireframe);
 
     // Attach a transform to the group and initialize it with the provided frame
-    auto model_transform = vsg::MatrixTransform::create();
-    model_transform->matrix = vsg::dmat4CH(frame, 1.0);
-    model_transform->subgraphRequiresLocalFrustum = false;
+    auto vis_model_transform = vsg::MatrixTransform::create();
+    vis_model_transform->matrix = vsg::dmat4CH(frame, 1.0);
+    vis_model_transform->subgraphRequiresLocalFrustum = false;
     if (m_options->sharedObjects) {
-        m_options->sharedObjects->share(model_group);
-        m_options->sharedObjects->share(model_transform);
+        m_options->sharedObjects->share(vis_model_group);
+        m_options->sharedObjects->share(vis_model_transform);
     }
-    model_transform->addChild(shapes_group);
-    model_group->addChild(model_transform);
+    vis_model_transform->addChild(vis_shapes_group);
+    vis_model_group->addChild(vis_model_transform);
 
     // Set group properties
-    model_group->setValue("Transform", model_transform);
+    vis_model_group->setValue("Transform", vis_model_transform);
 
     // Add the group to the global holder
-    m_decoScene->addChild(model_group);
+    m_decoScene->addChild(vis_model_group);
 
     return m_decoScene->children.size() - 1;
 }

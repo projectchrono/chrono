@@ -121,6 +121,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
     void SetParticleCloudVisibility(bool vis, int tag = -1);
 
+    /// Set visibility of collision shapes for objects with specified tag.
+    /// A tag of -1 indicates that the visibility flag should be applied to all collision shapes.
+    void SetCollisionVisibility(bool vis, int tag = -1);
+
+    /// Set color for rendering wireframe collision shapes.
+    void SetCollisionColor(const ChColor& color);
+
     /// Render the absolute (global) reference frame
     void SetAbsFrameScale(double axis_length);
     void ToggleAbsFrameVisibility();
@@ -258,7 +265,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Perform necessary setup operations at the beginning of a time step.
     virtual void OnSetup(ChSystem* sys) override;
 
-    void UpdateFromMBS();
+    /// Update all VSG scenes with the current state of the associated Chrono systems.
+    void Update();
 
     int m_screen_num = -1;
     bool m_use_fullscreen = false;
@@ -286,28 +294,16 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Camera> m_vsg_camera;
     bool m_camera_trackball;  ///< create a camera trackball control?
 
-    //  m_scene +- skybox, lights +- m_objScene
-    //                            |
-    //                            +- m_cogScene
-    //                            |
-    //                            +- m_pointpointScene
-    //                            |
-    //                            +- m_particleScene
-    //                            |
-    //                            +- m_decoScene
-    //                            |
-    //                            +- m_deformableScene
     vsg::ref_ptr<vsg::Group> m_scene;
-
     vsg::ref_ptr<vsg::Switch> m_objScene;
     vsg::ref_ptr<vsg::Switch> m_pointpointScene;
     vsg::ref_ptr<vsg::Switch> m_deformableScene;
     vsg::ref_ptr<vsg::Switch> m_particleScene;
+    vsg::ref_ptr<vsg::Switch> m_collisionScene;
     vsg::ref_ptr<vsg::Switch> m_absFrameScene;
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
-
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
     vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
@@ -363,8 +359,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind all assets associated with the given ChAssembly.
     void BindAssembly(const ChAssembly& assembly);
 
-    /// Bind the visual model associated with a ChObj (body, link, or other).
-    void BindObject(const std::shared_ptr<ChObj>& obj, ObjectType type);
+    /// Bind the visual model associated with a ChObj object (body, link, or other).
+    void BindObjectVisualModel(const std::shared_ptr<ChObj>& obj, ObjectType type);
+
+    /// Bind the collision model associated with a ChContactable object.
+    void BindObjectCollisionModel(const std::shared_ptr<ChContactable>& obj, int tag);
 
     /// Bind deformable meshes in the visual model associated with the given physics item.
     void BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>& item, DeformableType type);
@@ -373,7 +372,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item);
 
     /// Bind the visual model assoicated with a particle cloud.
-    void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
+    void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud, bool wireframe);
 
     /// Bind the reference frame for the given ChObj.
     void BindReferenceFrame(const std::shared_ptr<ChObj>& obj);
@@ -384,11 +383,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the joint frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
-    /// Utility function to populate a VSG group with shape groups (from the given visual model).
-    /// The visual model may or may not be associated with a Chrono object.
-    void PopulateGroup(vsg::ref_ptr<vsg::Group> group,
-                       std::shared_ptr<ChVisualModel> model,
-                       std::shared_ptr<ChObj> obj);
+    /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
+    void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
+                          std::shared_ptr<ChVisualModel> model,
+                          bool wireframe);
+
+    /// Utility function to populate a VSG group with collision shapes (from the given collision model).
+    /// The VSG shapes are always rendered wireframe.
+    void PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
 
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
@@ -418,6 +420,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_show_link_objs;     ///< flag to toggle link asset visibility
     bool m_show_springs;       ///< flag to toggle spring visibility
     bool m_show_fea_meshes;    ///< flag to toggle FEA mesh visibility
+    bool m_show_collision;     ///< flag to toggle collision shape visibility
     bool m_show_abs_frame;     ///< flag to toggle absolute frame visibility
     bool m_show_ref_frames;    ///< flag to toggle object reference frame visibility
     bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
@@ -427,6 +430,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_ref_frame_scale;    ///< current reference frame scale
     double m_cog_frame_scale;    ///< current COG frame scale
     double m_joint_frame_scale;  ///< current joint frame scale
+
+    ChColor m_collision_color;       ///< current color for rendering collision shapes
+    bool m_collision_color_changed;  ///< flag indicating a change in collision color
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_collision_colors;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render

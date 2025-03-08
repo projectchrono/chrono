@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowSize(ChVector2i(1280, 720));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetWindowTitle("Chrono VSG Assets");
             vis_vsg->SetUseSkyBox(true);

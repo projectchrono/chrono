@@ -37,7 +37,7 @@ namespace vsg3d {
 
 class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
   public:
-    enum class ShapeType { BOX_SHAPE, DIE_SHAPE, SPHERE_SHAPE, CYLINDER_SHAPE, CAPSULE_SHAPE, CONE_SHAPE };
+    enum class ShapeType { BOX, DIE, SPHERE, CYLINDER, CAPSULE, CONE };
 
     ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs = 24);
 
@@ -51,20 +51,23 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                    bool wireframe);
 
-    vsg::ref_ptr<vsg::Group> CreateTrimeshPbrMatShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
+    vsg::ref_ptr<vsg::Group> CreateTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                      const std::vector<ChVisualMaterialSharedPtr>& materials,
                                                       bool wireframe);
 
     /// Convert the specified mesh into a triangle soup with vertex colors.
     /// Vertex normals are calculated from each face normal, resulting in sharp edges.
-    vsg::ref_ptr<vsg::Group> CreateTrimeshColShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
+    vsg::ref_ptr<vsg::Group> CreateTrimeshColShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   const ChColor& default_color,
                                                    bool wireframe);
 
     /// Convert the specified mesh into a triangle mesh with vertex colors.
     /// Vertex normals are calculated by averaging the normals of incident faces, resulting in smoothed edges.
-    vsg::ref_ptr<vsg::Group> CreateTrimeshColAvgShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
+    vsg::ref_ptr<vsg::Group> CreateTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                       vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                      const ChColor& default_color,
                                                       bool wireframe);
 
     /// Create a symbol to represent a reference frame.

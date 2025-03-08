@@ -105,7 +105,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
     // the unique texcoords cannot be used directly to allow individual scaling
     // a copy is taken therefore
     switch (shape_type) {
-        case ShapeType::BOX_SHAPE:
+        case ShapeType::BOX:
             vertices = m_box_data->vertices;
             normals = m_box_data->normals;
             texcoords = vsg::vec2Array::create(m_box_data->texcoords->size());
@@ -114,7 +114,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
             }
             indices = m_box_data->indices;
             break;
-        case ShapeType::DIE_SHAPE:
+        case ShapeType::DIE:
             vertices = m_die_data->vertices;
             normals = m_die_data->normals;
             texcoords = vsg::vec2Array::create(m_die_data->texcoords->size());
@@ -123,7 +123,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
             }
             indices = m_die_data->indices;
             break;
-        case ShapeType::SPHERE_SHAPE:
+        case ShapeType::SPHERE:
             vertices = m_sphere_data->vertices;
             normals = m_sphere_data->normals;
             texcoords = vsg::vec2Array::create(m_sphere_data->texcoords->size());
@@ -132,7 +132,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
             }
             indices = m_sphere_data->indices;
             break;
-        case ShapeType::CYLINDER_SHAPE:
+        case ShapeType::CYLINDER:
             vertices = m_cylinder_data->vertices;
             normals = m_cylinder_data->normals;
             texcoords = vsg::vec2Array::create(m_cylinder_data->texcoords->size());
@@ -141,7 +141,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
             }
             indices = m_cylinder_data->indices;
             break;
-        case ShapeType::CAPSULE_SHAPE:
+        case ShapeType::CAPSULE:
             vertices = m_capsule_data->vertices;
             normals = m_capsule_data->normals;
             texcoords = vsg::vec2Array::create(m_capsule_data->texcoords->size());
@@ -150,7 +150,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
             }
             indices = m_capsule_data->indices;
             break;
-        case ShapeType::CONE_SHAPE:
+        case ShapeType::CONE:
             vertices = m_cone_data->vertices;
             normals = m_cone_data->normals;
             texcoords = vsg::vec2Array::create(m_cone_data->texcoords->size());
@@ -177,13 +177,12 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrSurfaceShape(std::shared_ptr<ChV
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                             const ChColor& default_color,
                                                              bool wireframe) {
     auto scenegraph = vsg::Group::create();
     auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
-
-    const auto& mesh = tms->GetMesh();
 
     const auto& vertices = mesh->GetCoordsVertices();
     const auto& normals = mesh->GetCoordsNormals();
@@ -202,8 +201,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
     ChVector3d n[3];   // normals at the triangle vertices
     ChVector2d uv[3];  // UV coordinates at the triangle vertices
     ChColor col[3];    // color coordinates at the triangle vertices
-
-    auto default_color = tms->GetColor();
 
     std::vector<ChVector3d> tmp_vertices;
     std::vector<ChVector3d> tmp_normals;
@@ -294,13 +291,12 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                                const ChColor& default_color,
                                                                 bool wireframe) {
     auto scenegraph = vsg::Group::create();
     auto chronoMat = chrono_types::make_shared<ChVisualMaterial>();
-
-    const auto& mesh = tms->GetMesh();
 
     const auto& vertices = mesh->GetCoordsVertices();
     const auto& normals = mesh->GetCoordsNormals();
@@ -324,7 +320,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
     }
 
     const auto& v_indices = mesh->GetIndicesVertexes();
-    auto default_color = tms->GetColor();
 
     // create and fill the vsg buffers
     vsg::ref_ptr<vsg::vec3Array> vsg_vertices = vsg::vec3Array::create(nvertices);
@@ -375,12 +370,11 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<ChVisualShapeTriangleMesh> tms,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                                const std::vector<ChVisualMaterialSharedPtr>& materials,
                                                                 bool wireframe) {
-    const auto& mesh = tms->GetMesh();
-    const auto& materials = tms->GetMaterials();
-    int nmaterials = (int)materials.size();
+    int num_materials = (int)materials.size();
 
     const auto& vertices = mesh->GetCoordsVertices();
     const auto& normals = mesh->GetCoordsNormals();
@@ -396,10 +390,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
     // Count number of faces assigned to each material (buffer)
     std::vector<size_t> nfaces_per_buffer;
     if (m_indices.empty()) {
-        assert(nmaterials == 1);
+        assert(num_materials == 1);
         nfaces_per_buffer.push_back(ntriangles_all);
     } else {
-        for (size_t imat = 0; imat < nmaterials; imat++) {
+        for (size_t imat = 0; imat < num_materials; imat++) {
             auto count = std::count(m_indices.begin(), m_indices.end(), imat);
             nfaces_per_buffer.push_back(count);
         }
@@ -410,8 +404,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
     transform->subgraphRequiresLocalFrustum = false;
     scenegraph->addChild(transform);
 
-    for (size_t imat = 0; imat < nmaterials; imat++) {
-        auto chronoMat = materials[imat];
+    for (size_t imat = 0; imat < num_materials; imat++) {
+        const auto& chronoMat = materials[imat];
         vsg::ref_ptr<vsg::ShaderSet> shaderSet = createPbrShaderSet(m_options, chronoMat);
 
         std::vector<ChVector3d> tmp_vertices;
