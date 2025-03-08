@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChElementBar::ChElementBar() : area(0.01 * 0.01), density(1000), E(0.01e9), rdamping(0.01), mass(0), length(0) {
+ChElementBar::ChElementBar() : area(0.01 * 0.01), density(1000), E(0.01e9), rdamping(0.01), kstiff(0), mass(0), length(0) {
     nodes.resize(2);
 }
 
@@ -54,10 +54,8 @@ void ChElementBar::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, doubl
     ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
     ChVectorN<double, 3> dircolumn = dir.eigen();
 
-    double Kstiffness = ((this->area * this->E) / this->length);
-    double Rdamping = this->rdamping * Kstiffness;
     // note that stiffness and damping matrices are the same, so join stuff here
-    double commonfactor = Kstiffness * Kfactor + Rdamping * Rfactor;
+    double commonfactor = this->kstiff * Kfactor + (this->rdamping * this->kstiff) * Rfactor; // TODO: the damping part depends on velocity, is 1/dt passed to Rfactor ? Or should 1/dt be inside the damping matrix calculation here?
     ChMatrix33<> V = dircolumn * dircolumn.transpose();
     ChMatrix33<> keV = commonfactor * V;
 
@@ -69,10 +67,9 @@ void ChElementBar::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, doubl
     // add geometric stiffness - in future it might become an option to switch off if not needed.
     // See for ex. http://shodhbhagirathi.iitr.ac.in:8081/jspui/handle/123456789/8433 pag. 14-15
     if (true) {
-        double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+        double L_ref = this->length;
         double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-        double Kstiffness1 = ((this->area * this->E) / this->length);
-        double internal_Kforce_local = Kstiffness1 * (L - L_ref);
+        double internal_Kforce_local = this->kstiff * (L - L_ref);
 
         ChMatrix33<> kgV = Kfactor * (internal_Kforce_local / L_ref) * (ChMatrix33<>(1) - V);
         H.block(0, 0, 3, 3) += kgV;
@@ -94,29 +91,34 @@ void ChElementBar::SetupInitial(ChSystem* system) {
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
     this->mass = this->length * this->area * this->density;
+    this->kstiff = this->area * this->E / this->length;
 }
 
 void ChElementBar::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 6);
 
-    ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-    double internal_force_local = GetCurrentForce();
-    ChVector3d int_forceA = dir * internal_force_local;
-    ChVector3d int_forceB = -dir * internal_force_local;
-
+    ChVector3d dPos = nodes[1]->GetPos() - nodes[0]->GetPos();
+    double L_ref = length;
+    double L = dPos.Length();
+    double Linv = 1.0 / L;
+    ChVector3d dV = nodes[1]->GetPosDt() - nodes[0]->GetPosDt();
+    double internal_Kforce_local = this->kstiff * (L - L_ref);
+    double internal_Rforce_local = (this->rdamping * this->kstiff) * Vdot(dV, dPos) * Linv;
+    double internal_force_local = (internal_Kforce_local + internal_Rforce_local) * Linv;
+    ChVector3d int_forceA = dPos * internal_force_local;
+    ChVector3d int_forceB = -dPos * internal_force_local;
     Fi.segment(0, 3) = int_forceA.eigen();
     Fi.segment(3, 3) = int_forceB.eigen();
 }
 
 double ChElementBar::GetCurrentForce() {
-    ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-    double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
-    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    double L_dt = Vdot((nodes[1]->GetPosDt() - nodes[0]->GetPosDt()), dir);
-    double Kstiffness = ((this->area * this->E) / this->length);
-    double Rdamping = this->rdamping * Kstiffness;
-    double internal_Kforce_local = Kstiffness * (L - L_ref);
-    double internal_Rforce_local = Rdamping * L_dt;
+    ChVector3d dPos = nodes[1]->GetPos() - nodes[0]->GetPos();
+    double L_ref = length;
+    double L = dPos.Length();
+    double Linv = 1.0 / L;
+    ChVector3d dV = nodes[1]->GetPosDt() - nodes[0]->GetPosDt();
+    double internal_Kforce_local = this->kstiff * (L - L_ref);
+    double internal_Rforce_local = (this->rdamping * this->kstiff) * Vdot(dV, dPos) * Linv;
     return internal_Kforce_local + internal_Rforce_local;
 }
 
