@@ -130,6 +130,9 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Set periodic boundary condition for fluid.
     void SetBoundaries(const ChVector3d& cMin, const ChVector3d& cMax);
 
+    /// Set zombie domain for fluid.
+    void SetZombieDomain(const ChVector3d& zombieMin, const ChVector3d& zombieMax);
+
     /// Set half-dimensions of the active domain.
     /// This value activates only those SPH particles that are within an AABB of the specified size from an object
     /// interacting with the "fluid" phase. Note that this setting should *not* be used for actual (CFD) simulations,

@@ -237,7 +237,6 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     uint numExtended = lastPrefixVal + lastFlag;
 
     m_data_mgr.countersH->numExtendedParticles = numExtended;
-    std::cout << "numExtended: " << numExtended << std::endl;
 
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);

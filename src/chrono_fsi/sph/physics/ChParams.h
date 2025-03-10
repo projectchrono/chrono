@@ -53,6 +53,8 @@ struct SimParams {
     Real3 cellSize;         ///< Cell size for the neighbor particle search
     uint numBodies;         ///< Number of FSI bodies.
     Real3 boxDims;          ///< Dimensions (AABB) of the domain
+    Real3 zombieBoxDims;    ///< Dimensions (AABB) of the zombie domain
+    Real3 zombieOrigin;     ///< Origin point of the zombie domain
     Real d0;                ///< Initial separation of SPH particles
     Real ood0;              ///< 1 / d0
     Real d0_multiplier;     ///< Multiplier to obtain the interaction length, h = d0_multiplier * d0
@@ -99,6 +101,7 @@ struct SimParams {
     Real gammaBB;  ///< Equation of state parameter
 
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
+    bool match_zombie_periodic;  ///< true if zombie domain is not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
 
     Real3 cMinInit;  ///< Minimum point of the fluid domain.
@@ -174,6 +177,9 @@ struct SimParams {
 
     Real3 cMin;  ///< Lower limit point
     Real3 cMax;  ///< Upper limit point
+
+    Real3 zombieMin;  ///< Lower limit point of the zombie domain -> All particles outside this will be frozen
+    Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
 
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down

@@ -438,6 +438,8 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     uint isNotExtended = 0;
     Real3 Acdomain = paramsD.bodyActiveDomain;
     Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
+    Real3 zombieBoxDims = paramsD.zombieBoxDims;
+    Real3 zombieOrigin = paramsD.zombieOrigin;
 
     Real3 posRadA = mR3(posRadD[index]);
 
@@ -473,6 +475,15 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     if (isNotExtended == numTotal && numTotal > 0)
         extendedActivityIdD[index] = 0;
 
+    // Check if the particle is outside the zombie domain
+    if (posRadA.x < zombieOrigin.x || posRadA.x > zombieOrigin.x + zombieBoxDims.x ||
+        posRadA.y < zombieOrigin.y || posRadA.y > zombieOrigin.y + zombieBoxDims.y ||
+        posRadA.z < zombieOrigin.z || posRadA.z > zombieOrigin.z + zombieBoxDims.z) {
+        activityIdentifierD[index] = 0;
+        extendedActivityIdD[index] = 0;
+        velMasD[index] = mR3(0.0);
+    }
+    
     return;
 }
 

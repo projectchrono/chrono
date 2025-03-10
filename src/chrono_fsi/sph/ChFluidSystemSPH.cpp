@@ -587,6 +587,11 @@ void ChFluidSystemSPH::SetBoundaries(const ChVector3d& cMin, const ChVector3d& c
     m_paramsH->use_default_limits = false;
 }
 
+void ChFluidSystemSPH::SetZombieDomain(const ChVector3d& zombieMin, const ChVector3d& zombieMax) {
+    m_paramsH->zombieMin = ToReal3(zombieMin);
+    m_paramsH->zombieMax = ToReal3(zombieMax);
+    m_paramsH->match_zombie_periodic = false;
+}
 void ChFluidSystemSPH::SetActiveDomain(const ChVector3d& boxHalfDim) {
     m_paramsH->bodyActiveDomain = ToReal3(boxHalfDim);
 }
@@ -1143,6 +1148,11 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
     }
 
+    if (m_paramsH->match_zombie_periodic) {
+        m_paramsH->zombieMin = m_paramsH->cMin - make_Real3(1, 1, 1);
+        m_paramsH->zombieMax = m_paramsH->cMax + make_Real3(1, 1, 1);
+    }
+
     if (m_paramsH->use_init_pressure) {
         size_t numParticles = m_data_mgr->sphMarkers_H->rhoPresMuH.size();
         for (int i = 0; i < numParticles; i++) {
@@ -1176,6 +1186,10 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->gridSize = SIDE;
     m_paramsH->worldOrigin = m_paramsH->cMin;
     m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
+
+    // Set up stuff for the zombie domain
+    m_paramsH->zombieBoxDims = m_paramsH->zombieMax - m_paramsH->zombieMin;
+    m_paramsH->zombieOrigin = m_paramsH->zombieMin;
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);

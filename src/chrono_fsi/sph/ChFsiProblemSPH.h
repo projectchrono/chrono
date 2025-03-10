@@ -157,6 +157,12 @@ class CH_FSI_API ChFsiProblemSPH {
     /// By default, this is set so that it encompasses all SPH particles and BCE markers.
     void SetComputationalDomainSize(ChAABB aabb) { m_domain_aabb = aabb; }
 
+    /// Explicitly set the zombie domain limits.
+    /// By default this is the bigger than the periodic BC domain by 1 m on each side
+    /// TODO: Develop a way to combine both the periodic BC and the zombie domain
+    /// TODO: Think of a better default than just hardcoded 1 m on each side
+    void SetZombieDomainSize(ChAABB aabb) { m_zombie_aabb = aabb; }
+
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
     void Initialize();
@@ -271,6 +277,7 @@ class CH_FSI_API ChFsiProblemSPH {
     ChVector3d m_offset_sph;           ///< SPH particles offset
     ChVector3d m_offset_bce;           ///< boundary BCE particles offset
     ChAABB m_domain_aabb;              ///< computational domain bounding box
+    ChAABB m_zombie_aabb;              ///< zombie domain bounding box
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
     std::vector<FeaMesh> m_meshes;     ///< list of FSI FEA meshes

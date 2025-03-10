@@ -308,6 +308,14 @@ void ChFsiProblemSPH::Initialize() {
         m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
     }
 
+    // Set the zombie domain if provided
+    if (!m_zombie_aabb.IsInverted()) {
+        m_sysSPH.SetZombieDomain(m_zombie_aabb.min, m_zombie_aabb.max);
+    } else {
+        // Set zombie domain to be 1 m bigger than the Periodic BC domain
+        m_sysSPH.SetZombieDomain(m_domain_aabb.min - ChVector3d(1, 1, 1), m_domain_aabb.max + ChVector3d(1, 1, 1));
+    }
+
     // Initialize the underlying FSI system
     m_sysFSI.Initialize();
     m_initialized = true;
