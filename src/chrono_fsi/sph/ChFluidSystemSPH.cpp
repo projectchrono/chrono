@@ -163,6 +163,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
     m_paramsH->use_default_limits = true;
+    m_paramsH->match_zombie_periodic = true;
     m_paramsH->use_init_pressure = false;
 
     m_paramsH->num_proximity_search_steps = 4;
