@@ -200,7 +200,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* derivTauXyXzYzD,
                              Real4* sr_tau_I_mu_iD,
                              uint* freeSurfaceIdD,
-                             uint* activityIdentifierSortedD,
+                             uint32_t* activityIdentifierSortedD,
                              const uint numActive,
                              Real dT,
                              volatile bool* error_flag) {
@@ -415,8 +415,8 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 const Real3* pos_bodies_D,
                                 const Real3* pos_nodes1D_D,
                                 const Real3* pos_nodes2D_D,
-                                uint* activityIdentifierD,
-                                uint* extendedActivityIdD,
+                                uint32_t* activityIdentifierD,
+                                uint32_t* extendedActivityIdD,
                                 const Real4* rhoPreMuD,
                                 volatile bool* error_flag) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -436,7 +436,6 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     // Check the activity of this particle
     uint isNotActive = 0;
     uint isNotExtended = 0;
-    // Real3 Acdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
     Real3 Acdomain = paramsD.bodyActiveDomain;
     Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
 
@@ -575,7 +574,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
-        U1CAST(m_data_mgr.activityIdentifierOriginalD), U1CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
+        UINT_32CAST(m_data_mgr.activityIdentifierOriginalD), UINT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
         mR4CAST(sphMarkersD->rhoPresMuD), error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
 
@@ -598,7 +597,7 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarke
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
         mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-        U1CAST(m_data_mgr.freeSurfaceIdD), U1CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_flagD);
+        U1CAST(m_data_mgr.freeSurfaceIdD), UINT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT, error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateFluidD");
 
     cudaFreeErrorFlag(error_flagD);

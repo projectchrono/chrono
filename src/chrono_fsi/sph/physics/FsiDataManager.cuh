@@ -319,11 +319,11 @@ class FsiDataManager {
         sr_tau_I_mu_i_Original;  ///< I2SPH strain-rate, stress, inertia number, friction - unsorted for writing
     thrust::device_vector<Real3> bceAcc;  ///< Acceleration for boundary/rigid/flex body particles
 
-    thrust::device_vector<uint>
+    thrust::device_vector<uint32_t>
         activityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
-    thrust::device_vector<uint>
+    thrust::device_vector<uint32_t>
         activityIdentifierSortedD;  ///< Identifies if a particle is an active particle or not - sorted
-    thrust::device_vector<uint>
+    thrust::device_vector<uint32_t>
         extendedActivityIdentifierOriginalD;  ///< Identifies if a particle is an active particle or not - unsorted
     thrust::device_vector<uint> prefixSumExtendedActivityIdD;  ///< Prefix sum of extended particles
     thrust::device_vector<uint> activeListD;         ///< Active list of particles
