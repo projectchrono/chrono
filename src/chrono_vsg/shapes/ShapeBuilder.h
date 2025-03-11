@@ -78,7 +78,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
     /// The color factor controls simultaneous darkening of the 3 colors (a value of 1 indicates pure colors).
     vsg::ref_ptr<vsg::Group> createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                float color_factor,
-                                               float line_width);
+                                               float line_width,
+                                               bool skipZbuffer = false);
 
     vsg::ref_ptr<vsg::Group> CreateLineShape(std::shared_ptr<ChLine> geometry,
                                              std::shared_ptr<ChVisualMaterial> material,
@@ -92,7 +93,8 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
 
     vsg::ref_ptr<vsg::Group> CreateUnitSegment(std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                               float line_width);
+                                               float line_width,
+                                               bool skipZbuffer = false);
 
     vsg::ref_ptr<vsg::Group> CreateSpringShape(std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,

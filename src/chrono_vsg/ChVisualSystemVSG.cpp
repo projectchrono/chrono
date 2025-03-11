@@ -2039,7 +2039,7 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
-    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f, 2.0f);
+    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f, 2.0f, true);
     cog_node->setValue("Body", body);
     cog_node->setValue("MobilizedBody", nullptr);
     cog_node->setValue("Transform", cog_transform);
@@ -2051,7 +2051,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
-        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f, 1.0f);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f, 1.0f, true);
         joint_node->setValue("Link", link);
         joint_node->setValue("Body", 1);
         joint_node->setValue("Transform", joint_transform);
@@ -2060,7 +2060,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
-        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f, 1.0f);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f, 1.0f, true);
         joint_node->setValue("Link", link);
         joint_node->setValue("Body", 2);
         joint_node->setValue("Transform", joint_transform);
@@ -2401,7 +2401,7 @@ void ChVisualSystemVSG::CreateContacts() {
 
         transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(X, ChVector3d(0, 1, 0));
-        auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 1.0f);
+        auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 1.0f, true);
         group->setValue("Transform", transform);
 
         auto colors = vsg::visit<FindVec3BufferData<1>>(group).getBufferData();
@@ -2418,7 +2418,7 @@ void ChVisualSystemVSG::CreateContacts() {
 
         transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(X, ChVector3d(0, 1, 0));
-        auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 1.0f);
+        auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 1.0f, true);
         group->setValue("Transform", transform);
 
         auto colors = vsg::visit<FindVec3BufferData<1>>(group).getBufferData();

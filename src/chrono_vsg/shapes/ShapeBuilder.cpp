@@ -545,7 +545,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                          float color_factor,
-                                                         float line_width) {
+                                                         float line_width,
+                                                         bool skipZbuffer) {
     auto scenegraph = vsg::Group::create();
     scenegraph->addChild(transform);
 
@@ -585,7 +586,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     colors->set(4, vsg::vec3CH(B));
     colors->set(5, vsg::vec3CH(B));
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_LIST, line_width, skipZbuffer);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -745,7 +746,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(std::shared_ptr<ChVisua
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(std::shared_ptr<ChVisualMaterial> material,
                                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                         float line_width) {
+                                                         float line_width,
+                                                         bool skipZbuffer) {
     auto scenegraph = vsg::Group::create();
     scenegraph->addChild(transform);
 
@@ -760,7 +762,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(std::shared_ptr<ChVisua
     colors->set(0, cv);
     colors->set(1, cv);
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, line_width);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, line_width, skipZbuffer);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();

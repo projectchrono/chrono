@@ -21,7 +21,7 @@
 namespace chrono {
 namespace vsg3d {
 
-vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options) {
+vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options> options, bool skipZbuffer) {
     // vsg::info("Local LineShaderSet(", options, ")");
 
     bool use_embedded_shaders = true;
@@ -50,6 +50,13 @@ vsg::ref_ptr<vsg::ShaderSet> createLineShaderSet(vsg::ref_ptr<const vsg::Options
 
     shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_VERTEX_BIT, 0, 128);
 
+    if (skipZbuffer) {
+        // create a DepthStencilState, disable depth test and add this to the ShaderSet::defaultGraphicsPipelineStates
+        // container so it's used when setting up the TextGroup subgraph
+        auto depthStencilState = vsg::DepthStencilState::create();
+        depthStencilState->depthTestEnable = VK_FALSE;
+        shaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
+    }
     return shaderSet;
 }
 
@@ -159,7 +166,8 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
 
 vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Options> options,
                                                    VkPrimitiveTopology topology,
-                                                   float line_width) {
+                                                   float line_width,
+                                                   bool skipZbuffer) {
     vsg::ref_ptr<vsg::SharedObjects> sharedObjects;
     if (!sharedObjects) {
         if (options)
@@ -168,7 +176,7 @@ vsg::ref_ptr<vsg::StateGroup> createLineStateGroup(vsg::ref_ptr<const vsg::Optio
             sharedObjects = vsg::SharedObjects::create();
     }
 
-    vsg::ref_ptr<vsg::ShaderSet> activeShaderSet = createLineShaderSet(options);
+    vsg::ref_ptr<vsg::ShaderSet> activeShaderSet = createLineShaderSet(options, skipZbuffer);
     auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(activeShaderSet);
 
     ////auto& defines = graphicsPipelineConfig->shaderHints->defines;

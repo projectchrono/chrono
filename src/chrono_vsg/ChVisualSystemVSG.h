@@ -457,9 +457,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
     /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
-    void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
-                          std::shared_ptr<ChVisualModel> model,
-                          bool wireframe);
+    void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model, bool wireframe);
 
     /// Utility function to populate a VSG group with collision shapes (from the given collision model).
     /// The VSG shapes are always rendered wireframe.
@@ -518,10 +516,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
 
     // Frame rendering
-    bool m_show_abs_frame;     ///< flag to toggle absolute frame visibility
-    bool m_show_ref_frames;    ///< flag to toggle object reference frame visibility
-    bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
-    bool m_show_joint_frames;  ///< flag to toggle COG frame visibility
+    bool m_show_abs_frame;       ///< flag to toggle absolute frame visibility
+    bool m_show_ref_frames;      ///< flag to toggle object reference frame visibility
+    bool m_show_cog_frames;      ///< flag to toggle COG frame visibility
+    bool m_show_joint_frames;    ///< flag to toggle COG frame visibility
     double m_abs_frame_scale;    ///< current absolute frame scale
     double m_ref_frame_scale;    ///< current reference frame scale
     double m_cog_frame_scale;    ///< current COG frame scale
