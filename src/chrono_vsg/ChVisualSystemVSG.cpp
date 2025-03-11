@@ -114,10 +114,14 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
     virtual void render() override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
+
+        ImGuiTableFlags table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
+        ImGuiColorEditFlags color_edit_flags =
+            ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoDragDrop;
+
         ImGui::Begin("Simulation");
 
-        if (ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("SimTable", 2, table_flags, ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Model Time:");
             ImGui::TableNextColumn();
@@ -139,7 +143,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::Text("%8.3f", m_app->GetSimulationRTF());
 
             ImGui::TableNextRow();
-            
+
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Rendering FPS:");
             ImGui::TableNextColumn();
@@ -148,8 +152,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        if (ImGui::BeginTable("Counters", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("Counters", 2, table_flags, ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Counters");
             ImGui::TableNextColumn();
@@ -206,132 +209,160 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Show frames");
-            ImGui::TableNextColumn();
+        if (ImGui::CollapsingHeader("Show frames")) {
+            if (ImGui::BeginTable("Frames", 2, table_flags, ImVec2(0.0f, 0.0f))) {
+                ImGui::TableNextColumn();
+                static bool abs_frame_active = m_app->m_show_abs_frame;
+                if (ImGui::Checkbox("Global", &abs_frame_active))
+                    m_app->ToggleAbsFrameVisibility();
+                ImGui::TableNextColumn();
+                float abs_frame_scale = m_app->m_abs_frame_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##abs", &abs_frame_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                m_app->m_abs_frame_scale = abs_frame_scale;
 
-            ImGui::TableNextRow();
+                ImGui::TableNextRow();
 
-            ImGui::TableNextColumn();
-            static bool abs_frame_active = m_app->m_show_abs_frame;
-            if (ImGui::Checkbox("Global", &abs_frame_active))
-                m_app->ToggleAbsFrameVisibility();
-            ImGui::TableNextColumn();
-            float abs_frame_scale = m_app->m_abs_frame_scale;
-            ImGui::PushItemWidth(120.0f);
-            ImGui::SliderFloat("scale##abs", &abs_frame_scale, 0.1f, 10.0f);
-            ImGui::PopItemWidth();
-            m_app->m_abs_frame_scale = abs_frame_scale;
+                ImGui::TableNextColumn();
+                static bool bRef_frame_active = m_app->m_show_ref_frames;
+                if (ImGui::Checkbox("Ref", &bRef_frame_active))
+                    m_app->ToggleRefFrameVisibility();
+                ImGui::TableNextColumn();
+                float ref_frame_scale = m_app->m_ref_frame_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##ref", &ref_frame_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                m_app->m_ref_frame_scale = ref_frame_scale;
 
-            ImGui::TableNextRow();
+                ImGui::TableNextRow();
 
-            ImGui::TableNextColumn();
-            static bool bRef_frame_active = m_app->m_show_ref_frames;
-            if (ImGui::Checkbox("Ref", &bRef_frame_active))
-                m_app->ToggleRefFrameVisibility();
-            ImGui::TableNextColumn();
-            float ref_frame_scale = m_app->m_ref_frame_scale;
-            ImGui::PushItemWidth(120.0f);
-            ImGui::SliderFloat("scale##ref", &ref_frame_scale, 0.1f, 10.0f);
-            ImGui::PopItemWidth();
-            m_app->m_ref_frame_scale = ref_frame_scale;
+                ImGui::TableNextColumn();
+                static bool bCOG_frame_active = m_app->m_show_cog_frames;
+                if (ImGui::Checkbox("COM", &bCOG_frame_active))
+                    m_app->ToggleCOGFrameVisibility();
+                ImGui::TableNextColumn();
+                float cog_frame_scale = m_app->m_cog_frame_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##cog", &cog_frame_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                m_app->m_cog_frame_scale = cog_frame_scale;
 
-            ImGui::TableNextRow();
+                ImGui::TableNextRow();
 
-            ImGui::TableNextColumn();
-            static bool bCOG_frame_active = m_app->m_show_cog_frames;
-            if (ImGui::Checkbox("COM", &bCOG_frame_active))
-                m_app->ToggleCOGFrameVisibility();
-            ImGui::TableNextColumn();
-            float cog_frame_scale = m_app->m_cog_frame_scale;
-            ImGui::PushItemWidth(120.0f);
-            ImGui::SliderFloat("scale##cog", &cog_frame_scale, 0.1f, 10.0f);
-            ImGui::PopItemWidth();
-            m_app->m_cog_frame_scale = cog_frame_scale;
+                ImGui::TableNextColumn();
+                static bool bJoint_frame_active = m_app->m_show_joint_frames;
+                if (ImGui::Checkbox("Joint", &bJoint_frame_active))
+                    m_app->ToggleJointFrameVisibility();
+                ImGui::TableNextColumn();
+                float joint_frame_scale = m_app->m_joint_frame_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##joint", &joint_frame_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                m_app->m_joint_frame_scale = joint_frame_scale;
 
-            ImGui::TableNextRow();
-
-            ImGui::TableNextColumn();
-            static bool bJoint_frame_active = m_app->m_show_joint_frames;
-            if (ImGui::Checkbox("Joint", &bJoint_frame_active))
-                m_app->ToggleJointFrameVisibility();
-            ImGui::TableNextColumn();
-            float joint_frame_scale = m_app->m_joint_frame_scale;
-            ImGui::PushItemWidth(120.0f);
-            ImGui::SliderFloat("scale##joint", &joint_frame_scale, 0.1f, 5.0f);
-            ImGui::PopItemWidth();
-            m_app->m_joint_frame_scale = joint_frame_scale;
-
-            ImGui::EndTable();
+                ImGui::EndTable();
+            }
         }
 
-        if (ImGui::BeginTable("Collision", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Show collision");
-            ImGui::TableNextColumn();
+        if (ImGui::CollapsingHeader("Collision & Contact")) {
+            if (ImGui::BeginTable("Collision", 3, table_flags, ImVec2(0.0f, 0.0f))) {
+                ImGui::TableNextColumn();
+                static bool show_collision = m_app->m_show_collision;
+                if (ImGui::Checkbox("Collision shapes", &show_collision)) {
+                    m_app->m_show_collision = !m_app->m_show_collision;
+                    m_app->SetCollisionVisibility(m_app->m_show_collision, -1);
+                }
+                ImGui::TableNextColumn();
+                ImVec4 collision_color(m_app->m_collision_color.R, m_app->m_collision_color.G,
+                                       m_app->m_collision_color.B, 0);
+                if (ImGui::ColorEdit3("color##collision", (float*)&collision_color, color_edit_flags)) {
+                    m_app->SetCollisionColor(ChColor(collision_color.x, collision_color.y, collision_color.z));
+                }
+                ImGui::TableNextColumn();
 
-            ImGui::TableNextRow();
+                ImGui::TableNextRow();
 
-            ImGui::TableNextColumn();
-            static bool show_collision = m_app->m_show_collision;
-            if (ImGui::Checkbox("Collision shapes", &show_collision)) {
-                m_app->m_show_collision = !m_app->m_show_collision;
-                m_app->SetCollisionVisibility(m_app->m_show_collision, -1);
+                ImGui::TableNextColumn();
+                static bool show_contact_normals = m_app->m_show_contact_normals;
+                if (ImGui::Checkbox("Contact normals", &show_contact_normals)) {
+                    m_app->m_show_contact_normals = !m_app->m_show_contact_normals;
+                    m_app->SetContactNormalsVisibility(m_app->m_show_contact_normals, -1);
+                }
+                ImGui::TableNextColumn();
+                ImVec4 contact_normals_color(m_app->m_contact_normals_color.R, m_app->m_contact_normals_color.G,
+                                             m_app->m_contact_normals_color.B, 0);
+                if (ImGui::ColorEdit3("color##contact_normals", (float*)&contact_normals_color, color_edit_flags)) {
+                    m_app->SetContactNormalsColor(
+                        ChColor(contact_normals_color.x, contact_normals_color.y, contact_normals_color.z));
+                }
+                ImGui::TableNextColumn();
+                float contact_normals_scale = m_app->m_contact_normals_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##contact_normals", &contact_normals_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                m_app->m_contact_normals_scale = contact_normals_scale;
+
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                static bool show_contact_forces = m_app->m_show_contact_forces;
+                if (ImGui::Checkbox("Contact forces", &show_contact_forces)) {
+                    m_app->m_show_contact_forces = !m_app->m_show_contact_forces;
+                    m_app->SetContactForcesVisibility(m_app->m_show_contact_forces, -1);
+                }
+                ImGui::TableNextColumn();
+                ImVec4 contact_forces_color(m_app->m_contact_forces_color.R, m_app->m_contact_forces_color.G,
+                                            m_app->m_contact_forces_color.B, 0);
+                if (ImGui::ColorEdit3("color##contact_forces", (float*)&contact_forces_color, color_edit_flags)) {
+                    m_app->SetContactForcesColor(
+                        ChColor(contact_forces_color.x, contact_forces_color.y, contact_forces_color.z));
+                }
+                ImGui::TableNextColumn();
+                float contact_forces_scale = m_app->m_contact_forces_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##contact_forces", &contact_forces_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                m_app->m_contact_forces_scale = contact_forces_scale;
+
+                ImGui::EndTable();
             }
-            ImGui::TableNextColumn();
-            ImVec4 color(m_app->m_collision_color.R, m_app->m_collision_color.G, m_app->m_collision_color.B, 0);
-            ImGuiColorEditFlags flags =
-                ImGuiColorEditFlags_Float | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoDragDrop;
-            if (ImGui::ColorEdit3("color##collision", (float*)&color, flags)) {
-                m_app->SetCollisionColor(ChColor(color.x, color.y, color.z));
-            }
-
-            ImGui::EndTable();
         }
 
-        if (m_app->m_show_visibility_controls &&  //
-            ImGui::BeginTable("Shapes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted("Show components");
-            ImGui::TableNextColumn();
+        if (ImGui::CollapsingHeader("Show components")) {
+            if (m_app->m_show_visibility_controls && ImGui::BeginTable("Shapes", 2, table_flags, ImVec2(0.0f, 0.0f))) {
+                ImGui::TableNextColumn();
+                static bool body_obj_visible = m_app->m_show_body_objs;
+                if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
+                    m_app->m_show_body_objs = !m_app->m_show_body_objs;
+                    m_app->SetBodyObjVisibility(m_app->m_show_body_objs, -1);
+                }
 
-            ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                static bool link_obj_visible = m_app->m_show_link_objs;
+                if (ImGui::Checkbox("Links", &link_obj_visible)) {
+                    m_app->m_show_link_objs = !m_app->m_show_link_objs;
+                    m_app->SetLinkObjVisibility(m_app->m_show_link_objs, -1);
+                }
 
-            ImGui::TableNextColumn();
-            static bool body_obj_visible = m_app->m_show_body_objs;
-            if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
-                m_app->m_show_body_objs = !m_app->m_show_body_objs;
-                m_app->SetBodyObjVisibility(m_app->m_show_body_objs, -1);
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                static bool fea_mesh_visible = m_app->m_show_fea_meshes;
+                if (ImGui::Checkbox("FEA meshes", &fea_mesh_visible)) {
+                    m_app->m_show_fea_meshes = !m_app->m_show_fea_meshes;
+                    m_app->SetFeaMeshVisibility(m_app->m_show_fea_meshes, -1);
+                }
+
+                ImGui::TableNextColumn();
+                static bool spring_visible = m_app->m_show_springs;
+                if (ImGui::Checkbox("Springs", &spring_visible)) {
+                    m_app->m_show_springs = !m_app->m_show_springs;
+                    m_app->SetSpringVisibility(m_app->m_show_springs, -1);
+                }
+
+                ImGui::EndTable();
             }
-
-            ImGui::TableNextColumn();
-            static bool link_obj_visible = m_app->m_show_link_objs;
-            if (ImGui::Checkbox("Links", &link_obj_visible)) {
-                m_app->m_show_link_objs = !m_app->m_show_link_objs;
-                m_app->SetLinkObjVisibility(m_app->m_show_link_objs, -1);
-            }
-
-            ImGui::TableNextRow();
-
-            ImGui::TableNextColumn();
-            static bool fea_mesh_visible = m_app->m_show_fea_meshes;
-            if (ImGui::Checkbox("FEA meshes", &fea_mesh_visible)) {
-                m_app->m_show_fea_meshes = !m_app->m_show_fea_meshes;
-                m_app->SetFeaMeshVisibility(m_app->m_show_fea_meshes, -1);
-            }
-
-            ImGui::TableNextColumn();
-            static bool spring_visible = m_app->m_show_springs;
-            if (ImGui::Checkbox("Springs", &spring_visible)) {
-                m_app->m_show_springs = !m_app->m_show_springs;
-                m_app->SetSpringVisibility(m_app->m_show_springs, -1);
-            }
-
-            ImGui::EndTable();
         }
 
         ImGui::Spacing();
@@ -355,10 +386,12 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
 
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
+
+        ImGuiTableFlags table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
+
         ImGui::Begin("Camera");
 
-        if (ImGui::BeginTable("Location", 4, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
-                              ImVec2(0.0f, 0.0f))) {
+        if (ImGui::BeginTable("Location", 4, table_flags, ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Location");
             for (int i = 0; i < 3; i++) {
@@ -501,6 +534,11 @@ class FindVec3BufferData : public vsg::Visitor {
             return;
         bvd.arrays[N]->data->accept(*this);
     }
+    void apply(vsg::VertexDraw& vd) override {
+        if (vd.arrays.empty())
+            return;
+        vd.arrays[N]->data->accept(*this);
+    }
     void apply(vsg::VertexIndexDraw& vid) override {
         if (vid.arrays.empty())
             return;
@@ -609,27 +647,44 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_logo_height(64),
       m_yup(false),
       m_useSkybox(false),
+      m_camera_trackball(true),
       m_capture_image(false),
       m_wireframe(false),
+      //
       m_show_gui(true),
       m_show_base_gui(true),
-      m_camera_trackball(true),
-      m_abs_frame_scale(1),
-      m_ref_frame_scale(1),
-      m_cog_frame_scale(1),
-      m_joint_frame_scale(1),
-      m_collision_color(ChColor(0.9f, 0.4f, 0.2f)),
-      m_collision_color_changed(false),
       m_show_visibility_controls(true),
+      //
       m_show_body_objs(true),
       m_show_link_objs(true),
       m_show_springs(true),
       m_show_fea_meshes(true),
+      //
       m_show_collision(false),
+      m_collision_color(ChColor(0.9f, 0.4f, 0.2f)),
+      m_collision_color_changed(false),
+      //
+      m_max_num_contacts(200),
+      //
+      m_show_contact_normals(false),
+      m_contact_normals_color(ChColor(0.16f, 0.96f, 0.23f)),
+      m_contact_normals_color_changed(false),
+      m_contact_normals_scale(1),
+      //
+      m_show_contact_forces(false),
+      m_contact_forces_color(ChColor(0.94f, 0.96f, 0.16f)),
+      m_contact_forces_color_changed(false),
+      m_contact_forces_scale(1),
+      //
       m_show_abs_frame(false),
       m_show_ref_frames(false),
       m_show_cog_frames(false),
       m_show_joint_frames(false),
+      m_abs_frame_scale(1),
+      m_ref_frame_scale(1),
+      m_cog_frame_scale(1),
+      m_joint_frame_scale(1),
+      //
       m_frame_number(0),
       m_start_time(0),
       m_time_total(0),
@@ -649,6 +704,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_deformableScene = vsg::Switch::create();
     m_particleScene = vsg::Switch::create();
     m_collisionScene = vsg::Switch::create();
+    m_contactNormalsScene = vsg::Switch::create();
+    m_contactForcesScene = vsg::Switch::create();
     m_absFrameScene = vsg::Switch::create();
     m_refFrameScene = vsg::Switch::create();
     m_cogFrameScene = vsg::Switch::create();
@@ -991,6 +1048,8 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_particleScene);
     m_scene->addChild(m_deformableScene);
     m_scene->addChild(m_collisionScene);
+    m_scene->addChild(m_contactNormalsScene);
+    m_scene->addChild(m_contactForcesScene);
     m_scene->addChild(m_absFrameScene);
     m_scene->addChild(m_refFrameScene);
     m_scene->addChild(m_cogFrameScene);
@@ -998,6 +1057,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_decoScene);
 
     BindAll();
+    CreateContacts();
 
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
@@ -1101,7 +1161,7 @@ void ChVisualSystemVSG::Initialize() {
     auto renderImGui = vsgImGui::RenderImGui::create(m_window, ChMainGuiVSG::create(this, m_options, m_logo_height));
     renderGraph->addChild(renderImGui);
 
-    // Use the ImGui drak (default) style, with adjusted transparency 
+    // Use the ImGui drak (default) style, with adjusted transparency
     ImGui::StyleColorsDark();
     auto& style = ImGui::GetStyle();
     ImVec4 bg_color = style.Colors[ImGuiCol_WindowBg];
@@ -1159,6 +1219,9 @@ void ChVisualSystemVSG::Initialize() {
 
     m_viewer->compile(resourceHints);
 
+    // Create contact creation handler
+    m_contact_creator = chrono_types::make_shared<CreateContactsVSG>(this);
+
     // Prepare reading 3d files
     m_loadThreads = vsg::OperationThreads::create(m_numThreads, m_viewer->status);
 
@@ -1194,7 +1257,7 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->update();
 
-    // Dynamic data transfer CPU->GPU for collision models
+    // Dynamic data transfer CPU->GPU for line models
     if (m_collision_color_changed) {
         for (const auto& colors : m_collision_colors) {
             for (auto& c : *colors)
@@ -1202,6 +1265,25 @@ void ChVisualSystemVSG::Render() {
             colors->dirty();
         }
         m_collision_color_changed = false;
+    }
+
+    // Dynamic data transfer for contact colors
+    if (m_contact_normals_color_changed) {
+        for (const auto& colors : m_contact_normals_colors) {
+            for (auto& c : *colors)
+                c = vsg::vec3CH(m_contact_normals_color);
+            colors->dirty();
+        }
+        m_contact_normals_color_changed = false;
+    }
+
+    if (m_contact_forces_color_changed) {
+        for (const auto& colors : m_contact_forces_colors) {
+            for (auto& c : *colors)
+                c = vsg::vec3CH(m_contact_forces_color);
+            colors->dirty();
+        }
+        m_contact_forces_color_changed = false;
     }
 
     // Dynamic data transfer CPU->GPU for point clouds
@@ -1376,6 +1458,52 @@ void ChVisualSystemVSG::SetCollisionColor(const ChColor& color) {
 
     if (m_initialized)
         m_collision_color_changed = true;
+}
+
+void ChVisualSystemVSG::SetContactNormalsVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_contactNormalsScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
+    }
+}
+
+void ChVisualSystemVSG::SetContactNormalsColor(const ChColor& color) {
+    m_contact_normals_color = color;
+
+    if (m_initialized)
+        m_contact_normals_color_changed = true;
+}
+
+void ChVisualSystemVSG::SetContactNormalsScale(double length) {
+    m_contact_normals_scale = length;
+}
+
+void ChVisualSystemVSG::SetContactForcesVisibility(bool vis, int tag) {
+    if (!m_initialized)
+        return;
+
+    for (auto& child : m_contactForcesScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
+    }
+}
+
+void ChVisualSystemVSG::SetContactForcesColor(const ChColor& color) {
+    m_contact_forces_color = color;
+
+    if (m_initialized)
+        m_contact_forces_color_changed = true;
+}
+
+void ChVisualSystemVSG::SetContactForcesScale(double length) {
+    m_contact_forces_scale = length;
 }
 
 void ChVisualSystemVSG::SetAbsFrameScale(double axis_length) {
@@ -1746,6 +1874,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
 
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
         auto& shape = shape_instance.first;
+
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
             auto X = PointPointFrame(segshape->GetPoint1Abs(), segshape->GetPoint2Abs(), length);
@@ -1753,13 +1882,17 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
                 shape->GetMaterials().empty() ? ChVisualMaterial::Default() : shape->GetMaterial(0);
 
             auto transform = vsg::MatrixTransform::create();
-            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, length, 0));
-            auto group = m_shapeBuilder->CreateUnitSegment(shape_instance, material, transform);
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(1, length, 1));
+            auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 2.0f);
             group->setValue("Type", PointPointType::SEGMENT);
             group->setValue("Tag", item->GetTag());
+            group->setValue("Shape", shape);
+            group->setValue("Transform", transform);
             m_pointpointScene->addChild(mask_segments, group);
         } else if (auto sprshape = std::dynamic_pointer_cast<ChVisualShapeSpring>(shape)) {
-            double rad = sprshape->GetRadius();
+            auto rad = sprshape->GetRadius();
+            auto turns = sprshape->GetTurns();
+            auto resolution = sprshape->GetResolution();
             double length;
             auto X = PointPointFrame(sprshape->GetPoint1Abs(), sprshape->GetPoint2Abs(), length);
             std::shared_ptr<ChVisualMaterial> material =
@@ -1767,9 +1900,11 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
 
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
-            auto group = m_shapeBuilder->CreateSpringShape(shape_instance, material, transform, sprshape);
+            auto group = m_shapeBuilder->CreateSpringShape(material, transform, resolution, turns, 2.0f);
             group->setValue("Type", PointPointType::SPRING);
             group->setValue("Tag", item->GetTag());
+            group->setValue("Shape", shape);
+            group->setValue("Transform", transform);
             m_pointpointScene->addChild(mask_springs, group);
         }
     }
@@ -2005,9 +2140,13 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
                                                                    wireframe);
             group->addChild(grp);
         } else if (auto surface = std::dynamic_pointer_cast<ChVisualShapeSurface>(shape)) {
+            auto geometry = surface->GetSurfaceGeometry();
+            auto resolution_u = surface->GetResolutionU();
+            auto resolution_v = surface->GetResolutionV();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(surface, material, transform, wireframe);
+            auto grp = m_shapeBuilder->CreatePbrSurfaceShape(geometry, material, transform, resolution_u, resolution_v,
+                                                             wireframe);
             group->addChild(grp);
         } else if (auto model_file = std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             const auto& filename = model_file->GetFilename();
@@ -2034,13 +2173,17 @@ void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
                 group->addChild(grp);
             }
         } else if (auto line = std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
+            auto geometry = line->GetLineGeometry();
+            auto num_points = line->GetNumRenderPoints();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->CreateLineShape(shape_instance, material, transform, line));
+            group->addChild(m_shapeBuilder->CreateLineShape(geometry, material, transform, num_points));
         } else if (auto path = std::dynamic_pointer_cast<ChVisualShapePath>(shape)) {
+            auto geometry = path->GetPathGeometry();
+            auto num_points = path->GetNumRenderPoints();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix = vsg::dmat4CH(X_SM, 1.0);
-            group->addChild(m_shapeBuilder->CreatePathShape(shape_instance, material, transform, path));
+            group->addChild(m_shapeBuilder->CreatePathShape(geometry, material, transform, num_points));
         }
 
     }  // end loop over visual shapes
@@ -2186,28 +2329,14 @@ void ChVisualSystemVSG::Update() {
         transform->matrix = vsg::dmat4CH(obj->GetVisualModelFrame(), 1.0);
     }
 
-    // Update all VSG nodes with collision visualization
-    //// TODO: change color to use current m_collision_color
-    for (const auto& child : m_collisionScene->children) {
-        std::shared_ptr<ChContactable> obj;
-        vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child.node->getValue("Object", obj))
-            continue;
-        if (!child.node->getValue("Transform", transform))
-            continue;
-        transform->matrix = vsg::dmat4CH(obj->GetCollisionModelFrame(), 1.0);
-    }
-
     // Update all VSG nodes with point-point visualization assets
     for (const auto& child : m_pointpointScene->children) {
-        ChVisualModel::ShapeInstance shapeInstance;
+        std::shared_ptr<ChVisualShape> shape;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
-        if (!child.node->getValue("ShapeInstance", shapeInstance))
+        if (!child.node->getValue("Shape", shape))
             continue;
         if (!child.node->getValue("Transform", transform))
             continue;
-
-        auto& shape = shapeInstance.first;
 
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
@@ -2220,7 +2349,212 @@ void ChVisualSystemVSG::Update() {
             transform->matrix = vsg::dmat4CH(X, ChVector3d(rad, length, rad));
         }
     }
+
+    // Update all VSG nodes with collision visualization
+    for (const auto& child : m_collisionScene->children) {
+        std::shared_ptr<ChContactable> obj;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Object", obj))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        transform->matrix = vsg::dmat4CH(obj->GetCollisionModelFrame(), 1.0);
+    }
+
+    // Update all VSG nodes with contact visualization
+
+    if (m_show_contact_normals || m_show_contact_forces) {
+        // Reset contact drawer
+        m_contact_creator->Reset();
+
+        // Traverse contacts and update VSG nodes
+        unsigned int num_contacts = 0;
+        for (auto sys : m_systems) {
+            sys->GetContactContainer()->ReportAllContacts(m_contact_creator);
+            num_contacts += sys->GetNumContacts();
+        }
+
+        // Set visibility of VSG contact nodes (always hide the "extra" contact nodes)
+        for (unsigned int i = 0; i < m_max_num_contacts; i++) {
+            vsg::Mask mask_normals = m_show_contact_normals;
+            vsg::Mask mask_forces = m_show_contact_forces;
+            if (i >= num_contacts) {
+                mask_normals = false;
+                mask_forces = false;
+            }
+            m_contactNormalsScene->children[i].mask = mask_normals;
+            m_contactForcesScene->children[i].mask = mask_forces;
+        }
+    }
 }
+
+// -----------------------------------------------------------------------------
+
+void ChVisualSystemVSG::CreateContacts() {
+    ChFramed X;
+    vsg::ref_ptr<vsg::MatrixTransform> transform;
+
+    for (unsigned int i = 0; i < m_max_num_contacts; i++) {
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetDiffuseColor(m_contact_normals_color);
+        vsg::Mask mask = m_show_contact_normals;
+
+        transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(X, ChVector3d(0, 1, 0));
+        auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 1.0f);
+        group->setValue("Transform", transform);
+
+        auto colors = vsg::visit<FindVec3BufferData<1>>(group).getBufferData();
+        colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+        m_contact_normals_colors.push_back(colors);
+
+        m_contactNormalsScene->addChild(mask, group);
+    }
+
+    for (unsigned int i = 0; i < m_max_num_contacts; i++) {
+        auto material = chrono_types::make_shared<ChVisualMaterial>();
+        material->SetDiffuseColor(m_contact_forces_color);
+        vsg::Mask mask = m_show_contact_forces;
+
+        transform = vsg::MatrixTransform::create();
+        transform->matrix = vsg::dmat4CH(X, ChVector3d(0, 1, 0));
+        auto group = m_shapeBuilder->CreateUnitSegment(material, transform, 1.0f);
+        group->setValue("Transform", transform);
+
+        auto colors = vsg::visit<FindVec3BufferData<1>>(group).getBufferData();
+        colors->properties.dataVariance = vsg::DYNAMIC_DATA;
+        m_contact_forces_colors.push_back(colors);
+
+        m_contactForcesScene->addChild(mask, group);
+    }
+}
+
+ChVisualSystemVSG::CreateContactsVSG::CreateContactsVSG(ChVisualSystemVSG* app) : m_app(app), m_crt_contact(0) {}
+
+void ChVisualSystemVSG::CreateContactsVSG::Reset() {
+    m_crt_contact = 0;
+}
+
+bool ChVisualSystemVSG::CreateContactsVSG::OnReportContact(const ChVector3d& pA,
+                                                           const ChVector3d& pB,
+                                                           const ChMatrix33<>& plane_coord,
+                                                           const double& distance,
+                                                           const double& eff_Radius,
+                                                           const ChVector3d& react_forces,
+                                                           const ChVector3d& react_torques,
+                                                           ChContactable* modA,
+                                                           ChContactable* modB) {
+    // If we reached the alloted number of contact nodes, return now and stop scanning contacts
+    if (m_crt_contact >= m_app->m_max_num_contacts)
+        return false;
+
+    if (m_app->m_show_contact_normals) {
+        auto len = m_app->m_contact_normals_scale;
+        auto X = PointPointFrame(pB, pB - plane_coord.GetAxisX() * len, len);
+
+        auto child = m_app->m_contactNormalsScene->children[m_crt_contact];
+
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        child.node->getValue("Transform", transform);
+        transform->matrix = vsg::dmat4CH(X, ChVector3d(0, len, 0));
+    }
+
+    if (m_app->m_show_contact_forces) {
+        auto scaled_force = react_forces / 1000;
+        auto vec = plane_coord * (scaled_force * m_app->m_contact_forces_scale);
+        auto len = vec.Length();
+        auto X = PointPointFrame(pA, pA + vec, len);
+
+        auto child = m_app->m_contactForcesScene->children[m_crt_contact];
+
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        child.node->getValue("Transform", transform);
+        transform->matrix = vsg::dmat4CH(X, ChVector3d(0, len, 0));
+    }
+
+    m_crt_contact++;
+
+    // Continue scanning contacts
+    return true;
+}
+
+/*
+ *
+ * TODO: this version does not work with current VSG if shadows are enabled.
+ * This is because there are issues with creating nodes after initialization of the shadow processing!
+ *
+
+ChVisualSystemVSG::CreateContactsVSG::CreateContactsVSG(ChVisualSystemVSG* app)
+    : m_app(app), m_num_existing_normals_nodes(0), m_num_existing_forces_nodes(0) {
+    m_mat_normals = chrono_types::make_shared<ChVisualMaterial>();
+    m_mat_normals->SetDiffuseColor(m_app->m_contact_normals_color);
+    m_mat_forces = chrono_types::make_shared<ChVisualMaterial>();
+    m_mat_forces->SetDiffuseColor(m_app->m_contact_forces_color);
+}
+
+void ChVisualSystemVSG::CreateContactsVSG::Reset() {
+    m_num_existing_normals_nodes = m_app->m_contactNormalsScene->children.size();
+    m_num_existing_forces_nodes = m_app->m_contactForcesScene->children.size();
+    m_crt_normals_node = 0;
+    m_crt_forces_node = 0;
+}
+
+bool ChVisualSystemVSG::CreateContactsVSG::OnReportContact(const ChVector3d& pA,
+                                                           const ChVector3d& pB,
+                                                           const ChMatrix33<>& plane_coord,
+                                                           const double& distance,
+                                                           const double& eff_Radius,
+                                                           const ChVector3d& react_forces,
+                                                           const ChVector3d& react_torques,
+                                                           ChContactable* modA,
+                                                           ChContactable* modB) {
+    if (m_app->m_show_contact_normals) {
+        auto len = m_app->m_contact_normals_scale;
+        auto X = PointPointFrame(pB, pB - plane_coord.GetAxisX() * len, len);
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        vsg::Mask mask = m_app->m_show_contact_normals;
+
+        if (m_crt_normals_node < m_num_existing_normals_nodes) {
+            auto child = m_app->m_contactNormalsScene->children[m_crt_normals_node];
+            child.node->getValue("Transform", transform);
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, len, 0));
+        } else {
+            transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, len, 0));
+            auto group = m_app->m_shapeBuilder->CreateUnitSegment(m_mat_normals, transform, 1.0f);
+            group->setValue("Transform", transform);
+            m_app->m_contactNormalsScene->addChild(mask, group);
+        }
+
+        m_crt_normals_node++;
+    }
+
+    if (m_app->m_show_contact_forces) {
+        auto vec = plane_coord * (react_forces * m_app->m_contact_forces_scale);
+        auto len = vec.Length();
+        auto X = PointPointFrame(pA, pA + vec, len);
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        vsg::Mask mask = m_app->m_show_contact_forces;
+
+        if (m_crt_forces_node < m_num_existing_forces_nodes) {
+            auto child = m_app->m_contactForcesScene->children[m_crt_normals_node];
+            child.node->getValue("Transform", transform);
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, len, 0));
+        } else {
+            transform = vsg::MatrixTransform::create();
+            transform->matrix = vsg::dmat4CH(X, ChVector3d(0, len, 0));
+            auto group = m_app->m_shapeBuilder->CreateUnitSegment(m_mat_forces, transform, 1.0f);
+            group->setValue("Transform", transform);
+            m_app->m_contactForcesScene->addChild(mask, group);
+        }
+
+        m_crt_forces_node++;
+    }
+
+    // Continue scanning contacts
+    return true;
+}
+*/
 
 void ChVisualSystemVSG::OnSetup(ChSystem* sys) {
     //// RADU TODO

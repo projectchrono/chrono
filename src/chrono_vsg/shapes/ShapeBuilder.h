@@ -17,18 +17,19 @@
 
 #include <iostream>
 #include <string>
-#include "chrono_vsg/ChApiVSG.h"
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
 
-#include "chrono/assets/ChVisualSystem.h"
-#include "chrono/assets/ChVisualModel.h"
-#include "chrono/assets/ChVisualShapePath.h"
-#include "chrono/assets/ChVisualShapeLine.h"
-#include "chrono/assets/ChVisualShapeSurface.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
-#include "chrono/assets/ChVisualShapePointPoint.h"
+#include "chrono_vsg/ChApiVSG.h"
+
+#include "chrono/assets/ChVisualMaterial.h"
+
+#include "chrono/geometry/ChLineArc.h"
+#include "chrono/geometry/ChLinePath.h"
+#include "chrono/geometry/ChLineSegment.h"
+#include "chrono/geometry/ChSurface.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 namespace chrono {
 namespace vsg3d {
@@ -46,9 +47,11 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                             vsg::ref_ptr<vsg::MatrixTransform> transform,
                                             bool wireframe);
 
-    vsg::ref_ptr<vsg::Group> CreatePbrSurfaceShape(std::shared_ptr<ChVisualShapeSurface> surface,
+    vsg::ref_ptr<vsg::Group> CreatePbrSurfaceShape(std::shared_ptr<ChSurface> geometry,
                                                    std::shared_ptr<ChVisualMaterial> material,
                                                    vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                   int resolution_u,
+                                                   int resolution_v,
                                                    bool wireframe);
 
     vsg::ref_ptr<vsg::Group> CreateTrimeshPbrMatShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
@@ -77,24 +80,25 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                                float color_factor,
                                                float line_width);
 
-    vsg::ref_ptr<vsg::Group> CreateLineShape(ChVisualModel::ShapeInstance shapeInstance,
+    vsg::ref_ptr<vsg::Group> CreateLineShape(std::shared_ptr<ChLine> geometry,
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                             std::shared_ptr<ChVisualShapeLine> ls);
+                                             unsigned int num_points);
 
-    vsg::ref_ptr<vsg::Group> CreatePathShape(ChVisualModel::ShapeInstance shapeInstance,
+    vsg::ref_ptr<vsg::Group> CreatePathShape(std::shared_ptr<ChLinePath> geometry,
                                              std::shared_ptr<ChVisualMaterial> material,
                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                             std::shared_ptr<ChVisualShapePath> ps);
+                                             unsigned int num_points);
 
-    vsg::ref_ptr<vsg::Group> CreateUnitSegment(ChVisualModel::ShapeInstance shapeInstance,
-                                               std::shared_ptr<ChVisualMaterial> material,
-                                               vsg::ref_ptr<vsg::MatrixTransform> transform);
-
-    vsg::ref_ptr<vsg::Group> CreateSpringShape(ChVisualModel::ShapeInstance shapeInstance,
-                                               std::shared_ptr<ChVisualMaterial> material,
+    vsg::ref_ptr<vsg::Group> CreateUnitSegment(std::shared_ptr<ChVisualMaterial> material,
                                                vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                               std::shared_ptr<ChVisualShapeSpring> ss);
+                                               float line_width);
+
+    vsg::ref_ptr<vsg::Group> CreateSpringShape(std::shared_ptr<ChVisualMaterial> material,
+                                               vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                               size_t num_points,
+                                               double turns,
+                                               float line_width);
 
     vsg::ref_ptr<vsg::Group> CreateGrid(double ustep, double vstep, int nu, int nv, ChCoordsys<> pos, ChColor col);
 
@@ -141,7 +145,7 @@ class CH_VSG_API ShapeBuilder : public vsg::Inherit<vsg::Object, ShapeBuilder> {
                                             bool wireframe);
 
     vsg::ref_ptr<vsg::Options> m_options;
-    vsg::ref_ptr<vsg::CompileTraversal> compileTraversal;
+    vsg::ref_ptr<vsg::CompileTraversal> m_compileTraversal;
 
     std::unique_ptr<BoxShapeData> m_box_data;
     std::unique_ptr<DieShapeData> m_die_data;

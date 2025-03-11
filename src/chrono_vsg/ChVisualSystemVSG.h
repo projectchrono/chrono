@@ -97,6 +97,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// </pre>
     virtual void Render() override;
 
+    /// End the scene draw at the end of each animation frame.
+    virtual void EndScene() override {}
+
+    // --- Model components
+
     /// Set the visibility of bodies with specified tag.
     /// A tag value of -1 indicates that the visibility flag should be applied to all bodies.
     void SetBodyObjVisibility(bool vis, int tag = -1);
@@ -121,12 +126,24 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// A tag value of -1 indicates that the visibility flag should be applied to all particle clouds.
     void SetParticleCloudVisibility(bool vis, int tag = -1);
 
+    /// --- Collision and contact
+
     /// Set visibility of collision shapes for objects with specified tag.
     /// A tag of -1 indicates that the visibility flag should be applied to all collision shapes.
     void SetCollisionVisibility(bool vis, int tag = -1);
 
     /// Set color for rendering wireframe collision shapes.
     void SetCollisionColor(const ChColor& color);
+
+    void SetContactNormalsVisibility(bool vis, int tag = -1);
+    void SetContactNormalsColor(const ChColor& color);
+    void SetContactNormalsScale(double length);
+
+    void SetContactForcesVisibility(bool vis, int tag = -1);
+    void SetContactForcesColor(const ChColor& color);
+    void SetContactForcesScale(double length);
+
+    // --- Reference frames
 
     /// Render the absolute (global) reference frame
     void SetAbsFrameScale(double axis_length);
@@ -146,9 +163,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void RenderJointFrames(double axis_length = 1);
     void SetJointFrameScale(double axis_length);
     void ToggleJointFrameVisibility();
-
-    /// End the scene draw at the end of each animation frame.
-    virtual void EndScene() override {}
 
     /// Create a snapshot of the frame to be rendered and save it to the provided file.
     /// The file extension determines the image format.
@@ -300,6 +314,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Switch> m_deformableScene;
     vsg::ref_ptr<vsg::Switch> m_particleScene;
     vsg::ref_ptr<vsg::Switch> m_collisionScene;
+    vsg::ref_ptr<vsg::Switch> m_contactNormalsScene;
+    vsg::ref_ptr<vsg::Switch> m_contactForcesScene;
     vsg::ref_ptr<vsg::Switch> m_absFrameScene;
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
@@ -346,6 +362,63 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     enum class ObjectType { BODY, LINK, OTHER };
     enum class PointPointType { SPRING, SEGMENT };
     enum class DeformableType { FEA, OTHER };
+
+    /// Custom contact reporter to create contact normals and forces VSG nodes.
+    class CreateContactsVSG : public ChContactContainer::ReportContactCallback {
+      public:
+        CreateContactsVSG(ChVisualSystemVSG* app);
+
+        void Reset();
+
+        virtual bool OnReportContact(const ChVector3d& pA,
+                                     const ChVector3d& pB,
+                                     const ChMatrix33<>& plane_coord,
+                                     const double& distance,
+                                     const double& eff_Radius,
+                                     const ChVector3d& react_forces,
+                                     const ChVector3d& react_torques,
+                                     ChContactable* modA,
+                                     ChContactable* modB) override;
+
+      private:
+        ChVisualSystemVSG* m_app;
+        size_t m_crt_contact;
+    };
+
+    /// Create a buffer of VSG nodes for contact normals and forces.
+    void CreateContacts();
+
+    /*
+     *
+     * TODO: this version does not work with current VSG if shadows are enabled.
+     * This is because there are issues with creating nodes after initialization of the shadow processing!
+     *
+    class CreateContactsVSG : public ChContactContainer::ReportContactCallback {
+      public:
+        CreateContactsVSG(ChVisualSystemVSG* app);
+
+        void Reset();
+
+        virtual bool OnReportContact(const ChVector3d& pA,
+                                     const ChVector3d& pB,
+                                     const ChMatrix33<>& plane_coord,
+                                     const double& distance,
+                                     const double& eff_Radius,
+                                     const ChVector3d& react_forces,
+                                     const ChVector3d& react_torques,
+                                     ChContactable* modA,
+                                     ChContactable* modB) override;
+
+      private:
+        ChVisualSystemVSG* m_app;
+        std::shared_ptr<ChVisualMaterial> m_mat_normals;
+        std::shared_ptr<ChVisualMaterial> m_mat_forces;
+        size_t m_num_existing_normals_nodes;
+        size_t m_num_existing_forces_nodes;
+        size_t m_crt_normals_node;
+        size_t m_crt_forces_node;
+    };
+    */
 
     /// Bind assets associated with a ChBody.
     void BindBody(const std::shared_ptr<ChBody>& body);
@@ -416,24 +489,43 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_azimuth = 0;
     float m_guiFontSize = 20.0f;
 
-    bool m_show_body_objs;     ///< flag to toggle body asset visibility
-    bool m_show_link_objs;     ///< flag to toggle link asset visibility
-    bool m_show_springs;       ///< flag to toggle spring visibility
-    bool m_show_fea_meshes;    ///< flag to toggle FEA mesh visibility
-    bool m_show_collision;     ///< flag to toggle collision shape visibility
+    // Component rendering
+    bool m_show_body_objs;   ///< flag to toggle body asset visibility
+    bool m_show_link_objs;   ///< flag to toggle link asset visibility
+    bool m_show_springs;     ///< flag to toggle spring visibility
+    bool m_show_fea_meshes;  ///< flag to toggle FEA mesh visibility
+
+    // Collision rendering
+    bool m_show_collision;           ///< flag to toggle collision shape visibility
+    ChColor m_collision_color;       ///< current color for rendering collision shapes
+    bool m_collision_color_changed;  ///< flag indicating a change in collision color
+    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_collision_colors;
+
+    // Contact rendering
+    bool m_show_contact_normals;
+    ChColor m_contact_normals_color;
+    bool m_contact_normals_color_changed;
+    double m_contact_normals_scale;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_normals_colors;
+
+    std::shared_ptr<CreateContactsVSG> m_contact_creator;
+    unsigned int m_max_num_contacts;
+
+    bool m_show_contact_forces;
+    ChColor m_contact_forces_color;
+    bool m_contact_forces_color_changed;
+    double m_contact_forces_scale;
+    std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
+
+    // Frame rendering
     bool m_show_abs_frame;     ///< flag to toggle absolute frame visibility
     bool m_show_ref_frames;    ///< flag to toggle object reference frame visibility
     bool m_show_cog_frames;    ///< flag to toggle COG frame visibility
     bool m_show_joint_frames;  ///< flag to toggle COG frame visibility
-
     double m_abs_frame_scale;    ///< current absolute frame scale
     double m_ref_frame_scale;    ///< current reference frame scale
     double m_cog_frame_scale;    ///< current COG frame scale
     double m_joint_frame_scale;  ///< current joint frame scale
-
-    ChColor m_collision_color;       ///< current color for rendering collision shapes
-    bool m_collision_color_changed;  ///< flag indicating a change in collision color
-    std::vector<vsg::ref_ptr<vsg::vec4Array>> m_collision_colors;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render
@@ -444,6 +536,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     friend class ChMainGuiVSG;
     friend class ChBaseGuiComponentVSG;
     friend class ChBaseEventHandlerVSG;
+    ////friend class ChDrawContactsVSG;
+    ////friend class ChDeferredDeleteVSG;
 };
 
 /// @} vsg_module

@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(spring_2);
 
     // Attach a visualization asset.
-    spring_2->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.1, 80, 15));
+    spring_2->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     // Create the run-time visualization system
     // ----------------------------------------

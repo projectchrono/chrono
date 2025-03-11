@@ -17,8 +17,6 @@
 #include "chrono_vsg/shapes/ShapeBuilder.h"
 #include "chrono_vsg/shapes/ShaderUtils.h"
 
-#include "chrono_vsg/shapes/GetSurfaceShapeData.h"
-
 #include "chrono_vsg/utils/ChConversionsVSG.h"
 
 #include "chrono_thirdparty/stb/stb_image.h"
@@ -40,7 +38,7 @@ ShapeBuilder::ShapeBuilder(vsg::ref_ptr<vsg::Options> options, int num_divs) : m
 }
 
 void ShapeBuilder::assignCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct) {
-    compileTraversal = ct;
+    m_compileTraversal = ct;
 }
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Array>& vertices,
@@ -86,8 +84,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(vsg::ref_ptr<vsg::vec3Arra
     transform->addChild(stategraph);
     scenegraph->addChild(transform);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -164,18 +162,75 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrShape(ShapeType shape_type,
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrSurfaceShape(std::shared_ptr<ChVisualShapeSurface> surface,
+// -----------------------------------------------------------------------------
+
+void GetSurfaceShapeData(std::shared_ptr<ChSurface> geometry,
+                         int resolution_u,
+                         int resolution_v,
+                         vsg::ref_ptr<vsg::vec3Array>& vertices,
+                         vsg::ref_ptr<vsg::vec3Array>& normals,
+                         vsg::ref_ptr<vsg::vec2Array>& texcoords,
+                         vsg::ref_ptr<vsg::ushortArray>& indices) {
+    auto sections_u = resolution_u * 4;
+    auto sections_v = resolution_v * 4;
+    auto nvertices = (sections_u + 1) * (sections_v + 1);
+    auto ntriangles = (sections_u) * (sections_v) * 2;
+    auto nindices = ntriangles * 3;
+
+    vertices = vsg::vec3Array::create(nvertices);
+    normals = vsg::vec3Array::create(nvertices);
+    texcoords = vsg::vec2Array::create(nvertices);
+    indices = vsg::ushortArray::create(nindices);
+
+    int itri = 0;
+
+    for (auto iv = 0; iv <= sections_v; ++iv) {
+        double mV = iv / (double)sections_v;  // v abscissa
+
+        for (auto iu = 0; iu <= sections_u; ++iu) {
+            double mU = iu / (double)sections_u;  // u abscissa
+
+            ChVector3d P = geometry->Evaluate(mU, mV);
+            ////P = vis->Pos + vis->Rot * P;
+
+            ChVector3d N = geometry->GetNormal(mU, mV);
+            ////N = vis->Rot * N;
+
+            // create two triangles per uv increment
+            vertices->set(iu + iv * (sections_u + 1), vsg::vec3(P.x(), P.y(), P.z()));
+            normals->set(iu + iv * (sections_u + 1), vsg::vec3(N.x(), N.y(), N.z()));
+            texcoords->set(iu + iv * (sections_u + 1), vsg::vec2(mU, mV));
+
+            if (iu > 0 && iv > 0) {
+                indices->set(0 + itri * 3, iu - 1 + iv * (sections_u + 1));
+                indices->set(1 + itri * 3, iu - 1 + (iv - 1) * (sections_u + 1));
+                indices->set(2 + itri * 3, iu + iv * (sections_u + 1));
+                ++itri;
+                indices->set(0 + itri * 3, iu - 1 + (iv - 1) * (sections_u + 1));
+                indices->set(1 + itri * 3, iu + (iv - 1) * (sections_u + 1));
+                indices->set(2 + itri * 3, iu + iv * (sections_u + 1));
+                ++itri;
+            }
+        }
+    }
+}
+
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePbrSurfaceShape(std::shared_ptr<ChSurface> geometry,
                                                              std::shared_ptr<ChVisualMaterial> material,
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                             int resolution_u,
+                                                             int resolution_v,
                                                              bool wireframe) {
     vsg::ref_ptr<vsg::vec3Array> vertices;
     vsg::ref_ptr<vsg::vec3Array> normals;
     vsg::ref_ptr<vsg::vec2Array> texcoords;
     vsg::ref_ptr<vsg::ushortArray> indices;
-    GetSurfaceShapeData(surface, vertices, normals, texcoords, indices);
+    GetSurfaceShapeData(geometry, resolution_u, resolution_v, vertices, normals, texcoords, indices);
     auto scenegraph = CreatePbrShape(vertices, normals, texcoords, indices, material, transform, wireframe);
     return scenegraph;
 }
+
+// -----------------------------------------------------------------------------
 
 vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChTriangleMeshConnected> mesh,
                                                              vsg::ref_ptr<vsg::MatrixTransform> transform,
@@ -285,8 +340,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChT
 
     scenegraph->addChild(transform);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -364,8 +419,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
 
     scenegraph->addChild(transform);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -374,6 +429,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
                                                                 vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                                 const std::vector<ChVisualMaterialSharedPtr>& materials,
                                                                 bool wireframe) {
+    auto scenegraph = vsg::Group::create();
+    transform->subgraphRequiresLocalFrustum = false;
+    scenegraph->addChild(transform);
+
     int num_materials = (int)materials.size();
 
     const auto& vertices = mesh->GetCoordsVertices();
@@ -398,11 +457,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
             nfaces_per_buffer.push_back(count);
         }
     }
-
-    auto scenegraph = vsg::Group::create();
-    // set up model transformation node
-    transform->subgraphRequiresLocalFrustum = false;
-    scenegraph->addChild(transform);
 
     for (size_t imat = 0; imat < num_materials; imat++) {
         const auto& chronoMat = materials[imat];
@@ -483,8 +537,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
         transform->addChild(stategraph);
     }  // imat
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
 
     return scenegraph;
 }
@@ -492,6 +546,9 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
 vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::MatrixTransform> transform,
                                                          float color_factor,
                                                          float line_width) {
+    auto scenegraph = vsg::Group::create();
+    scenegraph->addChild(transform);
+
     // Set red, green, and blue colors at specified darkness level
     ChColor R(1, 0, 0);
     ChColor G(0, 1, 0);
@@ -509,14 +566,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     hsvB[2] *= color_factor;
     B = ChColor::HSV2RGB(hsvB);
 
-    auto scenegraph = vsg::Group::create();
-    // add transform to root of the scene graph
-    scenegraph->addChild(transform);
-
     // calculate vertices
-    const int numPoints = 6;
-    auto vertices = vsg::vec3Array::create(numPoints);
-    auto colors = vsg::vec3Array::create(numPoints);
+    const int num_points = 6;
+    auto vertices = vsg::vec3Array::create(num_points);
+    auto colors = vsg::vec3Array::create(num_points);
 
     vertices->set(0, vsg::vec3(0, 0, 0));
     vertices->set(1, vsg::vec3(1, 0, 0));
@@ -542,37 +595,36 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::createFrameSymbol(vsg::ref_ptr<vsg::Matri
     arrays.push_back(colors);
 
     vd->assignArrays(arrays);
-    vd->vertexCount = numPoints;  // Don't forget!!!
+    vd->vertexCount = num_points;
     vd->instanceCount = 1;
 
     stategraph->addChild(vd);
     transform->addChild(stategraph);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInstance shapeInstance,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(std::shared_ptr<ChLine> geometry,
                                                        std::shared_ptr<ChVisualMaterial> material,
                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                       std::shared_ptr<ChVisualShapeLine> ls) {
+                                                       unsigned int num_points) {
     auto scenegraph = vsg::Group::create();
     transform->subgraphRequiresLocalFrustum = false;
     scenegraph->addChild(transform);
 
     // calculate vertices
-    unsigned int numPoints = ls->GetNumRenderPoints();
     double maxU = 1;
-    if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(ls->GetLineGeometry()))
+    if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(geometry))
         maxU = mline_path->GetPathDuration();
-    assert(numPoints > 2);
-    double ustep = maxU / (numPoints - 1);
-    auto vertices = vsg::vec3Array::create(numPoints);
-    auto colors = vsg::vec3Array::create(numPoints);
-    for (unsigned int i = 0; i < numPoints; i++) {
+    assert(num_points > 2);
+    double ustep = maxU / (num_points - 1);
+    auto vertices = vsg::vec3Array::create(num_points);
+    auto colors = vsg::vec3Array::create(num_points);
+    for (unsigned int i = 0; i < num_points; i++) {
         double u = i * ustep;
-        auto pos = ls->GetLineGeometry()->Evaluate(u);
+        auto pos = geometry->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
         colors->set(i, vsg::vec3CH(material->GetDiffuseColor()));
     }
@@ -587,36 +639,35 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInsta
     arrays.push_back(colors);
 
     vd->assignArrays(arrays);
-    vd->vertexCount = numPoints;  // Don't forget!!!
+    vd->vertexCount = (uint32_t)num_points;
     vd->instanceCount = 1;
 
     stategraph->addChild(vd);
 
     transform->addChild(stategraph);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(ChVisualModel::ShapeInstance shapeInstance,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(std::shared_ptr<ChLinePath> geometry,
                                                        std::shared_ptr<ChVisualMaterial> material,
                                                        vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                       std::shared_ptr<ChVisualShapePath> ps) {
+                                                       unsigned int num_points) {
     auto scenegraph = vsg::Group::create();
     transform->subgraphRequiresLocalFrustum = false;
     scenegraph->addChild(transform);
 
     // calculate vertices
-    unsigned int numPoints = ps->GetNumRenderPoints();
-    assert(numPoints > 2);
-    double maxU = ps->GetPathGeometry()->GetPathDuration();
-    double ustep = maxU / (numPoints - 1);
-    auto vertices = vsg::vec3Array::create(numPoints);
-    auto colors = vsg::vec3Array::create(numPoints);
-    for (unsigned int i = 0; i < numPoints; i++) {
+    assert(num_points > 2);
+    double maxU = geometry->GetPathDuration();
+    double ustep = maxU / (num_points - 1);
+    auto vertices = vsg::vec3Array::create(num_points);
+    auto colors = vsg::vec3Array::create(num_points);
+    for (unsigned int i = 0; i < num_points; i++) {
         double u = i * ustep;
-        auto pos = ps->GetPathGeometry()->Evaluate(u);
+        auto pos = geometry->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
         colors->set(i, vsg::vec3CH(material->GetDiffuseColor()));
     }
@@ -631,52 +682,45 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(ChVisualModel::ShapeInsta
     arrays.push_back(colors);
 
     vd->assignArrays(arrays);
-    vd->vertexCount = numPoints;  // Don't forget!!!
+    vd->vertexCount = (uint32_t)num_points;
     vd->instanceCount = 1;
 
     stategraph->addChild(vd);
 
     transform->addChild(stategraph);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(ChVisualModel::ShapeInstance shapeInstance,
-                                                         std::shared_ptr<ChVisualMaterial> material,
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(std::shared_ptr<ChVisualMaterial> material,
                                                          vsg::ref_ptr<vsg::MatrixTransform> transform,
-                                                         std::shared_ptr<ChVisualShapeSpring> ss) {
+                                                         size_t num_points,
+                                                         double turns,
+                                                         float line_width) {
     auto scenegraph = vsg::Group::create();
-    // store some information for easier update
-    scenegraph->setValue("ShapeInstance", shapeInstance);
-    scenegraph->setValue("Transform", transform);
-
-    // add transform to root of the scene graph
     scenegraph->addChild(transform);
 
     // calculate vertices
-    auto numPoints = ss->GetResolution();
-    double turns = ss->GetTurns();
-    assert(numPoints > 2);
-    auto vertices = vsg::vec3Array::create(numPoints);
-    auto colors = vsg::vec3Array::create(numPoints);
+    assert(num_points > 2);
+    auto vertices = vsg::vec3Array::create(num_points);
+    auto colors = vsg::vec3Array::create(num_points);
+    auto cv = vsg::vec3CH(material->GetDiffuseColor());
     double length = 1;
-    vsg::vec3 p(0, -length / 2, 0);
     double phase = 0.0;
     double height = 0.0;
-    for (int iu = 0; iu < numPoints; iu++) {
-        phase = turns * CH_2PI * (double)iu / (double)numPoints;
-        height = length * ((double)iu / (double)numPoints);
+    vsg::vec3 p(0, -length / 2, 0);
+    for (int iu = 0; iu < num_points; iu++) {
+        phase = turns * CH_2PI * (double)iu / (double)num_points;
+        height = length * ((double)iu / (double)num_points);
         vsg::vec3 pos;
         pos = p + vsg::vec3(cos(phase), height, sin(phase));
         vertices->set(iu, pos);
-        auto cv =
-            vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
         colors->set(iu, cv);
     }
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, 2.0f);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, line_width);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -686,40 +730,37 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(ChVisualModel::ShapeIns
     arrays.push_back(colors);
 
     vd->assignArrays(arrays);
-    vd->vertexCount = (uint32_t)numPoints;  // Don't forget!!!
+    vd->vertexCount = (uint32_t)num_points;
     vd->instanceCount = 1;
 
     stategraph->addChild(vd);
 
     transform->addChild(stategraph);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
+
     return scenegraph;
 }
 
-vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(ChVisualModel::ShapeInstance shapeInstance,
-                                                         std::shared_ptr<ChVisualMaterial> material,
-                                                         vsg::ref_ptr<vsg::MatrixTransform> transform) {
+vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(std::shared_ptr<ChVisualMaterial> material,
+                                                         vsg::ref_ptr<vsg::MatrixTransform> transform,
+                                                         float line_width) {
     auto scenegraph = vsg::Group::create();
-    // store some information for easier update
-    scenegraph->setValue("ShapeInstance", shapeInstance);
-    scenegraph->setValue("Transform", transform);
-
     scenegraph->addChild(transform);
 
     // calculate vertices
-    const int numPoints = 2;
-    auto vertices = vsg::vec3Array::create(numPoints);
-    auto colors = vsg::vec3Array::create(numPoints);
+    uint32_t num_points = 2;
+    auto vertices = vsg::vec3Array::create(num_points);
+    auto colors = vsg::vec3Array::create(num_points);
+    auto cv = vsg::vec3CH(material->GetDiffuseColor());
     double length = 1;
     vertices->set(0, vsg::vec3(0, -length / 2, 0));
     vertices->set(1, vsg::vec3(0, +length / 2, 0));
-    auto cv = vsg::vec3(material->GetDiffuseColor().R, material->GetDiffuseColor().G, material->GetDiffuseColor().B);
     colors->set(0, cv);
     colors->set(1, cv);
 
-    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, 2.0f);
+    auto stategraph = createLineStateGroup(m_options, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, line_width);
 
     // setup vertex index draw
     auto vd = vsg::VertexDraw::create();
@@ -729,15 +770,16 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateUnitSegment(ChVisualModel::ShapeIns
     arrays.push_back(colors);
 
     vd->assignArrays(arrays);
-    vd->vertexCount = (uint32_t)numPoints;  // Don't forget!!!
+    vd->vertexCount = num_points;
     vd->instanceCount = 1;
 
     stategraph->addChild(vd);
 
     transform->addChild(stategraph);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
+
     return scenegraph;
 }
 
@@ -748,8 +790,8 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
                                                   ChCoordsys<> pos,
                                                   ChColor col) {
     auto scenegraph = vsg::Group::create();
-    // add transform to root of the scene graph
     auto transform = vsg::MatrixTransform::create();
+
     auto p = pos.pos;
     auto r = pos.rot;
     double rotAngle;
@@ -766,7 +808,6 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
         ChVector3d V2(iu * ustep, -vstep * (nv / 2), 0);
         v.push_back(V1);
         v.push_back(V2);
-        // drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
     for (int iv = -nv / 2; iv <= nv / 2; iv++) {
@@ -774,15 +815,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
         ChVector3d V2(-ustep * (nu / 2), iv * vstep, 0);
         v.push_back(V1);
         v.push_back(V2);
-        // drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
     }
 
-    auto numPoints = v.size();
-    auto vertices = vsg::vec3Array::create(numPoints);
-    auto colors = vsg::vec3Array::create(numPoints);
+    auto num_points = v.size();
+    auto vertices = vsg::vec3Array::create(num_points);
+    auto colors = vsg::vec3Array::create(num_points);
     auto cv = vsg::vec3(col.R, col.G, col.B);
     colors->set(0, cv);
-    for (size_t i = 0; i < numPoints; i++) {
+    for (size_t i = 0; i < num_points; i++) {
         vertices->set(i, vsg::vec3CH(v[i]));
         colors->set(i, cv);
     }
@@ -797,15 +837,15 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateGrid(double ustep,
     arrays.push_back(colors);
 
     vd->assignArrays(arrays);
-    vd->vertexCount = (uint32_t)numPoints;  // Don't forget!!!
+    vd->vertexCount = (uint32_t)num_points;
     vd->instanceCount = 1;
 
     stategraph->addChild(vd);
 
     transform->addChild(stategraph);
 
-    if (compileTraversal)
-        compileTraversal->compile(scenegraph);
+    if (m_compileTraversal)
+        m_compileTraversal->compile(scenegraph);
     return scenegraph;
 }
 
