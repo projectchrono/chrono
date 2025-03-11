@@ -197,8 +197,7 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerInd
     mapOriginalToSorted[index] = id;
 }
 // ------------------------------------------------------------------------------
-ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr)
-    : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
+ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 // ------------------------------------------------------------------------------
@@ -228,10 +227,10 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
     uint lastPrefixVal = m_data_mgr.prefixSumExtendedActivityIdD[m_data_mgr.countersH->numAllMarkers - 1];
     uint32_t lastFlagInt32;
-    cudaMemcpy(
-        &lastFlagInt32,
-        thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[m_data_mgr.countersH->numAllMarkers - 1]),
-        sizeof(uint32_t), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&lastFlagInt32,
+               thrust::raw_pointer_cast(
+                   &m_data_mgr.extendedActivityIdentifierOriginalD[m_data_mgr.countersH->numAllMarkers - 1]),
+               sizeof(uint32_t), cudaMemcpyDeviceToHost);
     uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Convert to uint pr operly
 
     uint numExtended = lastPrefixVal + lastFlag;
@@ -302,18 +301,15 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->rhoPresMuD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD),
-        UINT_32CAST(m_data_mgr.activityIdentifierSortedD),
-        mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), UINT_32CAST(m_data_mgr.activityIdentifierOriginalD),
-        numExtended);
+        UINT_32CAST(m_data_mgr.activityIdentifierSortedD), mR4CAST(m_sphMarkersD->posRadD),
+        mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
+        mR3CAST(m_sphMarkersD->tauXyXzYzD), UINT_32CAST(m_data_mgr.activityIdentifierOriginalD), numExtended);
 
     cudaDeviceSynchronize();
     cudaCheckError();
 
-
     cudaFreeErrorFlag(error_flagD);
 }
-
 
 }  // namespace sph
 }  // end namespace fsi

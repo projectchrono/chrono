@@ -93,6 +93,7 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->boundary_type = BoundaryType::ADAMI;
     m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
     m_paramsH->shifting_method = ShiftingMethod::XSPH;
+    m_paramsH->periodic_sides = static_cast<int>(PeriodicSide::NONE);
 
     m_paramsH->d0 = Real(0.01);
     m_paramsH->ood0 = 1 / m_paramsH->d0;
@@ -163,7 +164,6 @@ void ChFluidSystemSPH::InitParams() {
     m_paramsH->Cs = 10 * m_paramsH->v_Max;
 
     m_paramsH->use_default_limits = true;
-    m_paramsH->match_zombie_periodic = true;
     m_paramsH->use_init_pressure = false;
 
     m_paramsH->num_proximity_search_steps = 4;
@@ -582,17 +582,13 @@ void ChFluidSystemSPH::SetContainerDim(const ChVector3d& boxDim) {
     m_paramsH->boxDimZ = boxDim.z();
 }
 
-void ChFluidSystemSPH::SetBoundaries(const ChVector3d& cMin, const ChVector3d& cMax) {
+void ChFluidSystemSPH::SetComputationalBoundaries(const ChVector3d& cMin, const ChVector3d& cMax, int periodic_sides) {
     m_paramsH->cMin = ToReal3(cMin);
     m_paramsH->cMax = ToReal3(cMax);
     m_paramsH->use_default_limits = false;
+    m_paramsH->periodic_sides = periodic_sides;
 }
 
-void ChFluidSystemSPH::SetZombieDomain(const ChVector3d& zombieMin, const ChVector3d& zombieMax) {
-    m_paramsH->zombieMin = ToReal3(zombieMin);
-    m_paramsH->zombieMax = ToReal3(zombieMax);
-    m_paramsH->match_zombie_periodic = false;
-}
 void ChFluidSystemSPH::SetActiveDomain(const ChVector3d& boxHalfDim) {
     m_paramsH->bodyActiveDomain = ToReal3(boxHalfDim);
 }
@@ -727,6 +723,7 @@ void ChFluidSystemSPH::CheckSPHParameters() {
              << "This may slow down the simulation." << endl;
     }
 
+    // TODO: Add check for whether computational domain is larger than SPH + BCE layers
     if (m_paramsH->d0_multiplier < 1) {
         cerr << "WARNING: Kernel interaction length multiplier is less than 1. This may lead to numerical "
                 "instability due to poor particle approximation."
@@ -1142,18 +1139,6 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         m_paramsH->num_neighbors = count;
     }
 
-    if (m_paramsH->use_default_limits) {
-        m_paramsH->cMin =
-            mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
-        m_paramsH->cMax =
-            mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
-    }
-
-    if (m_paramsH->match_zombie_periodic) {
-        m_paramsH->zombieMin = m_paramsH->cMin - make_Real3(1, 1, 1);
-        m_paramsH->zombieMax = m_paramsH->cMax + make_Real3(1, 1, 1);
-    }
-
     if (m_paramsH->use_init_pressure) {
         size_t numParticles = m_data_mgr->sphMarkers_H->rhoPresMuH.size();
         for (int i = 0; i < numParticles; i++) {
@@ -1167,6 +1152,19 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
             }
         }
     }
+
+    // This means boundaries have not been set - just use an approximate domain size with no periodic sides
+    if (m_paramsH->use_default_limits) {
+        m_paramsH->cMin =
+            mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
+        m_paramsH->cMax =
+            mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
+        m_paramsH->periodic_sides = static_cast<int>(PeriodicSide::NONE);
+    }
+
+    m_paramsH->x_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::X)) != 0;
+    m_paramsH->y_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::Y)) != 0;
+    m_paramsH->z_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::Z)) != 0;
 
     // Set up subdomains for faster neighbor particle search
     m_paramsH->Apply_BC_U = false;  // You should go to CustomMath.h all the way to end of file and set your function
@@ -1187,10 +1185,6 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->gridSize = SIDE;
     m_paramsH->worldOrigin = m_paramsH->cMin;
     m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
-
-    // Set up stuff for the zombie domain
-    m_paramsH->zombieBoxDims = m_paramsH->zombieMax - m_paramsH->zombieMin;
-    m_paramsH->zombieOrigin = m_paramsH->zombieMin;
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);

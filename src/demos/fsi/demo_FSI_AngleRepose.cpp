@@ -146,11 +146,10 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 - 10.0 * initSpace0 / 2.0, -byDim / 2 - 1.0 * initSpace0 / 2.0,
-                    -1.0 * bzDim - 5 * initSpace0);
-    ChVector3d cMax(bxDim / 2 + 10.0 * initSpace0 / 2.0, byDim / 2 + 1.0 * initSpace0 / 2.0,
-                    2.0 * bzDim + 5 * initSpace0);
-    sysSPH.SetBoundaries(cMin, cMax);
+    ChVector3d cMin(-bxDim / 2 - 3 * initSpace0 / 2.0, -byDim / 2 - 3 * initSpace0 / 2.0,
+                    -1.0 * bzDim - 3 * initSpace0);
+    ChVector3d cMax(bxDim / 2 + 3 * initSpace0 / 2.0, byDim / 2 + 3 * initSpace0 / 2.0, 2.0 * bzDim + 3 * initSpace0);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
     sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
 
     // Create SPH particle locations using a sampler

@@ -63,8 +63,8 @@ ObjectType object_type = ObjectType::CYLINDER;
 double density = 500;
 
 // Object initial height above floor (as a ratio of fluid height)
-double initial_height = 1.05;
-
+double initial_height = 2.00;
+double hdrop = 2;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     body->SetName("object");
     body->SetFixed(false);
     body->EnableCollision(false);
-
+    double impact_vel = std::sqrt(2 * hdrop * -gravity.z());
     switch (object_type) {
         case ObjectType::SPHERE: {
             double radius = 0.12;
@@ -237,6 +237,7 @@ int main(int argc, char* argv[]) {
             auto inertia = mass * ChSphere::GetGyration(radius);
 
             body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
+            body->SetPosDt(ChVector3d(0, 0, -impact_vel));
             body->SetRot(QUNIT);
             body->SetMass(mass);
             body->SetInertia(inertia);
@@ -253,6 +254,7 @@ int main(int argc, char* argv[]) {
             auto inertia = mass * ChCylinder::GetGyration(radius, length / 2);
 
             body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
+            body->SetPosDt(ChVector3d(0, 0, -impact_vel));
             body->SetRot(QUNIT);
             body->SetMass(mass);
             body->SetInertia(inertia);
@@ -278,6 +280,10 @@ int main(int argc, char* argv[]) {
                   ChVector3d(0, 0, 0),            // position of bottom origin
                   BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries except top
     );
+
+    ChVector3d cMin(-csize.x() / 2 - 3 * initial_spacing, -csize.y() / 2 - 3 * initial_spacing, -0.1);
+    ChVector3d cMax(csize.x() / 2 + 3 * initial_spacing, csize.y() / 2 + 3 * initial_spacing, csize.z() + 2.0);
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
 
     // Initialize FSI problem
     fsi.Initialize();

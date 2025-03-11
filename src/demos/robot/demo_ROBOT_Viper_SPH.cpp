@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     double initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin(-bxDim / 2 * 2, -byDim / 2 - 0.5 * initSpacing, -bzDim * 10);
     ChVector3d cMax(bxDim / 2 * 2, byDim / 2 + 0.5 * initSpacing, bzDim * 20);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Set simulation data output level
     sysSPH.SetOutputLevel(OutputLevel::STATE);

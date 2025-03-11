@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -10.0 * initial_spacing);
     ChVector3d c_max(+bxDim / 2 + initial_spacing / 2, +byDim / 2 + initial_spacing / 2,
                      bzDim + 10.0 * initial_spacing);
-    fsi.SetComputationalDomainSize(ChAABB(c_min, c_max));
+    fsi.SetComputationalDomain(ChAABB(c_min, c_max), PeriodicSide::ALL);
 
     // Set particle initial velocity
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<InitialVelocityCallback>(bzDim, t_start));

@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
     ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 10 * bzDim);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Set SPH discretization type, consistent or inconsistent
     sysSPH.SetConsistentDerivativeDiscretization(false, false);

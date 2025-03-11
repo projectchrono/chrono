@@ -100,8 +100,9 @@ struct SimParams {
     Real kdT;      ///< Implicit integration parameter
     Real gammaBB;  ///< Equation of state parameter
 
+    int periodic_sides;  ///< Periodic boundary condition sides for the defined computational domain - Takes values
+                         ///< NONE, X, Y, Z, All (can also be combined using binary OR and bitwise AND). (default: NONE)
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
-    bool match_zombie_periodic;  ///< true if zombie domain is not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
 
     Real3 cMinInit;  ///< Minimum point of the fluid domain.
@@ -166,7 +167,7 @@ struct SimParams {
     Real G_shear;       ///< Shear modulus
     Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
-    Real Nu_poisson;    ///< Poisson’s ratio
+    Real Nu_poisson;    ///< Poisson's ratio
     Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
     Real Coh_coeff;     ///< Cohesion coefficient
     Real C_Wi;          ///< Threshold of the integration of the kernel function
@@ -174,6 +175,11 @@ struct SimParams {
     Real boxDimX;  ///< Dimension of the space domain - X
     Real boxDimY;  ///< Dimension of the space domain - Y
     Real boxDimZ;  ///< Dimension of the space domain - Z
+
+    // Bools for whether a side is a periodic side or not
+    bool x_periodic;
+    bool y_periodic;
+    bool z_periodic;
 
     Real3 cMin;  ///< Lower limit point
     Real3 cMax;  ///< Upper limit point
