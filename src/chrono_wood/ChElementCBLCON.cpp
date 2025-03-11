@@ -24,8 +24,10 @@
 //#define BEAM_VERBOSE
 
 #include "chrono_wood/ChElementCBLCON.h"
+#include <Eigen/src/Core/DiagonalMatrix.h>
 #include <iomanip>
 #include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChVector3.h"
 
 namespace chrono {
@@ -338,16 +340,11 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
 void ChElementCBLCON::ComputeStiffnessMatrix() {
 		assert(section);
 		Km.resize(12,12);
-		
-		double E0= this->section->Get_material()->Get_E0();
-		double alpha=this->section-> Get_material()->Get_alpha();    	
-		//
-		double ET=alpha*E0;
-		//
-		// Get facet area and length of beam
-		double area=this->section->Get_area();
-		//
-		// Get initial section frame
+
+        double normal_stiff = this->section->Get_material()->Get_E0() * this->section->Get_area() / this->length;
+        double tangent_stiff = normal_stiff * this->section->Get_material()->Get_alpha();
+        Eigen::DiagonalMatrix<double, 3> K_diag(normal_stiff, tangent_stiff, tangent_stiff);
+
 		ChMatrix33<double> nmL=this->section->Get_facetFrame();
 		//
 		if(ChElementCBLCON::LargeDeflection){	// TODO JBC: I believe this should be moved to Update()
@@ -356,56 +353,66 @@ void ChElementCBLCON::ComputeStiffnessMatrix() {
 				nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
 			}	
 		}
-		// 
-		Amatrix AI; 	
-		Amatrix AJ;
-		// A matrix is calculated based on initial coordinates
-		this->ComputeAmatrix(AI, this->section->Get_center() , 
-								 this->nodes[0]->GetX0().GetPos());
-										
-		this->ComputeAmatrix( AJ, this->section->Get_center() , 
-								  this->nodes[1]->GetX0().GetPos());
-		//	
-		ChMatrixNM<double,3,6> mBI;
-		ChMatrixNM<double,3,6> mBJ;
-		ChVectorN<double,3> n;
-		for (int id=0;id<3;id++) {				
-				n<< nmL(id,0), nmL(id,1), nmL(id,2);
-				//
-				// NodeA
-				//
-				mBI.block<1,6>(id,0) = n.transpose()*AI/length;				
-				//
-				// NodeB
-				//				
-				mBJ.block<1,6>(id,0) = n.transpose()*AJ/length;
+        ChMatrix33<> K_local = nmL.transpose() * K_diag * nmL;
 
-		}
-		//
-		double aLE_N=area*length*E0;
-		double aLE_T=aLE_N*alpha;
-		//std::cout<<"mBI:\n"<<mBI<<std::endl;
-		//std::cout<<"mBJ:\n"<<mBJ<<std::endl;
-		// Kii
-		Km.block<6,6>(0,0)=aLE_N*mBI.block<1,6>(0,0).transpose()*mBI.block<1,6>(0,0)+
-						   aLE_T*(mBI.block<1,6>(1,0).transpose()*mBI.block<1,6>(1,0)+
-							mBI.block<1,6>(2,0).transpose()*mBI.block<1,6>(2,0) );
-		// Kjj
-		Km.block<6,6>(6,6)=aLE_N*mBJ.block<1,6>(0,0).transpose()*mBJ.block<1,6>(0,0)+
-						   aLE_T*(mBJ.block<1,6>(1,0).transpose()*mBJ.block<1,6>(1,0)+
-							mBJ.block<1,6>(2,0).transpose()*mBJ.block<1,6>(2,0) );
-		// Kij
-		Km.block<6,6>(0,6)=-aLE_N*mBI.block<1,6>(0,0).transpose()*mBJ.block<1,6>(0,0)-
-						   aLE_T*(mBI.block<1,6>(1,0).transpose()*mBJ.block<1,6>(1,0)+
-							mBI.block<1,6>(2,0).transpose()*mBJ.block<1,6>(2,0) );
-		// Kji
-		Km.block<6,6>(6,0)=-aLE_N*mBJ.block<1,6>(0,0).transpose()*mBI.block<1,6>(0,0)-
-						   aLE_T*(mBJ.block<1,6>(1,0).transpose()*mBI.block<1,6>(1,0)+
-							mBJ.block<1,6>(2,0).transpose()*mBI.block<1,6>(2,0) );
-							
-		
+        // For small deflection, use the initial position of the nodes and facet centers
+        // to determine the displacement induced by the node rotation
+        ChVector3d xc_xi;
+        ChVector3d xc_xj;
+        if (!LargeDeflection) {
+            xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
+            xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
+        }
+        else { // TODO: Find out how to evolve position of the center for large displacement
+            xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
+            xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
+        }
+        ChMatrix33<> Ai_cross; // 3x3 right sub-block of Ai matrix for skew-symmetric cross-product vector
+        ChMatrix33<> Aj_cross; // 3x3 right sub-block of Aj matrix for skew-symmetric cross-product vector
+        Ai_cross << 0.0      ,  xc_xi[2], -xc_xi[1],
+                    -xc_xi[2],  0.0     ,  xc_xi[0],
+                     xc_xi[1], -xc_xi[0],  0.0     ;
+        Aj_cross << 0.0      ,  xc_xj[2], -xc_xj[1],
+                    -xc_xj[2],  0.0     ,  xc_xj[0],
+                     xc_xj[1], -xc_xj[0],  0.0     ;
+
+        ChMatrix33<> K_local_Id_Ai = K_local * Ai_cross;
+        ChMatrix33<> K_local_Ai_Id = K_local_Id_Ai.transpose();
+        ChMatrix33<> K_local_Ai_Ai = K_local_Ai_Id * Ai_cross;
+        ChMatrix33<> K_local_Id_Aj = K_local * Aj_cross;
+        ChMatrix33<> K_local_Aj_Id = K_local_Id_Aj.transpose();
+        ChMatrix33<> K_local_Aj_Aj = K_local_Aj_Id * Aj_cross;
+        ChMatrix33<> K_local_Ai_Aj = K_local_Ai_Id * Aj_cross;
+        ChMatrix33<> K_local_Aj_Ai = K_local_Ai_Aj.transpose();
+
+        // dFi / dQi
+        Km.block<3,3>(0,0) =  K_local;
+        Km.block<3,3>(0,3) =  K_local_Id_Ai;
+        Km.block<3,3>(3,0) =  K_local_Ai_Id;
+        Km.block<3,3>(3,3) =  K_local_Ai_Ai;
+        // dFi / dQj
+        Km.block<3,3>(0,6) = -K_local;
+        Km.block<3,3>(0,9) = -K_local_Id_Aj;
+        Km.block<3,3>(3,6) = -K_local_Ai_Id;
+        Km.block<3,3>(3,9) = -K_local_Ai_Aj;
+        // dFj / dQi
+        Km.block<3,3>(6,0) = -K_local;
+        Km.block<3,3>(6,3) = -K_local_Id_Ai;
+        Km.block<3,3>(9,0) = -K_local_Aj_Id;
+        Km.block<3,3>(9,3) = -K_local_Aj_Ai;
+        // dFj / dQj
+        Km.block<3,3>(6,6) =  K_local;
+        Km.block<3,3>(6,9) =  K_local_Id_Aj;
+        Km.block<3,3>(9,6) =  K_local_Aj_Id;
+        Km.block<3,3>(9,9) =  K_local_Aj_Aj;
+
 		if (ChElementCBLCON::EnableCoupleForces){
 		        //nmL=this->section->Get_facetFrame();
+                		
+            double E0= this->section->Get_material()->Get_E0();
+            double alpha=this->section-> Get_material()->Get_alpha();    	
+            double area=this->section->Get_area();
+
 			double multiplier=this->section->Get_material()->GetCoupleMultiplier()*area*E0/length;
 			double w=this->section->GetWidth()/2.; 
     			double h=this->section->GetHeight()/2.; 
