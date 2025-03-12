@@ -59,6 +59,8 @@ typedef unsigned int uint;
 #define I1CAST(x) (int*)thrust::raw_pointer_cast(&x[0])
 // This is not 32 uints but rather a single uint32_t
 #define UINT_32CAST(x) (uint32_t*)thrust::raw_pointer_cast(&x[0])
+// This is not 32 ints but rather a single int32_t
+#define INT_32CAST(x) (int32_t*)thrust::raw_pointer_cast(&x[0])
 #define mI2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])
 #define mI4CAST(x) (int4*)thrust::raw_pointer_cast(&x[0])
 #define U1CAST(x) (uint*)thrust::raw_pointer_cast(&x[0])
@@ -101,11 +103,15 @@ typedef unsigned int uint;
 
 // ----------------------------------------------------------------------------
 
-#define cudaMallocErrorFlag(error_flag_D) \
-    { cudaMalloc((void**)&error_flag_D, sizeof(bool)); }
+#define cudaMallocErrorFlag(error_flag_D)                \
+    {                                                    \
+        cudaMalloc((void**)&error_flag_D, sizeof(bool)); \
+    }
 
 #define cudaFreeErrorFlag(error_flag_D) \
-    { cudaFree(error_flag_D); }
+    {                                   \
+        cudaFree(error_flag_D);         \
+    }
 
 #define cudaResetErrorFlag(error_flag_D)                                               \
     {                                                                                  \
