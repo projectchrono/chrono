@@ -132,7 +132,7 @@
 				"OpenMP_CXX_LIB_NAMES": "libomp",
 				"OpenMP_libomp_LIBRARY": "$env{HOMEBREW_PREFIX}/opt/libomp/lib/libomp.dylib",
 				"THRUST_INCLUDE_DIR": "~/dependencies/thrust",
-				"blaze_INCLUDE_DIR": "~/dependencies/blaze-3.8",
+				"blaze_INCLUDE_DIR": "~/dependencies/blaze-3.8/include",
 				"Irrlicht_ROOT": "$env{HOMEBREW_PREFIX}/include/irrlicht",
 				"OpenCRG_INCLUDE_DIR": "~/dependencies/OpenCRG/include",
 				"OpenCRG_LIBRARY": "~/dependencies/OpenCRG/lib/libOpenCRG.a",
