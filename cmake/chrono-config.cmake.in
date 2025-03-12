@@ -237,17 +237,13 @@ else()
   set(CHRONO_CXX_FOUND TRUE)
 endif()
 
+
 #-------------------------------------------------------------------------------
 # Find Eigen3
 #-------------------------------------------------------------------------------
 
-if(NOT EIGEN3_INCLUDE_DIR AND NOT Eigen3_ROOT)
-  set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@")
-endif()
-
-if(NOT Eigen3_DIR)
-  set(Eigen3_DIR "@Eigen3_DIR@")
-endif()
+set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
+set(Eigen3_DIR "@Eigen3_DIR@" CACHE PATH "Path to Eigen3 config file (should contain the \"Eigen3Config.cmake\" file")
 
 find_package(Eigen3 3.3 QUIET)
 
@@ -257,10 +253,9 @@ if(EIGEN3_FOUND)
   endif()
   mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
-  mark_as_advanced(FORCE Eigen3_ROOT)
 else()
   if(NOT Chrono_FIND_QUIETLY)
-    message("ERROR: Chrono requires Eigen3, but Eigen3 was not found")
+    message("ERROR:  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or the envvar Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
   endif()
   return()
 endif()
