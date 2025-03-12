@@ -1186,6 +1186,14 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->worldOrigin = m_paramsH->cMin;
     m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
 
+    // Precompute grid min and max bounds considering whether we have periodic boundaries or not
+    m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0,
+                                     m_paramsH->z_periodic ? INT_MIN : 0);
+
+    m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1,
+                                     m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
+                                     m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
+
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
     m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 

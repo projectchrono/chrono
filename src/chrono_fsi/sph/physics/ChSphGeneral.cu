@@ -716,6 +716,12 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
         for (int y = -1; y <= 1; y++) {
             for (int z = -1; z <= 1; z++) {
                 int3 neighborPos = gridPos + mI3(x, y, z);
+                // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
+                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
+                    neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
+                    neighborPos.z < paramsD.minBounds.z || neighborPos.z > paramsD.maxBounds.z) {
+                    continue;
+                }
                 uint gridHash = calcGridHash(neighborPos);
                 uint startIndex = cellStart[gridHash];
                 uint endIndex = cellEnd[gridHash];
@@ -756,6 +762,12 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
         for (int y = -1; y <= 1; y++) {
             for (int z = -1; z <= 1; z++) {
                 int3 neighborPos = gridPos + mI3(x, y, z);
+                // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
+                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
+                    neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
+                    neighborPos.z < paramsD.minBounds.z || neighborPos.z > paramsD.maxBounds.z) {
+                    continue;
+                }
                 uint gridHash = calcGridHash(neighborPos);
                 uint startIndex = cellStart[gridHash];
                 uint endIndex = cellEnd[gridHash];

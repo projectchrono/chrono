@@ -310,13 +310,13 @@ __device__ inline int3 calcGridPos(Real3 p) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline uint calcGridHash(int3 gridPos) {
-    gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
-    gridPos.y -= ((gridPos.y >= paramsD.gridSize.y) ? paramsD.gridSize.y : 0);
-    gridPos.z -= ((gridPos.z >= paramsD.gridSize.z) ? paramsD.gridSize.z : 0);
+    gridPos.x -= ((gridPos.x >= paramsD.gridSize.x && paramsD.x_periodic) ? paramsD.gridSize.x : 0);
+    gridPos.y -= ((gridPos.y >= paramsD.gridSize.y && paramsD.y_periodic) ? paramsD.gridSize.y : 0);
+    gridPos.z -= ((gridPos.z >= paramsD.gridSize.z && paramsD.z_periodic) ? paramsD.gridSize.z : 0);
 
-    gridPos.x += ((gridPos.x < 0) ? paramsD.gridSize.x : 0);
-    gridPos.y += ((gridPos.y < 0) ? paramsD.gridSize.y : 0);
-    gridPos.z += ((gridPos.z < 0) ? paramsD.gridSize.z : 0);
+    gridPos.x += ((gridPos.x < 0 && paramsD.x_periodic) ? paramsD.gridSize.x : 0);
+    gridPos.y += ((gridPos.y < 0 && paramsD.y_periodic) ? paramsD.gridSize.y : 0);
+    gridPos.z += ((gridPos.z < 0 && paramsD.z_periodic) ? paramsD.gridSize.z : 0);
 
     return gridPos.z * paramsD.gridSize.y * paramsD.gridSize.x + gridPos.y * paramsD.gridSize.x + gridPos.x;
 }

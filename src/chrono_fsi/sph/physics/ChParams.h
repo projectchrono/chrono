@@ -181,8 +181,11 @@ struct SimParams {
     bool y_periodic;
     bool z_periodic;
 
-    Real3 cMin;  ///< Lower limit point
-    Real3 cMax;  ///< Upper limit point
+    int3 minBounds;  ///< Lower limit point of the grid (in grid index)
+    int3 maxBounds;  ///< Upper limit point of the grid (in grid index)
+
+    Real3 cMin;  ///< Lower limit point (in world coordinates)
+    Real3 cMax;  ///< Upper limit point (in world coordinates)
 
     Real3 zombieMin;  ///< Lower limit point of the zombie domain -> All particles outside this will be frozen
     Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
