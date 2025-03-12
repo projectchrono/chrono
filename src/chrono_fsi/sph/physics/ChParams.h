@@ -53,6 +53,8 @@ struct SimParams {
     Real3 cellSize;         ///< Cell size for the neighbor particle search
     uint numBodies;         ///< Number of FSI bodies.
     Real3 boxDims;          ///< Dimensions (AABB) of the domain
+    Real3 zombieBoxDims;    ///< Dimensions (AABB) of the zombie domain
+    Real3 zombieOrigin;     ///< Origin point of the zombie domain
     Real d0;                ///< Initial separation of SPH particles
     Real ood0;              ///< 1 / d0
     Real d0_multiplier;     ///< Multiplier to obtain the interaction length, h = d0_multiplier * d0
@@ -98,6 +100,8 @@ struct SimParams {
     Real kdT;      ///< Implicit integration parameter
     Real gammaBB;  ///< Equation of state parameter
 
+    int periodic_sides;  ///< Periodic boundary condition sides for the defined computational domain - Takes values
+                         ///< NONE, X, Y, Z, All (can also be combined using binary OR and bitwise AND). (default: NONE)
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
 
@@ -163,7 +167,7 @@ struct SimParams {
     Real G_shear;       ///< Shear modulus
     Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
-    Real Nu_poisson;    ///< Poisson’s ratio
+    Real Nu_poisson;    ///< Poisson's ratio
     Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
     Real Coh_coeff;     ///< Cohesion coefficient
     Real C_Wi;          ///< Threshold of the integration of the kernel function
@@ -172,8 +176,19 @@ struct SimParams {
     Real boxDimY;  ///< Dimension of the space domain - Y
     Real boxDimZ;  ///< Dimension of the space domain - Z
 
-    Real3 cMin;  ///< Lower limit point
-    Real3 cMax;  ///< Upper limit point
+    // Bools for whether a side is a periodic side or not
+    bool x_periodic;
+    bool y_periodic;
+    bool z_periodic;
+
+    int3 minBounds;  ///< Lower limit point of the grid (in grid index)
+    int3 maxBounds;  ///< Upper limit point of the grid (in grid index)
+
+    Real3 cMin;  ///< Lower limit point (in world coordinates)
+    Real3 cMax;  ///< Upper limit point (in world coordinates)
+
+    Real3 zombieMin;  ///< Lower limit point of the zombie domain -> All particles outside this will be frozen
+    Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
 
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
     Real settlingTime;       ///< Time for the granular to settle down

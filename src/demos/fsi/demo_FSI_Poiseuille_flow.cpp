@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
     ChVector3d cMax = ChVector3d(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::ALL);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(0.0, 0.0, bzDim / 2);

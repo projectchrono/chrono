@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
     CreateBaffles(fsi);
 
     // Enable depth-based initial pressure for SPH particles
-    ChVector3d v0(1.5, 0, 0);
+    ChVector3d v0(1, 0, 0);
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
                 ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
-    fsi.SetComputationalDomainSize(aabb);
+    fsi.SetComputationalDomain(aabb, PeriodicSide::NONE);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);

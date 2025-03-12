@@ -180,10 +180,11 @@ int main(int argc, char* argv[]) {
     double bzDim = fzDim;
 
     // Set the periodic boundary condition
-    ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim * 1.2);
+    ChVector3d cMin(-bxDim / 2 - 3 * init_spacing, -byDim / 2 - 3 * init_spacing, -bzDim * 1.2);
     ////ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + Hdrop + sphere_radius + init_spacing) * 1.2);
-    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + sphere_radius + init_spacing) * 1.2);
-    sysSPH.SetBoundaries(cMin, cMax);
+    ChVector3d cMax(bxDim / 2 + 3 * init_spacing, byDim / 2 + 3 * init_spacing,
+                    (bzDim + sphere_radius + init_spacing) * 1.2);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Create SPH particle locations using a regular grid sampler
     chrono::utils::ChGridSampler<> sampler(init_spacing);

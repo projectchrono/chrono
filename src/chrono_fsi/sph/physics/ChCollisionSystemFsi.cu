@@ -30,16 +30,14 @@ namespace sph {
 // The index's are the index of the original particle arrangement
 // After the active particles, random values that weere initialized are stored
 __global__ void fillActiveListD(const uint* __restrict__ prefixSum,
-                                const uint* __restrict__ extendedActivityIdD,
+                                const int32_t* __restrict__ extendedActivityIdD,
                                 uint* __restrict__ activeListD,
-                                uint N) {
-    // N = total number of particles
+                                uint numAllMarkers) {
     uint tid = blockIdx.x * blockDim.x + threadIdx.x;
-    if (tid >= N)
+    if (tid >= numAllMarkers)
         return;
 
-    // If the particle is active, place its index into activeListD
-    // at position prefixSum[tid].
+    // Check if the value is 1 (active)
     if (extendedActivityIdD[tid] == 1) {
         uint writePos = prefixSum[tid];  // an integer in [0..(numActive-1)]
         activeListD[writePos] = tid;
@@ -144,13 +142,13 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
                              Real4* __restrict__ sortedRhoPreMuD,
                              Real3* __restrict__ sortedTauXxYyZzD,
                              Real3* __restrict__ sortedTauXyXzYzD,
-                             uint* __restrict__ activityIdentifierSortedD,
+                             int32_t* __restrict__ activityIdentifierSortedD,
                              const Real4* __restrict__ posRadD,
                              const Real3* __restrict__ velMasD,
                              const Real4* __restrict__ rhoPresMuD,
                              const Real3* __restrict__ tauXxYyZzD,
                              const Real3* __restrict__ tauXyXzYzD,
-                             const uint* __restrict__ activityIdentifierOriginalD,
+                             const int32_t* __restrict__ activityIdentifierOriginalD,
                              const uint numActive) {
     uint tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= numActive)
@@ -162,7 +160,7 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     Real4 posRadVal = posRadD[originalIndex];
     Real3 velMasVal = velMasD[originalIndex];
     Real4 rhoPreMuVal = rhoPresMuD[originalIndex];
-    uint activityIdentifierVal = activityIdentifierOriginalD[originalIndex];
+    int32_t activityIdentifierVal = activityIdentifierOriginalD[originalIndex];
 
     if (!IsFinite(mR3(posRadVal))) {
         printf("Error! reorderDataD_ActiveOnly: posRad is NAN at original index %u\n", originalIndex);
@@ -199,8 +197,17 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerInd
     mapOriginalToSorted[index] = id;
 }
 // ------------------------------------------------------------------------------
-ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr)
-    : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
+
+// Custom functor for exclusive scan that treats -1 (zombie particles) the same as 0 (sleep particles)
+struct ActivityScanOp {
+    __host__ __device__ int operator()(const int& a, const int& b) const {
+        // Treat -1 the same as 0 (only add positive values)
+        int b_value = (b <= 0) ? 0 : b;
+        return a + b_value;
+    }
+};
+
+ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
 
 ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 // ------------------------------------------------------------------------------
@@ -222,18 +229,21 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     // Create active list where all active particles are at the front of the array
     //=========================================================================================================
 
-    // Exclusive scan for extended activity identifier
+    // Exclusive scan for extended activity identifier using custom functor to handle -1 values
     thrust::exclusive_scan(thrust::device, m_data_mgr.extendedActivityIdentifierOriginalD.begin(),
                            m_data_mgr.extendedActivityIdentifierOriginalD.end(),
-                           m_data_mgr.prefixSumExtendedActivityIdD.begin());
+                           m_data_mgr.prefixSumExtendedActivityIdD.begin(),
+                           0,  // Initial value
+                           ActivityScanOp());
 
     // copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
     uint lastPrefixVal = m_data_mgr.prefixSumExtendedActivityIdD[m_data_mgr.countersH->numAllMarkers - 1];
-    uint lastFlag;
-    cudaMemcpy(
-        &lastFlag,
-        thrust::raw_pointer_cast(&m_data_mgr.extendedActivityIdentifierOriginalD[m_data_mgr.countersH->numAllMarkers - 1]),
-        sizeof(uint), cudaMemcpyDeviceToHost);
+    int32_t lastFlagInt32;
+    cudaMemcpy(&lastFlagInt32,
+               thrust::raw_pointer_cast(
+                   &m_data_mgr.extendedActivityIdentifierOriginalD[m_data_mgr.countersH->numAllMarkers - 1]),
+               sizeof(int32_t), cudaMemcpyDeviceToHost);
+    uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
 
     uint numExtended = lastPrefixVal + lastFlag;
 
@@ -243,7 +253,7 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
     fillActiveListD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.prefixSumExtendedActivityIdD),
-                                               U1CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
+                                               INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
                                                U1CAST(m_data_mgr.activeListD), m_data_mgr.countersH->numAllMarkers);
     cudaDeviceSynchronize();
     cudaCheckErrorFlag(error_flagD, "fillActiveListD");
@@ -303,18 +313,15 @@ void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarker
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->rhoPresMuD),
         mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD),
-        U1CAST(m_data_mgr.activityIdentifierSortedD),
-        mR4CAST(m_sphMarkersD->posRadD), mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD),
-        mR3CAST(m_sphMarkersD->tauXxYyZzD), mR3CAST(m_sphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.activityIdentifierOriginalD),
-        numExtended);
+        INT_32CAST(m_data_mgr.activityIdentifierSortedD), mR4CAST(m_sphMarkersD->posRadD),
+        mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
+        mR3CAST(m_sphMarkersD->tauXyXzYzD), INT_32CAST(m_data_mgr.activityIdentifierOriginalD), numExtended);
 
     cudaDeviceSynchronize();
     cudaCheckError();
 
-
     cudaFreeErrorFlag(error_flagD);
 }
-
 
 }  // namespace sph
 }  // end namespace fsi

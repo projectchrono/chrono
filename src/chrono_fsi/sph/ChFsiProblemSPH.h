@@ -155,7 +155,10 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Explicitly set the computational domain limits.
     /// By default, this is set so that it encompasses all SPH particles and BCE markers.
-    void SetComputationalDomainSize(ChAABB aabb) { m_domain_aabb = aabb; }
+    void SetComputationalDomain(ChAABB aabb, int periodic_sides) {
+        m_domain_aabb = aabb;
+        m_periodic_sides = periodic_sides;
+    }
 
     /// Complete construction of the FSI problem and initialize the FSI system.
     /// After this call, no additional solid bodies should be added to the FSI problem.
@@ -174,7 +177,10 @@ class CH_FSI_API ChFsiProblemSPH {
     size_t GetNumBoundaryBCEMarkers() const { return m_bce.size(); }
 
     /// Get limits of computational domain.
-    const ChAABB& GetComputationalDomainSize() const { return m_domain_aabb; }
+    const ChAABB& GetComputationalDomain() const { return m_domain_aabb; }
+
+    /// Get periodic sides of computational domain.
+    int GetPeriodicSides() const { return m_periodic_sides; }
 
     /// Get limits of SPH volume.
     const ChAABB& GetSPHBoundingBox() const { return m_sph_aabb; }
@@ -271,6 +277,7 @@ class CH_FSI_API ChFsiProblemSPH {
     ChVector3d m_offset_sph;           ///< SPH particles offset
     ChVector3d m_offset_bce;           ///< boundary BCE particles offset
     ChAABB m_domain_aabb;              ///< computational domain bounding box
+    int m_periodic_sides;              ///< periodic sides
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
     std::vector<FeaMesh> m_meshes;     ///< list of FSI FEA meshes
@@ -414,9 +421,7 @@ class CH_FSI_API ChFsiProblemCylindrical : public ChFsiProblemSPH {
 /// Predefined SPH particle initial properties callback (depth-based pressure).
 class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback {
   public:
-    DepthPressurePropertiesCallback(double zero_height)
-        : ParticlePropertiesCallback(), zero_height(zero_height) {
-    }
+    DepthPressurePropertiesCallback(double zero_height) : ParticlePropertiesCallback(), zero_height(zero_height) {}
 
     virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());

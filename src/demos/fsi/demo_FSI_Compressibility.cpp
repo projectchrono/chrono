@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-bxDim / 2, -byDim / 2, -bzDim / 2) - ChVector3d(initSpace0 * 20);
     ChVector3d cMax = ChVector3d(bxDim / 2, byDim / 2, bzDim) + ChVector3d(initSpace0 * 10);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::ALL);
 
     // Create an initial box for the terrain patch
     chrono::utils::ChGridSampler<> sampler(initSpace0);

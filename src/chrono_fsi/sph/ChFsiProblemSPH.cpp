@@ -300,12 +300,12 @@ void ChFsiProblemSPH::Initialize() {
     // Set computational domain
     if (!m_domain_aabb.IsInverted()) {
         // Use provided computational domain
-        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
+        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, m_periodic_sides);
     } else {
         // Set computational domain based on actual AABB of all markers
         int bce_layers = m_sysSPH.GetNumBCELayers();
         m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
-        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
+        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, static_cast<int>(PeriodicSide::NONE));
     }
 
     // Initialize the underlying FSI system
@@ -1035,9 +1035,8 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
 
     if (end_wall) {
         ChVector3d size(thickness, width, height - Iz0 * m_spacing);
-        ChVector3d loc(box_size.x() / 2 + thickness / 2 + m_spacing, 0, Iz0 * m_spacing / 2 + box_size.z() / 2 + m_spacing);
-        auto shape = chrono_types::make_shared<ChVisualShapeBox>(size);
-        shape->SetColor(color);
+        ChVector3d loc(box_size.x() / 2 + thickness / 2 + m_spacing, 0, Iz0 * m_spacing / 2 + box_size.z() / 2 +
+    m_spacing); auto shape = chrono_types::make_shared<ChVisualShapeBox>(size); shape->SetColor(color);
         m_ground->AddVisualShape(shape, ChFramed(pos + loc, QUNIT));
     }
     */

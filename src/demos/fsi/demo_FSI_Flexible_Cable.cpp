@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChVector3d cMin = ChVector3d(-5 * cxDim, -cyDim / 2 - initial_spacing / 2, -5 * czDim);
     ChVector3d cMax = ChVector3d(+5 * cxDim, +cyDim / 2 + initial_spacing / 2, +5 * czDim);
-    fsi.SetComputationalDomainSize(ChAABB(cMin, cMax));
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
 
     // Initialize FSI problem
     fsi.Initialize();
