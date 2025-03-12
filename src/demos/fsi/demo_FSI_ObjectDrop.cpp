@@ -64,7 +64,6 @@ double density = 500;
 
 // Object initial height above floor (as a ratio of fluid height)
 double initial_height = 2.00;
-double hdrop = 2;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -187,9 +186,10 @@ int main(int argc, char* argv[]) {
     fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
+    int num_bce_layers = 4;
     ChFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
-    sph_params.num_bce_layers = 4;
+    sph_params.num_bce_layers = num_bce_layers;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 8.0;
@@ -229,15 +229,13 @@ int main(int argc, char* argv[]) {
     body->SetName("object");
     body->SetFixed(false);
     body->EnableCollision(false);
-    double impact_vel = std::sqrt(2 * hdrop * -gravity.z());
+    double radius = 0.12;
     switch (object_type) {
         case ObjectType::SPHERE: {
-            double radius = 0.12;
             auto mass = density * ChSphere::GetVolume(radius);
             auto inertia = mass * ChSphere::GetGyration(radius);
 
             body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
-            body->SetPosDt(ChVector3d(0, 0, -impact_vel));
             body->SetRot(QUNIT);
             body->SetMass(mass);
             body->SetInertia(inertia);
@@ -248,13 +246,11 @@ int main(int argc, char* argv[]) {
         }
         case ObjectType::CYLINDER: {
             double length = 0.20;
-            double radius = 0.12;
 
             double mass = density * ChCylinder::GetVolume(radius, length);
             auto inertia = mass * ChCylinder::GetGyration(radius, length / 2);
 
             body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
-            body->SetPosDt(ChVector3d(0, 0, -impact_vel));
             body->SetRot(QUNIT);
             body->SetMass(mass);
             body->SetInertia(inertia);
@@ -281,8 +277,12 @@ int main(int argc, char* argv[]) {
                   BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries except top
     );
 
-    ChVector3d cMin(-csize.x() / 2 - 3 * initial_spacing, -csize.y() / 2 - 3 * initial_spacing, -0.1);
-    ChVector3d cMax(csize.x() / 2 + 3 * initial_spacing, csize.y() / 2 + 3 * initial_spacing, csize.z() + 2.0);
+    // Computational domain must always contain all BCE and Rigid markers - if these leave computational domain,
+    // the simulation will crash
+    ChVector3d cMin(-csize.x() / 2 - num_bce_layers * initial_spacing,
+                    -csize.y() / 2 - num_bce_layers * initial_spacing, -0.1);
+    ChVector3d cMax(csize.x() / 2 + num_bce_layers * initial_spacing, csize.y() / 2 + num_bce_layers * initial_spacing,
+                    csize.z() + initial_height + radius);
     fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
 
     // Initialize FSI problem
