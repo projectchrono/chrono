@@ -34,7 +34,7 @@ except OSError as exc:
     if exc.errno != errno.EEXIST:
        print("Error creating output directory " )
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 

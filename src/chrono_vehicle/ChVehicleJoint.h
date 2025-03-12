@@ -78,6 +78,9 @@ class CH_VEHICLE_API ChVehicleJoint {
 
     ~ChVehicleJoint();
 
+    /// Set object tag.
+    void SetTag(int tag);
+
     /// Get the current absolute position of the joint. This is the current absolute location of the underling marker on
     /// the 2nd connected body.
     ChVector3d GetPos() const;

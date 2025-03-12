@@ -1,4 +1,4 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_ros)
+SET(LIBRARIES Chrono_core Chrono_ros)
 
 SET(TESTS
   utest_ROS_custom_handler_with_manager

@@ -109,8 +109,8 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d>& points, bool closed)
 
     // Special case for two points only.  In this case, the curve should be a straight line.
     if (np == 2) {
-        m_outCV[0] = (2.0 * m_points[0] + m_points[1]) / 3;
-        m_inCV[1] = (2.0 * m_points[1] + m_points[0]) / 3;
+        m_outCV[0] = (2.0 * m_points[0] + m_points[1]) * CH_1_3;
+        m_inCV[1] = (2.0 * m_points[1] + m_points[0]) * CH_1_3;
         m_closed = false;
         return;
     }

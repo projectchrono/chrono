@@ -45,6 +45,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#undef CHRONO_MUMPS
 #include "demos/SetChronoSolver.h"
 
 using std::cout;

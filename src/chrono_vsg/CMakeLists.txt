@@ -57,7 +57,7 @@ else()
 endif()
 
 #-------------------------------------------------------------------------------
-# List all the files in the ChronoEngine_vsg lib
+# List all the files in the Chrono_vsg lib
 
 set(CE_VSG_BASE_FILES
     ChApiVSG.h
@@ -68,8 +68,6 @@ set(CE_VSG_BASE_FILES
 )
 
 set(CE_VSG_SHAPES_FILES
-    shapes/GetSurfaceShapeData.cpp
-    shapes/GetSurfaceShapeData.h
     shapes/ShaderUtils.cpp
     shapes/ShaderUtils.h
     shapes/ShapeBuilder.cpp
@@ -112,40 +110,40 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------
-# Add the ChronoEngine_vsg library
+# Add the Chrono_vsg library
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_vsg
+add_library(Chrono_vsg
             ${CE_VSG_BASE_FILES}
             ${CE_VSG_SHAPES_FILES}
             ${CE_VSG_RESOURCES_FILES}
             ${CE_VSG_UTILS_FILES}
             ${CE_VSG_STB_FILES})
-add_library(ChronoEngine::vsg ALIAS ChronoEngine_vsg)
+add_library(Chrono::vsg ALIAS Chrono_vsg)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_vsg PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_vsg PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_vsg PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_vsg PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VSG>)
+target_compile_definitions(Chrono_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VSG>)
 
-target_link_libraries(ChronoEngine_vsg PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_vsg PUBLIC
+target_link_libraries(Chrono_vsg PRIVATE Chrono_core)
+target_link_libraries(Chrono_vsg PUBLIC
                       vsg::vsg
                       vsgImGui::vsgImGui
                       vsgXchange::vsgXchange)
 
-install(TARGETS ChronoEngine_vsg
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_vsg
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

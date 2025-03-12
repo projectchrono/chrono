@@ -32,7 +32,7 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     mkl_solver->SetVerbose(false);
     sys.SetSolver(mkl_solver);
 
-    sys.Update();
+    sys.Update(false);
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

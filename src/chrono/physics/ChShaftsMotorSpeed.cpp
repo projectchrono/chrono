@@ -58,13 +58,13 @@ bool ChShaftsMotorSpeed::Initialize(std::shared_ptr<ChShaft> shaft_1, std::share
     return true;
 }
 
-void ChShaftsMotorSpeed::Update(double mytime, bool update_assets) {
+void ChShaftsMotorSpeed::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChShaftsMotor::Update(mytime, update_assets);
+    ChShaftsMotor::Update(time, update_assets);
 
     // update class data
 
-    motor_function->Update(mytime);  // call callbacks if any
+    motor_function->Update(time);  // call callbacks if any
 }
 
 void ChShaftsMotorSpeed::IntStateGather(const unsigned int off_x,  // offset in x state vector

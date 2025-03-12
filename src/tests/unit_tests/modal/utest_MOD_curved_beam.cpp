@@ -47,7 +47,7 @@ using namespace chrono::modal;
 using namespace chrono::fea;
 
 void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     sys.Clear();
@@ -221,7 +221,7 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
 #endif
 
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {

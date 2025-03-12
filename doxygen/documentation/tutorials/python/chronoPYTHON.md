@@ -19,7 +19,7 @@ For examples of using the Chrono::Python module **from the Python side** see the
 - demo_PY_import_solidworks.cpp
 
 	Load a mechanism that you exported from SolidWorks
-  	- load a SolidWorks mechanism into Chrono::Engine
+  	- load a SolidWorks mechanism into Chrono
 	- retrieve pointers to SolidWorks exported parts, given their name
 	- show a realtime simulation with Irrlicht 
 

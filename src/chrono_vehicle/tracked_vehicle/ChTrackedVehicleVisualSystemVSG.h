@@ -43,6 +43,13 @@ class CH_VEHICLE_API ChTrackedVehicleVisualSystemVSG : public ChVehicleVisualSys
 
   private:
     ChTrackedVehicle* m_tvehicle;
+
+    bool m_chassis_visible;
+    bool m_sprocket_visible;
+    bool m_idler_visible;
+    bool m_suspension_visible;
+    bool m_shoe_visible;
+    bool m_wheel_visible;
 };
 
 /// @} vehicle_vis

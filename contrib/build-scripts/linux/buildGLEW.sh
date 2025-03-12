@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ---------------------------------------------------------------------------------------------------------
-# Windows batch script for building GLEW from source.
+# Shell batch script for building GLEW from source.
 # - Requires cmake, wget, and unzip
 # - Place in an arbitrary temporary directory.
 # - Specify the locations for the GLEW source OR indicate that it should be downloaded.

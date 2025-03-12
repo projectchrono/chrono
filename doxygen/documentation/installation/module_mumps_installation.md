@@ -3,10 +3,7 @@ Install the MUMPS module {#module_mumps_installation}
 
 [TOC]
 
-This is an optional module that enables Chrono to use the MUMPS linear solver.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
+Chrono::Mumps is an optional module that enables Chrono to use the MUMPS linear solver.
 
 Chrono usually relies on its [built-in solvers](@ref solvers), whose good perfomance are guaranteed by leveraging the internal data structure. 
 In fact, for a wide range of applications, these suffice.<br>

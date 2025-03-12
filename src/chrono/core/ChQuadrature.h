@@ -19,6 +19,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -300,7 +301,7 @@ class ChApi ChQuadrature {
 
         for (unsigned int i = 0; i < weight->size(); i++) {
             integrand.Evaluate(val, lrootsU->at(i), lrootsV->at(i), lrootsW->at(i));
-            val *= weight->at(i) * (1. / 6.);  // the 1/6 coefficient is not in the table
+            val *= weight->at(i) * CH_1_6;  // the 1/6 coefficient is not in the table
             result += val;
         }
     }

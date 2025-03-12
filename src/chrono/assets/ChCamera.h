@@ -23,7 +23,7 @@ namespace chrono {
 /// @{
 
 // Forward declaration
-class ChPhysicsItem;
+class ChObj;
 
 /// Class for defining a camera point of view with basic settings.
 class ChApi ChCamera {
@@ -96,9 +96,9 @@ class ChApi ChCamera {
     double hvratio;
     bool isometric;
 
-    ChPhysicsItem* m_owner;
+    ChObj* m_owner;
 
-    friend class ChPhysicsItem;
+    friend class ChObj;
 };
 
 /// @} chrono_assets

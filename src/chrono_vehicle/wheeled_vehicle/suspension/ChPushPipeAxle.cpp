@@ -63,18 +63,12 @@ ChPushPipeAxle::~ChPushPipeAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                                std::shared_ptr<ChSubchassis> subchassis,
-                                std::shared_ptr<ChSteering> steering,
-                                const ChVector3d& location,
-                                double left_ang_vel,
-                                double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChPushPipeAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                               std::shared_ptr<ChSubchassis> subchassis,
+                               std::shared_ptr<ChSteering> steering,
+                               const ChVector3d& location,
+                               double left_ang_vel,
+                               double right_ang_vel) {
     // Unit vectors for orientation matrices.
     ChVector3d u;
     ChVector3d v;
@@ -110,6 +104,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the axle body.
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetName(m_name + "_axleTube");
+    m_axleTube->SetTag(m_obj_tag);
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -118,6 +113,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
     m_axleTubeGuideLong->SetName(m_name + "_sphereAxleTube");
+    m_axleTubeGuideLong->SetTag(m_obj_tag);
     ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
     m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChFrame<>(spPos, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuideLong);
@@ -127,6 +123,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector3d panCom = suspension_to_abs.TransformPointLocalToParent(panCom_local);
     m_panhardRod = chrono_types::make_shared<ChBody>();
     m_panhardRod->SetName(m_name + "_panhardRod");
+    m_panhardRod->SetTag(m_obj_tag);
     m_panhardRod->SetPos(panCom);
     m_panhardRod->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_panhardRod->SetMass(getPanhardRodMass());
@@ -137,6 +134,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector3d panAxl = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_A));
     m_panhardRod2Axle = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Axle->SetName(m_name + "_panhardRod2Axle");
+    m_panhardRod2Axle->SetTag(m_obj_tag);
     m_panhardRod2Axle->Initialize(m_panhardRod, m_axleTube, ChFrame<>(panAxl, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Axle);
 
@@ -144,6 +142,7 @@ void ChPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector3d panCh = suspension_to_abs.TransformPointLocalToParent(getLocation(PANHARD_C));
     m_panhardRod2Chassis = chrono_types::make_shared<ChLinkLockSpherical>();
     m_panhardRod2Chassis->SetName(m_name + "_panhardRod2Chassis");
+    m_panhardRod2Chassis->SetTag(m_obj_tag);
     m_panhardRod2Chassis->Initialize(m_panhardRod, chassis->GetBody(), ChFrame<>(panCh, QUNIT));
     chassis->GetBody()->GetSystem()->AddLink(m_panhardRod2Chassis);
 
@@ -198,6 +197,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     // Create and initialize the revolute joint between axle tube and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -205,6 +205,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetName(m_name + "_shock" + suffix);
+    m_shock[side]->SetTag(m_obj_tag);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -213,6 +214,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     // Create and initialize the spring
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetName(m_name + "_spring" + suffix);
+    m_spring[side]->SetTag(m_obj_tag);
     m_spring[side]->Initialize(scbeam, m_axleTube, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -222,6 +224,7 @@ void ChPushPipeAxle::InitializeSide(VehicleSide side,
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);

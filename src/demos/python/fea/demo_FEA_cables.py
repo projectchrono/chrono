@@ -22,7 +22,7 @@ solver = chrono.ChSolverSparseQR()
 
 print("Copyright (c) 2017 projectchrono.org\nChrono version: ")
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 

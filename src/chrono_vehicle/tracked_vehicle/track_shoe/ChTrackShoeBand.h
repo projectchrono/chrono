@@ -47,16 +47,16 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const override;
 
-    /// Initialize this track shoe subsystem.
+    /// Construct this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// This version initializes the bodies of a CB rigid-link track shoe such that
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] handle to the chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
     /// Write the procedurally-generated tread body visualization mesh to a Wavefront OBJ file.
     void WriteTreadVisualizationMesh(const std::string& out_dir);

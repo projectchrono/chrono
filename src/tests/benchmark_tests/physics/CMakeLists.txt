@@ -7,10 +7,10 @@ set(TESTS
 
 # ------------------------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS Chrono_core)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
 endif()
 
 # ------------------------------------------------------------------------------

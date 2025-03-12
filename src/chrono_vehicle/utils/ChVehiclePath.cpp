@@ -124,7 +124,7 @@ std::shared_ptr<ChBezierCurve> DoubleLaneChangePath(const ChVector3d& start,
                                                     bool left_turn) {
     auto& W = ChWorldFrame::Rotation().transpose();
 
-    ChVector3d offset = W * ChVector3d(length / 3, 0, 0);
+    ChVector3d offset = W * ChVector3d(length * CH_1_3, 0, 0);
     double left = left_turn ? +1.0 : -1.0;
 
     std::vector<ChVector3d> points;

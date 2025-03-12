@@ -78,13 +78,13 @@ void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     m_actuated_idx = (int)c_x + (int)c_y;
 }
 
-void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
+void ChLinkMotorLinear::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotor::Update(mytime, update_assets);
+    ChLinkMotor::Update(time, update_assets);
 
     // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->m_body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->m_body2);
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(m_frame1) >> (ChFrameMoving<>)(*this->m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(m_frame2) >> (ChFrameMoving<>)(*this->m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     //// RADU TODO: revisit this.

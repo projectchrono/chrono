@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 
 	ChGlobals* GLOBAL_Vars = DLL_CreateGlobals();
 
-	// 1- Create a ChronoENGINE physical system: all bodies and constraints
+	// 1- Create a Chrono physical system: all bodies and constraints
 	//    will be handled by this ChSystem object.
 	ChSystem my_system;
 

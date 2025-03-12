@@ -153,10 +153,10 @@ endif()
 set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
 
 #-----------------------------------------------------------------------------
-# Add the ChronoEngine_synchrono library
+# Add the Chrono_synchrono library
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_synchrono
+add_library(Chrono_synchrono
     ${SYN_BASE_FILES}
     ${SYN_CONTROLLER_FILES}
     ${SYN_AGENT_FILES}
@@ -164,51 +164,51 @@ add_library(ChronoEngine_synchrono
     ${SYN_FLATBUFFER_FILES}
     ${SYN_UTILS_FILES}
 )
-add_library(ChronoEngine::synchrono ALIAS ChronoEngine_synchrono)
+add_library(Chrono::synchrono ALIAS Chrono_synchrono)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_synchrono PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_synchrono PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_synchrono PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_synchrono PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_synchrono PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_synchrono PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_synchrono PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_synchrono PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 # Windows builds should disable warning 4661 and 4005
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_compile_options(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
-    target_compile_options(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)
+    target_compile_options(Chrono_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
+    target_compile_options(Chrono_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)
 endif()
 
-target_compile_definitions(ChronoEngine_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SYN_API_COMPILE>)
+target_compile_definitions(Chrono_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SYN_API_COMPILE>)
 
-target_include_directories(ChronoEngine_synchrono PUBLIC
+target_include_directories(Chrono_synchrono PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include>
   $<INSTALL_INTERFACE:include/chrono_thirdparty/flatbuffers/include>
 )
 
 # Add dependencies
 if (CH_ENABLE_MODULE_SENSOR)
-  target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_sensor) # needs PUBLIC
+  target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor) # needs PUBLIC
   find_package(OptiX REQUIRED)
-  target_link_libraries(ChronoEngine_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
+  target_link_libraries(Chrono_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
 endif()
   
 if (CH_ENABLE_MODULE_IRRLICHT)
-  target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoEngine_irrlicht)
-  target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_vehicle_irrlicht) # needs PUBLIC because of IrrKlang
+  target_link_libraries(Chrono_synchrono PRIVATE Chrono_irrlicht)
+  target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle_irrlicht) # needs PUBLIC because of IrrKlang
 endif()
 
-target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_synchrono PUBLIC ChronoEngine_vehicle) # needs PUBLIC
-target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoModels_vehicle)
-target_link_libraries(ChronoEngine_synchrono PRIVATE ChronoModels_robot)
-target_link_libraries(ChronoEngine_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
+target_link_libraries(Chrono_synchrono PRIVATE Chrono_core)
+target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle) # needs PUBLIC
+target_link_libraries(Chrono_synchrono PRIVATE ChronoModels_vehicle)
+target_link_libraries(Chrono_synchrono PRIVATE ChronoModels_robot)
+target_link_libraries(Chrono_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
 
 #-----------------------------------------------------------------------------
 # Find DDS (Optional)
@@ -238,7 +238,7 @@ if (CH_USE_FAST_DDS)
 	  message(STATUS "  FooNathan found?      ${foonathan_memory_FOUND}")
 
 	  if (fastcdr_FOUND AND fastrtps_FOUND AND foonathan_memory_FOUND)
-		target_link_libraries(ChronoEngine_synchrono PUBLIC fastrtps fastcdr)
+		target_link_libraries(Chrono_synchrono PUBLIC fastrtps fastcdr)
 	    ##set(SYN_INCLUDES ${SYN_INCLUDES} ${fastrtps_INCLUDE_DIR} ${fastcdr_INCLUDE_DIR})
 		set(FASTDDS_FOUND TRUE)
         set(fastrtps_DIR "${fastrtps_DIR}" PARENT_SCOPE)
@@ -266,7 +266,7 @@ if (CH_USE_FAST_DDS)
 		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
 	)
 	source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
-	target_sources(ChronoEngine_synchrono PRIVATE ${SYN_COMMUNICATION_FILES})
+	target_sources(Chrono_synchrono PRIVATE ${SYN_COMMUNICATION_FILES})
 	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
 
     message(STATUS "Synchrono configured with FastDDS backend")
@@ -280,8 +280,8 @@ endif()
 set(FASTDDS_FOUND "${FASTDDS_FOUND}" PARENT_SCOPE)
 
 
-install(TARGETS ChronoEngine_synchrono
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_synchrono
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

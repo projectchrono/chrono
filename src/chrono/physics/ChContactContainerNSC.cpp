@@ -74,9 +74,9 @@ ChContactContainerNSC::~ChContactContainerNSC() {
     RemoveAllContacts();
 }
 
-void ChContactContainerNSC::Update(double mytime, bool update_assets) {
+void ChContactContainerNSC::Update(double time, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
-    ChContactContainer::Update(mytime, update_assets);
+    ChContactContainer::Update(time, update_assets);
 }
 
 template <class Tcont, class Titer>

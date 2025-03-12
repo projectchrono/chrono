@@ -70,18 +70,12 @@ ChThreeLinkIRS::~ChThreeLinkIRS() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChThreeLinkIRS::Initialize(std::shared_ptr<ChChassis> chassis,
-                                std::shared_ptr<ChSubchassis> subchassis,
-                                std::shared_ptr<ChSteering> steering,
-                                const ChVector3d& location,
-                                double left_ang_vel,
-                                double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChThreeLinkIRS::Construct(std::shared_ptr<ChChassis> chassis,
+                               std::shared_ptr<ChSubchassis> subchassis,
+                               std::shared_ptr<ChSteering> steering,
+                               const ChVector3d& location,
+                               double left_ang_vel,
+                               double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -153,6 +147,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     m_arm[side] = chrono_types::make_shared<ChBody>();
     m_arm[side]->SetName(m_name + "_arm" + suffix);
+    m_arm[side]->SetTag(m_obj_tag);
     m_arm[side]->SetPos(points[TA_CM]);
     m_arm[side]->SetRot(rot);
     m_arm[side]->SetMass(getArmMass());
@@ -168,6 +163,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     m_upper[side] = chrono_types::make_shared<ChBody>();
     m_upper[side]->SetName(m_name + "_upper" + suffix);
+    m_upper[side]->SetTag(m_obj_tag);
     m_upper[side]->SetPos(points[UL_CM]);
     m_upper[side]->SetRot(rot);
     m_upper[side]->SetMass(getUpperLinkMass());
@@ -183,6 +179,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     m_lower[side] = chrono_types::make_shared<ChBody>();
     m_lower[side]->SetName(m_name + "_lower" + suffix);
+    m_lower[side]->SetTag(m_obj_tag);
     m_lower[side]->SetPos(points[LL_CM]);
     m_lower[side]->SetRot(rot);
     m_lower[side]->SetMass(getLowerLinkMass());
@@ -192,6 +189,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     // Create and initialize the revolute joint between arm and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_spindle[side], m_arm[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -200,17 +198,20 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     m_sphericalArm[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalArm" + suffix, chassis->GetBody(), m_arm[side],
         ChFrame<>(points[TA_C], QUNIT), getArmChassisBushingData());
+    m_sphericalArm[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalArm[side]);
 
     // Create and initialize the spherical joints between links and arm.
     m_sphericalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUpper" + suffix, m_upper[side], m_arm[side],
         ChFrame<>(points[UL_A], QUNIT), getArmUpperBushingData());
+    m_sphericalUpper[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalUpper[side]);
 
     m_sphericalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLower" + suffix, m_lower[side], m_arm[side],
         ChFrame<>(points[LL_A], QUNIT), getArmLowerBushingData());
+    m_sphericalLower[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_sphericalLower[side]);
 
     // Create and initialize the universal joints between links and chassis.
@@ -223,6 +224,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     m_universalUpper[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalUpper" + suffix, m_upper[side], chassis->GetBody(),
         ChFrame<>(points[UL_C], rot.GetQuaternion()), getChassisUpperBushingData());
+    m_universalUpper[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_universalUpper[side]);
 
     u = dirs[UNIV_AXIS_LOWER];
@@ -234,11 +236,13 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     m_universalLower[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalLower" + suffix, m_lower[side], chassis->GetBody(),
         ChFrame<>(points[LL_C], rot.GetQuaternion()), getChassisLowerBushingData());
+    m_universalLower[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_universalLower[side]);
 
     // Create and initialize the spring/damper.
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetName(m_name + "_shock" + suffix);
+    m_shock[side]->SetTag(m_obj_tag);
     m_shock[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -246,6 +250,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetName(m_name + "_spring" + suffix);
+    m_spring[side]->SetTag(m_obj_tag);
     m_spring[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -255,6 +260,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);

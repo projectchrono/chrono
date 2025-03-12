@@ -53,7 +53,7 @@ if (${FMU_EXPORT_SUPPORT})
   target_compile_definitions(${PROGRAM} PUBLIC ACTUATOR_FMU_RUNTIME_OUTPUT_DIRECTORY="${ACTUATOR_FMU_RUNTIME_OUTPUT_DIRECTORY}")
 endif()
 
-target_link_libraries(${PROGRAM} ChronoEngine)
+target_link_libraries(${PROGRAM} Chrono_core)
 
 set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 

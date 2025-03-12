@@ -86,8 +86,8 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
 void ChFsiInterfaceSPH::ExchangeSolidForces() {
     {
         // Transfer to host
-        thrust::host_vector<Real3> forcesH = m_data_mgr.rigid_FSI_ForcesD;
-        thrust::host_vector<Real3> torquesH = m_data_mgr.rigid_FSI_TorquesD;
+        auto forcesH = m_data_mgr.GetRigidForces();
+        auto torquesH = m_data_mgr.GetRigidTorques();
 
         // Apply to rigid bodies
         int index = 0;
@@ -103,7 +103,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
 
     {
         // Transfer to host
-        thrust::host_vector<Real3> forces_H = m_data_mgr.flex1D_FSIforces_D;
+        auto forces_H = m_data_mgr.GetFlex1dForces();
 
         // Apply to FEA 1-D mesh nodes
         int index = 0;
@@ -118,7 +118,7 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
 
     {
         // Transfer to host
-        thrust::host_vector<Real3> forces_H = m_data_mgr.flex2D_FSIforces_D;
+        auto forces_H = m_data_mgr.GetFlex2dForces();
 
         // Apply to FEA 2-D mesh nodes
         int index = 0;

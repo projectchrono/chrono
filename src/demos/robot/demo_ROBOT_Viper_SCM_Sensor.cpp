@@ -458,7 +458,7 @@ int main(int argc, char* argv[]) {
                                                           480,                 // number of horizontal samples
                                                           300,                 // number of vertical channels
                                                           (float)(2 * CH_PI),  // horizontal field of view
-                                                          (float)CH_PI / 12, (float)-CH_PI / 3,
+                                                          (float)CH_PI / 12, (float)-CH_PI_3,
                                                           140.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
@@ -496,7 +496,7 @@ int main(int argc, char* argv[]) {
                                                          offset_pose,                    // offset pose
                                                          960,                            // image width
                                                          480,                            // image height
-                                                         CH_PI / 3                       // FOV
+                                                         CH_PI_3                       // FOV
     );
     cam->SetName("Camera Sensor");
     cam->SetLag(0.f);

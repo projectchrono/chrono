@@ -17,8 +17,8 @@
 // Driver inputs for a suspension test rig include left/right post displacements
 // and steering input (the latter being ignored if the tested suspension is not
 // attached to a steering mechanism).  These driver inputs can be obtained from
-// an interactive driver system (of type ChSuspensionTestRigInteractiveDriverIRR) or from a data file
-// (using a driver system of type ChSuspensionTestRigDataDriver).
+// an interactive driver system of type ChSuspensionTestRigInteractiveDriver or
+// from a data file using a driver system of type ChSuspensionTestRigDataDriver.
 //
 // See the description of ChSuspensionTestRig::PlotOutput for details on data
 // collected (if output is enabled).
@@ -30,8 +30,18 @@
 #include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -137,7 +147,10 @@ RigMode rig_mode = RigMode::PUSHROD;
 
 // Specification of test rig inputs
 enum class DriverMode { DATA_FILE, INTERACTIVE };
-DriverMode driver_mode = DriverMode::DATA_FILE;
+DriverMode driver_mode = DriverMode::INTERACTIVE;
+
+// Run-time visualization system
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output collection
 bool output = true;
@@ -225,12 +238,6 @@ int main(int argc, char* argv[]) {
     rig->SetWheelVisualizationType(VisualizationType::NONE);
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
-    // Create the vehicle Irrlicht application.
-    auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Suspension Test Rig");
-    vis->SetChaseCamera(0.5 * (rig->GetSpindlePos(0, LEFT) + rig->GetSpindlePos(0, RIGHT)), setup.CameraDistance(),
-                        0.5);
-
     // Create and attach the driver system.
     switch (driver_mode) {
         case DriverMode::DATA_FILE: {
@@ -240,7 +247,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case DriverMode::INTERACTIVE: {
-            auto driver = chrono_types::make_shared<ChSuspensionTestRigInteractiveDriverIRR>(*vis);
+            auto driver = chrono_types::make_shared<ChSuspensionTestRigInteractiveDriver>();
             driver->SetSteeringDelta(1.0 / 50);
             driver->SetDisplacementDelta(1.0 / 250);
             rig->SetDriver(driver);
@@ -251,11 +258,42 @@ int main(int argc, char* argv[]) {
     // Initialize suspension test rig.
     rig->Initialize();
 
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&rig->GetVehicle());
+    // Create the run-time visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChSuspensionTestRigVisualSystemIRR>();
+            vis_irr->SetWindowSize(1280, 1024);
+            vis_irr->SetWindowTitle("Suspension Test Rig");
+            vis_irr->AttachSTR(rig.get());
+            vis_irr->Initialize();
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChSuspensionTestRigVisualSystemVSG>();
+            vis_vsg->SetWindowSize(ChVector2i(1280, 1024));
+            vis_vsg->SetWindowTitle("Suspension Test Rig");
+            vis_vsg->AttachSTR(rig.get());
+            vis_vsg->Initialize();
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Set up rig output
     std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
@@ -279,10 +317,6 @@ int main(int argc, char* argv[]) {
 
         // Advance simulation of the rig
         rig->Advance(step_size);
-
-        // Update visualization app
-        vis->Synchronize(rig->GetVehicle().GetChTime(), {rig->GetSteeringInput(), 0, 0});
-        vis->Advance(step_size);
 
         if (rig->DriverEnded())
             break;

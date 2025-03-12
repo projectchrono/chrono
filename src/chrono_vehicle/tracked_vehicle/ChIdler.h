@@ -61,9 +61,9 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// respect to and expressed in the reference frame of the chassis). It is assumed that the idler subsystem
     /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
     /// must extend this default implementation and specify contact geometry for the idler wheel.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Enable/disable output for this subsystem.
@@ -76,6 +76,16 @@ class CH_VEHICLE_API ChIdler : public ChPart {
   protected:
     /// Construct an idler subsystem with given name.
     ChIdler(const std::string& name);
+
+    /// Construct the concrete idler subsystem.
+    /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
+    /// respect to and expressed in the reference frame of the chassis). It is assumed that the idler subsystem
+    /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
+    /// must extend this default implementation and specify contact geometry for the idler wheel.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

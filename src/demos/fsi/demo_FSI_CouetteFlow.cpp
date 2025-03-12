@@ -149,8 +149,8 @@ int main(int argc, char* argv[]) {
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 1;                     // default: 1.0
-    sph_params.xsph_coefficient = 0.1;               // default: 0.5
-    sph_params.shifting_coefficient = 0.0;           // default: 0.1
+    sph_params.shifting_xsph_eps = 0.1;              // default: 0.5
+    sph_params.shifting_beta_implicit = 0.0;         // default: 1.0
     sph_params.min_distance_coefficient = 0.001;     // default: 0.01, use 0.001, otherwise fluid surface is asymmetric
     sph_params.use_density_based_projection = true;  // default: false
     sph_params.num_proximity_search_steps = 1;
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
         auto v_max = omega * outer_cylinder_radius;
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v_max);
 
-        visFSI->SetTitle("Chrono::FSI BMC Simulation");
+        visFSI->SetTitle("Chrono::FSI Couette Flow");
         visFSI->SetSize(1280, 720);
         visFSI->SetCameraVertical(CameraVerticalDir::Y);
         visFSI->AddCamera(ChVector3<>(1.1 * bxDim, 1.8 * byDim, 0), VNULL);

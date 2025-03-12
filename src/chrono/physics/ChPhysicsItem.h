@@ -20,8 +20,6 @@
 
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChObject.h"
-#include "chrono/assets/ChCamera.h"
-#include "chrono/assets/ChVisualModel.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -51,50 +49,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Set the pointer to the parent ChSystem().
     /// Also add to new collision system / remove from old collision system.
     virtual void SetSystem(ChSystem* m_system);
-
-    /// Add an (optional) visualization model.
-    /// Not that an instance of the given visual model is associated with this physics ite, thus allowing sharing the
-    /// same model among multiple items.
-    void AddVisualModel(std::shared_ptr<ChVisualModel> model);
-
-    /// Access the visualization model (if any).
-    /// Note that this model may be shared with other physics items that may instance it.
-    /// Returns nullptr if no visual model is present.
-    std::shared_ptr<ChVisualModel> GetVisualModel() const;
-
-    /// Add the specified visual shape to the visualization model.
-    /// If this item does not have a visual model, one is created.
-    void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
-
-    /// Access the specified visualization shape in the visualization model (if any).
-    /// Note that no range check is performed.
-    std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
-
-    /// Add the specified FEA visualization object to the visualization model.
-    /// If this item does not have a visual model, one is created.
-    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
-
-    /// Access the specified FEA visualization object in the visualization model (if any).
-    /// Note that no range check is performed.
-    std::shared_ptr<ChVisualShapeFEA> GetVisualShapeFEA(unsigned int i) const;
-
-    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
-    /// If the visual model is cloned (for example for a physics item modeling a particle system), this function returns
-    /// the coordinate system of the specified clone.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const { return ChFrame<>(); }
-
-    /// Return the number of clones of the visual model associated with this physics item.
-    /// If the visual model is cloned (for example for a physics item modeling a particle system), this function should
-    /// return the total number of copies of the visual model, including the "original".  The current coordinate frame
-    /// of a given clone can be obtained by calling GetVisualModelFrame() with the corresponding clone identifier.
-    virtual unsigned int GetNumVisualModelClones() const { return 0; }
-
-    /// Attach a ChCamera to this physical item.
-    /// Multiple cameras can be attached to the same physics item.
-    void AddCamera(std::shared_ptr<ChCamera> camera);
-
-    /// Get the set of cameras attached to this physics item.
-    std::vector<std::shared_ptr<ChCamera>> GetCameras() const { return cameras; }
 
     // INTERFACES
     // inherited classes might/should implement some of the following functions
@@ -140,13 +94,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
     /// only if requested).
-    virtual void Update(double time, bool update_assets = true);
-
-    /// Perform an update using the current time.
-    virtual void Update(bool update_assets = true);
-
-    /// Utility function to update only the associated visual assets (if any).
-    void UpdateVisualModel();
+    virtual void Update(double time, bool update_assets) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
@@ -415,9 +363,6 @@ class ChApi ChPhysicsItem : public ChObj {
 
   protected:
     ChSystem* system;  ///< parent system
-
-    std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
-    std::vector<std::shared_ptr<ChCamera>> cameras;             ///< set of cameras
 
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)

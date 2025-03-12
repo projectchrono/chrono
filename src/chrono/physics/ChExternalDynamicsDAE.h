@@ -58,7 +58,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     /// Get number of states (dimension of y).
     virtual unsigned int GetNumStates() const = 0;
 
-    /// Get number of state derivatives (dimension of yd).
+    /// Get number of state derivatives (dimension of yd and ydd).
     /// The default implementation assumes equal number of states and state derivatives.
     /// If this is not the case, a derived class must implement the functions IncrementState, CalculateStateIncrement,
     /// and (if stiff) CalculateForceJacobians.
@@ -194,7 +194,7 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     ) {}
 
   protected:
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_ny; }
     virtual unsigned int GetNumCoordsVelLevel() override { return m_nyd; }

@@ -35,9 +35,9 @@ class CH_VEHICLE_API ChBrake : public ChPart {
     virtual ~ChBrake() {}
 
     /// Initialize the brake by associating it to an existing suspension subsystem.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
-                            std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
-                            VehicleSide side                           ///< brake mounted on left/right side
+    void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+                    std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+                    VehicleSide side                           ///< brake mounted on left/right side
     );
 
     /// Update the brake subsystem for the given braking driver input.
@@ -60,6 +60,12 @@ class CH_VEHICLE_API ChBrake : public ChPart {
 
   protected:
     ChBrake(const std::string& name);
+
+    /// Construct the concrete brake by associating it to an existing suspension subsystem.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+                           std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+                           VehicleSide side                           ///< brake mounted on left/right side
+                           ) = 0;
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

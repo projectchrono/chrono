@@ -1025,7 +1025,7 @@ add_library(ChronoModels_vehicle
     ${CVM_KRAZ_FILES}
  )
 
-add_library(ChronoEngine::models_vehicle ALIAS ChronoModels_vehicle)
+add_library(Chrono::models_vehicle ALIAS ChronoModels_vehicle)
 
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_vehicle PROPERTIES COMPILE_FLAGS "/GL")
@@ -1042,10 +1042,10 @@ endif()
 
 target_compile_definitions(ChronoModels_vehicle PRIVATE CH_API_COMPILE_MODELS)
 
-target_link_libraries(ChronoModels_vehicle PUBLIC ChronoEngine ChronoEngine_vehicle)
+target_link_libraries(ChronoModels_vehicle PUBLIC Chrono_core Chrono_vehicle)
 
 install(TARGETS ChronoModels_vehicle
-        EXPORT ChronoEngineTargets
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

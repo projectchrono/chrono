@@ -48,7 +48,7 @@ class ChApi ChLineCam : public ChLine {
     /// Get the cam type.
     CamType GetCamType() const { return type; }
 
-    virtual void SetClosed(bool closed) override {}
+    virtual void SetClosed(bool state) override {}
 
     virtual bool IsClosed() const override { return true; }
 

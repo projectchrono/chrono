@@ -43,9 +43,10 @@ class ChApi ChLinkLockClearance : public ChLinkLockLock {
     virtual ChLinkLockClearance* Clone() const override { return new ChLinkLockClearance(*this); }
 
     // Updates marker positions, etc.
-    virtual void UpdateTime(double mytime) override;
+    virtual void UpdateTime(double time) override;
+
     // Updates forces
-    virtual void UpdateForces(double mytime) override;
+    virtual void UpdateForces(double time) override;
 
     // data get/set
     double GetClearance() const { return clearance; }

@@ -39,9 +39,9 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
     /// respect to and expressed in the reference frame of the chassis) and associating it with the specified suspension
     /// subsystem (assumed to be independent). It is assumed that the anti-roll bar reference frame is always aligned
     /// with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
-                            std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
-                            const ChVector3d& location                 ///< [in] location relative to the chassis frame
+    void Initialize(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
+                    std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
+                    const ChVector3d& location                 ///< [in] location relative to the chassis frame
     );
 
     /// Log current constraint violations.
@@ -50,6 +50,16 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
   protected:
     /// Construct an anti-roll bar subsystem with given name.
     ChAntirollBar(const std::string& name);
+
+    /// Construct the concrete anti-roll bar subsystem.
+    /// The anti-roll bar subsystem is initialized by attaching it to the specified chassis at the given location (with
+    /// respect to and expressed in the reference frame of the chassis) and associating it with the specified suspension
+    /// subsystem (assumed to be independent). It is assumed that the anti-roll bar reference frame is always aligned
+    /// with the chassis reference frame.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,        ///< [in] handle to the chassis body
+                           std::shared_ptr<ChSuspension> suspension,  ///< [in] associated suspension subsystem
+                           const ChVector3d& location                 ///< [in] location relative to the chassis frame
+                           ) = 0;
 
     ChVector3d m_rel_loc;  ///< relative location of antiroll bar subsystem on chassis
 };

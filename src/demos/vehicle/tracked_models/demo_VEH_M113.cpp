@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
             double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
             double loge = std::log(mat.cr_eff);
             double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
-            double kn = (2.0 / 3) * Sn;
+            double kn = CH_2_3 * Sn;
             double gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
 
             double forceN = kn * delta - gn * relvel_n_mag;
@@ -422,7 +422,6 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("M113 Vehicle Demo");
             vis_irr->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-            ////vis_irr->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
@@ -453,8 +452,6 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("M113 Vehicle Demo");
             vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
-            vis_vsg->AttachVehicle(&m113.GetVehicle());
-            ////vis_vsg->ShowAllCoGs(0.3);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

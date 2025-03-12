@@ -140,7 +140,7 @@ class DriverWrapper : public ChDriver {
             irr_driver->Advance(step);
     }
 
-    void Set(std::shared_ptr<ChInteractiveDriverIRR> irr_driver) { this->irr_driver = irr_driver; }
+    void Set(std::shared_ptr<ChInteractiveDriverIRR> irrlicht_driver) {irr_driver = irrlicht_driver; }
 
     std::shared_ptr<ChInteractiveDriverIRR> irr_driver;
 };

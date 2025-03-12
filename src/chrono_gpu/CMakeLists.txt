@@ -112,42 +112,47 @@ endif()
 set(DEPENDENCIES_GPU ${DEPENDENCIES_GPU} PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_gpu library
+# Add the Chrono_gpu library
 # ------------------------------------------------------------------------------
 
-message(STATUS "Add ChronoEngine_gpu library")
+message(STATUS "Add Chrono_gpu library")
 
-add_library(ChronoEngine_gpu
+add_library(Chrono_gpu
             ${GPU_BASE_FILES}
             ${GPU_PHYSICS_FILES}
             ${GPU_CUDA_FILES}
-            ${ChronoEngine_GPU_UTILITIES}
+            ${Chrono_GPU_UTILITIES}
             ${GPU_VIS_FILES})
 
-add_library(ChronoEngine::gpu ALIAS ChronoEngine_gpu)
+add_library(Chrono::gpu ALIAS Chrono_gpu)
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_gpu PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_gpu PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_gpu PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_gpu PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
+target_compile_definitions(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
+if(MSVC)
+  target_compile_options(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4996>)  # deprecated function or class member
+  target_compile_options(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>) # CUDA Deprecation: The type will be removed in the next major release
+  target_compile_options(Chrono_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4100>) # CUDA unreferenced formal parameter
+endif()
 
-target_link_libraries(ChronoEngine_gpu PRIVATE ChronoEngine)
+target_link_libraries(Chrono_gpu PRIVATE Chrono_core)
 
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cudart_static)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::nvrtc)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cuda_driver)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cublas)
-target_link_libraries(ChronoEngine_gpu PUBLIC CUDA::cusparse)
+target_link_libraries(Chrono_gpu PUBLIC CUDA::cudart_static)
+target_link_libraries(Chrono_gpu PUBLIC CUDA::nvrtc)
+target_link_libraries(Chrono_gpu PUBLIC CUDA::cuda_driver)
+target_link_libraries(Chrono_gpu PUBLIC CUDA::cublas)
+target_link_libraries(Chrono_gpu PUBLIC CUDA::cusparse)
 
-set_target_properties(ChronoEngine_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
+set_target_properties(Chrono_gpu PROPERTIES CUDA_ARCHITECTURES ${CHRONO_CUDA_ARCHITECTURES})
 
-install(TARGETS ChronoEngine_gpu
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_gpu
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -155,41 +160,41 @@ install(TARGETS ChronoEngine_gpu
 )
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_gpu_opengl library
+# Add the Chrono_gpu_opengl library
 # ------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_OPENGL)
 
-    message(STATUS "Add ChronoEngine_gpu_opengl library")
+    message(STATUS "Add Chrono_gpu_opengl library")
 
-    add_library(ChronoEngine_gpu_opengl ${GPU_GL_FILES})
-    add_library(ChronoEngine::gpu_opengl ALIAS ChronoEngine_gpu_opengl)
+    add_library(Chrono_gpu_opengl ${GPU_GL_FILES})
+    add_library(Chrono::gpu_opengl ALIAS Chrono_gpu_opengl)
 
     if (CH_STATIC)
-      set_target_properties(ChronoEngine_gpu_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(Chrono_gpu_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
     
     if(MSVC)
-      set_target_properties(ChronoEngine_gpu_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+      set_target_properties(Chrono_gpu_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_compile_definitions(ChronoEngine_gpu_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
+    target_compile_definitions(Chrono_gpu_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
 
-    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE ChronoEngine ChronoEngine_gpu)
-    target_link_libraries(ChronoEngine_gpu_opengl PUBLIC ChronoEngine_opengl)
+    target_link_libraries(Chrono_gpu_opengl PRIVATE Chrono_core Chrono_gpu)
+    target_link_libraries(Chrono_gpu_opengl PUBLIC Chrono_opengl)
 
-    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cudart_static)
-    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::nvrtc)
-    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cuda_driver)
-    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cublas)
-    target_link_libraries(ChronoEngine_gpu_opengl PRIVATE CUDA::cusparse)
+    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cudart_static)
+    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::nvrtc)
+    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cuda_driver)
+    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cublas)
+    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cusparse)
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_compile_options(ChronoEngine_gpu_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
+        target_compile_options(Chrono_gpu_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
     endif()
       
-    install(TARGETS ChronoEngine_gpu_opengl
-            EXPORT ChronoEngineTargets
+    install(TARGETS Chrono_gpu_opengl
+            EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib

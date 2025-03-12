@@ -154,7 +154,7 @@ bool TestDistance(
     // Create the mechanical system
     // ----------------------------
 
-    // Create a ChronoENGINE physical system: all bodies and constraints will be
+    // Create a Chrono physical system: all bodies and constraints will be
     // handled by this ChSystem object.
 
     ChSystemNSC sys;

@@ -3,11 +3,11 @@ Demo Collision Shapes {#tutorial_chrono_solidworks_demo_shapes}
 
 
 This tutorial shows how to use the [Chrono::SolidWorks](@ref chrono_solidworks_installation)  add-in for assigning collision shapes to SolidWorks parts. 
-Those collision shapes will be converted to Chrono::Engine collision shapes when exporting the .py scene file.
+Those collision shapes will be converted to Chrono collision shapes when exporting the .py scene file.
 
 Note that, by default, all parts that you model in SolidWorks do not generate any collision shapes: if you want to simulate phenomena with collisions, you must use the procedure that is outlined in this tutorial in order to assign collision shapes to parts. This is motivated by various reasons:
 + you can choose to add collision shapes only to parts that really need them, thus reducing the computational overhead;
-+ currently there is no automatic way to convert generic detailed concave shapes into a set of Chrono::Engine collision shapes (actually, a tool for automatic convex decomposition is under development, but in many cases the best results come when the user add convex shapes by hand)
++ currently there is no automatic way to convert generic detailed concave shapes into a set of Chrono collision shapes (actually, a tool for automatic convex decomposition is under development, but in many cases the best results come when the user add convex shapes by hand)
 
 Currently, the following convex shapes are supported: 
 + spheres 
@@ -50,9 +50,9 @@ We are going to model a small set of columns with capitals, that will be shaken 
 This shape will be used for computing the mass, the tensor of inertia, the coordinates of the part, and also the visualization mesh if you are using POVray or other types of postprocessing, *but it won't produce any collisions yet!*
 Therefore, now we assign a collision shape to this part.
 
-Collision shapes that can be converted to Chrono::Engine .py files are of simple types: spheres, cylinders, boxes, etc (or compounds of them). So now we will approximate the column with a single cylinder, assuming the at this level of approximation is enough for the simulation that we want to do.
+Collision shapes that can be converted to Chrono .py files are of simple types: spheres, cylinders, boxes, etc (or compounds of them). So now we will approximate the column with a single cylinder, assuming the at this level of approximation is enough for the simulation that we want to do.
 
-To add a collision shape, we exploit a possibility of SolidWorks: each part can contain more than a single 'shapes' - those shapes are called *solid bodies* in SolidWorks (not to be confused with the concept of *rigid bodies* in Chrono::Engine).
+To add a collision shape, we exploit a possibility of SolidWorks: each part can contain more than a single 'shapes' - those shapes are called *solid bodies* in SolidWorks (not to be confused with the concept of *rigid bodies* in Chrono).
 
 + So, we will create an additional cylindrical body: use the tool 
 ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_03.jpg)
@@ -68,7 +68,7 @@ To add a collision shape, we exploit a possibility of SolidWorks: each part can 
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_05.jpg)
 
-+ Select the second body (the cylinder) and use the tool **Set body as collision shape** in the Chrono::Engine add-in tab, at the right of the screen.
++ Select the second body (the cylinder) and use the tool **Set body as collision shape** in the Chrono add-in tab, at the right of the screen.
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_06.jpg)
 
@@ -110,7 +110,7 @@ After you created the collision shape with the tool, **do not modify** its solid
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_11.jpg)
 
-+ Now you have two copies of the initial box: one of them will be used to represent the collision shape. Select the second body and use the tool **Set body as collision shape** in the Chrono::Engine add-in tab, at the right of the screen.
++ Now you have two copies of the initial box: one of them will be used to represent the collision shape. Select the second body and use the tool **Set body as collision shape** in the Chrono add-in tab, at the right of the screen.
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_06.jpg)
 
@@ -122,7 +122,7 @@ After you created the collision shape with the tool, **do not modify** its solid
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_13.jpg)
 
-+ We want to add a collision shape that represents the torus: a cylinder is sufficient to this end. Create a cylinder (do not forget to uncheck the *Merge results* option!), select it, use the **Set body as collision shape** in the Chrono::Engine add-in tab, as you learned in the previous steps.
++ We want to add a collision shape that represents the torus: a cylinder is sufficient to this end. Create a cylinder (do not forget to uncheck the *Merge results* option!), select it, use the **Set body as collision shape** in the Chrono add-in tab, as you learned in the previous steps.
 
 + You may want to add optional details such as bevels, etc., so you get the following result:
 
@@ -163,7 +163,7 @@ Note that in this case you defined the collision shape with a group of different
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_18.jpg)
 
-+ Now deactivate the mate constraints, because we do not want them to be exported into the .py Chrono::Engine file (if you keep them active, you will get a building that cannot fall down during the earthquake). To deactivate them, simply select them and use the popup menu ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_22.jpg) ; they will turn 'ghosted':
++ Now deactivate the mate constraints, because we do not want them to be exported into the .py Chrono file (if you keep them active, you will get a building that cannot fall down during the earthquake). To deactivate them, simply select them and use the popup menu ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_22.jpg) ; they will turn 'ghosted':
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_collshapes_19.jpg)
 
@@ -173,10 +173,10 @@ Note that in this case you defined the collision shape with a group of different
 
 
 
-# Export the assembly as a Chrono::Engine system
+# Export the assembly as a Chrono system
 
 
-+ Export the system as you learned in previous tutorials: open the tab of the Chrono::Engine exporter, check the **Save test.py** button, press the **Save as Python...** button and save as ```collisions.py``` in an empty directory.
++ Export the system as you learned in previous tutorials: open the tab of the Chrono exporter, check the **Save test.py** button, press the **Save as Python...** button and save as ```collisions.py``` in an empty directory.
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine_17.jpg)
 
@@ -308,11 +308,6 @@ light_source{ <1,3,1.5> color rgb<1,1,1> }
 ~~~
 
 + After we customized the ```run-test-modified.py``` file with the code snippets above and other small modifications, we can **run** it to compute the simulation in few seconds.
-
-<div class = "ce-info">
-The ready-to-use ```run_test_modified.py``` script for this demo can be found in the directory 
-```C:/Program Files/SolidWorks Corp/SolidWorks/chronoengine/examples/collisions```.
-</div>
 
 + Use POVray to render the animation and VirtualDub to assembly the .bmp frames into an .avi file, as explained in the previous tutorials; you should see an animation of the earthquake:
 

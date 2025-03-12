@@ -18,8 +18,8 @@ endif()
 #--------------------------------------------------------------
 # Additional include paths
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_vsg")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_vsg")
 
 
 #--------------------------------------------------------------

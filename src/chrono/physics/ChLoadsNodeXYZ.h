@@ -63,9 +63,9 @@ class ChLoadNodeXYZ : public ChLoad {
   public:
     ChLoadNodeXYZ(std::shared_ptr<ChNodeXYZ> node) { SetLoader(chrono_types::make_shared<ChLoaderNodeXYZ>(node)); }
     ChLoadNodeXYZ(std::shared_ptr<ChNodeXYZ> node, const ChVector3d& force) {
-        auto loader = chrono_types::make_shared<ChLoaderNodeXYZ>(node);
-        loader->SetForce(force);
-        SetLoader(loader);
+        auto node_loader = chrono_types::make_shared<ChLoaderNodeXYZ>(node);
+        node_loader->SetForce(force);
+        SetLoader(node_loader);
     }
     virtual ChLoadNodeXYZ* Clone() const override { return new ChLoadNodeXYZ(*this); }
 };
@@ -104,7 +104,7 @@ class ChApi ChLoadNodeXYZForce : public ChLoadCustom {
     // Declare this load as non-stiff.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 
     ChVector3d computed_abs_force;
 };
@@ -144,7 +144,7 @@ class ChApi ChLoadNodeXYZForceAbs : public ChLoadNodeXYZForce {
     // Declare this load as non-stiff.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -181,7 +181,7 @@ class ChApi ChLoadNodeXYZNodeXYZ : public ChLoadCustomMultiple {
     // Declare this load as non-stiff.
     virtual bool IsStiff() override { return false; }
 
-    virtual void Update(double time) override;
+    virtual void Update(double time, bool update_assets) override;
 
     ChVector3d computed_abs_force;
 };

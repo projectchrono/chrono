@@ -54,7 +54,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     Ch3DOFContainer& operator=(const Ch3DOFContainer& other);  // Assignment operator
 
     // Before Solve
-    virtual void Update3DOF(double ChTime) {}
+    virtual void Update3DOF(double time) {}
     virtual void Setup3DOF(int start_constraint);
     virtual void Initialize() {}
     virtual void ComputeInvMass(int offset) {}
@@ -72,7 +72,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     virtual void Project(real* gamma) {}
     virtual void UpdateRhs() {}
     // After Solve
-    virtual void UpdatePosition(double ChTime) {}
+    virtual void UpdatePosition(double time) {}
     virtual void PostSolve() {}
     void SetFamily(short family, short mask_no_collision);
 
@@ -84,7 +84,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) { return real3(0); }
     virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) { return real3(0); }
     // Integrate happens after the solve
-    // void Integrate(double ChTime);
+    // void Integrate(double time);
     // Position of the node - in absolute csys.
     real3 GetPos(int i);
     // Position of the node - in absolute csys.
@@ -133,8 +133,8 @@ class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
     ~ChFluidContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    virtual void Update3DOF(double ChTime) override;
-    virtual void UpdatePosition(double ChTime) override;
+    virtual void Update3DOF(double time) override;
+    virtual void UpdatePosition(double time) override;
     virtual unsigned int GetNumConstraints() override;
     virtual unsigned int GetNumNonZeros() override;
     virtual void Setup3DOF(int start_constraint) override;
@@ -196,8 +196,8 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
     ~ChParticleContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
-    virtual void Update3DOF(double ChTime) override;
-    virtual void UpdatePosition(double ChTime) override;
+    virtual void Update3DOF(double time) override;
+    virtual void UpdatePosition(double time) override;
     virtual unsigned int GetNumConstraints() override;
     virtual unsigned int GetNumNonZeros() override;
     virtual void Setup3DOF(int start_constraint) override;

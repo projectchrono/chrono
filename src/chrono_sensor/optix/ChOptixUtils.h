@@ -183,15 +183,6 @@ void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector3d b, ChV
 
 CH_SENSOR_API void SetSensorShaderDir(const std::string& path);
 
-/*
-/// prefix for ptx file
-const std::string ptx_pre = "ChronoEngine_sensor_generated_";
-/// suffix for ptx file
-const std::string ptx_suff = ".cu.ptx";
-
-extern std::string SENSOR_SHADER_DIR;// = "test"; //std::string(SHADER_OUTPUT_PATH);
-*/
-
 /// @} sensor_optix
 
 }  // namespace sensor

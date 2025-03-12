@@ -97,9 +97,9 @@ endif()
 if(CH_ENABLE_MODULE_PARDISO_MKL)
   list (APPEND DEPENDENCIES_VEHICLECOSIM "PARDISOMKL")
 endif()
-if(CH_ENABLE_MODULE_MUMPS)
-  list (APPEND DEPENDENCIES_VEHICLECOSIM "MUMPS")
-endif()
+##if(CH_ENABLE_MODULE_MUMPS)
+##  list (APPEND DEPENDENCIES_VEHICLECOSIM "MUMPS")
+##endif()
 
 if(CH_ENABLE_MODULE_MULTICORE)
   list (APPEND DEPENDENCIES_VEHICLECOSIM "MULTICORE")
@@ -118,77 +118,77 @@ endif()
 set(DEPENDENCIES_VEHICLECOSIM ${DEPENDENCIES_VEHICLECOSIM} PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_vehicle_cosim library
+# Add the Chrono_vehicle_cosim library
 # ------------------------------------------------------------------------------
 
-message(STATUS "Add ChronoEngine_vehicle_cosim library")
+message(STATUS "Add Chrono_vehicle_cosim library")
 
-add_library(ChronoEngine_vehicle_cosim
+add_library(Chrono_vehicle_cosim
     ${CV_COSIM_FILES}
     ${CV_COSIM_MBS_FILES}
     ${CV_COSIM_TIRE_FILES}
     ${CV_COSIM_TERRAIN_FILES}
 )
-add_library(ChronoEngine::vehicle_cosim ALIAS ChronoEngine_vehicle_cosim)
+add_library(Chrono::vehicle_cosim ALIAS Chrono_vehicle_cosim)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_vehicle_cosim PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_vehicle_cosim PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_vehicle_cosim PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_vehicle_cosim PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
+target_compile_definitions(Chrono_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE")
 
-target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_vehicle)
-target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoModels_robot)
+target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vehicle)
+target_link_libraries(Chrono_vehicle_cosim PUBLIC ChronoModels_robot)
 if(CH_ENABLE_MODULE_MULTICORE)
-  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_multicore)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_multicore)
 endif()
 if(CH_ENABLE_MODULE_FSI)
-  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_fsisph)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_fsisph)
 endif()
 if(CH_ENABLE_MODULE_GPU)
-  target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC ChronoEngine_gpu)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_gpu)
 endif()
 
-target_link_libraries(ChronoEngine_vehicle_cosim PUBLIC MPI::MPI_CXX)
+target_link_libraries(Chrono_vehicle_cosim PUBLIC MPI::MPI_CXX)
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_pardisomkl)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_pardisomkl)
 endif()
-if(CH_ENABLE_MODULE_MUMPS)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_mumps)
-endif()
+##if(CH_ENABLE_MODULE_MUMPS)
+##  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_mumps)
+##endif()
 if(CH_ENABLE_MODULE_POSTPROCESS)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_postprocess)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_postprocess)
 endif()
 if(CH_ENABLE_MODULE_IRRLICHT)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_irrlicht)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vehicle_irrlicht)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_irrlicht)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_vehicle_irrlicht)
 endif()
 if(CH_ENABLE_MODULE_VSG)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vsg)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_vehicle_vsg)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_vsg)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_vehicle_vsg)
   if(CH_ENABLE_MODULE_FSI)
-    target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_fsisph_vsg)
+    target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_fsisph_vsg)
   endif()
 endif()
 if(CH_ENABLE_MODULE_OPENGL)
-  target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_opengl)
+  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_opengl)
   if(CH_ENABLE_MODULE_FSI)
-    target_link_libraries(ChronoEngine_vehicle_cosim PRIVATE ChronoEngine_fsisph_opengl)
+    target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_fsisph_opengl)
   endif()
 endif()
 
-install(TARGETS ChronoEngine_vehicle_cosim
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_vehicle_cosim
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

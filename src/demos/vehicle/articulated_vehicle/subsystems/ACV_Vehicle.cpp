@@ -74,8 +74,8 @@ ACV_Vehicle::ACV_Vehicle(const bool fixed, ChContactMethod contactMethod)
 // -----------------------------------------------------------------------------
 void ACV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
-    m_chassis_rear[0]->Initialize(m_chassis, WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(this, chassisPos, chassisFwdVel, VehicleCollisionFamily::CHASSIS_FAMILY);
+    m_chassis_rear[0]->Initialize(m_chassis, VehicleCollisionFamily::CHASSIS_FAMILY);
 
     // Initialize the connection between front and rear chassis
     m_chassis_connectors[0]->Initialize(m_chassis, m_chassis_rear[0]);

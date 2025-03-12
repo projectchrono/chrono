@@ -32,7 +32,9 @@ ChLoadBase::~ChLoadBase() {
     delete m_jacobians;
 }
 
-void ChLoadBase::Update(double time) {
+void ChLoadBase::Update(double time, bool update_assets) {
+    ChObj::Update(time, update_assets);
+
     // current state speed & position
     ChState mstate_x(LoadGetNumCoordsPosLevel(), 0);
     LoadGetStateBlock_x(mstate_x);
@@ -48,7 +50,7 @@ void ChLoadBase::Update(double time) {
             CreateJacobianMatrices();
         ComputeJacobian(&mstate_x, &mstate_w);
     }
-};
+}
 
 void ChLoadBase::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (m_jacobians) {

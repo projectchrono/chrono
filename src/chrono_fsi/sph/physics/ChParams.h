@@ -39,13 +39,14 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct SimParams {
-    SPHMethod sph_method;          ///< SPH method (WCSPH or I2SPH)
-    EosType eos_type;              ///< Equation of state type (Tait or isothermal)
-    ViscosityType viscosity_type;  ///< Viscosity treatment type (physics-based laminar flow or artificial)
-    BoundaryType boundary_type;    ///< Boundary type (Adami or Holmes)
-    KernelType kernel_type;        ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
+    SPHMethod sph_method;            ///< SPH method (WCSPH or I2SPH)
+    EosType eos_type;                ///< Equation of state type (Tait or isothermal)
+    ViscosityType viscosity_type;    ///< Viscosity treatment type (physics-based laminar flow or artificial)
+    BoundaryType boundary_type;      ///< Boundary type (Adami or Holmes)
+    KernelType kernel_type;          ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
+    ShiftingMethod shifting_method;  ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
 
-    bool elastic_SPH;              ///< Set physics problem: CFD (false) or CRM granular (true)
+    bool elastic_SPH;  ///< Set physics problem: CFD (false) or CRM granular (true)
 
     int3 gridSize;          ///< dx, dy, dz distances between particle centers
     Real3 worldOrigin;      ///< Origin point
@@ -81,12 +82,18 @@ struct SimParams {
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
     Real v_Max;  ///< Max velocity of fluid used in equation of state. Run simulation once to be able to determine it.
-    Real EPS_XSPH;       ///< Method to modify particle velocity.
-    Real beta_shifting;  ///< this is the beta coefficient in the shifting vector formula. See
+    Real shifting_xsph_eps;        ///< Coefficient for XSPH shifting
+    Real shifting_ppst_push;       ///< Coefficient for PPST shifting - this is applied when penetration with fictitious
+                                   ///< sphere is detected
+    Real shifting_ppst_pull;       ///< Coefficient for PPST pulling - this is applied when penetration with fictitious
+    Real shifting_beta_implicit;   ///< Coefficient for shifting used in implicit scheme
+    Real shifting_diffusion_A;     ///< TODO: Add documentation
+    Real shifting_diffusion_AFSM;  ///< TODO: Add documentation
+    Real shifting_diffusion_AFST;  ///< TODO: Add documentation
 
-    Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
-              ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
-              ///< simulation.
+    Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to
+              ///< use is to run simulations multiple time and find which one is the largest dT that produces a
+              ///< stable simulation.
 
     Real kdT;      ///< Implicit integration parameter
     Real gammaBB;  ///< Equation of state parameter

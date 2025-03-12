@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC sys;
 
     // Create a mesh, that is a container for groups
@@ -450,7 +450,7 @@ int main(int argc, char* argv[]) {
 
     double timestep = 0.1;
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     ChFunctionInterp rec_X;
     ChFunctionInterp rec_Y;

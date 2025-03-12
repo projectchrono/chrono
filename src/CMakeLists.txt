@@ -128,7 +128,8 @@ endif()
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
-message(STATUS "Searching for Eigen3.")
+
+message(STATUS "Searching for Eigen3")
 find_package(Eigen3 3.3 QUIET)
 if(EIGEN3_FOUND)
   message(STATUS "  Eigen3 found. EIGEN3_INCLUDE_DIR: ${EIGEN3_INCLUDE_DIR}")
@@ -239,11 +240,11 @@ message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
 message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
 
 message(STATUS "Searching for OpenMP")
-find_package(OpenMP)
+find_package(OpenMP COMPONENTS CXX)
 
 # Determine OpenMP version (support level)
 # Prepare substitution variables that can be used in generating configuration header files
-if(OpenMP_FOUND)
+if(OpenMP_CXX_FOUND)
   include(CheckOpenMPVersion)
   message(STATUS "  OpenMP version:   ${OMP_VERSION}")
   set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
@@ -268,21 +269,15 @@ else()
 endif()
 
 # Allow caller to disable OpenMP use (even if OpenMP found)
-# Note that some modules may override this
-cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON "OPENMP_FOUND" OFF)
-
-if(NOT CH_ENABLE_OPENMP)
-	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
-	find_package(TBB)
-	cmake_dependent_option(CH_ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
-endif()
+# Note that some modules may override this or be disabled without OpenMP support
+cmake_dependent_option(CH_ENABLE_OPENMP "Enable OpenMP support in Chrono" ON "OPENMP_FOUND" OFF)
 
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
 
 message(STATUS "Searching for MPI for C++")
-find_package(MPI)
+find_package(MPI COMPONENTS CXX)
 if(MPI_CXX_FOUND)
   message(STATUS "  MPI compiler:          ${MPI_CXX_COMPILER}")
   message(STATUS "  MPI compile flags:     ${MPI_CXX_COMPILE_FLAGS}")
@@ -503,7 +498,7 @@ endif()
 # Propagate the CMake build to other directories
 #------------------------------------------------------------
 
-# Add directory for main ChronoEngine library
+# Add directory for main Chrono library
 add_subdirectory(chrono)
 
 # Add directories to build various optional modules
@@ -699,13 +694,6 @@ else()
   set(CHRONO_OPENMP_ENABLED "#undef CHRONO_OPENMP_ENABLED")
 endif()
 
-if(CH_ENABLE_TBB)
-  set(CHRONO_TBB_ENABLED "#define CHRONO_TBB_ENABLED")
-else()
-  set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
-endif()
-
-
 if(CHRONO_CUDA_FOUND)
   set(CHRONO_HAS_CUDA "#define CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDAToolkit_VERSION}\"")
@@ -786,7 +774,8 @@ install(FILES
 if(CH_ENABLE_MODULE_CSHARP)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in" DESTINATION "${PROJECT_BINARY_DIR}/cmake")
 
-  set(CH_CS_DATA ${CH_BUILD_DATA})
+  set(CH_CS_DATA ${CH_BUILD_DATA}/)
+  set(CH_CS_VEHICLE_DATA ${CH_BUILD_DATA}/vehicle/)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono_swig/chrono_csharp/ChChronoGlobals.cs.in"
                   "${PROJECT_BINARY_DIR}/chrono_csharp/core/ChChronoGlobals.cs"
                   @ONLY)
@@ -820,17 +809,17 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# Export generated ChronoEngineTargets.cmake
+# Export generated ChronoTargets.cmake
 #-----------------------------------------------------------------------------
 
 
-export(EXPORT ChronoEngineTargets
-       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoEngineTargets.cmake"
-       NAMESPACE ChronoEngine::
+export(EXPORT ChronoTargets
+       FILE "${CMAKE_BINARY_DIR}/cmake/ChronoTargets.cmake"
+       NAMESPACE Chrono::
 )
 
-install(EXPORT ChronoEngineTargets
-        FILE ChronoEngineTargets.cmake
-        NAMESPACE ChronoEngine::
+install(EXPORT ChronoTargets
+        FILE ChronoTargets.cmake
+        NAMESPACE Chrono::
         DESTINATION ${CH_CONFIG_INSTALL_PATH}
 )

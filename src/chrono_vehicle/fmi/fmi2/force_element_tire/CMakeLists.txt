@@ -1,6 +1,6 @@
 set(COMPONENT_NAME "FMU2_ForceElementTire")
 set(COMPONENT_SOURCES FMU_ForceElementTire.h FMU_ForceElementTire.cpp)
-set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_vehicle)
+set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_vehicle)
 set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/handling_tire)
 set(COMPONENT_DLL_DEPENDENCIES "")
 
@@ -9,8 +9,8 @@ set(FMU_CS ON)
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-list(APPEND LIBS ChronoEngine)
-list(APPEND LIBS ChronoEngine_vehicle)
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS Chrono_vehicle)
 
 include_directories(${FMU_TOOLS_DIR})
 

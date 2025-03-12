@@ -43,6 +43,12 @@ class CH_VEHICLE_API ChWheeledVehicleVisualSystemVSG : public ChVehicleVisualSys
 
   private:
     ChWheeledVehicle* m_wvehicle;
+
+    bool m_chassis_visible;
+    bool m_suspension_visible;
+    bool m_steering_visible;
+    bool m_wheel_visible;
+    bool m_tire_visible;
 };
 
 /// @} vehicle_vis

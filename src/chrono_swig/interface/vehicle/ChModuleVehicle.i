@@ -336,9 +336,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 // TODO: 
 //%include "rapidjson.i"
 //%include "../../../chrono_vehicle/ChApiVehicle.h"
-%ignore chrono::vehicle::TrackedCollisionFamily::Enum;
-%ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
+%ignore chrono::vehicle::VehicleCollisionFamily::Enum;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
+%ignore chrono::vehicle::OutputInformation;
+%ignore chrono::vehicle::VehiclePartTag;
 %include "../../../chrono_vehicle/ChSubsysDefs.h"
 %include "chrono_models/vehicle/ChVehicleModelDefs.h"
 //TODO: conversion from std::vectors of ChVehicleOutput

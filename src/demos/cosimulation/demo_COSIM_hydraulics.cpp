@@ -37,10 +37,10 @@ int main(int argc, char* argv[]) {
         // Test
         // Create a cosimulation interface for simulating an hydraulic
         // system in Simulink, connected to a mechanical system in
-        // Chrono::Engine.
+        // Chrono.
         // It requires a license of the SimScape/SimHydraulics Matlab toolbox.
 
-        // 1) Create a very simple ChronoEngine system, without user interface
+        // 1) Create a very simple Chrono system, without user interface
 
         // The physical system: it contains all physical objects.
         ChSystemNSC my_system;

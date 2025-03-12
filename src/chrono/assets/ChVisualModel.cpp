@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChVisualModel.h"
-#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChObject.h"
 
 namespace chrono {
 CH_FACTORY_REGISTER(ChVisualModel)
@@ -40,7 +40,7 @@ void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
         m_shapes.erase(it);
 }
 
-void ChVisualModel::Update(ChPhysicsItem* owner, const ChFrame<>& frame) {
+void ChVisualModel::Update(ChObj* owner, const ChFrame<>& frame) {
     for (auto& shape : m_shapes) {
         auto xform = frame >> shape.second;
         shape.first->Update(owner, xform);

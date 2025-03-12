@@ -204,7 +204,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     //  Update the system so that all of the required pre-computation steps are called for the element.
     // =============================================================================
 
-    m_system->Update();
+    m_system->Update(false);
 }
 
 bool ANCFShellTest::RunElementChecks(int msglvl) {

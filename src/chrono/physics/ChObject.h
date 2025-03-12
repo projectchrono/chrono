@@ -24,6 +24,9 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
 
+#include "chrono/assets/ChCamera.h"
+#include "chrono/assets/ChVisualModel.h"
+
 namespace chrono {
 
 /// @addtogroup chrono_physics
@@ -66,6 +69,59 @@ class ChApi ChObj {
     /// Sets the simulation time of this object.
     void SetChTime(double m_time) { ChTime = m_time; }
 
+    /// Add an (optional) visualization model.
+    /// Not that an instance of the given visual model is associated with this object, thus allowing sharing the
+    /// same model among multiple objects.
+    void AddVisualModel(std::shared_ptr<ChVisualModel> model);
+
+    /// Access the visualization model (if any).
+    /// Note that this model may be shared with other objects that may instance it.
+    /// Returns nullptr if no visual model is present.
+    std::shared_ptr<ChVisualModel> GetVisualModel() const;
+
+    /// Add the specified visual shape to the visualization model.
+    /// If this object does not have a visual model, one is created.
+    void AddVisualShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame = ChFrame<>());
+
+    /// Access the specified visualization shape in the visualization model (if any).
+    /// Note that no range check is performed.
+    std::shared_ptr<ChVisualShape> GetVisualShape(unsigned int i) const;
+
+    /// Add the specified FEA visualization object to the visualization model.
+    /// If this object does not have a visual model, one is created.
+    void AddVisualShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
+
+    /// Access the specified FEA visualization object in the visualization model (if any).
+    /// Note that no range check is performed.
+    std::shared_ptr<ChVisualShapeFEA> GetVisualShapeFEA(unsigned int i) const;
+
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// If the visual model is cloned (for example for an object modeling a particle system), this function returns
+    /// the coordinate system of the specified clone.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const { return ChFrame<>(); }
+
+    /// Return the number of clones of the visual model associated with this object.
+    /// If the visual model is cloned (for example for an object modeling a particle system), this function should
+    /// return the total number of copies of the visual model, including the "original".  The current coordinate frame
+    /// of a given clone can be obtained by calling GetVisualModelFrame() with the corresponding clone identifier.
+    virtual unsigned int GetNumVisualModelClones() const { return 0; }
+
+    /// Attach a camera to this object.
+    /// Multiple cameras can be attached to the same object.
+    void AddCamera(std::shared_ptr<ChCamera> camera);
+
+    /// Get the set of cameras attached to this object.
+    std::vector<std::shared_ptr<ChCamera>> GetCameras() const { return cameras; }
+
+    /// Perform any updates necessary at the current phase during the solution process.
+    /// This function is called at least once per step to update auxiliary data, internal states, etc.
+    /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
+    /// only if requested).
+    virtual void Update(double time, bool update_assets);
+
+    /// Utility function to update only the associated visual assets (if any).
+    void UpdateVisualModel();
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
@@ -80,6 +136,9 @@ class ChApi ChObj {
     std::string m_name;  ///< object name
     int m_identifier;    ///< object unique identifier
     int m_tag;           ///< user-supplied tag
+
+    std::shared_ptr<ChVisualModelInstance> vis_model_instance;  ///< instantiated visualization model
+    std::vector<std::shared_ptr<ChCamera>> cameras;             ///< set of cameras
 
     int GenerateUniqueIdentifier();
 };

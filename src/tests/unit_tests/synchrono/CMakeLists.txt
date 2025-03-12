@@ -1,4 +1,4 @@
-SET(LIBRARIES ChronoEngine ChronoEngine_synchrono ${SYNCHRONO_LIBRARIES})
+SET(LIBRARIES Chrono_core Chrono_synchrono ${SYNCHRONO_LIBRARIES})
 
 SET(TESTS
     utest_SYN_MPI

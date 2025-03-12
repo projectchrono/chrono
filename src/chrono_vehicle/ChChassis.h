@@ -32,6 +32,8 @@
 namespace chrono {
 namespace vehicle {
 
+class ChVehicle;
+
 /// @addtogroup vehicle
 /// @{
 
@@ -41,12 +43,11 @@ namespace vehicle {
 /// ChChassis is the base class for a main vehicle chassis (a single chassis or a front chassis).
 class CH_VEHICLE_API ChChassis : public ChPart {
   public:
-    /// Construct a chassis subsystem with the specified name.
-    ChChassis(const std::string& name,  ///< [in] name of the subsystem
-              bool fixed = false        ///< [in] is the chassis body fixed to ground?
-    );
-
     virtual ~ChChassis();
+
+    /// Get the tag of the associated vehicle.
+    /// This method can only be called after initialization of the chassis subsystem.
+    virtual uint16_t GetVehicleTag() const override;
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
@@ -112,10 +113,10 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Initialize the chassis at the specified global position and orientation.
     /// The initial position and forward velocity are assumed to be given in the current world frame.
-    virtual void Initialize(ChSystem* system,                ///< [in] containing system
-                            const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
-                            double chassisFwdVel,            ///< [in] initial chassis forward velocity
-                            int collision_family = 0         ///< [in] chassis collision family
+    void Initialize(ChVehicle* vehicle,              ///< [in] containing vehicle
+                    const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
+                    double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                    int collision_family = 0         ///< [in] chassis collision family
     );
 
     /// Enable/disable contact for the chassis.
@@ -187,10 +188,24 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual void UpdateInertiaProperties() override;
 
   protected:
+    /// Construct a chassis subsystem with the specified name.
+    ChChassis(const std::string& name,  ///< [in] name of the subsystem
+              bool fixed = false        ///< [in] is the chassis body fixed to ground?
+    );
+
+    /// Construct the concrete chassis at the specified global position and orientation.
+    /// The initial position and forward velocity are assumed to be given in the current world frame.
+    virtual void Construct(ChVehicle* vehicle,              ///< [in] containing vehicle
+                           const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
+                           double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                           int collision_family             ///< [in] chassis collision family
+                           ) = 0;
+
     virtual double GetBodyMass() const = 0;
     virtual ChFrame<> GetBodyCOMFrame() const = 0;
     virtual ChMatrix33<> GetBodyInertia() const = 0;
 
+    ChVehicle* m_vehicle;                                                ///< associated vehicle
     std::shared_ptr<ChBodyAuxRef> m_body;                                ///< handle to the chassis body
     std::shared_ptr<ChLoadContainer> m_container_bushings;               ///< load container for vehicle bushings
     std::shared_ptr<ChLoadContainer> m_container_external;               ///< load container for external forces
@@ -198,6 +213,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     std::vector<std::shared_ptr<ExternalForceTorque>> m_external_loads;  ///< external loads
     std::vector<std::shared_ptr<ChMarker>> m_markers;                    ///< list of user-defined markers
     bool m_fixed;                                                        ///< is the chassis body fixed to ground?
+
+    friend class ChChassisRear;
 };
 
 // -----------------------------------------------------------------------------
@@ -207,30 +224,36 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 /// As such, a rear chassis is initialized with a position relative to the other chassis.
 class CH_VEHICLE_API ChChassisRear : public ChChassis {
   public:
-    /// Construct a rear chassis subsystem with the specified name.
-    ChChassisRear(const std::string& name);
-
     virtual ~ChChassisRear() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
     virtual const ChVector3d& GetLocalPosFrontConnector() const = 0;
 
     /// Initialize the rear chassis relative to the specified front chassis.
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
+                    int collision_family = 0             ///< [in] chassis collision family
+    );
+
+  protected:
+    /// Construct a rear chassis subsystem with the specified name.
+    ChChassisRear(const std::string& name);
+
+    /// Construct the concrete rear chassis relative to the specified front chassis.
     /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
     /// position on the front and rear chassis.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                            int collision_family = 0             ///< [in] chassis collision family
-    );
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
+                           int collision_family = 0             ///< [in] chassis collision family
+                           ) = 0;
 
   private:
     /// No driver in a rear chassis.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override final { return ChCoordsys<>(); }
 
     /// A rear chassis cannot be initialized as a root body.
-    virtual void Initialize(ChSystem* system,
-                            const ChCoordsys<>& chassisPos,
-                            double chassisFwdVel,
-                            int collision_family = 0) override final {}
+    virtual void Construct(ChVehicle* vehicle,
+                           const ChCoordsys<>& chassisPos,
+                           double chassisFwdVel,
+                           int collision_family = 0) override final {}
 };
 
 /// Vector of handles to rear chassis subsystems.
@@ -246,18 +269,16 @@ class CH_VEHICLE_API ChChassisConnector : public ChPart {
     virtual ~ChChassisConnector() {}
 
     /// Initialize this chassis connector subsystem.
-    /// The subsystem is initialized by attaching it to the specified front and rear
-    /// chassis bodies at the specified location (with respect to and expressed in
-    /// the reference frame of the front chassis).
+    /// The subsystem is initialized by attaching it to the specified front and rear chassis bodies at the specified
+    /// location (with respect to and expressed in the reference frame of the front chassis).
     virtual void Initialize(std::shared_ptr<ChChassis> front,    ///< [in] front chassis
                             std::shared_ptr<ChChassisRear> rear  ///< [in] rear chassis
     );
 
     /// Update the state of this connector subsystem at the current time.
-    /// The connector subsystem is provided the current steering driver input (a
-    /// value between -1 and +1).  Positive steering input indicates steering
-    /// to the left. This function is called during the vehicle update.
-    /// The default implementation is no-op.
+    /// The connector subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
+    /// steering input indicates steering to the left. This function is called during the vehicle update. The default
+    /// implementation is no-op.
     virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
     ) {}

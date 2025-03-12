@@ -14,8 +14,8 @@ endif()
 
 #--------------------------------------------------------------
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_vehicle")
+list(APPEND LIBS "Chrono_core")
+list(APPEND LIBS "Chrono_vehicle")
 
 #--------------------------------------------------------------
 # Add executables

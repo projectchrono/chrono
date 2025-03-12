@@ -42,7 +42,7 @@ using namespace chrono;
 using namespace chrono::fea;
 
 int main(int argc, char* argv[]) {
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // Create a mesh, that is a container for groups of elements and

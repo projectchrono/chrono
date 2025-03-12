@@ -97,51 +97,51 @@ endif()
 # List all files in the Chrono mkl module
 # ------------------------------------------------------------------------------
 
-set(ChronoEngine_PardisoMKL_HEADERS
+set(Chrono_PardisoMKL_HEADERS
   ChApiPardisoMKL.h
   ChSolverPardisoMKL.h
 )
 
-set(ChronoEngine_PardisoMKL_SOURCES
+set(Chrono_PardisoMKL_SOURCES
   ChSolverPardisoMKL.cpp
 )
 
-source_group("" FILES ${ChronoEngine_PardisoMKL_HEADERS} ${ChronoEngine_PardisoMKL_SOURCES})
+source_group("" FILES ${Chrono_PardisoMKL_HEADERS} ${Chrono_PardisoMKL_SOURCES})
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_pardisomkl library
+# Add the Chrono_pardisomkl library
 # ------------------------------------------------------------------------------
 
-add_library(ChronoEngine_pardisomkl
-            ${ChronoEngine_PardisoMKL_SOURCES}
-            ${ChronoEngine_PardisoMKL_HEADERS})
-add_library(ChronoEngine::pardisomkl ALIAS ChronoEngine_pardisomkl)
+add_library(Chrono_pardisomkl
+            ${Chrono_PardisoMKL_SOURCES}
+            ${Chrono_PardisoMKL_HEADERS})
+add_library(Chrono::pardisomkl ALIAS Chrono_pardisomkl)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_pardisomkl PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_pardisomkl PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_pardisomkl PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_pardisomkl PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_pardisomkl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_pardisomkl PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_pardisomkl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_pardisomkl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_link_libraries(ChronoEngine_pardisomkl
-                      ChronoEngine
+target_link_libraries(Chrono_pardisomkl
+                      Chrono_core
                       MKL::MKL
                       )
 
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_API_COMPILE_PARDISOMKL")
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "MKL_LP64") # who needs this? Eigen?
+target_compile_definitions(Chrono_pardisomkl PRIVATE "CH_API_COMPILE_PARDISOMKL")
+target_compile_definitions(Chrono_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
+target_compile_definitions(Chrono_pardisomkl PRIVATE "MKL_LP64") # who needs this? Eigen?
 
 
-install(TARGETS ChronoEngine_pardisomkl
-  EXPORT ChronoEngineTargets
+install(TARGETS Chrono_pardisomkl
+  EXPORT ChronoTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -152,5 +152,5 @@ install(TARGETS ChronoEngine_pardisomkl
 #-------------------------------------------------------------------------------
 
 # Old way
-install(FILES ${ChronoEngine_PardisoMKL_HEADERS}
+install(FILES ${Chrono_PardisoMKL_HEADERS}
         DESTINATION include/chrono_pardisomkl)

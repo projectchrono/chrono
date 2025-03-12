@@ -270,7 +270,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_fil
         }
 
         msystem.Setup();
-        msystem.Update();
+        msystem.Update(0.0, true);
 
     } else {
         throw std::runtime_error("ERROR: exported_items python object is not a list.");

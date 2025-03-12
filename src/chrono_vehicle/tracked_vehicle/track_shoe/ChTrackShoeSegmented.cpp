@@ -24,11 +24,9 @@ namespace vehicle {
 
 ChTrackShoeSegmented::ChTrackShoeSegmented(const std::string& name) : ChTrackShoe(name) {}
 
-void ChTrackShoeSegmented::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                      const ChVector3d& location,
-                                      const ChQuaternion<>& rotation) {
-    ChTrackShoe::Initialize(chassis, location, rotation);
-
+void ChTrackShoeSegmented::Construct(std::shared_ptr<ChChassis> chassis,
+                                     const ChVector3d& location,
+                                     const ChQuaternion<>& rotation) {
     m_shoe_sprk_material = m_shoe_sprk_minfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
 }
 

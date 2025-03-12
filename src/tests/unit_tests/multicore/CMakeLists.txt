@@ -1,10 +1,10 @@
 # Unit tests for the Chrono::Multicore module
 # ==================================================================
 
-SET(LIBRARIES ChronoEngine ChronoEngine_multicore)
+SET(LIBRARIES Chrono_core Chrono_multicore)
 
 IF (CH_ENABLE_MODULE_OPENGL)
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+    SET(LIBRARIES ${LIBRARIES} Chrono_opengl)
 ENDIF()
 
 #--------------------------------------------------------------

@@ -26,6 +26,20 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
+int VehicleObjTag::Generate(uint16_t vehicle_tag, uint16_t part_tag) {
+    return (int32_t)(vehicle_tag << 16 | part_tag);
+}
+
+uint16_t VehicleObjTag::ExtractVehicleTag(int tag) {
+  return (uint16_t)(tag >> 16);
+}
+
+uint16_t VehicleObjTag::ExtractPartTag(int tag) {
+    return (uint16_t)tag;
+}
+
+// -----------------------------------------------------------------------------
+
 SpringForce::SpringForce(double preload) : m_P(preload), m_stops(false), m_min_length(0), m_max_length(0) {}
 
 void SpringForce::enable_stops(double min_length, double max_length) {

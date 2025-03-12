@@ -83,7 +83,7 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
     }
 
   protected:
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 

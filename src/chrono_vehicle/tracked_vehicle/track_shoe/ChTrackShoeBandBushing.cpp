@@ -34,20 +34,18 @@ ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name) : ChTrac
 ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {}
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                        const ChVector3d& location,
-                                        const ChQuaternion<>& rotation) {
-    // Initialize base class (create tread body)
-    ChTrackShoeBand::Initialize(chassis, location, rotation);
-
+void ChTrackShoeBandBushing::Construct(std::shared_ptr<ChChassis> chassis,
+                                       const ChVector3d& location,
+                                       const ChQuaternion<>& rotation) {
     // Cache values calculated from template parameters.
     m_seg_length = GetWebLength() / GetNumWebSegments();
     m_seg_mass = GetWebMass() / GetNumWebSegments();
     m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
 
     // Express the tread body location and orientation in global frame.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    auto chassis_body = chassis->GetBody();
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     ChVector3d xdir = rot.GetAxisX();
 
     // Create the required number of web segment bodies
@@ -56,6 +54,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments.push_back(chrono_types::make_shared<ChBody>());
         m_web_segments[is]->SetName(m_name + "_web_" + std::to_string(is));
+        m_web_segments[is]->SetTag(m_obj_tag);
         m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);
@@ -69,21 +68,22 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChChassis> chassis,
                                         const std::vector<ChCoordsys<>>& component_pos) {
     // Check the number of provided locations and orientations.
     assert(component_pos.size() == GetNumWebSegments() + 1);
 
     // Initialize at origin.
-    Initialize(chassis, VNULL, QUNIT);
+    ChTrackShoe::Initialize(chassis, VNULL, QUNIT);
 
     // Overwrite absolute body locations and orientations.
-    m_shoe->SetPos(chassis->TransformPointLocalToParent(component_pos[0].pos));
-    m_shoe->SetRot(chassis->GetRot() * component_pos[0].rot);
+    auto chassis_body = chassis->GetBody();
+    m_shoe->SetPos(chassis_body->TransformPointLocalToParent(component_pos[0].pos));
+    m_shoe->SetRot(chassis_body->GetRot() * component_pos[0].rot);
 
     for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
-        m_web_segments[is]->SetPos(chassis->TransformPointLocalToParent(component_pos[is + 1].pos));
-        m_web_segments[is]->SetRot(chassis->GetRot() * component_pos[is + 1].rot);
+        m_web_segments[is]->SetPos(chassis_body->TransformPointLocalToParent(component_pos[is + 1].pos));
+        m_web_segments[is]->SetRot(chassis_body->GetRot() * component_pos[is + 1].rot);
     }
 }
 
@@ -116,8 +116,8 @@ void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
         chrono_types::make_shared<ChCollisionShapeBox>(web_mat, m_seg_length, GetBeltWidth(), GetWebThickness());
     segment->AddCollisionShape(shape);
 
-    segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    segment->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    segment->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+    segment->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 }
 
 // -----------------------------------------------------------------------------
@@ -165,6 +165,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[0], m_shoe,
             ChFrame<>(loc, rot), GetBushingData());
+        bushing->SetTag(m_obj_tag);
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
@@ -176,6 +177,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is + 1],
             m_web_segments[is], ChFrame<>(loc, rot), GetBushingData());
+        bushing->SetTag(m_obj_tag);
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }
@@ -188,6 +190,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         auto bushing = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), next->GetShoeBody(),
             m_web_segments[is], ChFrame<>(loc, rot), GetBushingData());
+        bushing->SetTag(m_obj_tag);
         chassis->AddJoint(bushing);
         m_web_bushings.push_back(bushing->GetAsBushing());
     }

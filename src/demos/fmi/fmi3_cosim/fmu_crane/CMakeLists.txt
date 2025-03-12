@@ -3,14 +3,14 @@ set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
 set(COMPONENT_SOURCES craneFMU.h craneFMU.cpp)
 set(COMPONENT_RESOURCES_DIR "")
 if (CH_ENABLE_MODULE_IRRLICHT)
-  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine ChronoEngine_irrlicht)
+  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_irrlicht)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
   else()
     set(COMPONENT_DLL_DEPENDENCIES "")
   endif()
 else()
-  set(COMPONENT_CHRONO_DEPENDENCIES ChronoEngine)
+  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core)
 endif()
 
 set(FMU_CS TRUE)
@@ -19,12 +19,12 @@ set(FMU_CS TRUE)
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
-list(APPEND LIBS "ChronoEngine")
+list(APPEND LIBS Chrono_core)
 
 include_directories(${FMU_TOOLS_DIR})
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
 endif()
 
 #==============================================================

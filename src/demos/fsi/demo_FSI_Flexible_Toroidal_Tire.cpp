@@ -142,6 +142,10 @@ int main(int argc, char* argv[]) {
     // Set cohsion of the granular material
     sysSPH.SetCohesionForce(2000.0);
 
+    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
+    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
+    sysSPH.SetShiftingXSPHParameters(0.25);
+
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2);
@@ -451,8 +455,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
 
                 ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
                                             element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y()
-                          << " " << center.z() << endl;
+                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
+                     << center.z() << endl;
 
                 num_elem++;
             }

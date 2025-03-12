@@ -50,7 +50,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
                                         double lobe_outer_rad,
                                         double lobe_thickness,
                                         ChSystem& sys,
-                                        std::shared_ptr<ChContactMaterial> mysurfmaterial) {
+                                        std::shared_ptr<ChContactMaterial> contact_mat) {
     auto mgear = chrono_types::make_shared<ChBody>();
     mgear->SetPos(gear_center);
     sys.Add(mgear);
@@ -60,14 +60,14 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
         double phase = CH_2PI * ((double)i / (double)lobe_copies);
         ChVector3d loc(lobe_primitive_rad * std::sin(phase), lobe_primitive_rad * std::cos(phase), 0);
         // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
-        chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
+        chrono::utils::AddCylinderGeometry(mgear.get(), contact_mat,             //
                                            lobe_width * 0.5, lobe_thickness * 0.5,  //
                                            loc,                                     //
                                            QUNIT,                                   // cylinder axis along Z
                                            true);
     }
     // central hub
-    chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
+    chrono::utils::AddCylinderGeometry(mgear.get(), contact_mat, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
                                        true);
     mgear->EnableCollision(true);
 
@@ -87,38 +87,38 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create a ground object, useful reference for connecting constraints etc.
-    auto mground = chrono_types::make_shared<ChBody>();
-    mground->SetFixed(true);
-    sys.Add(mground);
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    sys.Add(ground);
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
-    sys.Add(my_mesh);
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    sys.Add(mesh);
 
     // Create a section, i.e. thickness and material properties for beams. This will be shared among some beams.
     double wire_diameter = 0.010;
 
-    auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
-    minertia->SetAsCircularSection(wire_diameter, 2700);  // automatically sets A etc., from width, height, density
+    auto inertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+    inertia->SetAsCircularSection(wire_diameter, 2700);  // automatically sets A etc., from width, height, density
 
-    auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-    melasticity->SetYoungModulus(0.5e9);
-    melasticity->SetShearModulus(0.5e9 * 0.7);
-    melasticity->SetAsCircularSection(wire_diameter);
+    auto elasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+    elasticity->SetYoungModulus(0.5e9);
+    elasticity->SetShearModulus(0.5e9 * 0.7);
+    elasticity->SetAsCircularSection(wire_diameter);
 
-    auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();
-    mdamping->SetDampingCoefficientsRe((1e-3) * ChVector3d(1, 1, 1));
-    mdamping->SetDampingCoefficientsRk((1e-4) * ChVector3d(1, 1, 1));  //// TODO??? -/+
+    auto damping = chrono_types::make_shared<ChDampingCosseratLinear>();
+    damping->SetDampingCoefficientsRe((1e-3) * ChVector3d(1, 1, 1));
+    damping->SetDampingCoefficientsRk((1e-4) * ChVector3d(1, 1, 1));  //// TODO??? -/+
 
-    auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
-    mplasticity->n_yeld_Mx = chrono_types::make_shared<ChFunctionRamp>(1, 0.01);
-    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunctionRamp>(0.2, 0.001);
-    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunctionRamp>(0.2, 0.001);
+    auto plasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
+    plasticity->n_yeld_Mx = chrono_types::make_shared<ChFunctionRamp>(1, 0.01);
+    plasticity->n_yeld_My = chrono_types::make_shared<ChFunctionRamp>(0.2, 0.001);
+    plasticity->n_yeld_Mz = chrono_types::make_shared<ChFunctionRamp>(0.2, 0.001);
 
-    auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity, mplasticity, mdamping);
+    auto section = chrono_types::make_shared<ChBeamSectionCosserat>(inertia, elasticity, plasticity, damping);
 
-    msection->SetCircular(true);
-    msection->SetDrawCircularRadius(wire_diameter / 2.);
+    section->SetCircular(true);
+    section->SetDrawCircularRadius(wire_diameter / 2.);
 
     // Create the surface material for the contacts; this contains information about friction etc.
     // It is a SMC (penalty) material: interpenetration might happen for low Young stiffness,
@@ -127,56 +127,56 @@ int main(int argc, char* argv[]) {
     /*
     // option A: Hertz contact force model
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
-    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
-    mysurfmaterial->SetYoungModulus(20e3);  // to adjust heuristically..
-    mysurfmaterial->SetRestitution(0.1f);
-    mysurfmaterial->SetFriction(0.2f);
+    auto contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
+    contact_mat->SetYoungModulus(20e3);  // to adjust heuristically..
+    contact_mat->SetRestitution(0.1f);
+    contact_mat->SetFriction(0.2f);
     */
 
     // Option B: Hooke force model
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys.UseMaterialProperties(false);
-    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
-    mysurfmaterial->SetKn(350);  // contact normal stiffness
-    mysurfmaterial->SetKt(350);  // contact tangential stiffness
-    mysurfmaterial->SetGn(25);   // contact normal damping
-    mysurfmaterial->SetGt(25);   // contact tangential damping
-    mysurfmaterial->SetFriction(0.2f);
+    auto contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
+    contact_mat->SetKn(350);  // contact normal stiffness
+    contact_mat->SetKt(350);  // contact tangential stiffness
+    contact_mat->SetGn(25);   // contact normal damping
+    contact_mat->SetGt(25);   // contact tangential damping
+    contact_mat->SetFriction(0.2f);
 
     // Add the EXTRUDER
     auto extruder = chrono_types::make_shared<ChExtruderBeamIGA>(
         &sys,      // the physical system
-        my_mesh,   // the mesh where to add the beams
-        msection,  // section for created beam
+        mesh,   // the mesh where to add the beams
+        section,  // section for created beam
         0.015,     // beam element length (size of discretization: the smaller, the more precise)
-        ChCoordsys<>(ChVector3d(0, 0, 0)),  // outlet coordinate system (x axis is the extrusion dir)
-        0.08,                               // the extrusion speed
-        1                                   // the order of beams
+        ChCoordsys<>(VNULL, Q_ROTATE_Z_TO_X),  // outlet coordinate system (z axis is the extrusion dir)
+        0.08,                                  // the extrusion speed
+        1                                      // the order of beams
     );
 
     // Enable collision for extruded beam
-    extruder->SetContact(mysurfmaterial,             // the NSC material for contact surfaces
+    extruder->SetContact(contact_mat,             // the NSC material for contact surfaces
                          1.15 * wire_diameter * 0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
     );
 
     // Do we want gravity effect on FEA elements in this demo?
-    my_mesh->SetAutomaticGravity(false);
+    mesh->SetAutomaticGravity(false);
 
     // Attach visualization of the FEM mesh.
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamA);
+    auto vis_element = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_element->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_element->SetColorscaleMinMax(-0.4, 0.4);
+    vis_element->SetSmoothFaces(true);
+    vis_element->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_element);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.006);
-    mvisualizebeamC->SetSymbolsScale(0.01);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddVisualShapeFEA(mvisualizebeamC);
+    auto vis_node = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_node->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    vis_node->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_node->SetSymbolsThickness(wire_diameter);
+    vis_node->SetSymbolsScale(0.01);
+    vis_node->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(vis_node);
 
     // Add some obstacles: two rotating lobed gears.
     //
@@ -194,25 +194,25 @@ int main(int argc, char* argv[]) {
     ChVector3d gear_centerHI(0.3, lobe_primitive_rad - 0.01, 0);
 
     auto gearLOW = CreateLobedGear(gear_centerLOW, lobe_copies, lobe_width, lobe_primitive_rad, lobe_inner_rad,
-                                   lobe_outer_rad, lobe_thickness, sys, mysurfmaterial);
+                                   lobe_outer_rad, lobe_thickness, sys, contact_mat);
 
-    auto mgear_motorLOW = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    mgear_motorLOW->Initialize(gearLOW, mground, ChFrame<>(gear_centerLOW));
-    sys.Add(mgear_motorLOW);
+    auto gear_motorLOW = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    gear_motorLOW->Initialize(gearLOW, ground, ChFrame<>(gear_centerLOW));
+    sys.Add(gear_motorLOW);
 
-    auto mgear_speedLOW = chrono_types::make_shared<ChFunctionConst>(-0.18);  // [rad/s]
-    mgear_motorLOW->SetSpeedFunction(mgear_speedLOW);
+    auto gear_speedLOW = chrono_types::make_shared<ChFunctionConst>(-0.18);  // [rad/s]
+    gear_motorLOW->SetSpeedFunction(gear_speedLOW);
 
     auto gearHI = CreateLobedGear(gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, lobe_inner_rad,
-                                  lobe_outer_rad, lobe_thickness, sys, mysurfmaterial);
+                                  lobe_outer_rad, lobe_thickness, sys, contact_mat);
     gearHI->SetRot(QuatFromAngleZ(0.5 * CH_2PI / lobe_copies));  // to phase half step respect to other gear
 
-    auto mgear_motorHI = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));
-    sys.Add(mgear_motorHI);
+    auto gear_motorHI = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    gear_motorHI->Initialize(gearHI, ground, ChFrame<>(gear_centerHI));
+    sys.Add(gear_motorHI);
 
-    auto mgear_speedHI = chrono_types::make_shared<ChFunctionConst>(0.18);  // [rad/s]
-    mgear_motorHI->SetSpeedFunction(mgear_speedHI);
+    auto gear_speedHI = chrono_types::make_shared<ChFunctionConst>(0.18);  // [rad/s]
+    gear_motorHI->SetSpeedFunction(gear_speedHI);
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -231,12 +231,14 @@ int main(int argc, char* argv[]) {
     mkl_solver->LockSparsityPattern(true);
     sys.SetSolver(mkl_solver);
 
+    double step = 0.0002;
+
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
         tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, CSYSNORM, ChColor(0.4f, 0.4f, 0.4f), true);
 
-        sys.DoStepDynamics(0.0002);
+        sys.DoStepDynamics(step);
 
         bool modified = extruder->Update();  //// NOTE to do this to update the extrusion
         if (modified) {

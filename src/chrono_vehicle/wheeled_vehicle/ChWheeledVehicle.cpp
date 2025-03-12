@@ -22,6 +22,9 @@
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
+using std::cout;
+using std::endl;
+
 namespace chrono {
 namespace vehicle {
 
@@ -221,19 +224,19 @@ void ChWheeledVehicle::SetWheelCollide(bool state) {
 void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with tires
-        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::TIRE);
-        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::WHEEL);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         for (auto& c : m_chassis_rear) {
-            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::TIRE);
-            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::WHEEL);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         }
     } else {
         // Chassis does not collide with tires
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::TIRE);
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         for (auto& c : m_chassis_rear) {
-            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::TIRE);
-            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TIRE_FAMILY);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
         }
     }
 }
@@ -403,52 +406,98 @@ double ChWheeledVehicle::GetMaxSteeringAngle() const {
 }
 
 // -----------------------------------------------------------------------------
-// Log constraint violations
-// -----------------------------------------------------------------------------
+
 void ChWheeledVehicle::LogConstraintViolations() {
     // Report constraint violations for the suspension joints
     for (size_t i = 0; i < m_axles.size(); i++) {
-        std::cout << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
+        cout << "\n---- AXLE " << i << " LEFT side suspension constraint violations\n\n";
         m_axles[i]->m_suspension->LogConstraintViolations(LEFT);
-        std::cout << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
+        cout << "\n---- AXLE " << i << " RIGHT side suspension constraint violations\n\n";
         m_axles[i]->m_suspension->LogConstraintViolations(RIGHT);
     }
 
     // Report constraint violations for the steering joints
     for (size_t i = 0; i < m_steerings.size(); i++) {
-        std::cout << "\n---- STEERING subsystem " << i << " constraint violations\n\n";
+        cout << "\n---- STEERING subsystem " << i << " constraint violations\n\n";
         m_steerings[i]->LogConstraintViolations();
     }
 }
 
-// -----------------------------------------------------------------------------
-
 void ChWheeledVehicle::LogSubsystemTypes() {
-    std::cout << "\nSubsystem types\n";
-    std::cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
-    if (m_powertrain_assembly) {
-        std::cout << "Powertrain:\n";
-        std::cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
-        std::cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
+    cout << "\nSubsystem types\n";
+
+    {
+        cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
+
+        int body_tag = m_chassis->GetBodyTag();
+        auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+        auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+        cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
+        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
+
+    if (m_powertrain_assembly) {
+        cout << "Powertrain:\n";
+        cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
+        cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
+    }
+
     if (m_driveline)
-        std::cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
+        cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
-        std::cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
+        cout << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName() << "\n";
+
+        int body_tag = m_steerings[i]->GetBodyTag();
+        auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+        auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+        cout << "         vehicle tag: " << m_steerings[i]->GetVehicleTag();
+        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
     }
 
     for (int i = 0; i < m_axles.size(); i++) {
-        std::cout << "Axle " << i << "\n";
-        std::cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
-        if (m_axles[i]->m_antirollbar)
-            std::cout << "  Antiroll bar: " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
-        if (m_axles[i]->m_brake_left)
-            std::cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
-        if (m_axles[i]->m_wheels.size() == 2)
-            std::cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
-        else
-            std::cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
+        cout << "Axle " << i << "\n";
+
+        {
+            cout << "  Suspension:   " << m_axles[i]->m_suspension->GetTemplateName() << "\n";
+
+            int body_tag = m_axles[i]->m_suspension->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << m_axles[i]->m_suspension->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+
+        if (m_axles[i]->m_antirollbar) {
+            cout << "  Antiroll bar: " << m_axles[i]->m_antirollbar->GetTemplateName() << "\n";
+
+            int body_tag = m_axles[i]->m_antirollbar->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << m_axles[i]->m_antirollbar->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+        
+        if (m_axles[i]->m_brake_left) {
+            cout << "  Brake:        " << m_axles[i]->m_brake_left->GetTemplateName() << "\n";
+            cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
+        }
+
+        {
+            cout << "  Wheel:        " << m_axles[i]->m_wheels[0]->GetTemplateName() << "\n";
+
+            int body_tag = m_axles[i]->m_wheels[0]->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << m_axles[i]->m_wheels[0]->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+
+        if (m_axles[i]->m_wheels.size() == 2) {
+            cout << "  Tire:         " << GetTire(i, LEFT, SINGLE)->GetTemplateName() << "\n";
+        } else {
+            cout << "  Tire:         " << GetTire(i, LEFT, INNER)->GetTemplateName() << "\n";
+        }
     }
 }
 

@@ -531,7 +531,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 double K = E / (3.0 * (1 - 2.0 * nu));
 
                 // Volumetric Hencky strain
-                double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) / 3.0;
+                double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) * CH_1_3;
 
                 // Deviatoric  Hencky strain
                 ChVector3d EETD;
@@ -561,7 +561,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 switch (m_element->m_plast_form) {
                     case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
-                        hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
+                        hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) * CH_1_3;
                         // Deviatoric stress
                         devStress.x() = StressK_eig(0) - hydroP;
                         devStress.y() = StressK_eig(1) - hydroP;
@@ -676,12 +676,12 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 + tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 + tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
@@ -846,12 +846,12 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 + std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 + std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
@@ -1595,7 +1595,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 double K = E / (3.0 * (1 - 2.0 * nu));
 
                 // Volumetric Hencky strain
-                double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) / 3.0;
+                double EEVD3 = (LogStrain(0) + LogStrain(1) + LogStrain(2)) * CH_1_3;
 
                 // Deviatoric  Hencky strain
                 ChVector3d EETD;
@@ -1626,7 +1626,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 switch (m_element->m_plast_form) {
                     case ChElementHexaANCF_3813_9::PlasticityFormulation::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
-                        hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
+                        hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) * CH_1_3;
 
                         // Deviatoric stress
                         devStress.x() = StressK_eig(0) - hydroP;
@@ -1694,7 +1694,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                             for (int i = 0; i < 6; i++) {
                                 for (int j = i; j < 6; j++) {
-                                    double DEVPRJ_ij = FOID(i, j) - SOID(i, 0) * SOID(j, 0) / 3.0;
+                                    double DEVPRJ_ij = FOID(i, j) - SOID(i, 0) * SOID(j, 0) * CH_1_3;
                                     Dep(i, j) = AFACT * DEVPRJ_ij + BFACT * devStressVec(i, 0) * devStressVec(j, 0) +
                                                 K * SOID(i, 0) * SOID(j, 0);
                                 }
@@ -1746,12 +1746,12 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 + std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 + std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
@@ -1864,7 +1864,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                         Dep(ii, jj) =
                                             AFact * FOID(ii, jj) + BFact * UniDev(ii) +
                                             CFact * (eta * UniDev(ii) * SOID(jj) + etab * SOID(ii) * UniDev(jj)) +
-                                            (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                            (DFact - AFact * CH_1_3) * SOID(ii) * SOID(jj);
                                     }
                                 }
                             } else {  // Consistent tangent for cone point
@@ -1923,12 +1923,12 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         switch (m_element->m_DPHardening) {
                             case 1:  // Tension corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 + std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 + std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 2:  // Compression corresponding to Abaqus model
                                 eta = std::tan(phi) / std::sqrt(3.0);
-                                gsi = (1.0 - std::tan(phi) / 3.0) / std::sqrt(3.0);
+                                gsi = (1.0 - std::tan(phi) * CH_1_3) / std::sqrt(3.0);
                                 etab = std::tan(phi2) / std::sqrt(3.0);
                                 break;
                             case 3:  // Shear corresponding to Abaqus model
@@ -2084,7 +2084,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                             Dep(ii, jj) =
                                                 AFact * FOID(ii, jj) + BFact * UniDev(ii) +
                                                 CFact * (eta * UniDev(ii) * SOID(jj) + etab * SOID(ii) * UniDev(jj)) +
-                                                (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                                (DFact - AFact * CH_1_3) * SOID(ii) * SOID(jj);
                                         }
                                     }
                                 } else {  // Consistent tangent for cone point
@@ -2367,7 +2367,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                             Dep(ii, jj) = AFact * FOID(ii, jj) + BFact * UniDev(ii) * UniDev(jj) +
                                                           C1Fact * UniDev(ii) * SOID(jj) +
                                                           C2Fact * SOID(ii) * UniDev(jj) +
-                                                          (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                                          (DFact - AFact * CH_1_3) * SOID(ii) * SOID(jj);
                                         }
                                     }
                                 }
@@ -2425,14 +2425,14 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                                             Dep(ii, jj) = AFact * FOID(ii, jj) + BFact * UniDev(ii) * UniDev(jj) +
                                                           C1Fact * UniDev(ii) * SOID(jj) +
                                                           C2Fact * SOID(ii) * UniDev(jj) +
-                                                          (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                                          (DFact - AFact * CH_1_3) * SOID(ii) * SOID(jj);
                                         }
                                     }
                                     // Elastic De
                                     for (int ii = 0; ii < 6; ii++) {
                                         for (int jj = 0; jj < 6; jj++) {
                                             Dep(ii, jj) =
-                                                2.0 * G * FOID(ii, jj) + (K - 2.0 * G / 3.0) * SOID(ii) * SOID(jj);
+                                                2.0 * G * FOID(ii, jj) + (K - G * CH_2_3) * SOID(ii) * SOID(jj);
                                         }
                                     }
                                 }

@@ -45,11 +45,11 @@ class CH_MODELS_API HMMWV_Wheel : public ChWheel {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
-                            std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
-                            VehicleSide side,                    ///< wheel mounted on left/right side
-                            double offset = 0                    ///< offset from associated spindle center
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
+                           std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                           VehicleSide side,                    ///< wheel mounted on left/right side
+                           double offset                        ///< offset from associated spindle center
+                           ) override;
 
   protected:
     static const double m_radius;

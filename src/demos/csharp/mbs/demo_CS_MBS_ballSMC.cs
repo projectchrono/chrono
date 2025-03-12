@@ -87,6 +87,11 @@ namespace ChronoDemo
             ball.EnableCollision(true);
 
             ChVisualShapeSphere sphere_vis = new ChVisualShapeSphere(radius);
+
+
+            Console.WriteLine("data file: " + chrono.GetChronoDataFile("textures/bluewhite.png"));
+
+
             sphere_vis.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"));
             sphere_vis.SetOpacity(1.0f);
             ball.AddVisualShape(sphere_vis);

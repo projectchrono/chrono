@@ -640,12 +640,8 @@ ChVector3d ChParticleCloud::GetInertiaXY() const {
     return iner;
 }
 
-void ChParticleCloud::Update(bool update_assets) {
-    ChParticleCloud::Update(GetChTime(), update_assets);
-}
-
-void ChParticleCloud::Update(double mytime, bool update_assets) {
-    ChTime = mytime;
+void ChParticleCloud::Update(double time, bool update_assets) {
+    ChPhysicsItem::Update(time, update_assets);
 
     // TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.

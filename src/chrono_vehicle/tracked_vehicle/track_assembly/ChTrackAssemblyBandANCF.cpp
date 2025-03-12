@@ -135,7 +135,7 @@ void ChTrackAssemblyBandANCF::SetLayerFiberAngles(double angle_1, double angle_2
 // TODO: NEEDS fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
+bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChChassis> chassis) {
     // Only SMC contact is currently possible with FEA
     assert(chassis->GetSystem()->GetContactMethod() == ChContactMethod::SMC);
 
@@ -154,7 +154,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Calculate assembly points
     std::vector<ChVector2d> shoe_points;
-    bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
+    bool ccw = FindAssemblyPoints(chassis->GetBody(), num_shoes, connection_lengths, shoe_points);
 
     // Create and add the mesh container for the track shoe webs to the system
     m_track_mesh = chrono_types::make_shared<ChMesh>();
@@ -201,8 +201,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& node : contact_surf->GetNodes()) {
-                    node->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    node->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+                    node->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+                    node->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
                 }
 
                 break;
@@ -214,8 +214,8 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& face : contact_surf->GetTrianglesXYZ()) {
-                    face->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    face->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+                    face->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+                    face->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
                 }
 
                 break;

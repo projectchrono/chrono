@@ -60,14 +60,14 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
     virtual ChVector3d GetTension() const override;
 
-    /// Initialize this track shoe subsystem.
+    /// Construct this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized at the specified location and orientation
     /// (expressed in the global frame). This version initializes the bodies of a CB rigid-link track shoe such that the
     /// center of the track shoe subsystem is at the specified location and all bodies have the specified orientation.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -110,9 +110,9 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
                               double alpha);
 
     /// Initialize this track shoe system.
-    /// This version specifies the locations and orientations of the tread body and of the web link bodies
-    /// (relative to the chassis frame).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] chassis body
+    /// This version specifies the locations and orientations of the tread body and of the web link bodies (relative to
+    /// the chassis frame), as dictated by an assembly algorithm.
+    void Initialize(std::shared_ptr<ChChassis> chassis,             ///< [in] chassis body
                     const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
     );
 

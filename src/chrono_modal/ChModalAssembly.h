@@ -393,7 +393,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Updates all the auxiliary data and children of
     /// bodies, forces, links, given their current state.
-    virtual void Update(bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;
@@ -804,7 +804,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
     SetupInitial();
     Setup();
-    Update();
+    Update(ChTime, true);
 
     Initialize();
 

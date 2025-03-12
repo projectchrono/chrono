@@ -88,8 +88,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool IsUsingGyroTorque() const;
 
     /// Enable/disable option for setting bodies to 'sleep'.
-    /// If the sleeping is allowed, bodies which stay in same place for long enough time will be deactivated, for
-    /// optimization.
+    /// If sleeping is allowed, bodies which stay in same place for long enough time will be deactivated.
     /// By default the sleeping is enabled.
     void SetSleepingAllowed(bool state);
 
@@ -326,18 +325,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
-    void UpdateMarkers(double mytime);
+    void UpdateMarkers(double time, bool update_assets);
+    
     /// Update all children forces of the rigid body, at current body state.
-    void UpdateForces(double mytime);
-    /// Update local time of rigid body, and time-dependent data
-    void UpdateTime(double mytime);
+    void UpdateForces(double time, bool update_assets);
 
-    /// Update all auxiliary data of the rigid body and of
-    /// its children (markers, forces..), at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-    /// Update all auxiliary data of the rigid body and of
-    /// its children (markers, forces..)
-    virtual void Update(bool update_assets = true) override;
+    /// Update all auxiliary data of the rigid body and of its children (markers, forces..), at given time
+    virtual void Update(double time, bool update_assets) override;
 
     /// Return the resultant applied force on the body.
     /// This resultant force includes all external applied loads acting on this body (from gravity, loads, springs,

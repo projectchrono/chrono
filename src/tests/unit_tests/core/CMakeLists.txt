@@ -1,4 +1,4 @@
-SET(LIBRARIES ChronoEngine)
+SET(LIBRARIES Chrono_core)
 
 SET(TESTS
     utest_CH_archive

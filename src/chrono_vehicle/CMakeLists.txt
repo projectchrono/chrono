@@ -75,6 +75,7 @@ SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 # ----------------------------------------------------------------------------
 # Find IrrKlang library
 # ----------------------------------------------------------------------------
+
 if(CH_ENABLE_IRRKLANG)
 
   set(IRRKLANG_ROOT "" CACHE PATH "IrrKlang SDK root directory")
@@ -95,6 +96,10 @@ if(CH_ENABLE_IRRKLANG)
     
 
   set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
+
+else()
+
+  set(HAVE_IRRKLANG FALSE)
 
 endif()
 
@@ -137,7 +142,7 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 # ----------------------------------------------------------------------------
-# List the files in the ChronoEngine_vehicle library
+# List the files in the Chrono_vehicle library
 # ----------------------------------------------------------------------------
 
 # --------------- COMMON FILES
@@ -524,6 +529,8 @@ set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.cpp
     wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.h
     wheeled_vehicle/test_rig/ChSuspensionTestRigDataDriver.cpp
+    wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h
+    wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.cpp    
     wheeled_vehicle/test_rig/ChTireTestRig.h
     wheeled_vehicle/test_rig/ChTireTestRig.cpp
     wheeled_vehicle/test_rig/ChTireStaticTestRig.h
@@ -800,8 +807,8 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.cpp
-        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.h
-        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverIRR.cpp    
+        wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h
+        wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.cpp    
     )
     set(CVIRR_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h
@@ -833,8 +840,8 @@ if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.cpp
-        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverVSG.h
-        wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriverVSG.cpp    
+        wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemVSG.h
+        wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemVSG.cpp    
     )
     set(CVVSG_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h
@@ -886,12 +893,12 @@ endif()
 set(DEPENDENCIES_VEHICLE ${DEPENDENCIES_VEHICLE} PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
-# Add the ChronoEngine_vehicle library
+# Add the Chrono_vehicle library
 # ----------------------------------------------------------------------------
 
-message(STATUS "Add ChronoEngine_vehicle library")
+message(STATUS "Add Chrono_vehicle library")
 
-add_library(ChronoEngine_vehicle
+add_library(Chrono_vehicle
 #
     ${CV_BASE_FILES}
     ${CV_CHASSIS_FILES}
@@ -930,46 +937,46 @@ add_library(ChronoEngine_vehicle
     ${CV_STB_FILES}
 )
 
-add_library(ChronoEngine::vehicle ALIAS ChronoEngine_vehicle)
+add_library(Chrono::vehicle ALIAS Chrono_vehicle)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_vehicle PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_vehicle PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_vehicle PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_vehicle PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_vehicle PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_vehicle PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_vehicle PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_vehicle PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_link_libraries(ChronoEngine_vehicle PUBLIC ChronoEngine)
+target_link_libraries(Chrono_vehicle PUBLIC Chrono_core)
 
 if(HAVE_OPENCRG)
-  target_link_libraries(ChronoEngine_vehicle PRIVATE OpenCRG::OpenCRG)
+  target_link_libraries(Chrono_vehicle PRIVATE OpenCRG::OpenCRG)
 endif()
 
 if(CH_ENABLE_MODULE_FSI)
-  target_link_libraries(ChronoEngine_vehicle PRIVATE ChronoEngine_fsisph)
+  target_link_libraries(Chrono_vehicle PRIVATE Chrono_fsisph)
 endif()
 
-target_compile_definitions(ChronoEngine INTERFACE 
+target_compile_definitions(Chrono_vehicle INTERFACE 
     $<BUILD_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"${PROJECT_BINARY_DIR}/bin/data/vehicle/\">
     $<INSTALL_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"$<INSTALL_PREFIX>/data/vehicle/\">)
 
-target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
 
 if(HDF5_FOUND)
-    target_compile_definitions(ChronoEngine_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${HDF5_COMPILE_DEFS}>)
-    target_include_directories(ChronoEngine_vehicle PUBLIC ${HDF5_INCLUDE_DIRS})
-    target_link_libraries(ChronoEngine_vehicle PUBLIC ${HDF5_CXX_LIBRARIES})
+    target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${HDF5_COMPILE_DEFS}>)
+    target_include_directories(Chrono_vehicle PUBLIC ${HDF5_INCLUDE_DIRS})
+    target_link_libraries(Chrono_vehicle PUBLIC ${HDF5_CXX_LIBRARIES})
 endif()
 
-install(TARGETS ChronoEngine_vehicle
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_vehicle
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -977,43 +984,43 @@ install(TARGETS ChronoEngine_vehicle
 
 
 #-------------------------------------------------------------------------------
-# Add the ChronoEngine_vehicle_irrlicht library
+# Add the Chrono_vehicle_irrlicht library
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-    message(STATUS "Add ChronoEngine_vehicle_irrlicht library")
+    message(STATUS "Add Chrono_vehicle_irrlicht library")
 
-    add_library(ChronoEngine_vehicle_irrlicht
+    add_library(Chrono_vehicle_irrlicht
         ${CVIRR_FILES}
         ${CVIRR_WV_FILES}
         ${CVIRR_TV_FILES}
     )
-    add_library(ChronoEngine::vehicle_irrlicht ALIAS ChronoEngine_vehicle_irrlicht)
+    add_library(Chrono::vehicle_irrlicht ALIAS Chrono_vehicle_irrlicht)
 
     if(CH_WHOLE_PROG_OPT)
-      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
-      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
+      set_target_properties(Chrono_vehicle_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
+      set_target_properties(Chrono_vehicle_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
     endif()
 
     if (CH_STATIC)
-      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(Chrono_vehicle_irrlicht PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
     
     if(MSVC)
-      set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+      set_target_properties(Chrono_vehicle_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_link_libraries(ChronoEngine_vehicle_irrlicht PRIVATE ChronoEngine ChronoEngine_vehicle)
-    target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC ChronoEngine_irrlicht)
+    target_link_libraries(Chrono_vehicle_irrlicht PRIVATE Chrono_core Chrono_vehicle)
+    target_link_libraries(Chrono_vehicle_irrlicht PUBLIC Chrono_irrlicht)
 
     if(CH_ENABLE_IRRKLANG)
-        target_link_libraries(ChronoEngine_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
+        target_link_libraries(Chrono_vehicle_irrlicht PUBLIC IrrKlang::IrrKlang)
     endif()
 
-    target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+    target_compile_definitions(Chrono_vehicle_irrlicht PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
-    install(TARGETS ChronoEngine_vehicle_irrlicht
-            EXPORT ChronoEngineTargets
+    install(TARGETS Chrono_vehicle_irrlicht
+            EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
@@ -1022,39 +1029,39 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 endif()
 
 #-------------------------------------------------------------------------------
-# Add the ChronoEngine_vehicle_vsg library
+# Add the Chrono_vehicle_vsg library
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_VSG)
-    message(STATUS "Add ChronoEngine_vehicle_vsg library")
+    message(STATUS "Add Chrono_vehicle_vsg library")
 
-    add_library(ChronoEngine_vehicle_vsg
+    add_library(Chrono_vehicle_vsg
         ${CVVSG_FILES}
         ${CVVSG_WV_FILES}
         ${CVVSG_TV_FILES}
     )
-    add_library(ChronoEngine::vehicle_vsg ALIAS ChronoEngine_vehicle_vsg)
+    add_library(Chrono::vehicle_vsg ALIAS Chrono_vehicle_vsg)
 
     if(CH_WHOLE_PROG_OPT)
-      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES COMPILE_FLAGS "/GL")
-      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES LINK_FLAGS "/LTCG")
+      set_target_properties(Chrono_vehicle_vsg PROPERTIES COMPILE_FLAGS "/GL")
+      set_target_properties(Chrono_vehicle_vsg PROPERTIES LINK_FLAGS "/LTCG")
     endif()
 
     if (CH_STATIC)
-      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(Chrono_vehicle_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
     
     if(MSVC)
-      set_target_properties(ChronoEngine_vehicle_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+      set_target_properties(Chrono_vehicle_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_compile_definitions(ChronoEngine_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+    target_compile_definitions(Chrono_vehicle_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
-    target_link_libraries(ChronoEngine_vehicle_vsg PRIVATE ChronoEngine ChronoEngine_vehicle)
-    target_link_libraries(ChronoEngine_vehicle_vsg PUBLIC ChronoEngine_vsg)
+    target_link_libraries(Chrono_vehicle_vsg PRIVATE Chrono_core Chrono_vehicle)
+    target_link_libraries(Chrono_vehicle_vsg PUBLIC Chrono_vsg)
 
-    install(TARGETS ChronoEngine_vehicle_vsg
-            EXPORT ChronoEngineTargets
+    install(TARGETS Chrono_vehicle_vsg
+            EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
@@ -1063,37 +1070,37 @@ if(CH_ENABLE_MODULE_VSG)
 endif()
 
 #-------------------------------------------------------------------------------
-# Add the ChronoEngine_vehicle_opengl library
+# Add the Chrono_vehicle_opengl library
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_OPENGL)
-    message(STATUS "Add ChronoEngine_vehicle_opengl library")
+    message(STATUS "Add Chrono_vehicle_opengl library")
 
-    add_library(ChronoEngine_vehicle_opengl
+    add_library(Chrono_vehicle_opengl
         ${CVGL_FILES}
     )
-    add_library(ChronoEngine::vehicle_opengl ALIAS ChronoEngine_vehicle_opengl)
+    add_library(Chrono::vehicle_opengl ALIAS Chrono_vehicle_opengl)
 
     if(CH_WHOLE_PROG_OPT)
-      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES COMPILE_FLAGS "/GL")
-      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES LINK_FLAGS "/LTCG")
+      set_target_properties(Chrono_vehicle_opengl PROPERTIES COMPILE_FLAGS "/GL")
+      set_target_properties(Chrono_vehicle_opengl PROPERTIES LINK_FLAGS "/LTCG")
     endif()
 
     if (CH_STATIC)
-      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+      set_target_properties(Chrono_vehicle_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
     
     if(MSVC)
-      set_target_properties(ChronoEngine_vehicle_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+      set_target_properties(Chrono_vehicle_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
 
-    target_compile_definitions(ChronoEngine_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
+    target_compile_definitions(Chrono_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
-    target_link_libraries(ChronoEngine_vehicle_opengl PRIVATE ChronoEngine ChronoEngine_vehicle)
-    target_link_libraries(ChronoEngine_vehicle_opengl PUBLIC ChronoEngine_opengl)
+    target_link_libraries(Chrono_vehicle_opengl PRIVATE Chrono_core Chrono_vehicle)
+    target_link_libraries(Chrono_vehicle_opengl PUBLIC Chrono_opengl)
 
-    install(TARGETS ChronoEngine_vehicle_opengl
-            EXPORT ChronoEngineTargets
+    install(TARGETS Chrono_vehicle_opengl
+            EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
@@ -1151,14 +1158,14 @@ install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrKlang.cmake" DESTINATION ${CH_CO
 # On Windows, copy DLLs
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(CH_ENABLE_MODULE_IRRLICHT AND EXISTS "${IRRKLANG_DLL}")
-        add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
+        add_custom_command(TARGET Chrono_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${IRRKLANG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
     if(EXISTS "${OpenCRG_DLL}")
-        add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
+        add_custom_command(TARGET Chrono_vehicle POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${OpenRG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")

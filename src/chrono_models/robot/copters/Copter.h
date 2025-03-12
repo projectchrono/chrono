@@ -92,7 +92,7 @@ class Copter {
     void Update(double timestep);
 
     /// Set initial (h = 0) air density.
-    void SetGroundAirDensity(double rho) { rho0 = rho; }
+    void SetGroundAirDensity(double density) { rho0 = rho; }
 
     /// Get the air pressure at copter height.
     double GetAirPressure() const { return pressure; }

@@ -339,7 +339,7 @@ void DPCapPress(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/DPCapPress.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -713,7 +713,7 @@ void ShellBrickContact(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/ShellBrickContact.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1006,7 +1006,7 @@ void SimpleBoxContact(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/SimpleBoxContact.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1321,7 +1321,7 @@ void SoilBin(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/SoilBin.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1589,7 +1589,7 @@ void AxialDynamics(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/AxialDynamics.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -1810,7 +1810,7 @@ void BendingQuasiStatic(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "/BendingQuasistatic.txt";
     outputfile = fopen(filename.c_str(), "w");
@@ -2030,7 +2030,7 @@ void SwingingShell(const std::string& out_dir) {
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 
-    sys.Update();
+    sys.Update(false);
 
     std::string filename = out_dir + "SwingingShell.txt";
     outputfile = fopen(filename.c_str(), "w");

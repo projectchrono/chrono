@@ -2,7 +2,7 @@ if(NOT CH_ENABLE_MODULE_SENSOR)
     return()
 endif()
 
-set(LIBRARIES ChronoEngine ChronoEngine_sensor ${SENSOR_LIBRARIES})
+set(LIBRARIES Chrono_core Chrono_sensor ${SENSOR_LIBRARIES})
 
 # ------------------------------------------------------------------------------
 

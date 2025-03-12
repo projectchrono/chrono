@@ -14,7 +14,7 @@
 //
 //   - load a 3D model saved in STEP format from a CAD
 //   - select some sub assemblies from the STEP model
-//   - make Chrono::Engine objects out of those parts
+//   - make Chrono objects out of those parts
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
@@ -40,7 +40,7 @@ using namespace chrono::cascade;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 int main(int argc, char* argv[]) {
-    // Create a ChronoENGINE physical system: all bodies and constraints
+    // Create a Chrono physical system: all bodies and constraints
     // will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
 

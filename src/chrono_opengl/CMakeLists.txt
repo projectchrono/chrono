@@ -46,7 +46,7 @@ if(OPENGL_FOUND AND glm_FOUND AND GLEW_FOUND AND glfw3_FOUND)
     set(CHRONO_OPENGL "#define CHRONO_OPENGL")
 else()
     # Unable to find everything, turn off OpenGL
-    message("Cannot build ChronoEngine_OpenGL (missing dependencies); disabling Chrono::OpenGL")
+    message("Cannot build Chrono_OpenGL (missing dependencies); disabling Chrono::OpenGL")
     set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
     set(CH_ENABLE_MODULE_OPENGL OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
     return()
@@ -230,10 +230,10 @@ endif()
 set(DEPENDENCIES_OPENGL ${DEPENDENCIES_OPENGL} PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_opengl library
+# Add the Chrono_opengl library
 # ------------------------------------------------------------------------------
 
-add_library(ChronoEngine_opengl 
+add_library(Chrono_opengl 
             ${CE_OpenGL_BASE_FILES}
             ${CE_OpenGL_CORE_FILES}
             ${CE_OpenGL_SHAPES_FILES}
@@ -242,43 +242,43 @@ add_library(ChronoEngine_opengl
             ${CE_OpenGL_STB_FILES}
             ${CE_OpenGL_TINYOBJLOADER_FILES}
 )
-add_library(ChronoEngine::opengl ALIAS ChronoEngine_opengl)
+add_library(Chrono::opengl ALIAS Chrono_opengl)
 
 if(CH_WHOLE_PROG_OPT)
-  set_target_properties(ChronoEngine_opengl PROPERTIES COMPILE_FLAGS "/GL")
-  set_target_properties(ChronoEngine_opengl PROPERTIES LINK_FLAGS "/LTCG")
+  set_target_properties(Chrono_opengl PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_opengl PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  target_compile_options(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"-s FULL_ES3=1 -s USE_GLFW=3">)
+  target_compile_options(Chrono_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"-s FULL_ES3=1 -s USE_GLFW=3">)
 endif()
 
-target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_OPENGL>)
-target_compile_definitions(ChronoEngine_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:GLM_ENABLE_EXPERIMENTAL>)
+target_compile_definitions(Chrono_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_OPENGL>)
+target_compile_definitions(Chrono_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:GLM_ENABLE_EXPERIMENTAL>)
 
-target_link_libraries(ChronoEngine_opengl PRIVATE ChronoEngine)
-target_link_libraries(ChronoEngine_opengl PUBLIC glm::glm)
+target_link_libraries(Chrono_opengl PRIVATE Chrono_core)
+target_link_libraries(Chrono_opengl PUBLIC glm::glm)
 
 if(CH_ENABLE_MODULE_MULTICORE)
-  target_link_libraries(ChronoEngine_opengl PUBLIC ChronoEngine_multicore)
+  target_link_libraries(Chrono_opengl PUBLIC Chrono_multicore)
 endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  target_link_libraries(ChronoEngine_opengl PUBLIC OpenGL::GL)
-  target_link_libraries(ChronoEngine_opengl PUBLIC GLEW::glew)
-  target_link_libraries(ChronoEngine_opengl PUBLIC glfw)
+  target_link_libraries(Chrono_opengl PUBLIC OpenGL::GL)
+  target_link_libraries(Chrono_opengl PUBLIC GLEW::glew)
+  target_link_libraries(Chrono_opengl PUBLIC glfw)
 endif()
 
-install(TARGETS ChronoEngine_opengl
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_opengl
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

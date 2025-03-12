@@ -70,7 +70,6 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
 }
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
-    bool verbose = false;
     const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     const std::vector<ChVariables*>& mvariables = sysd.GetVariables();
     if (verbose)

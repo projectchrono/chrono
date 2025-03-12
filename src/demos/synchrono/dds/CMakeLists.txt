@@ -17,13 +17,13 @@ endif()
 
 find_package(fastrtps REQUIRED)
 
-list(APPEND LIBS "ChronoEngine")
-list(APPEND LIBS "ChronoEngine_vehicle")
-list(APPEND LIBS "ChronoEngine_synchrono")
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_vehicle")
+list(APPEND LIBS "Chrono_synchrono")
 list(APPEND LIBS "ChronoModels_vehicle")
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "ChronoEngine_irrlicht")
+  list(APPEND LIBS "Chrono_irrlicht")
 endif()
 
 foreach(PROGRAM ${DEMOS})

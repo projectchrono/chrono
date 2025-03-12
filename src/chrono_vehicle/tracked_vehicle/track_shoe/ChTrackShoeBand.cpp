@@ -56,11 +56,9 @@ static ChVector2d CalcCircleCenter(const ChVector2d& A, const ChVector2d& B, dou
 // -----------------------------------------------------------------------------
 ChTrackShoeBand::ChTrackShoeBand(const std::string& name) : ChTrackShoe(name) {}
 
-void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                 const ChVector3d& location,
-                                 const ChQuaternion<>& rotation) {
-    ChTrackShoe::Initialize(chassis, location, rotation);
-
+void ChTrackShoeBand::Construct(std::shared_ptr<ChChassis> chassis,
+                                const ChVector3d& location,
+                                const ChQuaternion<>& rotation) {
     // Cache the postive (+x) tooth arc position and arc starting and ending angles
     ChVector2d tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
     ChVector2d tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
@@ -89,14 +87,16 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_center_m_arc_end = temp;
     }
 
-    // Express the tread body location and orientation in global frame.
-    ChVector3d loc = chassis->TransformPointLocalToParent(location);
-    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    // Express the tread body location and orientation in global frame
+    auto chassis_body = chassis->GetBody();
+
+    ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis_body->GetRot() * rotation;
 
     // Create the tread body
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetName(m_name + "_tread");
-    m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);
+    m_shoe->SetTag(m_obj_tag);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());
@@ -143,8 +143,8 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     auto t_shape = chrono_types::make_shared<ChCollisionShapeBox>(pad_material, t_dims.x(), t_dims.y(), t_dims.z());
     m_shoe->AddCollisionShape(t_shape, ChFrame<>(t_loc, QUNIT));
 
-    m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamily(VehicleCollisionFamily::SHOE_FAMILY);
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
 }
 
 // -----------------------------------------------------------------------------

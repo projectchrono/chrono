@@ -38,6 +38,8 @@ void ChVisualSystem::UpdateCamera(const ChVector3d& pos, ChVector3d target) {
     SetCameraTarget(target);
 }
 
+// -----------------------------------------------------------------------------
+
 double ChVisualSystem::GetSimulationRTF() const {
     if (m_systems.empty())
         return 0;
@@ -48,6 +50,62 @@ double ChVisualSystem::GetSimulationTime() const {
     if (m_systems.empty())
         return 0;
     return m_systems[0]->GetChTime();
+}
+
+unsigned int ChVisualSystem::GetNumBodies() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumBodiesActive();
+
+    return count;
+}
+
+unsigned int ChVisualSystem::GetNumLinks() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumLinksActive();
+
+    return count;
+}
+
+unsigned int ChVisualSystem::GetNumMeshes() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumMeshes();
+
+    return count;
+}
+
+unsigned int ChVisualSystem::GetNumShafts() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumShafts();
+
+    return count;
+}
+
+unsigned int ChVisualSystem::GetNumStates() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumCoordsVelLevel();
+
+    return count;
+}
+
+unsigned int ChVisualSystem::GetNumConstraints() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumConstraints();
+
+    return count;
+}
+
+unsigned int ChVisualSystem::GetNumContacts() const {
+    unsigned int count = 0;
+    for (const auto& sys : m_systems)
+        count += sys->GetNumContacts();
+
+    return count;
 }
 
 }  // namespace chrono

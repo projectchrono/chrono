@@ -56,6 +56,10 @@ class CH_VEHICLE_API ChVehicle {
     /// Set the name identifier for this vehicle.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Get vehicle tag.
+    /// This is a unique integral identifier of a vehicle in a Chrono simulation, automatically assigned at construction.
+    uint16_t GetVehicleTag() const { return m_tag; }
+
     /// Get the name of the vehicle system template.
     virtual std::string GetTemplateName() const = 0;
 
@@ -265,18 +269,18 @@ class CH_VEHICLE_API ChVehicle {
     virtual void Advance(double step);
 
     /// Log current constraint violations.
-    virtual void LogConstraintViolations() = 0;
+    virtual void LogConstraintViolations() {}
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
-    virtual std::string ExportComponentList() const = 0;
+    virtual std::string ExportComponentList() const { return ""; }
 
     /// Write a JSON-format file with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
-    virtual void ExportComponentList(const std::string& filename) const = 0;
+    virtual void ExportComponentList(const std::string& filename) const {}
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(int frame, ChVehicleOutput& database) const = 0;
+    virtual void Output(int frame, ChVehicleOutput& database) const {}
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
@@ -326,11 +330,14 @@ class CH_VEHICLE_API ChVehicle {
     std::shared_ptr<ChPowertrainAssembly> m_powertrain_assembly;  ///< associated powertrain system
 
   private:
-    bool m_initialized;
-    bool m_realtime_force;
-    ChRealtimeStepTimer m_realtime_timer;
-    ChTimer m_sim_timer;
-    double m_RTF;
+    uint16_t m_tag;                        ///< unique identifier of a vehicle in a simulation
+    bool m_initialized;                    ///< initialization flag
+    bool m_realtime_force;                 ///< enforce real-time (using a spinner)
+    ChRealtimeStepTimer m_realtime_timer;  ///< real-time spinner
+    ChTimer m_sim_timer;                   ///< timer for vehicle simulation
+    double m_RTF;                          ///< current RTF value
+
+    void SetVehicleTag();
 
     friend class ChVehicleCosimWheeledVehicleNode;
     friend class ChVehicleCosimTrackedVehicleNode;

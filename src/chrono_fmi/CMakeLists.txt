@@ -122,11 +122,11 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fmi/ChConfigFMI.h"
 #=============================================================================
 # Create the Chrono::FMI library
 
-set(ChronoEngine_FMI_SOURCES 
+set(Chrono_FMI_SOURCES 
     ChExternalFmu.cpp
 )
 
-set(ChronoEngine_FMI_HEADERS
+set(Chrono_FMI_HEADERS
     ChApiFMI.h 
     ChExternalFmu.h
     fmi2/ChFmuToolsImport.h
@@ -136,35 +136,35 @@ set(ChronoEngine_FMI_HEADERS
 )
 
 source_group("" FILES 
-            ${ChronoEngine_FMI_HEADERS} 
-            ${ChronoEngine_FMI_SOURCES})
+            ${Chrono_FMI_HEADERS} 
+            ${Chrono_FMI_SOURCES})
 
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_fmi
-            ${ChronoEngine_FMI_HEADERS}
-            ${ChronoEngine_FMI_SOURCES})
+add_library(Chrono_fmi
+            ${Chrono_FMI_HEADERS}
+            ${Chrono_FMI_SOURCES})
 
-target_include_directories(ChronoEngine_fmi PRIVATE "${FMU_TOOLS_DIR}")
+target_include_directories(Chrono_fmi PRIVATE "${FMU_TOOLS_DIR}")
 
 if (CH_STATIC)
-  set_target_properties(ChronoEngine_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(Chrono_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 if(MSVC)
-  set_target_properties(ChronoEngine_fmi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  set_target_properties(Chrono_fmi PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
 endif()
 
-target_compile_definitions(ChronoEngine_fmi PRIVATE "CH_API_COMPILE_FMI")
-target_link_libraries(ChronoEngine_fmi PUBLIC ChronoEngine)
+target_compile_definitions(Chrono_fmi PRIVATE "CH_API_COMPILE_FMI")
+target_link_libraries(Chrono_fmi PUBLIC Chrono_core)
 
-target_compile_definitions(ChronoEngine_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
-target_compile_definitions(ChronoEngine_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
-target_compile_definitions(ChronoEngine_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
+target_compile_definitions(Chrono_fmi PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
+target_compile_definitions(Chrono_fmi PUBLIC FMI3_PLATFORM="${FMI3_PLATFORM}")
+target_compile_definitions(Chrono_fmi PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 
-install(TARGETS ChronoEngine_fmi
-        EXPORT ChronoEngineTargets
+install(TARGETS Chrono_fmi
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

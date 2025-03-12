@@ -86,7 +86,7 @@ class ChApiIrr RTSCamera : public irr::scene::ICameraSceneNode {
     virtual bool getTargetAndRotationBinding(void) const override { return false; }
 
     // Helper Functions
-    void pointCameraAtNode(ISceneNode* selectednode);
+    void pointCameraAtNode(ISceneNode* selected_node);
     void setMinZoom(irr::f32 amount);
     void setMaxZoom(irr::f32 amount);
 

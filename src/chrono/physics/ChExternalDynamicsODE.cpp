@@ -72,7 +72,8 @@ void ChExternalDynamicsODE::ComputeJac(double time) {
 }
 
 void ChExternalDynamicsODE::Update(double time, bool update_assets) {
-    ChTime = time;
+    // Update time and assets
+    ChPhysicsItem::Update(time, update_assets);
 
     // Compute forcing terms at current states
     CalculateRHS(time, m_states, m_rhs);
@@ -81,9 +82,6 @@ void ChExternalDynamicsODE::Update(double time, bool update_assets) {
     if (IsStiff()) {
         ComputeJac(time);
     }
-
-    // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 // -----------------------------------------------------------------------------

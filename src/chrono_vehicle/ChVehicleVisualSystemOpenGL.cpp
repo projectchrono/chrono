@@ -14,8 +14,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/ChVehicleVisualSystemOpenGL.h"
-#include "chrono_vsg/ChGuiComponentVSG.h"
-
+ 
 namespace chrono {
 namespace vehicle {
 

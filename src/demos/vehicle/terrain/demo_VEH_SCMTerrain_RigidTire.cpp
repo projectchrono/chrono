@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;
     ChVector3d tire_center(0, 0.02 + tire_rad, -1.5);
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     auto collsys_type = ChCollisionSystem::Type::BULLET;
     ChSystemSMC sys;
     sys.SetNumThreads(4, 8, 1);

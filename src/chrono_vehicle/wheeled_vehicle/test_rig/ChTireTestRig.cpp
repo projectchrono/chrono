@@ -331,7 +331,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetFixed(true);
     {
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim / 3, dim / 3);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim * CH_1_3, dim * CH_1_3);
         m_ground_body->AddVisualShape(box);
     }
 
@@ -351,7 +351,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
                                                         dim / 2,                     //
                                                         mat);
 
-        auto box = chrono_types::make_shared<ChVisualShapeBox>(dim / 3, dim / 3, 10 * dim);
+        auto box = chrono_types::make_shared<ChVisualShapeBox>(dim * CH_1_3, dim * CH_1_3, 10 * dim);
         box->AddMaterial(mat);
         m_carrier_body->AddVisualShape(box, ChFrame<>(ChVector3d(0, 0, -5 * dim)));
     }
@@ -605,8 +605,10 @@ void ChTireTestRig::CreateTerrainCRM() {
     sph_params.initial_spacing = initSpace0;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;
-    sph_params.xsph_coefficient = 0.25;
-    sph_params.shifting_coefficient = 1.0;
+    sph_params.shifting_method = ShiftingMethod::PPST_XSPH;  // Apply both PPST and XSPH shifting
+    sph_params.shifting_xsph_eps = 0.25;
+    sph_params.shifting_ppst_pull = 1.0;
+    sph_params.shifting_ppst_push = 3.0;
     sph_params.kernel_threshold = 0.8;
     sph_params.num_proximity_search_steps = 1;
     sph_params.consistent_gradient_discretization = false;

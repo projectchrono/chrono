@@ -31,6 +31,13 @@ add_subdirectory(sph)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFsi.h.in
                ${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h)
 
+# Old way (install headers preserving directory structure)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+DESTINATION include/chrono_fsi
+FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")
+
 install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h"
         DESTINATION include/chrono_fsi)
+
+
 

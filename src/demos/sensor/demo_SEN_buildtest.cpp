@@ -366,7 +366,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_PI / 3.0f,                               // horizontal field of view
+        2.f * (float)CH_PI_3,                               // horizontal field of view
         (float)CH_PI / 8.0f, -(float)CH_PI / 8.0f, 100.0f        // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_PI / 3.0f,                               // horizontal field of view
+        2.f * (float)CH_PI_3,                               // horizontal field of view
         (float)CH_PI / 8.0f,                                     // max vert angle
         -(float)CH_PI / 8.0f,                                    // min vert angle
         100.0f,                                                  // max range
@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-3, 0, 2}, QuatFromAngleX(0)),  // offset pose
             1280,                                                    // image width
             720,                                                     // image height
-            (float)CH_PI / 3);
+            (float)CH_PI_3);
         cams.push_back(cam1);
 
         std::stringstream nm;

@@ -20,8 +20,9 @@
 
 #pragma once
 
+#include <omp.h>
+
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChOpenMP.h"
 
 #include "chrono/collision/multicore/ChBroadphase.h"
 #include "chrono/collision/multicore/ChNarrowphase.h"
@@ -221,11 +222,7 @@ class settings_container {
   public:
     settings_container() {
         min_threads = 1;
-#ifdef _OPENMP
         max_threads = omp_get_num_procs();
-#else
-        max_threads = 1;
-#endif
         perform_thread_tuning = false;
         system_type = SystemType::SYSTEM_NSC;
         step_size = 0.01;

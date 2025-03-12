@@ -1,56 +1,84 @@
+# Find Blaze
+#
+# This script requires one of the following input variables:
+# - blaze_DIR: directory containing the Blaze package configuration script
+# - blaze_INCLUDE_DIR: directory containing the subdirectory 'blaze/'
+#
+# This script provides the following outputs:
+# - blaze_FOUND: a boolean variable indicating whether the library was found
+# - blaze::blaze: imported target
 
-# ----- Blaze library -----
-set(Blaze_ROOT_TEMP ${Blaze_ROOT})
+if(blaze_INCLUDE_DIR)
 
-find_path(Blaze_ROOT NAMES blaze/Blaze.h PATHS ${Blaze_ROOT_TEMP} "/usr/include" "/usr/local/include")
-if (NOT Blaze_ROOT)
-  message("WARNING Cannot find '<Blaze_ROOT>/blaze/system/Version.h'. Properly set Blaze_ROOT.")
-endif()
-
-# Extract Blaze version
-find_file(Blaze_VERSION_FILENAME "Version.h" PATHS "${Blaze_ROOT}/blaze/system")
-mark_as_advanced(FORCE Blaze_VERSION_FILENAME)
-if(Blaze_VERSION_FILENAME)
-  file(READ ${Blaze_VERSION_FILENAME} Blaze_VERSION_FILE)
-  string(REGEX MATCH "#define BLAZE_MAJOR_VERSION ([0-9]*)" _Blaze_MAJOR_VERSION ${Blaze_VERSION_FILE})
-  set(Blaze_MAJOR_VERSION ${CMAKE_MATCH_1})
-  string(REGEX MATCH "#define BLAZE_MINOR_VERSION ([0-9]*)" _Blaze_MINOR_VERSION ${Blaze_VERSION_FILE})
-  set(Blaze_MINOR_VERSION ${CMAKE_MATCH_1})
-  set(Blaze_VERSION "${Blaze_MAJOR_VERSION}.${Blaze_MINOR_VERSION}")
-  if(NOT Blaze_FIND_QUIETLY)
-    message(STATUS "Blaze version file: ${Blaze_VERSION_FILENAME}")
-    message(STATUS "Blaze version: ${Blaze_VERSION}")
-  endif()
-  set(Blaze_FOUND TRUE)
-else()
-  message("WARNING Cannot find '<Blaze_ROOT>/blaze/system/Version.h'. Properly set Blaze_ROOT.")
-endif()
-
-# ----- BOOST -- required only for older versions of Blaze -----
-
-if (Blaze_VERSION VERSION_LESS "3.2")
-  set(BOOST_REQUIRED "TRUE")
-else()
-  set(BOOST_REQUIRED "FALSE")
-endif()
-
-if(BOOST_REQUIRED)
-  set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
-  find_package(Boost REQUIRED)
-
-  if (Boost_FOUND)
+  if(EXISTS "${blaze_INCLUDE_DIR}/blaze/system/Version.h")
+    if(NOT TARGET blaze::blaze)
+      add_library(blaze::blaze INTERFACE IMPORTED)
+      set_target_properties(blaze::blaze PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${blaze_INCLUDE_DIR}")
+    endif()
+    set(blaze_FOUND TRUE)
     if(NOT Blaze_FIND_QUIETLY)
-      message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+      message(STATUS "Found 'blaze/system/Version.h' in provided blaze_INCLUDE_DIR=${blaze_INCLUDE_DIR}")
     endif()
   else()
-    mark_as_advanced(CLEAR BOOST_ROOT)
-    message("WARNING Boost required for Blaze version ${Blaze_VERSION}. Specify BOOST_ROOT or use Blaze 3.2 or newer.")
+    set(blaze_FOUND FALSE)
+    if(NOT Blaze_FIND_QUIETLY)
+      message(STATUS "Could not find 'blaze/system/Version.h' in the provided blaze_INCLUDE_DIR=${blaze_INCLUDE_DIR}")
+    endif()
   endif()
+
+else()
+
+  find_package(blaze NO_MODULE)
+
+  if(blaze_FOUND)
+    get_target_property(blaze_INCLUDE_DIR blaze::blaze INTERFACE_INCLUDE_DIRECTORIES)
+    if(NOT Blaze_FIND_QUIETLY)
+      message(STATUS "Blaze found through config script")
+    endif()
+  endif()
+
 endif()
 
-# Create Blaze::Blaze target
-if (Blaze_ROOT AND NOT TARGET Blaze::Blaze)
-    add_library(Blaze::Blaze INTERFACE IMPORTED)
-    set_target_properties(Blaze::Blaze PROPERTIES
-                          INTERFACE_INCLUDE_DIRECTORIES "${Blaze_ROOT}")
+# Check Blaze version
+
+if(NOT blaze_FOUND)
+  return()
 endif()
+
+find_file(blaze_VERSION_FILENAME "Version.h" PATHS "${blaze_INCLUDE_DIR}/blaze/system" NO_CACHE)
+
+if(blaze_VERSION_FILENAME)
+  
+  file(READ ${blaze_VERSION_FILENAME} Blaze_VERSION_FILE)
+  
+  string(REGEX MATCH "#define BLAZE_MAJOR_VERSION ([0-9]*)" _Blaze_MAJOR_VERSION ${Blaze_VERSION_FILE})
+  set(blaze_MAJOR_VERSION ${CMAKE_MATCH_1})
+  string(REGEX MATCH "#define BLAZE_MINOR_VERSION ([0-9]*)" _Blaze_MINOR_VERSION ${Blaze_VERSION_FILE})
+  set(blaze_MINOR_VERSION ${CMAKE_MATCH_1})
+  set(blaze_VERSION "${blaze_MAJOR_VERSION}.${blaze_MINOR_VERSION}")
+  
+  if(NOT Blaze_FIND_QUIETLY)
+    message(STATUS "Blaze version file: ${blaze_VERSION_FILENAME}")
+    message(STATUS "Blaze version: ${blaze_VERSION}")
+  endif()
+
+  if (blaze_VERSION VERSION_LESS "3.2")
+    set(blaze_FOUND FALSE)
+    if(NOT Blaze_FIND_QUIETLY)
+      message(STATUS "Blaze version older than 3.2.")
+    endif()
+    return()
+  endif()
+
+else()
+
+  set(blaze_FOUND FALSE)
+
+  if(NOT Blaze_FIND_QUIETLY)
+    message(STATUS "Cannot find header 'blaze/system/Version.h'")
+  endif()
+
+  return()
+
+endif()
+

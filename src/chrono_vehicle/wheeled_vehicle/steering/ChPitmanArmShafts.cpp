@@ -52,14 +52,9 @@ ChPitmanArmShafts::~ChPitmanArmShafts() {
 }
 
 // -----------------------------------------------------------------------------
-void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   const ChVector3d& location,
-                                   const ChQuaternion<>& rotation) {
-    ChSteering::Initialize(chassis, location, rotation);
-
-    m_parent = chassis;
-    m_rel_xform = ChFrame<>(location, rotation);
-
+void ChPitmanArmShafts::Construct(std::shared_ptr<ChChassis> chassis,
+                                  const ChVector3d& location,
+                                  const ChQuaternion<>& rotation) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -94,6 +89,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the steering link body
     m_link = chrono_types::make_shared<ChBody>();
     m_link->SetName(m_name + "_link");
+    m_link->SetTag(m_obj_tag);
     m_link->SetPos(points[STEERINGLINK]);
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getSteeringLinkMass());
@@ -115,6 +111,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the Pitman arm body
     m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetName(m_name + "_arm");
+    m_arm->SetTag(m_obj_tag);
     m_arm->SetPos(points[PITMANARM]);
     m_arm->SetRot(steering_to_abs.GetRot());
     m_arm->SetMass(getPitmanArmMass());
@@ -143,6 +140,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetName(m_name + "_revolute");
+    m_revolute->SetTag(m_obj_tag);
     m_revolute->Initialize(chassisBody, m_arm, ChFrame<>(points[REV], rot.GetQuaternion()));
     sys->AddLink(m_revolute);
 
@@ -155,6 +153,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_universal = chrono_types::make_shared<ChLinkUniversal>();
     m_universal->SetName(m_name + "_universal");
+    m_universal->SetTag(m_obj_tag);
     m_universal->Initialize(m_arm, m_link, ChFrame<>(points[UNIV], rot.GetQuaternion()));
     sys->AddLink(m_universal);
 
@@ -172,6 +171,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revsph = chrono_types::make_shared<ChLinkRevoluteSpherical>();
     m_revsph->SetName(m_name + "_revsph");
+    m_revsph->SetTag(m_obj_tag);
     m_revsph->Initialize(chassisBody, m_link, ChCoordsys<>(points[REVSPH_R], rot.GetQuaternion()), distance);
     sys->AddLink(m_revsph);
 
@@ -185,22 +185,26 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_shaft_C = chrono_types::make_shared<ChShaft>();
     m_shaft_C->SetName(m_name + "_shaftC");
+    m_shaft_C->SetTag(m_obj_tag);
     m_shaft_C->SetInertia(inertia);
     m_shaft_C->SetFixed(true);
     sys->AddShaft(m_shaft_C);
 
     m_shaft_C1 = chrono_types::make_shared<ChShaft>();
     m_shaft_C1->SetName(m_name + "_shaftC1");
+    m_shaft_C1->SetTag(m_obj_tag);
     m_shaft_C1->SetInertia(inertia);
     sys->AddShaft(m_shaft_C1);
 
     m_shaft_A1 = chrono_types::make_shared<ChShaft>();
     m_shaft_A1->SetName(m_name + "_shaftA1");
+    m_shaft_A1->SetTag(m_obj_tag);
     m_shaft_A1->SetInertia(inertia);
     sys->AddShaft(m_shaft_A1);
 
     m_shaft_A = chrono_types::make_shared<ChShaft>();
     m_shaft_A->SetName(m_name + "_shaftA");
+    m_shaft_A->SetTag(m_obj_tag);
     m_shaft_A->SetInertia(inertia);
     sys->AddShaft(m_shaft_A);
 

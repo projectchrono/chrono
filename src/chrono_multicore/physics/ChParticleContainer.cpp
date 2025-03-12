@@ -54,11 +54,11 @@ void ChParticleContainer::AddBodies(const std::vector<real3>& positions, const s
     vel_fluid.resize(pos_fluid.size());
     data_manager->num_fluid_bodies = (uint)pos_fluid.size();
 }
-void ChParticleContainer::Update3DOF(double ChTime) {
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-    uint num_motors = data_manager->num_motors;
+void ChParticleContainer::Update3DOF(double time) {
+    num_fluid_bodies = data_manager->num_fluid_bodies;
+    num_rigid_bodies = data_manager->num_rigid_bodies;
+    num_shafts = data_manager->num_shafts;
+    num_motors = data_manager->num_motors;
     real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
 
     uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
@@ -70,11 +70,11 @@ void ChParticleContainer::Update3DOF(double ChTime) {
     }
 }
 
-void ChParticleContainer::UpdatePosition(double ChTime) {
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_rigid_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-    uint num_motors = data_manager->num_motors;
+void ChParticleContainer::UpdatePosition(double time) {
+    num_fluid_bodies = data_manager->num_fluid_bodies;
+    num_rigid_bodies = data_manager->num_rigid_bodies;
+    num_shafts = data_manager->num_shafts;
+    num_motors = data_manager->num_motors;
 
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
@@ -99,7 +99,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
 }
 
 unsigned int ChParticleContainer::GetNumConstraints() {
-    const auto num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
+    num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
     int num_fluid_fluid = 0;
     if (mu == 0) {
         num_fluid_fluid = (num_fluid_contacts - data_manager->num_fluid_bodies) / 2;
@@ -117,7 +117,7 @@ unsigned int ChParticleContainer::GetNumConstraints() {
 }
 
 unsigned int ChParticleContainer::GetNumNonZeros() {
-    const auto num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
+    num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
     int nnz_fluid_fluid = 0;
     if (mu == 0) {
         nnz_fluid_fluid = (num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 6;
@@ -136,11 +136,11 @@ unsigned int ChParticleContainer::GetNumNonZeros() {
 }
 
 void ChParticleContainer::ComputeInvMass(int offset) {
+    num_fluid_bodies = data_manager->num_fluid_bodies;
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
     real inv_mass = 1.0 / mass;
-    for (int i = 0; i < (float)num_fluid_bodies; i++) {
+    for (uint i = 0; i < num_fluid_bodies; i++) {
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
         M_inv.finalize(offset + i * 3 + 0);
         M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
@@ -151,11 +151,11 @@ void ChParticleContainer::ComputeInvMass(int offset) {
 }
 
 void ChParticleContainer::ComputeMass(int offset) {
+    num_fluid_bodies = data_manager->num_fluid_bodies;
     CompressedMatrix<real>& M = data_manager->host_data.M;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
     real fluid_mass = mass;
-    for (int i = 0; i < (float)num_fluid_bodies; i++) {
+    for (uint i = 0; i < num_fluid_bodies; i++) {
         M.append(offset + i * 3 + 0, offset + i * 3 + 0, fluid_mass);
         M.finalize(offset + i * 3 + 0);
         M.append(offset + i * 3 + 1, offset + i * 3 + 1, fluid_mass);

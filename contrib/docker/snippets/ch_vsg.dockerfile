@@ -16,7 +16,7 @@ RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee 
     sudo apt clean && sudo apt autoremove -y && sudo rm -rf /var/lib/apt/lists/*
 
 # Build the VSG dependencies
-RUN cd ${CHRONO_DIR}/contrib/build-scripts/vsg/ && \
+RUN cd ${CHRONO_DIR}/contrib/build-scripts/linux/ && \
     bash buildVSG.sh ${PACKAGE_DIR}/vsg/
 
 # Update shell config

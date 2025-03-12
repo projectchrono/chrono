@@ -9,12 +9,12 @@ set(TESTS
 # ------------------------------------------------------------------------------
 
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_multicore
+    Chrono_core
+    Chrono_multicore
 )
 
 if(CH_ENABLE_MODULE_OPENGL)
-    set(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+    set(LIBRARIES ${LIBRARIES} Chrono_opengl)
 endif()
 
 # ------------------------------------------------------------------------------
