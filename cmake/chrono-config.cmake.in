@@ -8,9 +8,9 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab,
-#   Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor,
-#   Synchrono, Vehicle, VehicleCosim.
+#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, Matlab, Modal, Multicore,
+#   OpenGL, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono,
+#   Vehicle, VehicleCosim, VSG.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 #
