@@ -45,12 +45,12 @@ class CH_VEHICLE_API ChDoubleTrackWheel : public ChTrackWheel {
     /// Return the type of track shoe consistent with this track wheel.
     virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 
-    /// Initialize this track wheel subsystem.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            std::shared_ptr<ChBody> carrier,     ///< [in] the carrier body
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
-                            ) override;
+    /// Construct this track wheel subsystem.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           std::shared_ptr<ChBody> carrier,     ///< [in] the carrier body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) override;
 
     /// Add visualization assets for the track-wheel subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

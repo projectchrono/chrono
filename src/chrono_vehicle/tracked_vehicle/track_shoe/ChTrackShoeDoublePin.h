@@ -51,16 +51,16 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// For a double-pin track shoe, this function returns the force between the track shoe body and connector(s).
     virtual ChVector3d GetTension() const override;
 
-    /// Initialize this track shoe subsystem.
+    /// Construct this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// This version initializes the bodies of a double-pin track shoe such that
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -93,14 +93,15 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     virtual double GetConnectorRadius() const = 0;
 
     /// Initialize this two-connector double-pin track shoe system.
-    /// For a one-connector double-pin, the location of the connector body is assumed to be at the midpoint between the
-    /// provided left and right locations.
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                    const ChVector3d& loc_shoe,             ///< [in] location of shoe body
-                    const ChQuaternion<>& rot_shoe,         ///< [in] orientation of shoe body
-                    const ChVector3d& loc_connector_L,      ///< [in] location of left connector body
-                    const ChVector3d& loc_connector_R,      ///< [in] location of right connector body
-                    const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
+    /// This version specifies the locations of the shoe and connector bodies separately, as dictated by and assembly
+    /// algorithm. For a one-connector double-pin, the location of the connector body is assumed to be at the midpoint
+    /// between the provided left and right locations.
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                    const ChVector3d& loc_shoe,          ///< [in] location of shoe body
+                    const ChQuaternion<>& rot_shoe,      ///< [in] orientation of shoe body
+                    const ChVector3d& loc_connector_L,   ///< [in] location of left connector body
+                    const ChVector3d& loc_connector_R,   ///< [in] location of right connector body
+                    const ChQuaternion<>& rot_connector  ///< [in] orientation of connector bodies
     );
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;

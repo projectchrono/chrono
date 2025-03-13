@@ -29,7 +29,33 @@
 namespace chrono {
 namespace vehicle {
 
-ChSuspensionTestRigDriver::ChSuspensionTestRigDriver() : m_time(0), m_steering(0), m_delay(0), m_log_filename("") {}
+ChSuspensionTestRigDriver::ChSuspensionTestRigDriver()
+    : m_time(0), m_steering(0), m_delay(0), m_log_filename("") {}
+
+void ChSuspensionTestRigDriver::Initialize(int num_axles) {
+    m_naxles = num_axles;
+    m_displLeft.resize(num_axles, 0.0);
+    m_displRight.resize(num_axles, 0.0);
+    m_displSpeedLeft.resize(num_axles, 0.0);
+    m_displSpeedRight.resize(num_axles, 0.0);
+}
+
+// -----------------------------------------------------------------------------
+
+// Clamp a specified input value to appropriate interval.
+void ChSuspensionTestRigDriver::SetDisplacementLeft(int axle, double val, double min_val, double max_val) {
+    m_displLeft[axle] = ChClamp(val, min_val, max_val);
+}
+
+void ChSuspensionTestRigDriver::SetDisplacementRight(int axle, double val, double min_val, double max_val) {
+    m_displRight[axle] = ChClamp(val, min_val, max_val);
+}
+
+void ChSuspensionTestRigDriver::SetSteering(double val, double min_val, double max_val) {
+    m_steering = ChClamp(val, min_val, max_val);
+}
+
+// -----------------------------------------------------------------------------
 
 void ChSuspensionTestRigDriver::Synchronize(double time) {
     m_time = time;
@@ -37,14 +63,6 @@ void ChSuspensionTestRigDriver::Synchronize(double time) {
 
 bool ChSuspensionTestRigDriver::Started() const {
     return m_time > m_delay;
-}
-
-void ChSuspensionTestRigDriver::Initialize(int naxles) {
-    m_naxles = naxles;
-    m_displLeft.resize(naxles, 0.0);
-    m_displRight.resize(naxles, 0.0);
-    m_displSpeedLeft.resize(naxles, 0.0);
-    m_displSpeedRight.resize(naxles, 0.0);
 }
 
 // Initialize output file for recording driver inputs.
@@ -77,19 +95,6 @@ bool ChSuspensionTestRigDriver::Log(double time) {
 
     ofile.close();
     return true;
-}
-
-// Clamp a specified input value to appropriate interval.
-void ChSuspensionTestRigDriver::SetDisplacementLeft(int axle, double val, double min_val, double max_val) {
-    m_displLeft[axle] = ChClamp(val, min_val, max_val);
-}
-
-void ChSuspensionTestRigDriver::SetDisplacementRight(int axle, double val, double min_val, double max_val) {
-    m_displRight[axle] = ChClamp(val, min_val, max_val);
-}
-
-void ChSuspensionTestRigDriver::SetSteering(double val, double min_val, double max_val) {
-    m_steering = ChClamp(val, min_val, max_val);
 }
 
 }  // end namespace vehicle

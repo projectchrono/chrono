@@ -92,9 +92,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified chassis body at the specified location
     /// (with respect to and expressed in the reference frame of the chassis).
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] pointer to containing track assembly
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track               ///< [in] pointer to containing track assembly
     );
 
     /// Apply the provided torque to the sprocket's axle (for debugging and testing).

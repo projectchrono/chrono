@@ -19,6 +19,7 @@
 #ifndef CH_SUBSYS_DEFS_H
 #define CH_SUBSYS_DEFS_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -401,6 +402,43 @@ class CH_VEHICLE_API NonlinearSpringDamperTorque : public ChLinkRSDA::TorqueFunc
 };
 
 // -----------------------------------------------------------------------------
+
+/// Utilities to encode and decode vehicle object tags.
+/// An object tag (int) encodes the vehicle tag (uint16_t) and the tag of the containing part/subsystem type (uint16_t).
+/// These are assigned to the ChObj objects (bodies, links, etc) that compose a given part/subsystem.
+namespace VehicleObjTag {
+
+/// Generate a vehicle tag and a subsystem tag into an object tag.
+CH_VEHICLE_API int Generate(uint16_t vehicle_tag, uint16_t part_tag);
+
+/// Extract the vehicle tag from a body tag.
+CH_VEHICLE_API uint16_t ExtractVehicleTag(int tag);
+
+/// Extract the subsystem (part) tag from a body tag.
+CH_VEHICLE_API uint16_t ExtractPartTag(int tag);
+
+}  // end namespace VehicleObjTag
+
+/// Tags for specific parts of a wheeled vehicle.
+enum VehiclePartTag : uint16_t {
+    CHASSIS = 0xDD00,
+    CHASSIS_REAR = 0xDD01,
+
+    SUBCHASSIS = 0xEE00,
+    SUSPENSION = 0xEE01,
+    STEERING = 0xEE02,
+    ANTIROLLBAR = 0xEE03,
+    WHEEL = 0xEE04,
+    TIRE = 0xEE05,
+    
+    SPROCKET = 0xFF00,
+    IDLER = 0xFF01,
+    TRACK_WHEEL = 0xFF02,
+    SHOE = 0xFF03,
+    TRACK_SUSPENSION = 0xFF04
+};
+
+// -----------------------------------------------------------------------------
 // Enums and flags for wheeled and tracked vehicles
 // -----------------------------------------------------------------------------
 
@@ -488,16 +526,6 @@ enum class DrivelineTypeTV {
     SIMPLE  ///< simple kinematic driveline
 };
 
-/// Enumerations for wheeled vehicle collision families.
-namespace WheeledCollisionFamily {
-// Note: we cannot use strongly typed enums, since these are passed as integers
-enum Enum {
-    CHASSIS = 0,  ///< chassis collision family
-    TIRE = 1,     ///< collision family for tire systems
-    WHEEL = 2     ///< collision family for wheel systems
-};
-}  // namespace WheeledCollisionFamily
-
 /// Enum for track shoe types.
 enum class TrackShoeType {
     SINGLE_PIN,    ///< single-pin track shoe and sprocket
@@ -542,17 +570,21 @@ enum Enum {
 };
 }  // namespace TrackedCollisionFlag
 
-/// Enumerations for tracked vehicle collision families.
-namespace TrackedCollisionFamily {
+/// Enumerations for vehicle collision families.
+namespace VehicleCollisionFamily {
 // Note: we cannot use strongly typed enums, since these are passed as integers
 enum Enum {
-    CHASSIS = 0,  ///< chassis collision family
-    IDLERS = 1,   ///< collision family for idler subsystems
-    WHEELS = 2,   ///< collision family for road-wheel assemblies
-    ROLLERS = 3,  ///< collision family for roller subsystems
-    SHOES = 4     ///< collision family for track shoe subsystems
+    CHASSIS_FAMILY = 0,  ///< chassis collision family
+
+    TIRE_FAMILY = 1,   ///< collision family for tire systems
+    WHEEL_FAMILY = 2,  ///< collision family for wheel systems
+
+    IDLER_FAMILY = 3,        ///< collision family for idler subsystems
+    TRACK_WHEEL_FAMILY = 4,  ///< collision family for road-wheel assemblies
+    ROLLER_FAMILY = 5,       ///< collision family for roller subsystems
+    SHOE_FAMILY = 6          ///< collision family for track shoe subsystems
 };
-}  // namespace TrackedCollisionFamily
+}  // namespace VehicleCollisionFamily
 
 /// Flags for output (log/debug).
 /// These flags can be bit-wise ORed and used as a mask.
@@ -561,16 +593,6 @@ enum OutputInformation {
     OUT_SHOCKS = 1 << 1,       ///< suspension shock information
     OUT_CONSTRAINTS = 1 << 2,  ///< constraint violation information
     OUT_TESTRIG = 1 << 3       ///< test-rig specific information
-};
-
-/// Tags for specific component bodies.
-enum TrackedVehicleBodyTag {
-    CHASSIS_BODY = -99990,
-    SPROCKET_BODY = -99991,
-    IDLER_BODY = -99992,
-    WHEEL_BODY = -99993,
-    ROLER_BODY = -99994,
-    SHOE_BODY = -99995
 };
 
 /// @} vehicle

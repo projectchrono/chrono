@@ -181,14 +181,6 @@ class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
     ChVehicleVisualSystemVSG* m_app;
 };
 
-void DrawGauge(float val, float v_min, float v_max) {
-    ImGui::PushItemWidth(150.0f);
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
-    ImGui::SliderFloat("", &val, v_min, v_max, "%.2f");
-    ImGui::PopStyleColor();
-    ImGui::PopItemWidth();
-}
-
 void ShowHelp() {
     if (ImGui::CollapsingHeader("Chase camera controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BulletText("Selection of camera mode");
@@ -244,7 +236,8 @@ void ShowHelp() {
 void ChVehicleGuiComponentVSG::render() {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
-    ImGui::Begin("Vehicle");
+    std::string title = "Vehicle [" + m_app->GetVehicle().GetName() + "]";
+    ImGui::Begin(title.c_str());
 
     if (ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
@@ -470,6 +463,9 @@ void ChVehicleGuiComponentVSG::render() {
 
 ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr) {
     m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
+
+    // Disable global visibility controls
+    m_show_visibility_controls = false;
 }
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}

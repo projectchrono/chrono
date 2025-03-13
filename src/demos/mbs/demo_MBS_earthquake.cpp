@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->AttachSystem(&sys);
             vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Collisions between objects");
+            vis_irr->SetWindowTitle("Earthquake simulation");
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
@@ -178,9 +178,9 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowSize(ChVector2i(1280, 720));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetWindowTitle("Chrono VSG Assets");
+            vis_vsg->SetWindowTitle("Earthquake simulation");
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->AddCamera(ChVector3d(1, 8, -15));
             vis_vsg->SetCameraAngleDeg(50);

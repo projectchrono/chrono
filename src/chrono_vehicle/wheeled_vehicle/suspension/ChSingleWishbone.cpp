@@ -74,18 +74,12 @@ ChSingleWishbone::~ChSingleWishbone() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSingleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,
-                                  std::shared_ptr<ChSubchassis> subchassis,
-                                  std::shared_ptr<ChSteering> steering,
-                                  const ChVector3d& location,
-                                  double left_ang_vel,
-                                  double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChSingleWishbone::Construct(std::shared_ptr<ChChassis> chassis,
+                                 std::shared_ptr<ChSubchassis> subchassis,
+                                 std::shared_ptr<ChSteering> steering,
+                                 const ChVector3d& location,
+                                 double left_ang_vel,
+                                 double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -141,6 +135,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     // Create and initialize the upright body
     m_upright[side] = chrono_types::make_shared<ChBody>();
     m_upright[side]->SetName(m_name + "_upright" + suffix);
+    m_upright[side]->SetTag(m_obj_tag);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
@@ -158,6 +153,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     // Create and initialize the control arm body
     m_control_arm[side] = chrono_types::make_shared<ChBody>();
     m_control_arm[side]->SetName(m_name + "_arm" + suffix);
+    m_control_arm[side]->SetTag(m_obj_tag);
     m_control_arm[side]->SetPos(points[CA_CM]);
     m_control_arm[side]->SetRot(rot.GetQuaternion());
     m_control_arm[side]->SetMass(getCAMass());
@@ -168,6 +164,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     // Create and initialize the revolute joint between upright and spindle
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -176,12 +173,14 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     m_revoluteCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteCA" + suffix, chassis->GetBody(), m_control_arm[side],
         ChFrame<>(points[CA_C], chassisRot * QuatFromAngleY(CH_PI_2)), getCABushingData());
+    m_revoluteCA[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteCA[side]);
 
     // Create and initialize the revolute joint between upright and CA
     m_revoluteUA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteUA" + suffix, m_control_arm[side], m_upright[side],
         ChFrame<>(points[CA_U], chassisRot));
+    m_revoluteUA[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteUA[side]);
 
     if (UseTierodBodies()) {
@@ -195,6 +194,7 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
         // Create the tierod body
         m_tierod[side] = chrono_types::make_shared<ChBody>();
         m_tierod[side]->SetName(m_name + "_tierodBody" + suffix);
+        m_tierod[side]->SetTag(m_obj_tag);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.GetQuaternion());
         m_tierod[side]->SetMass(getTierodMass());
@@ -205,28 +205,26 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
             ChFrame<>(points[TIEROD_U], QUNIT), getTierodBushingData());
+        m_sphericalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
             ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
+        m_universalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.
         m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
         m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
+        m_distTierod[side]->SetTag(m_obj_tag);
         m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
         chassis->GetSystem()->AddLink(m_distTierod[side]);
     }
 
-    // Create and initialize the tierod distance constraint between chassis and upright.
-    m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
-    m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
-    chassis->GetSystem()->AddLink(m_distTierod[side]);
-
     // Create and initialize the spring-damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetName(m_name + "_shock" + suffix);
+    m_shock[side]->SetTag(m_obj_tag);
     m_shock[side]->Initialize(chassis->GetBody(), m_control_arm[side], false, points[STRUT_C], points[STRUT_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -236,12 +234,14 @@ void ChSingleWishbone::InitializeSide(VehicleSide side,
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
     m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetTag(m_obj_tag);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }

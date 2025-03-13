@@ -46,7 +46,7 @@ ChTrackAssemblyDoublePin::ChTrackAssemblyDoublePin(const std::string& name, Vehi
 // TODO: NEEDS fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
+bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChChassis> chassis) {
     // Number of track shoes and road wheels.
     size_t num_shoes = m_shoes.size();
     size_t num_wheels = m_suspensions.size();
@@ -56,12 +56,14 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     assert(m_bushing_data || m_shoes[0]->m_topology == DoublePinTrackShoeType::ONE_CONNECTOR);
 
     // Positions of sprocket, idler, and (front and rear) wheels (in chassis reference frame).
-    ChVector3d sprocket_pos_3d = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
-    ChVector3d idler_pos_3d = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
-    ChVector3d front_wheel_pos_3d = chassis->TransformPointParentToLocal(m_suspensions[0]->GetWheelBody()->GetPos());
+    auto chassis_body = chassis->GetBody();
+    ChVector3d sprocket_pos_3d = chassis_body->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
+    ChVector3d idler_pos_3d = chassis_body->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
+    ChVector3d front_wheel_pos_3d =
+        chassis_body->TransformPointParentToLocal(m_suspensions[0]->GetWheelBody()->GetPos());
     ChVector3d rear_wheel_pos_3d = front_wheel_pos_3d;
     for (size_t i = 1; i < num_wheels; i++) {
-        ChVector3d wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
+        ChVector3d wheel_pos = chassis_body->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
         if (wheel_pos.x() > front_wheel_pos_3d.x())
             front_wheel_pos_3d = wheel_pos;
         if (wheel_pos.x() < rear_wheel_pos_3d.x())
@@ -270,7 +272,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     return ccw;
 }
 
-void ChTrackAssemblyDoublePin::CreateTrackShoe(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackAssemblyDoublePin::CreateTrackShoe(std::shared_ptr<ChChassis> chassis,
                                                size_t index,
                                                ChVector2d ps,
                                                ChVector2d pc,

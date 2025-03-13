@@ -43,14 +43,9 @@ ChRotaryArm::~ChRotaryArm() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
-                             const ChVector3d& location,
-                             const ChQuaternion<>& rotation) {
-    ChSteering::Initialize(chassis, location, rotation);
-
-    m_parent = chassis;
-    m_rel_xform = ChFrame<>(location, rotation);
-
+void ChRotaryArm::Construct(std::shared_ptr<ChChassis> chassis,
+                            const ChVector3d& location,
+                            const ChQuaternion<>& rotation) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -85,6 +80,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the Pitman arm body
     m_link = chrono_types::make_shared<ChBody>();
     m_link->SetName(m_name + "_arm");
+    m_link->SetTag(m_obj_tag);
     m_link->SetPos(0.5 * (points[ARM_L] + points[ARM_C]));
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getPitmanArmMass());
@@ -115,6 +111,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_revolute = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_revolute->SetName(m_name + "_revolute");
+    m_revolute->SetTag(m_obj_tag);
     m_revolute->Initialize(chassisBody, m_link, ChFrame<>(points[ARM_C], rot.GetQuaternion()));
     auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
     m_revolute->SetAngleFunction(motor_fun);

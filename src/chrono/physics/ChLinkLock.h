@@ -364,7 +364,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     ChCoordsysd deltaC_dtdt;  ///< user-imposed rel. acceleration
 
     /// Update time-dependent quantities in link state.
-    virtual void UpdateTime(double time);
+    virtual void UpdateTime(double time) override;
 
     /// Given current time and body state, computes the constraint differentiation to get the
     /// the state matrices Cq1,  Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.

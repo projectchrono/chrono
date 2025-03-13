@@ -24,6 +24,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -35,19 +36,15 @@ namespace vehicle {
 
 ChRigidChassis::ChRigidChassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {}
 
-void ChRigidChassis::Initialize(ChSystem* system,
-                                const ChCoordsys<>& chassisPos,
-                                double chassisFwdVel,
-                                int collision_family) {
-    // Invoke the base class method to construct the frame body.
-    ChChassis::Initialize(system, chassisPos, chassisFwdVel);
-
-    // If collision shapes were defined, create the contact geometry and enable contact
-    // for the chassis's rigid body.
-    // NOTE: setting the collision family is deferred to the containing vehicle system
-    // (which can also disable contact between the chassis and certain vehicle subsystems).
+void ChRigidChassis::Construct(ChVehicle* vehicle,
+                               const ChCoordsys<>& chassisPos,
+                               double chassisFwdVel,
+                               int collision_family) {
+    // If collision shapes were defined, create the contact geometry and enable contact for the chassis's rigid body.
+    // NOTE: setting the collision family is deferred to the containing vehicle system (which can also disable contact
+    // between the chassis and certain vehicle subsystems).
     if (m_geometry.HasCollision()) {
-        m_geometry.CreateCollisionShapes(m_body, collision_family, system->GetContactMethod());
+        m_geometry.CreateCollisionShapes(m_body, collision_family, vehicle->GetSystem()->GetContactMethod());
     }
 }
 
@@ -87,14 +84,10 @@ void ChRigidChassis::Output(ChVehicleOutput& database) const {
 
 ChRigidChassisRear::ChRigidChassisRear(const std::string& name) : ChChassisRear(name) {}
 
-void ChRigidChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision_family) {
-    // Invoke the base class method to construct the frame body.
-    ChChassisRear::Initialize(chassis, collision_family);
-
-    // If collision shapes were defined, create the contact geometry and enable contact
-    // for the chassis's rigid body.
-    // NOTE: setting the collision family is deferred to the containing vehicle system
-    // (which can also disable contact between the chassis and certain vehicle subsystems).
+void ChRigidChassisRear::Construct(std::shared_ptr<ChChassis> chassis, int collision_family) {
+    // If collision shapes were defined, create the contact geometry and enable contact for the chassis's rigid body.
+    // NOTE: setting the collision family is deferred to the containing vehicle system (which can also disable contact
+    // between the chassis and certain vehicle subsystems).
     if (m_geometry.HasCollision()) {
         m_geometry.CreateCollisionShapes(m_body, collision_family, m_body->GetSystem()->GetContactMethod());
     }

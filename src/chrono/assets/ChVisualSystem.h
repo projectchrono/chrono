@@ -147,6 +147,12 @@ class ChApi ChVisualSystem {
     /// Perform any necessary operations ar the end of each rendering frame.
     virtual void EndScene() = 0;
 
+    /// Get the list of associated Chrono systems.
+    std::vector<ChSystem*> GetSystems() const { return m_systems; }
+
+    /// Get the specified associated Chrono system.
+    ChSystem& GetSystem(int i) const { return *m_systems[i]; }
+
     /// Return the simulation real-time factor (simulation time / simulated time).
     /// The default value returned by this base class is the RTF value from the first associated system (if any).
     /// See ChSystem::GetRTF
@@ -155,6 +161,29 @@ class ChApi ChVisualSystem {
     /// Return the current simulated time.
     /// The default value returned by this base class is the time from the first associated system (if any).
     virtual double GetSimulationTime() const;
+
+    /// Get the number of bodies  (across all visualized systems).
+    /// The reported number represents only active bodies, excluding sleeping or fixed.
+    unsigned int GetNumBodies() const;
+
+    /// Get the number of links  (across all visualized systems).
+    /// The reported number represents only active bodies, excluding sleeping or fixed.
+    unsigned int GetNumLinks() const;
+
+    /// Get the number of meshes  (across all visualized systems).
+    unsigned int GetNumMeshes() const;
+
+    /// Get the number of shafts  (across all visualized systems).
+    unsigned int GetNumShafts() const;
+
+    /// Get the number of coordinates at the velocity level (across all visualized systems).
+    unsigned int GetNumStates() const;
+
+    /// Get the number of scalar constraints  (across all visualized systems).
+    unsigned int GetNumConstraints() const;
+
+    /// Gets the number of contacts.
+    unsigned int GetNumContacts() const;
 
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
@@ -165,12 +194,6 @@ class ChApi ChVisualSystem {
 
     /// Enable/disable writing of frame snapshots to file.
     void SetImageOutput(bool val) { m_write_images = val; }
-
-    /// Get the list of associated Chrono systems.
-    std::vector<ChSystem*> GetSystems() const { return m_systems; }
-
-    /// Get the specified associated Chrono system.
-    ChSystem& GetSystem(int i) const { return *m_systems[i]; }
 
   protected:
     ChVisualSystem();

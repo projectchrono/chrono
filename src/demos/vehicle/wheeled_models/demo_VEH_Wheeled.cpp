@@ -310,7 +310,6 @@ int main(int argc, char* argv[]) {
     std::cout << "\n============ Vehicle subsystems ============" << std::endl;
     vehicle.LogSubsystemTypes();
 
-    // Simulation loop
     vehicle.EnableRealtime(true);
 
     int sim_frame = 0;

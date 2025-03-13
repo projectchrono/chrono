@@ -428,13 +428,13 @@ FEDA_DoubleWishboneRear::~FEDA_DoubleWishboneRear() {
      */
 }
 
-void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
-                                          std::shared_ptr<ChSubchassis> subchassis,
-                                          std::shared_ptr<ChSteering> steering,
-                                          const ChVector3d& location,
-                                          double left_ang_vel,
-                                          double right_ang_vel) {
-    ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+void FEDA_DoubleWishboneFront::Construct(std::shared_ptr<ChChassis> chassis,
+                                         std::shared_ptr<ChSubchassis> subchassis,
+                                         std::shared_ptr<ChSteering> steering,
+                                         const ChVector3d& location,
+                                         double left_ang_vel,
+                                         double right_ang_vel) {
+    ChDoubleWishbone::Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
 
     if (m_damper_mode == 1) {
         m_shockODE = new FEDA_ShockODE;
@@ -443,13 +443,13 @@ void FEDA_DoubleWishboneFront::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 }
 
-void FEDA_DoubleWishboneRear::Initialize(std::shared_ptr<ChChassis> chassis,
-                                         std::shared_ptr<ChSubchassis> subchassis,
-                                         std::shared_ptr<ChSteering> steering,
-                                         const ChVector3d& location,
-                                         double left_ang_vel,
-                                         double right_ang_vel) {
-    ChDoubleWishbone::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
+void FEDA_DoubleWishboneRear::Construct(std::shared_ptr<ChChassis> chassis,
+                                        std::shared_ptr<ChSubchassis> subchassis,
+                                        std::shared_ptr<ChSteering> steering,
+                                        const ChVector3d& location,
+                                        double left_ang_vel,
+                                        double right_ang_vel) {
+    ChDoubleWishbone::Construct(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
     if (m_damper_mode == 1) {
         m_shockODE = new FEDA_ShockODE;
         GetShock(LEFT)->RegisterODE(m_shockODE);

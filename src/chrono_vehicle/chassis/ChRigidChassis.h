@@ -58,12 +58,12 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshFilename() const { return m_geometry.vis_mesh_file; }
 
-    /// Initialize the chassis at the specified global position and orientation.
-    virtual void Initialize(ChSystem* system,                ///< [in] containing system
-                            const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
-                            double chassisFwdVel,            ///< [in] initial chassis forward velocity
-                            int collision_family = 0         ///< [in] chassis collision family
-                            ) override;
+    /// Construct the rigid chassis at the specified global position and orientation.
+    virtual void Construct(ChVehicle* vehicle,              ///< [in] containing vehicle
+                           const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
+                           double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                           int collision_family             ///< [in] chassis collision family
+                           ) override;
 
     /// Enable/disable contact for the chassis.
     /// This function controls contact of the chassis with all other collision shapes in the simulation. Must be called
@@ -110,16 +110,16 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshFilename() const { return m_geometry.vis_mesh_file; }
 
-    /// Enable/disable contact for the chassis. This function controls contact of
-    /// the chassis with all other collision shapes in the simulation.
+    /// Enable/disable contact for the chassis.
+    /// This function controls contact of the chassis with all other collision shapes in the simulation.
     virtual void EnableCollision(bool state) override { m_body->EnableCollision(state); }
 
-    /// Initialize the rear chassis relative to the specified front chassis.
+    /// Construct the rear chassis relative to the specified front chassis.
     /// The orientation is set to be the same as that of the front chassis while the location is based on the connector
     /// position on the front and rear chassis.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
-                            int collision_family = 0             ///< [in] chassis collision family
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] front chassis
+                           int collision_family                 ///< [in] chassis collision family
+                           ) override;
 
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

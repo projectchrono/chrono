@@ -126,7 +126,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
 
     friend class ChChaseCameraEventReceiver;
     friend class ChInteractiveDriverIRR;
-    friend class ChSuspensionTestRigInteractiveDriverIRR;
 };
 
 // @} vehicle_vis

@@ -24,22 +24,22 @@
 namespace chrono {
 namespace vehicle {
 
-ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {
-    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
-}
+ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
 ChBrakeSimple::~ChBrakeSimple() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_brake->GetSystem();
-    if (sys) {
-        sys->Remove(m_brake);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_brake);
 }
 
-void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
-                               std::shared_ptr<ChSuspension> suspension,
-                               VehicleSide side) {
-    ChBrake::Initialize(chassis, suspension, side);
-
+void ChBrakeSimple::Construct(std::shared_ptr<ChChassis> chassis,
+                              std::shared_ptr<ChSuspension> suspension,
+                              VehicleSide side) {
     m_hub = suspension->GetRevolute(side);
 
     // Reuse the same bodies and link coordinate of the hub revolute joint
@@ -53,6 +53,8 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
+    m_brake->SetTag(m_obj_tag);
     m_brake->Initialize(mb1, mb2, true, *m_hub->GetMarker1(), *m_hub->GetMarker2());
     m_hub->GetSystem()->AddLink(m_brake);
 }

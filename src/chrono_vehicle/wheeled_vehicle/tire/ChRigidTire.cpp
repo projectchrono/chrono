@@ -72,7 +72,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_PI_2)));
     }
 
-    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
+    wheel_body->GetCollisionModel()->SetFamily(VehicleCollisionFamily::TIRE_FAMILY);
 }
 
 void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {

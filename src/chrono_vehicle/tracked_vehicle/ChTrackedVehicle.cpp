@@ -26,6 +26,9 @@
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
+using std::cout;
+using std::endl;
+
 namespace chrono {
 namespace vehicle {
 
@@ -52,9 +55,9 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
     auto chassis_ct_model = m_chassis->GetBody()->GetCollisionModel();
     if (chassis_ct_model) {
         // Disable contacts between chassis with all other tracked vehicle subsystems, except the track shoes.
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::IDLERS);
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::WHEELS);
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::ROLLERS);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::IDLER_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::ROLLER_FAMILY);
     }
     ChVehicle::Initialize(chassisPos, chassisFwdVel);
 }
@@ -305,14 +308,14 @@ void ChTrackedVehicle::EnableCollision(int flags) {
 void ChTrackedVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with track shoes
-        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(TrackedCollisionFamily::SHOES);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
         for (auto& c : m_chassis_rear)
-            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(TrackedCollisionFamily::SHOES);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
     } else {
         // Chassis does not collide with track shoes
-        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
         for (auto& c : m_chassis_rear)
-            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::SHOE_FAMILY);
     }
 }
 
@@ -384,8 +387,7 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
 }
 
 // -----------------------------------------------------------------------------
-// Log constraint violations
-// -----------------------------------------------------------------------------
+
 void ChTrackedVehicle::LogConstraintViolations() {
     // Report constraint violations for the track assemblies.
     std::cout << "\n---- LEFT TRACK ASSEMBLY constraint violations\n\n";
@@ -393,6 +395,90 @@ void ChTrackedVehicle::LogConstraintViolations() {
     std::cout << "\n---- RIGHT TRACK ASSEMBLY constraint violations\n\n";
     m_tracks[1]->LogConstraintViolations();
 }
+
+void ChTrackedVehicle::LogSubsystemTypes() {
+    cout << "\nSubsystem types\n";
+
+    {
+        cout << "Chassis:        " << m_chassis->GetTemplateName() << "\n";
+
+        int body_tag = m_chassis->GetBodyTag();
+        auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+        auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+        cout << "         vehicle tag: " << m_chassis->GetVehicleTag();
+        cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+    }
+
+    if (m_powertrain_assembly) {
+        cout << "Powertrain:\n";
+        cout << "  Engine:       " << GetEngine()->GetTemplateName() << "\n";
+        cout << "  Transmission: " << GetTransmission()->GetTemplateName() << "\n";
+    }
+
+    if (m_driveline)
+        cout << "Driveline:      " << m_driveline->GetTemplateName() << "\n";
+
+    for (int i = 0; i < 2; i++) {
+        cout << "Track " << i << "\n";
+
+        {
+            auto sprocket = m_tracks[i]->GetSprocket();
+            cout << "  Sprocket:   " << sprocket->GetTemplateName() << "\n";
+
+            int body_tag = sprocket->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << sprocket->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+
+        {
+            auto idler = m_tracks[i]->GetIdler();
+            cout << "  Idler:   " << idler->GetTemplateName() << "\n";
+
+            int body_tag = idler->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << idler->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+
+        {
+            auto suspension = m_tracks[i]->GetTrackSuspension(0);
+            cout << "  Suspension:   " << suspension->GetTemplateName() << "\n";
+
+            int body_tag = suspension->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << suspension->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+
+        {
+            auto road_wheel = m_tracks[i]->GetRoadWheel(0);
+            cout << "  Road-wheel:   " << road_wheel->GetTemplateName() << "\n";
+
+            int body_tag = road_wheel->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << road_wheel->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+
+        if (m_tracks[i]->GetNumRollers() > 0) {
+            auto roller = m_tracks[i]->GetRoller(0);
+            cout << "  Roller:   " << roller->GetTemplateName() << "\n";
+
+            int body_tag = roller->GetBodyTag();
+            auto vehicle_tag = VehicleObjTag::ExtractVehicleTag(body_tag);
+            auto part_tag = VehicleObjTag::ExtractPartTag(body_tag);
+            cout << "         vehicle tag: " << roller->GetVehicleTag();
+            cout << "         body tag:    " << body_tag << " [ " << vehicle_tag << " + " << part_tag << " ]" << endl;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
 
 std::string ChTrackedVehicle::ExportComponentList() const {
     rapidjson::Document jsonDocument;
