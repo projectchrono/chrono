@@ -73,7 +73,7 @@ target_compile_definitions(Chrono_wood PRIVATE "CH_IGNORE_DEPRECATED")
 
 # Link required libraries
 TARGET_LINK_LIBRARIES(Chrono_wood
-  Chrono_core
+  Chrono_core 
 )
 
 # Handle Windows DLL copying
