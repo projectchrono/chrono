@@ -4,7 +4,7 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-message(STATUS "Add SPH-based Chrono::FSI submodule")
+message(STATUS "SPH-based Chrono::FSI submodule")
 
 # Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
@@ -20,24 +20,11 @@ if(NOT CHRONO_CUDA_FOUND)
     return()
 endif()
 
-message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
 message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library
 #-----------------------------------------------------------------------------
-
-set(FSI_FILES
-    ../ChApiFsi.h
-    ../ChFsiDefinitions.h
-    ../ChFsiSystem.h
-    ../ChFsiSystem.cpp
-    ../ChFluidSystem.h
-    ../ChFluidSystem.cpp
-    ../ChFsiInterface.h
-    ../ChFsiInterface.cpp
-)
-source_group("" FILES ${FSI_FILES})
 
 # --------------- SPH FSI FILES
 
@@ -52,7 +39,7 @@ set(FSISPH_BASE_FILES
     ChFsiProblemSPH.h
     ChFsiProblemSPH.cpp
 )
-source_group(base FILES ${FSISPH_BASE_FILES})
+source_group("" FILES ${FSISPH_BASE_FILES})
 
 set(FSISPH_PHYSICS_FILES
     physics/ChParams.h
@@ -75,7 +62,7 @@ set(FSISPH_PHYSICS_FILES
     physics/ChFsiForceI2SPH.cu
     physics/ChSphGeneral.cu
 )
-source_group(physics FILES ${FSISPH_PHYSICS_FILES})
+source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
 set(FSISPH_MATH_FILES
     math/CustomMath.h
@@ -86,7 +73,7 @@ set(FSISPH_MATH_FILES
     #math/ChFsiLinearSolverBiCGStab.cpp
     #math/ChFsiLinearSolverGMRES.cpp
 )
-source_group(math FILES ${FSISPH_MATH_FILES})
+source_group("math" FILES ${FSISPH_MATH_FILES})
 
 set(FSISPH_UTILS_FILES
     utils/ChUtilsPrintStruct.h
@@ -96,17 +83,16 @@ set(FSISPH_UTILS_FILES
 
     utils/ChUtilsPrintSph.cu
     utils/ChUtilsDevice.cu
-    ../utils/ChBenchmark.h
 )
-source_group(utils FILES ${FSISPH_UTILS_FILES})
+source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
 set(FSISPH_VIS_FILES
     visualization/ChFsiVisualization.h
     visualization/ChFsiVisualization.cpp
 )
-source_group(visualization FILES ${FSISPH_VIS_FILES})
+source_group("visualization" FILES ${FSISPH_VIS_FILES})
 
-# --------------- THIRD-PARTY FILES
+# --------------- 3rd party STB FILES
 
 set(FSISPH_STB_FILES
     ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
@@ -115,7 +101,7 @@ set(FSISPH_STB_FILES
     ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
     ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
 )
-source_group("utils\\stb" FILES ${FSISPH_STB_FILES})
+source_group("stb" FILES ${FSISPH_STB_FILES})
 
 # --------------- SPH FSI OpenGL INTERFACE
 
@@ -159,10 +145,9 @@ set(DEPENDENCIES_FSI ${DEPENDENCIES_FSI} PARENT_SCOPE)
 # Create the Chrono_fsisph library
 #-----------------------------------------------------------------------------
 
-message(STATUS "Add Chrono_fsisph library")
+message(STATUS "  Add Chrono_fsisph library")
 
 add_library(Chrono_fsisph
-    ${FSI_FILES}
     ${FSISPH_BASE_FILES}
     ${FSISPH_PHYSICS_FILES}
     ${FSISPH_MATH_FILES}
@@ -183,6 +168,7 @@ if(MSVC)
 endif()
 
 target_link_libraries(Chrono_fsisph PRIVATE Chrono_core)
+target_link_libraries(Chrono_fsisph PUBLIC Chrono_fsi)
 
 target_link_libraries(Chrono_fsisph PUBLIC CUDA::cudart_static)
 target_link_libraries(Chrono_fsisph PUBLIC CUDA::nvrtc)
@@ -210,7 +196,7 @@ install(TARGETS Chrono_fsisph
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_VSG)
-    message(STATUS "Add Chrono_fsisph_vsg library")
+    message(STATUS "  Add Chrono_fsisph_vsg library")
 
     add_library(Chrono_fsisph_vsg
         ${FSISPH_VSG_FILES}
@@ -256,7 +242,7 @@ endif()
 #-------------------------------------------------------------------------------
 
 if(CH_ENABLE_MODULE_OPENGL)
-    message(STATUS "Add Chrono_fsisph_opengl library")
+    message(STATUS "  Add Chrono_fsisph_opengl library")
 
     add_library(Chrono_fsisph_opengl
         ${FSISPH_GL_FILES}
@@ -301,13 +287,3 @@ if(CH_ENABLE_MODULE_OPENGL)
             INCLUDES DESTINATION include/chrono_fsi) # TODO DARIOM: verify if correct folder
 
 endif()
-
-#-------------------------------------------------------------------------------
-# Install files
-#-------------------------------------------------------------------------------
-
-
-# Install 3rd party headers       
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
