@@ -38,9 +38,6 @@
 
 namespace chrono {
 namespace fsi {
-
-class ChFluidSystemSPH;
-
 namespace sph {
 
 /// @addtogroup fsi_physics
@@ -209,8 +206,7 @@ struct Counters {
 // -----------------------------------------------------------------------------
 
 /// Data manager for the SPH-based FSI system.
-class FsiDataManager {
-  public:
+struct FsiDataManager {
     FsiDataManager(std::shared_ptr<SimParams> params);
     virtual ~FsiDataManager();
 
@@ -360,7 +356,6 @@ class FsiDataManager {
     thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
     thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
 
-  private:
     void ConstructReferenceArray();
     void SetCounters(unsigned int num_fsi_bodies,
                      unsigned int num_fsi_nodes1D,
@@ -374,8 +369,6 @@ class FsiDataManager {
     /// Reset device data at beginning of a step.
     /// Initializes device vectors to zero.
     void ResetData();
-
-    friend class chrono::fsi::ChFluidSystemSPH;
 };
 
 /// @} fsi_physics

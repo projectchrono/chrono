@@ -25,6 +25,7 @@
 #include <device_launch_parameters.h>
 
 #include "chrono_fsi/sph/physics/ChParams.h"
+#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {

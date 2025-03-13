@@ -45,6 +45,7 @@
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 using namespace chrono::vehicle;
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,

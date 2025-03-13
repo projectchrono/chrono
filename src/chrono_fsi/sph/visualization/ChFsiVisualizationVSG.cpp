@@ -20,8 +20,7 @@
 
 namespace chrono {
 namespace fsi {
-
-using namespace sph;
+namespace sph {
 
 // -----------------------------------------------------------------------------
 
@@ -383,5 +382,6 @@ bool ChFsiVisualizationVSG::Render() {
     return true;
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

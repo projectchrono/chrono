@@ -20,7 +20,6 @@
 #include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_OPENGL
@@ -34,6 +33,7 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;

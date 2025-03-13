@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_fsi/utils/ChBenchmark.h"
+#include "chrono_fsi/ChBenchmark.h"
 
 // #include <cassert>
 // #include <cstdlib>
@@ -30,7 +30,6 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 #ifdef CHRONO_VSG
@@ -41,6 +40,7 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 // =============================================================================
 template <unsigned int num_boxes>

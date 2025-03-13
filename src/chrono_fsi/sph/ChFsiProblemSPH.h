@@ -32,6 +32,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_physics
 /// @{
@@ -483,6 +484,7 @@ class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemCartesian::WaveTank
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
 

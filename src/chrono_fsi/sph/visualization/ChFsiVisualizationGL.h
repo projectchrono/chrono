@@ -20,6 +20,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_visualization
 /// @{
@@ -86,5 +87,6 @@ class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualization {
 
 /// @} fsi_visualization
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

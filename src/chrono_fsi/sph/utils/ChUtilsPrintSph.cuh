@@ -37,8 +37,8 @@ namespace sph {
 /// Create separate files to write fluid, boundary BCE, rigid BCE, and flex BCE marker information.
 /// The amount of data saved for each marker is controlled by the specified OutputLevel (e.g., for level CFD_FULL, the
 /// output includes shear rate).
-void SaveParticleDataCFD(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
-void SaveParticleDataCFD(const std::string& dir,
+void saveParticleDataCFD(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
+void saveParticleDataCFD(const std::string& dir,
                          OutputLevel level,
                          const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
@@ -52,8 +52,8 @@ void SaveParticleDataCFD(const std::string& dir,
 /// Create separate files to write fluid, boundary BCE, rigid BCE, and flex BCE marker information.
 /// The amount of data saved for each marker is controlled by the specified OutputLevel (e.g., for level CRM_FULL, the
 /// output includes stress).
-void SaveParticleDataCRM(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
-void SaveParticleDataCRM(const std::string& dir,
+void saveParticleDataCRM(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
+void saveParticleDataCRM(const std::string& dir,
                          OutputLevel level,
                          const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
@@ -66,8 +66,8 @@ void SaveParticleDataCRM(const std::string& dir,
 
 /// Save current FSI solid data.
 /// Append states and fluid forces at current time for all solids in the FSI problem.
-void SaveSolidData(const std::string& dir, double time, FsiDataManager& data_mgr);
-void SaveSolidData(const std::string& dir,
+void saveSolidData(const std::string& dir, double time, FsiDataManager& data_mgr);
+void saveSolidData(const std::string& dir,
                    double time,
                    const thrust::device_vector<Real3>& posRigidD,
                    const thrust::device_vector<Real4>& rotRigidD,
@@ -83,8 +83,8 @@ void SaveSolidData(const std::string& dir,
 
 /// Save current particle data to a CSV file.
 /// Write particle positions, velocities, rho, pressure, and mu.
-void WriteParticleFileCSV(const std::string& filename, FsiDataManager& data_mgr);
-void WriteParticleFileCSV(const std::string& filename,
+void writeParticleFileCSV(const std::string& filename, FsiDataManager& data_mgr);
+void writeParticleFileCSV(const std::string& filename,
                           thrust::device_vector<Real4>& posRadD,
                           thrust::device_vector<Real3>& velMasD,
                           thrust::device_vector<Real4>& rhoPresMuD,

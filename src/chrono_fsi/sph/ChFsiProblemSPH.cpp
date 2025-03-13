@@ -37,6 +37,7 @@ using std::endl;
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 // ----------------------------------------------------------------------------
 
@@ -1294,5 +1295,6 @@ ChVector3d ChFsiProblemCylindrical::Grid2Point(const ChVector3i& p) {
     return ChVector3d(x, y, z);
 }
 
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

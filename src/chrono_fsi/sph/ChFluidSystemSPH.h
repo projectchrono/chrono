@@ -22,17 +22,17 @@
 #include "chrono_fsi/ChFluidSystem.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/BceManager.cuh"
-#include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/math/CustomMath.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
-// For friend class declaration
 class ChFsiInterfaceSPH;
+class ChFluidDynamics;
+class BceManager;
+struct FsiDataManager;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -273,7 +273,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     int GetNumProximitySearchSteps() const;
 
     /// Return the current system parameters (debugging only).
-    const sph::SimParams& GetParams() const { return *m_paramsH; }
+    const SimParams& GetParams() const { return *m_paramsH; }
 
     /// Get the current number of fluid SPH particles.
     size_t GetNumFluidMarkers() const;
@@ -448,32 +448,32 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     std::vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
 
     /// Extract positions of all markers (SPH and BCE).
-    std::vector<sph::Real3> GetPositions() const;
+    std::vector<Real3> GetPositions() const;
 
     /// Extract velocities of all markers (SPH and BCE).
-    std::vector<sph::Real3> GetVelocities() const;
+    std::vector<Real3> GetVelocities() const;
 
     /// Extract accelerations of all markers (SPH and BCE).
-    std::vector<sph::Real3> GetAccelerations() const;
+    std::vector<Real3> GetAccelerations() const;
 
     /// Extract forces applied to all markers (SPH and BCE).
-    std::vector<sph::Real3> GetForces() const;
+    std::vector<Real3> GetForces() const;
 
     /// Extract fluid properties of all markers (SPH and BCE).
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    std::vector<sph::Real3> GetProperties() const;
+    std::vector<Real3> GetProperties() const;
 
     /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<sph::Real3> GetPositions(const std::vector<int>& indices) const;
+    std::vector<Real3> GetPositions(const std::vector<int>& indices) const;
 
     /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<sph::Real3> GetVelocities(const std::vector<int>& indices) const;
+    std::vector<Real3> GetVelocities(const std::vector<int>& indices) const;
 
     /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<sph::Real3> GetAccelerations(const std::vector<int>& indices) const;
+    std::vector<Real3> GetAccelerations(const std::vector<int>& indices) const;
 
     /// Extract forces applied to allmarkers (SPH and BCE) with indices in the provided array.
-    std::vector<sph::Real3> GetForces(const std::vector<int>& indices) const;
+    std::vector<Real3> GetForces(const std::vector<int>& indices) const;
 
     // ----------- Utility functions for creating BCE marker points in various volumes
 
@@ -587,11 +587,11 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Additional actions taken after loading new solid phase states.
     virtual void OnExchangeSolidStates() override;
 
-    std::shared_ptr<sph::SimParams> m_paramsH;  ///< simulation parameters
+    std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
 
-    std::unique_ptr<sph::FsiDataManager> m_data_mgr;         ///< FSI data manager
-    std::unique_ptr<sph::ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::unique_ptr<sph::BceManager> m_bce_mgr;              ///< BCE manager
+    std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
+    std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<BceManager> m_bce_mgr;              ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)
@@ -616,6 +616,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

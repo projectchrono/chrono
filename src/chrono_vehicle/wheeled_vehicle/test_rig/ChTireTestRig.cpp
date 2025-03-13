@@ -31,6 +31,7 @@
 #ifdef CHRONO_FSI
     #include "chrono_vehicle/terrain/CRMTerrain.h"
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 #endif
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"

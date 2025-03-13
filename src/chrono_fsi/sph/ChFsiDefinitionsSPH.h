@@ -21,6 +21,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_physics
 /// @{
@@ -144,6 +145,7 @@ enum class OutputLevel {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
 

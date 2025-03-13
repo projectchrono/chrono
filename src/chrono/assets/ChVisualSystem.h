@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/assets/ChVisualModel.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 

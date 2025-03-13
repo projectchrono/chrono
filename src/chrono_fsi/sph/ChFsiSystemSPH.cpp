@@ -23,8 +23,7 @@
 
 namespace chrono {
 namespace fsi {
-
-using namespace sph;
+namespace sph {
 
 ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH) {
@@ -43,5 +42,6 @@ ChFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return m_sysSPH;
 }
 
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

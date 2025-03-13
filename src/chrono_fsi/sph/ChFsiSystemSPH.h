@@ -25,6 +25,7 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_physics
 /// @{
@@ -49,6 +50,7 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

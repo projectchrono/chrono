@@ -20,8 +20,7 @@
 
 namespace chrono {
 namespace fsi {
-
-using namespace sph;
+namespace sph {
 
 // -----------------------------------------------------------------------------
 
@@ -59,8 +58,7 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI)
-    : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
@@ -72,7 +70,8 @@ ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI)
     m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
 }
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChFluidSystemSPH* sysSPH) : ChFsiVisualization(sysSPH), m_bce_start_index(0) {
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChFluidSystemSPH* sysSPH)
+    : ChFsiVisualization(sysSPH), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
@@ -204,7 +203,7 @@ bool ChFsiVisualizationGL::Render() {
         m_sysMBS->SetRTF(m_sysFSI->GetRtf());
     } else {
         m_sysMBS->SetChTime(m_sysSPH->GetSimTime());
-        m_sysMBS->SetRTF(m_sysSPH->GetRtf());    
+        m_sysMBS->SetRTF(m_sysSPH->GetRtf());
     }
 
     if (m_vsys->Run()) {
@@ -251,5 +250,6 @@ bool ChFsiVisualizationGL::Render() {
     return false;  // rendering stopped
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

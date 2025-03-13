@@ -45,6 +45,8 @@ using std::cout;
 using std::endl;
 
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
+
 using namespace rapidjson;
 
 namespace chrono {

@@ -20,10 +20,11 @@
 // =============================================================================
 
 #include <type_traits>
+#include <fstream>
 
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
-#include <fstream>
+
 namespace chrono {
 namespace fsi {
 namespace sph {

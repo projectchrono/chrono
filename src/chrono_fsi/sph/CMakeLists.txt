@@ -79,7 +79,7 @@ set(FSISPH_UTILS_FILES
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
     utils/ChUtilsDevice.cuh
-    utils/ChUtilsTypeConvert.h
+    utils/ChUtilsTypeConvert.cuh
 
     utils/ChUtilsPrintSph.cu
     utils/ChUtilsDevice.cu

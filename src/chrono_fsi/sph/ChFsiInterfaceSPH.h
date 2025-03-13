@@ -22,10 +22,12 @@
 #include "chrono_fsi/ChFsiInterface.h"
 
 #include "chrono_fsi/sph/ChFluidSystemSPH.h"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
+
+struct FsiDataManager;
 
 /// @addtogroup fsi_physics
 /// @{
@@ -49,11 +51,12 @@ class ChFsiInterfaceSPH : public ChFsiInterface {
     virtual void ExchangeSolidForces() override;
 
   private:
-    sph::FsiDataManager& m_data_mgr;  ///< FSI data manager
+    FsiDataManager* m_data_mgr;  ///< FSI data manager
 };
 
 /// @} fsi_physics
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

@@ -35,7 +35,7 @@ namespace vehicle {
 /// @{
 
 /// Continuum representation (CRM) deformable terrain model using SPH.
-class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::ChFsiProblemCartesian {
+class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProblemCartesian {
   public:
     /// Create a CRM terrain object.
     CRMTerrain(ChSystem& sys, double spacing);

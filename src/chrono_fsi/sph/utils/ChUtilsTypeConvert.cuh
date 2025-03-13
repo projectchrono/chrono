@@ -22,6 +22,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChVector2.h"
 
+#include "chrono_fsi/sph/math/CustomMath.h"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
 namespace chrono {

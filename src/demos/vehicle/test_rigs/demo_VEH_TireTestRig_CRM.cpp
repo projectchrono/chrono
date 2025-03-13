@@ -50,6 +50,7 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;

@@ -53,6 +53,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;

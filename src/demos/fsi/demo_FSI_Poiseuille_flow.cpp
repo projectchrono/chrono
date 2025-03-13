@@ -36,6 +36,7 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 // -----------------------------------------------------------------
 

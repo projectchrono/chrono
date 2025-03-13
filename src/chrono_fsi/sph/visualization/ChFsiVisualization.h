@@ -24,10 +24,10 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 /// @addtogroup fsi_visualization
 /// @{
@@ -96,9 +96,9 @@ class CH_FSI_API ChFsiVisualization {
       public:
         virtual ChColor get(unsigned int n) const = 0;
 
-        sph::Real3* pos;
-        sph::Real3* vel;
-        sph::Real3* prop;
+        Real3* pos;
+        Real3* vel;
+        Real3* prop;
 
       private:
         virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
@@ -113,7 +113,7 @@ class CH_FSI_API ChFsiVisualization {
       public:
         virtual bool get(unsigned int n) const = 0;
 
-        sph::Real3* pos;
+        Real3* pos;
 
       private:
         virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
@@ -215,29 +215,20 @@ class CH_FSI_API ChFsiVisualization {
 /// Predefined SPH coloring based on particle height.
 class CH_FSI_API ParticleHeightColorCallback : public ChFsiVisualization::ParticleColorCallback {
   public:
-    ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1))
-        : m_monochrome(false), m_hmin(hmin), m_hmax(hmax), m_up(sph::ToReal3(up)) {}
+    ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1));
     ParticleHeightColorCallback(const ChColor& base_color,
                                 double hmin,
                                 double hmax,
-                                const ChVector3d& up = ChVector3d(0, 0, 1))
-        : m_monochrome(true), m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(sph::ToReal3(up)) {}
+                                const ChVector3d& up = ChVector3d(0, 0, 1));
 
-    virtual ChColor get(unsigned int n) const override {
-        double h = dot(pos[n], m_up);  // particle height
-        if (m_monochrome) {
-            float factor = (float)((h - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-        } else
-            return ChColor::ComputeFalseColor(h, m_hmin, m_hmax);
-    }
+    virtual ChColor get(unsigned int n) const override;
 
   private:
     bool m_monochrome;
     ChColor m_base_color;
     double m_hmin;
     double m_hmax;
-    sph::Real3 m_up;
+    Real3 m_up;
 };
 
 /// Predefined SPH coloring based on particle velocity.
@@ -245,37 +236,13 @@ class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualization::Part
   public:
     enum class Component { X, Y, Z, NORM };
 
-    ParticleVelocityColorCallback(double vmin, double vmax, Component component = Component::NORM)
-        : m_monochrome(false), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
+    ParticleVelocityColorCallback(double vmin, double vmax, Component component = Component::NORM);
     ParticleVelocityColorCallback(const ChColor& base_color,
                                   double vmin,
                                   double vmax,
-                                  Component component = Component::NORM)
-        : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
+                                  Component component = Component::NORM);
 
-    virtual ChColor get(unsigned int n) const override {
-        double v = 0;
-        switch (m_component) {
-            case Component::NORM:
-                v = length(vel[n]);
-                break;
-            case Component::X:
-                v = std::abs(vel[n].x);
-                break;
-            case Component::Y:
-                v = std::abs(vel[n].y);
-                break;
-            case Component::Z:
-                v = std::abs(vel[n].z);
-                break;
-        }
-
-        if (m_monochrome) {
-            float factor = (float)((v - m_vmin) / (m_vmax - m_vmin));  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-        } else
-            return ChColor::ComputeFalseColor(v, m_vmin, m_vmax);
-    }
+    virtual ChColor get(unsigned int n) const override;
 
   private:
     Component m_component;
@@ -288,22 +255,10 @@ class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualization::Part
 /// Predefined SPH coloring based on particle density.
 class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualization::ParticleColorCallback {
   public:
-    ParticleDensityColorCallback(double dmin, double dmax)
-        : m_monochrome(false), m_dmin(dmin), m_dmax(dmax) {}
-    ParticleDensityColorCallback(const ChColor& base_color,
-                                  double dmin,
-                                  double dmax)
-        : m_monochrome(true), m_base_color(base_color), m_dmin(dmin), m_dmax(dmax) {}
+    ParticleDensityColorCallback(double dmin, double dmax);
+    ParticleDensityColorCallback(const ChColor& base_color, double dmin, double dmax);
 
-    virtual ChColor get(unsigned int n) const override {
-        double d = prop[n].x;
-
-        if (m_monochrome) {
-            float factor = (float)((d - m_dmin) / (m_dmax - m_dmin));  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-        } else
-            return ChColor::ComputeFalseColor(d, m_dmin, m_dmax);
-    }
+    virtual ChColor get(unsigned int n) const override;
 
   private:
     bool m_monochrome;
@@ -315,40 +270,14 @@ class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualization::Parti
 /// Predefined SPH coloring based on particle pressure.
 class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualization::ParticleColorCallback {
   public:
-    ParticlePressureColorCallback(double pmin, double pmax)
-        : m_monochrome(false), m_bichrome(false), m_pmin(pmin), m_pmax(pmax) {}
-    ParticlePressureColorCallback(const ChColor& base_color, double pmin, double pmax)
-        : m_monochrome(true), m_bichrome(false), m_base_color(base_color), m_pmin(pmin), m_pmax(pmax) {}
+    ParticlePressureColorCallback(double pmin, double pmax);
+    ParticlePressureColorCallback(const ChColor& base_color, double pmin, double pmax);
     ParticlePressureColorCallback(const ChColor& base_color_neg,
                                   const ChColor& base_color_pos,
                                   double pmin,
-                                  double pmax)
-        : m_monochrome(false),
-          m_bichrome(true),
-          m_base_color_neg(base_color_neg),
-          m_base_color_pos(base_color_pos),
-          m_pmin(pmin),
-          m_pmax(pmax) {
-        assert(m_pmin < 0);
-    }
+                                  double pmax);
 
-    virtual ChColor get(unsigned int n) const override {
-        double p = prop[n].y;
-
-        if (m_monochrome) {
-            float factor = (float)((p - m_pmin) / (m_pmax - m_pmin));  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-        } else if (m_bichrome) {
-            if (p < 0) {
-                float factor = (float)(p / m_pmin);  // color scaling factor (0,1)
-                return ChColor(factor * m_base_color_neg.R, factor * m_base_color_neg.G, factor * m_base_color_neg.B);
-            } else {
-                float factor = (float)(+p / m_pmax);  // color scaling factor (0,1)
-                return ChColor(factor * m_base_color_pos.R, factor * m_base_color_pos.G, factor * m_base_color_pos.B);
-            }
-        } else
-            return ChColor::ComputeFalseColor(p, m_pmin, m_pmax);
-    }
+    virtual ChColor get(unsigned int n) const override;
 
   private:
     bool m_monochrome;
@@ -362,5 +291,6 @@ class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualization::Part
 
 /// @} fsi_visualization
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

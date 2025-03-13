@@ -29,9 +29,12 @@
 
 #include "chrono_fsi/sph/ChFluidSystemSPH.h"
 
-#include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.h"
+#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
+#include "chrono_fsi/sph/physics/BceManager.cuh"
+
+#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
@@ -49,8 +52,7 @@ using std::endl;
 
 namespace chrono {
 namespace fsi {
-
-using namespace sph;
+namespace sph {
 
 ChFluidSystemSPH::ChFluidSystemSPH()
     : ChFluidSystem(),
@@ -1374,23 +1376,24 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
         ////Real dt_body = 0.1 * sqrt(m_paramsH->h / length(m_paramsH->bodyForce3 + m_paramsH->gravity));
         ////Real dt = std::min(dt_body, std::min(dt_CFL, dt_nu));
 
+        const auto& counters = m_data_mgr->countersH;
         cout << "Counters" << endl;
-        cout << "  numFsiBodies:       " << m_data_mgr->countersH->numFsiBodies << endl;
-        cout << "  numFsiElements1D:   " << m_data_mgr->countersH->numFsiElements1D << endl;
-        cout << "  numFsiElements2D:   " << m_data_mgr->countersH->numFsiElements2D << endl;
-        cout << "  numFsiNodes1D:      " << m_data_mgr->countersH->numFsiNodes1D << endl;
-        cout << "  numFsiNodes2D:      " << m_data_mgr->countersH->numFsiNodes2D << endl;
-        cout << "  numGhostMarkers:    " << m_data_mgr->countersH->numGhostMarkers << endl;
-        cout << "  numHelperMarkers:   " << m_data_mgr->countersH->numHelperMarkers << endl;
-        cout << "  numFluidMarkers:    " << m_data_mgr->countersH->numFluidMarkers << endl;
-        cout << "  numBoundaryMarkers: " << m_data_mgr->countersH->numBoundaryMarkers << endl;
-        cout << "  numRigidMarkers:    " << m_data_mgr->countersH->numRigidMarkers << endl;
-        cout << "  numFlexMarkers1D:   " << m_data_mgr->countersH->numFlexMarkers1D << endl;
-        cout << "  numFlexMarkers2D:   " << m_data_mgr->countersH->numFlexMarkers2D << endl;
-        cout << "  numAllMarkers:      " << m_data_mgr->countersH->numAllMarkers << endl;
-        cout << "  startRigidMarkers:  " << m_data_mgr->countersH->startRigidMarkers << endl;
-        cout << "  startFlexMarkers1D: " << m_data_mgr->countersH->startFlexMarkers1D << endl;
-        cout << "  startFlexMarkers2D: " << m_data_mgr->countersH->startFlexMarkers2D << endl;
+        cout << "  numFsiBodies:       " << counters->numFsiBodies << endl;
+        cout << "  numFsiElements1D:   " << counters->numFsiElements1D << endl;
+        cout << "  numFsiElements2D:   " << counters->numFsiElements2D << endl;
+        cout << "  numFsiNodes1D:      " << counters->numFsiNodes1D << endl;
+        cout << "  numFsiNodes2D:      " << counters->numFsiNodes2D << endl;
+        cout << "  numGhostMarkers:    " << counters->numGhostMarkers << endl;
+        cout << "  numHelperMarkers:   " << counters->numHelperMarkers << endl;
+        cout << "  numFluidMarkers:    " << counters->numFluidMarkers << endl;
+        cout << "  numBoundaryMarkers: " << counters->numBoundaryMarkers << endl;
+        cout << "  numRigidMarkers:    " << counters->numRigidMarkers << endl;
+        cout << "  numFlexMarkers1D:   " << counters->numFlexMarkers1D << endl;
+        cout << "  numFlexMarkers2D:   " << counters->numFlexMarkers2D << endl;
+        cout << "  numAllMarkers:      " << counters->numAllMarkers << endl;
+        cout << "  startRigidMarkers:  " << counters->startRigidMarkers << endl;
+        cout << "  startFlexMarkers1D: " << counters->startFlexMarkers1D << endl;
+        cout << "  startFlexMarkers2D: " << counters->startFlexMarkers2D << endl;
 
         cout << "Reference array (size: " << m_data_mgr->referenceArray.size() << ")" << endl;
         for (size_t i = 0; i < m_data_mgr->referenceArray.size(); i++) {
@@ -1466,18 +1469,18 @@ void ChFluidSystemSPH::OnExchangeSolidStates() {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
-    WriteParticleFileCSV(filename, *m_data_mgr);
+    writeParticleFileCSV(filename, *m_data_mgr);
 }
 
 void ChFluidSystemSPH::SaveParticleData(const std::string& dir) const {
     if (m_paramsH->elastic_SPH)
-        sph::SaveParticleDataCRM(dir, m_output_level, *m_data_mgr);
+        saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
     else
-        sph::SaveParticleDataCFD(dir, m_output_level, *m_data_mgr);
+        saveParticleDataCFD(dir, m_output_level, *m_data_mgr);
 }
 
 void ChFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
-    sph::SaveSolidData(dir, time, *m_data_mgr);
+    saveSolidData(dir, time, *m_data_mgr);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2695,7 +2698,7 @@ std::vector<int> ChFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, co
     return m_data_mgr->FindParticlesInBox(hsize, pos, ax, ay, az);
 }
 
-std::vector<sph::Real3> ChFluidSystemSPH::GetPositions() const {
+std::vector<Real3> ChFluidSystemSPH::GetPositions() const {
     return m_data_mgr->GetPositions();
 }
 
@@ -2731,5 +2734,6 @@ std::vector<Real3> ChFluidSystemSPH::GetForces(const std::vector<int>& indices) 
     return m_data_mgr->GetForces(indices);
 }
 
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

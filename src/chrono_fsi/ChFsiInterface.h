@@ -145,7 +145,7 @@ class CH_FSI_API ChFsiInterface {
 // =============================================================================
 
 /// Generic interface between a Chrono multibody system and a fluid system.
-class ChFsiInterfaceGeneric : public ChFsiInterface {
+class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
   public:
     ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFluidSystem& sysCFD);
     ~ChFsiInterfaceGeneric();
