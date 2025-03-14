@@ -22,7 +22,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Inter-particle force calculation for explicit schemes.
@@ -57,7 +57,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
     void CollideWrapper(Real time, bool firstHalfStep);
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

@@ -29,6 +29,7 @@
 #include <thrust/transform.h>
 
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/math/CustomMath.cuh"
 
 namespace chrono {
 namespace fsi {

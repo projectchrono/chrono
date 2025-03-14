@@ -29,18 +29,17 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
 
-#include "chrono_fsi/ChConfigFsi.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 #include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/physics/ChMarkerType.cuh"
-#include "chrono_fsi/sph/math/CustomMath.h"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_physics
 /// @{
 
 /// typedef device iterators for shorthand SPH operation of thrust vectors of Real3
@@ -371,7 +370,7 @@ struct FsiDataManager {
     void ResetData();
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

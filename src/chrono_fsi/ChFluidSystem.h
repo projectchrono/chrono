@@ -29,7 +29,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_base
 /// @{
 
 /// Base class for an FSI-aware fluid solver.
@@ -128,7 +128,7 @@ class CH_FSI_API ChFluidSystem {
     double m_RTF;          ///< real-time factor (simulation time / simulated time)
 };
 
-/// @} fsi_physics
+/// @} fsi_base
 
 }  // end namespace fsi
 }  // end namespace chrono

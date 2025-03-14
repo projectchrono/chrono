@@ -29,7 +29,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Class to represent the fluid/granular dynamics system.
@@ -109,7 +109,7 @@ class ChFluidDynamics {
     void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

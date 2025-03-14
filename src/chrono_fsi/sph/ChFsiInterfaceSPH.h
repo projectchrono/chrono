@@ -29,7 +29,7 @@ namespace sph {
 
 struct FsiDataManager;
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_base
 /// @{
 
 /// Custom FSI interface between a Chrono multibody system and the SPH-based fluid system.
@@ -54,7 +54,7 @@ class ChFsiInterfaceSPH : public ChFsiInterface {
     FsiDataManager* m_data_mgr;  ///< FSI data manager
 };
 
-/// @} fsi_physics
+/// @} fsisph_base
 
 }  // namespace sph
 }  // end namespace fsi

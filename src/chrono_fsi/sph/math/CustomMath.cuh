@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Radu Serban
 // =============================================================================
 //
 // Math utilities for the Chrono::FSI module.
@@ -23,27 +23,14 @@
 #include <cuda_runtime.h>
 #include <cmath>
 
-#include "chrono_fsi/ChConfigFsi.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_math
+/// @addtogroup fsisph_math
 /// @{
-
-/// Define the real type used in FSI (float or double).
-#ifdef CHRONO_FSI_USE_DOUBLE
-typedef double Real;
-#else
-typedef float Real;
-#endif
-
-/// Define the unsigned int type used in FSI.
-typedef unsigned int uint;
-
-/// Define the unsigned short type used in FSI.
-typedef unsigned short ushort;
 
 /// Return the minimum of two single precision numbers.
 inline __host__ __device__ float fminf(float a, float b) {
@@ -1146,22 +1133,6 @@ inline __host__ __device__ float3 cross(float3 a, float3 b) {
 // function definitions for the Real type
 ////////////////////////////////////////////////////////////////////////////////
 
-struct Real2 {
-    Real x;
-    Real y;
-};
-struct Real3 {
-    Real x;
-    Real y;
-    Real z;
-};
-struct Real4 {
-    Real x;
-    Real y;
-    Real z;
-    Real w;
-};
-
 __host__ __device__ inline Real rminr(Real a, Real b) {
     return a < b ? a : b;
 }
@@ -1623,7 +1594,8 @@ __host__ __device__ inline bool IsFinite(Real4 v) {
     return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z) && std::isfinite(v.w);
 #endif
 }
-/// @} fsi_math
+
+/// @} fsisph_math
 
 }  // namespace sph
 }  // end namespace fsi

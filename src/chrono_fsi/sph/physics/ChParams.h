@@ -27,13 +27,13 @@
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Structure with FSI simulation parameters.
@@ -195,7 +195,7 @@ struct SimParams {
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // namespace fsi

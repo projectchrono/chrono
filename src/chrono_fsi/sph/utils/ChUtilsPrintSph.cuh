@@ -30,7 +30,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsisph_utils
 /// @{
 
 /// Save current CFD SPH data to files.
@@ -90,7 +90,7 @@ void writeParticleFileCSV(const std::string& filename,
                           thrust::device_vector<Real4>& rhoPresMuD,
                           thrust::host_vector<int4>& referenceArray);
 
-/// @} fsi_utils
+/// @} fsisph_utils
 
 }  // end namespace sph
 }  // end namespace fsi

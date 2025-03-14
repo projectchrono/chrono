@@ -21,13 +21,13 @@
 #include <iostream>
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsisph_utils
 /// @{
 
 /// Print a Real2 struct.
@@ -36,21 +36,8 @@ void printStruct(struct Real2& s) {
     std::cout << "y = " << s.y << ", " << std::endl;
 }
 
-/// Print a Int2 struct.
-void printStruct(struct int2& s) {
-    std::cout << "x = " << s.x << ", ";
-    std::cout << "y = " << s.y << ", " << std::endl;
-}
-
 /// Print a Real3 struct.
 void printStruct(struct Real3& s) {
-    std::cout << "x = " << s.x << ", ";
-    std::cout << "y = " << s.y << ", ";
-    std::cout << "z = " << s.z << ", " << std::endl;
-}
-
-/// Print a Int3 struct.
-void printStruct(struct int3& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", ";
     std::cout << "z = " << s.z << ", " << std::endl;
@@ -64,7 +51,20 @@ void printStruct(struct Real4& s) {
     std::cout << "w = " << s.w << ", " << std::endl;
 }
 
-/// Print a Int4 struct.
+/// Print an Int2 struct.
+void printStruct(struct int2& s) {
+    std::cout << "x = " << s.x << ", ";
+    std::cout << "y = " << s.y << ", " << std::endl;
+}
+
+/// Print an Int3 struct.
+void printStruct(struct int3& s) {
+    std::cout << "x = " << s.x << ", ";
+    std::cout << "y = " << s.y << ", ";
+    std::cout << "z = " << s.z << ", " << std::endl;
+}
+
+/// Print an Int4 struct.
 void printStruct(struct int4& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", ";
@@ -72,7 +72,7 @@ void printStruct(struct int4& s) {
     std::cout << "w = " << s.w << ", " << std::endl;
 }
 
-/// @} fsi_utils
+/// @} fsisph_utils
 
 }  // end namespace sph
 }  // end namespace fsi

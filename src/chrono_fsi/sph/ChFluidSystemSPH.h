@@ -23,7 +23,7 @@
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/physics/ChParams.h"
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
@@ -34,10 +34,10 @@ class ChFluidDynamics;
 class BceManager;
 struct FsiDataManager;
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_base
 /// @{
 
-/// Physical system for and SPH FSI-aware fluid solver.
+/// Physical system for an FSI-aware SPH fluid solver.
 class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
   public:
     /// Structure with fluid properties.
@@ -614,7 +614,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     friend class ChFsiVisualizationVSG;
 };
 
-/// @} fsi_physics
+/// @} fsisph_base
 
 }  // namespace sph
 }  // end namespace fsi

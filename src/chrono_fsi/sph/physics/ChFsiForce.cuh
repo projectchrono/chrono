@@ -96,7 +96,8 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
         Bi[i_idx] = mR3(0.0);
     }
 }
-/// @addtogroup fsi_physics
+
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Base class to calculate force between SPH particles.
@@ -178,7 +179,7 @@ class ChFsiForce {
     friend class ChFluidDynamics;
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

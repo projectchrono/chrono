@@ -25,7 +25,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_collision
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Base class for processing proximity computation in an FSI system.
@@ -46,7 +46,7 @@ class ChCollisionSystemFsi {
     std::shared_ptr<SphMarkerDataD> m_sphMarkersD;  ///< Information of the particles in the original array
 };
 
-/// @} fsi_collision
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

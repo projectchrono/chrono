@@ -16,8 +16,6 @@
 
 #include <string>
 
-#include "chrono_fsi/ChConfigFsi.h"
-
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/assets/ChVisualSystem.h"
@@ -29,7 +27,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_visualization
+/// @addtogroup fsisph_visualization
 /// @{
 
 /// Base class for a run-time visualization system for SPH-based FSI systems.
@@ -289,7 +287,7 @@ class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualization::Part
     double m_pmax;
 };
 
-/// @} fsi_visualization
+/// @} fsisph_visualization
 
 }  // namespace sph
 }  // namespace fsi

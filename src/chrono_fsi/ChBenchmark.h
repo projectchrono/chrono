@@ -26,7 +26,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup chrono_fsi
+/// @addtogroup fsi_base
 /// @{
 
 /// Base class for a Chrono FSI benchmark test.
@@ -172,7 +172,7 @@ class ChBenchmarkFixture : public ::benchmark::Fixture {
     TEST* m_test;
 };
 
-/// @} chrono_utils
+/// @} fsi_base
 
 }  // end namespace fsi
 }  // end namespace chrono

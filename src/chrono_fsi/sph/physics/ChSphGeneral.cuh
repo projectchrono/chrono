@@ -44,6 +44,9 @@ void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<
 #define INVPI Real(0.31830988618379)
 #define EPSILON Real(1e-8)
 
+/// @addtogroup fsisph_physics
+/// @{
+
 //--------------------------------------------------------------------------------------------------------------------------------
 // Cubic Spline SPH kernel function
 // d > 0 is the distance between 2 particles. h is the SPH kernel length
@@ -539,6 +542,8 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
                                  const uint* numNeighborsPerPart,
                                  uint* neighborList,
                                  volatile bool* error_flag);
+
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // namespace fsi

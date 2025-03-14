@@ -28,7 +28,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_base
 /// @{
 
 /// Definition of a body state.
@@ -88,7 +88,7 @@ struct FsiMesh2D {
     std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
 };
 
-/// @} fsi_physics
+/// @} fsi_base
 
 }  // namespace fsi
 }  // namespace chrono

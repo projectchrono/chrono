@@ -25,7 +25,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_base
 /// @{
 
 // =============================================================================
@@ -170,7 +170,7 @@ class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
 
 // =============================================================================
 
-/// @} fsi_physics
+/// @} fsi_base
 
 }  // end namespace fsi
 }  // end namespace chrono

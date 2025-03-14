@@ -22,7 +22,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Inter-particle force calculation for the I2SPH method.
@@ -70,7 +70,7 @@ class ChFsiForceI2SPH : public ChFsiForce {
     void neighborSearch();
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

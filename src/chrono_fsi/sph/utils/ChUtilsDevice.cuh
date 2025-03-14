@@ -25,19 +25,18 @@
 
 #include "chrono/core/ChTypes.h"
 
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/math/CustomMath.cuh"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsisph_utils
 /// @{
 
 // ----------------------------------------------------------------------------
 // Short-hand notation
 // ----------------------------------------------------------------------------
-typedef unsigned int uint;
 
 #define mF2 make_float2
 #define mF3 make_float3
@@ -173,7 +172,7 @@ class GpuTimer {
     cudaEvent_t m_stop;
 };
 
-/// @} fsi_utils
+/// @} fsisph_utils
 
 }  // namespace sph
 }  // end namespace fsi

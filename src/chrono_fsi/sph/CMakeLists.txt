@@ -29,6 +29,7 @@ message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 # --------------- SPH FSI FILES
 
 set(FSISPH_BASE_FILES
+    ChFsiDataTypesSPH.h
     ChFsiDefinitionsSPH.h
     ChFsiSystemSPH.h
     ChFsiSystemSPH.cpp
@@ -65,7 +66,7 @@ set(FSISPH_PHYSICS_FILES
 source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
 set(FSISPH_MATH_FILES
-    math/CustomMath.h
+    math/CustomMath.cuh
     math/ExactLinearSolvers.cuh
     math/ChFsiLinearSolver.h
     #math/ChFsiLinearSolverBiCGStab.h

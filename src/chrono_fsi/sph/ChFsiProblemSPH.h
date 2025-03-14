@@ -34,7 +34,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_base
 /// @{
 
 /// Base class to set up a Chrono::FSI problem.
@@ -482,7 +482,7 @@ class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemCartesian::WaveTank
     double alpha;
 };
 
-/// @} fsi_physics
+/// @} fsisph_base
 
 }  // namespace sph
 }  // namespace fsi

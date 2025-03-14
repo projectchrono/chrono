@@ -22,14 +22,13 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChVector2.h"
 
-#include "chrono_fsi/sph/math/CustomMath.h"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_utils
+/// @addtogroup fsisph_utils
 /// @{
 
 /// Convert a Real3 data structure to a ChVector3d data structure.
@@ -52,7 +51,7 @@ inline ChQuaternion<> ToChQuaternion(const Real4& q4) {
     return ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
 }
 
-// Convert a ChVector2 data structure to a Real2 data structure.
+/// Convert a ChVector2 data structure to a Real2 data structure.
 inline Real2 ToReal2(const ChVector2<>& v2) {
     return mR2(v2.x(), v2.y());
 }
@@ -72,7 +71,7 @@ inline Real4 ToReal4(const ChQuaternion<>& q4) {
     return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
 }
 
-/// @} fsi_utils
+/// @} fsisph_utils
 
 }  // namespace sph
 }  // end namespace fsi

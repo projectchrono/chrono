@@ -34,6 +34,8 @@
 #include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 
+#include "chrono_fsi/sph/math/CustomMath.cuh"
+
 #include "chrono_fsi/sph/utils/ChUtilsTypeConvert.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
@@ -1169,7 +1171,7 @@ void ChFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_paramsH->z_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::Z)) != 0;
 
     // Set up subdomains for faster neighbor particle search
-    m_paramsH->Apply_BC_U = false;  // You should go to CustomMath.h all the way to end of file and set your function
+    m_paramsH->Apply_BC_U = false;
     int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
                      (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
                      (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));

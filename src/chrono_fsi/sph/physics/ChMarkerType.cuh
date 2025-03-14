@@ -22,11 +22,14 @@
 #include <cuda_runtime_api.h>
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
+
+/// @addtogroup fsisph_physics
+/// @{
 
 /// Marker (SPH and BCE) groups.
 enum class MarkerGroup { FLUID, SOLID, BOUNDARY, NON_FLUID, NON_SOLID, NON_BOUNDARY, ALL };
@@ -111,6 +114,8 @@ __host__ __device__ inline bool IsBceWallMarker(Real code) {
 __host__ __device__ inline bool IsBceSolidMarker(Real code) {
     return code > 0.5;
 }
+
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // namespace fsi

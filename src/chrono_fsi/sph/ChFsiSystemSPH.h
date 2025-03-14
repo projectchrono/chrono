@@ -27,7 +27,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_base
 /// @{
 
 /// FSI system using an SPH-based fluid solver.
@@ -48,7 +48,7 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     ChFluidSystemSPH& m_sysSPH;
 };
 
-/// @} fsi_physics
+/// @} fsisph_base
 
 }  // namespace sph
 }  // end namespace fsi

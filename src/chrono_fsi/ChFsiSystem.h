@@ -32,7 +32,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_base
 /// @{
 
 /// Base class for a system for fluid-solid interaction problems.
@@ -205,7 +205,7 @@ class CH_FSI_API ChFsiSystem {
     double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
 };
 
-/// @} fsi_physics
+/// @} fsi_base
 
 }  // end namespace fsi
 }  // end namespace chrono

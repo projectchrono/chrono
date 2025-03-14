@@ -28,13 +28,13 @@
 ////#include "cusparse_v2.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
-#include "chrono_fsi/sph/math/CustomMath.h"
+#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_solver
+/// @addtogroup fsisph_math
 /// @{
 
 /// Base class for solving linear systems on GPUs.
@@ -111,7 +111,7 @@ class ChFsiLinearSolver {
     SolverType solver_type;
 };
 
-/// @} fsi_solver
+/// @} fsisph_math
 
 }  // namespace sph
 }  // end namespace fsi
