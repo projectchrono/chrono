@@ -30,7 +30,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -237,7 +237,7 @@ int main() {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         auto& sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI();
         switch (vis_type) {
@@ -264,8 +264,8 @@ int main() {
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(true);
         visFSI->EnableFlexBodyMarkers(false);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->AttachSystem(sys);
         visFSI->Initialize();
     }

@@ -19,10 +19,10 @@
 #ifndef CH_FLUIDDYNAMICS_H_
 #define CH_FLUIDDYNAMICS_H_
 
-#include "chrono_fsi/sph/physics/ChFsiForce.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/sph/physics/ChFsiForceExplicitSPH.cuh"
-#include "chrono_fsi/sph/physics/ChFsiForceI2SPH.cuh"
+#include "chrono_fsi/sph/physics/FsiForce.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
+#include "chrono_fsi/sph/physics/FsiForceWCSPH.cuh"
+#include "chrono_fsi/sph/physics/FsiForceISPH.cuh"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 
 namespace chrono {
@@ -37,20 +37,20 @@ namespace sph {
 /// This class is used to represent a fluid/granular system and take care of the time integration of the fluid/granular
 /// dynamics. This is a class designed for base SPH simulation. The class holds pointer to data, which is hold somewhere
 /// else. It also include a forceSystem, which takes care of the computation of force between particles. The forceSystem
-/// is owned by the class ChFsiForce.
-class ChFluidDynamics {
+/// is owned by the class FsiForce.
+class FluidDynamics {
   public:
     /// Constructor of the fluid/granular dynamics class.
-    /// - Instantiate ChFsiForce, i.e. force system;
+    /// - Instantiate FsiForce, i.e. force system;
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
-    ChFluidDynamics(FsiDataManager& data_mgr,  ///< FSI data manager
+    FluidDynamics(FsiDataManager& data_mgr,  ///< FSI data manager
                     BceManager& bce_mgr,       ///< BCE manager
                     bool verbose               ///< verbose output
     );
 
     /// Destructor of the fluid/granular dynamics class.
-    ~ChFluidDynamics();
+    ~FluidDynamics();
 
     /// Sort particles
     void SortParticles();
@@ -85,8 +85,8 @@ class ChFluidDynamics {
     /// This function needs to be called once the host data are modified.
     void Initialize();
 
-    /// Return the ChFsiForce type used in the simulation.
-    std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
+    /// Return the FsiForce type used in the simulation.
+    std::shared_ptr<FsiForce> GetForceSystem() { return forceSystem; }
 
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
@@ -94,7 +94,7 @@ class ChFluidDynamics {
 
   protected:
     FsiDataManager& m_data_mgr;               ///< FSI data manager
-    std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between particles
+    std::shared_ptr<FsiForce> forceSystem;  ///< force system object; calculates the force between particles
 
     bool m_verbose;
 

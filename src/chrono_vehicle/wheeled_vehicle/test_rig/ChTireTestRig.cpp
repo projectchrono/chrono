@@ -591,7 +591,7 @@ void ChTireTestRig::CreateTerrainCRM() {
     terrain->SetStepSizeCFD(m_tire_step);
 
     terrain->SetStepsizeMBD(m_tire_step);
-    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = m_params_crm.density;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
@@ -601,7 +601,7 @@ void ChTireTestRig::CreateTerrainCRM() {
     mat_props.average_diam = 0.0614;
     mat_props.cohesion_coeff = m_params_crm.cohesion;
 
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initSpace0;
     sph_params.d0_multiplier = 1.2;

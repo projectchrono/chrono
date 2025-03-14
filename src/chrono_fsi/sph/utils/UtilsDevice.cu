@@ -15,7 +15,7 @@
 // Utilities for changing device arrays in non-cuda files
 // =============================================================================
 
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {

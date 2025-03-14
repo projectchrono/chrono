@@ -17,9 +17,9 @@
 
 #include <thrust/sort.h>
 #include <fstream>
-#include "chrono_fsi/sph/physics/ChCollisionSystemFsi.cuh"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/sph/physics/CollisionSystem.cuh"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -207,18 +207,18 @@ struct ActivityScanOp {
     }
 };
 
-ChCollisionSystemFsi::ChCollisionSystemFsi(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
+CollisionSystem::CollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
 
-ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
+CollisionSystem::~CollisionSystem() {}
 // ------------------------------------------------------------------------------
-void ChCollisionSystemFsi::Initialize() {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+void CollisionSystem::Initialize() {
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 // ------------------------------------------------------------------------------
 
-void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);

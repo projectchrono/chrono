@@ -16,8 +16,8 @@
 #include <thrust/remove.h>
 #include <thrust/sort.h>
 
-#include "chrono_fsi/sph/physics/ChFsiForceExplicitSPH.cuh"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/sph/physics/FsiForceWCSPH.cuh"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
 #include "chrono_fsi/sph/math/ExactLinearSolvers.cuh"
 
 namespace chrono {
@@ -978,7 +978,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     }
 
     if (!IsFinite(derivVelRho)) {
-        printf("Error! particle derivVel is NAN: thrown from ChFsiForceExplicitSPH.cu, collideD !\n");
+        printf("Error! particle derivVel is NAN: thrown from FsiForceWCSPH.cu, collideD !\n");
         *error_flag = true;
     }
 
@@ -1676,24 +1676,24 @@ __global__ void Calc_Shifting_D(Real3* vel_XSPH_Sorted_D,
 
 // ===============================================================================================================================
 
-ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
-    : ChFsiForce(data_mgr, bce_mgr, verbose) {
+FsiForceWCSPH::FsiForceWCSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+    : FsiForce(data_mgr, bce_mgr, verbose) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
     density_initialization = 0;
 }
 
-ChFsiForceExplicitSPH::~ChFsiForceExplicitSPH() {}
+FsiForceWCSPH::~FsiForceWCSPH() {}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceExplicitSPH::Initialize() {
-    ChFsiForce::Initialize();
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+void FsiForceWCSPH::Initialize() {
+    FsiForce::Initialize();
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
+void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
                                      Real time,
                                      bool firstHalfStep) {
     m_sortedSphMarkers_D = sortedSphMarkers_D;
@@ -1705,7 +1705,7 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMa
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::neighborSearch() {
+void FsiForceWCSPH::neighborSearch() {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
@@ -1744,7 +1744,7 @@ void ChFsiForceExplicitSPH::neighborSearch() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
+void FsiForceWCSPH::CollideWrapper(Real time, bool firstHalfStep) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
@@ -1849,7 +1849,7 @@ void ChFsiForceExplicitSPH::CollideWrapper(Real time, bool firstHalfStep) {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceExplicitSPH::CalculateShifting() {
+void FsiForceWCSPH::CalculateShifting() {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);

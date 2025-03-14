@@ -16,7 +16,7 @@
 #define CH_FSI_FORCE_EXPLICITSPH_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/sph/physics/ChFsiForce.cuh"
+#include "chrono_fsi/sph/physics/FsiForce.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -26,16 +26,16 @@ namespace sph {
 /// @{
 
 /// Inter-particle force calculation for explicit schemes.
-class ChFsiForceExplicitSPH : public ChFsiForce {
+class FsiForceWCSPH : public FsiForce {
   public:
     /// Force class implemented using WCSPH with explicit integrator.
     /// Supports for both fluid and granular material dynamics.
-    ChFsiForceExplicitSPH(FsiDataManager& data_mgr,  ///< FSI data manager
+    FsiForceWCSPH(FsiDataManager& data_mgr,  ///< FSI data manager
                           BceManager& bce_mgr,       ///< BCE manager
                           bool verbose               ///< verbose terminal output
     );
 
-    ~ChFsiForceExplicitSPH();
+    ~FsiForceWCSPH();
 
     void Initialize() override;
 

@@ -23,7 +23,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsisph_base
+/// @addtogroup fsisph
 /// @{
 
 /// Physics problem type.
@@ -144,7 +144,7 @@ enum class OutputLevel {
     CRM_FULL         ///< STATE_PRESSURE plus normal and shear stress
 };
 
-/// @} fsisph_base
+/// @} fsisph
 
 }  // namespace sph
 }  // namespace fsi

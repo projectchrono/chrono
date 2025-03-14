@@ -13,14 +13,14 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.cuh"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
+#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH* sysFSI)
+ChFsiVisualizationSPH::ChFsiVisualizationSPH(ChFsiSystemSPH* sysFSI)
     : m_sysFSI(sysFSI),
       m_sysSPH(&sysFSI->GetFluidSystemSPH()),
       m_user_system(nullptr),
@@ -37,7 +37,7 @@ ChFsiVisualization::ChFsiVisualization(ChFsiSystemSPH* sysFSI)
     m_sysMBS = new ChSystemSMC();
 }
 
-ChFsiVisualization::ChFsiVisualization(ChFluidSystemSPH* sysSPH)
+ChFsiVisualizationSPH::ChFsiVisualizationSPH(ChFsiFluidSystemSPH* sysSPH)
     : m_sysFSI(nullptr),
       m_sysSPH(sysSPH),
       m_user_system(nullptr),
@@ -54,42 +54,42 @@ ChFsiVisualization::ChFsiVisualization(ChFluidSystemSPH* sysSPH)
     m_sysMBS = new ChSystemSMC();
 }
 
-ChFsiVisualization::~ChFsiVisualization() {
+ChFsiVisualizationSPH::~ChFsiVisualizationSPH() {
     delete m_sysMBS;
 }
 
-void ChFsiVisualization::SetVerbose(bool verbose) {
+void ChFsiVisualizationSPH::SetVerbose(bool verbose) {
     GetVisualSystem()->SetVerbose(verbose);
 }
 
-void ChFsiVisualization::SetSize(int width, int height) {}
+void ChFsiVisualizationSPH::SetSize(int width, int height) {}
 
-void ChFsiVisualization::SetTitle(const std::string& title) {}
+void ChFsiVisualizationSPH::SetTitle(const std::string& title) {}
 
-void ChFsiVisualization::AddCamera(const ChVector3d& pos, const ChVector3d& target) {}
+void ChFsiVisualizationSPH::AddCamera(const ChVector3d& pos, const ChVector3d& target) {}
 
-void ChFsiVisualization::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {}
+void ChFsiVisualizationSPH::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {}
 
-void ChFsiVisualization::SetCameraVertical(CameraVerticalDir up) {}
+void ChFsiVisualizationSPH::SetCameraVertical(CameraVerticalDir up) {}
 
-void ChFsiVisualization::SetCameraMoveScale(float scale) {}
+void ChFsiVisualizationSPH::SetCameraMoveScale(float scale) {}
 
-void ChFsiVisualization::SetLightIntensity(double intensity) {}
+void ChFsiVisualizationSPH::SetLightIntensity(double intensity) {}
 
-void ChFsiVisualization::SetLightDirection(double azimuth, double elevation) {}
+void ChFsiVisualizationSPH::SetLightDirection(double azimuth, double elevation) {}
 
-void ChFsiVisualization::SetParticleRenderMode(RenderMode mode) {}
+void ChFsiVisualizationSPH::SetParticleRenderMode(RenderMode mode) {}
 
-void ChFsiVisualization::SetRenderMode(RenderMode mode) {}
+void ChFsiVisualizationSPH::SetRenderMode(RenderMode mode) {}
 
-void ChFsiVisualization::EnableInfoOverlay(bool val) {}
+void ChFsiVisualizationSPH::EnableInfoOverlay(bool val) {}
 
-void ChFsiVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
+void ChFsiVisualizationSPH::AddProxyBody(std::shared_ptr<ChBody> body) {
     body->SetFixed(true);
     m_sysMBS->AddBody(body);
 }
 
-void ChFsiVisualization::Initialize() {}
+void ChFsiVisualizationSPH::Initialize() {}
 
 // -----------------------------------------------------------------------------
 

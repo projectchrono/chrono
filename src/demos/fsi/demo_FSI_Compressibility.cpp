@@ -19,9 +19,9 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
-#include "chrono_fsi/sph/ChFluidSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -69,7 +69,7 @@ float render_fps = 1000;
 // Create the objects of the MBD system. Rigid bodies, and if fsi, their
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
-void CreateSolidPhase(ChSystemSMC& sysMBS, ChFluidSystemSPH& sysSPH) {
+void CreateSolidPhase(ChSystemSMC& sysMBS, ChFsiFluidSystemSPH& sysSPH) {
     // Ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -88,7 +88,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChFluidSystemSPH& sysSPH) {
 int main(int argc, char* argv[]) {
     // Create a physics system and an SPH system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     // Use the default input file or you may enter your input parameters as a command line argument
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->Initialize();
     }

@@ -22,7 +22,7 @@
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -105,7 +105,7 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationSPH::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
 
@@ -395,13 +395,13 @@ int main(int argc, char* argv[]) {
     sysMBS.SetGravitationalAcceleration(gravity);
 
     // Set CFD fluid properties
-    ChFluidSystemSPH::FluidProperties fluid_props;
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
     fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
     sph_params.num_bce_layers = 5;
@@ -502,7 +502,7 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -531,8 +531,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());

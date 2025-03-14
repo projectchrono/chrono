@@ -26,18 +26,17 @@
 #include <ctime>
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
-#include "chrono_fsi/sph/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsisph_physics
+/// @addtogroup fsisph
 /// @{
 
 /// Structure with FSI simulation parameters.
-struct SimParams {
+struct ChFsiParamsSPH {
     SPHMethod sph_method;            ///< SPH method (WCSPH or I2SPH)
     EosType eos_type;                ///< Equation of state type (Tait or isothermal)
     ViscosityType viscosity_type;    ///< Viscosity treatment type (physics-based laminar flow or artificial)
@@ -195,7 +194,7 @@ struct SimParams {
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists
 };
 
-/// @} fsisph_physics
+/// @} fsisph
 
 }  // namespace sph
 }  // namespace fsi

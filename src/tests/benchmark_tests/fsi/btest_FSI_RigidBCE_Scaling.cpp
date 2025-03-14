@@ -17,8 +17,6 @@
 //
 // =============================================================================
 
-#include "chrono_fsi/ChBenchmark.h"
-
 // #include <cassert>
 // #include <cstdlib>
 // #include <ctime>
@@ -30,8 +28,9 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/ChFsiBenchmark.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -56,7 +55,7 @@ class FsiRigidBceScalingTest : public chrono::fsi::ChBenchmarkTest {
 
   private:
     std::unique_ptr<ChFsiSystemSPH> m_sysFSI;
-    std::unique_ptr<ChFluidSystemSPH> m_sysSPH;
+    std::unique_ptr<ChFsiFluidSystemSPH> m_sysSPH;
     std::unique_ptr<ChSystem> m_sysMBS;
 
     unsigned int m_num_boxes;
@@ -80,7 +79,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     m_num_boxes = num_boxes;
     m_boxes_per_layer = 100;
     m_sysMBS = std::make_unique<ChSystemSMC>();
-    m_sysSPH = std::make_unique<ChFluidSystemSPH>();
+    m_sysSPH = std::make_unique<ChFsiFluidSystemSPH>();
     m_sysFSI = std::make_unique<ChFsiSystemSPH>(*m_sysMBS, *m_sysSPH);
 
     m_sysMBS->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -88,7 +87,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
 
     int box_multiplier = 1.2;
 
-    ChFluidSystemSPH::ElasticMaterialProperties material;
+    ChFsiFluidSystemSPH::ElasticMaterialProperties material;
     material.density = 1760;       // kg / m^3
     material.Young_modulus = 1e6;  // kg / m s ^2
     material.Poisson_ratio = 0.3;
@@ -100,7 +99,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
 
     m_sysSPH->SetElasticSPH(material);
 
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = 0.02;  // 2 cm
     sph_params.d0_multiplier = 1.2;
@@ -243,7 +242,7 @@ void FsiRigidBceScalingTest<num_boxes>::ExecuteStep() {
 template <unsigned int num_boxes>
 void FsiRigidBceScalingTest<num_boxes>::SimulateVis() {
 #ifdef CHRONO_VSG
-    std::shared_ptr<ChFsiVisualization> visFSI =
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI =
         chrono_types::make_shared<ChFsiVisualizationVSG>(&m_sysFSI->GetFluidSystemSPH());
     visFSI->SetTitle("FSI Box Benchmark");
     visFSI->SetSize(1280, 720);
@@ -255,8 +254,8 @@ void FsiRigidBceScalingTest<num_boxes>::SimulateVis() {
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);
-    visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-    visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+    visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+    visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
     visFSI->AttachSystem(&m_sysFSI->GetMultibodySystem());
     visFSI->Initialize();
 

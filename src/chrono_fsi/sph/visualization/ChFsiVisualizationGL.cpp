@@ -58,7 +58,7 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI) : ChFsiVisualizationSPH(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
@@ -70,8 +70,8 @@ ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI) : ChFsiVisual
     m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
 }
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChFluidSystemSPH* sysSPH)
-    : ChFsiVisualization(sysSPH), m_bce_start_index(0) {
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChFsiFluidSystemSPH* sysSPH)
+    : ChFsiVisualizationSPH(sysSPH), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");

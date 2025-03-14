@@ -22,7 +22,7 @@
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -74,7 +74,7 @@ class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback
     SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity)
         : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {}
 
-    virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
         double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
         p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepsizeMBD(step_size);
 
     // Set soil propertiees
-    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     fsi.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.2;
@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -376,8 +376,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();

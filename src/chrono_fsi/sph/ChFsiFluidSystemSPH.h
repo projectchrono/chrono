@@ -19,10 +19,10 @@
 #ifndef CH_FLUID_SYSTEM_SPH_H
 #define CH_FLUID_SYSTEM_SPH_H
 
-#include "chrono_fsi/ChFluidSystem.h"
+#include "chrono_fsi/ChFsiFluidSystem.h"
+#include "chrono_fsi/sph/ChFsiParamsSPH.h"
 
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
-#include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
 namespace chrono {
@@ -30,15 +30,15 @@ namespace fsi {
 namespace sph {
 
 class ChFsiInterfaceSPH;
-class ChFluidDynamics;
+class FluidDynamics;
 class BceManager;
 struct FsiDataManager;
 
-/// @addtogroup fsisph_base
+/// @addtogroup fsisph
 /// @{
 
 /// Physical system for an FSI-aware SPH fluid solver.
-class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
+class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
   public:
     /// Structure with fluid properties.
     /// Used if solving a CFD problem.
@@ -108,8 +108,8 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
         LinSolverParameters();
     };
 
-    ChFluidSystemSPH();
-    ~ChFluidSystemSPH();
+    ChFsiFluidSystemSPH();
+    ~ChFsiFluidSystemSPH();
 
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);
@@ -273,7 +273,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     int GetNumProximitySearchSteps() const;
 
     /// Return the current system parameters (debugging only).
-    const SimParams& GetParams() const { return *m_paramsH; }
+    const ChFsiParamsSPH& GetParams() const { return *m_paramsH; }
 
     /// Get the current number of fluid SPH particles.
     size_t GetNumFluidMarkers() const;
@@ -587,10 +587,10 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     /// Additional actions taken after loading new solid phase states.
     virtual void OnExchangeSolidStates() override;
 
-    std::shared_ptr<SimParams> m_paramsH;  ///< simulation parameters
+    std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
 
     std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
-    std::unique_ptr<ChFluidDynamics> m_fluid_dynamics;  ///< fluid system
+    std::unique_ptr<FluidDynamics> m_fluid_dynamics;  ///< fluid system
     std::unique_ptr<BceManager> m_bce_mgr;              ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
@@ -614,7 +614,7 @@ class CH_FSI_API ChFluidSystemSPH : public ChFluidSystem {
     friend class ChFsiVisualizationVSG;
 };
 
-/// @} fsisph_base
+/// @} fsisph
 
 }  // namespace sph
 }  // end namespace fsi

@@ -25,19 +25,19 @@
 #include "cublas_v2.h"
 #include "cusparse_v2.h"
 
-#include "chrono_fsi/sph/math/ChFsiLinearSolverBiCGStab.h"
+#include "chrono_fsi/sph/math/LinearSolverBiCGStab.h"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
-                                      int NNZ,
-                                      Real* A,
-                                      unsigned int* ArowIdx,
-                                      unsigned int* AcolIdx,
-                                      Real* x,
-                                      Real* b) {
+void LinearSolverBiCGStab::Solve(int SIZE,
+                                 int NNZ,
+                                 Real* A,
+                                 unsigned int* ArowIdx,
+                                 unsigned int* AcolIdx,
+                                 Real* x,
+                                 Real* b) {
 #ifndef CUDART_VERSION
     #error CUDART_VERSION Undefined!
 #elif (CUDART_VERSION == 11000)

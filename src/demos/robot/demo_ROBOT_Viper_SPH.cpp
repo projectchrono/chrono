@@ -27,7 +27,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physical system and a corresponding FSI system
     ChSystemNSC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -259,8 +259,8 @@ int main(int argc, char* argv[]) {
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(
             chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), 0, bzDim));
         visFSI->AttachSystem(&sysMBS);
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
 // BCE representations are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     // Create a body for the rigid soil container

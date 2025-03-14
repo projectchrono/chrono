@@ -29,10 +29,10 @@ namespace sph {
 /// @{
 
 /// Base class for processing proximity computation in an FSI system.
-class ChCollisionSystemFsi {
+class CollisionSystem {
   public:
-    ChCollisionSystemFsi(FsiDataManager& data_mgr);
-    ~ChCollisionSystemFsi();
+    CollisionSystem(FsiDataManager& data_mgr);
+    ~CollisionSystem();
 
     /// Encapsulate calcHash, findCellStartEndD, and reorderDataD
     void ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD);

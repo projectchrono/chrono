@@ -33,12 +33,12 @@ namespace sph {
 /// Base class for a run-time visualization system for SPH-based FSI systems.
 /// Note that using run-time visualization for an FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
-class CH_FSI_API ChFsiVisualization {
+class CH_FSI_API ChFsiVisualizationSPH {
   public:
     /// Rendering mode for particles and mesh objects.
     enum class RenderMode { POINTS, WIREFRAME, SOLID };
 
-    virtual ~ChFsiVisualization();
+    virtual ~ChFsiVisualizationSPH();
 
     /// Enable/disable information terminal output during initialization (default: false).
     void SetVerbose(bool verbose);
@@ -175,13 +175,13 @@ class CH_FSI_API ChFsiVisualization {
 
   protected:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
-    ChFsiVisualization(ChFsiSystemSPH* sysFSI);
+    ChFsiVisualizationSPH(ChFsiSystemSPH* sysFSI);
 
     /// Create a run-time FSI visualization object associated with a given SPH fluid system.
-    ChFsiVisualization(ChFluidSystemSPH* sysSPH);
+    ChFsiVisualizationSPH(ChFsiFluidSystemSPH* sysSPH);
 
     ChFsiSystemSPH* m_sysFSI;    ///< associated FSI system
-    ChFluidSystemSPH* m_sysSPH;  ///< associated SPH system
+    ChFsiFluidSystemSPH* m_sysSPH;  ///< associated SPH system
     ChSystem* m_sysMBS;          ///< internal Chrono system (holds proxies)
     ChSystem* m_user_system;     ///< optional user-provided system
 
@@ -211,7 +211,7 @@ class CH_FSI_API ChFsiVisualization {
 // -----------------------------------------------------------------------------
 
 /// Predefined SPH coloring based on particle height.
-class CH_FSI_API ParticleHeightColorCallback : public ChFsiVisualization::ParticleColorCallback {
+class CH_FSI_API ParticleHeightColorCallback : public ChFsiVisualizationSPH::ParticleColorCallback {
   public:
     ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up = ChVector3d(0, 0, 1));
     ParticleHeightColorCallback(const ChColor& base_color,
@@ -230,7 +230,7 @@ class CH_FSI_API ParticleHeightColorCallback : public ChFsiVisualization::Partic
 };
 
 /// Predefined SPH coloring based on particle velocity.
-class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualization::ParticleColorCallback {
+class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualizationSPH::ParticleColorCallback {
   public:
     enum class Component { X, Y, Z, NORM };
 
@@ -251,7 +251,7 @@ class CH_FSI_API ParticleVelocityColorCallback : public ChFsiVisualization::Part
 };
 
 /// Predefined SPH coloring based on particle density.
-class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualization::ParticleColorCallback {
+class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualizationSPH::ParticleColorCallback {
   public:
     ParticleDensityColorCallback(double dmin, double dmax);
     ParticleDensityColorCallback(const ChColor& base_color, double dmin, double dmax);
@@ -266,7 +266,7 @@ class CH_FSI_API ParticleDensityColorCallback : public ChFsiVisualization::Parti
 };
 
 /// Predefined SPH coloring based on particle pressure.
-class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualization::ParticleColorCallback {
+class CH_FSI_API ParticlePressureColorCallback : public ChFsiVisualizationSPH::ParticleColorCallback {
   public:
     ParticlePressureColorCallback(double pmin, double pmax);
     ParticlePressureColorCallback(const ChColor& base_color, double pmin, double pmax);

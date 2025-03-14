@@ -15,8 +15,8 @@
 #ifndef CH_FSI_FORCEI2SPH_H_
 #define CH_FSI_FORCEI2SPH_H_
 
-#include "chrono_fsi/sph/physics/ChFsiForce.cuh"
-#include "chrono_fsi/sph/math/ChFsiLinearSolver.h"
+#include "chrono_fsi/sph/physics/FsiForce.cuh"
+#include "chrono_fsi/sph/math/LinearSolver.h"
 
 namespace chrono {
 namespace fsi {
@@ -26,20 +26,20 @@ namespace sph {
 /// @{
 
 /// Inter-particle force calculation for the I2SPH method.
-class ChFsiForceI2SPH : public ChFsiForce {
+class FsiForceISPH : public FsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator.
-    ChFsiForceI2SPH(FsiDataManager& data_mgr,  ///< FSI data manager
+    FsiForceISPH(FsiDataManager& data_mgr,  ///< FSI data manager
                     BceManager& bce_mgr,       ///< BCE manager
                     bool verbose               ///< verbose output
     );
 
-    ~ChFsiForceI2SPH();
+    ~FsiForceISPH();
 
     virtual void Initialize() override;
 
   private:
-    std::shared_ptr<ChFsiLinearSolver> myLinearSolver;
+    std::shared_ptr<LinearSolver> myLinearSolver;
 
     thrust::device_vector<Real> _sumWij_inv;
     thrust::device_vector<Real> G_i;

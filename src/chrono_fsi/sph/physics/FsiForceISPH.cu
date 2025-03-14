@@ -24,10 +24,10 @@
 
 ////#include "cublas_v2.h"
 
-#include "chrono_fsi/sph/physics/ChFsiForceI2SPH.cuh"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
-////#include "chrono_fsi/sph/math/ChFsiLinearSolverBiCGStab.h"
-////#include "chrono_fsi/sph/math/ChFsiLinearSolverGMRES.h"
+#include "chrono_fsi/sph/physics/FsiForceISPH.cuh"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
+////#include "chrono_fsi/sph/math/LinearSolverBiCGStab.h"
+////#include "chrono_fsi/sph/math/LinearSolverGMRES.h"
 
 using std::cout;
 using std::cerr;
@@ -706,7 +706,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
     //        Pressure_correction_term = mR3(0);
 
     //    if (!(isfinite(q_i[i_idx]))) {
-    //        printf("Error! particle %d q_i is NAN: thrown from ChFsiForceI2SPH.cu  %f\n", i_idx, q_i[i_idx]);
+    //        printf("Error! particle %d q_i is NAN: thrown from FsiForceISPH.cu  %f\n", i_idx, q_i[i_idx]);
     //    }
     Real3 V_new = Vstar[i_idx] + Pressure_correction_term;
     //    if (sortedRhoPreMu[i_idx].w == -1)
@@ -743,17 +743,17 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
     }
 
     //    if (!IsFinite(sortedPosRad[i_idx])) {
-    //        printf("Error! particle %d position is NAN: thrown from ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
+    //        printf("Error! particle %d position is NAN: thrown from FsiForceISPH.cu  %f,%f,%f,%f\n", i_idx,
     //               sortedPosRad[i_idx].x, sortedPosRad[i_idx].y, sortedPosRad[i_idx].z, sortedPosRad[i_idx].w);
     //    }
     //    if (!IsFinite(sortedRhoPreMu[i_idx])) {
-    //        printf("Error! particle %d rhoPreMu is NAN: thrown from ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
+    //        printf("Error! particle %d rhoPreMu is NAN: thrown from FsiForceISPH.cu %f,%f,%f,%f\n", i_idx,
     //               sortedRhoPreMu[i_idx].x, sortedRhoPreMu[i_idx].y, sortedRhoPreMu[i_idx].z,
     //               sortedRhoPreMu[i_idx].w);
     //    }
     //
     //    if (!IsFinite(sortedVelMas[i_idx])) {
-    //        printf("Error! particle %d velocity is NAN: thrown from ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
+    //        printf("Error! particle %d velocity is NAN: thrown from FsiForceISPH.cu %f,%f,%f\n", i_idx,
     //               sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     //    }
 }
@@ -786,18 +786,18 @@ __global__ void Shifting(Real4* sortedPosRad,
     Real mi_bar = 0.0, r0 = 0.0;  // v_bar = 0.0;
     Real3 xSPH_Sum = mR3(0.0);
     if (!IsFinite(sortedPosRad_old[i_idx])) {
-        printf("Error! particle %d position is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
+        printf("Error! particle %d position is NAN: thrown from 1 Shifting FsiForceISPH.cu  %f,%f,%f,%f\n", i_idx,
                sortedPosRad_old[i_idx].x, sortedPosRad_old[i_idx].y, sortedPosRad_old[i_idx].z,
                sortedPosRad_old[i_idx].w);
     }
     if (!IsFinite(sortedRhoPreMu_old[i_idx])) {
-        printf("Error! particle %d rhoPreMu is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
+        printf("Error! particle %d rhoPreMu is NAN: thrown from 1 Shifting FsiForceISPH.cu %f,%f,%f,%f\n", i_idx,
                sortedRhoPreMu_old[i_idx].x, sortedRhoPreMu_old[i_idx].y, sortedRhoPreMu_old[i_idx].z,
                sortedRhoPreMu_old[i_idx].w);
     }
 
     if (!IsFinite(sortedVelMas_old[i_idx])) {
-        printf("Error! particle %d velocity is NAN: thrown from 1 Shifting ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
+        printf("Error! particle %d velocity is NAN: thrown from 1 Shifting FsiForceISPH.cu %f,%f,%f\n", i_idx,
                sortedVelMas_old[i_idx].x, sortedVelMas_old[i_idx].y, sortedVelMas_old[i_idx].z);
     }
     for (int count = csrStartIdx; count < csrEndIdx; count++) {
@@ -869,35 +869,35 @@ __global__ void Shifting(Real4* sortedPosRad,
     sortedVisVel[i_idx] = vis_vel;
 
     if (!IsFinite(sortedPosRad[i_idx])) {
-        printf("Error! particle %d position is NAN: thrown from Shifting ChFsiForceI2SPH.cu  %f,%f,%f,%f\n", i_idx,
+        printf("Error! particle %d position is NAN: thrown from Shifting FsiForceISPH.cu  %f,%f,%f,%f\n", i_idx,
                sortedPosRad[i_idx].x, sortedPosRad[i_idx].y, sortedPosRad[i_idx].z, sortedPosRad[i_idx].w);
     }
     if (!IsFinite(sortedRhoPreMu[i_idx])) {
-        printf("Error! particle %d rhoPreMu is NAN: thrown from Shifting ChFsiForceI2SPH.cu %f,%f,%f,%f\n", i_idx,
+        printf("Error! particle %d rhoPreMu is NAN: thrown from Shifting FsiForceISPH.cu %f,%f,%f,%f\n", i_idx,
                sortedRhoPreMu[i_idx].x, sortedRhoPreMu[i_idx].y, sortedRhoPreMu[i_idx].z, sortedRhoPreMu[i_idx].w);
     }
 
     if (!IsFinite(sortedVelMas[i_idx])) {
-        printf("Error! particle %d velocity is NAN: thrown from Shifting ChFsiForceI2SPH.cu %f,%f,%f\n", i_idx,
+        printf("Error! particle %d velocity is NAN: thrown from Shifting FsiForceISPH.cu %f,%f,%f\n", i_idx,
                sortedVelMas[i_idx].x, sortedVelMas[i_idx].y, sortedVelMas[i_idx].z);
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChFsiForceI2SPH::ChFsiForceI2SPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
-    : ChFsiForce(data_mgr, bce_mgr, verbose) {
+FsiForceISPH::FsiForceISPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+    : FsiForce(data_mgr, bce_mgr, verbose) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
 }
 
-ChFsiForceI2SPH::~ChFsiForceI2SPH() {
+FsiForceISPH::~FsiForceISPH() {
     cudaFreeErrorFlag(error_flagD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceI2SPH::Initialize() {
-    ChFsiForce::Initialize();
+void FsiForceISPH::Initialize() {
+    FsiForce::Initialize();
 
     if (m_data_mgr.paramsH->LinearSolver != SolverType::JACOBI) {
         cout << "WARNING: Only JACOBI linear solver is currently supported." << endl;
@@ -908,21 +908,21 @@ void ChFsiForceI2SPH::Initialize() {
     // Create linear solver object
     switch (m_data_mgr.paramsH->LinearSolver) {
         case SolverType::BICGSTAB:
-            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();
+            myLinearSolver = chrono_types::make_shared<LinearSolverBiCGStab>();
             break;
         case SolverType::GMRES:
-            myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
+            myLinearSolver = chrono_types::make_shared<LinearSolverGMRES>();
             break;
         case SolverType::JACOBI:
             break;
         default:
-            std::cout << "The ChFsiLinearSolver you chose has not been implemented, reverting to JACOBI";
+            std::cout << "The selected linear solver has not been implemented, reverting to JACOBI";
             break;
     }
 
     */
 
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     numAllMarkers = m_data_mgr.countersH->numAllMarkers;
@@ -957,7 +957,7 @@ struct my_Functor_real4y {
     __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
 };
 
-void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) {
+void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) {
     // Readability replacements
     auto& pH = m_data_mgr.paramsH;
     auto& cH = m_data_mgr.countersH;
@@ -1274,7 +1274,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceI2SPH::neighborSearch() {
+void FsiForceISPH::neighborSearch() {
     cudaResetErrorFlag(error_flagD);
 
     // thread per particle
@@ -1307,7 +1307,7 @@ void ChFsiForceI2SPH::neighborSearch() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceI2SPH::PreProcessor(bool calcLaplacianOperator) {
+void FsiForceISPH::PreProcessor(bool calcLaplacianOperator) {
     cudaResetErrorFlag(error_flagD);
 
     uint numThreads, numBlocks;

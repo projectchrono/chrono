@@ -23,7 +23,7 @@
 #include <fstream>
 
 #include "chrono_fsi/sph/physics/BceManager.cuh"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -659,7 +659,7 @@ BceManager::~BceManager() {}
 // -----------------------------------------------------------------------------
 
 void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami

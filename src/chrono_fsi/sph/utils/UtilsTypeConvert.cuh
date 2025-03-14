@@ -22,7 +22,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChVector2.h"
 
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {

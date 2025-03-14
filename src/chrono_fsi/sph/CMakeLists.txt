@@ -31,65 +31,68 @@ message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 set(FSISPH_BASE_FILES
     ChFsiDataTypesSPH.h
     ChFsiDefinitionsSPH.h
-    ChFsiSystemSPH.h
-    ChFsiSystemSPH.cpp
-    ChFluidSystemSPH.h
-    ChFluidSystemSPH.cpp
-    ChFsiInterfaceSPH.h
-    ChFsiInterfaceSPH.cpp
+    ChFsiParamsSPH.h
     ChFsiProblemSPH.h
+    ChFsiSystemSPH.h
+    ChFsiInterfaceSPH.h
+    ChFsiFluidSystemSPH.h
+    ChFsiPrintUtilsSPH.h
+
     ChFsiProblemSPH.cpp
+    ChFsiSystemSPH.cpp
+    ChFsiInterfaceSPH.cpp
+    ChFsiFluidSystemSPH.cpp
 )
 source_group("" FILES ${FSISPH_BASE_FILES})
 
 set(FSISPH_PHYSICS_FILES
-    physics/ChParams.h
-    physics/ChMarkerType.cuh
+    physics/MarkerType.cuh
     physics/FsiDataManager.cuh
     physics/BceManager.cuh
-    physics/ChFluidDynamics.cuh
-    physics/ChCollisionSystemFsi.cuh
-    physics/ChFsiForce.cuh    
-    physics/ChFsiForceExplicitSPH.cuh
-    physics/ChFsiForceI2SPH.cuh
-    physics/ChSphGeneral.cuh
+    physics/FluidDynamics.cuh
+    physics/CollisionSystem.cuh
+    physics/FsiForce.cuh    
+    physics/FsiForceWCSPH.cuh
+    physics/FsiForceISPH.cuh
+    physics/SphGeneral.cuh
 
     physics/FsiDataManager.cu
  	physics/BceManager.cu
-    physics/ChFluidDynamics.cu
-    physics/ChCollisionSystemFsi.cu
-    physics/ChFsiForce.cu
-    physics/ChFsiForceExplicitSPH.cu
-    physics/ChFsiForceI2SPH.cu
-    physics/ChSphGeneral.cu
+    physics/FluidDynamics.cu
+    physics/CollisionSystem.cu
+    physics/FsiForce.cu
+    physics/FsiForceWCSPH.cu
+    physics/FsiForceISPH.cu
+    physics/SphGeneral.cu
 )
 source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
 set(FSISPH_MATH_FILES
+    math/LinearSolver.h
+    #math/LinearSolverBiCGStab.h
+    #math/LinearSolverGMRES.h
+
     math/CustomMath.cuh
     math/ExactLinearSolvers.cuh
-    math/ChFsiLinearSolver.h
-    #math/ChFsiLinearSolverBiCGStab.h
-    #math/ChFsiLinearSolverGMRES.h
-    #math/ChFsiLinearSolverBiCGStab.cpp
-    #math/ChFsiLinearSolverGMRES.cpp
+
+    #math/LinearSolverBiCGStab.cpp
+    #math/LinearSolverGMRES.cpp
 )
 source_group("math" FILES ${FSISPH_MATH_FILES})
 
 set(FSISPH_UTILS_FILES
-    utils/ChUtilsPrintStruct.h
-    utils/ChUtilsPrintSph.cuh
-    utils/ChUtilsDevice.cuh
-    utils/ChUtilsTypeConvert.cuh
+    utils/UtilsPrintSph.cuh
+    utils/UtilsDevice.cuh
+    utils/UtilsTypeConvert.cuh
 
-    utils/ChUtilsPrintSph.cu
-    utils/ChUtilsDevice.cu
+    utils/UtilsPrintSph.cu
+    utils/UtilsDevice.cu
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
 set(FSISPH_VIS_FILES
-    visualization/ChFsiVisualization.h
-    visualization/ChFsiVisualization.cpp
+    visualization/ChFsiVisualizationSPH.h
+    visualization/ChFsiVisualizationSPH.cpp
 )
 source_group("visualization" FILES ${FSISPH_VIS_FILES})
 

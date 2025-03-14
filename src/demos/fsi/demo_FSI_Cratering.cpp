@@ -32,9 +32,9 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/ChFluidSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -58,7 +58,7 @@ const double sphere_radius = 0.0125;
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationSPH::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
 
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
 
     // Create a fluid system
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     // Create an FSI system
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-time visualizer
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -329,8 +329,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());

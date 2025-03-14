@@ -38,7 +38,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -89,7 +89,7 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationSPH::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
 
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
     sysFSI.SetVerbose(verbose);
 
@@ -138,13 +138,13 @@ int main(int argc, char* argv[]) {
     sysFSI.SetStepsizeMBD(step_size);
 
     // Set CFD fluid properties
-    ChFluidSystemSPH::FluidProperties fluid_props;
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = density;
     fluid_props.viscosity = viscosity;
     sysSPH.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::I2SPH;
     sph_params.num_bce_layers = 3;
     sph_params.initial_spacing = initial_spacing;
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetSPHParameters(sph_params);
 
     // Set linear solver parameters
-    ChFluidSystemSPH::LinSolverParameters linsolv_params;
+    ChFsiFluidSystemSPH::LinSolverParameters linsolv_params;
     linsolv_params.type = SolverType::JACOBI;
     linsolv_params.atol = 0;
     linsolv_params.rtol = 0;
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -326,8 +326,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());

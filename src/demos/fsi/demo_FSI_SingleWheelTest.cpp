@@ -126,7 +126,7 @@ void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, c
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     // Common contact material
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
 
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);

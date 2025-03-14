@@ -33,11 +33,11 @@ set(FSI_FILES
     ChFsiDefinitions.h
     ChFsiSystem.h
     ChFsiSystem.cpp
-    ChFluidSystem.h
-    ChFluidSystem.cpp
+    ChFsiFluidSystem.h
+    ChFsiFluidSystem.cpp
     ChFsiInterface.h
     ChFsiInterface.cpp
-    ChBenchmark.h
+    ChFsiBenchmark.h
 )
 source_group("" FILES ${FSI_FILES})
 

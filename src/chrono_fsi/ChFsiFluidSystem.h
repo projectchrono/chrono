@@ -33,9 +33,9 @@ namespace fsi {
 /// @{
 
 /// Base class for an FSI-aware fluid solver.
-class CH_FSI_API ChFluidSystem {
+class CH_FSI_API ChFsiFluidSystem {
   public:
-    virtual ~ChFluidSystem();
+    virtual ~ChFsiFluidSystem();
 
     /// Enable/disable verbose terminal output (default: true).
     void SetVerbose(bool verbose);
@@ -113,7 +113,7 @@ class CH_FSI_API ChFluidSystem {
                                   std::vector<FsiMeshForce> mesh2D_forces) = 0;
 
   protected:
-    ChFluidSystem();
+    ChFsiFluidSystem();
 
     bool m_verbose;        ///< enable/disable m_verbose terminal output
     std::string m_outdir;  ///< output directory

@@ -38,14 +38,14 @@ namespace sph {
 /// @{
 
 /// GMRES iterative linear solver.
-class ChFsiLinearSolverGMRES : public ChFsiLinearSolver {
+class LinearSolverGMRES : public ChFsiLinearSolver {
   public:
-    /// Constructor of the ChFsiLinearSolverGMRES class.
-    ChFsiLinearSolverGMRES(Real mrel_res = 1e-8, Real mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
+    /// Constructor of the LinearSolverGMRES class.
+    LinearSolverGMRES(Real mrel_res = 1e-8, Real mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
         : ChFsiLinearSolver(SolverType::GMRES, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
-    /// Destructor of the ChFsiLinearSolverGMRES class.
-    ~ChFsiLinearSolverGMRES() {}
+    /// Destructor of the LinearSolverGMRES class.
+    ~LinearSolverGMRES() {}
 
     /// Solve the linear system on the device.
     virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b)

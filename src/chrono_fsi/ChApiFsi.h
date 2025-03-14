@@ -45,9 +45,10 @@
 
     @{
         @defgroup fsi_base Generic FSI interface
-        @defgroup fsiph SPH-based FSI module
+        @brief Base classes for a generic FSI Chrono interface
+        @defgroup fsisph SPH-based FSI module
+        @brief SPH-based fluid solver and FSI interface
         @{
-          @defgroup fsisph_base SPH FSI interface
           @defgroup fsisph_physics Physics objects
           @defgroup fsisph_math Math support
           @defgroup fsisph_utils Utilities

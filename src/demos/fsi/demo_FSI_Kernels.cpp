@@ -14,8 +14,8 @@
 
 #include "chrono/functions/ChFunctionInterp.h"
 
-#include "chrono_fsi/sph/ChFluidSystemSPH.h"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
 
 using namespace chrono;
 using namespace chrono::fsi;

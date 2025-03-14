@@ -16,8 +16,8 @@
 // =============================================================================
 
 #include "chrono/utils/ChConstants.h"
-#include "chrono_fsi/sph/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/sph/physics/FluidDynamics.cuh"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
 
 using std::cout;
 using std::endl;
@@ -329,7 +329,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     Real3 posRad = mR3(posRadD[index]);
     Real3 updatedPositon = posRad + vel_XSPH * dT;
     if (!IsFinite(updatedPositon)) {
-        printf("Error! particle position is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
+        printf("Error! particle position is NAN: thrown from FluidDynamics.cu, UpdateFluidDKernel !\n");
         *error_flag = true;
         return;
     }
@@ -356,7 +356,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         rhoPresMu.x = rho2;
     }
     if (!IsFinite(rhoPresMu)) {
-        printf("Error! particle rho pressure is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
+        printf("Error! particle rho pressure is NAN: thrown from FluidDynamics.cu, UpdateFluidDKernel !\n");
         *error_flag = true;
         return;
     }
@@ -547,37 +547,37 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
 // -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
-ChFluidDynamics::ChFluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
     : m_data_mgr(data_mgr), m_verbose(verbose) {
     switch (m_data_mgr.paramsH->sph_method) {
         default:
         case SPHMethod::WCSPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(data_mgr, bce_mgr, verbose);
+            forceSystem = chrono_types::make_shared<FsiForceWCSPH>(data_mgr, bce_mgr, verbose);
             break;
         case SPHMethod::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(data_mgr, bce_mgr, verbose);
+            forceSystem = chrono_types::make_shared<FsiForceISPH>(data_mgr, bce_mgr, verbose);
             break;
     }
 }
 
-ChFluidDynamics::~ChFluidDynamics() {}
+FluidDynamics::~FluidDynamics() {}
 
 // -----------------------------------------------------------------------------
 
-void ChFluidDynamics::Initialize() {
+void FluidDynamics::Initialize() {
     forceSystem->Initialize();
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
-    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(SimParams));
+    cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(ChFsiParamsSPH));
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::SortParticles() {
+void FluidDynamics::SortParticles() {
     forceSystem->fsiCollisionSystem->ArrangeData(m_data_mgr.sphMarkers_D);
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
+void FluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
                                    std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
                                    Real dT,
                                    Real time,
@@ -593,7 +593,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMark
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
@@ -613,7 +613,7 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT) {
+void FluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
@@ -636,7 +636,7 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarke
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::CopySortedToOriginal(MarkerGroup group,
+void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
                                            std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
                                            std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
@@ -664,7 +664,7 @@ void ChFluidDynamics::CopySortedToOriginal(MarkerGroup group,
 
 // -----------------------------------------------------------------------------
 // Apply periodic boundary conditions in x, y, and z directions
-void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
+void FluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     uint numBlocks, numThreads;
     uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
@@ -692,7 +692,7 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
 // Apply periodic boundary conditions in y, and z.
 // The inlet/outlet BC is applied in the x direction.
 // This functions needs to be tested.
-void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void FluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numBlocks, numThreads;
     uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 256, numBlocks, numThreads);
@@ -714,7 +714,7 @@ void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarker
 }
 
 // -----------------------------------------------------------------------------
-void ChFluidDynamics::DensityReinitialization() {
+void FluidDynamics::DensityReinitialization() {
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 256, numBlocks, numThreads);
 
@@ -729,7 +729,7 @@ void ChFluidDynamics::DensityReinitialization() {
 
     cudaDeviceSynchronize();
     cudaCheckError();
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
+    FsiForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
                                                     m_data_mgr.markersProximity_D->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }

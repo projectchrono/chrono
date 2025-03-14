@@ -29,11 +29,10 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
 
-#include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
+#include "chrono_fsi/sph/ChFsiParamsSPH.h"
 
-#include "chrono_fsi/sph/physics/ChParams.h"
-#include "chrono_fsi/sph/physics/ChMarkerType.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/sph/physics/MarkerType.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -206,7 +205,7 @@ struct Counters {
 
 /// Data manager for the SPH-based FSI system.
 struct FsiDataManager {
-    FsiDataManager(std::shared_ptr<SimParams> params);
+    FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params);
     virtual ~FsiDataManager();
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress.
@@ -276,7 +275,7 @@ struct FsiDataManager {
     /// Extract FSI forces on flex2D nodes.
     std::vector<Real3> GetFlex2dForces();
 
-    std::shared_ptr<SimParams> paramsH;   ///< simulation parameters (host)
+    std::shared_ptr<ChFsiParamsSPH> paramsH;   ///< simulation parameters (host)
     std::shared_ptr<Counters> countersH;  ///< problem counters (host)
 
     std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< Information of SPH particles at state 1 on device

@@ -29,7 +29,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsisph_base
+/// @addtogroup fsisph
 /// @{
 
 /// Real type used in the SPH Chrono::FSI module (float or double).
@@ -66,7 +66,7 @@ struct Real4 {
     Real w;
 };
 
-/// @} fsisph_base
+/// @} fsisph
 
 }  // namespace sph
 }  // end namespace fsi

@@ -109,7 +109,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI);
 int main(int argc, char* argv[]) {
     // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));

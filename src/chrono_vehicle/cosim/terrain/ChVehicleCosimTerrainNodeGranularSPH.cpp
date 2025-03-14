@@ -32,7 +32,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
-#include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
+#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
@@ -220,7 +220,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_terrain = new CRMTerrain(*m_system, initSpace0);
     //////m_terrain->SetVerbose(true);
     ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
-    ChFluidSystemSPH& sysSPH = m_terrain->GetFluidSystemSPH();
+    ChFsiFluidSystemSPH& sysSPH = m_terrain->GetFluidSystemSPH();
 
     // Let the FSI system read its parameters
     if (!m_specfile.empty())
@@ -491,8 +491,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
             m_vsys->EnableBoundaryMarkers(false);
             m_vsys->EnableRigidBodyMarkers(m_show_bce);
             m_vsys->EnableFlexBodyMarkers(m_show_bce);
-            m_vsys->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            m_vsys->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+            m_vsys->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+            m_vsys->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
             m_vsys->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(
                 ChColor(0.10f, 0.40f, 0.65f), aabb_particles.min.z(), aabb_particles.max.z()));
             m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");

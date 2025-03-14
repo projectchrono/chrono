@@ -28,7 +28,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -49,7 +49,7 @@ using namespace chrono::fsi::sph;
 using namespace chrono::vehicle;
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
-                                              ChFluidSystemSPH& sysSPH,
+                                              ChFsiFluidSystemSPH& sysSPH,
                                               ChFsiSystemSPH& sysFSI,
                                               const ChCoordsys<>& init_pos);
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0));
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();
@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
 }
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
-                                              ChFluidSystemSPH& sysSPH,
+                                              ChFsiFluidSystemSPH& sysSPH,
                                               ChFsiSystemSPH& sysFSI,
                                               const ChCoordsys<>& init_pos) {
     std::string vehicle_json = "Polaris/Polaris.json";

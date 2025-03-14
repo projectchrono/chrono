@@ -25,7 +25,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_OPENGL
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
 #endif
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysFSI.SetVerbose(verbose);
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::OpenGL:
@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
             visFSI->EnableFluidMarkers(true);
             visFSI->EnableBoundaryMarkers(true);
             visFSI->EnableRigidBodyMarkers(false);
-            visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+            visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+            visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
             visFSI->AttachSystem(&sysMBS);
             visFSI->Initialize();
         }

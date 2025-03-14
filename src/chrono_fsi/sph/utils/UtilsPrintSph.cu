@@ -23,8 +23,8 @@
 
 #include <thrust/reduce.h>
 
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsPrintSph.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
 
 namespace chrono {
 namespace fsi {

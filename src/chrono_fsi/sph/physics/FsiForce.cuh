@@ -26,7 +26,7 @@
 
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/ChCollisionSystemFsi.cuh"
+#include "chrono_fsi/sph/physics/CollisionSystem.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -105,22 +105,22 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// This is an abstract class that defines an interface that various SPH methods should implement. The class owns a
 /// collision system fsi which takes care of GPU based proximity computation of the particles. It also holds a pointer
 /// to external data of SPH particles, proximity data, parameters, and numbers.
-class ChFsiForce {
+class FsiForce {
   public:
-    /// Base constructor for the ChFsiForce class.
+    /// Base constructor for the FsiForce class.
     /// The constructor instantiates the force system
     /// and initializes the pointer to external data.
-    ChFsiForce(FsiDataManager& data_mgr,  ///< FSI data manager
+    FsiForce(FsiDataManager& data_mgr,  ///< FSI data manager
                BceManager& bce_mgr,       ///< BCE manager
                bool verbose               ///< verbose output
     );
 
-    /// Destructor of the ChFsiForce.
-    virtual ~ChFsiForce();
+    /// Destructor of the FsiForce.
+    virtual ~FsiForce();
 
     /// Function to calculate forces on SPH particles.
     /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
-    /// ChFsiForceI2SPH) or an explicit integrator using WCPSH method (see ChFsiForceExplicitSPH).
+    /// FsiForceISPH) or an explicit integrator using WCPSH method (see FsiForceWCSPH).
     virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects)
@@ -162,10 +162,10 @@ class ChFsiForce {
                                                     thrust::device_vector<Real4>& sorted,
                                                     const thrust::device_vector<uint>& gridMarkerIndex);
 
-    /// Function to set the linear solver type for the solver implemented using the ISPH method (ChFsiForceI2SPH).
+    /// Function to set the linear solver type for the solver implemented using the ISPH method (FsiForceISPH).
     void SetLinearSolver(SolverType type);
 
-    std::shared_ptr<ChCollisionSystemFsi> fsiCollisionSystem;  ///< collision system for building neighbors list
+    std::shared_ptr<CollisionSystem> fsiCollisionSystem;  ///< collision system for building neighbors list
 
   protected:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
@@ -176,7 +176,7 @@ class ChFsiForce {
 
     bool m_verbose;
 
-    friend class ChFluidDynamics;
+    friend class FluidDynamics;
 };
 
 /// @} fsisph_physics

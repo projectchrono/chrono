@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 namespace chrono {
@@ -28,13 +28,13 @@ namespace sph {
 /// Requires the Chrono::VSG module.
 /// Note that using run-time visualization for an FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
-class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
+class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualizationSPH {
   public:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
     ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI);
 
     /// Create a run-time FSI visualization object associated with a given SPH fluid system.
-    ChFsiVisualizationVSG(ChFluidSystemSPH* sysSPH);
+    ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH);
 
     ~ChFsiVisualizationVSG();
 

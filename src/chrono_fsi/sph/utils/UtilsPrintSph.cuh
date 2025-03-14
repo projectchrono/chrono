@@ -21,10 +21,10 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 
-struct SimParams;
+struct ChFsiParamsSPH;
 
 namespace chrono {
 namespace fsi {

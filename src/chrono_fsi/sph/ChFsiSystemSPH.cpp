@@ -25,7 +25,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH, bool use_generic_interface)
+ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH, bool use_generic_interface)
     : ChFsiSystem(sysMBS, sysSPH), m_sysSPH(sysSPH) {
     if (use_generic_interface) {
         std::cout << "Create an FSI system using a generic FSI interface" << std::endl;
@@ -38,7 +38,7 @@ ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH, bool 
 
 ChFsiSystemSPH::~ChFsiSystemSPH() {}
 
-ChFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
+ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return m_sysSPH;
 }
 

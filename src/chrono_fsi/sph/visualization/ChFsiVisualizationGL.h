@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
@@ -29,13 +29,13 @@ namespace sph {
 /// Requires the Chrono::OpenGL module.
 /// Note that using run-time visualization for an FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
-class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualization {
+class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualizationSPH {
   public:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
     ChFsiVisualizationGL(ChFsiSystemSPH* sysFSI);
 
     /// Create a run-time FSI visualization object associated with a given SPH fluid system.
-    ChFsiVisualizationGL(ChFluidSystemSPH* sysSPH);
+    ChFsiVisualizationGL(ChFsiFluidSystemSPH* sysSPH);
 
     ~ChFsiVisualizationGL();
 

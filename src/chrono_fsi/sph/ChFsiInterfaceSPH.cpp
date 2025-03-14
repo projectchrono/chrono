@@ -17,14 +17,14 @@
 
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/sph/utils/ChUtilsTypeConvert.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
+#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
 namespace chrono {
 namespace fsi {
 namespace sph {
 
-ChFsiInterfaceSPH::ChFsiInterfaceSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH)
+ChFsiInterfaceSPH::ChFsiInterfaceSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH)
     : ChFsiInterface(sysMBS, sysSPH), m_data_mgr(sysSPH.m_data_mgr.get()) {}
 
 ChFsiInterfaceSPH::~ChFsiInterfaceSPH() {}

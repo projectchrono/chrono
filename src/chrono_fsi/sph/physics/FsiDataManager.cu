@@ -154,7 +154,7 @@ void ProximityDataD::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-FsiDataManager::FsiDataManager(std::shared_ptr<SimParams> params) : paramsH(params) {
+FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH(params) {
     countersH = chrono_types::make_shared<Counters>();
 
     sphMarkers_D = chrono_types::make_shared<SphMarkerDataD>();

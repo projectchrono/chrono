@@ -24,7 +24,6 @@
 #include <cuda_runtime_api.h>
 #include <device_launch_parameters.h>
 
-#include "chrono_fsi/sph/physics/ChParams.h"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 
 namespace chrono {
@@ -34,10 +33,10 @@ namespace sph {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 // Declared as const variables static in order to be able to use them in a different translation units in the utils
-__constant__ static SimParams paramsD;
+__constant__ static ChFsiParamsSPH paramsD;
 __constant__ static Counters countersD;
 
-void CopyParametersToDevice(std::shared_ptr<SimParams> paramsH, std::shared_ptr<Counters> countersH);
+void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared_ptr<Counters> countersH);
 
 //--------------------------------------------------------------------------------------------------------------------------------
 

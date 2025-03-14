@@ -39,7 +39,7 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
+ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
     : m_sysMBS(sysMBS),
       m_sysCFD(sysCFD),
       m_is_initialized(false),
@@ -53,7 +53,7 @@ ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
 
 ChFsiSystem::~ChFsiSystem() {}
 
-ChFluidSystem& ChFsiSystem::GetFluidSystem() const {
+ChFsiFluidSystem& ChFsiSystem::GetFluidSystem() const {
     return m_sysCFD;
 }
 

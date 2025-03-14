@@ -39,10 +39,10 @@ namespace sph {
 
 /// Base class for solving linear systems on GPUs.
 /// Specific solution methods are implemented in derived classes.
-class ChFsiLinearSolver {
+class LinearSolver {
   public:
-    /// Constructor of the ChFsiLinearSolver class.
-    ChFsiLinearSolver(SolverType msolver,
+    /// Constructor of the LinearSolver class.
+    LinearSolver(SolverType msolver,
                       Real mrel_res = 1e-8,
                       Real mabs_res = 1e-4,
                       int mmax_iter = 1000,
@@ -54,8 +54,8 @@ class ChFsiLinearSolver {
         solver_type = msolver;
     };
 
-    /// Destructor of the ChFsiLinearSolver class.
-    virtual ~ChFsiLinearSolver() {}
+    /// Destructor of the LinearSolver class.
+    virtual ~LinearSolver() {}
 
     /// Return the solver type.
     SolverType GetType() { return solver_type; }

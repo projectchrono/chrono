@@ -25,7 +25,7 @@
 #include "cublas_v2.h"
 #include "cusparse_v2.h"
 
-#include "chrono_fsi/sph/math/ChFsiLinearSolverGMRES.h"
+#include "chrono_fsi/sph/math/LinearSolverGMRES.h"
 
 namespace chrono {
 namespace fsi {
@@ -69,13 +69,13 @@ void PlaneRotation(Real* H, Real* cs, Real* sn, Real* s, const int i, const int 
     ApplyPlaneRotation(s[i], s[i + 1], cs[i], sn[i]);
 }
 
-void ChFsiLinearSolverGMRES::Solve(int SIZE,
-                                   int NNZ,
-                                   Real* A,
-                                   unsigned int* ArowIdx,
-                                   unsigned int* AcolIdx,
-                                   Real* x,
-                                   Real* b) {
+void LinearSolverGMRES::Solve(int SIZE,
+                              int NNZ,
+                              Real* A,
+                              unsigned int* ArowIdx,
+                              unsigned int* AcolIdx,
+                              Real* x,
+                              Real* b) {
 #ifndef CUDART_VERSION
     #error CUDART_VERSION Undefined!
 #elif (CUDART_VERSION == 11000)
