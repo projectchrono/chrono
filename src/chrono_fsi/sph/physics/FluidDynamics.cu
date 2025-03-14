@@ -598,9 +598,8 @@ void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) 
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    //------------------------
     uint numBlocks, numThreads;
-    computeGridSize(m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
+    computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
@@ -618,9 +617,8 @@ void FluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkers
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    //------------------------
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
     UpdateFluidD<<<numBlocks, numThreads>>>(
@@ -643,9 +641,7 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
-
-    //------------------------
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
 
@@ -665,9 +661,10 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
 // -----------------------------------------------------------------------------
 // Apply periodic boundary conditions in x, y, and z directions
 void FluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
+
     if (m_data_mgr.paramsH->x_periodic) {
         ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
@@ -693,8 +690,8 @@ void FluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sor
 // The inlet/outlet BC is applied in the x direction.
 // This functions needs to be tested.
 void FluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
     computeGridSize(numActive, 256, numBlocks, numThreads);
     ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
                                                          mR4CAST(sphMarkersD->rhoPresMuD), numActive);

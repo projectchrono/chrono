@@ -254,7 +254,7 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
 
     fillActiveListD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.prefixSumExtendedActivityIdD),
                                                INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-                                               U1CAST(m_data_mgr.activeListD), m_data_mgr.countersH->numAllMarkers);
+                                               U1CAST(m_data_mgr.activeListD), (uint)m_data_mgr.countersH->numAllMarkers);
     cudaDeviceSynchronize();
     cudaCheckErrorFlag(error_flagD, "fillActiveListD");
 

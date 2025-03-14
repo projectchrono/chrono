@@ -1710,10 +1710,9 @@ void FsiForceWCSPH::neighborSearch() {
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    // thread per particle
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocksShort, numThreadsShort;
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
-    computeGridSize((uint)numActive, 1024, numBlocksShort, numThreadsShort);
+    computeGridSize(numActive, 1024, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
@@ -1755,10 +1754,9 @@ void FsiForceWCSPH::CollideWrapper(Real time, bool firstHalfStep) {
          int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
         neighborSearch();
 
-    // thread per particle
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
-    computeGridSize((uint)numActive, 1024, numBlocks, numThreads);
+    computeGridSize(numActive, 1024, numBlocks, numThreads);
 
     // Re-Initialize the density after several time steps if needed
     if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
@@ -1799,7 +1797,7 @@ void FsiForceWCSPH::CollideWrapper(Real time, bool firstHalfStep) {
                 mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), error_flagD);
             cudaCheckErrorFlag(error_flagD, "Boundary_ElasticSPH_Holmes");
         }
-        computeGridSize((uint)numActive, 256, numBlocks, numThreads);
+        computeGridSize(numActive, 256, numBlocks, numThreads);
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         NS_SSR<<<numBlocks, numThreads>>>(
             mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
@@ -1833,7 +1831,7 @@ void FsiForceWCSPH::CollideWrapper(Real time, bool firstHalfStep) {
                 mR3CAST(m_sortedSphMarkers_D->velMasD), error_flagD);
             cudaCheckErrorFlag(error_flagD, "Boundary_NavierStokes_Holmes");
         }
-        computeGridSize((uint)numActive, 256, numBlocks, numThreads);
+        computeGridSize(numActive, 256, numBlocks, numThreads);
         // execute the kernel
         // TOUnderstand: Why is the blocks NumBlocks1 and threads NumThreads1?
         Navier_Stokes<<<numBlocks, numThreads>>>(
@@ -1864,10 +1862,9 @@ void FsiForceWCSPH::CalculateShifting() {
             "CalculateShifting!\n");
     }
 
-    // thread per particle
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
-    uint numActive = m_data_mgr.countersH->numExtendedParticles;
-    computeGridSize((uint)numActive, 1024, numBlocks, numThreads);
+    computeGridSize(numActive, 1024, numBlocks, numThreads);
 
     // thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),
     //              mR3(0));  // no this can not be zero ... i computed vel_xsph_d in collid wrapper

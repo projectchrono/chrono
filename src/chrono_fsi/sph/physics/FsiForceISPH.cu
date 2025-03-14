@@ -1277,10 +1277,9 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 void FsiForceISPH::neighborSearch() {
     cudaResetErrorFlag(error_flagD);
 
-    // thread per particle
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocksShort, numThreadsShort;
-    int numActive = m_data_mgr.countersH->numExtendedParticles;
-    computeGridSize((uint)numActive, 256, numBlocksShort, numThreadsShort);
+    computeGridSize(numActive, 256, numBlocksShort, numThreadsShort);
 
     // Execute the kernel
     thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
