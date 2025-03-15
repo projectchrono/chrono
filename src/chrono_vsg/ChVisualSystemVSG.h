@@ -467,6 +467,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// The VSG shapes are always rendered wireframe.
     void PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
 
+    /// Utility functions to collect active body positions from all assemblies in all systems.
+    static void CollectActiveBodyCOMPositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions);
+    static void ConvertCOMPositions(const std::vector<ChVector3d>& c, vsg::ref_ptr<vsg::vec4Array> v, double w);
+
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
     int m_windowWidth = 800;

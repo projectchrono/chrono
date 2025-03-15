@@ -1312,11 +1312,12 @@ void ChVisualSystemVSG::Render() {
 
     // Dynamic data transfer CPU->GPU for COM symbol positions
     {
-        auto bodies = m_systems.at(0)->GetBodies();
-        for (size_t i = 0; i < bodies.size(); i++) {
-            auto p = bodies.at(i)->GetFrameCOMToAbs().GetPos();
-            m_com_symbol_positions->set(i, vsg::vec4(p.x(), p.y(), p.z(), symbol_size));
+        std::vector<ChVector3d> c_pos;
+        for (auto sys : m_systems) {
+            CollectActiveBodyCOMPositions(sys->GetAssembly(), c_pos);
         }
+        ConvertCOMPositions(c_pos, m_com_symbol_positions, symbol_size);
+
         m_com_symbol_positions->dirty();
     }
 
@@ -1643,6 +1644,28 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 
 // -----------------------------------------------------------------------------
 
+void ChVisualSystemVSG::CollectActiveBodyCOMPositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions) {
+    std::vector<ChVector3d> local_positions;
+    for (const auto& body : assembly.GetBodies()) {
+        if (body->IsActive())
+            local_positions.push_back(body->GetFrameCOMToAbs().GetPos());
+    }
+    positions.insert(positions.end(), local_positions.begin(), local_positions.end());
+
+    for (const auto& item : assembly.GetOtherPhysicsItems()) {
+        if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item))
+            CollectActiveBodyCOMPositions(*assmbly, positions);
+    }
+}
+
+void ChVisualSystemVSG::ConvertCOMPositions(const std::vector<ChVector3d>& c,
+                                            vsg::ref_ptr<vsg::vec4Array> v,
+                                            double w) {
+    assert(c.size() == v->size());
+    for (size_t i = 0; i < c.size(); i++)
+        v->set(i, vsg::vec4CH(c[i], w));
+}
+
 void ChVisualSystemVSG::BindCOMSymbols() {
     auto symbol_texture_filename = GetChronoDataFile("vsg/textures/COM_symbol.png");
     auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
@@ -1657,14 +1680,15 @@ void ChVisualSystemVSG::BindCOMSymbols() {
     stateInfo.billboard = true;
     stateInfo.lighting = false;
     stateInfo.image = vsg::read_cast<vsg::Data>(symbol_texture_filename, m_options);
-    auto bodies = m_systems.at(0)->GetBodies();
 
-    auto positions = vsg::vec4Array::create(bodies.size());
-    geomInfo.positions = positions;
-    for (size_t i = 0; i < bodies.size(); i++) {
-        auto p = bodies[i]->GetFrameCOMToAbs();
-        positions->set(i, vsg::vec4(p.GetPos().x(), p.GetPos().y(), p.GetPos().z(), symbol_size));
+    std::vector<ChVector3d> c_pos;
+    for (auto sys : m_systems) {
+        CollectActiveBodyCOMPositions(sys->GetAssembly(), c_pos);
     }
+    auto v_pos = vsg::vec4Array::create(c_pos.size());
+    ConvertCOMPositions(c_pos, v_pos, symbol_size);
+    geomInfo.positions = v_pos;
+
     auto node = m_vsgBuilder->createQuad(geomInfo, stateInfo);
     m_comSymbolScene->addChild(m_show_com_symbols, node);
 
