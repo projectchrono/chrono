@@ -69,18 +69,12 @@ If the Eigen library was installed through a package manager, its location may b
 
     - Press `c` to **Configure** and continue to the next screen.
 
-    - Enable the recommended optional modules: at least tick `CH_ENABLE_MODULE_OPENGL`.<br>
+    - Enable the recommended optional modules.<br>
      Other modules might require additional settings and dependencies.
 
     -  Enter `c` to **Configure** and continue to the next screen.
 
 	- Emscripten contains embedded headers for GLEW and GLFW, two dependencies of Chrono, in its sysroot folder. If you installed an emscripten environment using emsdk, a folder should be available in your home directory at `~/.emscripten_cache/sysroot` which contains the required headers.
-	
-<div class="ce-warning">
-Due to a bug in CMake's handling of the GLEW and GLFW with emscripten, the `GLEW_LIBRARY` and `GLFW_LIBRARY` variables may need to be set to some nonsense value in order for CMake to build the OpenGL module correctly. If you enabled the module, but no demos are generated for it, try setting the variables to a valid path such as `/dev/null`.
-</div>
-
-	- Specify the location of the GLM installation. If this is not detected automatically, you may need to manually set the CMake variable `GLM_INCLUDE_DIR`.  
 
 <div class="ce-warning">
 Similar to the Eigen directory field set earlier, the GLM include directory may be detected automatically. If it was detected automatically, verify the location of the library is correct before continuing.

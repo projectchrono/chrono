@@ -154,13 +154,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetRefFrameScale(double axis_length);
     void ToggleRefFrameVisibility();
 
-    /// Render COG frames for all bodies in the system.
-    virtual void RenderCOGFrames(double axis_length = 1) override;
-    void SetCOGFrameScale(double axis_length);
-    void ToggleCOGFrameVisibility();
+    /// Render COM frames for all bodies in the system.
+    void SetCOMFrameScale(double axis_length);
+    void ToggleCOMFrameVisibility();
+
+    /// Render COM symbol for all bodies in the system.
+    void ToggleCOMSymbolVisibility();
 
     /// Render joint frames for all links in the system.
-    void RenderJointFrames(double axis_length = 1);
     void SetJointFrameScale(double axis_length);
     void ToggleJointFrameVisibility();
 
@@ -318,7 +319,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Switch> m_contactForcesScene;
     vsg::ref_ptr<vsg::Switch> m_absFrameScene;
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
-    vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
+    vsg::ref_ptr<vsg::Switch> m_comFrameScene;
+    vsg::ref_ptr<vsg::Switch> m_comSymbolScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
@@ -456,12 +458,18 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the joint frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
+    void BindCOMSymbols();
+
     /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
     void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model, bool wireframe);
 
     /// Utility function to populate a VSG group with collision shapes (from the given collision model).
     /// The VSG shapes are always rendered wireframe.
     void PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
+
+    /// Utility functions to collect active body positions from all assemblies in all systems.
+    static void CollectActiveBodyCOMPositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions);
+    static void ConvertCOMPositions(const std::vector<ChVector3d>& c, vsg::ref_ptr<vsg::vec4Array> v, double w);
 
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;
@@ -518,12 +526,19 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     // Frame rendering
     bool m_show_abs_frame;       ///< flag to toggle absolute frame visibility
     bool m_show_ref_frames;      ///< flag to toggle object reference frame visibility
-    bool m_show_cog_frames;      ///< flag to toggle COG frame visibility
-    bool m_show_joint_frames;    ///< flag to toggle COG frame visibility
+    bool m_show_com_frames;      ///< flag to toggle COM frame visibility
+    bool m_show_com_symbols;     ///< flag to toggle COM symbol visibility
+    bool m_show_joint_frames;    ///< flag to toggle link frame visibility
     double m_abs_frame_scale;    ///< current absolute frame scale
     double m_ref_frame_scale;    ///< current reference frame scale
-    double m_cog_frame_scale;    ///< current COG frame scale
+    double m_com_frame_scale;    ///< current COM frame scale
+    double m_com_symbol_ratio;   ///< COM symbol scale relative to current COM frame scale
     double m_joint_frame_scale;  ///< current joint frame scale
+
+    vsg::ref_ptr<vsg::vec3Array> m_com_symbol_vertices;
+    vsg::ref_ptr<vsg::vec4Array> m_com_symbol_positions;
+    bool m_com_size_changed;
+    bool m_com_symbols_empty;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render

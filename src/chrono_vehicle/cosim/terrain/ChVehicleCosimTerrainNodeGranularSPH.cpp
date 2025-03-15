@@ -34,9 +34,6 @@
 
 #include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -475,8 +472,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         vsys_VSG->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         m_vsys = vsys_VSG;
-#elif defined(CHRONO_OPENGL)
-        m_vsys = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
 #endif
 
         if (m_vsys) {

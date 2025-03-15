@@ -36,9 +36,6 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -55,9 +52,6 @@ using std::cin;
 using std::endl;
 
 // ===================================================================================================================
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // CRM terrain patch type
 enum class PatchType { RECTANGULAR, MARKER_DATA, HEIGHT_MAP };
@@ -265,33 +259,15 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization
     // -----------------------------
 
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
 #ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
     render = false;
 #endif
 
     std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
-                break;
-            }
-        }
 
         visFSI->SetTitle("Wheeled vehicle on CRM deformable terrain");
         visFSI->SetSize(1280, 720);

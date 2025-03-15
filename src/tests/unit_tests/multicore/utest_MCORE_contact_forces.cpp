@@ -25,11 +25,6 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-//#define USE_OPENGL
-#endif
-
 #include "../ut_utils.h"
 
 using namespace chrono;
@@ -164,23 +159,7 @@ TEST_P(ContactForceTest, simulate) {
     double rtol = 1e-3;  // validation relative error
 
     while (sys->GetChTime() < end_time) {
-#ifdef USE_OPENGL
-        opengl::ChVisualSystemOpenGL vis;
-        vis.AttachSystem(sys);
-        vis.SetWindowTitle("");
-        vis.SetWindowSize(1200, 800);
-        vis.SetRenderMode(opengl::WIREFRAME);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(20, 0, 0), ChVector3d(0, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
-
-        if (!vis.Run())
-            break;
         sys->DoStepDynamics(time_step);
-        vis.Render();
-#else
-        sys->DoStepDynamics(time_step);
-#endif
 
         sys->GetContactContainer()->ComputeContactForces();
         ChVector3d contact_force = ground->GetContactForce();

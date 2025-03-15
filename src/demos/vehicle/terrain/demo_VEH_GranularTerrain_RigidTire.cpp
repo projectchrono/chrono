@@ -24,10 +24,11 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::vsg3d;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -148,6 +149,7 @@ int main(int argc, char* argv[]) {
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetColor(ChColor(0.2f, 0.6f, 0.86f));
     body->AddVisualShape(trimesh_shape);
 
     auto body_mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -170,18 +172,24 @@ int main(int argc, char* argv[]) {
     if (moving_patch)
         terrain.EnableMovingPatch(body, 2.0, 0.2);
 
-    // -----------------
-    // Initialize OpenGL
-    // -----------------
+    // ------------------------
+    // Initialize visualization
+    // ------------------------
 
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(sys);
-    vis.SetWindowTitle("Granular terrain demo");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::SOLID);
-    vis.Initialize();
-    vis.AddCamera(center - ChVector3d(0, 3, 0), center);
-    vis.SetCameraVertical(CameraVerticalDir::Z);
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(sys);
+    vis->SetWindowTitle("Granular terrain demo");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->AddCamera(center + ChVector3d(0, -3, 0.3), center);
+    vis->SetWindowSize(1280, 720);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->SetUseSkyBox(true);
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->SetShadows(true);
+    vis->SetWireFrameMode(false);
+    vis->Initialize();
 
     // ---------------
     // Simulation loop
@@ -210,24 +218,24 @@ int main(int argc, char* argv[]) {
         ////    std::cout << "   " << aabb_max.x << "  " << aabb_max.y << "  " << aabb_max.z << std::endl;
         ////}
 
-        if (vis.Run()) {
+        if (vis->Run()) {
             switch (cam_type) {
                 case FRONT: {
-                    ChVector3d cam_loc(terrain.GetPatchFront(), -3, 0);
+                    ChVector3d cam_loc(terrain.GetPatchFront(), -3, 0.3);
                     ChVector3d cam_point(terrain.GetPatchFront(), 0, 0);
-                    vis.UpdateCamera(cam_loc, cam_point);
+                    vis->UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 case TRACK: {
                     ChVector3d cam_point = body->GetPos();
                     ChVector3d cam_loc = cam_point + ChVector3d(-3 * tire_rad, -1, 0.6);
-                    vis.UpdateCamera(cam_loc, cam_point);
+                    vis->UpdateCamera(cam_loc, cam_point);
                     break;
                 }
                 default:
                     break;
             }
-            vis.Render();
+            vis->Render();
         } else {
             break;
         }

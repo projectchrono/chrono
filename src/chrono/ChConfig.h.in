@@ -43,9 +43,6 @@
 // If module MUMPS was enabled, define CHRONO_MUMPS
 @CHRONO_MUMPS@
 
-// If module OPENGL was enabled, define CHRONO_OPENGL
-@CHRONO_OPENGL@
-
 // If module PARSERS was enabled, define CHRONO_PARSERS
 @CHRONO_PARSERS@
 

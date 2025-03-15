@@ -38,8 +38,9 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -96,7 +97,7 @@ double output_fps = 20;
 // Verbose terminal output
 bool verbose = true;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 100;
 
@@ -186,9 +187,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
     // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
+    ChFsiVisualizationVSG fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
         fsi_vis.AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
@@ -241,7 +242,7 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
         // Render SPH particles
         if (render && time >= render_frame / render_fps) {
             if (!fsi_vis.Render())

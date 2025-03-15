@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar (OpenGL), Rainer Gericke (VSG)
+// Authors: Hammad Mazhar, Rainer Gericke
 // =============================================================================
 //
 // Chrono::VSG test program.

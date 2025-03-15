@@ -105,8 +105,8 @@ source_group("" FILES ${GPU_GL_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_GPU "")
-if(CH_ENABLE_MODULE_OPENGL)
-  list (APPEND DEPENDENCIES_GPU "OPENGL")
+if(CH_ENABLE_MODULE_VSG)
+  list (APPEND DEPENDENCIES_GPU "VSG")
 endif()
 
 set(DEPENDENCIES_GPU ${DEPENDENCIES_GPU} PARENT_SCOPE)
@@ -158,49 +158,6 @@ install(TARGETS Chrono_gpu
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_gpu
 )
-
-# ------------------------------------------------------------------------------
-# Add the Chrono_gpu_opengl library
-# ------------------------------------------------------------------------------
-
-if(CH_ENABLE_MODULE_OPENGL)
-
-    message(STATUS "Add Chrono_gpu_opengl library")
-
-    add_library(Chrono_gpu_opengl ${GPU_GL_FILES})
-    add_library(Chrono::gpu_opengl ALIAS Chrono_gpu_opengl)
-
-    if (CH_STATIC)
-      set_target_properties(Chrono_gpu_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    endif()
-    
-    if(MSVC)
-      set_target_properties(Chrono_gpu_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-
-    target_compile_definitions(Chrono_gpu_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
-
-    target_link_libraries(Chrono_gpu_opengl PRIVATE Chrono_core Chrono_gpu)
-    target_link_libraries(Chrono_gpu_opengl PUBLIC Chrono_opengl)
-
-    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cudart_static)
-    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::nvrtc)
-    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cuda_driver)
-    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cublas)
-    target_link_libraries(Chrono_gpu_opengl PRIVATE CUDA::cusparse)
-
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_compile_options(Chrono_gpu_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
-    endif()
-      
-    install(TARGETS Chrono_gpu_opengl
-            EXPORT ChronoTargets
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include/chrono_gpu)
-
-endif()
 
 #-------------------------------------------------------------------------------
 # Install files

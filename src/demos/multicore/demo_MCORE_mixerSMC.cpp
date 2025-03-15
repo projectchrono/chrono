@@ -18,10 +18,6 @@
 // onto a mixer blade attached through a revolute joint to the ground.
 //
 // The global reference frame has Z up.
-//
-// If available, OpenGL is used for run-time rendering. Otherwise, the
-// simulation is carried out for a pre-defined duration and output files are
-// generated for post-processing with POV-Ray.
 // =============================================================================
 
 #include <cstdio>
@@ -35,8 +31,10 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -176,19 +174,25 @@ int main(int argc, char* argv[]) {
     // Perform the simulation
     // ----------------------
 
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(&sys);
-    vis.SetWindowTitle("Mixer SMC");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, -3, 2), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Y);
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
+    vis->SetWindowTitle("Mixer SMC");
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->AddCamera(ChVector3d(0.6, -2, 3), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->SetUseSkyBox(true);
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(0.75f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI / 6);
+    vis->SetShadows(true);
+    vis->SetWireFrameMode(false);
+    vis->Initialize();
 
-    while (vis.Run()) {
+    while (vis->Run()) {
         sys.DoStepDynamics(time_step);
-        vis.Render();
+        vis->Render();
 
         ////auto frc = mixer->GetAppliedForce();
         ////auto trq = mixer->GetAppliedTorque();

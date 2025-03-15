@@ -107,18 +107,6 @@ set(FSISPH_STB_FILES
 )
 source_group("stb" FILES ${FSISPH_STB_FILES})
 
-# --------------- SPH FSI OpenGL INTERFACE
-
-if(CH_ENABLE_MODULE_OPENGL)
-    set(FSISPH_GL_FILES
-        visualization/ChFsiVisualizationGL.h
-        visualization/ChFsiVisualizationGL.cpp
-    )
-else()
-    set(FSISPH_GL_FILES "")
-endif()
-source_group("" FILES ${FSISPH_GL_FILES})
-
 # --------------- SPH FSI VSG INTERFACE
 
 if(CH_ENABLE_MODULE_VSG)
@@ -136,9 +124,6 @@ source_group("" FILES ${FSISPH_VSG_FILES})
 # ------------------------------------------------------------------------------
 
 set(DEPENDENCIES_FSI "")
-if(CH_ENABLE_MODULE_OPENGL)
-  list (APPEND DEPENDENCIES_FSI "OPENGL")
-endif()
 if(CH_ENABLE_MODULE_VSG)
   list (APPEND DEPENDENCIES_FSI "VSG")
 endif()
@@ -234,57 +219,6 @@ if(CH_ENABLE_MODULE_VSG)
     target_compile_definitions(Chrono_fsisph_vsg PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
 
     install(TARGETS Chrono_fsisph_vsg
-            EXPORT ChronoTargets
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include/chrono_fsi) # TODO DARIOM: verify if correct folder
-
-endif()
-
-#-------------------------------------------------------------------------------
-# Add the Chrono_fsisph_opengl library
-#-------------------------------------------------------------------------------
-
-if(CH_ENABLE_MODULE_OPENGL)
-    message(STATUS "  Add Chrono_fsisph_opengl library")
-
-    add_library(Chrono_fsisph_opengl
-        ${FSISPH_GL_FILES}
-    )
-    add_library(Chrono::fsisph_opengl ALIAS Chrono_fsisph_opengl)
-   
-    if (CH_STATIC)
-      set_target_properties(Chrono_fsisph_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    endif()
-    
-    if(MSVC)
-      # disable warnings related to missing DLL interface
-      target_compile_options(Chrono_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-      set_target_properties(Chrono_fsisph_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-
-    target_compile_definitions(Chrono_fsisph_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_FSI>)
-    
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE Chrono_core Chrono_fsisph)
-    target_link_libraries(Chrono_fsisph_opengl PUBLIC Chrono_opengl)
-    
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cudart_static)
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::nvrtc)
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cuda_driver)
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cublas)
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE CUDA::cusparse)
-
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE OpenMP::OpenMP_CXX) # TODO DARIOM: if needed we should check that OpenMP is available
-    target_link_libraries(Chrono_fsisph_opengl PRIVATE Thrust::Thrust)
-    target_compile_definitions(Chrono_fsisph_opengl PRIVATE "THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA")
-    target_compile_definitions(Chrono_fsisph_opengl PRIVATE "THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP")
-
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        target_compile_options(Chrono_fsisph_opengl PUBLIC $<$<COMPILE_LANGUAGE:CXX>:"-framework IOKit -framework Cocoa -framework OpenGL">)
-    endif()
-
-    install(TARGETS Chrono_fsisph_opengl
             EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib

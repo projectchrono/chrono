@@ -4,7 +4,7 @@ Visualization System {#visualization_system}
 
 Chrono objects - either bodies, meshes or even abstract shapes with no underlying physics - can be rendered and visualized through different rendering engines. At the same time, Chrono is not binded to any of them, thus allowing an easy extension to other rendering systems. Various [visualization systems](@ref manual_visualization) are indeed available.
 
-Any visualization system inherits from a common base class - namely @ref chrono::ChVisualSystem "ChVisualSystem", defined in the **core** module - that always includes a pointer to a given @ref chrono::ChSystem "ChSystem". This binding allows the visual system to be informed about simulation updates, thus being able to update any visual asset according to the new bodies positions. Visual systems may allow simultaneous rendering of multiple Chrono systems, however only @ref chrono::opengl::ChVisualSystemOpenGL "opengl::ChVisualSystemOpenGL" currently supports this feature.
+Any visualization system inherits from a common base class - namely @ref chrono::ChVisualSystem "ChVisualSystem", defined in the **core** module - that always includes a pointer to a given @ref chrono::ChSystem "ChSystem". This binding allows the visual system to be informed about simulation updates, thus being able to update any visual asset according to the new bodies positions. Visual systems may allow simultaneous rendering of multiple Chrono systems.
 
 Together with the @ref chrono::ChVisualSystem "ChVisualSystem", Chrono offers also a wide set of renderer-agnostic _visual assets_: each visual system takes care of converting them into renderer-specific assets. These _visual assets_ are mainly represented by the @ref chrono::ChVisualShape "ChVisualShape" classes.
 

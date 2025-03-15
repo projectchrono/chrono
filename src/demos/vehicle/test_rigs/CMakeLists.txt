@@ -67,13 +67,6 @@ if(CH_ENABLE_MODULE_VSG)
     endif()
 endif()
 
-if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "Chrono_vehicle_opengl")
-    if(CH_ENABLE_MODULE_FSI)
-      list(APPEND LIBS "Chrono_fsisph_opengl")
-    endif()
-endif()
-
 #--------------------------------------------------------------
 # Create the executables
 

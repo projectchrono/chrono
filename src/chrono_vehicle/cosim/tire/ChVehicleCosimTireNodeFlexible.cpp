@@ -197,7 +197,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
         vsys_vsg->SetImageOutput(m_writeRT);
         vsys_vsg->Initialize();
 
-        vsys_vsg->ToggleCOGFrameVisibility();
+        vsys_vsg->ToggleCOMFrameVisibility();
 
         m_vsys = vsys_vsg;
 #elif defined(CHRONO_IRRLICHT)
