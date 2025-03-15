@@ -9,16 +9,15 @@ SET(LIBRARIES
     Chrono_multicore
 )
 
-IF(CH_ENABLE_MODULE_OPENGL)
-    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} Chrono_opengl)
+IF(CH_ENABLE_MODULE_VSG)
+    SET(LIBRARIES ${LIBRARIES} Chrono_vsg)
 ENDIF()
 
 # ------------------------------------------------------------------------------
 # List of all executables
 # ------------------------------------------------------------------------------
 
-# Programs that can work with or without OpenGL
+# Programs that can work with or without VSG
 SET(DEMOS
     demo_MCORE_ballsSMC
     demo_MCORE_ballsNSC
@@ -30,8 +29,8 @@ SET(DEMOS
     demo_MCORE_cratering
 )
 
-# Add programs that require OpenGL
-if(CH_ENABLE_MODULE_OPENGL)
+# Add programs that require VSG
+if(CH_ENABLE_MODULE_VSG)
     set(DEMOS
         ${DEMOS} 
         demo_MCORE_motors

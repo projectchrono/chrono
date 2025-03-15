@@ -25,10 +25,6 @@
 
 #include <cmath>
 
-#ifdef __EMSCRIPTEN__
-    #include <emscripten.h>
-#endif
-
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -39,9 +35,21 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 using namespace chrono;
+
+// =============================================================================
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // =============================================================================
 // MyController class
@@ -205,9 +213,11 @@ int main(int argc, char* argv[]) {
 
     // Attach visualization assets
     auto sphere1_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
+    sphere1_g->SetColor(ChColor(1, 0, 0));
     ground->AddVisualShape(sphere1_g, ChFrame<>(ChVector3d(+travel_dist, 0, 0), QUNIT));
 
     auto sphere2_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
+    sphere2_g->SetColor(ChColor(0, 0, 1));
     ground->AddVisualShape(sphere2_g, ChFrame<>(ChVector3d(-travel_dist, 0, 0), QUNIT));
 
     // Create the cart body
@@ -259,16 +269,55 @@ int main(int argc, char* argv[]) {
     load_container->Add(cart_load);
     sys.Add(load_container);
 
-    // Create OpenGL window and camera
-    // -------------------------------
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(&sys);
-    vis.SetWindowTitle("Inverted Pendulum");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, 0, 5), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Y);
+    // Create run-time visualization system
+    // ------------------------------------
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Inverted Pendulum");
+            vis_irr->SetCameraVertical(CameraVerticalDir::Y);
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddTypicalLights();
+            vis_irr->AddCamera(ChVector3d(0, 0, 5));
+            vis_irr->AttachSystem(&sys);
+            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
+                             ChColor(0.1f, 0.1f, 0.1f));
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowTitle("Inverted Pendulum");
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->AddCamera(ChVector3d(0, 1, 7));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
+            vis_vsg->SetClearColor(ChColor(0.4f, 0.5f, 0.6f));
+            vis_vsg->SetUseSkyBox(false);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(0.7f);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
+            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // (Optional) change solver and integrator
     // ---------------------------------------
@@ -292,7 +341,7 @@ int main(int argc, char* argv[]) {
     int target_id = 0;
     double switch_time = 0;
 
-    std::function<void()> step_iter = [&]() -> void {
+    while (vis->Run()) {
         // At a switch time, flip target for cart location
         if (sys.GetChTime() > switch_time) {
             controller.SetTargetCartLocation(travel_dist * (1 - 2 * target_id));
@@ -307,17 +356,10 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(time_step);
         controller.Advance(time_step);
 
-        vis.Render();
-    };
+        vis->Render();
 
-#ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop_arg(&opengl::ChVisualSystemOpenGL::WrapRenderStep, (void*)&step_iter, 50, true);
-#else
-    while (vis.Run()) {
-        step_iter();
         realtime_timer.Spin(time_step);
     }
-#endif
 
     return 0;
 }

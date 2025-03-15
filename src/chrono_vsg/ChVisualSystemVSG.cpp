@@ -1743,6 +1743,9 @@ void ChVisualSystemVSG::BindObjectCollisionModel(const std::shared_ptr<ChContact
     if (!coll_model)
         return;
 
+    if (coll_model->GetShapeInstances().empty())
+        return;
+
     // Important for update: keep the correct scenegraph hierarchy
     //     modelGroup->model_transform->shapes_group
 

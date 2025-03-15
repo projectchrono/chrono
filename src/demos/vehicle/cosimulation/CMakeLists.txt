@@ -30,7 +30,7 @@ if(CH_ENABLE_MODULE_VEHICLE_MODELS)
         demo_VEH_Cosim_WheeledVehicle_SPH)
   endif()
 
-  if(CH_ENABLE_MODULE_MULTICORE AND CH_ENABLE_MODULE_OPENGL)
+  if(CH_ENABLE_MODULE_MULTICORE)
     set(PROGRAMS ${PROGRAMS}
         demo_VEH_Cosim_WheeledVehicle_OMP)
   endif()

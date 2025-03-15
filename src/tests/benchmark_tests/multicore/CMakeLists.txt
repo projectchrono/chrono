@@ -13,8 +13,8 @@ SET(LIBRARIES
     Chrono_multicore
 )
 
-if(CH_ENABLE_MODULE_OPENGL)
-    set(LIBRARIES ${LIBRARIES} Chrono_opengl)
+if(CH_ENABLE_MODULE_VSG)
+    set(LIBRARIES ${LIBRARIES} Chrono_vsg)
 endif()
 
 # ------------------------------------------------------------------------------

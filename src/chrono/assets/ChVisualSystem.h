@@ -36,7 +36,6 @@ class ChApi ChVisualSystem {
     enum class Type {
         IRRLICHT,  ///< Irrlicht
         VSG,       ///< Vulkan Scene Graph
-        OpenGL,    ///< OpenGL
         OptiX,     ///< OptiX
         NONE
     };

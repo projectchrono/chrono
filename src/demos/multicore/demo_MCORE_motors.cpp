@@ -28,48 +28,52 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
-//
+
 #include "chrono_multicore/physics/ChSystemMulticore.h"
-//
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+
+#include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;
+using namespace chrono::vsg3d;
 
 // -----------------------------------------------------------------------------
 
 void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
-                       std::shared_ptr<ChBody>& mslider,
+                       std::shared_ptr<ChBody>& slider,
                        std::shared_ptr<ChContactMaterial> material,
-                       ChSystem& msystem,
+                       ChSystem& sys,
                        const ChVector3d mpos) {
     mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
     mguide->SetPos(mpos);
     mguide->SetFixed(true);
-    msystem.Add(mguide);
+    sys.Add(mguide);
 
-    mslider = chrono_types::make_shared<ChBodyEasySphere>(0.14, 1000, material);
-    mslider->SetPos(mpos + ChVector3d(0, 0.3, 0));
-    msystem.Add(mslider);
+    slider = chrono_types::make_shared<ChBodyEasySphere>(0.14, 1000, material);
+    slider->SetPos(mpos + ChVector3d(0, 0.3, 0));
+    slider->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
+    sys.Add(slider);
 
     auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material);
     obstacle->SetPos(mpos + ChVector3d(1.5, 0.4, 0));
-    msystem.Add(obstacle);
+    obstacle->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.2f, 0.2f));
+    sys.Add(obstacle);
 }
 
-void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
-                       std::shared_ptr<ChBody>& mrotor,
+void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
+                       std::shared_ptr<ChBody>& rotor,
                        std::shared_ptr<ChContactMaterial> material,
-                       ChSystem& msystem,
+                       ChSystem& sys,
                        const ChVector3d mpos) {
-    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
-    mstator->SetPos(mpos);
-    mstator->SetRot(QuatFromAngleX(CH_PI_2));
-    mstator->SetFixed(true);
-    msystem.Add(mstator);
+    stator = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
+    stator->SetPos(mpos);
+    stator->SetRot(QuatFromAngleX(CH_PI_2));
+    stator->SetFixed(true);
+    sys.Add(stator);
 
-    mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
-    mrotor->SetPos(mpos + ChVector3d(0.5, 0, -0.15));
-    msystem.Add(mrotor);
+    rotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
+    rotor->SetPos(mpos + ChVector3d(0.5, 0, -0.15));
+    rotor->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.0f));
+    sys.Add(rotor);
 }
 
 // -----------------------------------------------------------------------------
@@ -521,6 +525,7 @@ int main(int argc, char* argv[]) {
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);
     floorBody->SetPos(ChVector3d(0, -2, 0));
     floorBody->SetFixed(true);
+    floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys->Add(floorBody);
 
     // Add examples of rotational motors
@@ -535,20 +540,26 @@ int main(int argc, char* argv[]) {
     ExampleB3(*sys, material);
     ExampleB4(*sys, material);
 
-    // Create OpenGL visualization
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(sys);
-    vis.SetWindowTitle("Demo motors");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::SOLID);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(1, 3, -7), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Y);
+    // Create run-time visualization
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(sys);
+    vis->SetWindowTitle("Demo motors (Chrono::Multicore)");
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->AddCamera(ChVector3d(4, 2, -10), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->SetUseSkyBox(true);
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(-1.5 * CH_PI_2, CH_PI_4);
+    vis->SetShadows(true);
+    vis->SetWireFrameMode(false);
+    vis->Initialize();
 
     // Simulate system
-    while (vis.Run()) {
+    while (vis->Run()) {
         sys->DoStepDynamics(step_size);
-        vis.Render();
+        vis->Render();
     }
 
     return 0;

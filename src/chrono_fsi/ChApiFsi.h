@@ -64,8 +64,7 @@
         @brief Math utilities for the Chrono::FSI module.
 
         @defgroup fsi_visualization Run-time visualization
-        @brief Classes for run-time visualization of SPH-based FSI problems,
-        with VSG or OpenGL back-ends.
+        @brief Classes for run-time visualization of SPH-based FSI problems (VSG-based)
     @}
 */
 
