@@ -159,6 +159,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetCOGFrameScale(double axis_length);
     void ToggleCOGFrameVisibility();
 
+    /// Render Body (COG) label for all bodies in the system.
+    void ToggleBodyLabelVisibility();
+
     /// Render joint frames for all links in the system.
     void RenderJointFrames(double axis_length = 1);
     void SetJointFrameScale(double axis_length);
@@ -320,6 +323,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_cogFrameScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
+    vsg::ref_ptr<vsg::Switch> m_labelScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
     vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
@@ -456,6 +460,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the joint frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
+    void BindBodyLabels();
+
     /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
     void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model, bool wireframe);
 
@@ -478,6 +484,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     bool m_useSkybox;
     std::string m_skyboxPath;
 
+    std::string m_bodyLabelTexturePath;
+
     vsg::dvec3 m_cameraUpVector;
     bool m_yup;
     double m_cameraAngleDeg = 30.0;
@@ -488,6 +496,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     float m_guiFontSize = 20.0f;
 
     // Component rendering
+    bool m_show_body_label;  ///< flag to toggle body label visibility
     bool m_show_body_objs;   ///< flag to toggle body asset visibility
     bool m_show_link_objs;   ///< flag to toggle link asset visibility
     bool m_show_springs;     ///< flag to toggle spring visibility
@@ -515,6 +524,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_contact_forces_scale;
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
 
+    bool m_label_size_changed;
+
     // Frame rendering
     bool m_show_abs_frame;       ///< flag to toggle absolute frame visibility
     bool m_show_ref_frames;      ///< flag to toggle object reference frame visibility
@@ -523,7 +534,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_abs_frame_scale;    ///< current absolute frame scale
     double m_ref_frame_scale;    ///< current reference frame scale
     double m_cog_frame_scale;    ///< current COG frame scale
+    double m_body_label_scale;   ///< current body label scale
     double m_joint_frame_scale;  ///< current joint frame scale
+
+    vsg::ref_ptr<vsg::vec3Array> m_label_vertices;
+    vsg::ref_ptr<vsg::vec4Array> m_label_positions;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render

@@ -251,6 +251,22 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
+                static bool bLabel_frame_active = m_app->m_show_body_label;
+                if (ImGui::Checkbox("COM Symbols", &bLabel_frame_active))
+                    m_app->ToggleBodyLabelVisibility();
+                ImGui::TableNextColumn();
+                float body_label_scale = m_app->m_body_label_scale;
+                ImGui::PushItemWidth(120.0f);
+                ImGui::SliderFloat("scale##label", &body_label_scale, 0.1f, 10.0f);
+                ImGui::PopItemWidth();
+                if (body_label_scale != m_app->m_body_label_scale) {
+                    m_app->m_body_label_scale = body_label_scale;
+                    m_app->m_label_size_changed = true;
+                }
+
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
                 static bool bJoint_frame_active = m_app->m_show_joint_frames;
                 if (ImGui::Checkbox("Joint", &bJoint_frame_active))
                     m_app->ToggleJointFrameVisibility();
@@ -655,6 +671,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_base_gui(true),
       m_show_visibility_controls(true),
       //
+      m_show_body_label(false),
       m_show_body_objs(true),
       m_show_link_objs(true),
       m_show_springs(true),
@@ -663,6 +680,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_collision(false),
       m_collision_color(ChColor(0.9f, 0.4f, 0.2f)),
       m_collision_color_changed(false),
+      m_label_size_changed(false),
       //
       m_max_num_contacts(200),
       //
@@ -683,6 +701,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_abs_frame_scale(1),
       m_ref_frame_scale(1),
       m_cog_frame_scale(1),
+      m_body_label_scale(1),
       m_joint_frame_scale(1),
       //
       m_frame_number(0),
@@ -698,6 +717,8 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
 
+    m_bodyLabelTexturePath = GetChronoDataFile("vsg/textures/CoG_Label.png");
+
     // creation here allows to set entries before initialize
     m_objScene = vsg::Switch::create();
     m_pointpointScene = vsg::Switch::create();
@@ -711,6 +732,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_cogFrameScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
     m_decoScene = vsg::Group::create();
+    m_labelScene = vsg::Switch::create();
 
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
@@ -721,7 +743,16 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_options->add(vsgXchange::all::create());
     m_options->sharedObjects = vsg::SharedObjects::create();
     m_shapeBuilder = ShapeBuilder::create(m_options, num_divs);
+    // vsg builder is used for particle visualization
+    // for particles (spheres) we use phong shaders only
     m_vsgBuilder = vsg::Builder::create();
+    // for labels (quads) we want to use flat shaders without Z-buffering
+    // we setup a custom flat shader set
+    auto flatShaderSet = vsg::createFlatShadedShaderSet();
+    auto depthStencilState = vsg::DepthStencilState::create();
+    depthStencilState->depthTestEnable = VK_FALSE;
+    flatShaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
+    m_options->shaderSets["flat"] = flatShaderSet;
     m_vsgBuilder->options = m_options;
 
     // make some default settings
@@ -1055,6 +1086,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_cogFrameScene);
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_decoScene);
+    m_scene->addChild(m_labelScene);
 
     BindAll();
     CreateContacts();
@@ -1256,6 +1288,27 @@ void ChVisualSystemVSG::Render() {
     m_viewer->handleEvents();
 
     m_viewer->update();
+
+    // Dynamic data transfer CPU->GPU for body label size
+    if (m_label_size_changed) {
+        m_label_vertices->set(0, vsg::vec3(-m_body_label_scale / 2.0, -m_body_label_scale / 2.0, 0));
+        m_label_vertices->set(1, vsg::vec3(m_body_label_scale / 2.0, -m_body_label_scale / 2.0, 0));
+        m_label_vertices->set(2, vsg::vec3(m_body_label_scale / 2.0, m_body_label_scale / 2.0, 0));
+        m_label_vertices->set(3, vsg::vec3(-m_body_label_scale / 2.0, m_body_label_scale / 2.0, 0));
+        m_label_vertices->dirty();
+        m_label_size_changed = false;
+    }
+
+    // Dynamic data transfer CPU->GPU for body label positions
+    {
+        auto bodies = m_systems.at(0)->GetBodies();
+        float w = m_body_label_scale/10.0;
+        for (size_t i = 0; i < bodies.size(); i++) {
+            auto p = bodies.at(i)->GetFrameCOMToAbs().GetPos();
+            m_label_positions->set(i, vsg::vec4(p.x(), p.y(), p.z(), w));
+        }
+        m_label_positions->dirty();
+    }
 
     // Dynamic data transfer CPU->GPU for line models
     if (m_collision_color_changed) {
@@ -1565,6 +1618,11 @@ void ChVisualSystemVSG::ToggleCOGFrameVisibility() {
     }
 }
 
+void ChVisualSystemVSG::ToggleBodyLabelVisibility() {
+    m_show_body_label = !m_show_body_label;
+    m_labelScene->setAllChildren(m_show_body_label);
+}
+
 void ChVisualSystemVSG::RenderJointFrames(double axis_length) {
     m_joint_frame_scale = axis_length;
     m_show_joint_frames = true;
@@ -1594,6 +1652,39 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 }
 
 // -----------------------------------------------------------------------------
+void ChVisualSystemVSG::BindBodyLabels() {
+    vsg::GeometryInfo geomInfo;
+    geomInfo.dx.set(m_body_label_scale, 0.0f, 0.0f);
+    geomInfo.dy.set(0.0f, m_body_label_scale, 0.0f);
+    geomInfo.dz.set(0.0f, 0.0f, 1.0f);
+
+    vsg::StateInfo stateInfo;
+    stateInfo.blending = true;
+    stateInfo.billboard = true;
+    stateInfo.lighting = false;
+    stateInfo.image = vsg::read_cast<vsg::Data>(m_bodyLabelTexturePath, m_options);
+    auto bodies = m_systems.at(0)->GetBodies();
+
+    float w = m_body_label_scale / 10.0;
+
+    float scaleDistance = w * 3.0f;
+    auto positions = vsg::vec4Array::create(bodies.size());
+    geomInfo.positions = positions;
+    for (size_t i = 0; i < bodies.size(); i++) {
+        auto p = bodies[i]->GetFrameCOMToAbs();
+        positions->set(i, vsg::vec4(p.GetPos().x(), p.GetPos().y(), p.GetPos().z(), w));
+    }
+    auto node = m_vsgBuilder->createQuad(geomInfo, stateInfo);
+    m_labelScene->addChild(m_show_body_label, node);
+
+    // find vertices of label quad, to set the size dynamically, there is no transform matrix
+    m_label_vertices = vsg::visit<FindVec3BufferData<0>>(node).getBufferData();
+    m_label_vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    // find positions of the label instances, to update later on
+    m_label_positions = vsg::visit<FindVec4BufferData<4>>(node).getBufferData();
+    m_label_positions->properties.dataVariance = vsg::DYNAMIC_DATA;
+}
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
@@ -1628,6 +1719,8 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChVisualSystemVSG::BindAll() {
+    BindBodyLabels();
+
     {
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
