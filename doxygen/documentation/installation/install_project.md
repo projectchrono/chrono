@@ -22,7 +22,7 @@ find_package(Chrono
 to find a Chono build or install which provides the `required_components` modules and, optionally, also the `optional_components` modules. Note that `OPTIONAL_COMPONENTS` can be missing if there are no optional components needed.
 
 In the call to find_package(), the following Chrono components can be requested (case insensitive): 
-Cascade, CSharp, FMI, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
+Cascade, CSharp, FMI, FSI, GPU, Irrlicht, VSG, Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
 __Notes__: 
 - The core Chrono module is included automatically as a required component.
 - A particular component is available only if the targeted Chrono package was built with the corresponding module enabled.
@@ -73,7 +73,7 @@ At a minimum, the following packages are necessary:
 - A C++ compiler and [CMake](http://www.cmake.org) must be available.
 - A Chrono build or install must be **available** (see [Chrono installation instructions](@ref tutorial_install_chrono)).
 
-__Note__: Using additional Chrono modules may require the CUDA SDK, an MPI compiler, or 3rd-party libraries such as Irrlicht, VSG, OpenGL, Thrust, Blaze, etc.
+__Note__: Using additional Chrono modules may require the CUDA SDK, an MPI compiler, or 3rd-party libraries such as Irrlicht, VSG, OptiX, OpenGL, Thrust, Blaze, etc.
 
 #### 2. Create the project directory
 
