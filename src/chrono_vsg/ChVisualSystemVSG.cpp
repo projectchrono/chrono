@@ -238,30 +238,30 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                static bool bCOG_frame_active = m_app->m_show_cog_frames;
-                if (ImGui::Checkbox("COM", &bCOG_frame_active))
-                    m_app->ToggleCOGFrameVisibility();
+                static bool show_com_frames = m_app->m_show_com_frames;
+                if (ImGui::Checkbox("COM", &show_com_frames))
+                    m_app->ToggleCOMFrameVisibility();
                 ImGui::TableNextColumn();
-                float cog_frame_scale = m_app->m_cog_frame_scale;
+                float com_frame_scale = m_app->m_com_frame_scale;
                 ImGui::PushItemWidth(120.0f);
-                ImGui::SliderFloat("scale##cog", &cog_frame_scale, 0.1f, 10.0f);
+                ImGui::SliderFloat("scale##com_frame", &com_frame_scale, 0.1f, 10.0f);
                 ImGui::PopItemWidth();
-                m_app->m_cog_frame_scale = cog_frame_scale;
+                m_app->m_com_frame_scale = com_frame_scale;
 
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                static bool bLabel_frame_active = m_app->m_show_body_label;
-                if (ImGui::Checkbox("COM Symbols", &bLabel_frame_active))
-                    m_app->ToggleBodyLabelVisibility();
+                static bool show_com_symbols = m_app->m_show_com_symbols;
+                if (ImGui::Checkbox("COM Symbols", &show_com_symbols))
+                    m_app->ToggleCOMSymbolVisibility();
                 ImGui::TableNextColumn();
-                float body_label_scale = m_app->m_body_label_scale;
+                float com_symbol_scale = m_app->m_com_symbol_scale;
                 ImGui::PushItemWidth(120.0f);
-                ImGui::SliderFloat("scale##label", &body_label_scale, 0.1f, 10.0f);
+                ImGui::SliderFloat("scale##com_symbol", &com_symbol_scale, 0.1f, 10.0f);
                 ImGui::PopItemWidth();
-                if (body_label_scale != m_app->m_body_label_scale) {
-                    m_app->m_body_label_scale = body_label_scale;
-                    m_app->m_label_size_changed = true;
+                if (com_symbol_scale != m_app->m_com_symbol_scale) {
+                    m_app->m_com_symbol_scale = com_symbol_scale;
+                    m_app->m_com_symbol_size_changed = true;
                 }
 
                 ImGui::TableNextRow();
@@ -671,7 +671,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_base_gui(true),
       m_show_visibility_controls(true),
       //
-      m_show_body_label(false),
       m_show_body_objs(true),
       m_show_link_objs(true),
       m_show_springs(true),
@@ -680,7 +679,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_show_collision(false),
       m_collision_color(ChColor(0.9f, 0.4f, 0.2f)),
       m_collision_color_changed(false),
-      m_label_size_changed(false),
       //
       m_max_num_contacts(200),
       //
@@ -696,13 +694,15 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       //
       m_show_abs_frame(false),
       m_show_ref_frames(false),
-      m_show_cog_frames(false),
+      m_show_com_frames(false),
+      m_show_com_symbols(false),
       m_show_joint_frames(false),
       m_abs_frame_scale(1),
       m_ref_frame_scale(1),
-      m_cog_frame_scale(1),
-      m_body_label_scale(1),
+      m_com_frame_scale(1),
+      m_com_symbol_scale(1),
       m_joint_frame_scale(1),
+      m_com_symbol_size_changed(false),
       //
       m_frame_number(0),
       m_start_time(0),
@@ -717,8 +717,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
 
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
 
-    m_bodyLabelTexturePath = GetChronoDataFile("vsg/textures/CoG_Label.png");
-
     // creation here allows to set entries before initialize
     m_objScene = vsg::Switch::create();
     m_pointpointScene = vsg::Switch::create();
@@ -729,10 +727,10 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_contactForcesScene = vsg::Switch::create();
     m_absFrameScene = vsg::Switch::create();
     m_refFrameScene = vsg::Switch::create();
-    m_cogFrameScene = vsg::Switch::create();
+    m_comFrameScene = vsg::Switch::create();
+    m_comSymbolScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
     m_decoScene = vsg::Group::create();
-    m_labelScene = vsg::Switch::create();
 
     // set up defaults and read command line arguments to override them
     m_options = vsg::Options::create();
@@ -743,19 +741,22 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_options->add(vsgXchange::all::create());
     m_options->sharedObjects = vsg::SharedObjects::create();
     m_shapeBuilder = ShapeBuilder::create(m_options, num_divs);
+
     // vsg builder is used for particle visualization
     // for particles (spheres) we use phong shaders only
     m_vsgBuilder = vsg::Builder::create();
-    // for labels (quads) we want to use flat shaders without Z-buffering
+    
+    // for COM symbols (quads) we want to use flat shaders without Z-buffering
     // we setup a custom flat shader set
     auto flatShaderSet = vsg::createFlatShadedShaderSet();
     auto depthStencilState = vsg::DepthStencilState::create();
     depthStencilState->depthTestEnable = VK_FALSE;
     flatShaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
     m_options->shaderSets["flat"] = flatShaderSet;
+
     m_vsgBuilder->options = m_options;
 
-    // make some default settings
+    // default settings
     SetWindowTitle("");
     SetWindowSize(ChVector2i(800, 600));
     SetWindowPosition(ChVector2i(50, 50));
@@ -1083,10 +1084,10 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_contactForcesScene);
     m_scene->addChild(m_absFrameScene);
     m_scene->addChild(m_refFrameScene);
-    m_scene->addChild(m_cogFrameScene);
+    m_scene->addChild(m_comFrameScene);
+    m_scene->addChild(m_comSymbolScene);
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_decoScene);
-    m_scene->addChild(m_labelScene);
 
     BindAll();
     CreateContacts();
@@ -1289,25 +1290,24 @@ void ChVisualSystemVSG::Render() {
 
     m_viewer->update();
 
-    // Dynamic data transfer CPU->GPU for body label size
-    if (m_label_size_changed) {
-        m_label_vertices->set(0, vsg::vec3(-m_body_label_scale / 2.0, -m_body_label_scale / 2.0, 0));
-        m_label_vertices->set(1, vsg::vec3(m_body_label_scale / 2.0, -m_body_label_scale / 2.0, 0));
-        m_label_vertices->set(2, vsg::vec3(m_body_label_scale / 2.0, m_body_label_scale / 2.0, 0));
-        m_label_vertices->set(3, vsg::vec3(-m_body_label_scale / 2.0, m_body_label_scale / 2.0, 0));
-        m_label_vertices->dirty();
-        m_label_size_changed = false;
+    // Dynamic data transfer CPU->GPU for COM symbol size
+    if (m_com_symbol_size_changed) {
+        m_com_symbol_vertices->set(0, vsg::vec3(-m_com_symbol_scale / 2.0, -m_com_symbol_scale / 2.0, 0));
+        m_com_symbol_vertices->set(1, vsg::vec3(m_com_symbol_scale / 2.0, -m_com_symbol_scale / 2.0, 0));
+        m_com_symbol_vertices->set(2, vsg::vec3(m_com_symbol_scale / 2.0, m_com_symbol_scale / 2.0, 0));
+        m_com_symbol_vertices->set(3, vsg::vec3(-m_com_symbol_scale / 2.0, m_com_symbol_scale / 2.0, 0));
+        m_com_symbol_vertices->dirty();
+        m_com_symbol_size_changed = false;
     }
 
-    // Dynamic data transfer CPU->GPU for body label positions
+    // Dynamic data transfer CPU->GPU for COM symbol positions
     {
         auto bodies = m_systems.at(0)->GetBodies();
-        float w = m_body_label_scale/10.0;
         for (size_t i = 0; i < bodies.size(); i++) {
             auto p = bodies.at(i)->GetFrameCOMToAbs().GetPos();
-            m_label_positions->set(i, vsg::vec4(p.x(), p.y(), p.z(), w));
+            m_com_symbol_positions->set(i, vsg::vec4(p.x(), p.y(), p.z(), m_com_symbol_scale));
         }
-        m_label_positions->dirty();
+        m_com_symbol_positions->dirty();
     }
 
     // Dynamic data transfer CPU->GPU for line models
@@ -1595,42 +1595,22 @@ void ChVisualSystemVSG::ToggleRefFrameVisibility() {
     }
 }
 
-void ChVisualSystemVSG::RenderCOGFrames(double axis_length) {
-    m_cog_frame_scale = axis_length;
-    m_show_cog_frames = true;
+void ChVisualSystemVSG::SetCOMFrameScale(double axis_length) {
+    m_com_frame_scale = axis_length;
+}
+
+void ChVisualSystemVSG::ToggleCOMFrameVisibility() {
+    m_show_com_frames = !m_show_com_frames;
 
     if (m_initialized) {
-        for (auto& child : m_cogFrameScene->children)
-            child.mask = m_show_cog_frames;
+        for (auto& child : m_comFrameScene->children)
+            child.mask = m_show_com_frames;
     }
 }
 
-void ChVisualSystemVSG::SetCOGFrameScale(double axis_length) {
-    m_cog_frame_scale = axis_length;
-}
-
-void ChVisualSystemVSG::ToggleCOGFrameVisibility() {
-    m_show_cog_frames = !m_show_cog_frames;
-
-    if (m_initialized) {
-        for (auto& child : m_cogFrameScene->children)
-            child.mask = m_show_cog_frames;
-    }
-}
-
-void ChVisualSystemVSG::ToggleBodyLabelVisibility() {
-    m_show_body_label = !m_show_body_label;
-    m_labelScene->setAllChildren(m_show_body_label);
-}
-
-void ChVisualSystemVSG::RenderJointFrames(double axis_length) {
-    m_joint_frame_scale = axis_length;
-    m_show_joint_frames = true;
-
-    if (m_initialized) {
-        for (auto& child : m_jointFrameScene->children)
-            child.mask = m_show_joint_frames;
-    }
+void ChVisualSystemVSG::ToggleCOMSymbolVisibility() {
+    m_show_com_symbols = !m_show_com_symbols;
+    m_comSymbolScene->setAllChildren(m_show_com_symbols);
 }
 
 void ChVisualSystemVSG::SetJointFrameScale(double axis_length) {
@@ -1652,38 +1632,38 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 }
 
 // -----------------------------------------------------------------------------
-void ChVisualSystemVSG::BindBodyLabels() {
+
+void ChVisualSystemVSG::BindCOMSymbols() {
+    auto symbol_texture_filename = GetChronoDataFile("vsg/textures/COM_symbol.png");
+
     vsg::GeometryInfo geomInfo;
-    geomInfo.dx.set(m_body_label_scale, 0.0f, 0.0f);
-    geomInfo.dy.set(0.0f, m_body_label_scale, 0.0f);
+    geomInfo.dx.set(m_com_symbol_scale, 0.0f, 0.0f);
+    geomInfo.dy.set(0.0f, m_com_symbol_scale, 0.0f);
     geomInfo.dz.set(0.0f, 0.0f, 1.0f);
 
     vsg::StateInfo stateInfo;
     stateInfo.blending = true;
     stateInfo.billboard = true;
     stateInfo.lighting = false;
-    stateInfo.image = vsg::read_cast<vsg::Data>(m_bodyLabelTexturePath, m_options);
+    stateInfo.image = vsg::read_cast<vsg::Data>(symbol_texture_filename, m_options);
     auto bodies = m_systems.at(0)->GetBodies();
 
-    float w = m_body_label_scale / 10.0;
-
-    float scaleDistance = w * 3.0f;
     auto positions = vsg::vec4Array::create(bodies.size());
     geomInfo.positions = positions;
     for (size_t i = 0; i < bodies.size(); i++) {
         auto p = bodies[i]->GetFrameCOMToAbs();
-        positions->set(i, vsg::vec4(p.GetPos().x(), p.GetPos().y(), p.GetPos().z(), w));
+        positions->set(i, vsg::vec4(p.GetPos().x(), p.GetPos().y(), p.GetPos().z(), m_com_symbol_scale));
     }
     auto node = m_vsgBuilder->createQuad(geomInfo, stateInfo);
-    m_labelScene->addChild(m_show_body_label, node);
+    m_comSymbolScene->addChild(m_show_com_symbols, node);
 
-    // find vertices of label quad, to set the size dynamically, there is no transform matrix
-    m_label_vertices = vsg::visit<FindVec3BufferData<0>>(node).getBufferData();
-    m_label_vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
+    // find vertices of the symbol quad, to set the size dynamically, there is no transform matrix
+    m_com_symbol_vertices = vsg::visit<FindVec3BufferData<0>>(node).getBufferData();
+    m_com_symbol_vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
 
-    // find positions of the label instances, to update later on
-    m_label_positions = vsg::visit<FindVec4BufferData<4>>(node).getBufferData();
-    m_label_positions->properties.dataVariance = vsg::DYNAMIC_DATA;
+    // find positions of the symbol instances, to update later on
+    m_com_symbol_positions = vsg::visit<FindVec4BufferData<4>>(node).getBufferData();
+    m_com_symbol_positions->properties.dataVariance = vsg::DYNAMIC_DATA;
 }
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
@@ -1719,7 +1699,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChVisualSystemVSG::BindAll() {
-    BindBodyLabels();
+    BindCOMSymbols();
 
     {
         auto transform = vsg::MatrixTransform::create();
@@ -2130,20 +2110,19 @@ void ChVisualSystemVSG::BindReferenceFrame(const std::shared_ptr<ChObj>& obj) {
     m_refFrameScene->addChild(mask, node);
 }
 
-//// TODO: change COM visualization to forward-facing card with only COM location
 void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
-    auto cog_transform = vsg::MatrixTransform::create();
-    cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
-    vsg::Mask mask = m_show_cog_frames;
-    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f, 2.0f, true);
-    cog_node->setValue("Body", body);
-    cog_node->setValue("MobilizedBody", nullptr);
-    cog_node->setValue("Transform", cog_transform);
-    m_cogFrameScene->addChild(mask, cog_node);
+    auto com_transform = vsg::MatrixTransform::create();
+    com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_com_frame_scale);
+    vsg::Mask mask = m_show_com_frames;
+    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 2.0f, true);
+    com_node->setValue("Body", body);
+    com_node->setValue("MobilizedBody", nullptr);
+    com_node->setValue("Transform", com_transform);
+    m_comFrameScene->addChild(mask, com_node);
 }
 
 void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
-    vsg::Mask mask = m_show_cog_frames;
+    vsg::Mask mask = m_show_joint_frames;
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
@@ -2379,8 +2358,8 @@ void ChVisualSystemVSG::Update() {
     }
 
     // Update VSG nodes for body COM visualization
-    if (m_show_cog_frames) {
-        for (auto& child : m_cogFrameScene->children) {
+    if (m_show_com_frames) {
+        for (auto& child : m_comFrameScene->children) {
             std::shared_ptr<ChBody> body;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
 
@@ -2388,7 +2367,7 @@ void ChVisualSystemVSG::Update() {
                 continue;
 
             if (child.node->getValue("Body", body))
-                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
+                transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_com_frame_scale);
             else
                 continue;
         }
