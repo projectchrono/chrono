@@ -238,31 +238,39 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
+                ImGui::BeginGroup();
                 static bool show_com_frames = m_app->m_show_com_frames;
                 if (ImGui::Checkbox("COM", &show_com_frames))
                     m_app->ToggleCOMFrameVisibility();
+                ImGui::SameLine();
+                static bool show_com_symbols = m_app->m_show_com_symbols;
+                if (ImGui::Checkbox("Symbol", &show_com_symbols))
+                    m_app->ToggleCOMSymbolVisibility();
+                ImGui::EndGroup();
+
                 ImGui::TableNextColumn();
                 float com_frame_scale = m_app->m_com_frame_scale;
                 ImGui::PushItemWidth(120.0f);
                 ImGui::SliderFloat("scale##com_frame", &com_frame_scale, 0.1f, 10.0f);
                 ImGui::PopItemWidth();
-                m_app->m_com_frame_scale = com_frame_scale;
-
-                ImGui::TableNextRow();
-
-                ImGui::TableNextColumn();
-                static bool show_com_symbols = m_app->m_show_com_symbols;
-                if (ImGui::Checkbox("COM Symbols", &show_com_symbols))
-                    m_app->ToggleCOMSymbolVisibility();
-                ImGui::TableNextColumn();
-                float com_symbol_scale = m_app->m_com_symbol_scale;
-                ImGui::PushItemWidth(120.0f);
-                ImGui::SliderFloat("scale##com_symbol", &com_symbol_scale, 0.1f, 10.0f);
-                ImGui::PopItemWidth();
-                if (com_symbol_scale != m_app->m_com_symbol_scale) {
-                    m_app->m_com_symbol_scale = com_symbol_scale;
-                    m_app->m_com_symbol_size_changed = true;
+                if (com_frame_scale != m_app->m_com_frame_scale) {
+                    m_app->m_com_frame_scale = com_frame_scale;
+                    m_app->m_com_size_changed = true;
                 }
+
+                ////ImGui::TableNextRow();
+
+                ////ImGui::TableNextColumn();
+
+                ////ImGui::TableNextColumn();
+                ////float com_symbol_scale = m_app->m_com_symbol_scale;
+                ////ImGui::PushItemWidth(120.0f);
+                ////ImGui::SliderFloat("scale##com_symbol", &com_symbol_scale, 0.1f, 10.0f);
+                ////ImGui::PopItemWidth();
+                ////if (com_symbol_scale != m_app->m_com_symbol_scale) {
+                ////    m_app->m_com_symbol_scale = com_symbol_scale;
+                ////    m_app->m_com_size_changed = true;
+                ////}
 
                 ImGui::TableNextRow();
 
@@ -700,9 +708,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_abs_frame_scale(1),
       m_ref_frame_scale(1),
       m_com_frame_scale(1),
-      m_com_symbol_scale(1),
+      m_com_symbol_ratio(0.15),
       m_joint_frame_scale(1),
-      m_com_symbol_size_changed(false),
+      m_com_size_changed(false),
       //
       m_frame_number(0),
       m_start_time(0),
@@ -1291,13 +1299,15 @@ void ChVisualSystemVSG::Render() {
     m_viewer->update();
 
     // Dynamic data transfer CPU->GPU for COM symbol size
-    if (m_com_symbol_size_changed) {
-        m_com_symbol_vertices->set(0, vsg::vec3(-m_com_symbol_scale / 2.0, -m_com_symbol_scale / 2.0, 0));
-        m_com_symbol_vertices->set(1, vsg::vec3(m_com_symbol_scale / 2.0, -m_com_symbol_scale / 2.0, 0));
-        m_com_symbol_vertices->set(2, vsg::vec3(m_com_symbol_scale / 2.0, m_com_symbol_scale / 2.0, 0));
-        m_com_symbol_vertices->set(3, vsg::vec3(-m_com_symbol_scale / 2.0, m_com_symbol_scale / 2.0, 0));
+    auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
+
+    if (m_com_size_changed) {
+        m_com_symbol_vertices->set(0, vsg::vec3(-symbol_size / 2, -symbol_size / 2, 0));
+        m_com_symbol_vertices->set(1, vsg::vec3(+symbol_size / 2, -symbol_size / 2, 0));
+        m_com_symbol_vertices->set(2, vsg::vec3(+symbol_size / 2, +symbol_size / 2, 0));
+        m_com_symbol_vertices->set(3, vsg::vec3(-symbol_size / 2, +symbol_size / 2, 0));
         m_com_symbol_vertices->dirty();
-        m_com_symbol_size_changed = false;
+        m_com_size_changed = false;
     }
 
     // Dynamic data transfer CPU->GPU for COM symbol positions
@@ -1305,7 +1315,7 @@ void ChVisualSystemVSG::Render() {
         auto bodies = m_systems.at(0)->GetBodies();
         for (size_t i = 0; i < bodies.size(); i++) {
             auto p = bodies.at(i)->GetFrameCOMToAbs().GetPos();
-            m_com_symbol_positions->set(i, vsg::vec4(p.x(), p.y(), p.z(), m_com_symbol_scale));
+            m_com_symbol_positions->set(i, vsg::vec4(p.x(), p.y(), p.z(), symbol_size));
         }
         m_com_symbol_positions->dirty();
     }
@@ -1635,10 +1645,11 @@ void ChVisualSystemVSG::WriteImageToFile(const string& filename) {
 
 void ChVisualSystemVSG::BindCOMSymbols() {
     auto symbol_texture_filename = GetChronoDataFile("vsg/textures/COM_symbol.png");
+    auto symbol_size = m_com_frame_scale * m_com_symbol_ratio;
 
     vsg::GeometryInfo geomInfo;
-    geomInfo.dx.set(m_com_symbol_scale, 0.0f, 0.0f);
-    geomInfo.dy.set(0.0f, m_com_symbol_scale, 0.0f);
+    geomInfo.dx.set(symbol_size, 0.0f, 0.0f);
+    geomInfo.dy.set(0.0f, symbol_size, 0.0f);
     geomInfo.dz.set(0.0f, 0.0f, 1.0f);
 
     vsg::StateInfo stateInfo;
@@ -1652,7 +1663,7 @@ void ChVisualSystemVSG::BindCOMSymbols() {
     geomInfo.positions = positions;
     for (size_t i = 0; i < bodies.size(); i++) {
         auto p = bodies[i]->GetFrameCOMToAbs();
-        positions->set(i, vsg::vec4(p.GetPos().x(), p.GetPos().y(), p.GetPos().z(), m_com_symbol_scale));
+        positions->set(i, vsg::vec4(p.GetPos().x(), p.GetPos().y(), p.GetPos().z(), symbol_size));
     }
     auto node = m_vsgBuilder->createQuad(geomInfo, stateInfo);
     m_comSymbolScene->addChild(m_show_com_symbols, node);
@@ -1699,8 +1710,6 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
 }
 
 void ChVisualSystemVSG::BindAll() {
-    BindCOMSymbols();
-
     {
         auto transform = vsg::MatrixTransform::create();
         transform->matrix = vsg::dmat4CH(ChFramed(), m_abs_frame_scale);
@@ -1713,6 +1722,8 @@ void ChVisualSystemVSG::BindAll() {
     for (auto sys : m_systems) {
         BindAssembly(sys->GetAssembly());
     }
+
+    BindCOMSymbols();
 }
 
 // -----------------------------------------------------------------------------

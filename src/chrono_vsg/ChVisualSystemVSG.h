@@ -528,12 +528,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     double m_abs_frame_scale;    ///< current absolute frame scale
     double m_ref_frame_scale;    ///< current reference frame scale
     double m_com_frame_scale;    ///< current COM frame scale
-    double m_com_symbol_scale;   ///< current COM symbol scale
+    double m_com_symbol_ratio;   ///< COM symbol scale relative to current COM frame scale
     double m_joint_frame_scale;  ///< current joint frame scale
 
     vsg::ref_ptr<vsg::vec3Array> m_com_symbol_vertices;
     vsg::ref_ptr<vsg::vec4Array> m_com_symbol_positions;
-    bool m_com_symbol_size_changed;
+    bool m_com_size_changed;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render
