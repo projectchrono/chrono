@@ -52,7 +52,7 @@ class ChApi ChVisualSystem {
     /// Initialize the visualization system.
     /// This call must trigger a parsing of the associated Chrono systems to process all visual models.
     /// A derived class must ensure that this function is called only once (use the m_initialized flag).
-    virtual void Initialize() = 0;
+    virtual void Initialize() {}
 
     /// Process all visual assets in the associated Chrono systems.
     /// This function is called by default for a Chrono system attached to this visualization system during
@@ -119,13 +119,13 @@ class ChApi ChVisualSystem {
 
     /// Run the visualization system.
     /// Returns `false` if the system must shut down.
-    virtual bool Run() = 0;
+    virtual bool Run() { return false; }
 
     /// Terminate the visualization system.
-    virtual void Quit() = 0;
+    virtual void Quit() {}
 
     /// Perform any necessary operations at the beginning of each rendering frame.
-    virtual void BeginScene() = 0;
+    virtual void BeginScene() {}
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
@@ -136,7 +136,7 @@ class ChApi ChVisualSystem {
     ///       ...
     ///    }
     /// </pre>
-    virtual void Render() = 0;
+    virtual void Render() {}
 
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) {}
@@ -145,7 +145,7 @@ class ChApi ChVisualSystem {
     virtual void RenderCOGFrames(double axis_length = 1) {}
 
     /// Perform any necessary operations ar the end of each rendering frame.
-    virtual void EndScene() = 0;
+    virtual void EndScene() {}
 
     /// Get the list of associated Chrono systems.
     std::vector<ChSystem*> GetSystems() const { return m_systems; }
