@@ -467,34 +467,31 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
     // Initialize run-time visualization
     if (m_renderRT) {
         ChFsiSystemSPH& sysFSI = m_terrain->GetSystemFSI();
+#ifdef CHRONO_VSG
+        // FSI plugin
+        const auto& aabb_particles = m_terrain->GetSPHBoundingBox();
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(
+            ChColor(0.10f, 0.40f, 0.65f), aabb_particles.min.z(), aabb_particles.max.z());
 
-#if defined(CHRONO_VSG)
-        auto vsys_VSG = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-        vsys_VSG->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
-        m_vsys = vsys_VSG;
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(false);
+        visFSI->EnableRigidBodyMarkers(m_show_bce);
+        visFSI->EnableFlexBodyMarkers(m_show_bce);
+        visFSI->SetSPHColorCallback(col_callback);
+
+        // VSG visual system (attach visFSI as plugin)
+        m_vsys->AttachPlugin(visFSI);
+        m_vsys->AttachSystem(m_system);
+        m_vsys->SetWindowTitle("Terrain Node (GranularSPH)");
+        m_vsys->SetVerbose(false);
+        m_vsys->SetWindowSize(1280, 720);
+        m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
+        m_vsys->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
+        m_vsys->SetImageOutput(m_writeRT);
+        m_vsys->Initialize();
 #endif
-
-        if (m_vsys) {
-            const auto& aabb_particles = m_terrain->GetSPHBoundingBox();
-
-            m_vsys->SetTitle("Terrain Node (GranularSPH)");
-            m_vsys->SetVerbose(false);
-            m_vsys->SetSize(1280, 720);
-            m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-            m_vsys->SetCameraMoveScale(0.2f);
-            m_vsys->EnableFluidMarkers(true);
-            m_vsys->EnableBoundaryMarkers(false);
-            m_vsys->EnableRigidBodyMarkers(m_show_bce);
-            m_vsys->EnableFlexBodyMarkers(m_show_bce);
-            m_vsys->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-            m_vsys->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-            m_vsys->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(
-                ChColor(0.10f, 0.40f, 0.65f), aabb_particles.min.z(), aabb_particles.max.z()));
-            m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
-            m_vsys->SetImageOutput(m_writeRT);
-            m_vsys->AttachSystem(m_system);
-            m_vsys->Initialize();
-        }
     }
 }
 
@@ -510,15 +507,18 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnRender() {
-    if (!m_vsys)
+    if (!m_renderRT)
         return;
 
+#ifdef CHRONO_VSG
     if (m_track)
         m_vsys->UpdateCamera(m_cam_pos, m_chassis_loc);
 
-    auto ok = m_vsys->Render();
-    if (!ok)
+    if (m_vsys->Run())
+        m_vsys->Render();
+    else
         MPI_Abort(MPI_COMM_WORLD, 1);
+#endif
 }
 
 // -----------------------------------------------------------------------------

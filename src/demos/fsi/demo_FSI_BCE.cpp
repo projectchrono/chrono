@@ -17,11 +17,11 @@
 #include <ctime>
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -46,9 +46,7 @@ const std::string out_dir = GetChronoOutputPath() + "FSI_BCE/";
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChFsiVisualizationSPH> CreateVisulization(ChFsiSystemSPH& sysFSI,
-                                                       ChSystem& sysMBS,
-                                                       const std::string& title);
+std::shared_ptr<ChVisualSystem> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSystem& sysMBS, const std::string& title);
 void Box();
 void Sphere();
 void Cylinder1();
@@ -88,37 +86,43 @@ int main(int argc, char* argv[]) {
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationSPH::MarkerVisibilityCallback {
+#ifdef CHRONO_VSG
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
-
     virtual bool get(unsigned int n) const override { return pos[n].y >= 0; }
 };
-
-std::shared_ptr<ChFsiVisualizationSPH> CreateVisulization(ChFsiSystemSPH& sysFSI,
-                                                       ChSystem& sysMBS,
-                                                       const std::string& title) {
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
-#ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
 
-        visFSI->SetTitle(title);
-        visFSI->SetSize(1280, 1280);
-        visFSI->AddCamera(ChVector3d(-0.2, -3.0, 0), ChVector3d(-0.2, 0, 0));
-        visFSI->SetCameraMoveScale(0.1f);
+std::shared_ptr<ChVisualSystem> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSystem& sysMBS, const std::string& title) {
+    std::shared_ptr<ChVisualSystem> vis;
+
+#ifdef CHRONO_VSG
+    if (render) {
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(true);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-        visFSI->AttachSystem(&sysMBS);
-        visFSI->Initialize();
-    }
 
-    return visFSI;
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle(title);
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(-0.2, -3.0, 0), ChVector3d(-0.2, 0, 0));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        visVSG->SetWireFrameMode(false);
+
+        visVSG->Initialize();
+        vis = visVSG;
+    }
+#endif
+
+    return vis;
 }
 
 // -----------------------------------------------------------------------------
@@ -228,8 +232,9 @@ void Box() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for box geometry");
-        while (visFSI->Render()) {
+        auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for box geometry");
+        while (vis->Run()) {
+            vis->Render();
         }
     }
 }
@@ -345,8 +350,9 @@ void Sphere() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for sphere geometry");
-        while (visFSI->Render()) {
+        auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for sphere geometry");
+        while (vis->Run()) {
+            vis->Render();
         }
     }
 }
@@ -470,8 +476,9 @@ void Cylinder1() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for cylinder geometry");
-        while (visFSI->Render()) {
+        auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for cylinder geometry");
+        while (vis->Run()) {
+            vis->Render();
         }
     }
 }
@@ -593,8 +600,9 @@ void Cylinder2() {
 
     if (render) {
         sysFSI.Initialize();
-        auto visFSI = CreateVisulization(sysFSI, sysMBS, "BCE markers for thin cylinder geometry");
-        while (visFSI->Render()) {
+        auto vis = CreateVisulization(sysFSI, sysMBS, "BCE markers for thin cylinder geometry");
+        while (vis->Run()) {
+            vis->Render();
         }
     }
 }

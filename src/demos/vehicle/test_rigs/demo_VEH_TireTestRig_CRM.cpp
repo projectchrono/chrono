@@ -30,7 +30,6 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -219,32 +218,35 @@ int main() {
     // Create the run-time visualization
     // ---------------------------------
 
-#ifndef CHRONO_VSG
-    render = false;
-#endif
+    auto& sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI();
+    std::shared_ptr<ChVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
 #ifdef CHRONO_VSG
-        auto& sysFSI = std::dynamic_pointer_cast<CRMTerrain>(rig.GetTerrain())->GetSystemFSI();
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-
-        visFSI->SetTitle("Tire Test Rig on CRM deformable terrain");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(1.0, 2.5, 1.0), ChVector3d(0, 1, 0));
-        visFSI->SetCameraMoveScale(0.2f);
-        visFSI->SetLightIntensity(0.7);
-        visFSI->SetLightDirection(CH_PI_2, CH_PI / 6);
+    if (render) {
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(true);
-        visFSI->EnableFlexBodyMarkers(false);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->AttachSystem(sys);
-        visFSI->Initialize();
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(sys);
+        visVSG->SetWindowTitle("Tire Test Rig on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(1.0, 2.5, 1.0), ChVector3d(0, 1, 0));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
+        visVSG->SetWireFrameMode(false);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
 #ifdef CHRONO_POSTPROCESS
     // ---------------------------
@@ -297,10 +299,11 @@ int main() {
 
         if (time >= render_frame / render_fps) {
             auto& loc = rig.GetPos();
-            visFSI->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
+            vis->UpdateCamera(loc + ChVector3d(1.0, 2.5, 0.5), loc + ChVector3d(0, 0.25, -0.25));
 
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
 
 #ifdef CHRONO_POSTPROCESS

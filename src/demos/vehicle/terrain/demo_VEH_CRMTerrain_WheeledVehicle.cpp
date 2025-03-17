@@ -24,6 +24,7 @@
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -35,7 +36,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -94,7 +94,6 @@ int main(int argc, char* argv[]) {
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = true;   // render wheel BCE markers
-    bool chase_cam = true;                 // chase-cam or fixed camera
 
     // CRM material properties
     double density = 1700;
@@ -259,30 +258,32 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization
     // -----------------------------
 
-#ifndef CHRONO_VSG
-    render = false;
-#endif
-
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
+    std::shared_ptr<ChVisualSystem> vis;
 #ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-
-        visFSI->SetTitle("Wheeled vehicle on CRM deformable terrain");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, 8, 1.5), ChVector3d(0, -1, 0));
-        visFSI->SetCameraMoveScale(0.2f);
+    if (render) {
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                           aabb.min.z(), aabb.max.z()));
-        visFSI->AttachSystem(sysMBS);
-        visFSI->Initialize();
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(sysMBS);
+        visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(3, 8, 1.5), ChVector3d(2, -1, 0));
+        visVSG->SetWireFrameMode(false);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // ---------------
     // Simulation loop
@@ -317,13 +318,9 @@ int main(int argc, char* argv[]) {
 
         // Run-time visualization
         if (render && time >= render_frame / render_fps) {
-            if (chase_cam) {
-                ChVector3d cam_loc = veh_loc + ChVector3d(-6, 6, 1.5);
-                ChVector3d cam_point = veh_loc;
-                visFSI->UpdateCamera(cam_loc, cam_point);
-            }
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
         if (!render) {

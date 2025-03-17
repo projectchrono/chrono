@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -38,7 +39,6 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -187,16 +187,34 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
+
 #ifdef CHRONO_VSG
-    // Create a run-tme visualizer
-    ChFsiVisualizationVSG fsi_vis(&sysFSI);
     if (render) {
-        fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
-        fsi_vis.AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
-        fsi_vis.Initialize();
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(false);
+        visFSI->EnableRigidBodyMarkers(true);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Flexible Toroidal Tire");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        visVSG->SetWireFrameMode(false);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
 #endif
 
     // Set MBS solver
@@ -245,8 +263,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
         // Render SPH particles
         if (render && time >= render_frame / render_fps) {
-            if (!fsi_vis.Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
 #endif

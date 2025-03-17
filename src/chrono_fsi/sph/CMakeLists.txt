@@ -90,12 +90,6 @@ set(FSISPH_UTILS_FILES
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
-set(FSISPH_VIS_FILES
-    visualization/ChFsiVisualizationSPH.h
-    visualization/ChFsiVisualizationSPH.cpp
-)
-source_group("visualization" FILES ${FSISPH_VIS_FILES})
-
 # --------------- 3rd party STB FILES
 
 set(FSISPH_STB_FILES
@@ -141,7 +135,6 @@ add_library(Chrono_fsisph
     ${FSISPH_PHYSICS_FILES}
     ${FSISPH_MATH_FILES}
     ${FSISPH_UTILS_FILES}
-    ${FSISPH_VIS_FILES}
     ${FSISPH_STB_FILES}
 )
 add_library(Chrono::fsisph ALIAS Chrono_fsisph)

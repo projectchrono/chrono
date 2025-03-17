@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChTimer.h"
@@ -364,15 +365,33 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-tme visualizer
+    std::shared_ptr<ChVisualSystem> vis;
+
 #ifdef CHRONO_VSG
-    ChFsiVisualizationVSG fsi_vis(&sysFSI);
     if (render) {
-        fsi_vis.SetTitle("Chrono::FSI single wheel demo");
-        fsi_vis.AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
-        fsi_vis.SetCameraMoveScale(0.05f);
-        fsi_vis.EnableBoundaryMarkers(true);
-        fsi_vis.Initialize();
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableRigidBodyMarkers(true);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Single Wheel Test");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        visVSG->SetWireFrameMode(false);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
 #endif
 
     // Start the simulation
@@ -427,8 +446,9 @@ int main(int argc, char* argv[]) {
         // Render SPH particles
 #ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
-            if (!fsi_vis.Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
 #endif

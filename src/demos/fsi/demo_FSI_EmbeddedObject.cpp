@@ -18,10 +18,10 @@
 #include <iomanip>
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -72,20 +72,15 @@ bool show_rigid_bce = false;
 bool show_boundary_bce = true;
 bool show_particles_sph = true;
 
-ChFsiVisualizationSPH::RenderMode render_mode = ChFsiVisualizationSPH::RenderMode::SOLID;
-////ChFsiVisualizationSPH::RenderMode render_mode = ChFsiVisualizationSPH::RenderMode::WIREFRAME;
-
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationSPH::MarkerVisibilityCallback {
+#ifdef CHRONO_VSG
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
-
-    virtual bool get(unsigned int n) const override {
-        auto p = pos[n];
-        return p.x < 0 || p.y < 0;
-    }
+    virtual bool get(unsigned int n) const override { return pos[n].x < 0 || pos[n].y < 0; }
 };
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -263,38 +258,41 @@ int main(int argc, char* argv[]) {
     ////fsi.SaveInitialMarkers(out_dir);
 
     // Create a run-time visualizer
-#ifndef CHRONO_VSG
-    render = false;
-#endif
+    std::shared_ptr<ChVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
 #ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-
+    if (render) {
+        // FSI plugin
         auto col_callback =
             chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.3f, 0.6f, 0.0f), -0.3, 0.3);
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
 
-        visFSI->SetTitle("Chrono::FSI Embedded Object");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
-        visFSI->SetCameraMoveScale(0.1f);
-        visFSI->SetLightIntensity(0.9);
-        visFSI->SetLightDirection(CH_PI_2, CH_PI / 6);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-        visFSI->SetRenderMode(render_mode);
-        visFSI->AttachSystem(&sysMBS);
-        visFSI->Initialize();
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Embedded Object");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        visVSG->SetWireFrameMode(false);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     double time = 0.0;
@@ -313,8 +311,9 @@ int main(int argc, char* argv[]) {
 
         // Render FSI system
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
 
             if (snapshots) {
                 if (verbose)
@@ -322,7 +321,7 @@ int main(int argc, char* argv[]) {
                 std::ostringstream filename;
                 filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
                          << ".bmp";
-                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;
