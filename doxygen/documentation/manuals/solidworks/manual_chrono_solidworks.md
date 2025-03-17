@@ -88,4 +88,5 @@ Some settings are self-explanatory. For all of them the tooltip will offer some 
 
 * @subpage chrono_solidworks_installation
 * [Tutorials](@ref tutorial_table_of_content_chrono_solidworks)
+* [Github repository](https://github.com/projectchrono/chrono-solidworks)
 
