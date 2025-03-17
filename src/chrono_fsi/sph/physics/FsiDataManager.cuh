@@ -129,20 +129,20 @@ struct FsiBodyStateD {
 
 /// FEA mesh states on host.
 struct FsiMeshStateH {
-    thrust::host_vector<Real3> pos_fsi_fea_H;  ///< mesh node positions
-    thrust::host_vector<Real3> vel_fsi_fea_H;  ///< mesh node velocities
-    thrust::host_vector<Real3> acc_fsi_fea_H;  ///< mesh node accelerations
+    thrust::host_vector<Real3> pos;  ///< mesh node positions
+    thrust::host_vector<Real3> vel;  ///< mesh node velocities
+    thrust::host_vector<Real3> acc;  ///< mesh node accelerations
 
     // zipIterFlexH iterator();
     void resize(size_t s);
-    size_t size() { return pos_fsi_fea_H.size(); };
+    size_t size() { return pos.size(); };
 };
 
 /// FEA mesh state on device.
 struct FsiMeshStateD {
-    thrust::device_vector<Real3> pos_fsi_fea_D;  ///< mesh node positions
-    thrust::device_vector<Real3> vel_fsi_fea_D;  ///< mesh node velocities
-    thrust::device_vector<Real3> acc_fsi_fea_D;  ///< mesh node accelerations
+    thrust::device_vector<Real3> pos;  ///< mesh node positions
+    thrust::device_vector<Real3> vel;  ///< mesh node velocities
+    thrust::device_vector<Real3> acc;  ///< mesh node accelerations
 
     // zipIterFlexD iterator();
     void CopyFromH(const FsiMeshStateH& meshStateH);

@@ -603,7 +603,7 @@ void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) 
 
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
         INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
         mR4CAST(sphMarkersD->rhoPresMuD), error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
