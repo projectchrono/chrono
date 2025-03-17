@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
         }
 #else
         std::cout << "Run-time visualization not available.  Cannot animate mechanism." << std::endl;
-        FAIL();
+        return -1;
 #endif
     } else {
         while (time < time_end) {
