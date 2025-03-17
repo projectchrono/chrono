@@ -819,13 +819,23 @@ void ChVisualSystemVSG::AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) {
     m_evhandler.push_back(eh);
 }
 
+void ChVisualSystemVSG::AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin) {
+    if (m_initialized) {
+        std::cerr << "Function ChVisualSystemVSG::AttachPlugin can only be called before initialization!" << std::endl;
+        return;
+    }
+    plugin->m_vsys = this;
+    plugin->OnAttach();
+    m_plugins.push_back(plugin);
+}
+
 void ChVisualSystemVSG::Quit() {
     m_viewer->close();
 }
 
 void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << std::endl;
         return;
     }
     m_guiFontSize = theSize;
@@ -833,7 +843,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << std::endl;
         return;
     }
     m_windowWidth = size[0];
@@ -842,7 +852,7 @@ void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
 
 void ChVisualSystemVSG::SetWindowSize(int width, int height) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowSize must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!" << std::endl;
         return;
     }
     m_windowWidth = width;
@@ -851,7 +861,7 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
 
 void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << std::endl;
         return;
     }
     m_windowX = pos[0];
@@ -860,7 +870,7 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << std::endl;
         return;
     }
     m_windowX = from_left;
@@ -869,7 +879,7 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!" << std::endl;
         return;
     }
     m_windowTitle = title;
@@ -877,7 +887,7 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
 
 void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetClearColor must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetClearColor can only be called before initialization!" << std::endl;
         return;
     }
     m_clearColor = color;
@@ -885,7 +895,7 @@ void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
 
 void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetUseSkyBox must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetUseSkyBox can only be called before initialization!" << std::endl;
         return;
     }
     m_useSkybox = yesno;
@@ -893,7 +903,7 @@ void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::AddCamera must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::AddCamera can only be called before initialization!" << std::endl;
         return 1;
     }
 
@@ -954,7 +964,7 @@ ChVector3d ChVisualSystemVSG::GetCameraTarget() const {
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!" << std::endl;
         return;
     }
     switch (upDir) {
@@ -975,7 +985,7 @@ void ChVisualSystemVSG::SetLightIntensity(float intensity) {
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetLightDirection must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!" << std::endl;
         return;
     }
     m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
@@ -985,6 +995,10 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
 void ChVisualSystemVSG::Initialize() {
     if (m_initialized)
         return;
+
+    // Let any plugins perform pre-initialization operations
+    for (auto& plugin : m_plugins)
+        plugin->OnInitialize();
 
     auto builder = vsg::Builder::create();
     builder->options = m_options;
@@ -1219,6 +1233,13 @@ void ChVisualSystemVSG::Initialize() {
         m_viewer->addEventHandler(evhandler_wrapper);
     }
 
+    // Let any plugins add their event handlers
+    for (auto& plugin : m_plugins) {
+        for (const auto& eh : plugin->m_evhandler) {
+            auto evhandler_wrapper = EventHandlerWrapper::create(eh, this);
+        }
+    }
+
     // Add event handler for window close events
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
 
@@ -1271,6 +1292,10 @@ void ChVisualSystemVSG::Render() {
 
     m_timer_render.reset();
     m_timer_render.start();
+
+    // Let any plugins perform pre-rendering operations
+    for (auto& plugin : m_plugins)
+        plugin->OnRender();
 
     Update();
 
