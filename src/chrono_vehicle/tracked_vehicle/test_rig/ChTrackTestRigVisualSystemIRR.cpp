@@ -17,13 +17,63 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.h"
+
+using namespace irr;
 
 namespace chrono {
 namespace vehicle {
 
-ChTrackTestRigVisualSystemIrrlicht::ChTrackTestRigVisualSystemIrrlicht()
-    : ChVehicleVisualSystemIrrlicht(),
+// -----------------------------------------------------------------------------
+
+ChTTRKeyboardHandlerIRR::ChTTRKeyboardHandlerIRR(ChTrackTestRigVisualSystemIRR* app) : m_app(app) {}
+
+bool ChTTRKeyboardHandlerIRR::OnEvent(const SEvent& event) {
+    if (!m_app->m_rig)
+        return false;
+    auto driver = std::dynamic_pointer_cast<ChTrackTestRigInteractiveDriver>(m_app->m_rig->GetDriver());
+    if (!driver)
+        return false;
+
+    // Only interpret keyboard inputs.
+    if (event.EventType != EET_KEY_INPUT_EVENT)
+        return false;
+
+    if (event.KeyInput.PressedDown) {
+        switch (event.KeyInput.Key) {
+            case KEY_ADD:
+            case KEY_PLUS:
+                driver->NextPost();
+                return true;
+            case KEY_SUBTRACT:
+            case KEY_MINUS:
+                driver->PreviousPost();
+                return true;
+            case KEY_KEY_T:
+                driver->IncreasePost();
+                return true;
+            case KEY_KEY_G:
+                driver->DecreasePost();
+                return true;
+            case KEY_KEY_W:
+                driver->IncreaseThrottle();
+                return true;
+            case KEY_KEY_S:
+                driver->DecreaseThrottle();
+                return true;
+            default:
+                break;
+        }
+    }
+
+    return false;
+}
+
+// -----------------------------------------------------------------------------
+
+ChTrackTestRigVisualSystemIRR::ChTrackTestRigVisualSystemIRR()
+    : ChVisualSystemIrrlicht(),
       m_rig(nullptr),
       m_render_frame_idler(false),
       m_render_frame_shoes(false),
@@ -32,29 +82,59 @@ ChTrackTestRigVisualSystemIrrlicht::ChTrackTestRigVisualSystemIrrlicht()
       m_axis_sprocket(1),
       m_axis_idler(1) {}
 
-void ChTrackTestRigVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
-    ChVehicleVisualSystemIrrlicht::AttachVehicle(vehicle);
-    m_rig = dynamic_cast<ChTrackTestRig*>(m_vehicle);
-    assert(m_rig);
+void ChTrackTestRigVisualSystemIRR::AttachTTR(ChTrackTestRig* rig) {
+    m_rig = rig;
+    AttachSystem(m_rig->GetSystem());
 }
 
-void ChTrackTestRigVisualSystemIrrlicht::RenderTrackShoeFrames(bool state, double axis_length) {
+void ChTrackTestRigVisualSystemIRR::Initialize() {
+    if (!m_initialized) {
+        SetCameraVertical(CameraVerticalDir::Z);
+
+        ChVisualSystemIrrlicht::Initialize();
+
+        AddCamera(ChVector3d(0, -3, 0.5));
+        AddLightDirectional();
+        AddSkyBox();
+        AddLogo();
+
+        m_keyboard_handler = chrono_types::make_shared<ChTTRKeyboardHandlerIRR>(this);
+        AddUserEventReceiver(m_keyboard_handler.get());
+    }
+
+    if (m_rig) {
+        auto sprocket_pos = m_rig->m_track->GetSprocketLocation();
+        auto idler_pos = m_rig->m_track->GetIdlerLocation();
+        ChVector3d target = 0.5 * (sprocket_pos + idler_pos) + ChVector3d(0, 0, 0.5);
+        ChVector3d position = target - ChVector3d(0, 3, 0);
+        SetCameraPosition(position);
+        SetCameraTarget(target);
+    }
+}
+
+void ChTrackTestRigVisualSystemIRR::Render() {
+    ChVisualSystemIrrlicht::Render();
+
+    renderOtherGraphics();
+}
+
+void ChTrackTestRigVisualSystemIRR::RenderTrackShoeFrames(bool state, double axis_length) {
     m_render_frame_shoes = state;
     m_axis_shoes = axis_length;
 }
 
-void ChTrackTestRigVisualSystemIrrlicht::RenderSprocketFrame(bool state, double axis_length) {
+void ChTrackTestRigVisualSystemIRR::RenderSprocketFrame(bool state, double axis_length) {
     m_render_frame_sprocket = state;
     m_axis_sprocket = axis_length;
 }
 
-void ChTrackTestRigVisualSystemIrrlicht::RenderIdlerFrame(bool state, double axis_length) {
+void ChTrackTestRigVisualSystemIRR::RenderIdlerFrame(bool state, double axis_length) {
     m_render_frame_idler = state;
     m_axis_idler = axis_length;
 }
 
 // Render contact normals for monitored subsystems
-void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
+void ChTrackTestRigVisualSystemIRR::renderOtherGraphics() {
     bool normals = m_rig->m_contact_manager->m_render_normals;
     bool forces = m_rig->m_contact_manager->m_render_forces;
     double scale_normals = 0.4;
@@ -123,7 +203,7 @@ void ChTrackTestRigVisualSystemIrrlicht::renderOtherGraphics() {
 }
 
 // Render normal for all contacts in the specified list, using the given color.
-void ChTrackTestRigVisualSystemIrrlicht::renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
+void ChTrackTestRigVisualSystemIRR::renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
                                                         const ChColor& col,
                                                         bool normals,
                                                         bool forces,
