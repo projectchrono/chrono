@@ -96,6 +96,9 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireStaticTestRig.h"
+
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
@@ -274,6 +277,10 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 #endif             // --------------------------------------------------------------------- CSHARP
 
 // Expose for both python and csharp
+
+%shared_ptr(chrono::vehicle::ChTireTestRig)
+%shared_ptr(chrono::vehicle::ChTireStaticTestRig)
+
 %shared_ptr(chrono::vehicle::ChSuspensionTestRig)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPlatform)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigPushrod)
@@ -391,6 +398,9 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChTireTestRig.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChTireStaticTestRig.h"
+
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
@@ -446,12 +456,19 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChSubchassis, ChBalancer)
 
-%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChRigidTire)
-%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
+
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChForceElementTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChTMeasyTire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac89Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChPac02Tire)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFialaTire)
+
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChDeformableTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChANCFTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChFEATire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChReissnerTire)
+%DefSharedPtrDynamicCast(chrono::vehicle,ChTire, ChMBTire)
 
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimple)
 %DefSharedPtrDynamicCast(chrono::vehicle,ChEngine, ChEngineSimpleMap)
