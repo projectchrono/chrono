@@ -99,6 +99,38 @@ public:
         }
     }
 
+    // First derivatives of Bernstein Polynomials
+    // Bernstein polynomials written in terms of x, but call on x = (1 + u) / 2
+    // Chain rule: dB/du = dB/dx * dx/du, with dx/du = 0.5.
+    // We could do dBdx *= 0.5 outside this function, but tests have shown
+    // it is really expensive to do a *= operation on a ChVectorDynamic!!! Even a small one!
+    // Instead, we add a multiplier as a function parameter.
+    // Another alternative would be to express the Bernstein polynomial in function of u directly
+    static void BernsteinPolynomialsDerivative1(double x, ChVectorDynamic<>& dBdx, double dxdu = 0.5){
+        // No parameter check on order here.
+        // It's another functions' responsibility to pass a vector of the correct size
+        switch (dBdx.size()-1) {
+            case 0:
+                dBdx(0) = 0.0 * dxdu;
+                break;
+            case 1:
+                dBdx(0) = -1.0 * dxdu;
+                dBdx(1) = 1.0  * dxdu;
+                break;
+            case 2:
+                dBdx(0) = -2.0 * (1.0 - x) * dxdu;
+                dBdx(1) = (-2.0 * x + 2.0 *(1.0 - x)) * dxdu;
+                dBdx(2) = 2.0 * x * dxdu;
+                break;
+            case 3:
+                dBdx(0) = -3.0 * (1.0 - x) * (1.0 - x) * dxdu;
+                dBdx(1) = (3.0 * (1.0 - x) * (1.0 - x) - 6.0 * (1.0 - x) * x) * dxdu;
+                dBdx(2) = (-3.0 * x * x  + 6.0 * (1.0 - x) * x) * dxdu;
+                dBdx(3) = 3.0 * x * x * dxdu;
+                break;
+        }
+    }
+
 
 
     static void unrolled_BasisEvaluate(
@@ -108,6 +140,18 @@ public:
         // x = (1 + u) / 2
         BernsteinPolynomials(0.5 * (1.0 + u), R);
          
+    }
+
+
+    static void unrolled_BasisEvaluateDeriv(
+            const double u,                 ///< parameter in [-1, 1]                
+            ChVectorDynamic<>& R,           ///< here return basis functions R evaluated at u, that is: R(u)
+            ChVectorDynamic<>& dRdu         ///< here return basis functions derivatives dR/du evaluated at u
+            ) {
+                double x = 0.5 * (1.0 + u);
+                double dxdu = 0.5;
+                BernsteinPolynomials(x, R);
+                BernsteinPolynomialsDerivative1(x, dRdu, dxdu);
     }
 
 	

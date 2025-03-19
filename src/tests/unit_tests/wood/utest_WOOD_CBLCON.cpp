@@ -341,6 +341,8 @@ TEST(CBLConnectorTest, update_rotation){
 TEST(CBLConnectorTest, Bernstein) {
     double tol = 1e-10;
     int N = 100;
+
+    // Polynomials
     for (int order = 1; order <=3; order++) {
         ChVectorDynamic<> R_unroll(order + 1);
         ChVectorDynamic<> R_orig(order + 1);
@@ -354,28 +356,45 @@ TEST(CBLConnectorTest, Bernstein) {
         }
     }
 
+    // Derivatives
+    for (int order = 1; order <=3; order++) {
+        ChVectorDynamic<> R_unroll(order + 1), dRdu_unroll(order + 1);
+        ChVectorDynamic<> R_orig(order + 1), dRdu_orig(order + 1);
+        for (int i=0; i<N ; i++) {
+            double u = -1.0 + i * (2.0 / N);
+            ChBasisToolsBeziers::BasisEvaluateDeriv(order, u, R_orig, dRdu_orig);
+            ChBasisToolsBeziers::unrolled_BasisEvaluateDeriv(u, R_unroll, dRdu_unroll);
+            for (int j = 0; j <= order; j++) {
+                ASSERT_NEAR(R_unroll[j], R_orig[j], tol);
+                ASSERT_NEAR(dRdu_unroll[j], dRdu_orig[j], tol);
+            }
+        }
+    }
+
+    int order = 3;
     std::cout<< " PROFILING"<<std::endl;
-    std::cout<< " Recursive Bernstein for p=3"<<std::endl;
-    ChVectorDynamic<> R(4);
+    std::cout<< " Recursive Bernstein for p="<<order<<std::endl;
+    ChVectorDynamic<> R(order+1), dRdu(order+1);
     auto startTime = now();
 
     for (int i = 0 ; i < 1000000 ; i++) {
         double u = -1.0 + i * (2.0 / N);
-        ChBasisToolsBeziers::BasisEvaluate(3, u, R);
+        ChBasisToolsBeziers::BasisEvaluateDeriv(order, u, R, dRdu);
     }
     auto elapsed = now() - startTime;
     auto seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
     std::cout << seconds.count() << std::endl;
 
-    std::cout<< " Unrolled Bernstein for p=3"<<std::endl;
+    std::cout<< " Unrolled Bernstein for p="<<order<<std::endl;
     
     startTime = now();
 
     for (int i = 0 ; i < 1000000 ; i++) {
         double u = -1.0 + i * (2.0 / N);
-        ChBasisToolsBeziers::unrolled_BasisEvaluate(u, R);
+        ChBasisToolsBeziers::unrolled_BasisEvaluateDeriv(u, R, dRdu);
     }
     elapsed = now() - startTime;
     seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
     std::cout << seconds.count() << "\t";
+
 }
