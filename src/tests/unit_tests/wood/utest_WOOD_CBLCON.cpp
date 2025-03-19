@@ -21,6 +21,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono_wood/ChBasisToolsBeziers.h"
 #include "chrono_wood/ChBeamSectionCBLCON.h"
 #include "chrono_wood/ChBuilderCBLCON.h"
 #include "gtest/gtest.h"
@@ -331,20 +332,50 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
             ASSERT_NEAR(connector->Km(i, j), analytical_matrix(i, j), tol);
         }
     }
-
-    
-    std::cout<< " PROFILING"<<std::endl;
-    auto startTime = now();
-
-    for (int i = 0 ; i < 100000 ; i++) {
-        connector->section->Get_material()->Set_E0(E0+=1e-4);
-        connector->ComputeStiffnessMatrix();
-    }
-    auto elapsed = now() - startTime;
-    auto seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
-    std::cout << seconds.count() << "\t";
 }
 
 TEST(CBLConnectorTest, update_rotation){
     // TODO when we implement large displacement
+}
+
+TEST(CBLConnectorTest, Bernstein) {
+    double tol = 1e-10;
+    int N = 100;
+    for (int order = 1; order <=3; order++) {
+        ChVectorDynamic<> R_unroll(order + 1);
+        ChVectorDynamic<> R_orig(order + 1);
+        for (int i=0; i<N ; i++) {
+            double u = -1.0 + i * (2.0 / N);
+            ChBasisToolsBeziers::BasisEvaluate(order, u, R_orig);
+            ChBasisToolsBeziers::unrolled_BasisEvaluate(u, R_unroll);
+            for (int j = 0; j <= order; j++) {
+                ASSERT_NEAR(R_unroll[j], R_orig[j], tol);
+            }
+        }
+    }
+
+    std::cout<< " PROFILING"<<std::endl;
+    std::cout<< " Recursive Bernstein for p=3"<<std::endl;
+    ChVectorDynamic<> R(4);
+    auto startTime = now();
+
+    for (int i = 0 ; i < 1000000 ; i++) {
+        double u = -1.0 + i * (2.0 / N);
+        ChBasisToolsBeziers::BasisEvaluate(3, u, R);
+    }
+    auto elapsed = now() - startTime;
+    auto seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
+    std::cout << seconds.count() << std::endl;
+
+    std::cout<< " Unrolled Bernstein for p=3"<<std::endl;
+    
+    startTime = now();
+
+    for (int i = 0 ; i < 1000000 ; i++) {
+        double u = -1.0 + i * (2.0 / N);
+        ChBasisToolsBeziers::unrolled_BasisEvaluate(u, R);
+    }
+    elapsed = now() - startTime;
+    seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
+    std::cout << seconds.count() << "\t";
 }

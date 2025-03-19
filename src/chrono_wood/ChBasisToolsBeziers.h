@@ -70,7 +70,46 @@ public:
 	    }
 	    return B;
        }
-	
+
+    // Unroll recursion since we limit our cases to fairly simple and known cases p in [1,3]
+    // More case can be added and unrolled with little effort since we are not going to use large p
+    // In the context of Bezier curves here, this is called for x in [0,1]
+    static void BernsteinPolynomials(double x, ChVectorDynamic<>& B){
+        // No parameter check on order here.
+        // It's another functions' responsibility to pass a vector of the correct size
+        switch (B.size()-1) {
+            case 0:
+                B(0) = 0.0;
+                break;
+            case 1:
+                B(0) = 1.0 - x;
+                B(1) =  x;
+                break;
+            case 2:
+                B(0) = (1.0 - x) * (1.0 - x);
+                B(1) = 2.0 * (1.0 - x) * x;
+                B(2) = x * x;
+                break;
+            case 3:
+                B(0) = (1.0 - x) * (1.0 - x) * (1.0 - x);
+                B(1) = 3.0 * (1.0 - x) * (1.0 - x) * x;
+                B(2) = 3.0 * (1.0 - x) * x * x;
+                B(3) = x * x * x;
+                break;
+        }
+    }
+
+
+
+    static void unrolled_BasisEvaluate(
+                const double u,                 ///< parameter in [-1, 1]      
+                ChVectorDynamic<>& R            ///< here return basis functions R evaluated at u, that is: R(u)
+                ) {
+        // x = (1 + u) / 2
+        BernsteinPolynomials(0.5 * (1.0 + u), R);
+         
+    }
+
 	
         /// Compute vector of bases R.
         /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span, 
