@@ -124,7 +124,7 @@ int main() {
 
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
         ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    } else {
+    } else if (rigid_tire) {
         sys = new ChSystemNSC;
         step_size = 2e-4;
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -267,6 +267,7 @@ int main() {
         }
 
         rig.Advance(step_size);
+
         sim_time += sys->GetTimerStep();
 
         if (debug_output) {
@@ -282,6 +283,15 @@ int main() {
             cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << endl;
             cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << endl;
             cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << endl;
+        } else {
+            switch (rig.GetState()) {
+                case ChTireStaticTestRig::State::COMPRESSING:
+                    std::cout << "\r" << rig.GetCompressionLoad();
+                    break;
+                case ChTireStaticTestRig::State::DISPLACING:
+                    std::cout << "\r" << rig.GetLoad();
+                    break;
+            }
         }
     }
     timer.stop();

@@ -348,7 +348,6 @@ void ChTireStaticTestRig::StateTransition(double time) {
         }
         case State::COMPRESSING: {
             auto current_load = m_motor_r->GetMotorForce();
-            cout << "\r" << current_load;
 
             // End compression phase when reaching the prescribed radial load
             if (current_load > m_r_load) {
@@ -478,7 +477,7 @@ void ChTireStaticTestRig::WriteOutput() {
 
 // -----------------------------------------------------------------------------
 
-std::string ChTireStaticTestRig::ModeName(Mode mode) const {
+std::string ChTireStaticTestRig::ModeName(Mode mode) {
     switch (mode) {
         case Mode::SUSPEND:
             return "Suspend";
@@ -494,7 +493,7 @@ std::string ChTireStaticTestRig::ModeName(Mode mode) const {
     return "Unknown mode";
 }
 
-std::string ChTireStaticTestRig::StateName(State state) const {
+std::string ChTireStaticTestRig::StateName(State state) {
     switch (state) {
         case State::FIXED:
             return "Fixed";
@@ -513,6 +512,40 @@ std::string ChTireStaticTestRig::StateName(State state) const {
 }
 
 // -----------------------------------------------------------------------------
+
+std::string ChTireStaticTestRig::GetStateName() const {
+    return StateName(m_state);
+}
+
+double ChTireStaticTestRig::GetCompressionLoad() const {
+    return m_motor_r->GetMotorForce();
+}
+
+double ChTireStaticTestRig::GetLongitudinalLoad() const {
+    return m_motor_x->GetMotorForce();
+}
+
+double ChTireStaticTestRig::GetLateralLoad() const {
+    return m_motor_y->GetMotorForce();
+}
+
+double ChTireStaticTestRig::GetTorsionalLoad() const {
+    return m_motor_z->GetMotorTorque();
+}
+
+double ChTireStaticTestRig::GetLoad() const {
+    switch (m_mode) {
+        case Mode::TEST_R:
+            return GetCompressionLoad();
+        case Mode::TEST_X:
+            return GetLongitudinalLoad();
+        case Mode::TEST_Y:
+            return GetLateralLoad();
+        case Mode::TEST_Z:
+            return GetTorsionalLoad();
+    }
+    return 0;
+}
 
 ChVector3d ChTireStaticTestRig::GetWheelPos() const {
     return m_wheel->GetPos();

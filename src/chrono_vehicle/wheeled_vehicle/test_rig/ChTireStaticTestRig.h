@@ -51,6 +51,9 @@ class CH_VEHICLE_API ChTireStaticTestRig {
         TEST_Z    ///< torsional plate displacement test
     };
 
+    /// Tire test rig state.
+    enum class State { FIXED, DROPPING, COMPRESSING, DISPLACING, DONE };
+
     /// Construct a tire test rig within the specified system.
     ChTireStaticTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
                         std::shared_ptr<ChTire> tire,    ///< tire subsystem
@@ -106,6 +109,27 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     /// If return value is 'false', testing was completed and simulation should be stopped.
     bool Advance(double step);
 
+    /// Get current rig state.
+    State GetState() const { return m_state; }
+
+    /// Get current rig state as string.
+    std::string GetStateName() const;
+
+    /// Get current compression load.
+    double GetCompressionLoad() const;
+
+    /// Get current longitudinal load.
+    double GetLongitudinalLoad() const;
+
+    /// Get current lateral load.
+    double GetLateralLoad() const;
+
+    /// Get current torsional load.
+    double GetTorsionalLoad() const;
+
+    /// Get load for current mode.
+    double GetLoad() const;
+
     /// Get current wheel position.
     ChVector3d GetWheelPos() const;
 
@@ -116,14 +140,6 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     double GetRadialLoad() const;
 
   private:
-    enum class State {
-      FIXED,
-      DROPPING,
-      COMPRESSING,
-      DISPLACING,
-      DONE
-    };
-
     class RigTerrain : public ChTerrain {
       public:
         RigTerrain() {}
@@ -139,8 +155,8 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     void Output(double time);
     void WriteOutput();
 
-    std::string ModeName(Mode mode) const;
-    std::string StateName(State state) const;
+    static std::string ModeName(Mode mode);
+    static std::string StateName(State state);
 
     ChSystem* m_system;                ///< pointer to the Chrono system
     RigTerrain m_terrain;              ///< handle to underlying terrain subsystem

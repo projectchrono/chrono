@@ -143,7 +143,7 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
 // =============================================================================
 
 // Underlying (private) implementation of the MB tire model.
-class MBTireModel : public ChPhysicsItem {
+class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
   public:
     MBTireModel();
 
