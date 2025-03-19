@@ -41,16 +41,16 @@ class CH_VEHICLE_API ChSuspensionTestRigInteractiveDriver : public ChSuspensionT
     /// Get the currently actuated axle.
     int GetActiveAxle() const { return m_crt_axle; }
 
-    /// Get the left post displacement.
+    /// Get the left post displacement for current actuated axle.
     double GetLeft();
 
-    /// Get the right post displacement.
+    /// Get the right post displacement for current actuated axle.
     double GetRight();
 
-    /// Change actuated axle to next (cycle as needed).
+    /// Change current actuated axle to next (cycle as needed).
     void NextAxle();
 
-    /// Change actuated axle to previous (cycle as needed).
+    /// Change current actuated axle to previous (cycle as needed).
     void PreviousAxle();
 
     /// Increment steering input.
@@ -59,16 +59,16 @@ class CH_VEHICLE_API ChSuspensionTestRigInteractiveDriver : public ChSuspensionT
     /// Decrement steering input.
     void DecrementSteering();
 
-    /// Increment displacement of left post.
+    /// Increment displacement of left post for current actuated axle.
     void IncrementLeft();
 
-    /// Decrement displacement of left post.
+    /// Decrement displacement of left post for current actuated axle.
     void DecrementLeft();
 
-    /// Increment displacement of right post.
+    /// Increment displacement of right post for current actuated axle.
     void IncrementRight();
 
-    /// Decrement displacement of right post.
+    /// Decrement displacement of right post for current actuated axle.
     void DecrementRight();
 
     /// Set the time response for post displacement control.

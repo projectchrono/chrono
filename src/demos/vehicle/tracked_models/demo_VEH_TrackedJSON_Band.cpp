@@ -25,13 +25,13 @@
 #include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -191,26 +191,8 @@ int main(int argc, char* argv[]) {
     vehicle.InitializePowertrain(powertrain);
 
 #ifdef USE_IRRLICHT
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
-    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&vehicle);
-
-    // ------------------------
     // Create the driver system
-    // ------------------------
-
-    ChInteractiveDriverIRR driver(*vis);
+    ChInteractiveDriver driver(vehicle);
 
     // Set the time response for keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -221,11 +203,23 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(render_step_size / braking_time);
 
     driver.Initialize();
-#else
 
+    // Create the vehicle Irrlicht application
+    auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+    vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
+    vis->SetChaseCameraMultipliers(1e-4, 10);
+    vis->Initialize();
+    vis->AddLightDirectional();
+    vis->AddSkyBox();
+    vis->AddLogo();
+    vis->AttachVehicle(&vehicle);
+    vis->AttachDriver(&driver);
+#else
     // Create a default driver (always returns 1 for throttle, 0 for all other inputs)
     MyDriver driver;
-
+    driver.Initialize();
 #endif
 
     // -----------------

@@ -21,17 +21,11 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigInteractiveDriver.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"// For the csharp module, these can be found in the ChVehicleVisualSystemIrrlicht
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"// For the csharp module, these can be found in the ChVehicleVisualSystemIrrlicht
+#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
-
-//using namespace chrono::irrlicht;
-//using namespace irr;
 #endif
-
 #endif             // --------------------------------------------------------------------- PYTHON
 
 #ifdef SWIGCSHARP //--------------------------------------------------------------------------CSHARP
@@ -73,17 +67,9 @@
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigDataDriver)
 %shared_ptr(chrono::vehicle::ChSuspensionTestRigInteractiveDriver)
 
-#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
-#ifdef CHRONO_IRRLICHT
-%shared_ptr(chrono::vehicle::ChInteractiveDriverIRR)
-#endif
-#endif             // --------------------------------------------------------------------- PYTHON
-
 #ifdef SWIGCSHARP //--------------------------------------------------------------------------CSHARP
 %shared_ptr(chrono::vehicle::ChHumanDriver)
 #endif            //--------------------------------------------------------------------------CSHARP
-
-
 
 // Are these python specific?
 %rename(DriverInputs) chrono::vehicle::ChDriver::Inputs;
@@ -110,15 +96,13 @@
 
 #ifdef CHRONO_IRRLICHT
 %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
-%include "../../../chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+%include "../../../chrono_vehicle/driver/ChInteractiveDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 %include "irrTypes.h"
 %include "vector2d.h"
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
-
-%DefSharedPtrDynamicCast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
 
 #endif
 

@@ -797,8 +797,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_FILES
         ChVehicleVisualSystemIrrlicht.h
         ChVehicleVisualSystemIrrlicht.cpp
-        driver/ChInteractiveDriverIRR.h
-        driver/ChInteractiveDriverIRR.cpp
     )
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
@@ -830,8 +828,6 @@ if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_FILES
         ChVehicleVisualSystemVSG.h
         ChVehicleVisualSystemVSG.cpp
-        driver/ChInteractiveDriverVSG.h
-        driver/ChInteractiveDriverVSG.cpp
     )
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
