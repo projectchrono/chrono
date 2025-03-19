@@ -18,14 +18,23 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h"
 
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblySinglePin.h"
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -41,6 +50,9 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+// Run-time visualization system
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Rig construction
 bool use_JSON = true;
@@ -148,16 +160,6 @@ int main(int argc, char* argv[]) {
 
     rig->GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Track Test Rig");
-    vis->SetChaseCamera(ChVector3d(0), 3.0, 0.0);
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-    ////vis->RenderTrackShoeFrames(true, 0.4);
-
     // -----------------------------------
     // Create and attach the driver system
     // -----------------------------------
@@ -165,7 +167,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChTrackTestRigDriver> driver;
     switch (driver_mode) {
         case DriverMode::KEYBOARD: {
-            auto irr_driver = chrono_types::make_shared<ChTrackTestRigInteractiveDriverIRR>(*vis);
+            auto irr_driver = chrono_types::make_shared<ChTrackTestRigInteractiveDriver>();
             irr_driver->SetThrottleDelta(1.0 / 50);
             irr_driver->SetDisplacementDelta(1.0 / 250);
             driver = irr_driver;
@@ -211,22 +213,6 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(rig);
-
-    ////ChVector3d target_point = rig->GetPostPosition();
-    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ////ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-    ChVector3d target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
-                                     rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
-
-    vis->SetChaseCameraPosition(target_point + ChVector3d(0, -5, 0));
-    vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(CH_PI_2);
-
     // -----------------
     // Set up rig output
     // -----------------
@@ -244,6 +230,46 @@ int main(int argc, char* argv[]) {
         rig->SetOutput(ChVehicleOutput::ASCII, out_dir, "output", out_step_size);
 
         rig->SetPlotOutput(out_step_size * 0.1);
+    }
+
+    // ----------------------------------------
+    // Create the run-time visualization system
+    // ----------------------------------------
+
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
+            vis_irr->SetWindowSize(1280, 1024);
+            vis_irr->SetWindowTitle("Track Test Rig");
+            vis_irr->AttachTTR(rig);
+            vis_irr->Initialize();
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
+            vis_vsg->SetWindowSize(ChVector2i(1280, 1024));
+            vis_vsg->SetWindowTitle("Track Test Rig");
+            vis_vsg->AttachTTR(rig);
+            vis_vsg->Initialize();
+            vis = vis_vsg;
+#endif
+            break;
+        }
     }
 
     // ------------------------------
@@ -296,10 +322,6 @@ int main(int argc, char* argv[]) {
 
         // Advance simulation of the rig
         rig->Advance(step_size);
-
-        // Update visualization app
-        vis->Synchronize(rig->GetChTime(), {0, rig->GetThrottleInput(), 0});
-        vis->Advance(step_size);
 
         ////if (driver->Ended())
         ////    break;

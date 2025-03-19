@@ -29,7 +29,7 @@ namespace fsi {
 
 // =============================================================================
 
-ChFsiInterface::ChFsiInterface(ChSystem& sysMBS, ChFluidSystem& sysCFD)
+ChFsiInterface::ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
     : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true) {}
 
 ChFsiInterface::~ChFsiInterface() {}
@@ -399,7 +399,7 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
 
 // =============================================================================
 
-ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFluidSystem& sysCFD)
+ChFsiInterfaceGeneric::ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
     : ChFsiInterface(sysMBS, sysCFD) {}
 
 ChFsiInterfaceGeneric::~ChFsiInterfaceGeneric() {}

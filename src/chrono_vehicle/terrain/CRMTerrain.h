@@ -35,7 +35,7 @@ namespace vehicle {
 /// @{
 
 /// Continuum representation (CRM) deformable terrain model using SPH.
-class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::ChFsiProblemCartesian {
+class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProblemCartesian {
   public:
     /// Create a CRM terrain object.
     CRMTerrain(ChSystem& sys, double spacing);
@@ -44,6 +44,9 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::ChFsiProblemCart
     /// This value activates only those SPH particles that are within an AABB of the specified size from an object
     /// interacting with the "fluid" phase.
     void SetActiveDomain(const ChVector3d& half_dim);
+
+    /// Set the delay time for the active domain.
+    void SetActiveDomainDelay(double delay);
 
     virtual void Synchronize(double time) override {}
     virtual void Advance(double step) override;

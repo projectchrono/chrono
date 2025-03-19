@@ -70,7 +70,6 @@ def main() :
     vis.SetWindowSize(1280, 1024)
     vis.AttachSTR(rig)
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 
     vis.BindAll()
 
@@ -103,8 +102,6 @@ def main() :
         driver_inputs.m_steering = rig.GetSteeringInput()
         driver_inputs.m_throttle = 0.0
         driver_inputs.m_braking = 0.0
-        vis.Synchronize(time, driver_inputs)
-        vis.Advance(step_size)
 
         if rig.DriverEnded():
             break

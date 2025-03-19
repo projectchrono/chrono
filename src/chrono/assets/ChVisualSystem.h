@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/assets/ChVisualModel.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
@@ -36,7 +37,6 @@ class ChApi ChVisualSystem {
     enum class Type {
         IRRLICHT,  ///< Irrlicht
         VSG,       ///< Vulkan Scene Graph
-        OpenGL,    ///< OpenGL
         OptiX,     ///< OptiX
         NONE
     };

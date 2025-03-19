@@ -22,8 +22,7 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
-# Enable creation of "application bundles" on MacOSX.
-# This is necessary for Irrlicht-based demos and optional for OpenGL or non-graphics demos.
+# Enable creation of "application bundles" on MacOSX, necessary for Irrlicht-based demos.
 # For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
 
 if(APPLE)
@@ -136,14 +135,6 @@ if(CH_ENABLE_MODULE_MULTICORE)
     mark_as_advanced(FORCE BUILD_DEMOS_MULTICORE)
     if(BUILD_DEMOS_MULTICORE)
       add_subdirectory(multicore)
-    endif()
-endif()
-
-if(CH_ENABLE_MODULE_OPENGL)
-    option(BUILD_DEMOS_OPENGL "Build demo programs for OpenGL module" TRUE)
-    mark_as_advanced(FORCE BUILD_DEMOS_OPENGL)
-    if(BUILD_DEMOS_OPENGL)
-        add_subdirectory(opengl)
     endif()
 endif()
 

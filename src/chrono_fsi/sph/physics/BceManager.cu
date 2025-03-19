@@ -20,9 +20,10 @@
 // =============================================================================
 
 #include <type_traits>
+#include <fstream>
 
 #include "chrono_fsi/sph/physics/BceManager.cuh"
-#include "chrono_fsi/sph/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/sph/physics/SphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -310,6 +311,7 @@ __global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
 
     uint rigidMarkerIndex = bceIndex + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
+    // printf("rigidMarkerIndex: %d, sortedIndex: %d\n", rigidMarkerIndex, sortedIndex);
 
     int rigidBodyIndex = rigid_BCEsolids_D[bceIndex];
 
@@ -411,6 +413,9 @@ __global__ void UpdateBodyMarkerState_D(Real4* posRadD,
 
     uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
+    // if (rigidMarkerIndex == 1158564) {
+    //     printf("rigidMarkerIndex: %d, sortedIndex: %d\n", rigidMarkerIndex, sortedIndex);
+    // }
     int rigidBodyIndex = rigid_BCEsolids_D[index];
 
     Real4 q4 = qD[rigidBodyIndex];
@@ -654,7 +659,7 @@ BceManager::~BceManager() {}
 // -----------------------------------------------------------------------------
 
 void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
-    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(SimParams));
+    cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 
     // Resizing the arrays used to modify the BCE velocity and pressure according to Adami

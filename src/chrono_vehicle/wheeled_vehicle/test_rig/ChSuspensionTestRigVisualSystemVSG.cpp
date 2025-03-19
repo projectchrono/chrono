@@ -93,6 +93,7 @@ void ChSTRGuiComponentVSG::render() {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ImGui::Begin("Test Rig");
 
+    // Only if interactive driver
     if (driver && ImGui::BeginTable("RigTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextRow();

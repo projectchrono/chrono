@@ -26,7 +26,6 @@
 #include <vector>
 #include <utility>
 
-#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 #include "chrono/core/ChCubicSpline.h"

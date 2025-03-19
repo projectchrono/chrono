@@ -27,7 +27,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph_physics
 /// @{
 
 /// Manager for processing boundary condition enforcing (BCE) particle forces in an FSI system.
@@ -96,7 +96,7 @@ class BceManager {
     void CalcFlex2DBceAcceleration();
 };
 
-/// @} fsi_physics
+/// @} fsisph_physics
 
 }  // namespace sph
 }  // end namespace fsi

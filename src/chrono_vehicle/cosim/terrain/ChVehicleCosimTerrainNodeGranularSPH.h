@@ -25,7 +25,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
@@ -79,10 +79,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
   private:
     enum class ConstructionMethod { PATCH, FILES };
 
-    ChSystemSMC* m_system;                            ///< containing system
-    CRMTerrain* m_terrain;                            ///< CRM terrain
-    std::string m_specfile;                           ///< CRM terrain specification file
-    std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
+    ChSystemSMC* m_system;                                 ///< containing system
+    CRMTerrain* m_terrain;                                 ///< CRM terrain
+    std::string m_specfile;                                ///< CRM terrain specification file
+    std::shared_ptr<fsi::sph::ChFsiVisualizationSPH> m_vsys;  ///< run-time visualization system
 
     ConstructionMethod m_terrain_type;  ///< construction method for CRMTerrain
     double m_depth;                     ///< SPH soil depth (PATCH type)

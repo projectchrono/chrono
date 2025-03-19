@@ -27,12 +27,12 @@
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChConfigFsi.h"
 #include "chrono_fsi/ChFsiInterface.h"
-#include "chrono_fsi/ChFluidSystem.h"
+#include "chrono_fsi/ChFsiFluidSystem.h"
 
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_base
 /// @{
 
 /// Base class for a system for fluid-solid interaction problems.
@@ -46,7 +46,7 @@ class CH_FSI_API ChFsiSystem {
     virtual ~ChFsiSystem();
 
     /// Access the associated fluid system.
-    ChFluidSystem& GetFluidSystem() const;
+    ChFsiFluidSystem& GetFluidSystem() const;
 
     /// Access the associated multibody system.
     ChSystem& GetMultibodySystem() const;
@@ -171,10 +171,10 @@ class CH_FSI_API ChFsiSystem {
     //// TODO: add functions to get force on FEA nodes
 
   protected:
-    ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD);
+    ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
 
     ChSystem& m_sysMBS;                               ///< multibody system
-    ChFluidSystem& m_sysCFD;                          ///< FSI fluid solver
+    ChFsiFluidSystem& m_sysCFD;                          ///< FSI fluid solver
     std::shared_ptr<ChFsiInterface> m_fsi_interface;  ///< FSI interface system
 
     bool m_verbose;         ///< enable/disable m_verbose terminal output
@@ -205,7 +205,7 @@ class CH_FSI_API ChFsiSystem {
     double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
 };
 
-/// @} fsi_physics
+/// @} fsi_base
 
 }  // end namespace fsi
 }  // end namespace chrono

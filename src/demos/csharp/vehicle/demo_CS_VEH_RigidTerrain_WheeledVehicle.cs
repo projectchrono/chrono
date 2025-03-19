@@ -132,20 +132,6 @@ namespace ChronoDemo
             terrain.Initialize();
 
             //------------------------------------------
-            // Visualisation Setup
-            //------------------------------------------
-    
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle("Rigid Terrain Demo");
-            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 0.75), 6.0, 0.75);
-            vis.Initialize();
-            vis.AddLightDirectional();
-            vis.AddSkyBox();
-            vis.AddLogo();
-            vis.AttachVehicle(hmmwv.GetVehicle());
-
-            //------------------------------------------
             // Driver Setup
             //------------------------------------------
 
@@ -155,11 +141,26 @@ namespace ChronoDemo
             double throttle_time = 1.0;          // time to go from 0 to +1
             double braking_time = 0.3;           // time to go from 0 to +1
 
-            ChInteractiveDriverIRR driver = new ChInteractiveDriverIRR(vis);
+            ChInteractiveDriver driver = new ChInteractiveDriver(hmmwv.GetVehicle());
             driver.SetSteeringDelta(render_step_size / steering_time);
             driver.SetThrottleDelta(render_step_size / throttle_time);
             driver.SetBrakingDelta(render_step_size / braking_time);
             driver.Initialize();
+
+            //------------------------------------------
+            // Visualisation Setup
+            //------------------------------------------
+
+            // Create the vehicle Irrlicht interface
+            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
+            vis.SetWindowTitle("Rigid Terrain Demo");
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 0.75), 6.0, 0.75);
+            vis.Initialize();
+            vis.AddLightDirectional();
+            vis.AddSkyBox();
+            vis.AddLogo();
+            vis.AttachVehicle(hmmwv.GetVehicle());
+            vis.AttachDriver(driver);
 
             // TODO: Fix wrapping for calc height
             /*

@@ -21,7 +21,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
 
 // InteractiveDriverIRR includes
 #ifdef SWIGCSHARP
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+    #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #endif
 
 %}
@@ -36,7 +36,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     // InteractiveDriverIRR
     %include "../../../chrono/core/ChBezierCurve.h"
     %import "ChDriver.i" // make SWIG aware of the ChDriver interface file
-    %shared_ptr(chrono::vehicle::ChInteractiveDriverIRR)
+    %shared_ptr(chrono::vehicle::ChInteractiveDriver)
 
     %ignore chrono::vehicle::ChJoystickAxisIRR; // Ignore this for now Using an alias enum, SWIG can't translate the irr namespace right.
 
@@ -71,8 +71,7 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     %include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_irrlicht/ChVisualSystemIrrlicht.h"    
     // Includes for interactive driver
-    %include "../../../chrono_vehicle/driver/ChInteractiveDriverIRR.h"
-    %DefSharedPtrDynamicCast(chrono::vehicle,ChInteractiveDriver, ChInteractiveDriverIRR)
+    %include "../../../chrono_vehicle/driver/ChInteractiveDriver.h"
 
     %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
     %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"

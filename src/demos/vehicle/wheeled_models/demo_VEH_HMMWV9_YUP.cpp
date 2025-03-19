@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 
@@ -144,6 +144,13 @@ int main(int argc, char* argv[]) {
     driver.GetSteeringController().SetGains(0.8, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
+#elif
+    // Interactive driver
+    ChInteractiveDriver driver(hmmwv.GetVehicle());
+    driver.SetSteeringDelta(0.06);
+    driver.SetThrottleDelta(0.02);
+    driver.SetBrakingDelta(0.06);
+    driver.Initialize();
 #endif
 
     // Vehicle Irrlicht run-time visualization
@@ -157,6 +164,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector3d(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
     vis->AttachVehicle(&hmmwv.GetVehicle());
+    vis->AttachDriver(&driver);
 
 #ifdef USE_PATH_FOLLOWER
     // Visualization of controller points (sentinel & target)
@@ -166,13 +174,6 @@ int main(int argc, char* argv[]) {
     ballT->SetColor(ChColor(0, 1, 0));
     int iballS = vis->AddVisualModel(ballS, ChFrame<>());
     int iballT = vis->AddVisualModel(ballT, ChFrame<>());
-#elif
-    // Interactive driver
-    ChInteractiveDriverIRR driver(*vis);
-    driver.SetSteeringDelta(0.06);
-    driver.SetThrottleDelta(0.02);
-    driver.SetBrakingDelta(0.06);
-    driver.Initialize();
 #endif
 
     // ---------------

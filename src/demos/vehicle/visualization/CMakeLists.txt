@@ -7,12 +7,6 @@
 
 set(DEMOS "")
 
-if(CH_ENABLE_MODULE_OPENGL)
-    set(DEMOS ${DEMOS}
-        demo_VEH_RenderJSON_GL
-    )
-endif()
-
 if(CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_RenderJSON_VSG
@@ -31,10 +25,6 @@ endif()
 
 if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_vehicle_vsg")
-endif()
-
-if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "Chrono_opengl")
 endif()
 
 #--------------------------------------------------------------

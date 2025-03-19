@@ -74,6 +74,18 @@ def main():
     patch.SetTexture(veh.GetDataFile("terrain/textures/tile4.jpg"), 200, 200)
     patch.SetColor(chrono.ChColor(0.5, 0.8, 0.5))
     terrain.Initialize()
+    
+    # Create the interactive driver system
+    # ------------------------------------
+
+    driver = veh.ChInteractiveDriver(m113.GetVehicle())
+    steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
+    throttle_time = 1.0  # time to go from 0 to +1
+    braking_time = 0.3   # time to go from 0 to +1
+    driver.SetSteeringDelta(render_step_size / steering_time)
+    driver.SetThrottleDelta(render_step_size / throttle_time)
+    driver.SetBrakingDelta(render_step_size / braking_time)
+    driver.Initialize()
 
     # Create the vehicle Irrlicht interface
     # -------------------------------------
@@ -87,21 +99,7 @@ def main():
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(m113.GetVehicle())
-
-    # Create the interactive driver system
-    # ------------------------------------
-
-    driver = veh.ChInteractiveDriverIRR(vis)
-
-    # Set the time response for steering and throttle keyboard inputs.
-    steering_time = 0.5  # time to go from 0 to +1 (or from 0 to -1)
-    throttle_time = 1.0  # time to go from 0 to +1
-    braking_time = 0.3   # time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time)
-    driver.SetThrottleDelta(render_step_size / throttle_time)
-    driver.SetBrakingDelta(render_step_size / braking_time)
-
-    driver.Initialize()
+    vis.AttachDriver(driver)
 
     # Solver and integrator settings
     # ------------------------------

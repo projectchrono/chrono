@@ -31,8 +31,8 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -40,6 +40,7 @@
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;
@@ -84,7 +85,7 @@ double output_fps = 20;
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_Single_Wheel_Test/";
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 100;
 
@@ -125,7 +126,7 @@ void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, c
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     // Common contact material
@@ -274,7 +275,7 @@ int main(int argc, char* argv[]) {
 
     // Create the MBS and FSI systems
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -330,7 +331,7 @@ int main(int argc, char* argv[]) {
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 - 0.5 * initSpacing, -bzDim * 10);
     ChVector3d cMax(bxDim / 2 * 10, byDim / 2 + 0.5 * initSpacing, bzDim * 10);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Initialize the SPH particles
     auto initSpace0 = sysSPH.GetInitialSpacing();
@@ -363,8 +364,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-tme visualizer
-#ifdef CHRONO_OPENGL
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
+#ifdef CHRONO_VSG
+    ChFsiVisualizationVSG fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI single wheel demo");
         fsi_vis.AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
@@ -424,7 +425,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render SPH particles
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!fsi_vis.Render())
                 break;

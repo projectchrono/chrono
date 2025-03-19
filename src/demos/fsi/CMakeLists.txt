@@ -37,10 +37,6 @@ if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_fsisph_vsg")
 endif()
 
-if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "Chrono_fsisph_opengl")
-endif()
-
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     list(APPEND LIBS "Chrono_pardisomkl")
 endif()

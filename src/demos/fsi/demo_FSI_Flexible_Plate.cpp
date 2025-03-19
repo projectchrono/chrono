@@ -35,10 +35,7 @@
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -53,6 +50,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;
@@ -62,9 +60,6 @@ using std::endl;
 
 // Physics problem type
 PhysicsProblem problem_type = PhysicsProblem::CFD;
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Dimensions of the boundary and fluid domains
 double cxDim = 3;
@@ -142,7 +137,7 @@ int main(int argc, char* argv[]) {
     // Set fluid phase properties
     switch (problem_type) {
         case PhysicsProblem::CFD: {
-            ChFluidSystemSPH::FluidProperties fluid_props;
+            ChFsiFluidSystemSPH::FluidProperties fluid_props;
             fluid_props.density = 1000;
             fluid_props.viscosity = 5.0;
 
@@ -151,7 +146,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case PhysicsProblem::CRM: {
-            ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+            ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
             mat_props.density = 1700;
             mat_props.Young_modulus = 1e6;
             mat_props.Poisson_ratio = 0.3;
@@ -168,7 +163,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Set SPH solution parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     switch (problem_type) {
         case PhysicsProblem::CFD:
@@ -240,7 +235,7 @@ int main(int argc, char* argv[]) {
 
     ChVector3d cMin = ChVector3d(-5 * cxDim, -cyDim / 2 - initial_spacing / 2, -5 * czDim);
     ChVector3d cMax = ChVector3d(+5 * cxDim, +cyDim / 2 + initial_spacing / 2, +5 * czDim);
-    fsi.SetComputationalDomainSize(ChAABB(cMin, cMax));
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
 
     // Initialize FSI problem
     fsi.Initialize();
@@ -286,35 +281,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-tme visualizer
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
 #ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-                visFSI->AddCamera(ChVector3d(0, -2, 0.75), ChVector3d(0, 0, 0.75));
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-                visFSI->AddCamera(ChVector3d(0.75, -3, 0.75), ChVector3d(0, 0, 0.75));
+        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
-                break;
-            }
-        }
 
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
 
@@ -328,8 +303,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFlexBodyMarkers(show_mesh_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->SetColorFlexBodyMarkers(ChColor(1, 1, 1));
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();

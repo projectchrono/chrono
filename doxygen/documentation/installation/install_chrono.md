@@ -104,7 +104,7 @@ The Chrono distribution includes, in the directory `contrib/build-scripts` a set
 Currently, scripts are provided for the following packages:
 - Eigen3 -- the only external dependency of the core Chrono module
 - Blaze -- a linear algebra package required by Chrono::Multicore
-- GL and GLEW -- OpenGL packages used in Chrono::OpenGL and (optionally) in Chrono::Sensor
+- GL and GLEW -- OpenGL packages (optionally) used in Chrono::Sensor
 - MUMPS -- a direct sparse linear solver required by Chrono::Mumps
 - OpenCRG -- a file format for road description used (optionally) in Chrono::Vehicle
 - Spectra -- an algebra package required by Chrono::Modal

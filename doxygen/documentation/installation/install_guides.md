@@ -27,8 +27,6 @@ Additional Chrono functionality is provided through optional modules, enabled du
 
 -   [MUMPS module](@ref module_mumps_installation)
 
--   [OPENGL module](@ref module_opengl_installation)
-
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
 -   [PARSERS module](@ref module_parsers_installation)
@@ -60,7 +58,7 @@ For some of these dependencies, we provide utility scripts that will download, c
 - Spectra, required for the Chrono::Modal module 
 - VSG libraries, required for the Chrono::VSG module
 - URDF libraries, required for the URDF parser in the Chrono::Parsers module
-- GL utility libraries, required for the Chrono::OpenGL and (optionally) Chrono::Sensor modules
+- GL utility libraries, required (optionally) for the Chrono::Sensor module
 - MUMPS library, required for the optional direct sparse linear solver Chrono::Mumps module.
 - OpenCRG library, required for the optional OpenCRG support in the Chrono::Vehicle module
 

@@ -61,6 +61,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Destructor
     ~ChTrackTestRig();
 
+    /// Get the attached driver (if any).
+    std::shared_ptr<ChTrackTestRigDriver> GetDriver() const { return m_driver; }
+
     /// Set driver system.
     void SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver);
 
@@ -244,7 +247,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     double m_next_plot_output_time;
     utils::ChWriterCSV* m_csv;
 
-    friend class ChTrackTestRigVisualSystemIrrlicht;
+    friend class ChTrackTestRigVisualSystemIRR;
+    friend class ChTrackTestRigVisualSystemVSG;
 };
 
 /// @} vehicle_tracked_test_rig

@@ -14,26 +14,27 @@
 
 #pragma once
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #include "chrono_vsg/ChVisualSystemVSG.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
-/// @addtogroup fsi_visualization
+/// @addtogroup fsisph_visualization
 /// @{
 
 /// VSG-based run-time visualization system for SPH-based FSI systems.
 /// Requires the Chrono::VSG module.
 /// Note that using run-time visualization for an FSI system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
-class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
+class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualizationSPH {
   public:
     /// Create a run-time FSI visualization object associated with a given Chrono::Fsi system.
     ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI);
 
     /// Create a run-time FSI visualization object associated with a given SPH fluid system.
-    ChFsiVisualizationVSG(ChFluidSystemSPH* sysSPH);
+    ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH);
 
     ~ChFsiVisualizationVSG();
 
@@ -94,14 +95,15 @@ class CH_FSI_API ChFsiVisualizationVSG : public ChFsiVisualization {
     virtual ChVisualSystem* GetVisualSystem() const override { return m_vsys; }
 
   private:
-    enum ParticleCloudTag {SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3};
+    enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
 
     vsg3d::ChVisualSystemVSG* m_vsys;  ///< VSG visualization system
 
     friend class FSIStatsVSG;
 };
 
-/// @} fsi_visualization
+/// @} fsisph_visualization
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

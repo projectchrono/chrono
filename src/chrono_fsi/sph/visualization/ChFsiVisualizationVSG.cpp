@@ -20,8 +20,7 @@
 
 namespace chrono {
 namespace fsi {
-
-using namespace sph;
+namespace sph {
 
 // -----------------------------------------------------------------------------
 
@@ -151,7 +150,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI) : ChFsiVisualization(sysFSI) {
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI) : ChFsiVisualizationSPH(sysFSI) {
     m_vsys = new vsg3d::ChVisualSystemVSG();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
@@ -163,7 +162,7 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI) : ChFsiVisu
     m_vsys->SetClearColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
 }
 
-ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFluidSystemSPH* sysSPH) : ChFsiVisualization(sysSPH) {
+ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH) : ChFsiVisualizationSPH(sysSPH) {
     m_vsys = new vsg3d::ChVisualSystemVSG();
     m_vsys->AttachSystem(m_sysMBS);
     m_vsys->SetWindowTitle("");
@@ -383,5 +382,6 @@ bool ChFsiVisualizationVSG::Render() {
     return true;
 }
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono

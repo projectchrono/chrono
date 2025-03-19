@@ -22,10 +22,7 @@
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -35,15 +32,13 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;
 using std::endl;
 
 // -----------------------------------------------------------------
-
-// Run-time visualization system (VSG, OpenGL, or NONE)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Container dimensions
 ChVector3d csize(1.6, 1.4, 0.5);
@@ -73,7 +68,7 @@ class SPHPropertiesCallback : public ChFsiProblemSPH::ParticlePropertiesCallback
     SPHPropertiesCallback(double zero_height, const ChVector3d& init_velocity)
         : ParticlePropertiesCallback(), zero_height(zero_height), init_velocity(init_velocity) {}
 
-    virtual void set(const ChFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
+    virtual void set(const ChFsiFluidSystemSPH& sysSPH, const ChVector3d& pos) override {
         double gz = std::abs(sysSPH.GetGravitationalAcceleration().z());
         double c2 = sysSPH.GetSoundSpeed() * sysSPH.GetSoundSpeed();
         p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
@@ -225,7 +220,7 @@ int main(int argc, char* argv[]) {
     fsi.SetStepsizeMBD(step_size);
 
     // Set soil propertiees
-    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = 1800;
     mat_props.Young_modulus = 2e6;
     mat_props.Poisson_ratio = 0.3;
@@ -238,7 +233,7 @@ int main(int argc, char* argv[]) {
     fsi.SetElasticSPH(mat_props);
 
     // Set SPH solution parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.2;
@@ -270,7 +265,7 @@ int main(int argc, char* argv[]) {
     CreateBaffles(fsi);
 
     // Enable depth-based initial pressure for SPH particles
-    ChVector3d v0(1.5, 0, 0);
+    ChVector3d v0(1, 0, 0);
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<SPHPropertiesCallback>(fsize.z(), v0));
 
     // Create SPH material (do not create boundary BCEs)
@@ -288,7 +283,7 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
                 ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
-    fsi.SetComputationalDomainSize(aabb);
+    fsi.SetComputationalDomain(aabb, PeriodicSide::NONE);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);
@@ -338,33 +333,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-time visualizer
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
 #ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
-                break;
-            }
-        }
 
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, v0.Length());
 
@@ -375,8 +352,8 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->AttachSystem(&sysMBS);
         visFSI->Initialize();

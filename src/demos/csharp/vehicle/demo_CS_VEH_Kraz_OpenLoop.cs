@@ -86,6 +86,16 @@ namespace ChronoDemo
             patch.SetTexture(GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrain.Initialize();
 
+            // Create the interactive Irrlicht driver system
+            ChInteractiveDriver driver = new ChInteractiveDriver(truck.GetTractor());
+            double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            driver.SetSteeringDelta(render_step_size / steering_time);
+            driver.SetThrottleDelta(render_step_size / throttle_time);
+            driver.SetBrakingDelta(render_step_size / braking_time);
+            driver.Initialize();
+
             // Create the vehicle Irrlicht interface
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Semi-trailer truck :: Open Loop");
@@ -95,18 +105,7 @@ namespace ChronoDemo
             vis.AddSkyBox();
             vis.AddLogo();
             vis.AttachVehicle(truck.GetTractor());
-
-            // Create the interactive Irrlicht driver system
-            ChInteractiveDriverIRR driver = new ChInteractiveDriverIRR(vis);
-            // Set the time response for steering and throttle keyboard inputs.
-            // NOTE: this is not exact, since we do not render quite at the specified FPS.
-            double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-            double throttle_time = 1.0;  // time to go from 0 to +1
-            double braking_time = 0.3;   // time to go from 0 to +1
-            driver.SetSteeringDelta(render_step_size / steering_time);
-            driver.SetThrottleDelta(render_step_size / throttle_time);
-            driver.SetBrakingDelta(render_step_size / braking_time);
-            driver.Initialize();
+            vis.AttachDriver(driver);
 
             // Number of simulation steps between two 3D view render frames
             int render_steps = (int)Math.Ceiling(render_step_size / step_size);

@@ -772,6 +772,8 @@ set(CV_TV_TEST_RIG_FILES
     tracked_vehicle/test_rig/ChTrackTestRigDataDriver.cpp
     tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.h
     tracked_vehicle/test_rig/ChTrackTestRigRoadDriver.cpp
+    tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.h
+    tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.cpp
 )
 source_group("tracked_vehicle\\test_rig" FILES ${CV_TV_TEST_RIG_FILES})
 
@@ -801,8 +803,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_FILES
         ChVehicleVisualSystemIrrlicht.h
         ChVehicleVisualSystemIrrlicht.cpp
-        driver/ChInteractiveDriverIRR.h
-        driver/ChInteractiveDriverIRR.cpp
     )
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
@@ -813,10 +813,8 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h
         tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.cpp
-        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.h
-        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIrrlicht.cpp
-        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h
-        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h
+        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.cpp
     )
 else()
     set(CVIRR_FILES "")
@@ -834,8 +832,6 @@ if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_FILES
         ChVehicleVisualSystemVSG.h
         ChVehicleVisualSystemVSG.cpp
-        driver/ChInteractiveDriverVSG.h
-        driver/ChInteractiveDriverVSG.cpp
     )
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
@@ -846,8 +842,8 @@ if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h
         tracked_vehicle/ChTrackedVehicleVisualSystemVSG.cpp
-        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.h
-        tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverVSG.cpp
+        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h
+        tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.cpp
     )
 else()
     set(CVVSG_FILES "")
@@ -859,19 +855,6 @@ source_group("" FILES ${CVVSG_FILES})
 source_group("wheeled_vehicle" FILES ${CVVSG_WV_FILES})
 source_group("tracked_vehicle" FILES ${CVVSG_TV_FILES})
 
-# --------------- VEHICLE OpenGL INTERFACE
-
-if(CH_ENABLE_MODULE_OPENGL)
-    set(CVGL_FILES
-        ChVehicleVisualSystemOpenGL.h
-        ChVehicleVisualSystemOpenGL.cpp
-    )
-else()
-    set(CVGL_FILES "")
-endif()
-
-source_group("" FILES ${CVGL_FILES})
-
 # ------------------------------------------------------------------------------
 # Set dependencies on other Chrono modules
 # ------------------------------------------------------------------------------
@@ -882,9 +865,6 @@ if(CH_ENABLE_MODULE_IRRLICHT)
 endif()
 if(CH_ENABLE_MODULE_VSG)
   list (APPEND DEPENDENCIES_VEHICLE "VSG")
-endif()
-if(CH_ENABLE_MODULE_OPENGL)
-  list (APPEND DEPENDENCIES_VEHICLE "OPENGL")
 endif()
 if(CH_ENABLE_MODULE_FSI)
   list (APPEND DEPENDENCIES_VEHICLE "FSI")
@@ -1061,45 +1041,6 @@ if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_vehicle_vsg PUBLIC Chrono_vsg)
 
     install(TARGETS Chrono_vehicle_vsg
-            EXPORT ChronoTargets
-            RUNTIME DESTINATION bin
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include/chrono_vehicle) # TODO DARIOM: verify if correct folder
-
-endif()
-
-#-------------------------------------------------------------------------------
-# Add the Chrono_vehicle_opengl library
-#-------------------------------------------------------------------------------
-
-if(CH_ENABLE_MODULE_OPENGL)
-    message(STATUS "Add Chrono_vehicle_opengl library")
-
-    add_library(Chrono_vehicle_opengl
-        ${CVGL_FILES}
-    )
-    add_library(Chrono::vehicle_opengl ALIAS Chrono_vehicle_opengl)
-
-    if(CH_WHOLE_PROG_OPT)
-      set_target_properties(Chrono_vehicle_opengl PROPERTIES COMPILE_FLAGS "/GL")
-      set_target_properties(Chrono_vehicle_opengl PROPERTIES LINK_FLAGS "/LTCG")
-    endif()
-
-    if (CH_STATIC)
-      set_target_properties(Chrono_vehicle_opengl PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    endif()
-    
-    if(MSVC)
-      set_target_properties(Chrono_vehicle_opengl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
-    endif()
-
-    target_compile_definitions(Chrono_vehicle_opengl PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-
-    target_link_libraries(Chrono_vehicle_opengl PRIVATE Chrono_core Chrono_vehicle)
-    target_link_libraries(Chrono_vehicle_opengl PUBLIC Chrono_opengl)
-
-    install(TARGETS Chrono_vehicle_opengl
             EXPORT ChronoTargets
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib

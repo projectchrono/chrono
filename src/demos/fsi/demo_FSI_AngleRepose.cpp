@@ -25,10 +25,7 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -40,9 +37,7 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+using namespace chrono::fsi::sph;
 
 // Truths from Wei Paper -
 // https://www.sciencedirect.com/science/article/pii/S0045782521003534?ref=pdf_download&fr=RR-2&rr=8c4472d7d99222ff
@@ -118,7 +113,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysFSI.SetVerbose(verbose);
@@ -146,11 +141,10 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin(-bxDim / 2 - 10.0 * initSpace0 / 2.0, -byDim / 2 - 1.0 * initSpace0 / 2.0,
-                    -1.0 * bzDim - 5 * initSpace0);
-    ChVector3d cMax(bxDim / 2 + 10.0 * initSpace0 / 2.0, byDim / 2 + 1.0 * initSpace0 / 2.0,
-                    2.0 * bzDim + 5 * initSpace0);
-    sysSPH.SetBoundaries(cMin, cMax);
+    ChVector3d cMin(-bxDim / 2 - 3 * initSpace0 / 2.0, -byDim / 2 - 3 * initSpace0 / 2.0,
+                    -1.0 * bzDim - 3 * initSpace0);
+    ChVector3d cMax(bxDim / 2 + 3 * initSpace0 / 2.0, byDim / 2 + 3 * initSpace0 / 2.0, 2.0 * bzDim + 3 * initSpace0);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
     sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
 
     // Create SPH particle locations using a sampler
@@ -239,48 +233,29 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+
     // Create a run-tme visualizer
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
 #ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
     render = false;
 #endif
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
+    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
     if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
 #endif
-                break;
-            }
-        }
 
-        if (visFSI) {
-            visFSI->SetTitle("Chrono::FSI Angle of Repose");
-            visFSI->SetSize(1280, 720);
-            visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
-            visFSI->SetCameraMoveScale(0.1f);
-            visFSI->EnableFluidMarkers(true);
-            visFSI->EnableBoundaryMarkers(true);
-            visFSI->EnableRigidBodyMarkers(false);
-            visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-            visFSI->AttachSystem(&sysMBS);
-            visFSI->Initialize();
-        }
+        visFSI->SetTitle("Chrono::FSI Angle of Repose");
+        visFSI->SetSize(1280, 720);
+        visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
+        visFSI->SetCameraMoveScale(0.1f);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableRigidBodyMarkers(false);
+        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
+        visFSI->AttachSystem(&sysMBS);
+        visFSI->Initialize();
     }
 
     // Start the simulation

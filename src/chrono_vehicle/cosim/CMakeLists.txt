@@ -180,12 +180,6 @@ if(CH_ENABLE_MODULE_VSG)
     target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_fsisph_vsg)
   endif()
 endif()
-if(CH_ENABLE_MODULE_OPENGL)
-  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_opengl)
-  if(CH_ENABLE_MODULE_FSI)
-    target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_fsisph_opengl)
-  endif()
-endif()
 
 install(TARGETS Chrono_vehicle_cosim
         EXPORT ChronoTargets

@@ -1,8 +1,8 @@
 # Demo programs for multicore RoboSimian simulations
 # ------------------------------------------------------------------------------
 
-if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_OPENGL)
-  message(STATUS "  Warning: the multicore RoboSimian projects require Chrono::Multicore and Chrono::OpenGL")
+if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_VSG)
+  message(STATUS "  Warning: the multicore RoboSimian projects require Chrono::Multicore and Chrono::VSG")
   return()
 endif()
 
@@ -31,7 +31,7 @@ foreach(PROGRAM ${DEMOS})
                           Chrono_core
                           Chrono_multicore
                           Chrono_vehicle
-                          Chrono_opengl
+                          Chrono_vsg
                           ChronoModels_robot)
 
                           
