@@ -12,22 +12,16 @@ endif()
 
 set(DEMOS
     demo_VEH_TireTestRig
+    demo_VEH_SuspensionTestRig
+    demo_VEH_TrackTestRig
 )
 
 if(CH_ENABLE_MODULE_FSI)
     set(DEMOS ${DEMOS} demo_VEH_TireTestRig_CRM)
 endif()
 
-if(CH_ENABLE_MODULE_IRRLICHT)
-   set(DEMOS ${DEMOS}
-       demo_VEH_SuspensionTestRig
-       demo_VEH_TrackTestRig
-   )
-   if(CH_ENABLE_MODULE_PARDISO_MKL OR CH_ENABLE_MODULE_MUMPS)
-      set(DEMOS ${DEMOS}
-          demo_VEH_TrackTestRig_Band
-      )
-   endif()
+if(CH_ENABLE_MODULE_IRRLICHT AND CH_ENABLE_MODULE_PARDISO_MKL OR CH_ENABLE_MODULE_MUMPS)
+    set(DEMOS ${DEMOS} demo_VEH_TrackTestRig_Band)
 endif()
 
 #--------------------------------------------------------------

@@ -30,6 +30,7 @@
 
 #include "chrono_vehicle/driver/ChDataDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -37,13 +38,11 @@
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -342,73 +341,24 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // -----------------------------------------
-    // Create the vehicle run-time visualization
-    // and driver system
-    // -----------------------------------------
+    // ------------------------
+    // Create the driver system
+    // ------------------------
 
-    std::shared_ptr<ChVehicleVisualSystem> vis;
     std::shared_ptr<ChDriver> driver;
-
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("JSON Tracked Vehicle Demo");
-            vis_irr->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
-            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-
-            vis = vis_irr;
-
-            if (driver_mode == DriverMode::KEYBOARD) {
-                auto irr_driver = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
-                double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-                double throttle_time = 1.0;  // time to go from 0 to +1
-                double braking_time = 0.3;   // time to go from 0 to +1
-                irr_driver->SetSteeringDelta(render_step_size / steering_time);
-                irr_driver->SetThrottleDelta(render_step_size / throttle_time);
-                irr_driver->SetBrakingDelta(render_step_size / braking_time);
-                irr_driver->SetGains(2, 5, 5);
-                driver = irr_driver;
-            }
-
-#endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("JSON Tracked Vehicle Demo");
-            vis_vsg->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
-            vis_vsg->Initialize();
-
-            vis = vis_vsg;
-
-            if (driver_mode == DriverMode::KEYBOARD) {
-                auto vsg_driver = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
-                double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-                double throttle_time = 1.0;  // time to go from 0 to +1
-                double braking_time = 0.3;   // time to go from 0 to +1
-                vsg_driver->SetSteeringDelta(render_step_size / steering_time);
-                vsg_driver->SetThrottleDelta(render_step_size / throttle_time);
-                vsg_driver->SetBrakingDelta(render_step_size / braking_time);
-                vsg_driver->SetGains(2, 5, 5);
-                driver = vsg_driver;
-            }
-
-#endif
-            break;
-        }
-    }
-
     switch (driver_mode) {
+        case DriverMode::KEYBOARD: {
+            auto vsg_driver = chrono_types::make_shared<ChInteractiveDriver>(vehicle);
+            double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;  // time to go from 0 to +1
+            double braking_time = 0.3;   // time to go from 0 to +1
+            vsg_driver->SetSteeringDelta(render_step_size / steering_time);
+            vsg_driver->SetThrottleDelta(render_step_size / throttle_time);
+            vsg_driver->SetBrakingDelta(render_step_size / braking_time);
+            vsg_driver->SetGains(2, 5, 5);
+            driver = vsg_driver;
+            break;
+        }
         case DriverMode::DATAFILE: {
             auto data_driver = chrono_types::make_shared<ChDataDriver>(vehicle, vehicle::GetDataFile(driver_file));
             driver = data_driver;
@@ -427,9 +377,49 @@ int main(int argc, char* argv[]) {
         default:
             break;
     }
+
     driver->Initialize();
 
-    vis->AttachVehicle(&vehicle);
+    // -----------------------------------------
+    // Create the vehicle run-time visualization
+    // -----------------------------------------
+
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle("JSON Tracked Vehicle Demo");
+            vis_irr->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
+            vis_irr->SetChaseCameraMultipliers(1e-4, 10);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&vehicle);
+            vis_irr->AttachDriver(driver.get());
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle("JSON Tracked Vehicle Demo");
+            vis_vsg->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
+            vis_vsg->AttachVehicle(&vehicle);
+            vis_vsg->AttachDriver(driver.get());
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // Solver and integrator settings
     double step_size = 1e-3;
