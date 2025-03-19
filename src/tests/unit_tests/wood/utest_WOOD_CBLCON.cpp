@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Jibril B. Coulibaly
+// =============================================================================
 
 #include <cmath>
 #include <memory>

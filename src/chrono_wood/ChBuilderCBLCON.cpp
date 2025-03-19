@@ -546,7 +546,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
 		if (connector.conType==4 & mvec.Length()!=0){
 			//std::cout<<"Longuitidonal connector\n";
 			msection->Set_facetFrame(nmL);
-		}else{	
+		}else{	// TODO JBC: WHAT IS THAT ? THAT MAKES NO SENSE, should it be the transpose?
             //std::cout<<"transver connector\n";		
 			nmL(0,0)= Aabs(0, 0);  nmL(0,1)=Aabs(1, 0); nmL(0,2)=Aabs(2, 0);
 			nmL(1,0)= Aabs(0, 2);  nmL(1,1)=Aabs(1, 2); nmL(1,2)=Aabs(2, 2);

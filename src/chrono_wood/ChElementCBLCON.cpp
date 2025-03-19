@@ -171,6 +171,11 @@ void ChElementCBLCON::UpdateRotation() {
         q_element_abs_rot = Aabs.GetQuaternion();
         */
         
+        // TODO JBC: I think the code below does not work for large displacement.
+        // the Y axis of the nodes are not necessarily aligned (even on average) with the y axis of the beam
+        // This approach may rotate the L and M directions of the facet by the wrong amount,
+        // causing the strain increment not to be added in the correct direction
+        // I believe the commented code above for beams should be used instead
     	ChVector3d mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
     	ChVector3d myele =
         (nodes[0]->Frame().GetRotMat().GetAxisY() + nodes[1]->Frame().GetRotMat().GetAxisY()).GetNormalized();
@@ -284,7 +289,7 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
 
 
 
-
+// TODO: this is not used consider deleting
 void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
 	ChVector3d mstrain;
 	ChVector3d curvature;
