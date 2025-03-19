@@ -356,7 +356,7 @@ TEST(CBLConnectorTest, Bernstein) {
         }
     }
 
-    // Derivatives
+    // First Derivative
     for (int order = 1; order <=3; order++) {
         ChVectorDynamic<> R_unroll(order + 1), dRdu_unroll(order + 1);
         ChVectorDynamic<> R_orig(order + 1), dRdu_orig(order + 1);
@@ -371,30 +371,55 @@ TEST(CBLConnectorTest, Bernstein) {
         }
     }
 
+    // Higher-Order Derivatives
+    for (int order = 1; order <=3; order++) {
+        ChVectorDynamic<> R_unroll(order + 1), dRdu_unroll(order + 1), ddRddu_unroll(order + 1), dddRdddu_unroll(order + 1);
+        ChVectorDynamic<> R_orig(order + 1), dRdu_orig(order + 1), ddRddu_orig(order + 1), dddRdddu_orig(order + 1);
+        for (int i=0; i<N ; i++) {
+            double u = -1.0 + i * (2.0 / N);
+            ChBasisToolsBeziers::BasisEvaluateDeriv(order, u, R_orig, dRdu_orig, ddRddu_orig, dddRdddu_orig);
+            ChBasisToolsBeziers::unrolled_BasisEvaluateDeriv(u, R_unroll, dRdu_unroll, ddRddu_unroll, dddRdddu_unroll);
+            for (int j = 0; j <= order; j++) {
+                ASSERT_NEAR(R_unroll[j], R_orig[j], tol);
+                ASSERT_NEAR(dRdu_unroll[j], dRdu_orig[j], tol);
+                ASSERT_NEAR(ddRddu_unroll[j], ddRddu_orig[j], tol);
+                ASSERT_NEAR(dddRdddu_unroll[j], dddRdddu_orig[j], tol);
+            }
+        }
+    }
+
     int order = 3;
     std::cout<< " PROFILING"<<std::endl;
     std::cout<< " Recursive Bernstein for p="<<order<<std::endl;
-    ChVectorDynamic<> R(order+1), dRdu(order+1);
+    ChVectorDynamic<> R(order+1), dRdu(order+1), ddRddu(order+1), dddRdddu(order+1);
+    ChVectorDynamic<> sum(order+1);
+    sum.setZero();
     auto startTime = now();
 
-    for (int i = 0 ; i < 1000000 ; i++) {
+    for (int i = 0 ; i < 20000000 ; i++) {
         double u = -1.0 + i * (2.0 / N);
-        ChBasisToolsBeziers::BasisEvaluateDeriv(order, u, R, dRdu);
+        ChBasisToolsBeziers::BasisEvaluateDeriv(order, u, R, dRdu, ddRddu, dddRdddu);
+        sum += R + dRdu + ddRddu + dddRdddu;
     }
     auto elapsed = now() - startTime;
     auto seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
     std::cout << seconds.count() << std::endl;
+    std::cout<<sum<<std::endl;
 
     std::cout<< " Unrolled Bernstein for p="<<order<<std::endl;
     
+    sum.setZero();
     startTime = now();
 
-    for (int i = 0 ; i < 1000000 ; i++) {
+    for (int i = 0 ; i < 20000000 ; i++) {
         double u = -1.0 + i * (2.0 / N);
-        ChBasisToolsBeziers::unrolled_BasisEvaluateDeriv(u, R, dRdu);
+        ChBasisToolsBeziers::unrolled_BasisEvaluateDeriv(u, R, dRdu, ddRddu, dddRdddu);
+        sum += R + dRdu + ddRddu + dddRdddu;
     }
     elapsed = now() - startTime;
-    seconds = std::chrono::duration_cast<FloatSecs>(elapsed);
-    std::cout << seconds.count() << "\t";
+    auto seconds2 = std::chrono::duration_cast<FloatSecs>(elapsed);
+    std::cout << seconds2.count() << "\t";
+    std::cout<<sum<<std::endl;
 
+    std::cout<<"    SPEEDUP = "<<seconds/seconds2<<"x";
 }

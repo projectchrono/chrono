@@ -111,7 +111,7 @@ public:
         // It's another functions' responsibility to pass a vector of the correct size
         switch (dBdx.size()-1) {
             case 0:
-                dBdx(0) = 0.0 * dxdu;
+                dBdx(0) = 0.0;
                 break;
             case 1:
                 dBdx(0) = -1.0 * dxdu;
@@ -131,7 +131,55 @@ public:
         }
     }
 
+    // Second derivatives of Bernstein Polynomials
+    // Chain rule: ddB/ddu = ddB/ddx * (dx/du)^2, with dx/du = 0.5.
+    static void BernsteinPolynomialsDerivative2(double x, ChVectorDynamic<>& ddBddx, double dudxsq = 0.25){
+        switch (ddBddx.size()-1) {
+            case 0:
+                ddBddx(0) = 0.0;
+                break;
+            case 1:
+                ddBddx(0) = 0.0;
+                ddBddx(1) = 0.0;
+                break;
+            case 2:
+                ddBddx(0) = 2.0 * dudxsq;
+                ddBddx(1) = -4.0 * dudxsq;
+                ddBddx(2) = 2.0 * dudxsq;
+                break;
+            case 3:
+                ddBddx(0) = 6.0 * (1.0 - x) * dudxsq;
+                ddBddx(1) = (18.0 * x - 12.0) * dudxsq;
+                ddBddx(2) = (6.0 - 18.0 * x) * dudxsq;
+                ddBddx(3) = 6.0 * x * dudxsq;
+                break;
+        }
+    }
 
+    // Third derivatives of Bernstein Polynomials
+    // Chain rule: dddB/dddu = dddB/dddx * (dx/du)^3, with dx/du = 0.5.
+    static void BernsteinPolynomialsDerivative3(double x, ChVectorDynamic<>& dddBdddx, double dudxcb = 0.125){
+        switch (dddBdddx.size()-1) {
+            case 0:
+                dddBdddx(0) = 0.0;
+                break;
+            case 1:
+                dddBdddx(0) = 0.0;
+                dddBdddx(1) = 0.0;
+                break;
+            case 2:
+                dddBdddx(0) = 0.0;
+                dddBdddx(1) = 0.0;
+                dddBdddx(2) = 0.0;
+                break;
+            case 3:
+                dddBdddx(0) = -6.0 * dudxcb;
+                dddBdddx(1) = 18.0 * dudxcb;
+                dddBdddx(2) = -18.0 * dudxcb;
+                dddBdddx(3) = 6.0 * dudxcb;
+                break;
+        }
+    }
 
     static void unrolled_BasisEvaluate(
                 const double u,                 ///< parameter in [-1, 1]      
@@ -152,6 +200,24 @@ public:
                 double dxdu = 0.5;
                 BernsteinPolynomials(x, R);
                 BernsteinPolynomialsDerivative1(x, dRdu, dxdu);
+    }
+
+    static void unrolled_BasisEvaluateDeriv(
+        const double u,                 ///< parameter in [-1, 1]                
+        ChVectorDynamic<>& R,           ///< here return basis functions R evaluated at u, that is: R(u)
+        ChVectorDynamic<>& dRdu,        ///< here return basis functions derivatives dR/du evaluated at u
+        ChVectorDynamic<>& ddRddu,      ///< here return basis functions derivatives ddR/ddu evaluated at u
+        ChVectorDynamic<>& dddRdddu       ///< here return basis functions derivatives ddR/ddu evaluated at u
+        ) {
+            double x = 0.5 * (1.0 + u);
+            double dxdu = 0.5;
+            double dxdusq = 0.25;
+            double dxducb = 0.125;
+
+            BernsteinPolynomials(x, R);
+            BernsteinPolynomialsDerivative1(x, dRdu, dxdu);
+            BernsteinPolynomialsDerivative2(x, ddRddu, dxdusq);
+            BernsteinPolynomialsDerivative3(x, dddRdddu, dxducb);
     }
 
 	
