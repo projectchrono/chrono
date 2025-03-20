@@ -387,11 +387,10 @@ void ChElementCurvilinearBeamBezier::UpdateRotation() {
         // compute the basis functions N(u) at given u:
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());  
-	ChVectorDynamic<> dNdu((int)nodes.size());  
+        ChVectorDynamic<> N(this->order + 1);
+        ChVectorDynamic<> dNdu(this->order + 1);
 
-        ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, eta, N, dNdu);  ///< here return N and dN/du
-		
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
 		
        // compute abs. spline gradient r'  = dr/ds
        // compute abs. spline gradient r'  = dr/ds
@@ -601,10 +600,10 @@ void ChElementCurvilinearBeamBezier::ComputeStiffnessMatrix() {
         // compute the basis functions N(u) at given u:
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());  
-		ChVectorDynamic<> dNdu((int)nodes.size());  
+        ChVectorDynamic<> N(this->order + 1);
+		ChVectorDynamic<> dNdu(this->order + 1);
 
-        ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, eta, N, dNdu);  ///< here return N and dN/du
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
 		
 		
 		// compute abs. spline gradient r'  = dr/ds
@@ -622,20 +621,12 @@ void ChElementCurvilinearBeamBezier::ComputeStiffnessMatrix() {
 	//std::cout<<" Jacobian: "<<Jsu<<" w: "<< w <<std::endl;	
 		double dmultiplier=Jsu*w;
 			
-		///
-		///
-		///
-		ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
-		ChBasisToolsBeziers::BasisEvaluateDeriv( order,                    ///< order
-                eta,                 	///< parameter                
-                RR,           		///< here return basis functions R evaluated at u, that is: R(u)
-                dRdu,        		///< here return basis functions derivatives dR/du evaluated at u
-                ddRddu,       		///< here return basis functions derivatives ddR/ddu evaluated at u
-		dddRdddu);		///< here return basis functions derivatives dddR/dddu evaluated at u
-				
-		///
-		///
-		///
+
+        // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
+        // Does that neglect changes or curvature, and only gives changes in orientation?
+        ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+
 		//std::cout<<"RR: "<<RR<<std::endl;
 		//std::cout<<"dRdu: "<<dRdu<<std::endl;
 		//ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1./Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);	
@@ -735,9 +726,9 @@ void ChElementCurvilinearBeamBezier::ComputeMmatrixGlobal(ChMatrixRef M) {
                 // compute the basis functions N(u) at given u:
                 int nspan = order;
 
-                ChVectorDynamic<> N((int)nodes.size());
-                ChVectorDynamic<> dNdu((int)nodes.size());               
-                ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, eta, N, dNdu);  ///< here return N and dN/du
+                ChVectorDynamic<> N(this->order + 1);
+                ChVectorDynamic<> dNdu(this->order + 1);
+                ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
                 //std::cout<<"N: "<<N<<std::endl;
                 // compute abs. spline gradient r'  = dr/ds
 		ChVector3d dr;
@@ -745,23 +736,12 @@ void ChElementCurvilinearBeamBezier::ComputeMmatrixGlobal(ChMatrixRef M) {
 		    ChVector3d r_i(nodes[i]->GetX0().GetPos());
 		    dr += r_i * dNdu(i);  // dr/du = N_i'*r_i
 		}
-		
-		///
-		///
-		///
-		ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);		
-		ChBasisToolsBeziers::BasisEvaluateDeriv( 
-		order,                  ///< order
-                eta,                 	///< parameter                
-                RR,           		///< here return basis functions R evaluated at u, that is: R(u)
-                dRdu,        		///< here return basis functions derivatives dR/du evaluated at u
-                ddRddu,       		///< here return basis functions derivatives ddR/ddu evaluated at u
-		dddRdddu);		///< here return basis functions derivatives dddR/dddu evaluated at u
-					
-		///
-		///
-		///		
-			
+
+        // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
+        // Does that neglect changes or curvature, and only gives changes in orientation?
+        ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+
 		//std::cout<< "w , Jsu , Jue: \t"<<w <<"\t"<<Jsu <<std::endl;
 		//std::cout<< "dr: "<<dr<<std::endl;	
 		//ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
@@ -1017,10 +997,10 @@ void ChElementCurvilinearBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& 
         // compute the basis functions N(u) at given u:
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());  
-		ChVectorDynamic<> dNdu((int)nodes.size());  
+        ChVectorDynamic<> N(this->order + 1);
+		ChVectorDynamic<> dNdu(this->order + 1);
 		
-        ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, u, N, dNdu);  ///< here return N and dN/du
+        ChBasisToolsBeziers::BasisEvaluateDeriv(u, N, dNdu);  ///< here return N and dN/du
 
         // interpolate rotation of section at given u, to compute R.
         // Note: this is approximate.
@@ -1183,10 +1163,10 @@ void ChElementCurvilinearBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& 
                 double Jue = c1;
                 int nspan = order;
 
-                ChVectorDynamic<> N((int)nodes.size());  
-				ChVectorDynamic<> dNdu((int)nodes.size());  
+                ChVectorDynamic<> N(this->order + 1);
+				ChVectorDynamic<> dNdu(this->order + 1);
 	
-                ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, u, N, dNdu);  ///< here return N and dN/du
+                ChBasisToolsBeziers::BasisEvaluateDeriv(u, N, dNdu);  ///< here return N and dN/du
 
                 // interpolate rotation of section at given u, to compute R.
                 // Note: this is approximate.
@@ -1277,10 +1257,10 @@ void ChElementCurvilinearBeamBezier::ComputeInternalForces_impl(ChVectorDynamic<
         // compute the basis functions N(u) at given u:
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());  
-		ChVectorDynamic<> dNdu((int)nodes.size());  
+        ChVectorDynamic<> N(this->order + 1);
+        ChVectorDynamic<> dNdu(this->order + 1);
 		
-        ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, eta, N, dNdu);  ///< here return N and dN/du
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
 
         
         // compute abs. spline gradient r'  = dr/ds
@@ -1292,20 +1272,11 @@ void ChElementCurvilinearBeamBezier::ComputeInternalForces_impl(ChVectorDynamic<
         // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
         //dr *= 1.0 / Jsu;
         ChVector3d dRdx=dNdu/Jsu;
-        ///
-		///
-		///
-		ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);		
-		ChBasisToolsBeziers::BasisEvaluateDeriv( order,                    ///< order
-					eta,                 	///< parameter                
-					RR,           		///< here return basis functions R evaluated at u, that is: R(u)
-					dRdu,        		///< here return basis functions derivatives dR/du evaluated at u
-					ddRddu,       		///< here return basis functions derivatives ddR/ddu evaluated at u
-			dddRdddu);		///< here return basis functions derivatives dddR/dddu evaluated at u
-					
-		///
-		///
-		///
+
+        // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
+        // Does that neglect changes or curvature, and only gives changes in orientation?
+        ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
 		
 		//ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);	
 		ChMatrix33<> tnb=this->GetLocalSystemOfReference(ig);	
@@ -1453,11 +1424,11 @@ void ChElementCurvilinearBeamBezier::ComputeNF(const double U,
     
     // compute the basis functions N(u) at given u:    
 
-    ChVectorDynamic<> N((int)nodes.size());  
-	ChVectorDynamic<> dNdu((int)nodes.size());  
+    ChVectorDynamic<> N(this->order + 1);
+    ChVectorDynamic<> dNdu(this->order + 1);
 
-    ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, U, N, dNdu);  ///< h
-	
+    ChBasisToolsBeziers::BasisEvaluateDeriv(U, N, dNdu);  ///< h
+
     ChVector3d dr0;
     for (int i = 0; i < nodes.size(); ++i) {
         dr0 += nodes[i]->GetX0ref().GetPos() * dNdu(i);
@@ -1597,10 +1568,10 @@ void ChElementCurvilinearBeamBezier::SetupInitial(ChSystem* system) {
         // compute the basis functions N(u) at given u:
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());  
-	    ChVectorDynamic<> dNdu((int)nodes.size());  
+        ChVectorDynamic<> N(this->order + 1);
+        ChVectorDynamic<> dNdu(this->order + 1);
 
-        ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, eta, N, dNdu);  ///< here return N and dN/du
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
         ChVector3d dr0;
@@ -1634,10 +1605,10 @@ void ChElementCurvilinearBeamBezier::SetupInitial(ChSystem* system) {
         // compute the basis functions N(u) at given u:
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());  
-		ChVectorDynamic<> dNdu((int)nodes.size());  
+        ChVectorDynamic<> N(this->order + 1);
+        ChVectorDynamic<> dNdu(this->order + 1);
 
-        ChBasisToolsBeziers::BasisEvaluateDeriv(this->order, eta, N, dNdu);  ///< here return N and dN/du
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
         ChVector3d dr0;
@@ -1654,13 +1625,8 @@ void ChElementCurvilinearBeamBezier::SetupInitial(ChSystem* system) {
         //double Jue = c1;
         double ba_curvature, ba_torsion;
         ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
-		ChBasisToolsBeziers::BasisEvaluateDeriv( order,                    ///< order
-                eta,                 	///< parameter                
-                RR,           		///< here return basis functions R evaluated at u, that is: R(u)
-                dRdu,        		///< here return basis functions derivatives dR/du evaluated at u
-                ddRddu,       		///< here return basis functions derivatives ddR/ddu evaluated at u
-		dddRdddu);		///< here return basis functions derivatives dddR/dddu evaluated at u
-        
+        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+
 		//std::cout<<"RR: "<<RR<<"\ndRdu: "<<dRdu<<std::endl;
 		//std::cout<<"igauss: "<<ig<<"\t";
         ChMatrix33<> tnb= FrenetSerret(nodes, dr0, 1/Jsu, RR, dRdu, ddRddu, dddRdddu, ba_curvature, ba_torsion);

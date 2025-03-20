@@ -29,54 +29,18 @@ namespace wood {
 
 
 
-/// Tools for evaluating basis functions for BEZIER, parametrized with parameter u (as lines)
+/// Tools for evaluating basis functions for BEZIER, parametrized with parameter u in [-1, 1] (as lines)
 /// These bases are often called "R" in literature.
 
-class ChWoodApi ChBasisToolsBeziers {
+class ChWoodApi ChBasisToolsBeziers { // TODO JBC: This should just be a namespace, not a class!
 public:
-	    // Function to calculate factorial
-	static int factorial(int n) {
-	    int fact = 1;
-	    for (int i = 1; i <= n; ++i) {
-		fact *= i;
-	    }
-	    return fact;
-	}
 
-	// Function to calculate binomial coefficient (n choose k)
-	static int binomial_coefficient(int n, int k) {
-	    return ChBasisToolsBeziers::factorial(n) / (ChBasisToolsBeziers::factorial(k) * ChBasisToolsBeziers::factorial(n - k));
-	}
-
-	// Function to evaluate Bernstein polynomial
-	static double bernstein_polynomial(int n, int i, double t) {
-	    return ChBasisToolsBeziers::binomial_coefficient(n, i) * pow(t, i) * pow(1 - t, n - i);
-	}
-
-	static double Bernstein_polynomial(int p, int a, double xi){
-	    double B;
-	    if (p==0 && a==1){
-		B=1;
-	    }else if (p==0 && a!=1){
-		B=0;
-	    }else{
-		if (a<1 || a>p+1){
-		    B=0;
-		}else{
-		    double B1=Bernstein_polynomial(p-1,a,xi); 
-		    double B2=Bernstein_polynomial(p-1,a-1,xi); 
-		    B=0.5*(1-xi)*B1+0.5*(1+xi)*B2;
-		}
-	    }
-	    return B;
-       }
-
+    // Bernstein Polynomials and derivatives for x in [0,1]. x = (1+u)/2 for u in [-1, 1]
+    // No parameter checks: calling function responsible for passing vector of correct size
     // Unroll recursion since we limit our cases to fairly simple and known cases p in [1,3]
-    // More case can be added and unrolled with little effort since we are not going to use large p
-    // In the context of Bezier curves here, this is called for x in [0,1]
+
+    // Bernstein Polynomials
     static void BernsteinPolynomials(double x, ChVectorDynamic<>& B){
-        // No parameter check on order here.
-        // It's another functions' responsibility to pass a vector of the correct size
         switch (B.size()-1) {
             case 0:
                 B(0) = 0.0;
@@ -100,15 +64,11 @@ public:
     }
 
     // First derivatives of Bernstein Polynomials
-    // Bernstein polynomials written in terms of x, but call on x = (1 + u) / 2
     // Chain rule: dB/du = dB/dx * dx/du, with dx/du = 0.5.
-    // We could do dBdx *= 0.5 outside this function, but tests have shown
-    // it is really expensive to do a *= operation on a ChVectorDynamic!!! Even a small one!
-    // Instead, we add a multiplier as a function parameter.
-    // Another alternative would be to express the Bernstein polynomial in function of u directly
+    // Doing dBdx *= dx/du outside this function has shown to be markedly slower (something with Eigen?)
+    // Instead, we pass a dx/du as a parameter and multiply each entry of dB/du
+    // TODO JBC: Consider re-writing the Bernstein polynomial in function of u directly
     static void BernsteinPolynomialsDerivative1(double x, ChVectorDynamic<>& dBdx, double dxdu = 0.5){
-        // No parameter check on order here.
-        // It's another functions' responsibility to pass a vector of the correct size
         switch (dBdx.size()-1) {
             case 0:
                 dBdx(0) = 0.0;
@@ -181,120 +141,54 @@ public:
         }
     }
 
-    static void unrolled_BasisEvaluate(
-                const double u,                 ///< parameter in [-1, 1]      
-                ChVectorDynamic<>& R            ///< here return basis functions R evaluated at u, that is: R(u)
-                ) {
-        // x = (1 + u) / 2
-        BernsteinPolynomials(0.5 * (1.0 + u), R);
-         
+    /// Compute vector of bases R.
+    /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span,
+    /// given the parameter u.
+    /// Results go into the row vector R = { R1, R2, R3.... R_(p+1) }
+    static void BasisEvaluate(const double u,                 ///< parameter in [-1, 1]
+                              ChVectorDynamic<>& R            ///< basis functions R evaluated at u, that is: R(u). R must have size p+1
+    ) {
+        BernsteinPolynomials(0.5 * (1.0 + u), R); // x = (1 + u) / 2
     }
 
 
-    static void unrolled_BasisEvaluateDeriv(
-            const double u,                 ///< parameter in [-1, 1]                
+    /// Compute vector of bases R and their first derivatives.
+    /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span,
+    /// given the parameter u.
+    /// Results go into the row vector     R = {  R1,     R2,     R3,  , ....  R_(p+1)    }
+    ///        and into the row vector dR/du =  { dR1/du, dR2/du, dR3/du, .... dR_(p+1)/du }
+    /// R and dR/du must have size p+1.
+    static void BasisEvaluateDeriv(
+            const double u,                 ///< parameter in [-1, 1]
             ChVectorDynamic<>& R,           ///< here return basis functions R evaluated at u, that is: R(u)
             ChVectorDynamic<>& dRdu         ///< here return basis functions derivatives dR/du evaluated at u
             ) {
                 double x = 0.5 * (1.0 + u);
-                double dxdu = 0.5;
                 BernsteinPolynomials(x, R);
-                BernsteinPolynomialsDerivative1(x, dRdu, dxdu);
+                BernsteinPolynomialsDerivative1(x, dRdu);
     }
 
-    static void unrolled_BasisEvaluateDeriv(
-        const double u,                 ///< parameter in [-1, 1]                
+    /// Compute vector of bases R and their first, second and third derivatives.
+    /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span,
+    /// given the parameter u.
+    /// Results go into the row vector         R = {  R1,     R2,     R3,  , ....  R_(p+1)    }
+    ///        and into the row vector     dR/du = { dR1/du, dR2/du, dR3/du, .... dR_(p+1)/du }
+    ///        and into the row vector   ddR/ddu = { ddR1/ddu, ddR2/ddu, ddR3/ddu, .... ddR_(p+1)/ddu }
+    ///        and into the row vector dddR/dddu = { dddR1/dddu, dddR2/dddu, dddR3/dddu, .... dddR_(p+1)/dddu }
+    /// R, dRdu, ddRddu, and dddRdddu must have size p+1.
+    static void BasisEvaluateDeriv(
+        const double u,                 ///< parameter in [-1, 1]
         ChVectorDynamic<>& R,           ///< here return basis functions R evaluated at u, that is: R(u)
         ChVectorDynamic<>& dRdu,        ///< here return basis functions derivatives dR/du evaluated at u
-        ChVectorDynamic<>& ddRddu,      ///< here return basis functions derivatives ddR/ddu evaluated at u
-        ChVectorDynamic<>& dddRdddu       ///< here return basis functions derivatives ddR/ddu evaluated at u
+        ChVectorDynamic<>& ddRddu,      ///< here return basis functions second derivatives ddR/ddu evaluated at u
+        ChVectorDynamic<>& dddRdddu       ///< here return basis functions third derivatives dddR/dddu evaluated at u
         ) {
             double x = 0.5 * (1.0 + u);
-            double dxdu = 0.5;
-            double dxdusq = 0.25;
-            double dxducb = 0.125;
-
             BernsteinPolynomials(x, R);
-            BernsteinPolynomialsDerivative1(x, dRdu, dxdu);
-            BernsteinPolynomialsDerivative2(x, ddRddu, dxdusq);
-            BernsteinPolynomialsDerivative3(x, dddRdddu, dxducb);
+            BernsteinPolynomialsDerivative1(x, dRdu);
+            BernsteinPolynomialsDerivative2(x, ddRddu);
+            BernsteinPolynomialsDerivative3(x, dddRdddu);
     }
-
-	
-        /// Compute vector of bases R.
-        /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span, 
-        /// given the parameter u, the order p, the knot vector Knots, the weights Weights.
-        /// Results go into the row vector R = { R1, R2, R3.... R_(p+1) }
-    static void BasisEvaluate(
-                const int p,                    ///< order
-                const double u,                 ///< parameter                
-                ChVectorDynamic<>& R            ///< here return basis functions R evaluated at u, that is: R(u)
-                ) {
-        
-        //double u=xi; //(1.+xi)/2.;        
-        for (int i = 1; i <= p+1; i++) {
-            R(i-1) = Bernstein_polynomial(p, i, u);
-        }
-    }
-
-        /// Compute vector of bases R and their first derivatives.
-        /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span, 
-        /// given the parameter u, the order p, the knot vector Knots, the weights Weights
-        /// Results go into the row vector     R = {  R1,     R2,     R3,  , ....  R_(p+1)    }
-        ///        and into the row vector dR/du = { dR1/du, dR2/du, dR3/du, .... dR_(p+1)/du }
-    static void BasisEvaluateDeriv(
-                const int p,                    ///< order
-                const double u,                 ///< parameter                
-                ChVectorDynamic<>& R,           ///< here return basis functions R evaluated at u, that is: R(u)
-                ChVectorDynamic<>& dRdu         ///< here return basis functions derivatives dR/du evaluated at u
-                ) {
-       
-        int ii;        
-        //double u=xi; //(1.+xi)/2.;
-        
-        for (int i = 1; i <= p+1; i++) {  
-            ii = i-1;         
-            R(ii)     = Bernstein_polynomial(p, i, u);
-            dRdu(ii)  = 0.5*p*(Bernstein_polynomial(p-1,i-1,u)-Bernstein_polynomial(p-1,i,u));  
-        }
-
-    }
-
-        /// Compute vector of bases R and their first and second derivatives.
-        /// Evaluate ALL the p+1 nonzero basis functions R of a 1D(line) Bezier, at the i-th knot span, 
-        /// given the parameter u, the order p, the knot vector Knots, the weights Weights
-        /// Results go into the row vector     R = {  R1,     R2,     R3,  , ....  R_(p+1)    }
-        ///        and into the row vector dR/du = { dR1/du, dR2/du, dR3/du, .... dR_(p+1)/du }
-        ///        and into the row vector ddR/ddu={ ddR1/ddu, ddR2/ddu, ddR3/ddu, .... ddR_(p+1)/ddu }
-    static void BasisEvaluateDeriv(
-                const int p,                    ///< order
-                const double u,                 ///< parameter                
-                ChVectorDynamic<>& R,           ///< here return basis functions R evaluated at u, that is: R(u)
-                ChVectorDynamic<>& dRdu,        ///< here return basis functions derivatives dR/du evaluated at u
-                ChVectorDynamic<>& ddRddu,      ///< here return basis functions derivatives ddR/ddu evaluated at u
-                ChVectorDynamic<>& dddRdddu       ///< here return basis functions derivatives ddR/ddu evaluated at u
-                ) {
-        
-        int ii;
-        //double u=xi; //(1.+xi)/2.;
-        //std::cout<<"UUUUUUUUUUUUUUUUUUUU: "<<u<<std::endl;
-        for (int i = 1; i <= p+1; i++) {  
-            ii=i-1;
-            //std::cout<<i<<".th ----------------------------------\n" ;        
-            R(ii)     = Bernstein_polynomial(p, i, u);
-            dRdu(ii)  = 0.5*p*(Bernstein_polynomial(p-1,i-1,u)-Bernstein_polynomial(p-1,i,u)); 
-            //std::cout<<"bernstein_polynomial(p-2,i-2,u): "<<Bernstein_polynomial(p-2,i-2,u)<<std::endl;
-            //std::cout<<"bernstein_polynomial(p-2,i-1,u): "<<Bernstein_polynomial(p-2,i-1,u)<<std::endl;
-            //std::cout<<"bernstein_polynomial(p-2,i,u): "<<Bernstein_polynomial(p-2,i,u)<<std::endl;
-            ddRddu(ii)  = 0.5*p*(0.5*(p-1)*(Bernstein_polynomial(p-2,i-2,u)-Bernstein_polynomial(p-2,i-1,u)-Bernstein_polynomial(p-2,i-1,u)+
-            			Bernstein_polynomial(p-2,i,u))); 
-            			
-            dddRdddu(ii)  =  0.5*p*(0.5*(p-1)*(0.5*(p-2)*(Bernstein_polynomial(p-3,i-3,u)-Bernstein_polynomial(p-3,i-2,u)-Bernstein_polynomial(p-3,i-2,u)+
-            			Bernstein_polynomial(p-3,i-1,u)-Bernstein_polynomial(p-3,i-2,u)+Bernstein_polynomial(p-3,i-1,u)+
-            			Bernstein_polynomial(p-3,i-1,u)-Bernstein_polynomial(p-3,i,u))));
-        }
-    }
-
 };
 
 

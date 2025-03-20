@@ -55,7 +55,7 @@ ChVector3d ChLineBezierCBL::Evaluate(const double parU) const {
 
     ChVectorDynamic<> N(this->p + 1);
     double u=(2.*mU)-1.;
-    ChBasisToolsBeziers::BasisEvaluate(this->p, u, N);
+    ChBasisToolsBeziers::BasisEvaluate(u, N);
     //std::cout<<"parU: "<<u<<"\nN:\n"<<N<<"\n";
     ChVector3d pos = VNULL;
     //int uind = 0;
@@ -78,8 +78,8 @@ void ChLineBezierCBL::Derive(ChVector3d& dir, const double parU) {
     int spanU = ChBasisToolsBSpline::FindSpan(this->p, uu, this->knots);
     ChVectorDynamic<> N(this->p + 1);
     ChVectorDynamic<> NdN(this->p + 1);  // basis on 1st row and their 1st derivatives on 2nd row
-        double u=(2.*mU)-1.;
-    ChBasisToolsBeziers::BasisEvaluateDeriv(this->p, u, N, NdN);
+    double u=(2.*mU)-1.;
+    ChBasisToolsBeziers::BasisEvaluateDeriv(u, N, NdN); // TODO JBC: this computes N but does not use it. Call function that only returns derivative ?
     dir = VNULL;
     //int uind = 0;
     int uind = spanU - p;    

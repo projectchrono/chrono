@@ -246,9 +246,9 @@ class ChWoodApi ChElementCurvilinearBeamBezier : public ChElementBeam, public Ch
     /// Note, eta=-1 at node1, eta=+1 at node2.
     virtual void EvaluateSectionPoint(const double eta, ChVector3d& point) {
         
-        ChVectorDynamic<> N((int)nodes.size());
+        ChVectorDynamic<> N(this->order + 1);
 	
-        ChBasisToolsBeziers::BasisEvaluate(this->order, eta, N);  ///< here return  in N
+        ChBasisToolsBeziers::BasisEvaluate(eta, N);  ///< here return  in N
 		
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {
@@ -262,14 +262,15 @@ class ChWoodApi ChElementCurvilinearBeamBezier : public ChElementBeam, public Ch
     virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) override {
         // compute parameter in knot space from eta-1..+1
 	
+        // TODO JBC: Please delete code that is not used !!!
         //double u1 = knots(order);  // extreme of span
         //double u2 = knots(knots.size() - order - 1);
         //double u = u1 + ((eta + 1) / 2.0) * (u2 - u1);
         int nspan = order;
 
-        ChVectorDynamic<> N((int)nodes.size());
+        ChVectorDynamic<> N(this->order + 1);
 	
-        ChBasisToolsBeziers::BasisEvaluate(this->order, eta, N);  ///< here return  in N
+        ChBasisToolsBeziers::BasisEvaluate(eta, N);  ///< here return  in N
 
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {
