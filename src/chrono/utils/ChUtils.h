@@ -23,6 +23,15 @@
 
 namespace chrono {
 
+#ifdef DEBUG_LOG
+    #define ChDebugLog(x)                                                \
+        do {                                                             \
+            std::cerr << "[DBG::" << __func__ << "] " << x << std::endl; \
+        } while (0)
+#else
+    #define ChDebugLog(x)
+#endif
+
 #define ChAssertAlways(exp)                                                                                    \
     {                                                                                                          \
         if (!(exp)) {                                                                                          \
