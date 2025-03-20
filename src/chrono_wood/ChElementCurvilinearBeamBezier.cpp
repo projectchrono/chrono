@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale
+// Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
 
 //#define BEAM_VERBOSE
@@ -674,149 +674,142 @@ void ChElementCurvilinearBeamBezier::ComputeStiffnessMatrix() {
 
 void ChElementCurvilinearBeamBezier::ComputeMmatrixGlobal(ChMatrixRef M) {
     M.setZero();
-    // Mass Matrix 
-    //ChMatrixDynamic<> M(6 * nodes.size(), 6 * nodes.size());    
-    ChMatrix33<> Mxw;	
-	
-        /*if (ChElementCurvilinearBeamIGA::LumpedMass == true) {
-            //
-            // "lumped" M mass matrix
-            //
-            ChMatrixNM<double, 6, 6> sectional_mass;
-            this->section->GetInertia()->ComputeInertiaMatrix(sectional_mass);
-	    
-            double node_multiplier = length / (double)nodes.size();
-            for (int i = 0; i < nodes.size(); ++i) {
-                int stride = i * 6;
-                // if there is no mass center offset, the upper right and lower left blocks need not be rotated,
-                // hence it can be the simple (constant) expression
-                //   Mloc.block<6, 6>(stride, stride) += sectional_mass * (node_multiplier * Mfactor);
-                // but the more general case needs the rotations, hence:
-                M.block<3, 3>(stride, stride) += sectional_mass.block<3, 3>(0, 0) * node_multiplier ;
-                M.block<3, 3>(stride + 3, stride + 3) +=
-                    sectional_mass.block<3, 3>(3, 3) * node_multiplier;
-                Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * node_multiplier ;
-                M.block<3, 3>(stride, stride + 3) += Mxw;
-                M.block<3, 3>(stride + 3, stride) += Mxw.transpose();
-            }
-        } else {*/
-            //
-            // "consistent" M mass matrix, via Gauss quadrature
-            //
-            ChMatrixNM<double, 6, 6> sectional_mass;
-            this->section->GetInertia()->ComputeInertiaMatrix(sectional_mass);
-            //std::cout<< "Sectional_mass:\n"<<sectional_mass<<std::endl;
-            // Do quadrature over the Gauss points - reuse the "b" bend Gauss points
-	    double ba_curvature=0;
-    	    double ba_torsion=0;
-            for (int ig = 0; ig < int_order_b; ++ig) {
-            	//std::cout<< "\n------------------------------------------------ ig: "<<ig<<std::endl;
-                // absyssa in typical -1,+1 range:
-                double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
-                // absyssa in span range:
-                //double u = (c1 * eta + c2);
-                // scaling = gauss weight
-                double w = ChQuadrature::GetStaticTables()->Weight[int_order_b - 1][ig];
+    ChMatrix33<> Mxw;
+    ChMatrixNM<double, 6, 6> sectional_mass;
+	this->section->GetInertia()->ComputeInertiaMatrix(sectional_mass);
 
-                // Jacobian Jsu = ds/du
-                double Jsu = this->Jacobian_b[ig];
-                // Jacobian Jue = du/deta
-                //double Jue = c1;
+    if (ChElementCurvilinearBeamBezier::LumpedMass == true) {
+        //
+        // "lumped" M mass matrix
+        //
+        double node_multiplier = length / (double)nodes.size();
+        for (int i = 0; i < nodes.size(); ++i) {
+            int stride = i * 6;
+            // if there is no mass center offset, the upper right and lower left blocks need not be rotated,
+            // hence it can be the simple (constant) expression
+            //   Mloc.block<6, 6>(stride, stride) += sectional_mass * (node_multiplier * Mfactor);
+            // but the more general case needs the rotations, hence:
+            M.block<3, 3>(stride, stride) += sectional_mass.block<3, 3>(0, 0) * node_multiplier ;
+            M.block<3, 3>(stride + 3, stride + 3) += sectional_mass.block<3, 3>(3, 3) * node_multiplier;
 
-                // compute the basis functions N(u) at given u:
-                int nspan = order;
-
-                ChVectorDynamic<> N(this->order + 1);
-                ChVectorDynamic<> dNdu(this->order + 1);
-                ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
-                //std::cout<<"N: "<<N<<std::endl;
-                // compute abs. spline gradient r'  = dr/ds
-		ChVector3d dr;
-		for (int i = 0; i < nodes.size(); ++i) {
-		    ChVector3d r_i(nodes[i]->GetX0().GetPos());
-		    dr += r_i * dNdu(i);  // dr/du = N_i'*r_i
-		}
-
-        // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
-        // Does that neglect changes or curvature, and only gives changes in orientation?
-        ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
-        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
-
-		//std::cout<< "w , Jsu , Jue: \t"<<w <<"\t"<<Jsu <<std::endl;
-		//std::cout<< "dr: "<<dr<<std::endl;	
-		//ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
-		ChMatrix33<> tnb=this->GetLocalSystemOfReference(ig);		
-		if(LargeDeflection){						
-			ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] * Qpoint_ref_rot[ig].GetConjugate()) ;
-			ChMatrix33<double> rotmat(q_delta);
-			tnb=rotmat*tnb;
-		}
-		//std::cout<<"tnb: "<<tnb<<std::endl;
-		
-		//std::cout<<"sectional_mass:\n"<<sectional_mass<<std::endl;
-		
-		ChMatrixNM<double, 6, 6> rot_sectional_mass;
-		rot_sectional_mass.setZero();		
-		//rot_sectional_mass = sectional_mass;
-		rot_sectional_mass.block<3, 3>(0, 0)=tnb.transpose()*sectional_mass.block<3, 3>(0, 0)*tnb;
-		rot_sectional_mass.block<3, 3>(3, 3)=tnb.transpose()*sectional_mass.block<3, 3>(3, 3)*tnb;
-		rot_sectional_mass.block<3, 3>(0, 3)=tnb.transpose()*sectional_mass.block<3, 3>(0, 3)*tnb;
-		rot_sectional_mass.block<3, 3>(3, 0)=rot_sectional_mass.block<3, 3>(0, 3).transpose();
-		
-		//std::cout<<"rot_sectional_mass:\n"<<rot_sectional_mass<<std::endl;
-                
-                for (int i = 0; i < nodes.size(); ++i) {
-                    int istride = i * 6;
-                    for (int j = 0; j < nodes.size(); ++j) {                        
-                        int jstride = j * 6;
-
-                        double Ni_Nj = N(i) * N(j);
-                        double gmassfactor = w * Jsu * Ni_Nj;
-
-                        // if there is no mass center offset, the upper right and lower left blocks need not be rotated,
-                        // hence it can be the simple (constant) expression
-                        //   Mloc.block<6, 6>(istride + 0, jstride + 0) += gmassfactor * sectional_mass;
-                        // but the more general case needs the rotations, hence:                        
-                        M.block<3, 3>(istride, jstride) += rot_sectional_mass.block<3, 3>(0, 0) * gmassfactor;
-                        M.block<3, 3>(istride + 3, jstride + 3) += rot_sectional_mass.block<3, 3>(3, 3) * gmassfactor;
-                        //Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * gmassfactor;
-                        //Mxw = sectional_mass.block<3, 3>(0, 3) * gmassfactor;
-                        M.block<3, 3>(istride, jstride + 3) += rot_sectional_mass.block<3, 3>(0, 3) * gmassfactor;;
-                        M.block<3, 3>(istride + 3, jstride) += rot_sectional_mass.block<3, 3>(3, 0) * gmassfactor;;
-                    }
-                }
-		//std::cout<<ig<<" Mass matrix:\n"<<M<<std::endl;
-            }  // end loop on gauss points
-        //}     
-        
-        
-       if (ChElementCurvilinearBeamBezier::LumpedMass == true) {
-		    int ndof;		    
-			
-			for (int i=0; i<nodes.size()*6; i++){
-				ndof=i%6;
-				for (int j=0; j<nodes.size(); j++){
-					int k=j*6+ndof;
-					if (i!=k){
-						M(i,i) += M(k,i);        				      			
-					}
-				}
-			}
-			
-        	for (int i=0; i<nodes.size()*6; i++){
-        		for (int j=0; j<nodes.size()*6; j++){
-        			if (i!=j){
-        				//M(i,i) += M(j,i);
-        				M(j,i)=0;        			
-        			}
-        		}
-        	}
+            // TODO JBC below: Not sure if I should use
+            // * nodes[i]->GetRotMat(), as in chrono::fea::ChElementBeamIGA
+            // * tnb, as in the implementation for consistent matrix below
+            // If this beam formulation uses angular velocities and torques in the global configuration as opposed to local reference of the nodes
+            // Then maybe we should use tnb. If on the other hand angular velocities and torques are stored in local node reference, we might have to use the node's rotation
+            // TO BE DETERMINED: Until we figure it out, remove this out of diagonal block
+            // Mxw = nodes[i]->GetRotMat() * sectional_mass.block<3, 3>(0, 3) * node_multiplier ;
+            // M.block<3, 3>(stride, stride + 3) += Mxw;
+            // M.block<3, 3>(stride + 3, stride) += Mxw.transpose();
         }
-        				
-        		
+    } else {
+        //
+        // "consistent" M mass matrix, via Gauss quadrature
+        //
+
+        // TODO JBC: There might be some useless rotations on diagonal matrices performed below!
+        ChMatrixNM<double, 6, 6> rot_sectional_mass;
+        rot_sectional_mass.block<3, 3>(0, 0)=tnb.transpose()*sectional_mass.block<3, 3>(0, 0)*tnb; // TODO JBC: Is this first 3x3 block of section inertia always diagonal? If so, does not need rotation
+        rot_sectional_mass.block<3, 3>(3, 3)=tnb.transpose()*sectional_mass.block<3, 3>(3, 3)*tnb;
+        rot_sectional_mass.block<3, 3>(0, 3)=tnb.transpose()*sectional_mass.block<3, 3>(0, 3)*tnb;
+        rot_sectional_mass.block<3, 3>(3, 0)=rot_sectional_mass.block<3, 3>(0, 3).transpose();
+
+        // Do quadrature over the Gauss points - reuse the "b" bend Gauss points
+        double ba_curvature=0;
+        double ba_torsion=0;
+        for (int ig = 0; ig < int_order_b; ++ig) {
+            //std::cout<< "\n------------------------------------------------ ig: "<<ig<<std::endl;
+            // absyssa in typical -1,+1 range:
+            double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
+            // absyssa in span range:
+            //double u = (c1 * eta + c2);
+            // scaling = gauss weight
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b - 1][ig];
+
+            // Jacobian Jsu = ds/du
+            double Jsu = this->Jacobian_b[ig];
+            // Jacobian Jue = du/deta
+            //double Jue = c1;
+
+            // compute the basis functions N(u) at given u:
+            int nspan = order;
+
+            ChVectorDynamic<> N(this->order + 1);
+            ChVectorDynamic<> dNdu(this->order + 1);
+            ChBasisToolsBeziers::BasisEvaluateDeriv(eta, N, dNdu);  ///< here return N and dN/du
+            //std::cout<<"N: "<<N<<std::endl;
+            // compute abs. spline gradient r'  = dr/ds
+            ChVector3d dr;
+            for (int i = 0; i < nodes.size(); ++i) {
+                ChVector3d r_i(nodes[i]->GetX0().GetPos());
+                dr += r_i * dNdu(i);  // dr/du = N_i'*r_i
+            }
+
+            // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
+            // Does that neglect changes or curvature, and only gives changes in orientation?
+            ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+            ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+
+            //std::cout<< "w , Jsu , Jue: \t"<<w <<"\t"<<Jsu <<std::endl;
+            //std::cout<< "dr: "<<dr<<std::endl;	
+            //ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
+            ChMatrix33<> tnb=this->GetLocalSystemOfReference(ig);		
+            if(LargeDeflection){						
+                ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] * Qpoint_ref_rot[ig].GetConjugate()) ;
+                ChMatrix33<double> rotmat(q_delta);
+                tnb=rotmat*tnb;
+            }
+            //std::cout<<"tnb: "<<tnb<<std::endl;
+            //std::cout<<"sectional_mass:\n"<<sectional_mass<<std::endl;
+            //std::cout<<"rot_sectional_mass:\n"<<rot_sectional_mass<<std::endl;
+            
+            for (int i = 0; i < nodes.size(); ++i) {
+                int istride = i * 6;
+                for (int j = 0; j < nodes.size(); ++j) {                        
+                    int jstride = j * 6;
+
+                    double Ni_Nj = N(i) * N(j);
+                    double gmassfactor = w * Jsu * Ni_Nj;
+
+                    M.block<3, 3>(istride, jstride) += rot_sectional_mass.block<3, 3>(0, 0) * gmassfactor;
+                    M.block<3, 3>(istride + 3, jstride + 3) += rot_sectional_mass.block<3, 3>(3, 3) * gmassfactor;
+                    M.block<3, 3>(istride, jstride + 3) += rot_sectional_mass.block<3, 3>(0, 3) * gmassfactor;;
+                    M.block<3, 3>(istride + 3, jstride) += rot_sectional_mass.block<3, 3>(3, 0) * gmassfactor;;
+                }
+            }
+            //std::cout<<ig<<" Mass matrix:\n"<<M<<std::endl;
+        }  // end loop on gauss points
+    }
+    
+    // TODO: Eventually delete all this commented code below
+    // Below is the old code that would simply project the consistent matrix
+    // onto a diagonal. This was inefficient. Repalced by the method used by Chrono
+    // for its own IGA beams
+
+    // if (ChElementCurvilinearBeamBezier::LumpedMass == true) {
+    //     int ndof;		    
         
-        //std::cout<<" Mass matrix:\n"<<M<<std::endl;	
-	
+    //     for (int i=0; i<nodes.size()*6; i++){
+    //         ndof=i%6;
+    //         for (int j=0; j<nodes.size(); j++){
+    //             int k=j*6+ndof;
+    //             if (i!=k){
+    //                 M(i,i) += M(k,i);        				      			
+    //             }
+    //         }
+    //     }
+        
+    //     for (int i=0; i<nodes.size()*6; i++){
+    //         for (int j=0; j<nodes.size()*6; j++){
+    //             if (i!=j){
+    //                 //M(i,i) += M(j,i);
+    //                 M(j,i)=0;        			
+    //             }
+    //         }
+    //     }
+    // }
+
+    //std::cout<<" Mass matrix:\n"<<M<<std::endl;	
 }
 
 
@@ -942,7 +935,6 @@ void ChElementCurvilinearBeamBezier::ComputeKRMmatricesGlobal(ChMatrixRef H, dou
 
     if (Mfactor) {
         ChMatrixDynamic<> Mloc(6 * nodes.size(), 6 * nodes.size());
-        Mloc.setZero();
         this->ComputeMmatrixGlobal(Mloc);
         H.block(0, 0, Mloc.rows(), Mloc.cols()) += Mfactor*Mloc;
     }

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale
+// Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
 
 #ifndef CHC_BASIS_TOOLS_BEZIERS_H
