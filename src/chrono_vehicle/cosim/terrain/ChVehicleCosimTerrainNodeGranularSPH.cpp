@@ -270,7 +270,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         utils::ChBodyGeometry geometry;
         geometry.materials.push_back(b.m_contact_mat);
         geometry.coll_meshes.push_back(
-            utils::ChBodyGeometry::TrimeshShape(VNULL, GetChronoDataFile(b.m_mesh_filename), VNULL, thickness));
+            utils::ChBodyGeometry::TrimeshShape(VNULL, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
 
         // Create visualization and collision shapes
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
