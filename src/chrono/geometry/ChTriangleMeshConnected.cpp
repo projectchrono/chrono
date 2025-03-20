@@ -143,20 +143,20 @@ ChAABB ChTriangleMeshConnected::GetBoundingBox() const {
 void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
                                                     double& mass,
                                                     ChVector3d& center,
-                                                    ChMatrix33<>& inertia) {
-    const double oneDiv24 = (double)(1.0 / 24.0);
-    const double oneDiv60 = (double)(1.0 / 60.0);
-    const double oneDiv120 = (double)(1.0 / 120.0);
+                                                    ChMatrix33<>& inertia,
+                                                    double scale) const {
+    const double oneDiv24 = 1 / 24.0;
+    const double oneDiv60 = 1 / 60.0;
+    const double oneDiv120 = 1 / 120.0;
 
     // order:  1, x, y, z, x^2, y^2, z^2, xy, yz, zx
-    double integral[10] = {(double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0,
-                           (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0};
+    double integral[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     for (unsigned int i = 0; i < this->GetNumTriangles(); i++) {
         // Get vertices of triangle i.
-        ChVector3d v0 = this->m_vertices[m_face_v_indices[i].x()];
-        ChVector3d v1 = this->m_vertices[m_face_v_indices[i].y()];
-        ChVector3d v2 = this->m_vertices[m_face_v_indices[i].z()];
+        ChVector3d v0 = m_vertices[m_face_v_indices[i].x()];
+        ChVector3d v1 = m_vertices[m_face_v_indices[i].y()];
+        ChVector3d v2 = m_vertices[m_face_v_indices[i].z()];
 
         // Get cross product of edges and normal vector.
         ChVector3d V1mV0 = v1 - v0;
@@ -251,6 +251,12 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
         inertia(2, 1) = inertia(1, 2);
         inertia(2, 2) -= mass * (center.x() * center.x() + center.y() * center.y());
     }
+
+    double s3 = scale * scale * scale;
+    double s5 = s3 * scale * scale;
+
+    mass *= s3;
+    inertia *= s5;
 }
 
 std::shared_ptr<ChTriangleMeshConnected> ChTriangleMeshConnected::CreateFromWavefrontFile(const std::string& filename,
