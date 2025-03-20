@@ -210,4 +210,10 @@
 // Always use double in custom multicore collision detection
 #define USE_COLLISION_DOUBLE
 
+// -----------------------------------------------------------------------------
+// Length of the path to the Chrono source directory
+// -----------------------------------------------------------------------------
+
+#define SOURCE_PATH_SIZE @SOURCE_PATH_SIZE@
+
 #endif
