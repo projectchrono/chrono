@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale
+// Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
 // Section class for LDPM and CSL elements 
 //
@@ -106,8 +106,6 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
 
     return J;
     }
-    
-    ChMatrixDynamic<>  calculate_MI(double L, ChVector3d PN, ChVector3d PC);
 	
 	void ComputeProjectionMatrix();
     

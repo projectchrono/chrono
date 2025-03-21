@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale
+// Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
 // Section class for LDPM and CSL elements 
 //
@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include "chrono_wood/ChBeamSectionCBLCON.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 namespace wood {
@@ -42,163 +43,6 @@ ChBeamSectionCBLCON::ChBeamSectionCBLCON() {
 };
 
 ChBeamSectionCBLCON::~ChBeamSectionCBLCON() {};
-
-
-    
-
-ChMatrixDynamic<> ChBeamSectionCBLCON::calculate_MI(double L, ChVector3d PN, ChVector3d PC){	
-    ChMatrixDynamic<> MI(6, 6);
-    MI.setZero();        
-    //ChVector3d cm=(PN-PC);  
-    //std::cout<<"------------------------------------------------------"<<std::endl;    
-    //
-    double w=this->GetWidth(); 
-    double h=this->GetHeight(); 
-    double Area=this->Get_area();
-    double Ve=Area*abs(L);
-    double rho=this->Get_material()->Get_density();
-    double mass=Ve*rho;   
-    
-    double MJxx; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
-    double MJyy;
-    double MJzz;
-    double MJyz;
-    //
-    MI.setZero();
-    MI(0, 0) = mass;
-    MI(1, 1) = mass;
-    MI(2, 2) = mass;
-    //
-    switch(this->GetSectionType()) {
-        case longitudinal:
-            // code block
-            //std::cout << "This is section for longitudinal con" << std::endl;
-            MJxx=mass*L*L/3.; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
-	    MJzz=mass*h*h/3.;
-	    MJyy=mass*w*w/12.;
-	
-	    //std::cout<<"mass: "<<mass<<std::endl;
-	    //std::cout<<"MJxx: "<<MJxx<<"\t";
-	    //std::cout<<"MJyy: "<<MJyy<<"\t";
-	    //std::cout<<"MJzz: "<<MJzz<<"\n";
-	    //
-	    MI(3, 3) = MJyy + MJzz;
-	    MI(4, 4) = MJyy + MJxx;
-	    MI(5, 5) = MJzz + MJxx;
-	   
-	    
-	    //double cm_x=L/2.;    
-	    MI(1, 5) = mass * L/2;
-	    MI(2, 4) = -mass * L/2;  
-	    MI(5, 1) = MI(1, 5);  
-	    MI(4, 2) = MI(2, 4);
-            //
-            MI(3, 4) = -mass * h*L/4;  
-    	    MI(4, 3) = MI(3, 4);    	   
-    	    //
-            //MI(5, 5) += mass * cm.y()*cm.y();
-            MI(3, 2) = mass * h/2;    
-    	    MI(5, 0) = -mass * h/2;    
-    	    MI(2, 3) = MI(3, 2);    
-    	    MI(0, 5) = MI(5, 0);
-    	    //std::cout<<"Long MJxx, MJyy, MJzz: "<<MJxx<<"\t"<<MJyy<<"\t"<<MJzz<<std::endl;
-    	    //std::cout<<"MI:\n"<<MI<<std::endl;
-            break;
-        case transverse_top:
-            // code block
-            //std::cout << "This is section for transverse_top con" << std::endl;
-            MJxx=mass*L*L/3.; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
-	    MJyy=mass*w*w/12.;
-	    MJzz=mass*h*h/3.;
-	    
-	    //std::cout<<"mass: "<<mass<<std::endl;
-	    //std::cout<<"MJxx: "<<MJxx<<"\t";
-	    //std::cout<<"MJyy: "<<MJyy<<"\t";
-	    //std::cout<<"MJzz: "<<MJzz<<"\n";
-            //
-	    MI(3, 3) = MJyy + MJzz;
-	    MI(4, 4) = MJyy + MJxx;
-	    MI(5, 5) = MJzz + MJxx;
-	    MI(4, 5) = -MJyz;
-	    MI(5, 4) = -MJyz;
-	    
-	    //double cm_x=L/2.;    
-	    MI(1, 5) = mass * L/2;
-	    MI(2, 4) = -mass * L/2;  
-	    MI(5, 1) = MI(1, 5);  
-	    MI(4, 2) = MI(2, 4);
-	    MI(3, 4) = mass * h*L/4;  
-    	    MI(4, 3) = MI(3, 4);  
-            //            
-            MI(3, 2) = -mass * h/2;    
-    	    MI(5, 0) = mass * h/2;    
-    	    MI(2, 3) = MI(3, 2);    
-    	    MI(0, 5) = MI(5, 0);
-    	    //std::cout<<"Top MJxx, MJyy, MJzz: "<<MJxx<<"\t"<<MJyy<<"\t"<<MJzz<<std::endl;
-    	    //std::cout<<"MI:\n"<<MI<<std::endl;
-            break;
-        case transverse_bot:
-            // code block
-            //std::cout << "This is section for transverse_bot con" << std::endl;
-            MJxx=mass*L*L/3.; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
-	    MJyy=mass*w*w/12.;
-	    MJzz=mass*h*h/3.;
-	
-	    //std::cout<<"mass: "<<mass<<std::endl;
-	    //std::cout<<"MJxx: "<<MJxx<<"\t";
-	    //std::cout<<"MJyy: "<<MJyy<<"\t";
-	    //std::cout<<"MJzz: "<<MJzz<<"\n";
-            //
-	    MI(3, 3) = MJyy + MJzz;
-	    MI(4, 4) = MJyy + MJxx;
-	    MI(5, 5) = MJzz + MJxx;
-	    //MI(4, 5) = -MJyz;
-	    //MI(5, 4) = -MJyz;
-	    
-	    //double cm_x=L/2.;    
-	    MI(1, 5) = mass * L/2;
-	    MI(2, 4) = -mass * L/2;  
-	    MI(5, 1) = MI(1, 5);  
-	    MI(4, 2) = MI(2, 4);
-	    MI(3, 4) = -mass * h*L/4;  
-    	    MI(4, 3) = MI(3, 4);  
-            //            
-            MI(3, 2) = mass * h/2;    
-    	    MI(5, 0) = -mass * h/2;    
-    	    MI(2, 3) = MI(3, 2);    
-    	    MI(0, 5) = MI(5, 0);
-    	    //std::cout<<"Bot MJxx, MJyy, MJzz: "<<MJxx<<"\t"<<MJyy<<"\t"<<MJzz<<std::endl;
-    	    //std::cout<<"MI:\n"<<MI<<std::endl;    	    
-            break;  
-        default:
-            MJxx=mass*L*L/3.; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
-	    MJyy=mass*w*w/12.;
-	    MJzz=mass*h*h/12.;
-	    
-	    //std::cout<<"mass: "<<mass<<std::endl;
-	    //std::cout<<"MJxx: "<<MJxx<<"\t";
-	    //std::cout<<"MJyy: "<<MJyy<<"\t";
-	    //std::cout<<"MJzz: "<<MJzz<<"\n";
-            //
-	    MI(3, 3) = MJyy + MJzz;
-	    MI(4, 4) = MJyy + MJxx;
-	    MI(5, 5) = MJzz + MJxx; 
-	        
-	    //double cm_x=L/2.;    
-	    MI(1, 5) = mass * L/2;
-	    MI(2, 4) = -mass * L/2;  
-	    MI(5, 1) = MI(1, 5);  
-	    MI(4, 2) = MI(2, 4);   
-    	    //
-            //std::cout<<"Gen MJxx, MJyy, MJzz: "<<MJxx<<"\t"<<MJyy<<"\t"<<MJzz<<std::endl;
-    	    //std::cout<<"MI:\n"<<MI<<std::endl;  
-    	       	    
-                
-    }
-	//std::cout<<"MI\n:"<<MI<<std::endl;
-	//MI.block(3, 3, 3, 3)*=1.0E+9;
-    return MI;
-}
 
 
 void ChBeamSectionCBLCON::ComputeProjectionMatrix() {	

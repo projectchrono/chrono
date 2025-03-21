@@ -25,7 +25,9 @@
 
 #include "chrono_wood/ChElementCBLCON.h"
 #include <Eigen/src/Core/DiagonalMatrix.h>
+#include <cstdlib>
 #include <iomanip>
+#include <ostream>
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChVector3.h"
@@ -314,29 +316,91 @@ void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
 
 
 void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
+    // Mass Matrix
+
+    // TODO JBC: Consider making the lumped matrix with L/2 on each node and no extra-diagonal un lower-left block for simplicity
+    // no need to compute the nodes-to-center vectors and distances
+    ChVector3d pNA;
+    ChVector3d pNB;
+    ChVector3d pC;
+
+    if (!ChElementCBLCON::LargeDeflection) {
+        pNA = this->GetNodeA()->GetX0().GetPos();
+        pNB = this->GetNodeB()->GetX0().GetPos();
+        pC = this->section->Get_center();
+    } else {
+        // TODO JBC: Technically, if the connector is stretched, at constant mass, the moment of inertia changes
+        // Decide whether or not we want to take this into account in the calculation of the length or ignored it. error ~ 2*max_strain
+        // Currently use the same length for simplicity
+        pNA = this->GetNodeA()->GetX0().GetPos(); // TEMPORARY
+        pNB = this->GetNodeB()->GetX0().GetPos(); // TEMPORARY
+        pC = this->section->Get_center(); // TEMPORARY
+    }
+    double LA=(pC-pNA).Length();
+    double LB=(pC-pNB).Length(); // TODO JBC: This could be length - LA, but will likely change when we refactor the center from a Vector into a scalar along the line
+
+    // // TODO JBC:
+    // // intermediate results of calculate_MI could be stored in the section, similar to other section models with inertia
+    // // content of calculate_MI could be done directly in here
+    // // There should be an option to use a lumped mass matrix, in which case some of the expensive rotations might be avoided
+
+
     M.setZero();
-    // Mass Matrix 
-	ChVector3d pNA=this->GetNodeA()->GetX0().GetPos();
-	ChVector3d pNB=this->GetNodeB()->GetX0().GetPos();
-	ChVector3d pC=this->section->Get_center();
-	double LA=(pC-pNA).Length();
-	double LB=(pC-pNB).Length();
-	ChMatrixNM<double,6,6> mA=this->section->calculate_MI(LA, pNA, pC);
-	ChMatrixNM<double,6,6> mB=this->section->calculate_MI(-LB, pNB, pC);
-	ChMatrix33<double> nmL=this->section->Get_facetFrame();
-	//std::cout<<"nmL: "<<nmL<<std::endl;
-	//M.block<6,6>(0,0) = mA;
-	//M.block<6,6>(6,6) = mB;
-	ChMatrixNM<double,6,6> Rot;
-	Rot.setZero();
-	Rot.block<3,3>(0,0)=nmL;
-	Rot.block<3,3>(3,3)=nmL;
-	M.block<6,6>(0,0) = Rot*mA*Rot.transpose();		
-	M.block<6,6>(6,6) = Rot*mB*Rot.transpose();	
-	//std::cout<<"PNA: \n"<<pNA<<"\t"<<"PNB: \n"<<pNB<<std::endl;
-	//std::cout<<"M: \n"<<M<<std::endl;
-	//exit(0);	
-	
+
+    double w=this->section->GetWidth();
+    double h=this->section->GetHeight();
+    double Area=this->section->Get_area();
+    double rho=this->section->Get_material()->Get_density();
+
+    ChMatrix33<double> nmL=this->section->Get_facetFrame();
+    auto computeMass = [&](double L, int pos) {
+        double mass = Area * rho * std::abs(L);
+        double MJxx = mass * L * L / 3.0; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
+        double MJyy = mass * w * w / 12.0;
+        double MJzz = mass * h * h / 3.0; // Modified if transverse generic connector
+
+
+        M(0 + pos, 0 + pos) = mass;
+        M(1 + pos, 1 + pos) = mass;
+        M(2 + pos, 2 + pos) = mass;
+
+        ChMatrix33<> block_upper_right, block_lower_right;
+        block_upper_right.setZero();
+        block_lower_right.setZero();
+        if (this->section->GetSectionType() == this->section->transverse_generic) {
+            MJzz *= 0.25; // TODO JBC: For some reason this is 12 for the default (transverse generic?) connector
+        } else {
+            double sign = (this->section->GetSectionType() == this->section->transverse_top) ? 1.0 : -1.0;
+            block_upper_right(0, 2) = sign * 0.5 * mass * h;
+            block_upper_right(2, 0) = -sign * 0.5 * mass * h;
+
+            block_lower_right(0, 1) = sign * 0.25 * mass * h * L;
+            block_lower_right(1, 0) = sign * 0.25 * mass * h * L;
+
+            // TODO JBC: I don't understand the geometry:
+            // why the longitudinal connector has MJzz = m * h * h /3.0 ? and not 1/12 ?
+            // the 1/3 factor seems to indicate the node is at the end of the section instead of centered
+            // My gut feeling is that longitudinal connectors would be centered, like the default one. TBD
+            //
+        }
+
+        block_lower_right(0, 0) = MJyy + MJzz;
+        block_lower_right(1, 1) = MJyy + MJxx;
+        block_lower_right(2, 2) = MJzz + MJxx;
+
+        //double cm_x=L/2.;
+        // TODO JBC: I do not understand why we are adding these. there is no x-excentricity of the midline, right ?
+        // I think these should be zero?
+        block_upper_right(1, 2) =  0.5 * mass * L;
+        block_upper_right(2, 1) = -0.5 * mass * L;
+
+        M.block<3,3>(pos, pos + 3) = nmL * block_upper_right * nmL.transpose();
+        M.block<3,3>(pos + 3, pos) = M.block<3,3>(pos, pos + 3).transpose();
+        M.block<3,3>(pos + 3, pos + 3) = nmL * block_lower_right * nmL.transpose();
+    };
+
+    computeMass(LA, 0);
+    computeMass(-LB, 6);
 }
 
 
