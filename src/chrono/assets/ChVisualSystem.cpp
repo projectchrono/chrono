@@ -12,6 +12,8 @@
 // Radu Serban
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/assets/ChVisualSystem.h"
 
 namespace chrono {
@@ -24,8 +26,11 @@ ChVisualSystem ::~ChVisualSystem() {
 }
 
 void ChVisualSystem::AttachSystem(ChSystem* sys) {
-    m_systems.push_back(sys);
-    sys->visual_system = this;
+    // Attach provided system only if not already done
+    if (std::find(m_systems.begin(), m_systems.end(), sys) == m_systems.end()) {
+        m_systems.push_back(sys);
+        sys->visual_system = this;
+    }
 }
 
 void ChVisualSystem::UpdateCamera(int id, const ChVector3d& pos, ChVector3d target) {

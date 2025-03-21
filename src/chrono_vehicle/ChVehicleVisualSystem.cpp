@@ -44,10 +44,7 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_vehicle = vehicle;
 
     // Attach the vehicle's Chrono system to the visualization system
-    //// RADU TOOD
-    //// Is this good enough for cases where the vehicle does NOT own the system?
-    if (m_systems.empty())
-        AttachSystem(vehicle->GetSystem());
+    AttachSystem(vehicle->GetSystem());
 
     // Create a vehicle chase-cam and associate it with the vehicle
     // Attention: order of calls is important here!

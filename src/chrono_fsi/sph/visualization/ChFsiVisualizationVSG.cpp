@@ -193,14 +193,9 @@ ChFsiVisualizationVSG::~ChFsiVisualizationVSG() {
 void ChFsiVisualizationVSG::OnAttach() {
     m_vsys->AttachSystem(m_sysMBS);
 
-    //// TODO - maybe these should be removed altogether
-    m_vsys->SetWindowTitle("");
-    m_vsys->SetWindowSize(1280, 720);
     m_vsys->SetWireFrameMode(false);
-    m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
     m_vsys->SetCameraVertical(CameraVerticalDir::Z);
     m_vsys->SetUseSkyBox(false);
-    m_vsys->SetClearColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
 }
 
 void ChFsiVisualizationVSG::OnInitialize() {

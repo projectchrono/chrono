@@ -704,7 +704,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_current_time(0),
       m_fps(0) {
     m_windowTitle = string("Window Title");
-    m_clearColor = ChColor(0, 0, 0);
+    m_clearColor = ChColor(0.07f, 0.1f, 0.12f);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
