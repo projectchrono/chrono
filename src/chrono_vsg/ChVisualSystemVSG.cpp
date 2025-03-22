@@ -37,6 +37,17 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 
+// Helper to display a little (?) mark which shows a tooltip when hovered (from ImGui demo).
+static void HelpMarker(const char* desc) {
+    ImGui::TextDisabled("(?)");
+    if (ImGui::BeginItemTooltip()) {
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(desc);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
 class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
   public:
     vsg::ref_ptr<vsgImGui::Texture> texture;
@@ -138,8 +149,13 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Real Time Factor:");
+            ImGui::SameLine();
+            HelpMarker(
+                "Overall real-time factor.\n"
+                "The RTF represents the ratio between the wall clock time elapsed between two render"
+                "frames and the duration by which simulation was advanced in this interval.");
             ImGui::TableNextColumn();
-            ImGui::Text("%8.3f", m_app->GetSimulationRTF());
+            ImGui::Text("%8.3f", m_app->GetRTF());
 
             ImGui::TableNextRow();
 
@@ -1430,6 +1446,8 @@ void ChVisualSystemVSG::Render() {
     m_current_time = m_current_time * 0.5 + m_old_time * 0.5;
     m_old_time = m_current_time;
     m_fps = 1.0 / m_current_time;
+
+    ChVisualSystem::Render();
 }
 
 void ChVisualSystemVSG::SetBodyObjVisibility(bool vis, int tag) {

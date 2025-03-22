@@ -18,7 +18,7 @@
 
 namespace chrono {
 
-ChVisualSystem ::ChVisualSystem() : m_initialized(false), m_verbose(false), m_write_images(false), m_image_dir(".") {}
+ChVisualSystem ::ChVisualSystem() : m_initialized(false), m_verbose(false), m_rtf(0), m_write_images(false), m_image_dir(".") {}
 
 ChVisualSystem ::~ChVisualSystem() {
     for (auto s : m_systems)
@@ -45,10 +45,31 @@ void ChVisualSystem::UpdateCamera(const ChVector3d& pos, ChVector3d target) {
 
 // -----------------------------------------------------------------------------
 
-double ChVisualSystem::GetSimulationRTF() const {
-    if (m_systems.empty())
+void ChVisualSystem::Render() {
+    static double t_last = 0;
+    double t_curr = GetSimulationTime();
+    m_timer.stop();
+    if (t_curr > t_last)
+        m_rtf = m_timer() / (t_curr - t_last);
+    t_last = t_curr;
+    m_timer.reset();
+    m_timer.start();
+}
+
+// -----------------------------------------------------------------------------
+
+double ChVisualSystem::GetSimulationRTF(unsigned int i) const {
+    if (i >= m_systems.size())
         return 0;
-    return m_systems[0]->GetRTF();
+
+    return m_systems[i]->GetRTF();
+}
+
+std::vector<double> ChVisualSystem::GetSimulationRTFs() const {
+    std::vector<double> rtf(m_systems.size());
+    for (size_t i = 0; i < m_systems.size(); i++)
+        rtf[i] = m_systems[i]->GetRTF();
+    return rtf;
 }
 
 double ChVisualSystem::GetSimulationTime() const {

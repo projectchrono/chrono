@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
@@ -136,7 +137,8 @@ class ChApi ChVisualSystem {
     ///       ...
     ///    }
     /// </pre>
-    virtual void Render() {}
+    /// The default implementation only updates the overall RTF.
+    virtual void Render();
 
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) {}
@@ -153,14 +155,22 @@ class ChApi ChVisualSystem {
     /// Get the specified associated Chrono system.
     ChSystem& GetSystem(int i) const { return *m_systems[i]; }
 
-    /// Return the simulation real-time factor (simulation time / simulated time).
-    /// The default value returned by this base class is the RTF value from the first associated system (if any).
-    /// See ChSystem::GetRTF
-    virtual double GetSimulationRTF() const;
-
     /// Return the current simulated time.
     /// The default value returned by this base class is the time from the first associated system (if any).
-    virtual double GetSimulationTime() const;
+    double GetSimulationTime() const;
+
+    /// Return the overall real time factor.
+    /// This value represents the ratio between the wall clock time elapsed between two render frames and the duration
+    /// by which simulation was advanced in this interval.
+    double GetRTF() const { return m_rtf; }
+
+    /// Return the simulation real-time factor (simulation time / simulated time) for the specified associated system.
+    /// See ChSystem::GetRTF.
+    double GetSimulationRTF(unsigned int i) const;
+
+    /// Return the simulation real-time factor (simulation time / simulated time) for all associated system.
+    /// See ChSystem::GetRTF.
+    std::vector<double> GetSimulationRTFs() const;
 
     /// Get the number of bodies  (across all visualized systems).
     /// The reported number represents only active bodies, excluding sleeping or fixed.
@@ -210,8 +220,10 @@ class ChApi ChVisualSystem {
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
 
-    bool m_verbose;  ///< terminal output
-    bool m_initialized;
+    bool m_verbose;      ///< terminal output
+    bool m_initialized;  ///< visual system initialized
+    ChTimer m_timer;     ///< timer for evaluating RTF
+    double m_rtf;        ///< overall real time factor
 
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 

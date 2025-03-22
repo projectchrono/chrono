@@ -303,23 +303,23 @@ void ChVehicleGuiComponentVSG::render() {
     if (ImGui::BeginTable("VehAttitude", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         auto terrain = m_app->GetTerrain();
-        static int e = 0;  // 0: global, 1: local
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Vehicle Attitude");
 
+        static int global_attitude = 0;  // 0: global, 1: relative
         if (terrain) {
             ImGui::TableNextColumn();
-            ImGui::RadioButton("absolute", &e, 0);
+            ImGui::RadioButton("absolute", &global_attitude, 0);
             ImGui::SameLine();
-            ImGui::RadioButton("local", &e, 1);
+            ImGui::RadioButton("local", &global_attitude, 1);
         }
 
         double roll = 0;
         double pitch = 0;
 
-        if (e == 0) {
+        if (global_attitude == 0) {
             roll = m_app->GetVehicle().GetRoll() * CH_RAD_TO_DEG;
             pitch = m_app->GetVehicle().GetPitch() * CH_RAD_TO_DEG;
         } else {

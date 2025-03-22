@@ -391,7 +391,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 140, 170, 15, irr::video::SColor(255, 255, 255, 255));
 
     // Display estimated RTF values
-    snprintf(msg, sizeof(msg), "RTF %3.2f (simulation)", GetSimulationRTF());
+    snprintf(msg, sizeof(msg), "RTF %3.2f (simulation)", GetRTF());
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 160, 170, 15, irr::video::SColor(255, 255, 255, 255));
     snprintf(msg, sizeof(msg), "RTF %3.2f (step)", GetStepRTF());
     renderTextBox(msg, m_HUD_x + 190, m_HUD_y + 180, 170, 15, irr::video::SColor(255, 255, 255, 255));

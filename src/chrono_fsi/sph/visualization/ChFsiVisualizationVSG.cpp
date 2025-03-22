@@ -167,7 +167,7 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
       m_write_images(false),
       m_image_dir(".") {
-    m_sysMBS = new ChSystemSMC();
+    m_sysMBS = new ChSystemSMC("FSI_internal_system");
 }
 
 ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
@@ -183,7 +183,7 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
       m_write_images(false),
       m_image_dir(".") {
-    m_sysMBS = new ChSystemSMC();
+    m_sysMBS = new ChSystemSMC("FSI_internal_system");
 }
 
 ChFsiVisualizationVSG::~ChFsiVisualizationVSG() {

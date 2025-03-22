@@ -580,6 +580,8 @@ void ChVisualSystemIrrlicht::Render() {
     }
 
     m_gui->Render();
+
+    ChVisualSystem::Render();
 }
 
 void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
