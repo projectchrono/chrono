@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
-    // Disable automatic integration of the (vehicle) multibody system
-    terrain.DisableMBD();
+    // Register the vehicle with the CRM terrain
+    terrain.RegisterVehicle(vehicle.get());
 
     // Set SPH parameters and soil material properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
@@ -213,7 +213,6 @@ int main(int argc, char* argv[]) {
     TerrainForces shoe_forces_left(vehicle->GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle->GetNumTrackShoes(RIGHT));
 
-    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -247,22 +246,15 @@ int main(int argc, char* argv[]) {
             std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
         }
 
-        // Synchronize sy^stems
+        // Synchronize systems
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Advance system state
+        // Note: CRMTerrain::Advance also performs the vehicle dynamics
         driver.Advance(step_size);
-        timer.reset();
-        timer.start();
-        std::thread th(&ChTrackedVehicle::Advance, vehicle.get(), step_size);
         terrain.Advance(step_size);
-        th.join();
-
-        // Set correct overall RTF for the FSI problem
-        timer.stop();
-        sysFSI.SetRtf(timer() / step_size);
 
         time += step_size;
         sim_frame++;

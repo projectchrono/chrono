@@ -33,11 +33,17 @@
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 #include "demos/SetChronoSolver.h"
@@ -48,6 +54,7 @@ using namespace chrono::fsi::sph;
 using namespace chrono::vehicle;
 
 using std::cout;
+using std::cerr;
 using std::cin;
 using std::endl;
 
@@ -159,8 +166,8 @@ int main(int argc, char* argv[]) {
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
-    // Disable automatic integration of the (vehicle) multibody system
-    terrain.DisableMBD();
+    // Register the vehicle with the CRM terrain
+    terrain.RegisterVehicle(vehicle.get());
 
     // Set SPH parameters and soil material properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
@@ -255,10 +262,30 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // -----------------------------
+    // Set up output
+    // -----------------------------
+
+    std::string out_dir = GetChronoOutputPath() + "CRM_Wheeled_Vehicle/";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
+    std::string out_file = out_dir + "/results.txt";
+    utils::ChWriterCSV csv(" ");
+
+    // -----------------------------
     // Create run-time visualization
     // -----------------------------
 
+////#define USE_VEHICLE_VIS
+
+#ifdef USE_VEHICLE_VIS
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+#else
     std::shared_ptr<ChVisualSystem> vis;
+#endif
+
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
@@ -268,15 +295,33 @@ int main(int argc, char* argv[]) {
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
 
+    #ifdef USE_VEHICLE_VIS
+        // Wheeled vehicle VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+        visVSG->AttachVehicle(vehicle.get());
+        visVSG->AttachPlugin(visFSI);
+        visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetUseSkyBox(true);
+        visVSG->SetLightIntensity(1.0f);
+        visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        visVSG->SetCameraAngleDeg(40);
+        visVSG->SetChaseCamera(VNULL, 6.0, 2.0);
+        visVSG->SetChaseCameraPosition(ChVector3d(0, 8, 1.5));
+        visVSG->SetShadows(true);
+        visVSG->SetWireFrameMode(false);
+    #else
         // VSG visual system (attach visFSI as plugin)
         auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(sysMBS);
+        visVSG->AttachPlugin(visFSI);
         visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
         visVSG->SetWindowSize(1280, 720);
         visVSG->SetWindowPosition(400, 400);
         visVSG->AddCamera(ChVector3d(3, 8, 1.5), ChVector3d(2, -1, 0));
         visVSG->SetWireFrameMode(false);
+    #endif
 
         visVSG->Initialize();
         vis = visVSG;
@@ -292,10 +337,10 @@ int main(int argc, char* argv[]) {
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
+    bool braking = false;
 
     cout << "Start simulation..." << endl;
 
-    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -310,10 +355,15 @@ int main(int argc, char* argv[]) {
             ChClampValue(driver_inputs.m_throttle, driver_inputs.m_throttle, (time - 0.5) / 0.5);
         }
 
-        // Stop vehicle before reaching end of terrain patch
+        // Stop vehicle before reaching end of terrain patch, then end simulation after 2 more second2
         if (veh_loc.x() > x_max) {
             driver_inputs.m_throttle = 0;
             driver_inputs.m_braking = 1;
+            if (!braking) {
+                cout << "Start braking..." << endl;
+                tend = time + 2;
+                braking = true;
+            }
         }
 
         // Run-time visualization
@@ -329,33 +379,37 @@ int main(int argc, char* argv[]) {
 
         // Synchronize systems
         driver.Synchronize(time);
+#ifdef USE_VEHICLE_VIS
+        vis->Synchronize(time, driver_inputs);
+#endif
         terrain.Synchronize(time);
         vehicle->Synchronize(time, driver_inputs, terrain);
 
         // Advance system state
         driver.Advance(step_size);
-        timer.reset();
-        timer.start();
-        // (a) Sequential integration of terrain and vehicle systems
-        ////terrain.Advance(step_size);
-        ////vehicle->Advance(step_size);
-        // (b) Concurrent integration (vehicle in main thread)
-        ////std::thread th(&CRMTerrain::Advance, &terrain, step_size);
-        ////vehicle->Advance(step_size);
-        ////th.join();
-        // (c) Concurrent integration (terrain in main thread)
-        std::thread th(&ChWheeledVehicle::Advance, vehicle.get(), step_size);
+#ifdef USE_VEHICLE_VIS
+        vis->Advance(step_size);
+#endif
+        // Coupled FSI problem (CRM terrain + vehicle)
         terrain.Advance(step_size);
-        th.join();
 
-        // Set correct overall RTF for the FSI problem
-        timer.stop();
-        double rtf = timer() / step_size;
-        sysFSI.SetRtf(rtf);
+        csv << time << vehicle->GetPos() << vehicle->GetSpeed() << endl;
 
         time += step_size;
         sim_frame++;
     }
+
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string title = "Vehicle ref frame height";
+    gplot.SetTitle(title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("height (m)");
+    gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 
     return 0;
 }

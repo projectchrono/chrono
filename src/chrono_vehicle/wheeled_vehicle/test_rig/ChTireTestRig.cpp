@@ -584,7 +584,6 @@ void ChTireTestRig::CreateTerrainCRM() {
 
     std::shared_ptr<CRMTerrain> terrain = chrono_types::make_shared<CRMTerrain>(*m_system, initSpace0);
 
-    // m_terrain->DisableMBD();
     terrain->SetOutputLevel(OutputLevel::STATE);
     terrain->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
