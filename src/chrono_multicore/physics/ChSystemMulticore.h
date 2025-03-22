@@ -49,7 +49,7 @@ class settings_container;
 /// Base class for Chrono::Multicore systems.
 class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
   public:
-    ChSystemMulticore();
+    ChSystemMulticore(const std::string& name = "");
     ChSystemMulticore(const ChSystemMulticore& other);
     virtual ~ChSystemMulticore();
 
@@ -209,7 +209,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 /// Multicore system using non-smooth contact (complementarity-based) method.
 class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
   public:
-    ChSystemMulticoreNSC();
+    ChSystemMulticoreNSC(const std::string& name = "");
     ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
@@ -240,7 +240,7 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 /// Multicore system using smooth contact (penalty-based) method.
 class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
   public:
-    ChSystemMulticoreSMC();
+    ChSystemMulticoreSMC(const std::string& name = "");
     ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).

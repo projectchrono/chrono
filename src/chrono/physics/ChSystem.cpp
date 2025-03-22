@@ -41,8 +41,9 @@ namespace chrono {
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
-ChSystem::ChSystem()
-    : G_acc(ChVector3d(0, -9.8, 0)),
+ChSystem::ChSystem(const std::string& name)
+    : m_name(name),
+      G_acc(ChVector3d(0, -9.8, 0)),
       is_initialized(false),
       is_updated(false),
       m_num_coords_pos(0),
@@ -79,7 +80,9 @@ ChSystem::ChSystem()
 }
 
 ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr), visual_system(nullptr) {
-    // Required by ChAssembly
+    if (!other.GetName().empty())
+        SetName(other.GetName() + "_copy");
+
     assembly = other.assembly;
     assembly.system = this;
 

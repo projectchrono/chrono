@@ -29,7 +29,7 @@ namespace chrono {
 class ChApi ChSystemNSC : public ChSystem {
   public:
     /// Create a physical system.
-    ChSystemNSC();
+    ChSystemNSC(const std::string& name = "");
 
     /// Copy constructor
     ChSystemNSC(const ChSystemNSC& other);

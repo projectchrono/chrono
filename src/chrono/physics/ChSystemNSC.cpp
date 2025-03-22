@@ -29,7 +29,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemNSC)
 
-ChSystemNSC::ChSystemNSC() : ChSystem() {
+ChSystemNSC::ChSystemNSC(const std::string& name) : ChSystem(name) {
     // Set the system descriptor
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
