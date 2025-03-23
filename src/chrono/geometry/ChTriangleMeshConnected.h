@@ -129,7 +129,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual ChAABB GetBoundingBox() const override;
 
     /// Compute barycenter, mass, inertia tensor.
-    void ComputeMassProperties(bool bodyCoords, double& mass, ChVector3d& center, ChMatrix33<>& inertia);
+    /// This function assumes the object has a constant density of 1. To use a density value `rho`, multiply the output
+    /// mass by `rho` and the output inertia by `rho`. The output results are scaled by scale^3 (for the mass) and by
+    /// scale^5 for inertia.
+    void ComputeMassProperties(bool bodyCoords,
+                               double& mass,
+                               ChVector3d& center,
+                               ChMatrix33<>& inertia,
+                               double scale = 1.0) const;
 
     /// Get the filename of the triangle mesh.
     const std::string& GetFileName() const { return m_filename; }

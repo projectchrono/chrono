@@ -943,9 +943,9 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         for (size_t imesh = 0; imesh < num_meshes; imesh++) {
             size_t num_nodes = mesh1D_states[imesh].pos.size();
             for (size_t inode = 0; inode < num_nodes; inode++) {
-                m_data_mgr->fsiMesh1DState_H->pos_fsi_fea_H[index] = ToReal3(mesh1D_states[imesh].pos[inode]);
-                m_data_mgr->fsiMesh1DState_H->vel_fsi_fea_H[index] = ToReal3(mesh1D_states[imesh].vel[inode]);
-                m_data_mgr->fsiMesh1DState_H->acc_fsi_fea_H[index] = ToReal3(mesh1D_states[imesh].acc[inode]);
+                m_data_mgr->fsiMesh1DState_H->pos[index] = ToReal3(mesh1D_states[imesh].pos[inode]);
+                m_data_mgr->fsiMesh1DState_H->vel[index] = ToReal3(mesh1D_states[imesh].vel[inode]);
+                m_data_mgr->fsiMesh1DState_H->acc[index] = ToReal3(mesh1D_states[imesh].acc[inode]);
                 index++;
             }
         }
@@ -960,9 +960,9 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         for (size_t imesh = 0; imesh < num_meshes; imesh++) {
             size_t num_nodes = mesh2D_states[imesh].pos.size();
             for (size_t inode = 0; inode < num_nodes; inode++) {
-                m_data_mgr->fsiMesh2DState_H->pos_fsi_fea_H[index] = ToReal3(mesh2D_states[imesh].pos[inode]);
-                m_data_mgr->fsiMesh2DState_H->vel_fsi_fea_H[index] = ToReal3(mesh2D_states[imesh].vel[inode]);
-                m_data_mgr->fsiMesh2DState_H->acc_fsi_fea_H[index] = ToReal3(mesh2D_states[imesh].acc[inode]);
+                m_data_mgr->fsiMesh2DState_H->pos[index] = ToReal3(mesh2D_states[imesh].pos[inode]);
+                m_data_mgr->fsiMesh2DState_H->vel[index] = ToReal3(mesh2D_states[imesh].vel[inode]);
+                m_data_mgr->fsiMesh2DState_H->acc[index] = ToReal3(mesh2D_states[imesh].acc[inode]);
                 index++;
             }
         }

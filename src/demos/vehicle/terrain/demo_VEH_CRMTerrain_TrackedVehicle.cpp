@@ -24,6 +24,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtils.h"
 
@@ -37,7 +38,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
-    // Disable automatic integration of the (vehicle) multibody system
-    terrain.DisableMBD();
+    // Register the vehicle with the CRM terrain
+    terrain.RegisterVehicle(vehicle.get());
 
     // Set SPH parameters and soil material properties
     ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
@@ -168,30 +168,36 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Create run-time visualization
-#ifndef CHRONO_VSG
-    render = false;
-#endif
+    std::shared_ptr<ChVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
 #ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
+    if (render) {
+        // FSI plugin
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
+                                                                                    aabb.min.z(), aabb.max.z());
 
-        visFSI->SetTitle("Tracked vehicle on CRM deformable terrain");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, 8, 0.5), ChVector3d(0, -1, 0));
-        visFSI->SetCameraMoveScale(0.2f);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                           aabb.min.z(), aabb.max.z()));
-        visFSI->AttachSystem(sysMBS);
-        visFSI->Initialize();
+        visFSI->SetSPHColorCallback(col_callback);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(sysMBS);
+        visVSG->SetWindowTitle("Tracked vehicle on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(0, 8, 0.5), ChVector3d(0, -1, 0));
+        visVSG->SetLightIntensity(0.9f);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Simulation loop
     DriverInputs driver_inputs = {0, 0, 0};
@@ -206,7 +212,6 @@ int main(int argc, char* argv[]) {
     TerrainForces shoe_forces_left(vehicle->GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle->GetNumTrackShoes(RIGHT));
 
-    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -229,32 +234,26 @@ int main(int argc, char* argv[]) {
             if (chase_cam) {
                 ChVector3d cam_loc = veh_loc + ChVector3d(-6, 6, 0.5);
                 ChVector3d cam_point = veh_loc;
-                visFSI->UpdateCamera(cam_loc, cam_point);
+                vis->UpdateCamera(cam_loc, cam_point);
             }
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
         if (!render) {
             std::cout << time << "  " << terrain.GetRtfCFD() << "  " << terrain.GetRtfMBD() << std::endl;
         }
 
-        // Synchronize sy^stems
+        // Synchronize systems
         driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle->Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
 
         // Advance system state
+        // Note: CRMTerrain::Advance also performs the vehicle dynamics
         driver.Advance(step_size);
-        timer.reset();
-        timer.start();
-        std::thread th(&ChTrackedVehicle::Advance, vehicle.get(), step_size);
         terrain.Advance(step_size);
-        th.join();
-
-        // Set correct overall RTF for the FSI problem
-        timer.stop();
-        sysFSI.SetRtf(timer() / step_size);
 
         time += step_size;
         sim_frame++;

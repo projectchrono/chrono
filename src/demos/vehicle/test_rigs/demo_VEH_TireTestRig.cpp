@@ -295,7 +295,7 @@ int main() {
             vis_vsg->SetWindowTitle("Tire Test Rig");
             vis_vsg->AddCamera(ChVector3d(1.0, 2.5, 1.0));
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

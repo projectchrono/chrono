@@ -47,14 +47,16 @@ class ChApi ChTriangle : public ChGeometry {
     /// Compute center of mass.
     virtual ChVector3d Baricenter() const override;
 
-    /// This is a surface
+    /// Indicate that a triangle is a 2D surface.
     virtual int GetManifoldDimension() const override { return 2; }
 
-    // return false if triangle has almost zero area
+    /// Return false if triangle has almost zero area.
     bool IsDegenerated() const;
 
-    // compute triangle normal
+    /// Compute triangle normal in provided vector and return 'false' if the triangle is degenerated.
     bool Normal(ChVector3d& N) const;
+
+    /// Compute the triangle normal.
     ChVector3d GetNormal() const;
 
     /// Given point B, computes the distance from this triangle plane,
@@ -77,6 +79,13 @@ class ChApi ChTriangle : public ChGeometry {
 
     /// Return the bounding box of a triangle with given vertices.
     static ChAABB GetBoundingBox(const ChVector3d& P1, const ChVector3d& P2, const ChVector3d& P3);
+
+    /// Static utility function to calculate the normal of a triangle in the provided output vector.
+    /// Return 'false' if the triangle is degenerated.
+    static bool CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, ChVector3d& N);
+
+    /// Static utility function to calculate the normal of a triangle.
+    static ChVector3d CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3);
 
     ChVector3d p1;  ///< first triangle vertex
     ChVector3d p2;  ///< second triangle vertex

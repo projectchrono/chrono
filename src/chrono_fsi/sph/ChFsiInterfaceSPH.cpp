@@ -53,9 +53,9 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
             ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (const auto& node : fsi_mesh.ind2ptr_map) {
-                m_data_mgr->fsiMesh1DState_H->pos_fsi_fea_H[index] = ToReal3(node.second->GetPos());
-                m_data_mgr->fsiMesh1DState_H->vel_fsi_fea_H[index] = ToReal3(node.second->GetPosDt());
-                m_data_mgr->fsiMesh1DState_H->acc_fsi_fea_H[index] = ToReal3(node.second->GetPosDt2());
+                m_data_mgr->fsiMesh1DState_H->pos[index] = ToReal3(node.second->GetPos());
+                m_data_mgr->fsiMesh1DState_H->vel[index] = ToReal3(node.second->GetPosDt());
+                m_data_mgr->fsiMesh1DState_H->acc[index] = ToReal3(node.second->GetPosDt2());
                 index++;
             }
         }
@@ -70,9 +70,9 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
             ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (const auto& node : fsi_mesh.ind2ptr_map) {
-                m_data_mgr->fsiMesh2DState_H->pos_fsi_fea_H[index] = ToReal3(node.second->GetPos());
-                m_data_mgr->fsiMesh2DState_H->vel_fsi_fea_H[index] = ToReal3(node.second->GetPosDt());
-                m_data_mgr->fsiMesh2DState_H->acc_fsi_fea_H[index] = ToReal3(node.second->GetPosDt2());
+                m_data_mgr->fsiMesh2DState_H->pos[index] = ToReal3(node.second->GetPos());
+                m_data_mgr->fsiMesh2DState_H->vel[index] = ToReal3(node.second->GetPosDt());
+                m_data_mgr->fsiMesh2DState_H->acc[index] = ToReal3(node.second->GetPosDt2());
                 index++;
             }
         }

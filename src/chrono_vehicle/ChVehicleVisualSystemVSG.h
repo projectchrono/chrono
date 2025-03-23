@@ -52,7 +52,6 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     virtual void Advance(double step) override;
 
   protected:
-    bool m_vsg_initialized = false;
     virtual void AppendGUIStats() {}
 
     friend class ChVehicleGuiComponentVSG;

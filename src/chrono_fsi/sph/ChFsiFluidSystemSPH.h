@@ -610,8 +610,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     friend class ChFsiSystemSPH;
     friend class ChFsiInterfaceSPH;
-    friend class ChFsiVisualizationGL;
-    friend class ChFsiVisualizationVSG;
 };
 
 /// @} fsisph

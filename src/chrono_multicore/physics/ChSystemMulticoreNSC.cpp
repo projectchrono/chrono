@@ -20,7 +20,7 @@
 
 using namespace chrono;
 
-ChSystemMulticoreNSC::ChSystemMulticoreNSC() : ChSystemMulticore() {
+ChSystemMulticoreNSC::ChSystemMulticoreNSC(const std::string& name) : ChSystemMulticore(name) {
     contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
     contact_container->SetSystem(this);
 

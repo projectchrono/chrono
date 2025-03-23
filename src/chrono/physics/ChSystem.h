@@ -64,7 +64,7 @@ class ChModalAssembly;
 class ChApi ChSystem : public ChIntegrableIIorder {
   public:
     /// Create a physical system.
-    ChSystem();
+    ChSystem(const std::string& name = "");
 
     /// Copy constructor.
     ChSystem(const ChSystem& other);
@@ -75,6 +75,12 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// "Virtual" copy constructor.
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
+
+    /// Set the system name.
+    void SetName(const std::string& name) { m_name = name; }
+
+    /// Get the system name.
+    const std::string& GetName() const { return m_name; }
 
     /// Set the method for time integration (time stepper type).
     ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
@@ -793,8 +799,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
     virtual bool AdvanceDynamics();
 
-    ChAssembly assembly;  ///< underlying mechanical assembly
-
+    std::string m_name;                                       ///< system name
+    ChAssembly assembly;                                    ///< underlying mechanical assembly
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector3d G_acc;  ///< gravitational acceleration

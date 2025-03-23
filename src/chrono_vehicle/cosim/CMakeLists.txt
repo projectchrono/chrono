@@ -148,6 +148,9 @@ target_compile_definitions(Chrono_vehicle_cosim PRIVATE "CH_API_COMPILE_VEHICLE"
 
 target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vehicle)
 target_link_libraries(Chrono_vehicle_cosim PUBLIC ChronoModels_robot)
+
+target_link_libraries(Chrono_vehicle_cosim PUBLIC MPI::MPI_CXX)
+
 if(CH_ENABLE_MODULE_MULTICORE)
   target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_multicore)
 endif()
@@ -158,26 +161,25 @@ if(CH_ENABLE_MODULE_GPU)
   target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_gpu)
 endif()
 
-target_link_libraries(Chrono_vehicle_cosim PUBLIC MPI::MPI_CXX)
-
 if(CH_ENABLE_MODULE_PARDISO_MKL)
   target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_pardisomkl)
 endif()
 ##if(CH_ENABLE_MODULE_MUMPS)
 ##  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_mumps)
 ##endif()
+
 if(CH_ENABLE_MODULE_POSTPROCESS)
-  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_postprocess)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_postprocess)
 endif()
 if(CH_ENABLE_MODULE_IRRLICHT)
-  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_irrlicht)
-  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_vehicle_irrlicht)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_irrlicht)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vehicle_irrlicht)
 endif()
 if(CH_ENABLE_MODULE_VSG)
-  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_vsg)
-  target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_vehicle_vsg)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vsg)
+  target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_vehicle_vsg)
   if(CH_ENABLE_MODULE_FSI)
-    target_link_libraries(Chrono_vehicle_cosim PRIVATE Chrono_fsisph_vsg)
+    target_link_libraries(Chrono_vehicle_cosim PUBLIC Chrono_fsisph_vsg)
   endif()
 endif()
 

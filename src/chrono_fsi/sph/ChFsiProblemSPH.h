@@ -149,11 +149,6 @@ class CH_FSI_API ChFsiProblemSPH {
     /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
     void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
 
-    /// Disable automatic integration of the associated multibody system.
-    /// If MBD integration is disabled, it is the caller's responsibility to advance the dynamics of the associated
-    /// multibody system, separate from the call to advance the dynamics of the fluid system.
-    void DisableMBD() { m_sysFSI.DisableMBD(); }
-
     /// Explicitly set the computational domain limits.
     /// By default, this is set so that it encompasses all SPH particles and BCE markers.
     void SetComputationalDomain(ChAABB aabb, int periodic_sides) {

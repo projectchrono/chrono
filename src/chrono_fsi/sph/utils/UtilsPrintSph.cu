@@ -408,14 +408,14 @@ void SaveAllSolid(const std::string& dir,
 }
 
 void saveSolidData(const std::string& dir, double time, FsiDataManager& data_mgr) {
-    saveSolidData(dir, time,                                                                           //
-                  data_mgr.fsiBodyState_D->pos, data_mgr.fsiBodyState_D->rot,                          //
-                  data_mgr.fsiBodyState_D->lin_vel,                                                    //
-                  data_mgr.rigid_FSI_ForcesD, data_mgr.rigid_FSI_TorquesD,                             //
-                  data_mgr.fsiMesh1DState_D->pos_fsi_fea_D, data_mgr.fsiMesh1DState_D->vel_fsi_fea_D,  //
-                  data_mgr.flex1D_FSIforces_D,                                                         //
-                  data_mgr.fsiMesh2DState_D->pos_fsi_fea_D, data_mgr.fsiMesh2DState_D->vel_fsi_fea_D,  //
-                  data_mgr.flex2D_FSIforces_D);                                                        //
+    saveSolidData(dir, time,                                                       //
+                  data_mgr.fsiBodyState_D->pos, data_mgr.fsiBodyState_D->rot,      //
+                  data_mgr.fsiBodyState_D->lin_vel,                                //
+                  data_mgr.rigid_FSI_ForcesD, data_mgr.rigid_FSI_TorquesD,         //
+                  data_mgr.fsiMesh1DState_D->pos, data_mgr.fsiMesh1DState_D->vel,  //
+                  data_mgr.flex1D_FSIforces_D,                                     //
+                  data_mgr.fsiMesh2DState_D->pos, data_mgr.fsiMesh2DState_D->vel,  //
+                  data_mgr.flex2D_FSIforces_D);                                    //
 }
 
 void saveSolidData(const std::string& dir,

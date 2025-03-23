@@ -36,7 +36,7 @@
 
 namespace chrono {
 
-ChSystemMulticore::ChSystemMulticore() : ChSystem() {
+ChSystemMulticore::ChSystemMulticore(const std::string& name) : ChSystem(name) {
     data_manager = new ChMulticoreDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
