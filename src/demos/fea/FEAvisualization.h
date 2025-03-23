@@ -83,12 +83,12 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             vis_vsg->SetWindowSize(ChVector2i(1280, 720));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetWindowTitle(title);
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->AddCamera(2.0 * cam_pos, cam_target);
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

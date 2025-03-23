@@ -184,11 +184,17 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetWindowTitle(const std::string& title);
     void SetClearColor(const ChColor& color);
     void SetOutputScreen(int screenNum = 0);
-    void SetFullscreen(bool yesno = false);
-    void SetUseSkyBox(bool yesno);
 
-    /// Draw the scene objects as wireframes.
-    void SetWireFrameMode(bool mode = true) { m_wireframe = mode; }
+    /// Enable full-screen mode (default: false).
+    /// This function must be called before Initialize().
+    void EnableFullscreen(bool val = true);
+
+    /// Enable/disable use of a sky box background (default: false).
+    /// This function must be called before Initialize().
+    void EnableSkyBox(bool val = true);
+
+    /// Enable/disable rendering objects as wireframe (Default: false).
+    void EnableWireframeMode(bool mode = true) { m_wireframe = mode; }
 
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
@@ -218,9 +224,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Enable/disable rendering of shadows.
+    /// Enable/disable rendering of shadows (default: false).
     /// This function must be called before Initialize().
-    void SetShadows(bool yesno = false) { m_use_shadows = yesno; }
+    void EnableShadows(bool val = true) { m_use_shadows = val; }
+
+    /// Indicate whether or not shadows are enabled.
+    bool AreShadowsEnabled() const { return m_use_shadows; }
 
     void SetLightIntensity(float intensity);
     void SetLightDirection(double azimuth, double elevation);
@@ -255,7 +264,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Toggle GUI visibility for all GUI components.
     void ToggleGuiVisibility() { m_show_gui = !m_show_gui; }
 
-    /// Return boolean indicating whether or not GUI are visible.
+    /// Indicate whether or not GUI is visible.
     bool IsGuiVisible() const { return m_show_gui; }
 
     /// Set visibility for the default (base) GUI component (default: true).
@@ -264,11 +273,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Toggle GUI visibility for the default (base) GUI component.
     void ToggleBaseGuiVisibility();
 
-    /// Return boolean indicating whether or not the default (base) GUI is visible.
+    /// Indicate whether or not the default (base) GUI is visible.
     bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
-    /// Set logo visible (default: true).
-    void SetLogoVisible(bool yesno) { m_show_logo = yesno; }
+    /// Disable showing the Chrono logo (default: true).
+    void HideLogo() { m_show_logo = false; }
 
     /// Set logo display height (in pixels, default: 64).
     void SetLogoHeight(float height) { m_logo_height = height; }
@@ -278,7 +287,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// relative to the right-top corner of the rendering window.
     void SetLogoPosition(const ChVector2f& position) { m_logo_pos = position; }
 
-    /// Return boolean indicating whether or not logo is visible.
+    /// Indicate whether or not logo is visible.
     bool IsLogoVisible() const { return m_show_logo; }
 
     /// Add a user-defined VSG event handler.
@@ -292,8 +301,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void Update();
 
     int m_screen_num = -1;
-    bool m_use_fullscreen = false;
-    bool m_use_shadows = false;
+    bool m_use_fullscreen;
+    bool m_use_shadows;
 
     vsg::ref_ptr<vsg::Window> m_window;
     vsg::ref_ptr<vsg::Viewer> m_viewer;  ///< high-level VSG rendering manager
@@ -493,7 +502,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;
 
-    bool m_useSkybox;
+    bool m_use_skybox;
     std::string m_skyboxPath;
 
     vsg::dvec3 m_cameraUpVector;

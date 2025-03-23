@@ -367,7 +367,6 @@ int main(int argc, char* argv[]) {
                           ChVector3d(0, 0, 0.5 * fsize.z()));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
-        visVSG->SetWireFrameMode(false);
 
         visVSG->Initialize();
         vis = visVSG;

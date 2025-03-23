@@ -278,13 +278,7 @@ int main(int argc, char* argv[]) {
     // Create run-time visualization
     // -----------------------------
 
-////#define USE_VEHICLE_VIS
-
-#ifdef USE_VEHICLE_VIS
     std::shared_ptr<ChVehicleVisualSystem> vis;
-#else
-    std::shared_ptr<ChVisualSystem> vis;
-#endif
 
 #ifdef CHRONO_VSG
     if (render) {
@@ -295,7 +289,6 @@ int main(int argc, char* argv[]) {
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
         visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
 
-    #ifdef USE_VEHICLE_VIS
         // Wheeled vehicle VSG visual system (attach visFSI as plugin)
         auto visVSG = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
         visVSG->AttachVehicle(vehicle.get());
@@ -303,25 +296,12 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
         visVSG->SetWindowSize(1280, 720);
         visVSG->SetWindowPosition(400, 400);
-        visVSG->SetUseSkyBox(true);
+        visVSG->EnableSkyBox();
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         visVSG->SetCameraAngleDeg(40);
         visVSG->SetChaseCamera(VNULL, 6.0, 2.0);
         visVSG->SetChaseCameraPosition(ChVector3d(0, 8, 1.5));
-        visVSG->SetShadows(true);
-        visVSG->SetWireFrameMode(false);
-    #else
-        // VSG visual system (attach visFSI as plugin)
-        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
-        visVSG->AttachSystem(sysMBS);
-        visVSG->AttachPlugin(visFSI);
-        visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
-        visVSG->AddCamera(ChVector3d(3, 8, 1.5), ChVector3d(2, -1, 0));
-        visVSG->SetWireFrameMode(false);
-    #endif
 
         visVSG->Initialize();
         vis = visVSG;
@@ -379,17 +359,13 @@ int main(int argc, char* argv[]) {
 
         // Synchronize systems
         driver.Synchronize(time);
-#ifdef USE_VEHICLE_VIS
         vis->Synchronize(time, driver_inputs);
-#endif
         terrain.Synchronize(time);
         vehicle->Synchronize(time, driver_inputs, terrain);
 
         // Advance system state
         driver.Advance(step_size);
-#ifdef USE_VEHICLE_VIS
         vis->Advance(step_size);
-#endif
         // Coupled FSI problem (CRM terrain + vehicle)
         terrain.Advance(step_size);
 

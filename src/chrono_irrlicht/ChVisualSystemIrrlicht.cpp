@@ -119,11 +119,11 @@ void ChVisualSystemIrrlicht::SetAntialias(bool val) {
     m_device_params.AntiAlias = val;
 }
 
-void ChVisualSystemIrrlicht::SetFullscreen(bool val) {
+void ChVisualSystemIrrlicht::EnableFullscreen(bool val) {
     m_device_params.Fullscreen = val;
 }
 
-void ChVisualSystemIrrlicht::SetShadows(bool val) {
+void ChVisualSystemIrrlicht::EnableShadows(bool val) {
     m_device_params.Stencilbuffer = val;
 }
 

@@ -193,9 +193,7 @@ ChFsiVisualizationVSG::~ChFsiVisualizationVSG() {
 void ChFsiVisualizationVSG::OnAttach() {
     m_vsys->AttachSystem(m_sysMBS);
 
-    m_vsys->SetWireFrameMode(false);
     m_vsys->SetCameraVertical(CameraVerticalDir::Z);
-    m_vsys->SetUseSkyBox(false);
 }
 
 void ChFsiVisualizationVSG::OnInitialize() {
@@ -273,6 +271,13 @@ void ChFsiVisualizationVSG::OnInitialize() {
 
     m_vsys->SetImageOutput(m_write_images);
     m_vsys->SetImageOutputDirectory(m_image_dir);
+
+    // Issue performance warning if shadows are enabled for the containing visualization system
+    if (m_vsys->AreShadowsEnabled()) {
+        std::cerr << "WARNING:  Shadow rendering is enabled for the associated VSG visualization system.\n";
+        std::cerr << "          This negatively affects rendering performance, especially for large particle systems."
+                  << std::endl;
+    }
 }
 
 void ChFsiVisualizationVSG::OnRender() {

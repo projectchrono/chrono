@@ -115,7 +115,6 @@ std::shared_ptr<ChVisualSystem> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSys
         visVSG->AddCamera(ChVector3d(-0.2, -3.0, 0), ChVector3d(-0.2, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
-        visVSG->SetWireFrameMode(false);
 
         visVSG->Initialize();
         vis = visVSG;

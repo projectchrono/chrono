@@ -510,7 +510,6 @@ int main(int argc, char* argv[]) {
         visVSG->AddCamera(wec_pos + ChVector3d(0, -9 * csize.y(), 0), wec_pos);
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
-        visVSG->SetWireFrameMode(false);
 
         visVSG->Initialize();
         vis = visVSG;

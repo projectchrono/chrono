@@ -471,7 +471,7 @@ ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_dr
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
-    if (m_vsg_initialized)
+    if (m_initialized)
         return;
 
     // Do not create a VSG camera trackball controller
@@ -486,8 +486,6 @@ void ChVehicleVisualSystemVSG::Initialize() {
     // Invoke the base Initialize method
     // Note: this must occur only *after* adding custom GUI components and event handlers
     ChVisualSystemVSG::Initialize();
-
-    m_vsg_initialized = true;
 }
 
 void ChVehicleVisualSystemVSG::Advance(double step) {

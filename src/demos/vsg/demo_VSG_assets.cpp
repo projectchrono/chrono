@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2i(1200, 800));
     vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
-    vis->SetUseSkyBox(true);
+    vis->EnableSkyBox();
     vis->AddCamera(ChVector3d(-8, 8, -16));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
@@ -368,8 +368,7 @@ int main(int argc, char* argv[]) {
                         ChFrame<>(ChVector3d(-6, 1, -5 - 0.4), QUNIT));
     vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                         ChFrame<>(ChVector3d(-6, 1, -5 + 0.4), QUNIT));
-    vis->SetShadows(true);
-    vis->SetLogoVisible(true);
+    vis->EnableShadows();
     vis->Initialize();
 
     // Create output directory

@@ -152,7 +152,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             ImGui::SameLine();
             HelpMarker(
                 "Overall real-time factor.\n"
-                "The RTF represents the ratio between the wall clock time elapsed between two render"
+                "The RTF represents the ratio between the wall clock time elapsed between two render "
                 "frames and the duration by which simulation was advanced in this interval.");
             ImGui::TableNextColumn();
             ImGui::Text("%8.3f", m_app->GetRTF());
@@ -670,7 +670,9 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_logo_pos({10, 10}),
       m_logo_height(64),
       m_yup(false),
-      m_useSkybox(false),
+      m_use_skybox(false),
+      m_use_shadows(false),
+      m_use_fullscreen(false),
       m_camera_trackball(true),
       m_capture_image(false),
       m_wireframe(false),
@@ -769,7 +771,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     SetWindowTitle("");
     SetWindowSize(ChVector2i(800, 600));
     SetWindowPosition(ChVector2i(50, 50));
-    SetUseSkyBox(true);
     SetCameraAngleDeg(40);
     SetLightIntensity(1.0);
     SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
@@ -797,12 +798,12 @@ void ChVisualSystemVSG::SetOutputScreen(int screenNum) {
     }
 }
 
-void ChVisualSystemVSG::SetFullscreen(bool yesno) {
+void ChVisualSystemVSG::EnableFullscreen(bool val) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetFullscreen must be used before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::EnableFullscreen must be used before initialization!" << std::endl;
         return;
     }
-    m_use_fullscreen = yesno;
+    m_use_fullscreen = val;
 }
 
 size_t ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc) {
@@ -909,12 +910,12 @@ void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
     m_clearColor = color;
 }
 
-void ChVisualSystemVSG::SetUseSkyBox(bool yesno) {
+void ChVisualSystemVSG::EnableSkyBox(bool val) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetUseSkyBox can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::EnableSkyBox can only be called before initialization!" << std::endl;
         return;
     }
-    m_useSkybox = yesno;
+    m_use_skybox = val;
 }
 
 int ChVisualSystemVSG::AddCamera(const ChVector3d& pos, ChVector3d targ) {
@@ -1041,13 +1042,13 @@ void ChVisualSystemVSG::Initialize() {
     double radius = 50.0;
     vsg::dbox bound;
 
-    if (m_useSkybox) {
+    if (m_use_skybox) {
         vsg::Path fileName(m_skyboxPath);
         auto skyPtr = createSkybox(fileName, m_options, m_yup);
         if (skyPtr)
             m_scene->addChild(skyPtr);
         else
-            m_useSkybox = false;
+            m_use_skybox = false;
     }
 
     auto ambientLight = vsg::AmbientLight::create();

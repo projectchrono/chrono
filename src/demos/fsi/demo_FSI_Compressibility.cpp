@@ -165,7 +165,6 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowSize(1280, 720);
         visVSG->SetWindowPosition(400, 400);
         visVSG->AddCamera(ChVector3d(0, -5 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.5 * bzDim));
-        visVSG->SetWireFrameMode(false);
 
         visVSG->Initialize();
         vis = visVSG;
