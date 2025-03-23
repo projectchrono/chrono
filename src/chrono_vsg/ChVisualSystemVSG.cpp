@@ -354,8 +354,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             }
         }
 
-        if (ImGui::CollapsingHeader("Show components")) {
-            if (m_app->m_show_visibility_controls && ImGui::BeginTable("Shapes", 2, table_flags, ImVec2(0.0f, 0.0f))) {
+        if (m_app->m_show_visibility_controls && ImGui::BeginTable("Shapes", 2, table_flags, ImVec2(0.0f, 0.0f))) {
+            if (ImGui::CollapsingHeader("Show components")) {
                 ImGui::TableNextColumn();
                 static bool body_obj_visible = m_app->m_show_body_objs;
                 if (ImGui::Checkbox("Bodies", &body_obj_visible)) {

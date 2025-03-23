@@ -236,8 +236,10 @@ void ShowHelp() {
 void ChVehicleGuiComponentVSG::render() {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
-    std::string title = "Vehicle [" + m_app->GetVehicle().GetName() + "]";
-    ImGui::Begin(title.c_str());
+    ImGui::Begin("Vehicle");
+
+    std::string vehicle_name = "Vehicle: \"" + m_app->GetVehicle().GetName() + "\"";
+    ImGui::TextUnformatted(vehicle_name.c_str());
 
     if (ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
@@ -248,7 +250,7 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::EndTable();
     }
 
-    ImGui::Spacing();
+    ////ImGui::Spacing();
 
     if (ImGui::BeginTable("RTFTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
@@ -259,7 +261,7 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::EndTable();
     }
 
-    ImGui::Spacing();
+    ////ImGui::Spacing();
 
     if (ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
@@ -298,7 +300,7 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::EndTable();
     }
 
-    ImGui::Spacing();
+    ////ImGui::Spacing();
 
     if (ImGui::BeginTable("VehAttitude", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
@@ -358,7 +360,7 @@ void ChVehicleGuiComponentVSG::render() {
         auto transmission_auto = transmission->asAutomatic();  // nullptr for a manual transmission
         ////auto transmission_manual = transmission->asManual();   // nullptr for an automatic transmission
 
-        ImGui::Spacing();
+        ////ImGui::Spacing();
 
         if (ImGui::BeginTable("Powertrain", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
@@ -411,7 +413,7 @@ void ChVehicleGuiComponentVSG::render() {
         }
 
         if (transmission_auto && transmission_auto->HasTorqueConverter()) {
-            ImGui::Spacing();
+            ////ImGui::Spacing();
 
             if (ImGui::BeginTable("TorqueConverter", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f))) {
