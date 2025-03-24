@@ -354,8 +354,8 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             }
         }
 
-        if (m_app->m_show_visibility_controls && ImGui::BeginTable("Shapes", 2, table_flags, ImVec2(0.0f, 0.0f))) {
-            if (ImGui::CollapsingHeader("Show components")) {
+        if (m_app->m_show_visibility_controls && ImGui::CollapsingHeader("Show components")) {
+            if (ImGui::BeginTable("Shapes", 2, table_flags, ImVec2(0.0f, 0.0f))) {
                 ImGui::TableNextColumn();
                 static bool body_obj_visible = m_app->m_show_body_objs;
                 if (ImGui::Checkbox("Bodies", &body_obj_visible)) {
@@ -1383,7 +1383,7 @@ void ChVisualSystemVSG::Render() {
             unsigned int k = 0;
             for (auto& p : *cloud.positions) {
                 if (cloud.pcloud->IsVisible(k))
-                    p = vsg::vec3CH(cloud.pcloud->Particle(k).GetPos());
+                    p = vsg::vec3CH(cloud.pcloud->GetParticlePos(k));
                 else
                     p = hide_pos;  // vsg::vec3(0, 0, 0);
                 k++;
@@ -2129,7 +2129,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     cloud.positions = vsg::vec3Array::create(num_particles);
     geomInfo.positions = cloud.positions;
     for (unsigned int k = 0; k < num_particles; k++)
-        cloud.positions->set(k, vsg::vec3CH(pcloud->Particle(k).GetPos()));
+        cloud.positions->set(k, vsg::vec3CH(pcloud->GetParticlePos(k)));
     if (cloud.dynamic_positions) {
         cloud.positions->properties.dataVariance = vsg::DYNAMIC_DATA;
     }

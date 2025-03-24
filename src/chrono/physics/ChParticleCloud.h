@@ -159,7 +159,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
   public:
     ChParticleCloud();
     ChParticleCloud(const ChParticleCloud& other);
-    ~ChParticleCloud();
+    
+    virtual ~ChParticleCloud();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
@@ -180,16 +181,16 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     void SetLimitSpeed(bool state) { limit_speed = state; }
 
     /// Get the number of particles.
-    size_t GetNumParticles() const override { return particles.size(); }
+    virtual size_t GetNumParticles() const override { return particles.size(); }
 
     /// Get all particles in the cluster.
     std::vector<ChParticle*> GetParticles() const { return particles; }
 
     /// Get particle position.
-    const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
+    virtual const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
 
     /// Get particle linear velocity.
-    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDt(); }
+    virtual const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDt(); }
 
     /// Access the N-th particle.
     ChParticleBase& Particle(unsigned int n) override {
@@ -238,7 +239,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     /// Get the visualization color for the specified particle.
     /// Return the color given by a ColorCallback, if one was provided. Otherwise return a default color.
-    ChColor GetVisualColor(unsigned int n) const;
+    virtual ChColor GetVisualColor(unsigned int n) const;
 
     /// Class to be used as a callback interface for dynamic visibility of particles in a cloud.
     class ChApi VisibilityCallback {
