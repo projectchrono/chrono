@@ -37,7 +37,7 @@ class ChMulticoreVisualizationCloud : public ChParticleCloud {
         EnableCollision(false);
     }
     virtual bool IsActive() const override { return true; }
-    virtual size_t GetNumParticles() const override { return dm->num_fluid_bodies; }
+    virtual size_t GetNumParticles() const override { return dm->num_particles; }
     virtual const ChVector3d& GetParticlePos(unsigned int n) const {
         const auto& p = dm->host_data.pos_3dof[n];
         tmp = ChVector3(p.x, p.y, p.z);
@@ -65,10 +65,10 @@ Ch3DOFContainer::Ch3DOFContainer()
       contact_compliance(0),
       contact_mu(0),
       max_velocity(20),
-      num_fluid_contacts(0),
-      num_fluid_bodies(0),
+      num_particle_contacts(0),
+      num_particles(0),
       num_rigid_bodies(0),
-      num_rigid_fluid_contacts(0),
+      num_rigid_particle_contacts(0),
       num_unilaterals(0),
       num_bilaterals(0),
       num_shafts(0),
@@ -120,13 +120,13 @@ void Ch3DOFContainer::Setup3DOF(int start_constraint) {
     start_row = start_constraint;
     if (data_manager) {
         if (data_manager->cd_data) {
-            num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
-            num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
+            num_particle_contacts = data_manager->cd_data->num_particle_contacts;
+            num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
         } else {
-            num_fluid_contacts = 0;
-            num_rigid_fluid_contacts = 0;
+            num_particle_contacts = 0;
+            num_rigid_particle_contacts = 0;
         }
-        num_fluid_bodies = data_manager->num_fluid_bodies;
+        num_particles = data_manager->num_particles;
         num_rigid_bodies = data_manager->num_rigid_bodies;
         num_unilaterals = data_manager->num_unilaterals;
         num_bilaterals = data_manager->num_bilaterals;

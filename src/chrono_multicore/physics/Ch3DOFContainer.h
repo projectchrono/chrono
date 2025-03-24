@@ -78,7 +78,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     void SetFamily(short family, short mask_no_collision);
 
     // Helper Functions
-    uint GetNumParticles() const { return num_fluid_bodies; }
+    uint GetNumParticles() const { return num_particles; }
     virtual unsigned int GetNumConstraints() { return 0; }
     virtual unsigned int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
@@ -98,11 +98,11 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
 
     real kernel_radius;
     real collision_envelope;
-    real contact_recovery_speed;  // The speed at which 'rigid' fluid  bodies resolve contact
+    real contact_recovery_speed;  // The speed at which 'rigid' particles resolve contact
     real contact_cohesion;
     real contact_compliance;
     real contact_mu;    // friction
-    real max_velocity;  // limit on the maximum speed the fluid can move at
+    real max_velocity;  // limit on the maximum particle speed
     uint start_row;
     real alpha;
 
@@ -114,10 +114,10 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
   protected:
     ChMulticoreDataManager* data_manager;
 
-    uint num_fluid_contacts;
-    uint num_fluid_bodies;
+    uint num_particle_contacts;
+    uint num_particles;
     uint num_rigid_bodies;
-    uint num_rigid_fluid_contacts;
+    uint num_rigid_particle_contacts;
     uint num_unilaterals;
     uint num_bilaterals;
     uint num_shafts;
@@ -129,7 +129,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     friend class ChSystemMulticoreNSC;
 };
 
-/// Container of fluid particles.
+/// Container of fluid particles (fluid nodes).
 class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
   public:
     ChFluidContainer();
@@ -217,7 +217,7 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
     virtual void CalculateContactForces() override;
     virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) override;
     virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) override;
-    void GetFluidForce(custom_vector<real3>& forc);
+    void GetPressureForce(custom_vector<real3>& forc);
 
     uint start_boundary;
     uint start_contact;

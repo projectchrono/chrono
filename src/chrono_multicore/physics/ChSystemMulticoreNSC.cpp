@@ -76,9 +76,8 @@ void ChSystemMulticoreNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbod
     // Reserve space for material properties for the specified body.
     // Notes:
     //  - the actual data is set in UpdateMaterialProperties()
-    //  - coefficients of sliding friction are only needed for fluid-rigid and FEA-rigid contacts;
-    //    for now, we store a single value per body (corresponding to the first collision shape,
-    //    if any, in the associated collision model)
+    //  - coefficients of sliding friction are only needed for particle-rigid; for now, we store a single value per body
+    //    (corresponding to the first collision shape, if any) in the associated collision model
     data_manager->host_data.sliding_friction.push_back(0);
     data_manager->host_data.cohesion.push_back(0);
 }

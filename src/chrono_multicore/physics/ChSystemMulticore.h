@@ -84,7 +84,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
     virtual unsigned int GetNumBodies() const override {
-        return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
+        return data_manager->num_rigid_bodies + data_manager->num_particles;
     }
 
     /// Get the number of shafts.
