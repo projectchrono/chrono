@@ -183,7 +183,9 @@ void ChFluidContainer::Setup3DOF(int start_constraint) {
     body_offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 }
 
-void ChFluidContainer::Initialize() {}
+void ChFluidContainer::Initialize() {
+    Ch3DOFContainer::Initialize();
+}
 
 void ChFluidContainer::Density_Fluid() {
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;

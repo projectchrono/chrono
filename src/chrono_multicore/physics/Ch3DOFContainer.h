@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
 // Definitions for all 3DOF type containers for Chrono::Multicore.
@@ -20,13 +20,12 @@
 
 #include <thread>
 
+#include "chrono/physics/ChBody.h"
+
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 
 #include "chrono/multicore_math/matrix.h"
-
-// Chrono headers
-#include "chrono/physics/ChBody.h"
 
 // Blaze headers
 // ATTENTION: It is important for these to be included after sse.h!
@@ -40,6 +39,8 @@ namespace chrono {
 class ChSystemMulticoreNSC;
 class ChMulticoreDataManager;
 class ChSolverMulticore;
+
+class ChMulticoreVisualizationCloud;
 
 /// @addtogroup multicore_physics
 /// @{
@@ -56,7 +57,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     // Before Solve
     virtual void Update3DOF(double time) {}
     virtual void Setup3DOF(int start_constraint);
-    virtual void Initialize() {}
+    virtual void Initialize();
     virtual void ComputeInvMass(int offset) {}
     virtual void ComputeMass(int offset) {}
     virtual void GenerateSparsity() {}
@@ -121,6 +122,8 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_bilaterals;
     uint num_shafts;
     uint num_motors;
+
+    std::shared_ptr<ChMulticoreVisualizationCloud> m_cloud;  ///< proxy for 3DOF particles visualization
 
     friend class ChMulticoreDataManager;
     friend class ChSystemMulticoreNSC;

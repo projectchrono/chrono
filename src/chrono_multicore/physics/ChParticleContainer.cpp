@@ -179,7 +179,9 @@ void ChParticleContainer::Setup3DOF(int start_constraint) {
     num_rigid_contacts = (num_fluid_contacts - num_fluid_bodies) / 2;
 }
 
-void ChParticleContainer::Initialize() {}
+void ChParticleContainer::Initialize() {
+    Ch3DOFContainer::Initialize();
+}
 
 void ChParticleContainer::Build_D() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;

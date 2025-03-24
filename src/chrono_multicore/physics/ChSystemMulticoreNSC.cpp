@@ -63,6 +63,8 @@ void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> con
 
     container->SetSystem(this);
     container->data_manager = data_manager;
+
+    container->Initialize();
 }
 
 void ChSystemMulticoreNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {

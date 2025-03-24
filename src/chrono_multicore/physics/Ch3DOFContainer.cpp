@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
 // Definitions for all 3DOF type containers for Chrono::Multicore.
@@ -20,11 +20,41 @@
 #include <algorithm>
 #include <cmath>
 
+#include "chrono/physics/ChParticleCloud.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 
 namespace chrono {
+
+// -----------------------------------------------------------------------------
+
+class ChMulticoreVisualizationCloud : public ChParticleCloud {
+  public:
+    ChMulticoreVisualizationCloud(ChMulticoreDataManager* data_manager) : dm(data_manager) {
+        EnableCollision(false);
+    }
+    virtual bool IsActive() const override { return true; }
+    virtual size_t GetNumParticles() const override { return dm->num_fluid_bodies; }
+    virtual const ChVector3d& GetParticlePos(unsigned int n) const {
+        const auto& p = dm->host_data.pos_3dof[n];
+        tmp = ChVector3(p.x, p.y, p.z);
+        return tmp;
+    }
+    virtual const ChVector3d& GetParticleVel(unsigned int n) const {
+        const auto& v = dm->host_data.vel_3dof[n];
+        tmp = ChVector3d(v.x, v.y, v.z);
+        return tmp;
+    }
+    virtual void Update(double time, bool update_assets) override {}
+
+    ChMulticoreDataManager* dm;
+    mutable ChVector3d tmp;
+};
+
+// -----------------------------------------------------------------------------
 
 Ch3DOFContainer::Ch3DOFContainer()
     : data_manager(nullptr),
@@ -72,6 +102,18 @@ real3 Ch3DOFContainer::GetPosDt(int i) {
 }
 void Ch3DOFContainer::SetPosDt(const int& i, const real3& mposdt) {
     data_manager->host_data.vel_3dof[i] = mposdt;
+}
+
+void Ch3DOFContainer::Initialize() {
+    // Create the visualization particle cloud
+    m_cloud = chrono_types::make_shared<ChMulticoreVisualizationCloud>(data_manager);
+    m_cloud->SetName("3DOF_particles");
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(real(0.75) * kernel_radius);
+    sphere->SetColor(ChColor(0.10f, 0.40f, 0.65f));
+    m_cloud->AddVisualShape(sphere);
+
+    // Add the visualization cloud to the containing system
+    system->Add(m_cloud);
 }
 
 void Ch3DOFContainer::Setup3DOF(int start_constraint) {
