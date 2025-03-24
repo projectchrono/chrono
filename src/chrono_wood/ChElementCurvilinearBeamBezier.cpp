@@ -216,7 +216,6 @@ void ChElementCurvilinearBeamBezier::Update() {
 	
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
-    this->ComputeStiffnessMatrix();
 	
 	if(this->macro_strain){
 		for (int ig = 0; ig < int_order_b; ++ig){ 
@@ -866,6 +865,8 @@ void ChElementCurvilinearBeamBezier::ComputeKRMmatricesGlobal(ChMatrixRef H, dou
 		*/
 		
         // finally, store K into H:
+        // TODO JBC: ONLY COMPUTE STIFFNESS MATRIX WHEN SOLVER ASKS FOR IT !
+        this->ComputeStiffnessMatrix();
         H.block(0, 0, mrows_w, mrows_w) = Kfactor * this->stiffness;
     } else
         H.setZero();
