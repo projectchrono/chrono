@@ -21,6 +21,7 @@
 #include <thread>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChColor.h"
 
 #include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
@@ -57,7 +58,7 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     // Before Solve
     virtual void Update3DOF(double time) {}
     virtual void Setup3DOF(int start_constraint);
-    virtual void Initialize();
+    virtual void Initialize() {}
     virtual void ComputeInvMass(int offset) {}
     virtual void ComputeMass(int offset) {}
     virtual void GenerateSparsity() {}
@@ -112,6 +113,8 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     short2 family;
 
   protected:
+    void CreateVisualization(double radius, const ChColor& color);
+    
     ChMulticoreDataManager* data_manager;
 
     uint num_particle_contacts;

@@ -247,12 +247,16 @@ int CreateObjects(ChSystemMulticore* system) {
     mat_c->SetFriction(mu_c);
     mat_c->SetRestitution(cr_c);
 
-    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness,  //
+                              VNULL, QUNIT,                                               //
+                              true, true, false, true);
 #else
     auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_c->SetFriction(mu_c);
 
-    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness,  //
+                              VNULL, QUNIT,                                               //
+                              true, true, false, true);
 #endif
 
     // Create a material for the granular material
@@ -498,7 +502,6 @@ int main(int argc, char* argv[]) {
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->EnableShadows();
-    vis->EnableWireframeMode();
     vis->Initialize();
 #endif
 

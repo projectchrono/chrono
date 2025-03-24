@@ -675,7 +675,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_use_fullscreen(false),
       m_camera_trackball(true),
       m_capture_image(false),
-      m_wireframe(false),
       //
       m_show_gui(true),
       m_show_base_gui(true),
@@ -1753,7 +1752,7 @@ void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     }
 
     if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
-        BindParticleCloud(pcloud, m_wireframe);
+        BindParticleCloud(pcloud);
         return;
     }
 
@@ -1821,7 +1820,7 @@ void ChVisualSystemVSG::BindAssembly(const ChAssembly& assembly) {
         BindDeformableMesh(item, DeformableType::OTHER);
         BindPointPoint(item);
         if (const auto& pcloud = std::dynamic_pointer_cast<ChParticleCloud>(item))
-            BindParticleCloud(pcloud, m_wireframe);
+            BindParticleCloud(pcloud);
         if (const auto& assmbly = std::dynamic_pointer_cast<ChAssembly>(item))
             BindAssembly(*assmbly);
     }
@@ -1844,7 +1843,7 @@ void ChVisualSystemVSG::BindObjectVisualModel(const std::shared_ptr<ChObj>& obj,
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateVisGroup(vis_shapes_group, vis_model, m_wireframe);
+    PopulateVisGroup(vis_shapes_group, vis_model);
 
     // Attach a transform to the group and initialize it with the body current position
     auto vis_model_transform = vsg::MatrixTransform::create();
@@ -1934,7 +1933,7 @@ void ChVisualSystemVSG::BindDeformableMesh(const std::shared_ptr<ChPhysicsItem>&
         return;
 
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
-        auto& shape = shape_instance.first;
+        auto& shape = shape_instance.shape;
 
         //// RADU TODO: process glyphs
         ////            for now, only treat the trimeshes in the visual model
@@ -2019,7 +2018,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
     vsg::Mask mask_springs = m_show_springs;
 
     for (auto& shape_instance : vis_model->GetShapeInstances()) {
-        auto& shape = shape_instance.first;
+        auto& shape = shape_instance.shape;
 
         if (auto segshape = std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
             double length;
@@ -2056,7 +2055,7 @@ void ChVisualSystemVSG::BindPointPoint(const std::shared_ptr<ChPhysicsItem>& ite
     }
 }
 
-void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud, bool wireframe) {
+void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
     const auto& vis_model = pcloud->GetVisualModel();
     auto num_particles = pcloud->GetNumParticles();
 
@@ -2066,6 +2065,7 @@ void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>
     // Search for an appropriate rendering shape
     typedef ChGeometry::Type ShapeType;
     auto shape = vis_model->GetShape(0);
+    bool wireframe = vis_model->UseWireframe(0);
     ShapeType shape_type = ShapeType::NONE;
     ChVector3d shape_size(0);
     if (auto sph = std::dynamic_pointer_cast<ChVisualShapeSphere>(shape)) {
@@ -2217,11 +2217,11 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
 
 // Utility function to populate a VSG group with visualization shapes (from the given visual model).
 void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
-                                         std::shared_ptr<ChVisualModel> model,
-                                         bool wireframe) {
+                                         std::shared_ptr<ChVisualModel> model) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
-        const auto& X_SM = shape_instance.second;
+        const auto& shape = shape_instance.shape;
+        const auto& X_SM = shape_instance.frame;
+        bool wireframe = shape_instance.wireframe;
 
         if (!shape->IsVisible())
             continue;
@@ -2717,7 +2717,7 @@ int ChVisualSystemVSG::AddVisualModel(std::shared_ptr<ChVisualModel> model, cons
     auto vis_shapes_group = vsg::Group::create();
 
     // Populate the group with shapes in the visual model
-    PopulateVisGroup(vis_shapes_group, model, m_wireframe);
+    PopulateVisGroup(vis_shapes_group, model);
 
     // Attach a transform to the group and initialize it with the provided frame
     auto vis_model_transform = vsg::MatrixTransform::create();

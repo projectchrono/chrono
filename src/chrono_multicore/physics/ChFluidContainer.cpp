@@ -184,6 +184,8 @@ void ChFluidContainer::Setup3DOF(int start_constraint) {
 }
 
 void ChFluidContainer::Initialize() {
+    CreateVisualization(0.75 * kernel_radius, ChColor(0.10f, 0.40f, 0.65f));
+    Ch3DOFContainer::Initialize();
     Ch3DOFContainer::Initialize();
 }
 

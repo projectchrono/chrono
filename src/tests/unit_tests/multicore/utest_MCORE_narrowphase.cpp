@@ -235,7 +235,6 @@ int main(int argc, char* argv[]) {
         vis->SetLightIntensity(1.0f);
         vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         vis->EnableShadows();
-        vis->EnableWireframeMode();
         vis->Initialize();
 
         while (time < time_end) {

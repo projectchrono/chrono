@@ -179,6 +179,7 @@ void ChParticleContainer::Setup3DOF(int start_constraint) {
 }
 
 void ChParticleContainer::Initialize() {
+    CreateVisualization(0.5 * kernel_radius, ChColor(0.65f, 0.40f, 0.10f));
     Ch3DOFContainer::Initialize();
 }
 

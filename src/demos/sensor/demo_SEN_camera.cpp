@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     floor->SetFixed(true);
     sys.Add(floor);
     {
-        auto shape = floor->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = floor->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat3);
         } else {
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     box_body->SetFixed(true);
     sys.Add(box_body);
     {
-        auto shape = box_body->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = box_body->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat);
         } else {
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     sphere_body->SetFixed(true);
     sys.Add(sphere_body);
     {
-        auto shape = sphere_body->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = sphere_body->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat2);
         } else {
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     cyl_body->SetFixed(true);
     sys.Add(cyl_body);
     {
-        auto shape = cyl_body->GetVisualModel()->GetShapeInstances()[0].first;
+        auto shape = cyl_body->GetVisualModel()->GetShapeInstances()[0].shape;
         if (shape->GetNumMaterials() == 0) {
             shape->AddMaterial(vis_mat4);
         } else {

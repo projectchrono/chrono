@@ -79,7 +79,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 #if USE_RIGID
     container->mu = 0;
     container->alpha = 0;
-    container->cohesion = 0.08;
+    container->cohesion = 0.1;
 #else
     container->tau = time_step * 4;
     container->epsilon = 1e-3;
@@ -202,8 +202,7 @@ int main(int argc, char* argv[]) {
     vis->EnableSkyBox();
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->EnableWireframeMode();
+    vis->SetLightDirection(-CH_PI_2, CH_PI_4);
     vis->Initialize();
 
     while (vis->Run()) {

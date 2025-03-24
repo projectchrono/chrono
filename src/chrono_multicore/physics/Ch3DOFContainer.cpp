@@ -104,12 +104,12 @@ void Ch3DOFContainer::SetPosDt(const int& i, const real3& mposdt) {
     data_manager->host_data.vel_3dof[i] = mposdt;
 }
 
-void Ch3DOFContainer::Initialize() {
+void Ch3DOFContainer::CreateVisualization(double radius, const ChColor& color) {
     // Create the visualization particle cloud
     m_cloud = chrono_types::make_shared<ChMulticoreVisualizationCloud>(data_manager);
     m_cloud->SetName("3DOF_particles");
-    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(real(0.75) * kernel_radius);
-    sphere->SetColor(ChColor(0.10f, 0.40f, 0.65f));
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    sphere->SetColor(color);
     m_cloud->AddVisualShape(sphere);
 
     // Add the visualization cloud to the containing system

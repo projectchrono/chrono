@@ -56,7 +56,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     utils::CreateBoxContainer(sys, mat,                         //
                               ChVector3d(1.1, 1.2, 1.1), 0.05,  //
                               VNULL, QuatFromAngleY(-10),       //
-                              true, true, true);
+                              true, true, true, true);
 }
 
 // -----------------------------------------------------------------------------
@@ -157,8 +157,7 @@ int main(int argc, char* argv[]) {
     vis->EnableSkyBox();
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->EnableWireframeMode();
+    vis->SetLightDirection(-CH_PI_2, CH_PI_4);
     vis->Initialize();
 
     while (vis->Run()) {
