@@ -20,6 +20,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChExternalDynamicsDAE.h"
 #include "chrono/soa/ChMobilizedBody.h"
+#include "chrono/soa/ChSoaForce.h"
 
 namespace chrono {
 namespace soa {
@@ -37,6 +38,8 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
     void AddBody(std::shared_ptr<ChMobilizedBody> body);
 
     void RemoveBody(std::shared_ptr<ChMobilizedBody> body);
+
+    void AddForce(std::shared_ptr<ChSoaForce> force);
 
     std::shared_ptr<ChGroundBody> getGroundBody() const { return m_ground_body; }
     std::vector<std::shared_ptr<ChMobilizedBody>> getBodies() const { return m_bodies; }
@@ -108,6 +111,13 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
     /// Note that the vector of Lagrange multipliers is overwritten (and will be zero on exit).
     void calcCSVelJacobian();
 
+    // Force evaluation functions
+
+    /// Apply all current body and mobility forces to the constituent bodies.
+    /// This method should be called only after a forward kinematics traversal (call to calcPosAndVel) so that all body
+    /// positions and velocities are available.
+    void applyForces(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd);
+
   private:
     // Virtual methods of ChExternalDynamicsDAE
     //// TODO
@@ -156,6 +166,8 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
   private:
     std::shared_ptr<ChGroundBody> m_ground_body;
     std::vector<std::shared_ptr<ChMobilizedBody>> m_bodies;
+
+    std::vector<std::shared_ptr<ChSoaForce>> m_forces;
 
     bool m_initialized;
 

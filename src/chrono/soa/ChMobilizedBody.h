@@ -152,7 +152,10 @@ class ChApi ChMobilizedBody : public ChObj {
 
     void AddMobilityForce(int dof, std::shared_ptr<ChMobilityForce> force);
 
-    void applyBodyForce(const ChSpatialVec& force) { m_bodyForce += force; }
+    void ApplyGravitationalForce(const ChVector3d& g);
+    void ApplyBodyForce(const ChSpatialVec& force);
+    void ApplyAllMobilityForces();
+
     const ChSpatialVec& getBodyForce() const { return m_bodyForce; }
 
     /// A visual model attached to this mobilized body is expected relative to the inboard frame.
@@ -181,8 +184,6 @@ class ChApi ChMobilizedBody : public ChObj {
     void setQ(int dof, double val) const;
     void setU(int dof, double val) const;
     void setUdot(int dof, double val) const;
-
-    void ApplyMobilityForces();
 
     // Outward recursive functions
     // ---------------------------
@@ -302,9 +303,9 @@ class ChApi ChMobilizedBody : public ChObj {
     /// Allow the body to perform any operations at the beginning of a simulation step.
     virtual void prepSim() {}
 
-    virtual void applyMobilityForce(int which, double force) {}
+    virtual void ApplyMobilityForce(int which, double force) {}
+    virtual void ApplyCSMobilityForce(int which, double force) {}
 
-    virtual void applyCSMobilityForce(int which, double force) {}
     virtual void resetForcesCS() {}
 
     /// Set the first derivative of the generalized coordinates in the assembly-wide state vector.
@@ -405,7 +406,7 @@ class ChApi ChMobilizedBody : public ChObj {
     friend class mbConstraint;
 };
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 
 /// Special body used as root of a multibody system.
 /// A ChGroundBody exists simply as an initiation point for the recursive traversals of the multibody tree and as a

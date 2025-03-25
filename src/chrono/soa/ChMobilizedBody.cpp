@@ -21,6 +21,8 @@ namespace soa {
 // Initialize Static Variables
 const double ChMobilizedBody::m_angleClampLimit = 10 * CH_2PI;
 
+// =============================================================================
+
 ChMobilizedBody::ChMobilizedBody(std::shared_ptr<ChMobilizedBody> parent,
                                  const ChMassProps& mpropsB,
                                  const ChFramed& X_PF,
@@ -59,16 +61,29 @@ void ChMobilizedBody::lock(bool val) {
     m_locked = val;
 }
 
+// -----------------------------------------------------------------------------
+
 void ChMobilizedBody::AddMobilityForce(int dof, std::shared_ptr<ChMobilityForce> force) {
     assert(0 <= dof && dof < getNumU());
     m_mobility_forces.push_back({dof, force});
 }
 
-void ChMobilizedBody::ApplyMobilityForces() {
+// -----------------------------------------------------------------------------
+
+void ChMobilizedBody::ApplyBodyForce(const ChSpatialVec& force) {
+    m_bodyForce += force;
+}
+
+void ChMobilizedBody::ApplyGravitationalForce(const ChVector3d& g) {
+    ChVector3d frc_G = m_mpropsB.mass() * g;
+    ApplyBodyForce(ChSpatialVec(m_com_G % frc_G, frc_G));
+}
+
+void ChMobilizedBody::ApplyAllMobilityForces() {
     for (const auto& mf : m_mobility_forces) {
         if (mf.force->isEnabled()) {
             double f = mf.force->evaluate(getQ(mf.dof), getU(mf.dof));
-            applyMobilityForce(mf.dof, f);
+            ApplyMobilityForce(mf.dof, f);
         }
     }
 }
@@ -238,7 +253,7 @@ void ChMobilizedBody::setQDotDot(const ChVectorDynamic<>& y,
     ydd.segment(m_qIdx, getNumU()) = yd.segment(m_uIdx, getNumU());
 }
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 
 ChGroundBody::ChGroundBody() : ChMobilizedBody(nullptr, ChMassProps(), ChFramed(), ChFramed(), "ground") {
     m_V_FM.setZero();

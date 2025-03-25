@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
         ChMatrix33d inertia1(ChVector3d(0.01, mass1 * L1 * L1 / 12, mass1 * L1 * L1 / 12));
         ChMassProps pendulum1_mprops(mass1, ChVector3d(L1 / 2, 0, 0), inertia1);
         pendulum1 = chrono_types::make_shared<ChRevoluteBody>(soa->getGroundBody(), pendulum1_mprops,  //
-                                                              ChFramed(VNULL, Q_ROTATE_Z_TO_Y),       //
-                                                              ChFramed(VNULL, Q_ROTATE_Z_TO_Y),       //
+                                                              ChFramed(VNULL, Q_ROTATE_Z_TO_Y),        //
+                                                              ChFramed(VNULL, Q_ROTATE_Z_TO_Y),        //
                                                               "pendulum1");
         auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(L1, 0.1, 0.1);
         vis_shape->SetColor(ChColor(0, 0, 0.6f));
@@ -100,11 +100,11 @@ int main(int argc, char* argv[]) {
         soa->AddBody(pendulum2);
     }
 
-    // Initialize assembly (perform position- and velocity-level traversal)
-    soa->Initialize();
-
     // Attach SOA assembly to Chrono system
     sys.Add(soa);
+
+    // Initialize assembly (perform position- and velocity-level traversal)
+    soa->Initialize();
 
     // Traverse bodies in assembly and print their absolute position, orientation, and velocities
     cout << "Traverse SOA bodies" << endl;

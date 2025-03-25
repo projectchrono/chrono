@@ -14,6 +14,7 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtils.h"
 #include "chrono/soa/ChSoaAssembly.h"
 
@@ -51,6 +52,12 @@ std::shared_ptr<ChMobilizedBody> ChSoaAssembly::findBody(const std::string& name
 
 // -----------------------------------------------------------------------------
 
+void ChSoaAssembly::AddForce(std::shared_ptr<ChSoaForce> force) {
+    m_forces.push_back(force);
+}
+
+// -----------------------------------------------------------------------------
+
 double ChSoaAssembly::getY(int which) const {
     ////return GetStates()[which];
     return m_y[which];
@@ -80,6 +87,7 @@ void ChSoaAssembly::setYdd(int which, double val) {
 // -----------------------------------------------------------------------------
 
 void ChSoaAssembly::Initialize() {
+    ChAssertAlways(GetSystem());
     ChAssertAlways(!m_initialized);
 
     // Traverse all bodies in the system to:
@@ -119,9 +127,37 @@ void ChSoaAssembly::Initialize() {
 
     calcPosAndVel(m_y0, m_yd0);
 
+    applyForces(m_y0, m_yd0);
+
     // Mark SOA assembly as initialized
     m_initialized = true;
 }
+
+// -----------------------------------------------------------------------------
+
+void ChSoaAssembly::applyForces(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    for (auto& body : m_bodies) {
+        if (body->isGround())
+            continue;
+
+        // Gravitational forces
+        const auto& g = GetSystem()->GetGravitationalAcceleration();
+        body->ApplyGravitationalForce(g);
+
+        // Mobility forces
+        body->ApplyAllMobilityForces();
+    }
+
+    // External forces
+    for (auto& force : m_forces) {
+        force->apply();
+    }
+
+    // Controller forces
+    //// TODO?
+}
+
+// -----------------------------------------------------------------------------
 
 void ChSoaAssembly::DoForwardKinematics() {
     calcPosAndVel(m_y, m_yd);

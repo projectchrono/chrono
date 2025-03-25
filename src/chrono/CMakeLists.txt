@@ -328,6 +328,7 @@ set(Chrono_soa_HEADERS
     soa/ChMobilizedBody.h
     soa/ChMobilizedBodyT.h
     soa/ChMobilityForce.h
+    soa/ChSoaForce.h
     soa/ChRevoluteBody.h
     )
 set(Chrono_soa_SOURCES    
@@ -335,6 +336,7 @@ set(Chrono_soa_SOURCES
     soa/ChMassProps.cpp
     soa/ChMobilizedBody.cpp
     soa/ChRevoluteBody.cpp
+    soa/ChSoaForce.cpp
     )
 source_group(soa FILES ${Chrono_soa_SOURCES} ${Chrono_soa_HEADERS})
 

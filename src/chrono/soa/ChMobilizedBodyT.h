@@ -51,9 +51,6 @@ class ChMobilizedBodyT : public ChMobilizedBody {
   public:
     virtual int getNumU() const override { return dof; }
 
-    /// Include the provided force as a mobility force on the specified DOF.
-    virtual void addMobilityForce(int which, double force);
-
     /// Return the current mobility force on the specified DOF.
     double getMobilityForce(int which) const;
 
@@ -314,8 +311,11 @@ class ChMobilizedBodyT : public ChMobilizedBody {
                                 const ChVectorDynamic<>& yd,
                                 const ChVectorDynamic<>& ydd) override;
 
+    /// Include the provided force as a mobility force on the specified DOF.
+    virtual void ApplyMobilityForce(int which, double force) override;
+
     /// Include the provided force as a constraint mobility force on the specified DOF.
-    virtual void applyCSMobilityForce(int which, double force) override;
+    virtual void ApplyCSMobilityForce(int which, double force) override;
 
     /// Set to zero the constraint body and mobility forces.
     virtual void resetForcesCS() override;
@@ -934,7 +934,7 @@ inline void ChMobilizedBodyT<dof>::irProcForcesID(const ChVectorDynamic<>& y,
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::addMobilityForce(int which, double force) {
+inline void ChMobilizedBodyT<dof>::ApplyMobilityForce(int which, double force) {
     ChAssertAlways(which >= 0 && which < dof);
 
     m_mobilityForce[which] += force;
@@ -948,7 +948,7 @@ inline double ChMobilizedBodyT<dof>::getMobilityForce(int which) const {
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::applyCSMobilityForce(int which, double force) {
+inline void ChMobilizedBodyT<dof>::ApplyCSMobilityForce(int which, double force) {
     assert(which >= 0 && which < dof);
 
     m_mobilityForceCS[which] += force;
