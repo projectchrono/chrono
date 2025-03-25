@@ -33,8 +33,12 @@
 #ifndef CH_MOBILIZED_BODY_H
 #define CH_MOBILIZED_BODY_H
 
+#include <stdexcept>
+
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
+#include "chrono/physics/ChContactable.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 #include "chrono/soa/ChSpatial.h"
 #include "chrono/soa/ChMassProps.h"
@@ -52,7 +56,7 @@ class ChSoaAssembly;
 /// This abstract class implements an articulated rigid body which is part of a multibody mechanical SOA assembly. This
 /// object encapsulates all quantities required for recursive operations on a multibody tree that are not dependent on
 /// the actual number of degrees of freedom.
-class ChApi ChMobilizedBody : public ChObj {
+class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
   public:
     virtual ~ChMobilizedBody();
 
@@ -158,6 +162,7 @@ class ChApi ChMobilizedBody : public ChObj {
 
     const ChSpatialVec& getBodyForce() const { return m_bodyForce; }
 
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// A visual model attached to this mobilized body is expected relative to the inboard frame.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return m_absPos; }
 
@@ -397,6 +402,116 @@ class ChApi ChMobilizedBody : public ChObj {
     std::vector<MobilityForce> m_mobility_forces;
 
     static const double m_angleClampLimit;
+
+  private:
+    // Interface to ChContactable
+    //// TODO
+
+    ChVariablesBodyOwnMass m_variables;
+
+    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+
+    virtual ChVariables* GetVariables1() override { return &m_variables; }
+
+    virtual bool IsContactActive() override { return true; }
+
+    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
+
+    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
+
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override {
+        return getAbsLinVel() + Vcross(getAbsAngVel(), abs_point - m_absPos.GetPos());
+    }
+
+    virtual double GetContactableMass() override { return m_mpropsB.mass(); }
+
+    //// TODO: what can we return here?
+    virtual ChPhysicsItem* GetPhysicsItem() override { return nullptr; }
+
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override {
+        std::cerr << "ContactableGetStateBlockPosLevel not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override {
+        std::cerr << "ContactableGetStateBlockVelLevel not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        std::cerr << "ContactableIncrementState not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    /// Express the local point in absolute frame, for the given state position.
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override {
+        std::cerr << "GetContactPoint not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    /// Get the absolute speed of a local point attached to the contactable.
+    /// The given point is assumed to be expressed in the local frame of this object.
+    /// This function must use the provided states.
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) override {
+        std::cerr << "GetContactPointSpeed not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    /// Return the frame of the associated collision model relative to the contactable object.
+    /// A collision model attached to this mobilized body is expected relative to the inboard frame.
+    virtual ChFrame<> GetCollisionModelFrame() override { return m_absPos; }
+
+    /// Apply the force & torque expressed in absolute reference, applied in pos, to the
+    /// coordinates of the variables. Force for example could come from a penalty model.
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
+                                            ChVectorDynamic<>& R) override {
+        std::cerr << "ContactForceLoadResidual_F not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
+    /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
+    /// The force and its application point are specified in the global frame.
+    /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
+    /// If needed, the object states must be extracted from the provided state position.
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override {
+        std::cerr << "ContactComputeQ not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    /// Compute the jacobian(s) part(s) for this contactable item.
+    /// For a ChBody, this updates the corresponding 1x6 jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) override {
+        std::cerr << "ComputeJacobianForContactPart not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
+
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
+    /// Used only for rolling friction NSC contacts.
+    virtual void ComputeJacobianForRollingContactPart(
+        const ChVector3d& abs_point,
+        ChMatrix33<>& contact_plane,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+        bool second) override {
+        std::cerr << "ComputeJacobianForRollingContactPart not yet implemented" << std::endl;
+        throw std::runtime_error("Not yet implemented");
+    }
 
     friend class ChSoaAssembly;
     friend class ChMobilityForce;

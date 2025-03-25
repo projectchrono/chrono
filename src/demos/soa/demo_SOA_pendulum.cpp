@@ -64,6 +64,12 @@ int main(int argc, char* argv[]) {
     double init1 = CH_PI_4;
     double init2 = CH_PI_2;
 
+    // Create a contact material (shared by all objects)
+    ChContactMaterialData material_data;
+    material_data.cr = 0.1f;
+    material_data.mu = 0.5f;
+    auto material = material_data.CreateMaterial(sys.GetContactMethod());
+
     // First pendulum (with reference frame at inboard joint)
     {
         double mass1 = 2;
@@ -76,6 +82,9 @@ int main(int argc, char* argv[]) {
         auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(L1, 0.1, 0.1);
         vis_shape->SetColor(ChColor(0, 0, 0.6f));
         pendulum1->AddVisualShape(vis_shape, ChFramed(ChVector3d(L1 / 2, 0, 0), QUNIT));
+
+        auto coll_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, L1, 0.1, 0.1);
+        pendulum1->AddCollisionShape(coll_shape, ChFramed(ChVector3d(L1 / 2, 0, 0), QUNIT));
 
         pendulum1->setRelPos(init1);
         pendulum1->setRelVel(0.5);
