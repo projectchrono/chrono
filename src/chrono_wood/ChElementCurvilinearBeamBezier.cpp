@@ -621,21 +621,20 @@ void ChElementCurvilinearBeamBezier::ComputeStiffnessMatrix() {
 		double dmultiplier=Jsu*w;
 			
 
-        // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
-        // Does that neglect changes or curvature, and only gives changes in orientation?
-        ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
-        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+        ChMatrix33<> tnb = this->GetLocalSystemOfReference(ig);
+        if(LargeDeflection){
+            // TODO JBC: I moved the calculation of the higher-order derivatives inside here
+            // assuming they are only needed for large deflection
+            ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+            ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+            //ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
 
-		//std::cout<<"RR: "<<RR<<std::endl;
-		//std::cout<<"dRdu: "<<dRdu<<std::endl;
-		//ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1./Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);	
-		ChMatrix33<> tnb=this->GetLocalSystemOfReference(ig);
-		//std::cout<<	"tnb: "<<tnb<<std::endl;	
-		if(LargeDeflection){					
-			ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] *  Qpoint_ref_rot[ig].GetConjugate()) ;
-			ChMatrix33<double> rotmat(q_delta);
-			tnb=rotmat*tnb;
-		}
+            // Local tnb frame is updated using the quaternion
+            // Does that neglect changes of curvature, and only gives changes in orientation?
+            ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] *  Qpoint_ref_rot[ig].GetConjugate()) ;
+            ChMatrix33<double> rotmat(q_delta);
+            tnb=rotmat*tnb;
+        }
 		
 		//std::cout<<"Stiff--ba_curvature: "<<ba_curvature<<std::endl;
 		//std::cout<<"tnb: "<<tnb<<std::endl;
@@ -744,20 +743,21 @@ void ChElementCurvilinearBeamBezier::ComputeMmatrixGlobal(ChMatrixRef M) {
                 dr += r_i * dNdu(i);  // dr/du = N_i'*r_i
             }
 
-            // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
-            // Does that neglect changes or curvature, and only gives changes in orientation?
-            ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
-            ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+            ChMatrix33<> tnb = this->GetLocalSystemOfReference(ig);
+            if(LargeDeflection){
+                // TODO JBC: I moved the calculation of the higher-order derivatives inside here
+                // assuming they are only needed for large deflection.
+                ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+                ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+                //ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
 
-            //std::cout<< "w , Jsu , Jue: \t"<<w <<"\t"<<Jsu <<std::endl;
-            //std::cout<< "dr: "<<dr<<std::endl;	
-            //ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
-            ChMatrix33<> tnb=this->GetLocalSystemOfReference(ig);		
-            if(LargeDeflection){						
-                ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] * Qpoint_ref_rot[ig].GetConjugate()) ;
+                // Local tnb frame is updated using the quaternion
+                // Does that neglect changes of curvature, and only gives changes in orientation?
+                ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] *  Qpoint_ref_rot[ig].GetConjugate()) ;
                 ChMatrix33<double> rotmat(q_delta);
                 tnb=rotmat*tnb;
             }
+
             //std::cout<<"tnb: "<<tnb<<std::endl;
             //std::cout<<"sectional_mass:\n"<<sectional_mass<<std::endl;
             //std::cout<<"rot_sectional_mass:\n"<<rot_sectional_mass<<std::endl;
@@ -1266,19 +1266,22 @@ void ChElementCurvilinearBeamBezier::ComputeInternalForces_impl(ChVectorDynamic<
         //dr *= 1.0 / Jsu;
         ChVector3d dRdx=dNdu/Jsu;
 
-        // TODO JBC: delete if not used. Looks like Frenet frame is updated using the quaternion
-        // Does that neglect changes or curvature, and only gives changes in orientation?
-        ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
-        ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
-		
-		//ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);	
-		ChMatrix33<> tnb=this->GetLocalSystemOfReference(ig);	
-		if(LargeDeflection){				
-				ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] *  Qpoint_ref_rot[ig].GetConjugate()) ;
-				ChMatrix33<double> rotmat(q_delta);
-				tnb=rotmat*tnb;
-		}	
-		ChMatrixDynamic<> Bmat= ComputeBMatrix(N, dRdx, tnb);
+        ChMatrix33<> tnb = this->GetLocalSystemOfReference(ig);
+        if(LargeDeflection){
+            // TODO JBC: I moved the calculation of the higher-order derivatives inside here
+            // assuming they are only needed for large deflection
+            ChVectorDynamic<> RR(order + 1), dRdu(order + 1), ddRddu(order + 1), dddRdddu(order + 1);
+            ChBasisToolsBeziers::BasisEvaluateDeriv(eta, RR, dRdu, ddRddu, dddRdddu);
+            //ChMatrix33<> tnb= FrenetSerret(nodes, dr, 1/Jsu, ddRddu, dddRdddu, ba_curvature, ba_torsion);
+
+            // Local tnb frame is updated using the quaternion
+            // Does that neglect changes of curvature, and only gives changes in orientation?
+            ChQuaternion<> q_delta=(Qpoint_abs_rot[ig] *  Qpoint_ref_rot[ig].GetConjugate()) ;
+            ChMatrix33<double> rotmat(q_delta);
+            tnb=rotmat*tnb;
+        }
+
+        ChMatrixDynamic<> Bmat= ComputeBMatrix(N, dRdx, tnb);
 	
 		//std::cout<<"tnb: "<<tnb<<std::endl;
 		//std::cout<<"N: "<<N<<std::endl;
