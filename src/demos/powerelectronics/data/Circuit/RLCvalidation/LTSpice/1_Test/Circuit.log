@@ -1,0 +1,11 @@
+LTspice 24.0.12 for Windows
+Circuit: * C:\workspace-WISC\chrono-WISC\src\demos\powerelectronics\data\Circuit\RLCvalidation\LTSpice\1_Test\Circuit.asc
+Start Time: Thu Dec  5 15:11:25 2024
+solver = Normal
+Maximum thread count: 20
+tnom = 27
+temp = 27
+method = modified trap
+Per .tran options, skipping operating point for transient analysis.
+Total elapsed time: 0.055 seconds.
+

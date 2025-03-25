@@ -1,4 +1,5 @@
 #include "ChElectronicsNetlist.h"
+#include <iomanip> // Required for std::setprecision and std::scientific
 
 namespace chrono {
 namespace powerelectronics {
@@ -17,7 +18,7 @@ void ChElectronicsNetlist::InitNetlist(std::string file, double t_step, double t
 
     this->netlist_file = this->ReadNetlistFile(file);
 
-    /* Initialize PWM strings
+    /* Initialize PWL strings
     */
     auto pwl_sources = GetPWLConds(this->initial_pwl_in);
     this->netlist_file = UpdatePWLSources(this->netlist_file, pwl_sources, t_step, t_end);
@@ -105,7 +106,8 @@ std::string ChElectronicsNetlist::GeneratePWLSequence(std::pair<double, double> 
 
     // Prepare the result string
     std::ostringstream pwl_sequence;
-    pwl_sequence.precision(6);  // Set precision for voltage values
+    pwl_sequence << std::scientific;  // Use scientific notation
+    pwl_sequence.precision(5);  // Set precision for voltage values
 
     // Calculate the number of steps
     int num_steps = static_cast<int>(t_end / t_step);
@@ -132,7 +134,12 @@ Netlist_V ChElectronicsNetlist::UpdateFlowInParams(Netlist_V netlist, FlowInMap 
     for (const auto& flowIn : map) {
         // Extract the flow in variable name
         std::string flowInVarName = flowIn.first;  // key of the map
-        std::string paramString = ".param par" + flowInVarName + " = " + std::to_string(flowIn.second); // creating param string
+
+        std::ostringstream oss; // Use std::ostringstream to control the formatting
+        oss << std::scientific << std::setprecision(5); // Engineering-like format with 3 significant digits
+        oss << flowIn.second; // Convert the double to string in scientific notation
+
+        std::string paramString = ".param par" + flowInVarName + " = " + oss.str();// std::to_string(flowIn.second); // creating param string
         
         bool paramExists = false;
 
@@ -153,7 +160,6 @@ Netlist_V ChElectronicsNetlist::UpdateFlowInParams(Netlist_V netlist, FlowInMap 
 }
 
 /* For every key in VoltageMap, initialize or update the corresponding V({key})=value string on the .ic line */
-
 Netlist_V ChElectronicsNetlist::UpdateVoltageICs(Netlist_V netlist, VoltageMap map) {
     // Find the line starting with ".ic"
     std::string ic_line_prefix = ".ic";
@@ -191,8 +197,13 @@ Netlist_V ChElectronicsNetlist::UpdateVoltageICs(Netlist_V netlist, VoltageMap m
 
     // Rebuild the .ic line
     for (const auto& pair : existing_voltages) {
-        updated_ic_line += " V(" + pair.first + ")=" + std::to_string(pair.second);
+        std::ostringstream oss; // Use std::ostringstream to control the formatting
+        oss << std::scientific << std::setprecision(5); // Engineering-like format with 3 significant digits
+        oss << pair.second; // Convert the double to string in scientific notation
+        updated_ic_line += " V(" + pair.first + ")=" + oss.str();// std::to_string(pair.second);
     }
+    // Display the updated .ic line
+    //std::cout << "\nUpdated .ic line:\n" << updated_ic_line << std::endl;
 
     // Update or insert the new .ic line into the netlist
     if (ic_line_index != -1) {
@@ -201,6 +212,11 @@ Netlist_V ChElectronicsNetlist::UpdateVoltageICs(Netlist_V netlist, VoltageMap m
         netlist.push_back(updated_ic_line);
     }
 
+    /*// Display the netlist
+    std::cout << "\nUpdated Netlist:\n" << std::endl;
+    for (const auto& line : netlist) {
+        std::cout << line << std::endl;
+    }*/
     return netlist;
 }
 
@@ -225,6 +241,7 @@ VoltageMap ChElectronicsNetlist::GetVoltageConds(const CosimResults& results) {
         }
 
         double last_time_step_voltage = results.node_val[i].back();
+        //std::cout << "#######################" << last_time_step_voltage << "#######################" << std::endl;
         voltageMap[results.node_name[i]] = last_time_step_voltage;
     }
 
@@ -269,19 +286,33 @@ BranchCurrentMap ChElectronicsNetlist::GetBranchConds(const CosimResults& result
 
     // Iterate through the tracked branches
     for (const auto& branch : this->tracked_branches) {
+        //std::cout << "#######################BRANCH" << branch << "#######################" << std::endl;
         
         // Find the index of the tracked branch in the results branch_name vector
         auto it = std::find(results.branch_name.begin(), results.branch_name.end(), toLowerCase(branch));
+        /*std::cout << "results.branch_name: " << std::endl;
+            for (const auto& line : results.branch_name) {
+                std::cout << line << std::endl;
+            }*/
         
         // If the branch is found in the results
         if (it != results.branch_name.end()) {
             // Get the index of the branch
             size_t index = std::distance(results.branch_name.begin(), it);
+            //std::cout << "INDEX" <<index << std::endl;
 
             // Ensure that the index is valid for the branch_val vector
             if (index < results.branch_val.size()) {
                 // Get the latest current value for the branch
-                double current_value = results.branch_val.back()[index];
+                // PAY ATTENTION THIS IS AN ERROR double current_value = results.branch_val.back()[index];
+                double current_value = results.branch_val[index].back();
+
+                /*std::cout << "results.branch_val: " << std::endl;
+                for (const auto& vec : results.branch_val) {
+                    for (const auto& elem : vec) {
+                    std::cout << elem << std::endl;
+                }
+                }*/
 
                 // Insert the branch name and its corresponding current into the map
                 branchCurrentMap[branch] = current_value;
@@ -293,15 +324,22 @@ BranchCurrentMap ChElectronicsNetlist::GetBranchConds(const CosimResults& result
 }
 
 /* For every key in BranchInMap, initialize or update the corresponding .param ic{key} string in the netlist*/
-
 Netlist_V ChElectronicsNetlist::UpdateBranchCurrents(Netlist_V netlist, BranchCurrentMap map) {
     // Loop through each branch in the BranchCurrentMap
     for (const auto& [branch, current] : map) {
+        //std::cout << "#######################" << branch << "#######################" << std::endl;
         // Construct the .param string for this branch
-        std::string param_str = ".param ic" + branch + " = " + std::to_string(current);
+
+        std::ostringstream oss; // Use std::ostringstream to control the formatting
+        oss << std::scientific << std::setprecision(5); // Engineering-like format with 3 significant digits
+        oss << current; // Convert the double to string in scientific notation
+
+        std::string param_str = ".param ic" + branch + " = " + oss.str();//std::to_string(current);
+        //std::cout << "#######################" << current << "#######################" << std::endl;
 
         // Flag to indicate if the parameter was found and updated
         bool found = false;
+        bool found1 = false;
 
         // Loop through the netlist to find if an existing entry for this branch exists
         for (auto& line : netlist) {
@@ -312,18 +350,46 @@ Netlist_V ChElectronicsNetlist::UpdateBranchCurrents(Netlist_V netlist, BranchCu
                 // Update the existing line with the new current value
                 line = param_str;
                 found = true;
+                //break;
+            }
+
+            if (this->toLowerCase(line).substr(0,branch.length()) == branch) {
+                std::string newsegment = " ic{ic" + branch + "}";
+                std::string newline = line + newsegment;
+                if (this->toLowerCase(line).find(this->toLowerCase(newsegment)) != std::string::npos) {
+                    // Do nothing    
+                } else {
+                    line = newline; 
+                    //std::cout << "ERROR in ChElectronicNetlist.cpp -> no inductance correspondance" << std::endl;
+                }
+
+                // if(this->toLowerCase(line).substr(0, line.length() - newsegment.length()) != this->toLowerCase(newline))
+                /*if (this->toLowerCase(line).substr(line.length() - newsegment.length(), newsegment.length()) != ){
+                    std::cout << "#######################" << this->toLowerCase(line).substr(0, line.length() - newsegment.length()) << "##################" << this->toLowerCase(newline) << "#######################" << std::endl;
+                    // Update the existing line with the new current value
+                    line = newline; 
+                }*/
+                found1 = true;
+                //break;
+            }
+
+            if (found == true && found1 == true){
                 break;
             }
+
         }
 
         // If the parameter was not found, add a new entry to the netlist
         if (!found) {
             netlist.push_back(param_str);
         }
+
+        //std::cout << param_str << std::endl;
     }
 
     return netlist;
 }
+
 
 }
 }

@@ -75,7 +75,7 @@ public:
     }
 
     void SetBranchTracking(Branch_V branches) {
-        this->netlist.SetBranchTracking(branches);
+        this->netlist.SetBranchTracking(branches);  
     }
 
     void IncrementStep() {

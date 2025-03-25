@@ -18,12 +18,12 @@ namespace chrono {
 namespace powerelectronics {
 
 ChElectronicMotor::ChElectronicMotor(std::shared_ptr<ChBody> spindle, double t_step)
-    : ChElectronicCircuit("../data/Circuit/MotorControl/Circuit_Netlist.cir", t_step) {
+    : ChElectronicCircuit("../data/powerelectronics/Circuit/MotorControl/Circuit_Netlist.cir", t_step) {
     this->spindle = spindle;
 }
 
 ChElectronicMotor::ChElectronicMotor(double t_step)
-    : ChElectronicCircuit("../data/Circuit/MotorControl/Circuit_Netlist.cir", t_step) {
+    : ChElectronicCircuit("../data/powerelectronics/Circuit/MotorControl/Circuit_Netlist.cir", t_step) {
 }
 
 void ChElectronicMotor::PreInitialize() {
@@ -42,9 +42,9 @@ void ChElectronicMotor::PreInitialize() {
         {"RaC", R_coil},
     });
 
-    this->SetBranchTracking({
+    /*this->SetBranchTracking({
         "LaC"
-    });
+    });*/
 }
 
 void ChElectronicMotor::SetShaftAngVel(double angvel) {
@@ -80,6 +80,15 @@ void ChElectronicMotor::PostAdvance(double dt_mbs) {
 
 
     auto res = this->GetResult();
+    
+    /*// Plot the results
+    std::cout << "Results:\n" << std::endl;
+    for (const auto& [key, values] : res) { 
+        std::cout << key << ": ";
+        for (double value : values) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;}*/
     double IVprobe1 = res["vprobe1"].back();
 
     // std::cout << "###########################" << std::endl;

@@ -36,6 +36,7 @@ std::map<std::string,std::vector<double>> ChElectronicsCosimulation::RunSpice(Ne
         // Extract and display the simulation results
         auto [nodeNames, nodeValues, branchNames, branchValues] = ngspice.extractResults();
 
+
         for (size_t i = 0; i < branchNames.size(); ++i) {
             circuit_map[branchNames[i]] = branchValues[i];
         }
@@ -50,11 +51,11 @@ std::map<std::string,std::vector<double>> ChElectronicsCosimulation::RunSpice(Ne
             sim_time, nodeValues, nodeNames, branchValues, branchNames
         };
 
-        // // Display node names and values
-        // std::cout << "\nNode Names and Values:\n";
-        // for (size_t i = 0; i < nodeNames.size(); ++i) {
-        //     std::cout << nodeNames[i] << ": " << nodeValues[i] << std::endl;
-        // }
+        /*// Display node names and values
+        std::cout << "\nNode Names and Values:\n";
+        for (size_t i = 0; i < nodeNames.size(); ++i) {
+            std::cout << nodeNames[i] << ": " << nodeValues[0][i] << std::endl;
+        }*/
 
         // // Display branch names and values
         // std::cout << "\nBranch Names and Values:\n";

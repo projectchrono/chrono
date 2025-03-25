@@ -12,6 +12,9 @@ ENDIF()
 
 message(STATUS "\n==== Chrono::PowerElectronics module ====\n")
 
+
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS True )
+
 set(CXX_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(CH_POWERELECTRONICS_INCLUDES "")
@@ -43,6 +46,8 @@ set(CMAKE_CXX_STANDARD 17)
 find_library(NGSPICE_LIB ngspice REQUIRED)
 list(APPEND CH_POWERELECTRONICS_LINKED_LIBRARIES ${NGSPICE_LIB})
 
+message(STATUS "Library: ${NGSPICE_LIB}")
+
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
@@ -64,25 +69,26 @@ set(CH_POWERELECTRONICS_BASE_FILES
 
   ChElectronicsCosimResult.h
   
-  circuits/ChElectronicCircuit.cpp
   circuits/ChElectronicCircuit.h
+
+  circuits/ChElectronicGeneric.h
+  circuits/ChElectronicGeneric.cpp
 
   circuits/ChElectronicMotor.h
   circuits/ChElectronicMotor.cpp
-
-
 )
-source_group("base" FILES ${CH_POWERELECTRONICS_BASE_FILES})
+source_group("" FILES 
+            ${CH_POWERELECTRONICS_BASE_FILES})
 
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_powerelectronics library
 #-----------------------------------------------------------------------------
 
-add_library(ChronoEngine_powerelectronics #SHARED
-	${CH_POWERELECTRONICS_BASE_FILES}
+ADD_LIBRARY(ChronoEngine_powerelectronics #SHARED
+    ${CH_POWERELECTRONICS_BASE_FILES}
 )
 
-# list(APPEND CH_ROS_LIBRARIES ChronoModels_robot)
+# list(APPENfD CH_ROS_LIBRARIES ChronoModels_robot)
 
 # list(APPEND CH_POWERELECTRONICS_LIBRARIES pybind11::embed)
 
@@ -114,17 +120,20 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
 endif()
 
-set_target_properties(ChronoEngine_powerelectronics PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
+SET_TARGET_PROPERTIES(ChronoEngine_powerelectronics PROPERTIES
+                      COMPILE_FLAGS "${COMPILER_FLAGS}"
                       LINK_FLAGS "${LINKER_FLAGS}")
 
-set_target_properties(ChronoEngine_powerelectronics PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(ChronoEngine_powerelectronics PROPERTIES 
+                      LINKER_LANGUAGE CXX)
 
 target_compile_definitions(ChronoEngine_powerelectronics PRIVATE "CH_API_COMPILE_POWERELECTRONICS")
 
 target_include_directories(ChronoEngine_powerelectronics PUBLIC ${CH_POWERELECTRONICS_INCLUDES})
 
-target_link_libraries(ChronoEngine_powerelectronics ${CH_POWERELECTRONICS_LIBRARIES} ${CH_POWERELECTRONICS_LINKED_LIBRARIES})
+target_link_libraries(ChronoEngine_powerelectronics 
+                      ${CH_POWERELECTRONICS_LIBRARIES} 
+                      ${CH_POWERELECTRONICS_LINKED_LIBRARIES})
 
 install(TARGETS ChronoEngine_powerelectronics
         RUNTIME DESTINATION bin

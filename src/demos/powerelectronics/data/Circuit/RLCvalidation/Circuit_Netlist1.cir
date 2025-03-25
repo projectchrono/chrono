@@ -1,0 +1,11 @@
+!!!! CIURCUIT !!!!
+V1VAR n1 0 PWL(0 0 1e-9 0)
+R1 n2 n1 {parR1}
+L1 n2 0 {parL1}
+C1 n2 0 {parC1}
+.param parR1=120
+.param parL1=0.3
+.param parC1=100e-4
+.ic V(n1)=0
+**********MODELS**********
+*****MODEL1*****

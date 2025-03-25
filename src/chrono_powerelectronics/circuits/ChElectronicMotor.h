@@ -62,6 +62,7 @@ private:
 
     double shaft_angvel = 0.0;  // Angular velocity of the motor shaft
     ChVector3d spindle_torque{};  // Torque vector applied to the spindle
+
 };
 
 

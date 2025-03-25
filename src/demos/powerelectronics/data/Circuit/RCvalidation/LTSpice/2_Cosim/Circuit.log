@@ -1,0 +1,11 @@
+LTspice 24.0.12 for Windows
+Circuit: * C:\workspace-WISC\Project\Model_BackUp\1_LTSpice\2_Cosim\Circuit.asc
+Start Time: Tue Dec  3 16:18:07 2024
+solver = Normal
+Maximum thread count: 20
+tnom = 27
+temp = 27
+method = modified trap
+Per .tran options, skipping operating point for transient analysis.
+Total elapsed time: 0.158 seconds.
+
