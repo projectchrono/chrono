@@ -700,6 +700,95 @@ std::vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize,
     return indices_H;
 }
 
+size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
+    size_t total_bytes = 0;
+
+    // SPH marker data
+    total_bytes += sphMarkers_D->posRadD.size() * sizeof(Real4);
+    total_bytes += sphMarkers_D->velMasD.size() * sizeof(Real3);
+    total_bytes += sphMarkers_D->rhoPresMuD.size() * sizeof(Real4);
+    total_bytes += sphMarkers_D->tauXxYyZzD.size() * sizeof(Real3);
+    total_bytes += sphMarkers_D->tauXyXzYzD.size() * sizeof(Real3);
+
+    // Sorted SPH marker data (state 1)
+    total_bytes += sortedSphMarkers1_D->posRadD.size() * sizeof(Real4);
+    total_bytes += sortedSphMarkers1_D->velMasD.size() * sizeof(Real3);
+    total_bytes += sortedSphMarkers1_D->rhoPresMuD.size() * sizeof(Real4);
+    total_bytes += sortedSphMarkers1_D->tauXxYyZzD.size() * sizeof(Real3);
+    total_bytes += sortedSphMarkers1_D->tauXyXzYzD.size() * sizeof(Real3);
+
+    // Sorted SPH marker data (state 2)
+    total_bytes += sortedSphMarkers2_D->posRadD.size() * sizeof(Real4);
+    total_bytes += sortedSphMarkers2_D->velMasD.size() * sizeof(Real3);
+    total_bytes += sortedSphMarkers2_D->rhoPresMuD.size() * sizeof(Real4);
+
+    // Proximity data
+    total_bytes += markersProximity_D->gridMarkerHashD.size() * sizeof(uint);
+    total_bytes += markersProximity_D->gridMarkerIndexD.size() * sizeof(uint);
+    total_bytes += markersProximity_D->cellStartD.size() * sizeof(uint);
+    total_bytes += markersProximity_D->cellEndD.size() * sizeof(uint);
+    total_bytes += markersProximity_D->mapOriginalToSorted.size() * sizeof(uint);
+
+    // FSI body state data
+    total_bytes += fsiBodyState_D->pos.size() * sizeof(Real3);
+    total_bytes += fsiBodyState_D->lin_vel.size() * sizeof(Real3);
+    total_bytes += fsiBodyState_D->lin_acc.size() * sizeof(Real3);
+    total_bytes += fsiBodyState_D->rot.size() * sizeof(Real4);
+    total_bytes += fsiBodyState_D->ang_vel.size() * sizeof(Real3);
+    total_bytes += fsiBodyState_D->ang_acc.size() * sizeof(Real3);
+
+    // FSI mesh state data (1D)
+    total_bytes += fsiMesh1DState_D->pos.size() * sizeof(Real3);
+    total_bytes += fsiMesh1DState_D->vel.size() * sizeof(Real3);
+    total_bytes += fsiMesh1DState_D->acc.size() * sizeof(Real3);
+
+    // FSI mesh state data (2D)
+    total_bytes += fsiMesh2DState_D->pos.size() * sizeof(Real3);
+    total_bytes += fsiMesh2DState_D->vel.size() * sizeof(Real3);
+    total_bytes += fsiMesh2DState_D->acc.size() * sizeof(Real3);
+
+    // Fluid data
+    total_bytes += derivVelRhoD.size() * sizeof(Real4);
+    total_bytes += derivVelRhoOriginalD.size() * sizeof(Real4);
+    total_bytes += derivTauXxYyZzD.size() * sizeof(Real3);
+    total_bytes += derivTauXyXzYzD.size() * sizeof(Real3);
+    total_bytes += vel_XSPH_D.size() * sizeof(Real3);
+    total_bytes += vis_vel_SPH_D.size() * sizeof(Real3);
+    total_bytes += sr_tau_I_mu_i.size() * sizeof(Real4);
+    total_bytes += sr_tau_I_mu_i_Original.size() * sizeof(Real4);
+    total_bytes += bceAcc.size() * sizeof(Real3);
+
+    // Activity and neighbor data
+    total_bytes += activityIdentifierOriginalD.size() * sizeof(int32_t);
+    total_bytes += activityIdentifierSortedD.size() * sizeof(int32_t);
+    total_bytes += extendedActivityIdentifierOriginalD.size() * sizeof(int32_t);
+    total_bytes += prefixSumExtendedActivityIdD.size() * sizeof(uint);
+    total_bytes += activeListD.size() * sizeof(uint);
+    total_bytes += numNeighborsPerPart.size() * sizeof(uint);
+    total_bytes += neighborList.size() * sizeof(uint);
+    total_bytes += freeSurfaceIdD.size() * sizeof(uint);
+
+    // BCE data
+    total_bytes += rigid_BCEcoords_D.size() * sizeof(Real3);
+    total_bytes += flex1D_BCEcoords_D.size() * sizeof(Real3);
+    total_bytes += flex2D_BCEcoords_D.size() * sizeof(Real3);
+    total_bytes += rigid_BCEsolids_D.size() * sizeof(uint);
+    total_bytes += flex1D_BCEsolids_D.size() * sizeof(uint3);
+    total_bytes += flex2D_BCEsolids_D.size() * sizeof(uint3);
+
+    // FSI forces
+    total_bytes += rigid_FSI_ForcesD.size() * sizeof(Real3);
+    total_bytes += rigid_FSI_TorquesD.size() * sizeof(Real3);
+    total_bytes += flex1D_FSIforces_D.size() * sizeof(Real3);
+    total_bytes += flex2D_FSIforces_D.size() * sizeof(Real3);
+
+    // FSI nodes
+    total_bytes += flex1D_Nodes_D.size() * sizeof(int2);
+    total_bytes += flex2D_Nodes_D.size() * sizeof(int3);
+
+    return total_bytes;
+}
+
 }  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

@@ -18,11 +18,13 @@
 
 //// TODO:
 ////   - use ChFsiParamsSPH::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
+// #define DEBUG_LOG
 
 #include <cmath>
 
 #include "chrono/core/ChTypes.h"
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsSamplers.h"
@@ -586,7 +588,9 @@ void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& boxDim) {
     m_paramsH->boxDimZ = boxDim.z();
 }
 
-void ChFsiFluidSystemSPH::SetComputationalBoundaries(const ChVector3d& cMin, const ChVector3d& cMax, int periodic_sides) {
+void ChFsiFluidSystemSPH::SetComputationalBoundaries(const ChVector3d& cMin,
+                                                     const ChVector3d& cMax,
+                                                     int periodic_sides) {
     m_paramsH->cMin = ToReal3(cMin);
     m_paramsH->cMax = ToReal3(cMax);
     m_paramsH->use_default_limits = false;
@@ -920,8 +924,8 @@ std::string ChFsiFluidSystemSPH::GetSphMethodTypeString() const {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_states,
-                                       const std::vector<FsiMeshState>& mesh1D_states,
-                                       const std::vector<FsiMeshState>& mesh2D_states) {
+                                          const std::vector<FsiMeshState>& mesh1D_states,
+                                          const std::vector<FsiMeshState>& mesh2D_states) {
     {
         size_t num_bodies = body_states.size();
         for (size_t i = 0; i < num_bodies; i++) {
@@ -973,8 +977,8 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
 }
 
 void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
-                                        std::vector<FsiMeshForce> mesh1D_forces,
-                                        std::vector<FsiMeshForce> mesh2D_forces) {
+                                           std::vector<FsiMeshForce> mesh1D_forces,
+                                           std::vector<FsiMeshForce> mesh2D_forces) {
     {
         auto forcesH = m_data_mgr->GetRigidForces();
         auto torquesH = m_data_mgr->GetRigidTorques();
@@ -1087,18 +1091,18 @@ void ChFsiFluidSystemSPH::Initialize() {
 }
 
 void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
-                                  unsigned int num_fsi_nodes1D,
-                                  unsigned int num_fsi_elements1D,
-                                  unsigned int num_fsi_nodes2D,
-                                  unsigned int num_fsi_elements2D,
-                                  const std::vector<FsiBodyState>& body_states,
-                                  const std::vector<FsiMeshState>& mesh1D_states,
-                                  const std::vector<FsiMeshState>& mesh2D_states) {
+                                     unsigned int num_fsi_nodes1D,
+                                     unsigned int num_fsi_elements1D,
+                                     unsigned int num_fsi_nodes2D,
+                                     unsigned int num_fsi_elements2D,
+                                     const std::vector<FsiBodyState>& body_states,
+                                     const std::vector<FsiMeshState>& mesh1D_states,
+                                     const std::vector<FsiMeshState>& mesh2D_states) {
     // Invoke the base class method
     ChFsiFluidSystem::Initialize(num_fsi_bodies,                              //
-                              num_fsi_nodes1D, num_fsi_elements1D,         //
-                              num_fsi_nodes2D, num_fsi_elements2D,         //
-                              body_states, mesh1D_states, mesh2D_states);  //
+                                 num_fsi_nodes1D, num_fsi_elements1D,         //
+                                 num_fsi_nodes2D, num_fsi_elements2D,         //
+                                 body_states, mesh1D_states, mesh2D_states);  //
 
     // Hack to still allow time step size specified through JSON files
     if (m_paramsH->dT < 0) {
@@ -1448,6 +1452,8 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double step) {
 
     m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D,
                                            m_data_mgr->sphMarkers_D);
+
+    ChDebugLog("GPU Memory usage: " << m_data_mgr->GetCurrentGPUMemoryUsage() / 1024.0 / 1024.0 << " MB");
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidForces() {
@@ -1488,19 +1494,19 @@ void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) con
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
-                                      double rho,
-                                      double pres,
-                                      double mu,
-                                      const ChVector3d& vel,
-                                      const ChVector3d& tauXxYyZz,
-                                      const ChVector3d& tauXyXzYz) {
+                                         double rho,
+                                         double pres,
+                                         double mu,
+                                         const ChVector3d& vel,
+                                         const ChVector3d& tauXxYyZz,
+                                         const ChVector3d& tauXyXzYz) {
     m_data_mgr->AddSphParticle(ToReal3(pos), rho, pres, mu, ToReal3(vel), ToReal3(tauXxYyZz), ToReal3(tauXyXzYz));
 }
 
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
-                                      const ChVector3d& vel,
-                                      const ChVector3d& tauXxYyZz,
-                                      const ChVector3d& tauXyXzYz) {
+                                         const ChVector3d& vel,
+                                         const ChVector3d& tauXxYyZz,
+                                         const ChVector3d& tauXyXzYz) {
     AddSPHParticle(pos, m_paramsH->rho0, m_paramsH->base_pressure, m_paramsH->mu0, vel, tauXxYyZz, tauXyXzYz);
 }
 
@@ -1528,9 +1534,9 @@ void ChFsiFluidSystemSPH::AddPlateBCE(std::shared_ptr<ChBody> body, const ChFram
 }
 
 void ChFsiFluidSystemSPH::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
-                                          const ChFrame<>& frame,
-                                          const ChVector3d& size,
-                                          const ChVector3i faces) {
+                                             const ChFrame<>& frame,
+                                             const ChVector3d& size,
+                                             const ChVector3i faces) {
     Real spacing = m_paramsH->d0;
     Real buffer = 2 * (m_paramsH->num_bce_layers - 1) * spacing;
 
@@ -1566,9 +1572,9 @@ void ChFsiFluidSystemSPH::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiFluidSystemSPH::AddBoxBCE(std::shared_ptr<ChBody> body,
-                                   const ChFrame<>& frame,
-                                   const ChVector3d& size,
-                                   bool solid) {
+                                      const ChFrame<>& frame,
+                                      const ChVector3d& size,
+                                      bool solid) {
     std::vector<ChVector3d> points;
     if (solid)
         CreateBCE_BoxInterior(size, points);
@@ -1579,10 +1585,10 @@ size_t ChFsiFluidSystemSPH::AddBoxBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiFluidSystemSPH::AddSphereBCE(std::shared_ptr<ChBody> body,
-                                      const ChFrame<>& frame,
-                                      double radius,
-                                      bool solid,
-                                      bool polar) {
+                                         const ChFrame<>& frame,
+                                         double radius,
+                                         bool solid,
+                                         bool polar) {
     std::vector<ChVector3d> points;
     if (solid)
         CreateBCE_SphereInterior(radius, polar, points);
@@ -1593,11 +1599,11 @@ size_t ChFsiFluidSystemSPH::AddSphereBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiFluidSystemSPH::AddCylinderBCE(std::shared_ptr<ChBody> body,
-                                        const ChFrame<>& frame,
-                                        double radius,
-                                        double height,
-                                        bool solid,
-                                        bool polar) {
+                                           const ChFrame<>& frame,
+                                           double radius,
+                                           double height,
+                                           bool solid,
+                                           bool polar) {
     std::vector<ChVector3d> points;
     if (solid)
         CreateBCE_CylinderInterior(radius, height, polar, points);
@@ -1608,11 +1614,11 @@ size_t ChFsiFluidSystemSPH::AddCylinderBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiFluidSystemSPH::AddConeBCE(std::shared_ptr<ChBody> body,
-                                    const ChFrame<>& frame,
-                                    double radius,
-                                    double height,
-                                    bool solid,
-                                    bool polar) {
+                                       const ChFrame<>& frame,
+                                       double radius,
+                                       double height,
+                                       bool solid,
+                                       bool polar) {
     std::vector<ChVector3d> points;
     if (solid)
         CreateBCE_ConeInterior(radius, height, polar, points);
@@ -1623,11 +1629,11 @@ size_t ChFsiFluidSystemSPH::AddConeBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiFluidSystemSPH::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
-                                               const ChFrame<>& frame,
-                                               double radius_inner,
-                                               double radius_outer,
-                                               double height,
-                                               bool polar) {
+                                                  const ChFrame<>& frame,
+                                                  double radius_inner,
+                                                  double radius_outer,
+                                                  double height,
+                                                  bool polar) {
     auto delta = m_paramsH->d0;
     std::vector<ChVector3d> points;
     CreatePoints_CylinderAnnulus(radius_inner, radius_outer, height, polar, delta, points);
@@ -1635,9 +1641,9 @@ size_t ChFsiFluidSystemSPH::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChFsiFluidSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
-                                      const std::vector<ChVector3d>& points,
-                                      const ChFrame<>& rel_frame,
-                                      bool solid) {
+                                         const std::vector<ChVector3d>& points,
+                                         const ChFrame<>& rel_frame,
+                                         bool solid) {
     // Set BCE marker type
     MarkerType type = solid ? MarkerType::BCE_RIGID : MarkerType::BCE_WALL;
 
@@ -1912,7 +1918,10 @@ void ChFsiFluidSystemSPH::CreateBCE_SphereExterior(double radius, bool polar, st
     }
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_CylinderInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+void ChFsiFluidSystemSPH::CreateBCE_CylinderInterior(double rad,
+                                                     double height,
+                                                     bool polar,
+                                                     std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2005,7 +2014,10 @@ void ChFsiFluidSystemSPH::CreateBCE_CylinderInterior(double rad, double height, 
     }
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_CylinderExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+void ChFsiFluidSystemSPH::CreateBCE_CylinderExterior(double rad,
+                                                     double height,
+                                                     bool polar,
+                                                     std::vector<ChVector3d>& bce) {
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2429,11 +2441,11 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const FsiMe
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::CreatePoints_CylinderAnnulus(double rad_inner,
-                                                    double rad_outer,
-                                                    double height,
-                                                    bool polar,
-                                                    double delta,
-                                                    std::vector<ChVector3d>& points) {
+                                                       double rad_outer,
+                                                       double height,
+                                                       bool polar,
+                                                       double delta,
+                                                       std::vector<ChVector3d>& points) {
     // Calculate actual spacing
     double hheight = height / 2;
     int np_h = (int)std::round(hheight / delta);
@@ -2481,7 +2493,9 @@ void ChFsiFluidSystemSPH::CreatePoints_CylinderAnnulus(double rad_inner,
     }
 }
 
-void ChFsiFluidSystemSPH::CreatePoints_Mesh(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points) {
+void ChFsiFluidSystemSPH::CreatePoints_Mesh(ChTriangleMeshConnected& mesh,
+                                            double delta,
+                                            std::vector<ChVector3d>& points) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
     auto bbox = mesh.GetBoundingBox();
 

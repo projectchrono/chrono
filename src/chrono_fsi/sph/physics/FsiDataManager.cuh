@@ -275,8 +275,8 @@ struct FsiDataManager {
     /// Extract FSI forces on flex2D nodes.
     std::vector<Real3> GetFlex2dForces();
 
-    std::shared_ptr<ChFsiParamsSPH> paramsH;   ///< simulation parameters (host)
-    std::shared_ptr<Counters> countersH;  ///< problem counters (host)
+    std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)
+    std::shared_ptr<Counters> countersH;      ///< problem counters (host)
 
     std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< Information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;  ///< Information of SPH particles at state 2 on device
@@ -367,6 +367,9 @@ struct FsiDataManager {
     /// Reset device data at beginning of a step.
     /// Initializes device vectors to zero.
     void ResetData();
+
+    /// Add this method declaration in the FsiDataManager struct
+    size_t GetCurrentGPUMemoryUsage() const;
 };
 
 /// @} fsisph_physics
