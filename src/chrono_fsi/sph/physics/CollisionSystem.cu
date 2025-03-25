@@ -218,6 +218,79 @@ void CollisionSystem::Initialize() {
 
 // ------------------------------------------------------------------------------
 
+void CollisionSystem::ResizeArrays(uint numExtended) {
+    bool should_shrink = false;
+    m_resize_counter++;
+
+    // On first allocation or if we exceed current capacity, grow with buffer
+    if (numExtended > m_max_extended_particles) {
+        // Add buffer for future growth
+        uint new_capacity = static_cast<uint>(numExtended * GROWTH_FACTOR);
+
+        // Reserve space in all arrays
+        m_data_mgr.markersProximity_D->gridMarkerHashD.reserve(new_capacity);
+        m_data_mgr.markersProximity_D->gridMarkerIndexD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers2_D->posRadD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers2_D->velMasD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers2_D->rhoPresMuD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers1_D->posRadD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers1_D->velMasD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers1_D->rhoPresMuD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers1_D->tauXxYyZzD.reserve(new_capacity);
+        m_data_mgr.sortedSphMarkers1_D->tauXyXzYzD.reserve(new_capacity);
+        m_data_mgr.freeSurfaceIdD.reserve(new_capacity);
+        m_data_mgr.vel_XSPH_D.reserve(new_capacity);
+
+        m_max_extended_particles = new_capacity;
+    }
+
+    // Check if we should shrink based on counter and memory usage
+    if (m_resize_counter >= SHRINK_INTERVAL) {
+        float usage_ratio = float(numExtended) / m_data_mgr.markersProximity_D->gridMarkerHashD.capacity();
+        should_shrink = (usage_ratio < SHRINK_THRESHOLD);
+        m_resize_counter = 0;
+    }
+
+    // Always resize to actual size needed
+    m_data_mgr.markersProximity_D->gridMarkerHashD.resize(numExtended);
+    m_data_mgr.markersProximity_D->gridMarkerIndexD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers2_D->posRadD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers2_D->velMasD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers2_D->rhoPresMuD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers1_D->posRadD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers1_D->velMasD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers1_D->rhoPresMuD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers1_D->tauXxYyZzD.resize(numExtended);
+    m_data_mgr.sortedSphMarkers1_D->tauXyXzYzD.resize(numExtended);
+    m_data_mgr.freeSurfaceIdD.resize(numExtended);
+    m_data_mgr.vel_XSPH_D.resize(numExtended);
+
+    // Only shrink periodically if needed
+    if (should_shrink) {
+        m_data_mgr.markersProximity_D->gridMarkerHashD.shrink_to_fit();
+        m_data_mgr.markersProximity_D->gridMarkerIndexD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers2_D->posRadD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers2_D->velMasD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers2_D->rhoPresMuD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers1_D->posRadD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers1_D->velMasD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers1_D->rhoPresMuD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers1_D->tauXxYyZzD.shrink_to_fit();
+        m_data_mgr.sortedSphMarkers1_D->tauXyXzYzD.shrink_to_fit();
+        m_data_mgr.freeSurfaceIdD.shrink_to_fit();
+        m_data_mgr.vel_XSPH_D.shrink_to_fit();
+
+        // Update max particles to match new capacity
+        m_max_extended_particles = m_data_mgr.markersProximity_D->gridMarkerHashD.capacity();
+    }
+}
+
 void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
@@ -249,12 +322,18 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
 
     m_data_mgr.countersH->numExtendedParticles = numExtended;
 
+    // Resize arrays based on number of active particles
+    // Also don't overallocate memory in the case of no active domains
+    if (numExtended < m_data_mgr.countersH->numAllMarkers) {
+        ResizeArrays(numExtended);
+    }
+
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
-    fillActiveListD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.prefixSumExtendedActivityIdD),
-                                               INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-                                               U1CAST(m_data_mgr.activeListD), (uint)m_data_mgr.countersH->numAllMarkers);
+    fillActiveListD<<<numBlocks, numThreads>>>(
+        U1CAST(m_data_mgr.prefixSumExtendedActivityIdD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
+        U1CAST(m_data_mgr.activeListD), (uint)m_data_mgr.countersH->numAllMarkers);
     cudaDeviceSynchronize();
     cudaCheckErrorFlag(error_flagD, "fillActiveListD");
 
