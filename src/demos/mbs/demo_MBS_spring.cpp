@@ -186,13 +186,11 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(ChVector2i(800, 600));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetWindowTitle("Chrono VSG Springs");
-            vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetClearColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
             vis_vsg->AddCamera(ChVector3d(0, 0, 12));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

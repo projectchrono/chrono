@@ -170,15 +170,14 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("VSG Rolling Friction");
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetOutputScreen(0);
-            vis_vsg->SetUseSkyBox(true);  // use built-in path
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetOutputScreen(0);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector3d(0, 14, -20));
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
-            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

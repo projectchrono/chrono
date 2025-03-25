@@ -19,10 +19,10 @@
 #include <fstream>
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -51,14 +51,22 @@ ChVector3d csize(0.8, 0.8, 1.6);
 ChVector3d fsize(0.8, 0.8, 1.2);
 
 // Object type
-enum class ObjectType { SPHERE, CYLINDER };
-ObjectType object_type = ObjectType::CYLINDER;
+enum class ObjectShape { SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
+ObjectShape object_shape = ObjectShape::CYLINDER_PRIMITIVE;
+
+// Mesh specification (for object_shape = ObjectShape::MESH) 
+std::string mesh_obj_filename = GetChronoDataFile("models/semicapsule.obj");
+double mesh_scale = 1;
+double mesh_bottom_offset = 0.1;
+////std::string mesh_obj_filename = GetChronoDataFile("models/sphere.obj");
+////double mesh_scale = 0.12;
+////double mesh_bottom_offset = 0.12;
 
 // Object density
 double density = 500;
 
 // Object initial height above floor (as a ratio of fluid height)
-double initial_height = 2.00;
+double initial_height = 1.05;
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -67,15 +75,13 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualizationSPH::MarkerVisibilityCallback {
+#ifdef CHRONO_VSG
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
-
-    virtual bool get(unsigned int n) const override {
-        auto p = pos[n];
-        return p.x < 0 || p.y < 0;
-    }
+    virtual bool get(unsigned int n) const override { return pos[n].x < 0 || pos[n].y < 0; }
 };
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -216,52 +222,63 @@ int main(int argc, char* argv[]) {
     fsi.SetSPHParameters(sph_params);
 
     // Create the rigid body
+    double bottom_offset = 0;
+    double mass = 0;
+    ChMatrix33d inertia;
     utils::ChBodyGeometry geometry;
     geometry.materials.push_back(ChContactMaterialData());
-
-    auto body = chrono_types::make_shared<ChBody>();
-    sysMBS.AddBody(body);
-    body->SetName("object");
-    body->SetFixed(false);
-    body->EnableCollision(false);
-    double radius = 0.12;
-    switch (object_type) {
-        case ObjectType::SPHERE: {
-            auto mass = density * ChSphere::GetVolume(radius);
-            auto inertia = mass * ChSphere::GetGyration(radius);
-
-            body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
-            body->SetRot(QUNIT);
-            body->SetMass(mass);
-            body->SetInertia(inertia);
-
-            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
-
+    switch (object_shape) {
+        case ObjectShape::SPHERE_PRIMITIVE: {
+            double radius = 0.12;
+            bottom_offset = radius;
+            ChSphere sphere(radius);
+            mass = density * sphere.GetVolume();
+            inertia = mass * sphere.GetGyration();
+            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
             break;
         }
-        case ObjectType::CYLINDER: {
+        case ObjectShape::CYLINDER_PRIMITIVE: {
+            double radius = 0.12;
             double length = 0.20;
-
-            double mass = density * ChCylinder::GetVolume(radius, length);
-            auto inertia = mass * ChCylinder::GetGyration(radius, length / 2);
-
-            body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + radius));
-            body->SetRot(QUNIT);
-            body->SetMass(mass);
-            body->SetInertia(inertia);
-
+            bottom_offset = radius;
+            ChCylinder cylinder(radius, length);
+            mass = density * cylinder.GetVolume();
+            inertia = mass * cylinder.GetGyration();
             geometry.coll_cylinders.push_back(
-                utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Z_TO_X, radius, length));
-
+                utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Z_TO_X, cylinder, 0));
+            break;
+        }
+        case ObjectShape::MESH: {
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_obj_filename, true, true);
+            ChVector3d com;
+            trimesh->ComputeMassProperties(true, mass, com, inertia, mesh_scale);
+            mass *= density;
+            inertia *= density;
+            bottom_offset = mesh_bottom_offset;
+            geometry.coll_meshes.push_back(
+                utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_obj_filename, VNULL, mesh_scale, 0.01, 0));
             break;
         }
     }
+
+    auto body = chrono_types::make_shared<ChBody>();
+    body->SetName("object");
+    body->SetPos(ChVector3d(0, 0, initial_height * fsize.z() + bottom_offset));
+    body->SetRot(QUNIT);
+    body->SetMass(mass);
+    body->SetInertia(inertia);
+    body->SetFixed(false);
+    body->EnableCollision(false);
+    sysMBS.AddBody(body);
 
     if (show_rigid)
         geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, true);
+
+    std::cout << "Body mass = " << mass << std::endl;
+    std::cout << "Body inertia\n" << inertia << std::endl;
 
     // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(fsize.z()));
@@ -274,11 +291,11 @@ int main(int argc, char* argv[]) {
 
     // Computational domain must always contain all BCE and Rigid markers - if these leave computational domain,
     // the simulation will crash
-    ChVector3d cMin(-csize.x() / 2 - num_bce_layers * initial_spacing,
-                    -csize.y() / 2 - num_bce_layers * initial_spacing, -0.1);
-    ChVector3d cMax(csize.x() / 2 + num_bce_layers * initial_spacing, csize.y() / 2 + num_bce_layers * initial_spacing,
-                    csize.z() + initial_height + radius);
-    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
+    ////ChVector3d cMin(-csize.x() / 2 - num_bce_layers * initial_spacing,
+    ////                -csize.y() / 2 - num_bce_layers * initial_spacing, -0.1);
+    ////ChVector3d cMax(csize.x() / 2 + num_bce_layers * initial_spacing, csize.y() / 2 + num_bce_layers * initial_spacing,
+    ////                csize.z() + initial_height + radius);
+    ////fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
 
     // Initialize FSI problem
     fsi.Initialize();
@@ -321,39 +338,42 @@ int main(int argc, char* argv[]) {
     ////fsi.SaveInitialMarkers(out_dir);
 
     // Create a run-time visualizer
-#ifndef CHRONO_VSG
-    render = false;
-#endif
+    std::shared_ptr<ChVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
 #ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-
+    if (render) {
+        // FSI plugin
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
         ////auto col_callback = chrono_types::make_shared<ParticleDensityColorCallback>(995, 1005);
         auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
             ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 12000);
 
-        visFSI->SetTitle("Chrono::FSI object drop");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(2.5 * fsize.x(), 2.5 * fsize.y(), 1.5 * fsize.z()),
-                          ChVector3d(0, 0, 0.5 * fsize.z()));
-        visFSI->SetCameraMoveScale(0.1f);
-        visFSI->SetLightIntensity(0.9);
-        visFSI->SetLightDirection(0, CH_PI / 6);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-        visFSI->AttachSystem(&sysMBS);
-        visFSI->Initialize();
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Object Drop");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(2.5 * fsize.x(), 2.5 * fsize.y(), 1.5 * fsize.z()),
+                          ChVector3d(0, 0, 0.5 * fsize.z()));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     double time = 0.0;
@@ -380,8 +400,9 @@ int main(int argc, char* argv[]) {
 
         // Render FSI system
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
 
             if (snapshots) {
                 if (verbose)
@@ -389,7 +410,7 @@ int main(int argc, char* argv[]) {
                 std::ostringstream filename;
                 filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
                          << ".bmp";
-                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

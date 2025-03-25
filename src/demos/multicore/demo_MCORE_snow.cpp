@@ -79,7 +79,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 #if USE_RIGID
     container->mu = 0;
     container->alpha = 0;
-    container->cohesion = 0;
+    container->cohesion = 0.1;
 #else
     container->tau = time_step * 4;
     container->epsilon = 1e-3;
@@ -196,15 +196,13 @@ int main(int argc, char* argv[]) {
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Snow");
     vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->AddCamera(ChVector3d(0.1, -0.7, 0.0), ChVector3d(0, 0, 0));
+    vis->AddCamera(ChVector3d(0.1, -2, 0.0), ChVector3d(0, 0, 0));
     vis->SetWindowSize(1280, 720);
     vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-    vis->SetUseSkyBox(true);
+    vis->EnableSkyBox();
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->SetShadows(true);
-    vis->SetWireFrameMode(true);
+    vis->SetLightDirection(-CH_PI_2, CH_PI_4);
     vis->Initialize();
 
     while (vis->Run()) {

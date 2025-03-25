@@ -416,14 +416,14 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
 
     // In a first pass, export materials from all visual shapes
     for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
         ExportMaterials(assets_file, shape->GetMaterials());
     }
 
     // In a second pass, export shape geometry
     for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
-        const auto& shape_frame = shape_instance.second;
+        const auto& shape = shape_instance.shape;
+        const auto& shape_frame = shape_instance.frame;
 
         // Do nothing if the shape was already processed (because it is shared)
         // Otherwise, add the shape to the cache list and process it
@@ -692,7 +692,7 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
 
     // Scan visual shapes in the visual model
     for (const auto& shape_instance : vis_model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
         if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) ||

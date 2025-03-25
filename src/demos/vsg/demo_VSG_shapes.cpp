@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     utils::AddCapsuleGeometry(bin.get(), mat, c, 1.0, zdir * 6, rot);
 
     for (auto& shapes : bin->GetVisualModel()->GetShapeInstances())
-        shapes.first->SetTexture(GetChronoDataFile("textures/checker2.png"));
+        shapes.shape->SetTexture(GetChronoDataFile("textures/checker2.png"));
 
     int num_divs = 24;  // round primitive shape resolution (corresponding angle = 360/24 = 15 deg)
 
@@ -82,11 +82,9 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2i(1200, 800));
     vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Shapes");
-    vis->SetUseSkyBox(true);
+    vis->EnableSkyBox();
     vis->SetLightIntensity(0.9f);
     vis->SetLightDirection(0.5 * CH_PI_2, CH_PI_4);
-    vis->SetWireFrameMode(false);
-    vis->SetLogoVisible(true);
     vis->Initialize();
 
     while (vis->Run()) {

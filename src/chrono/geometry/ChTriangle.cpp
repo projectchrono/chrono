@@ -64,7 +64,7 @@ ChVector3d ChTriangle::Baricenter() const {
     return mb;
 }
 
-bool ChTriangle::Normal(ChVector3d& N) const {
+bool ChTriangle::CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, ChVector3d& N) {
     ChVector3d u;
     u = Vsub(p2, p1);
     ChVector3d v;
@@ -83,10 +83,20 @@ bool ChTriangle::Normal(ChVector3d& N) const {
     return true;
 }
 
+ChVector3d ChTriangle::CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3) {
+    ChVector3d normal;
+    CalcNormal(p1, p2, p3, normal);
+    return normal;
+}
+
+bool ChTriangle::Normal(ChVector3d& N) const {
+    return CalcNormal(p1, p2, p3, N);
+}
+
 ChVector3d ChTriangle::GetNormal() const {
-    ChVector3d mn;
-    Normal(mn);
-    return mn;
+    ChVector3d normal;
+    CalcNormal(p1, p2, p3, normal);
+    return normal;
 }
 
 bool ChTriangle::IsDegenerated() const {

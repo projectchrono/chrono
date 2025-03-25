@@ -18,14 +18,19 @@
 namespace chrono {
 CH_FACTORY_REGISTER(ChVisualModel)
 
-void ChVisualModel::AddShape(std::shared_ptr<ChVisualShape> shape, const ChFrame<>& frame) {
-    m_shapes.push_back({shape, frame});
+void ChVisualModel::AddShape(std::shared_ptr<ChVisualShape> shape, const ChFramed& frame, bool wireframe) {
+    m_shapes.push_back({shape, frame, wireframe});
 }
 
 void ChVisualModel::AddShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA) {
     m_shapesFEA.push_back(shapeFEA);
-    m_shapes.push_back({shapeFEA->m_trimesh_shape, ChFrame<>()});
-    m_shapes.push_back({shapeFEA->m_glyphs_shape, ChFrame<>()});
+    m_shapes.push_back({shapeFEA->m_trimesh_shape, ChFramed(), false});
+    m_shapes.push_back({shapeFEA->m_glyphs_shape, ChFramed(), false});
+}
+
+void ChVisualModel::EnableWireframe(bool val) {
+    for (auto& shape : m_shapes)
+        shape.wireframe = val;
 }
 
 void ChVisualModel::Clear() {
@@ -35,15 +40,15 @@ void ChVisualModel::Clear() {
 
 void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
     auto it = std::find_if(m_shapes.begin(), m_shapes.end(),
-                           [&shape](const ShapeInstance& element) { return element.first == shape; });
+                           [&shape](const ShapeInstance& element) { return element.shape == shape; });
     if (it != m_shapes.end())
         m_shapes.erase(it);
 }
 
 void ChVisualModel::Update(ChObj* owner, const ChFrame<>& frame) {
     for (auto& shape : m_shapes) {
-        auto xform = frame >> shape.second;
-        shape.first->Update(owner, xform);
+        auto xform = frame >> shape.frame;
+        shape.shape->Update(owner, xform);
     }
     for (auto& shapeFEA : m_shapesFEA) {
         shapeFEA->Update(owner, ChFrame<>());
@@ -53,8 +58,8 @@ void ChVisualModel::Update(ChObj* owner, const ChFrame<>& frame) {
 ChAABB ChVisualModel::GetBoundingBox() const {
     ChAABB aabb;
     for (const auto& shape : m_shapes) {
-        auto shape_aabb = shape.first->GetBoundingBox();
-        aabb += shape_aabb.Transform(shape.second);
+        auto shape_aabb = shape.shape->GetBoundingBox();
+        aabb += shape_aabb.Transform(shape.frame);
     }
     return aabb;
 }

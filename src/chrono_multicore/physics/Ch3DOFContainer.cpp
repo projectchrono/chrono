@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
 // Definitions for all 3DOF type containers for Chrono::Multicore.
@@ -20,11 +20,41 @@
 #include <algorithm>
 #include <cmath>
 
+#include "chrono/physics/ChParticleCloud.h"
+#include "chrono/assets/ChVisualShapeSphere.h"
+
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 
 namespace chrono {
+
+// -----------------------------------------------------------------------------
+
+class ChMulticoreVisualizationCloud : public ChParticleCloud {
+  public:
+    ChMulticoreVisualizationCloud(ChMulticoreDataManager* data_manager) : dm(data_manager) {
+        EnableCollision(false);
+    }
+    virtual bool IsActive() const override { return true; }
+    virtual size_t GetNumParticles() const override { return dm->num_particles; }
+    virtual const ChVector3d& GetParticlePos(unsigned int n) const {
+        const auto& p = dm->host_data.pos_3dof[n];
+        tmp = ChVector3(p.x, p.y, p.z);
+        return tmp;
+    }
+    virtual const ChVector3d& GetParticleVel(unsigned int n) const {
+        const auto& v = dm->host_data.vel_3dof[n];
+        tmp = ChVector3d(v.x, v.y, v.z);
+        return tmp;
+    }
+    virtual void Update(double time, bool update_assets) override {}
+
+    ChMulticoreDataManager* dm;
+    mutable ChVector3d tmp;
+};
+
+// -----------------------------------------------------------------------------
 
 Ch3DOFContainer::Ch3DOFContainer()
     : data_manager(nullptr),
@@ -35,10 +65,10 @@ Ch3DOFContainer::Ch3DOFContainer()
       contact_compliance(0),
       contact_mu(0),
       max_velocity(20),
-      num_fluid_contacts(0),
-      num_fluid_bodies(0),
+      num_particle_contacts(0),
+      num_particles(0),
       num_rigid_bodies(0),
-      num_rigid_fluid_contacts(0),
+      num_rigid_particle_contacts(0),
       num_unilaterals(0),
       num_bilaterals(0),
       num_shafts(0),
@@ -74,17 +104,29 @@ void Ch3DOFContainer::SetPosDt(const int& i, const real3& mposdt) {
     data_manager->host_data.vel_3dof[i] = mposdt;
 }
 
+void Ch3DOFContainer::CreateVisualization(double radius, const ChColor& color) {
+    // Create the visualization particle cloud
+    m_cloud = chrono_types::make_shared<ChMulticoreVisualizationCloud>(data_manager);
+    m_cloud->SetName("3DOF_particles");
+    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
+    sphere->SetColor(color);
+    m_cloud->AddVisualShape(sphere);
+
+    // Add the visualization cloud to the containing system
+    system->Add(m_cloud);
+}
+
 void Ch3DOFContainer::Setup3DOF(int start_constraint) {
     start_row = start_constraint;
     if (data_manager) {
         if (data_manager->cd_data) {
-            num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
-            num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
+            num_particle_contacts = data_manager->cd_data->num_particle_contacts;
+            num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
         } else {
-            num_fluid_contacts = 0;
-            num_rigid_fluid_contacts = 0;
+            num_particle_contacts = 0;
+            num_rigid_particle_contacts = 0;
         }
-        num_fluid_bodies = data_manager->num_fluid_bodies;
+        num_particles = data_manager->num_particles;
         num_rigid_bodies = data_manager->num_rigid_bodies;
         num_unilaterals = data_manager->num_unilaterals;
         num_bilaterals = data_manager->num_bilaterals;

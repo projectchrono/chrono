@@ -377,7 +377,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
     // In a second pass, export shape geometry
     for (const auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
 
         std::ofstream* mfile;
         std::unordered_map<size_t, std::shared_ptr<ChVisualShape>>* m_shapes;
@@ -1000,7 +1000,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
     bool has_stored_assets = false;
     bool has_stored_cameras = false;
     for (const auto& shape_instance : vis_model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
         if (m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) {
             has_stored_assets = true;
             break;
@@ -1036,7 +1036,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
 
         state_file << "[" << std::endl;
         for (const auto& shape_instance : vis_model->GetShapeInstances()) {
-            const auto& shape = shape_instance.first;
+            const auto& shape = shape_instance.shape;
 
             // Process only "known" shapes (i.e., shapes that were included in the assets file)
             if ((m_blender_shapes.find((size_t)shape.get()) != m_blender_shapes.end()) ||
@@ -1044,7 +1044,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
                 ChVector3d aux_scale(0, 0, 0);
 
                 std::string shapename("shape_" + unique_bl_id((size_t)shape.get()));
-                const auto& shape_frame = shape_instance.second;
+                const auto& shape_frame = shape_instance.frame;
 
                 // corner cases for performance reason (in case of multipe sphere asset with different radii, one
                 // blender mesh asset is used anyway, then use scale here)

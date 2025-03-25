@@ -559,6 +559,14 @@ if(BUILD_BENCHMARKING)
 endif()
 
 #------------------------------------------------------------
+# Calculate length of the path of the source directory
+#------------------------------------------------------------
+
+# The additional / is important to remove the last character from the path.
+# Note that it does not matter if the OS uses / or \, because we are only saving the path size.
+string(LENGTH "${CMAKE_SOURCE_DIR}/src/" SOURCE_PATH_SIZE)
+
+#------------------------------------------------------------
 # Generate and install the Chrono configuration header
 #------------------------------------------------------------
 

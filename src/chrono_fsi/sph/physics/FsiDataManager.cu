@@ -80,15 +80,15 @@ void FsiBodyStateD::resize(size_t s) {
 }
 
 void FsiMeshStateH::resize(size_t s) {
-    pos_fsi_fea_H.resize(s);
-    vel_fsi_fea_H.resize(s);
-    acc_fsi_fea_H.resize(s);
+    pos.resize(s);
+    vel.resize(s);
+    acc.resize(s);
 }
 
 void FsiMeshStateD::resize(size_t s) {
-    pos_fsi_fea_D.resize(s);
-    vel_fsi_fea_D.resize(s);
-    acc_fsi_fea_D.resize(s);
+    pos.resize(s);
+    vel.resize(s);
+    acc.resize(s);
 }
 
 void FsiBodyStateD::CopyFromH(const FsiBodyStateH& bodyStateH) {
@@ -101,9 +101,9 @@ void FsiBodyStateD::CopyFromH(const FsiBodyStateH& bodyStateH) {
 }
 
 void FsiMeshStateD::CopyFromH(const FsiMeshStateH& meshStateH) {
-    thrust::copy(meshStateH.pos_fsi_fea_H.begin(), meshStateH.pos_fsi_fea_H.end(), pos_fsi_fea_D.begin());
-    thrust::copy(meshStateH.vel_fsi_fea_H.begin(), meshStateH.vel_fsi_fea_H.end(), vel_fsi_fea_D.begin());
-    thrust::copy(meshStateH.acc_fsi_fea_H.begin(), meshStateH.acc_fsi_fea_H.end(), acc_fsi_fea_D.begin());
+    thrust::copy(meshStateH.pos.begin(), meshStateH.pos.end(), pos.begin());
+    thrust::copy(meshStateH.vel.begin(), meshStateH.vel.end(), vel.begin());
+    thrust::copy(meshStateH.acc.begin(), meshStateH.acc.end(), acc.begin());
 }
 
 FsiBodyStateD& FsiBodyStateD::operator=(const FsiBodyStateD& other) {
@@ -123,9 +123,9 @@ FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
     if (this == &other) {
         return *this;
     }
-    thrust::copy(other.pos_fsi_fea_D.begin(), other.pos_fsi_fea_D.end(), pos_fsi_fea_D.begin());
-    thrust::copy(other.vel_fsi_fea_D.begin(), other.vel_fsi_fea_D.end(), vel_fsi_fea_D.begin());
-    thrust::copy(other.acc_fsi_fea_D.begin(), other.acc_fsi_fea_D.end(), acc_fsi_fea_D.begin());
+    thrust::copy(other.pos.begin(), other.pos.end(), pos.begin());
+    thrust::copy(other.vel.begin(), other.vel.end(), vel.begin());
+    thrust::copy(other.acc.begin(), other.acc.end(), acc.begin());
     return *this;
 }
 

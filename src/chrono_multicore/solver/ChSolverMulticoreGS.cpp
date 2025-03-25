@@ -39,7 +39,7 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
 
     uint num_constraints = data_manager->num_constraints;
     uint num_contacts = data_manager->cd_data->num_rigid_contacts;
-    uint num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
+    uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
 
     CompressedMatrix<real> Nschur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
@@ -59,16 +59,16 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
         D[offset + i] = 1.0 / Nschur(offset + i, offset + i);
     }
 
-    if (data_manager->num_fluid_bodies) {
+    if (data_manager->num_particles) {
         offset += data_manager->num_bilaterals;
 
-        for (size_t i = 0; i < data_manager->num_fluid_bodies; i++) {
+        for (size_t i = 0; i < data_manager->num_particles; i++) {
             D[offset + i] = 1.0 / Nschur(offset + i, offset + i);
         }
 
-        offset += data_manager->num_fluid_bodies;
+        offset += data_manager->num_particles;
 
-        for (size_t i = 0; i < num_rigid_fluid_contacts; i++) {
+        for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
             if (data_manager->node_container->contact_mu == 0) {
                 D[offset + i] = Nschur(offset + i, offset + i);
                 D[offset + i] = 3.0 / D[offset + i];
@@ -82,7 +82,7 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
         }
     }
     int nc = num_contacts;
-    int nfc = num_rigid_fluid_contacts;
+    int nfc = num_rigid_particle_contacts;
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         real omega = .2;
         offset = 0;
@@ -114,19 +114,19 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct,
                                                     blaze::subvector(ml, 0, 1 * data_manager->num_constraints)) -
                                                    r[offset + i]);
         }
-        if (data_manager->num_fluid_bodies) {
+        if (data_manager->num_particles) {
             offset += data_manager->num_bilaterals;
 
-            for (size_t i = 0; i < data_manager->num_fluid_bodies; i++) {
+            for (size_t i = 0; i < data_manager->num_particles; i++) {
                 ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
                                                       ((row(Nschur, offset + i * 1 + 0),
                                                         blaze::subvector(ml, 0, 1 * data_manager->num_constraints)) -
                                                        r[offset + i]);
             }
 
-            offset += data_manager->num_fluid_bodies;
+            offset += data_manager->num_particles;
 
-            for (size_t i = 0; i < num_rigid_fluid_contacts; i++) {
+            for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
                 ml[offset + i] = ml[offset + i] - omega * D[offset + i] *
                                                       ((row(Nschur, offset + i * 1 + 0),
                                                         blaze::subvector(ml, 0, 1 * data_manager->num_constraints)) -

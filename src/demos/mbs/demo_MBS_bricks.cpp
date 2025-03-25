@@ -203,12 +203,12 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetWindowTitle("VSG Bricks Demo");
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector3d(-30, 28, -60), ChVector3d(0, 5, 0));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;
