@@ -17,16 +17,13 @@
 #include <ctime>
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -37,11 +34,7 @@
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
-
-//------------------------------------------------------------------
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+using namespace chrono::fsi::sph;
 
 // =============================================================================
 
@@ -121,7 +114,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysFSI.SetVerbose(verbose);
@@ -140,7 +133,7 @@ int main(int argc, char* argv[]) {
     auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-bxDim / 2 - 10.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
     ChVector3d cMax = ChVector3d(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::Y);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
@@ -202,45 +195,36 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-tme visualizer
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
-    render = false;
-#endif
+    std::shared_ptr<ChVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
-    if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-                break;
-            }
-        }
-
+    if (render) {
+        // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0);
 
-        visFSI->SetTitle("Chrono::FSI dam break");
-        visFSI->AddCamera(ChVector3d(0, -12 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
-        visFSI->SetCameraMoveScale(1.0f);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
+        visFSI->EnableRigidBodyMarkers(false);
         visFSI->SetSPHColorCallback(col_callback);
-        visFSI->Initialize();
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Dam Break");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(0, -12 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     double dT = sysFSI.GetStepSizeCFD();
@@ -261,8 +245,9 @@ int main(int argc, char* argv[]) {
 
         // Render FSI system
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
 
             if (snapshots) {
                 if (verbose)
@@ -270,7 +255,7 @@ int main(int argc, char* argv[]) {
                 std::ostringstream filename;
                 filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
                          << ".bmp";
-                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

@@ -30,8 +30,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemSMC)
 
-ChSystemSMC::ChSystemSMC()
-    : ChSystem(),
+ChSystemSMC::ChSystemSMC(const std::string& name)
+    : ChSystem(name),
       m_use_mat_props(true),
       m_contact_model(Hertz),
       m_adhesion_model(AdhesionForceModel::Constant),

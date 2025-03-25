@@ -17,8 +17,8 @@
 # Driver inputs for a suspension test rig include left/right post displacements
 # and steering input (the latter being ignored if the tested suspension is not
 # attached to a steering mechanism).  These driver inputs can be obtained from
-# an interactive driver system (of type ChSuspensionTestRigInteractiveDriverIRR) or from a data file
-# (using a driver system of type ChSuspensionTestRigDataDriver).
+# an interactive driver system of type ChSuspensionTestRigInteractiveDriver or
+# from a data file using a driver system of type ChSuspensionTestRigDataDriver.
 #
 # See the description of ChSuspensionTestRig::PlotOutput for details on data
 # collected (if output is enabled).
@@ -55,25 +55,21 @@ def main() :
     rig.SetSubchassisVisualizationType(veh.VisualizationType_PRIMITIVES)
     rig.SetWheelVisualizationType(veh.VisualizationType_NONE);
     rig.SetTireVisualizationType(veh.VisualizationType_MESH)
-
-    # Create the vehicle Irrlicht application
-    cam_loc = (rig.GetSpindlePos(0, veh.LEFT) + rig.GetSpindlePos(0, veh.RIGHT)) * 0.5
-    vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
-    vis.SetWindowTitle('Suspension Test Rig')
-    vis.SetWindowSize(1280, 1024)
-    vis.Initialize()
-    vis.AddTypicalLights()
-    vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-    vis.SetChaseCamera(cam_loc, 4.0, 0.5)
-    vis.AddSkyBox()
-    vis.AttachVehicle(rig.GetVehicle())
-
+    
     # Create and attach an STR driver
     driver = veh.ChSuspensionTestRigDataDriver(driver_file)
     rig.SetDriver(driver)
-
+    
     # Initialize suspension test rig
     rig.Initialize()
+
+    # Create the test rig Irrlicht application
+    cam_loc = (rig.GetSpindlePos(0, veh.LEFT) + rig.GetSpindlePos(0, veh.RIGHT)) * 0.5
+    vis = veh.ChSuspensionTestRigVisualSystemIRR()
+    vis.SetWindowTitle('Suspension Test Rig')
+    vis.SetWindowSize(1280, 1024)
+    vis.AttachSTR(rig)
+    vis.Initialize()
 
     vis.BindAll()
 
@@ -106,8 +102,6 @@ def main() :
         driver_inputs.m_steering = rig.GetSteeringInput()
         driver_inputs.m_throttle = 0.0
         driver_inputs.m_braking = 0.0
-        vis.Synchronize(time, driver_inputs)
-        vis.Advance(step_size)
 
         if rig.DriverEnded():
             break

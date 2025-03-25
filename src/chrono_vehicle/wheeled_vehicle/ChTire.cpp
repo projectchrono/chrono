@@ -59,6 +59,8 @@ void ChTire::SetContactSurfaceType(ContactSurfaceType type, double dim, int coll
 // -----------------------------------------------------------------------------
 void ChTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_wheel = wheel;
+    m_parent = wheel;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::TIRE);
 
     //// RADU TODO
     //// Properly account for offset in adjusting inertia.

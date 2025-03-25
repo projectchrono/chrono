@@ -24,8 +24,6 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackShoe::ChTrackShoe(const std::string& name) : ChPart(name), m_index(0) {}
 
 ChTrackShoe::~ChTrackShoe() {
@@ -38,9 +36,14 @@ ChTrackShoe::~ChTrackShoe() {
     }
 }
 
-void ChTrackShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChTrackShoe::Initialize(std::shared_ptr<ChChassis> chassis,
                              const ChVector3d& location,
                              const ChQuaternion<>& rotation) {
+    m_parent = chassis;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::SHOE);
+
+    Construct(chassis, location, rotation);
+
     // Mark as initialized
     m_initialized = true;
 }

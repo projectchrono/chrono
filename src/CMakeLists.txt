@@ -515,7 +515,6 @@ add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_modal)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_multicore)
-add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_gpu)
 add_subdirectory(chrono_vehicle)
@@ -560,6 +559,14 @@ if(BUILD_BENCHMARKING)
 endif()
 
 #------------------------------------------------------------
+# Calculate length of the path of the source directory
+#------------------------------------------------------------
+
+# The additional / is important to remove the last character from the path.
+# Note that it does not matter if the OS uses / or \, because we are only saving the path size.
+string(LENGTH "${CMAKE_SOURCE_DIR}/src/" SOURCE_PATH_SIZE)
+
+#------------------------------------------------------------
 # Generate and install the Chrono configuration header
 #------------------------------------------------------------
 
@@ -602,12 +609,6 @@ if(CH_ENABLE_MODULE_MULTICORE)
   set(CHRONO_MULTICORE "#define CHRONO_MULTICORE")
 else()
   set(CHRONO_MULTICORE "#undef CHRONO_MULTICORE")
-endif()
-
-if(CH_ENABLE_MODULE_OPENGL)
-  set(CHRONO_OPENGL "#define CHRONO_OPENGL")
-else()
-  set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
 endif()
 
 if(CH_ENABLE_MODULE_MATLAB)

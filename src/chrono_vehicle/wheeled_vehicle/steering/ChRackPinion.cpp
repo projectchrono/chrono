@@ -49,14 +49,9 @@ ChRackPinion::~ChRackPinion() {
 }
 
 // -----------------------------------------------------------------------------
-void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
-                              const ChVector3d& location,
-                              const ChQuaternion<>& rotation) {
-    ChSteering::Initialize(chassis, location, rotation);
-
-    m_parent = chassis;
-    m_rel_xform = ChFrame<>(location, rotation);
-
+void ChRackPinion::Construct(std::shared_ptr<ChChassis> chassis,
+                             const ChVector3d& location,
+                             const ChQuaternion<>& rotation) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -70,6 +65,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_link = chrono_types::make_shared<ChBody>();
     m_link->SetName(m_name + "_link");
+    m_link->SetTag(m_obj_tag);
     m_link->SetPos(link_pos);
     m_link->SetRot(link_rot);
     m_link->SetMass(GetSteeringLinkMass());
@@ -79,6 +75,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the prismatic joint between chassis and link.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetName(m_name + "_prismatic");
+    m_prismatic->SetTag(m_obj_tag);
     m_prismatic->Initialize(chassisBody, m_link, ChFrame<>(link_pos, link_rot * QuatFromAngleX(CH_PI_2)));
     sys->AddLink(m_prismatic);
 
@@ -92,6 +89,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
     m_actuator->SetName(m_name + "_actuator");
+    m_actuator->SetTag(m_obj_tag);
     m_actuator->Initialize(chassisBody, m_link, false, ChFrame<>(pt1, link_rot), ChFrame<>(pt2, link_rot));
     m_actuator->SetDistanceOffset(offset);
     sys->AddLink(m_actuator);

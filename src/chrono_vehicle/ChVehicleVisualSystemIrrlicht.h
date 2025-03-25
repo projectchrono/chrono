@@ -46,8 +46,10 @@ namespace vehicle {
 /// @addtogroup vehicle_vis
 /// @{
 
-// Forward declaration
-class ChChaseCameraEventReceiver;  ///< custom event receiver for chase-cam control
+// Forward declarations
+class ChChaseCameraEventReceiver;
+class ChVehicleEventReceiver;
+class ChJoystickIRR;
 
 /// Customized Chrono Irrlicht visualization for vehicle simulations.
 /// This class implements an Irrlicht-based visualization wrapper for vehicles.
@@ -62,6 +64,15 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     ChVehicleVisualSystemIrrlicht();
 
     virtual ~ChVehicleVisualSystemIrrlicht();
+
+    /// Set joystick JSON configuration file name.
+    void SetJoystickConfigFile(const std::string& filename);
+
+    /// Enable/disable joystick debugging output (default: false).
+    void SetJoystickDebug(bool val);
+
+    /// Feed button number and callback function to implement a custom callback.
+    void SetButtonCallback(int button, void (*cbfun)());
 
     /// Attach a vehicle to this Irrlicht vehicle visualization system.
     virtual void AttachVehicle(vehicle::ChVehicle* vehicle) override;
@@ -115,6 +126,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
     void renderStats();
 
     ChChaseCameraEventReceiver* m_camera_control;  ///< event receiver for chase-cam control
+    ChVehicleEventReceiver* m_vehicle_control;     ///< event receiver for vehicle control
+    ChJoystickIRR* m_joystick;                     ///< joystick setup
     bool m_renderStats;                            ///< turn on/off rendering of stats
     int m_HUD_x;                                   ///< x-coordinate of upper-left corner of HUD elements
     int m_HUD_y;                                   ///< y-coordinate of upper-left corner of HUD elements
@@ -125,8 +138,7 @@ class CH_VEHICLE_API ChVehicleVisualSystemIrrlicht : public ChVehicleVisualSyste
 #endif
 
     friend class ChChaseCameraEventReceiver;
-    friend class ChInteractiveDriverIRR;
-    friend class ChSuspensionTestRigInteractiveDriverIRR;
+    friend class ChVehicleEventReceiver;
 };
 
 // @} vehicle_vis

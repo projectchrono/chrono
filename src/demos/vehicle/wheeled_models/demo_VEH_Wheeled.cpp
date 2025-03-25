@@ -23,17 +23,16 @@
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -53,9 +52,6 @@ using namespace chrono::postprocess;
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-
-enum class DriverMode { DEFAULT, RECORD, PLAYBACK };
-DriverMode driver_mode = DriverMode::DEFAULT;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -186,10 +182,6 @@ int main(int argc, char* argv[]) {
         terrain.ExportMeshPovray(out_dir);
     }
 
-    // Initialize output file for driver inputs
-    std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::ChWriterCSV driver_csv(" ");
-
     // Initialize output file for debug output
     utils::ChWriterCSV vehicle_csv(" ");
 
@@ -203,6 +195,16 @@ int main(int argc, char* argv[]) {
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    // -----------------------------
+    // Create the interactive driver
+    // -----------------------------
+
+    ChInteractiveDriver driver(vehicle);
+    driver.SetSteeringDelta(0.02);
+    driver.SetThrottleDelta(0.02);
+    driver.SetBrakingDelta(0.02);
+    driver.Initialize();
 
     // ------------------------------------------------------------------------------
     // Create the vehicle run-time visualization interface and the interactive driver
@@ -219,11 +221,9 @@ int main(int argc, char* argv[]) {
 
     std::string title = "Vehicle demo - " + vehicle_model->ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
-    std::shared_ptr<ChDriver> driver;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle(title);
             vis_irr->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
@@ -233,62 +233,39 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
             vis_irr->AttachVehicle(&vehicle);
-
-            // Create the interactive Irrlicht driver system
-            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
-            driver_irr->SetSteeringDelta(0.02);
-            driver_irr->SetThrottleDelta(0.02);
-            driver_irr->SetBrakingDelta(0.02);
-            driver_irr->Initialize();
-            if (driver_mode == DriverMode::PLAYBACK) {
-                driver_irr->SetInputDataFile(driver_file);
-                driver_irr->SetInputMode(ChInteractiveDriverIRR::InputMode::DATAFILE);
-            }
+            vis_irr->AttachDriver(&driver);
 
             vis = vis_irr;
-            driver = driver_irr;
 #endif
             break;
         }
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
+            vis_vsg->AttachDriver(&driver);
             vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
                                     vehicle_model->CameraHeight());
             vis_vsg->SetWindowSize(ChVector2i(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
-            // Create the interactive VSG driver system
-            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
-            driver_vsg->SetSteeringDelta(0.02);
-            driver_vsg->SetThrottleDelta(0.02);
-            driver_vsg->SetBrakingDelta(0.02);
-            if (driver_mode == DriverMode::PLAYBACK) {
-                driver_vsg->SetInputDataFile(driver_file);
-                driver_vsg->SetInputMode(ChInteractiveDriverVSG::InputMode::DATAFILE);
-            }
-            driver_vsg->Initialize();
-
             vis = vis_vsg;
-            driver = driver_vsg;
 #endif
             break;
         }
     }
 
-        // ---------------------------------------------------------
-        // Create the Blender post-processing visualization exporter
-        // ---------------------------------------------------------
+    // ---------------------------------------------------------
+    // Create the Blender post-processing visualization exporter
+    // ---------------------------------------------------------
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChBlender blender_exporter(sys);
@@ -310,7 +287,6 @@ int main(int argc, char* argv[]) {
     std::cout << "\n============ Vehicle subsystems ============" << std::endl;
     vehicle.LogSubsystemTypes();
 
-    // Simulation loop
     vehicle.EnableRealtime(true);
 
     int sim_frame = 0;
@@ -353,13 +329,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Driver inputs
-        DriverInputs driver_inputs = driver->GetInputs();
-
-        // Driver output
-        if (driver_mode == DriverMode::RECORD) {
-            driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
-                       << std::endl;
-        }
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Record debug test data
         if (debug_output) {
@@ -384,14 +354,14 @@ int main(int argc, char* argv[]) {
         }
 
         // Update modules (process inputs from other modules)
-        driver->Synchronize(time);
+        driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle_model->Synchronize(time, driver_inputs, terrain);
         if (vis)
             vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver->Advance(step_size);
+        driver.Advance(step_size);
         terrain.Advance(step_size);
         vehicle_model->Advance(step_size);
         if (vis)
@@ -399,10 +369,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         sim_frame++;
-    }
-
-    if (driver_mode == DriverMode::RECORD) {
-        driver_csv.WriteToFile(driver_file);
     }
 
     if (debug_output) {

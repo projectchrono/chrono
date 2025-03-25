@@ -27,11 +27,10 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 
-// Chrono::Multicore OpenGL header files
-// #undef CHRONO_OPENGL
-
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -353,16 +352,20 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-#ifdef CHRONO_OPENGL
-    // Initialize OpenGL
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(sys);
-    vis.SetWindowTitle("M113");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, -10, 0), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(sys);
+    vis->SetWindowTitle("M113");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->AddCamera(ChVector3d(0, -10, 0), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 #endif
 
     // Number of simulation steps between two 3D view render frames
@@ -418,9 +421,9 @@ int main(int argc, char* argv[]) {
         m113.Advance(time_step);
         sys->DoStepDynamics(time_step);
 
-#ifdef CHRONO_OPENGL
-        if (vis.Run())
-            vis.Render();
+#ifdef CHRONO_VSG
+        if (vis->Run())
+            vis->Render();
         else
             break;
 #endif

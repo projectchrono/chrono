@@ -15,10 +15,6 @@
 // Chrono::Multicore test program using a 3DOF container (particle or fluid).
 //
 // The global reference frame has Z up.
-//
-// If available, OpenGL is used for run-time rendering. Otherwise, the
-// simulation is carried out for a pre-defined duration and output files are
-// generated for post-processing with POV-Ray.
 // =============================================================================
 
 #include <cstdio>
@@ -36,8 +32,10 @@
 
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -81,7 +79,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 #if USE_RIGID
     container->mu = 0;
     container->alpha = 0;
-    container->cohesion = 0;
+    container->cohesion = 0.1;
 #else
     container->tau = time_step * 4;
     container->epsilon = 1e-3;
@@ -193,24 +191,23 @@ int main(int argc, char* argv[]) {
     sys.Initialize();
 
     // Perform the simulation
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(&sys);
-    vis.SetWindowTitle("Snow");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, -.4, 0), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
+    vis->SetWindowTitle("Snow");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->AddCamera(ChVector3d(0.1, -2, 0.0), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(-CH_PI_2, CH_PI_4);
+    vis->Initialize();
 
-    // Uncomment the following two lines for the OpenGL manager to automatically
-    // run the simulation in an infinite loop.
-    // gl_window.StartDrawLoop(time_step);
-    // return 0;
-
-    while (vis.Run()) {
+    while (vis->Run()) {
         sys.DoStepDynamics(time_step);
-        vis.Render();
+        vis->Render();
     }
 #else
     // Run simulation for specified time

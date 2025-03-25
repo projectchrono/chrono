@@ -119,11 +119,11 @@ void ChVisualSystemIrrlicht::SetAntialias(bool val) {
     m_device_params.AntiAlias = val;
 }
 
-void ChVisualSystemIrrlicht::SetFullscreen(bool val) {
+void ChVisualSystemIrrlicht::EnableFullscreen(bool val) {
     m_device_params.Fullscreen = val;
 }
 
-void ChVisualSystemIrrlicht::SetShadows(bool val) {
+void ChVisualSystemIrrlicht::EnableShadows(bool val) {
     m_device_params.Stencilbuffer = val;
 }
 
@@ -580,6 +580,8 @@ void ChVisualSystemIrrlicht::Render() {
     }
 
     m_gui->Render();
+
+    ChVisualSystem::Render();
 }
 
 void ChVisualSystemIrrlicht::RenderFrame(const ChFrame<>& frame, double axis_length) {
@@ -768,8 +770,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
-        auto& shape = shape_instance.first;
-        auto& shape_frame = shape_instance.second;
+        auto& shape = shape_instance.shape;
+        auto& shape_frame = shape_instance.frame;
         core::matrix4CH shape_m4(shape_frame);
 
         if (!shape->IsVisible())

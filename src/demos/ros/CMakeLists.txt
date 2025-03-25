@@ -48,10 +48,6 @@ if(CH_ENABLE_MODULE_VSG)
     endif()
 endif()
 
-if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "Chrono_opengl")
-endif()
-
 if(CH_ENABLE_MODULE_SENSOR)
   list(APPEND LIBS "Chrono_sensor")
 endif()

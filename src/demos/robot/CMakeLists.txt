@@ -30,14 +30,6 @@ if(CH_ENABLE_MODULE_VEHICLE)
     endif()
   endif()
 
-  if(CH_ENABLE_MODULE_VSG OR CH_ENABLE_MODULE_OPENGL)
-    if(CH_ENABLE_MODULE_FSI)
-      set(DEMOS ${DEMOS}
-          demo_ROBOT_Viper_SPH
-      )
-    endif()
-  endif()
-
 endif()
 
 # ------------------------------------------------------------------------------
@@ -72,16 +64,6 @@ if(CH_ENABLE_MODULE_VSG)
     endif()
     if(CH_ENABLE_MODULE_FSI)
       list(APPEND LIBS "Chrono_fsisph_vsg")
-    endif()
-endif()
-
-if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "Chrono_opengl")
-    if(CH_ENABLE_MODULE_VEHICLE) 
-      list(APPEND LIBS "Chrono_vehicle_opengl")
-    endif()
-    if(CH_ENABLE_MODULE_FSI)
-      list(APPEND LIBS "Chrono_fsisph_opengl")
     endif()
 endif()
 

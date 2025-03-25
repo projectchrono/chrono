@@ -39,12 +39,12 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
+ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
     : m_sysMBS(sysMBS),
       m_sysCFD(sysCFD),
+      m_fsi_interface(nullptr),
       m_is_initialized(false),
       m_verbose(true),
-      m_MBD_enabled(true),
       m_step_MBD(-1),
       m_step_CFD(-1),
       m_time(0),
@@ -53,7 +53,7 @@ ChFsiSystem::ChFsiSystem(ChSystem& sysMBS, ChFluidSystem& sysCFD)
 
 ChFsiSystem::~ChFsiSystem() {}
 
-ChFluidSystem& ChFsiSystem::GetFluidSystem() const {
+ChFsiFluidSystem& ChFsiSystem::GetFluidSystem() const {
     return m_sysCFD;
 }
 
@@ -66,8 +66,9 @@ ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
 }
 
 void ChFsiSystem::SetVerbose(bool verbose) {
-    m_verbose = verbose;
+    ChAssertAlways(m_fsi_interface);
     m_fsi_interface->SetVerbose(verbose);
+    m_verbose = verbose;
 }
 
 void ChFsiSystem::SetStepsizeMBD(double step) {
@@ -242,25 +243,18 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_timer_FSI.stop();
 
     // Advance dynamics of the two phases.
-    // If MBS dynamics is enabled:
     //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
     //   2. Advance the dynamics of the fluid system (in the main thread)
     //   3. Wait for the MBS thread to finish execution.
-    if (m_MBD_enabled) {
-        std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
-        AdvanceCFD(step, threshold_CFD);
-        th.join();
-    } else {
-        AdvanceCFD(step, threshold_CFD);
-    }
+    std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
+    AdvanceCFD(step, threshold_CFD);
+    th.join();
 
     m_timer_step.stop();
 
     // Calculate RTF and MBD/CFD timer ratio
-    if (m_MBD_enabled) {
-        m_RTF = m_timer_step() / step;
-        m_ratio_MBD = m_timer_MBD / m_timer_CFD;
-    }
+    m_RTF = m_timer_step() / step;
+    m_ratio_MBD = m_timer_MBD / m_timer_CFD;
 
     // Update simulation time
     m_time += step;

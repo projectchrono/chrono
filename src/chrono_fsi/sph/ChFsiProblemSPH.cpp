@@ -37,6 +37,7 @@ using std::endl;
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
 // ----------------------------------------------------------------------------
 
@@ -68,15 +69,15 @@ void ChFsiProblemSPH::SetVerbose(bool verbose) {
     m_verbose = verbose;
 }
 
-void ChFsiProblemSPH::SetCfdSPH(const ChFluidSystemSPH::FluidProperties& fluid_props) {
+void ChFsiProblemSPH::SetCfdSPH(const ChFsiFluidSystemSPH::FluidProperties& fluid_props) {
     m_sysSPH.SetCfdSPH(fluid_props);
 }
 
-void ChFsiProblemSPH::SetElasticSPH(const ChFluidSystemSPH::ElasticMaterialProperties& mat_props) {
+void ChFsiProblemSPH::SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialProperties& mat_props) {
     m_sysSPH.SetElasticSPH(mat_props);
 }
 
-void ChFsiProblemSPH::SetSPHParameters(const ChFluidSystemSPH::SPHParameters& sph_params) {
+void ChFsiProblemSPH::SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params) {
     m_sysSPH.SetSPHParameters(sph_params);
 }
 
@@ -283,7 +284,6 @@ void ChFsiProblemSPH::Initialize() {
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& m : m_meshes) {
         m_sysFSI.AddFsiMesh(m.mesh);
-        assert(m.mesh->GetNumContactSurfaces() > 0);
         for (const auto& surf : m.mesh->GetContactSurfaces()) {
             aabb += surf->GetAABB();
         }
@@ -301,12 +301,12 @@ void ChFsiProblemSPH::Initialize() {
     // Set computational domain
     if (!m_domain_aabb.IsInverted()) {
         // Use provided computational domain
-        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
+        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, m_periodic_sides);
     } else {
         // Set computational domain based on actual AABB of all markers
         int bce_layers = m_sysSPH.GetNumBCELayers();
         m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
-        m_sysSPH.SetBoundaries(m_domain_aabb.min, m_domain_aabb.max);
+        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, static_cast<int>(PeriodicSide::NONE));
     }
 
     // Initialize the underlying FSI system
@@ -1036,9 +1036,8 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
 
     if (end_wall) {
         ChVector3d size(thickness, width, height - Iz0 * m_spacing);
-        ChVector3d loc(box_size.x() / 2 + thickness / 2 + m_spacing, 0, Iz0 * m_spacing / 2 + box_size.z() / 2 + m_spacing);
-        auto shape = chrono_types::make_shared<ChVisualShapeBox>(size);
-        shape->SetColor(color);
+        ChVector3d loc(box_size.x() / 2 + thickness / 2 + m_spacing, 0, Iz0 * m_spacing / 2 + box_size.z() / 2 +
+    m_spacing); auto shape = chrono_types::make_shared<ChVisualShapeBox>(size); shape->SetColor(color);
         m_ground->AddVisualShape(shape, ChFramed(pos + loc, QUNIT));
     }
     */
@@ -1296,5 +1295,6 @@ ChVector3d ChFsiProblemCylindrical::Grid2Point(const ChVector3i& p) {
     return ChVector3d(x, y, z);
 }
 
+}  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

@@ -18,6 +18,8 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/assets/ChVisualModel.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
@@ -36,7 +38,6 @@ class ChApi ChVisualSystem {
     enum class Type {
         IRRLICHT,  ///< Irrlicht
         VSG,       ///< Vulkan Scene Graph
-        OpenGL,    ///< OpenGL
         OptiX,     ///< OptiX
         NONE
     };
@@ -52,7 +53,7 @@ class ChApi ChVisualSystem {
     /// Initialize the visualization system.
     /// This call must trigger a parsing of the associated Chrono systems to process all visual models.
     /// A derived class must ensure that this function is called only once (use the m_initialized flag).
-    virtual void Initialize() = 0;
+    virtual void Initialize() {}
 
     /// Process all visual assets in the associated Chrono systems.
     /// This function is called by default for a Chrono system attached to this visualization system during
@@ -119,13 +120,13 @@ class ChApi ChVisualSystem {
 
     /// Run the visualization system.
     /// Returns `false` if the system must shut down.
-    virtual bool Run() = 0;
+    virtual bool Run() { return false; }
 
     /// Terminate the visualization system.
-    virtual void Quit() = 0;
+    virtual void Quit() {}
 
     /// Perform any necessary operations at the beginning of each rendering frame.
-    virtual void BeginScene() = 0;
+    virtual void BeginScene() {}
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
@@ -136,7 +137,8 @@ class ChApi ChVisualSystem {
     ///       ...
     ///    }
     /// </pre>
-    virtual void Render() = 0;
+    /// The default implementation only updates the overall RTF.
+    virtual void Render();
 
     /// Render the specified reference frame.
     virtual void RenderFrame(const ChFrame<>& frame, double axis_length = 1) {}
@@ -145,16 +147,53 @@ class ChApi ChVisualSystem {
     virtual void RenderCOGFrames(double axis_length = 1) {}
 
     /// Perform any necessary operations ar the end of each rendering frame.
-    virtual void EndScene() = 0;
+    virtual void EndScene() {}
 
-    /// Return the simulation real-time factor (simulation time / simulated time).
-    /// The default value returned by this base class is the RTF value from the first associated system (if any).
-    /// See ChSystem::GetRTF
-    virtual double GetSimulationRTF() const;
+    /// Get the list of associated Chrono systems.
+    std::vector<ChSystem*> GetSystems() const { return m_systems; }
+
+    /// Get the specified associated Chrono system.
+    ChSystem& GetSystem(int i) const { return *m_systems[i]; }
 
     /// Return the current simulated time.
     /// The default value returned by this base class is the time from the first associated system (if any).
-    virtual double GetSimulationTime() const;
+    double GetSimulationTime() const;
+
+    /// Return the overall real time factor.
+    /// This value represents the ratio between the wall clock time elapsed between two render frames and the duration
+    /// by which simulation was advanced in this interval.
+    double GetRTF() const { return m_rtf; }
+
+    /// Return the simulation real-time factor (simulation time / simulated time) for the specified associated system.
+    /// See ChSystem::GetRTF.
+    double GetSimulationRTF(unsigned int i) const;
+
+    /// Return the simulation real-time factor (simulation time / simulated time) for all associated system.
+    /// See ChSystem::GetRTF.
+    std::vector<double> GetSimulationRTFs() const;
+
+    /// Get the number of bodies  (across all visualized systems).
+    /// The reported number represents only active bodies, excluding sleeping or fixed.
+    unsigned int GetNumBodies() const;
+
+    /// Get the number of links  (across all visualized systems).
+    /// The reported number represents only active bodies, excluding sleeping or fixed.
+    unsigned int GetNumLinks() const;
+
+    /// Get the number of meshes  (across all visualized systems).
+    unsigned int GetNumMeshes() const;
+
+    /// Get the number of shafts  (across all visualized systems).
+    unsigned int GetNumShafts() const;
+
+    /// Get the number of coordinates at the velocity level (across all visualized systems).
+    unsigned int GetNumStates() const;
+
+    /// Get the number of scalar constraints  (across all visualized systems).
+    unsigned int GetNumConstraints() const;
+
+    /// Gets the number of contacts.
+    unsigned int GetNumContacts() const;
 
     /// Create a snapshot of the last rendered frame and save it to the provided file.
     /// The file extension determines the image format.
@@ -165,12 +204,6 @@ class ChApi ChVisualSystem {
 
     /// Enable/disable writing of frame snapshots to file.
     void SetImageOutput(bool val) { m_write_images = val; }
-
-    /// Get the list of associated Chrono systems.
-    std::vector<ChSystem*> GetSystems() const { return m_systems; }
-
-    /// Get the specified associated Chrono system.
-    ChSystem& GetSystem(int i) const { return *m_systems[i]; }
 
   protected:
     ChVisualSystem();
@@ -187,8 +220,10 @@ class ChApi ChVisualSystem {
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
 
-    bool m_verbose;  ///< terminal output
-    bool m_initialized;
+    bool m_verbose;      ///< terminal output
+    bool m_initialized;  ///< visual system initialized
+    ChTimer m_timer;     ///< timer for evaluating RTF
+    double m_rtf;        ///< overall real time factor
 
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 

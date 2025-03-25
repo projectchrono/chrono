@@ -44,8 +44,10 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -378,17 +380,21 @@ int main(int argc, char* argv[]) {
         ofile << std::scientific;
     }
 
-#ifdef CHRONO_OPENGL
-    // Initialize OpenGL
-    opengl::ChVisualSystemOpenGL vis;
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     if (render) {
-        vis.AttachSystem(sys);
-        vis.SetWindowTitle("HMMWV granular terrain");
-        vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::SOLID);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(-horizontal_pos, -5, 0), ChVector3d(-horizontal_pos, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
+        vis->AttachSystem(sys);
+        vis->SetWindowTitle("HMMWV granular terrain");
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->AddCamera(ChVector3d(-horizontal_pos, -5, 0), ChVector3d(-horizontal_pos, 0, 0));
+        vis->SetWindowSize(1280, 720);
+        vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+        vis->EnableSkyBox();
+        vis->SetCameraAngleDeg(40.0);
+        vis->SetLightIntensity(1.0f);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows();
+        vis->Initialize();
     }
 #endif
 
@@ -505,10 +511,10 @@ int main(int argc, char* argv[]) {
         // Advance sys state (no vehicle created yet)
         sys->DoStepDynamics(time_step);
 
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
         if (render) {
-            if (vis.Run())
-                vis.Render();
+            if (vis->Run())
+                vis->Render();
             else
                 break;
         }

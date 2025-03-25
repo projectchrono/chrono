@@ -174,11 +174,10 @@ int main(int argc, char* argv[]) {
     vis.AttachSystem(&sys);
     vis.SetWindowSize(800, 600);
     vis.SetWindowTitle("VSG FEA visualization");
-    vis.SetUseSkyBox(true);
+    vis.EnableSkyBox();
     vis.SetLightIntensity(1.0f);
     vis.SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis.AddCamera(ChVector3d(0.0, 0.6, -2.0), ChVector3d(0, 0.4, 0));
-    vis.SetLogoVisible(true);
     vis.Initialize();
 
     // Solver settings

@@ -91,7 +91,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
 
     // Assemble the track. This positions all track shoes around the sprocket, road wheels, and idler
     // (implemented by derived classes)
-    bool ccw = Assemble(chassis->GetBody());
+    bool ccw = Assemble(chassis);
 
     // Loop over all track shoes
     // - allow them to connect themselves to their neighbor

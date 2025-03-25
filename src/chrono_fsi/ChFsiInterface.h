@@ -20,12 +20,12 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiDefinitions.h"
-#include "chrono_fsi/ChFluidSystem.h"
+#include "chrono_fsi/ChFsiFluidSystem.h"
 
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsi_base
 /// @{
 
 // =============================================================================
@@ -131,11 +131,11 @@ class CH_FSI_API ChFsiInterface {
     virtual void ExchangeSolidForces() = 0;
 
   protected:
-    ChFsiInterface(ChSystem& sysMBS, ChFluidSystem& sysCFD);
+    ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
 
     bool m_verbose;
     ChSystem& m_sysMBS;
-    ChFluidSystem& m_sysCFD;
+    ChFsiFluidSystem& m_sysCFD;
 
     std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
     std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
@@ -145,9 +145,9 @@ class CH_FSI_API ChFsiInterface {
 // =============================================================================
 
 /// Generic interface between a Chrono multibody system and a fluid system.
-class ChFsiInterfaceGeneric : public ChFsiInterface {
+class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
   public:
-    ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFluidSystem& sysCFD);
+    ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
     ~ChFsiInterfaceGeneric();
 
     /// Initialize the generic FSI interface.
@@ -170,7 +170,7 @@ class ChFsiInterfaceGeneric : public ChFsiInterface {
 
 // =============================================================================
 
-/// @} fsi_physics
+/// @} fsi_base
 
 }  // end namespace fsi
 }  // end namespace chrono

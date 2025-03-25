@@ -23,14 +23,14 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-/// @addtogroup fsi_solver
+/// @addtogroup fsisph_math
 /// @{
 
 /*
 /// This function calculates the normalized coordinates of a point inside a bilinear element
 /// i.e, P= N1*p1.+N2*p2.+N3*p3.+N4*p4. where Ni's are given based on eta and zeta
 /// The solver returns the eta and zeta of point P from the coordinates of p1.,p2.,p3.,p4.
-static __host__ __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4, Real2 p, Real2& eta, Real2& zeta) {
+static __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4, Real2 p, Real2& eta, Real2& zeta) {
     eta.x =
         -(-p.x * p1.y + p.x * p2.y - p.x * p3.y + p.x * p4.y + p.y * p1.x - p.y * p2.x + p.y * p3.x - p.y * p4.x -
           p1.x * p4.y + p2.x * p3.y - p3.x * p2.y + p4.x * p1.y +
@@ -174,7 +174,7 @@ static __host__ __device__ void solver2x2(Real2 p1, Real2 p2, Real2 p3, Real2 p4
 
 /// Note that this is function calculates L=[L11 L12 L13 L22 L23 L33]' in B*L=[-1 0 0 -1 0 -1]' for a given B 6x6 matirx
 /// This is is the core function for higher-order accurate schemes
-static __host__ __device__ void inv6xdelta_mn(Real* B, Real* L) {
+static __device__ void inv6xdelta_mn(Real* B, Real* L) {
     Real DET = B[0] * B[7] * B[14] * B[21] * B[28] * B[35] - B[0] * B[7] * B[14] * B[21] * B[29] * B[34] -
                B[0] * B[7] * B[14] * B[22] * B[27] * B[35] + B[0] * B[7] * B[14] * B[22] * B[29] * B[33] +
                B[0] * B[7] * B[14] * B[23] * B[27] * B[34] - B[0] * B[7] * B[14] * B[23] * B[28] * B[33] -
@@ -1643,7 +1643,7 @@ static __host__ __device__ void inv6xdelta_mn(Real* B, Real* L) {
     }
 }
 
-/// @} fsi_solver
+/// @} fsisph_math
 
 }  // namespace sph
 }  // namespace fsi

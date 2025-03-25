@@ -48,20 +48,21 @@ ChTrackAssemblySinglePin::~ChTrackAssemblySinglePin() {}
 // TODO: may need fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
+bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChChassis> chassis) {
     // Number of track shoes and road wheels.
     size_t num_shoes = m_shoes.size();
     size_t num_wheels = m_suspensions.size();
     size_t index = 0;
 
     // Positions of sprocket, idler, and (front and rear) wheels.
-    const ChVector3d& sprocket_pos = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
-    const ChVector3d& idler_pos = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
-
-    ChVector3d front_wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[0]->GetWheelBody()->GetPos());
+    auto chassis_body = chassis->GetBody();
+    const ChVector3d& sprocket_pos = chassis_body->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
+    const ChVector3d& idler_pos = chassis_body->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
+    ChVector3d front_wheel_pos = chassis_body->TransformPointParentToLocal(m_suspensions[0]->GetWheelBody()->GetPos());
     ChVector3d rear_wheel_pos = front_wheel_pos;
     for (size_t i = 1; i < num_wheels; i++) {
-        const ChVector3d& wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
+        const ChVector3d& wheel_pos =
+            chassis_body->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
         if (wheel_pos.x() > front_wheel_pos.x())
             front_wheel_pos = wheel_pos;
         if (wheel_pos.x() < rear_wheel_pos.x())

@@ -269,7 +269,8 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(
     const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),  ///< body orientation
     bool collide = true,                                   ///< enable collision
     bool overlap = true,                                   ///< include overlap at container edges
-    bool closed = false                                    ///< create top wall
+    bool closed = false,                                   ///< create top wall
+    bool wireframe = false                                 ///< set wireframe rendering
 );
 
 /// Create a fixed body with collision and visualization representing a cylindrical volume.

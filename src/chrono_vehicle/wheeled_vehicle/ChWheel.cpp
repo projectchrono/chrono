@@ -43,9 +43,14 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                          std::shared_ptr<ChBody> spindle,
                          VehicleSide side,
                          double offset) {
+    m_parent = chassis;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::WHEEL);
+
     m_spindle = spindle;
     m_side = side;
     m_offset = (side == LEFT) ? offset : -offset;
+
+    m_spindle->SetTag(m_obj_tag);
 
     //// RADU TODO
     //// Properly account for offset in adjusting inertia.
@@ -54,8 +59,8 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_spindle->SetInertiaXX(m_spindle->GetInertiaXX() + GetWheelInertia());
 
     if (m_spindle->GetCollisionModel()) {
-        m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-        m_spindle->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->SetFamily(VehicleCollisionFamily::WHEEL_FAMILY);
+        m_spindle->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
     }
 
     // Create ChLoad objects to apply terrain forces on spindle
@@ -76,6 +81,8 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
         load_container->Add(m_spindle_terrain_force);
         load_container->Add(m_spindle_terrain_torque);
     }
+
+    Construct(chassis, spindle, side, offset);
 
     // Mark as initialized
     m_initialized = true;

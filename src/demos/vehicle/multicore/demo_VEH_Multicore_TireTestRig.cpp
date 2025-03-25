@@ -19,7 +19,11 @@
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
@@ -145,30 +149,37 @@ int main() {
 
     std::cout << "Total rig mass: " << rig.GetMass() << std::endl;
 
-    // Initialize OpenGL
-    // -----------------
+    // Initialize run-time visualization
+    // ---------------------------------
 
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(&sys);
-    vis.SetWindowTitle("Granular terrain demo");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::SOLID);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, 3, 0), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
+    vis->SetWindowTitle("Granular terrain demo");
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->AddCamera(ChVector3d(0, 3, 0), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
+#endif
 
     // Perform the simulation
     // ----------------------
 
-    while (vis.Run()) {
+    while (vis->Run()) {
         rig.Advance(step_size);
 
         double body_x = rig.GetPos().x();
         double buffer_dist = 0;
         ChVector3d cam_loc(body_x + buffer_dist, 3, -0.5);
         ChVector3d cam_point(body_x + buffer_dist, 0, -0.5);
-        vis.UpdateCamera(cam_loc, cam_point);
-        vis.Render();
+        vis->UpdateCamera(cam_loc, cam_point);
+        vis->Render();
 
         ////sys.GetContactContainer()->ComputeContactForces();
         ////std::cout << sys.GetChTime() << std::endl;

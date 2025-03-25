@@ -32,8 +32,6 @@
 namespace chrono {
 namespace vehicle {
 
-class ChInteractiveDriverVSG;
-
 /// @addtogroup vehicle_vis
 /// @{
 
@@ -54,12 +52,8 @@ class CH_VEHICLE_API ChVehicleVisualSystemVSG : public ChVehicleVisualSystem, pu
     virtual void Advance(double step) override;
 
   protected:
-    bool m_vsg_initialized = false;
     virtual void AppendGUIStats() {}
 
-    ChInteractiveDriverVSG* m_driver;
-
-    friend class ChInteractiveDriverVSG;
     friend class ChVehicleGuiComponentVSG;
     friend class ChVehicleKeyboardHandlerVSG;
 };

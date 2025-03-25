@@ -18,16 +18,12 @@
 #include <iomanip>
 
 #include "chrono/physics/ChSystemNSC.h"
-
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -41,6 +37,7 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 using namespace chrono::utils;
 
 using std::cout;
@@ -48,9 +45,6 @@ using std::cerr;
 using std::endl;
 
 // -----------------------------------------------------------------------------
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Container dimensions
 ChVector3d csize(5.0, 0.4, 0.8);
@@ -69,12 +63,13 @@ bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
+#ifdef CHRONO_VSG
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
-
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
 };
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -212,13 +207,13 @@ int main(int argc, char* argv[]) {
     fsi.SetStepsizeMBD(step_size);
 
     // Set CFD fluid properties
-    ChFluidSystemSPH::FluidProperties fluid_props;
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
     fluid_props.density = 1000;
     fluid_props.viscosity = 1;
     fsi.SetCfdSPH(fluid_props);
 
     // Set SPH solution parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
@@ -267,9 +262,9 @@ int main(int argc, char* argv[]) {
     ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
     ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
     ////                                  fun);                                                                      //
-    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                              //
-                                      ChVector3d(0, 0, 0), csize, depth,                                   //
-                                      fun,                                                                 //
+    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                             //
+                                      ChVector3d(0, 0, 0), csize, depth,                                  //
+                                      fun,                                                                //
                                       chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), true);  //
     ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
     ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
@@ -314,56 +309,41 @@ int main(int argc, char* argv[]) {
         }
     }
 
-// Create a run-time visualizer
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
-    render = false;
-#endif
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
-    if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-                break;
-            }
-        }
-
+    if (render) {
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.0);
         auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
             ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 3900);
 
-        visFSI->SetTitle("Chrono::FSI Wave Tank");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, -12 * csize.y(), depth / 2), ChVector3d(0, 0, depth / 2));
-        visFSI->SetCameraMoveScale(0.1f);
-        visFSI->SetLightIntensity(0.9);
-        visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-        visFSI->AttachSystem(&sysMBS);
-        visFSI->Initialize();
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Wave Tank");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(0, -12 * csize.y(), depth / 2), ChVector3d(0, 0, depth / 2));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Write results to a txt file
     std::string out_file = out_dir + "/results.txt";
@@ -391,8 +371,9 @@ int main(int argc, char* argv[]) {
 
         // Render FSI system
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
 
             if (snapshots) {
                 if (verbose)
@@ -400,7 +381,7 @@ int main(int argc, char* argv[]) {
                 std::ostringstream filename;
                 filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
                          << ".bmp";
-                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

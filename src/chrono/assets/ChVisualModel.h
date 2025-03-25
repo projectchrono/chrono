@@ -34,15 +34,20 @@ class ChObj;
 /// Visual models can be instantiated and shared among different Chrono physics items.
 class ChApi ChVisualModel {
   public:
-    /// A ShapeInstance is a pair of a (shared) shape and its position in the model.
-    typedef std::pair<std::shared_ptr<ChVisualShape>, ChFrame<>> ShapeInstance;
+    /// Definition of an instance of a visual shape in a visual model.
+    struct ShapeInstance {
+        std::shared_ptr<ChVisualShape> shape;  /// visual shape (possibly shared)
+        ChFramed frame;                        ///< shape position relative to containing model
+        bool wireframe;                        ///< wireframe rendering for this instance
+    };
 
     ChVisualModel() {}
     ~ChVisualModel() {}
 
     /// Add a visual shape with specified position within the model.
     void AddShape(std::shared_ptr<ChVisualShape> shape,  ///< visualization shape
-                  const ChFrame<>& frame = ChFrame<>()   ///< shape frame in model
+                  const ChFramed& frame = ChFrame<>(),   ///< shape frame in model
+                  bool wireframe = false                 ///< solid rendering by default
     );
 
     /// Add visual shapes for an FEA mesh to this model.
@@ -51,17 +56,26 @@ class ChApi ChVisualModel {
     /// Get the number of visual shapes in the model.
     unsigned int GetNumShapes() const { return (unsigned int)m_shapes.size(); }
 
+    /// Get the number of FEA visual shapes in the model.
+    unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
+
     /// Get the visual shapes in the model.
     const std::vector<ShapeInstance>& GetShapeInstances() const { return m_shapes; }
 
     /// Get the specified visual shape in the model.
-    std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].first; }
+    std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].shape; }
 
     /// Get the coordinate frame of the specified visual shape in the model (relative to the model frame).
-    const ChFrame<>& GetShapeFrame(unsigned int i) const { return m_shapes[i].second; }
+    const ChFrame<>& GetShapeFrame(unsigned int i) const { return m_shapes[i].frame; }
 
-    /// Get the number of visual shapes in the model.
-    unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
+    /// Enable wireframe mode for all shapes in the model.
+    void EnableWireframe(bool val = true);
+
+    /// Enable/disable wireframe rendering mode for the specified shape in the model (default: false).
+    void EnableWireframe(unsigned int i, bool val = true) { m_shapes[i].wireframe = val; }
+
+    /// Get the rendering mode of the specifiedc shape instance in the model.
+    bool UseWireframe(unsigned int i) const { return m_shapes[i].wireframe; }
 
     /// Get the FEA visualization shapes in the model.
     const std::vector<std::shared_ptr<ChVisualShapeFEA>>& GetShapesFEA() const { return m_shapesFEA; }

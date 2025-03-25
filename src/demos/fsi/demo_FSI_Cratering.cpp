@@ -27,17 +27,14 @@
 #include <fstream>
 
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/ChFluidSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -47,22 +44,21 @@
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 // -----------------------------------------------------------------------------
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 const double sphere_radius = 0.0125;
 
 // -----------------------------------------------------------------------------
 
-class MarkerPositionVisibilityCallback : public ChFsiVisualization::MarkerVisibilityCallback {
+#ifdef CHRONO_VSG
+class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVisibilityCallback {
   public:
     MarkerPositionVisibilityCallback() {}
-
     virtual bool get(unsigned int n) const override { return pos[n].y > 0; }
 };
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -140,7 +136,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sysMBS;
 
     // Create a fluid system
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     // Create an FSI system
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
@@ -180,10 +176,11 @@ int main(int argc, char* argv[]) {
     double bzDim = fzDim;
 
     // Set the periodic boundary condition
-    ChVector3d cMin(-bxDim / 2 * 1.2, -byDim / 2 * 1.2, -bzDim * 1.2);
+    ChVector3d cMin(-bxDim / 2 - 3 * init_spacing, -byDim / 2 - 3 * init_spacing, -bzDim * 1.2);
     ////ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + Hdrop + sphere_radius + init_spacing) * 1.2);
-    ChVector3d cMax(bxDim / 2 * 1.2, byDim / 2 * 1.2, (bzDim + sphere_radius + init_spacing) * 1.2);
-    sysSPH.SetBoundaries(cMin, cMax);
+    ChVector3d cMax(bxDim / 2 + 3 * init_spacing, byDim / 2 + 3 * init_spacing,
+                    (bzDim + sphere_radius + init_spacing) * 1.2);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Create SPH particle locations using a regular grid sampler
     chrono::utils::ChGridSampler<> sampler(init_spacing);
@@ -300,41 +297,38 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a run-time visualizer
-    std::shared_ptr<ChFsiVisualization> visFSI;
-    if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-                break;
-            }
-        }
+    std::shared_ptr<ChVisualSystem> vis;
 
+#ifdef CHRONO_VSG
+    if (render) {
+        // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, impact_vel / 2);
 
-        visFSI->SetTitle("FSI Cratering");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
-        visFSI->SetCameraMoveScale(0.1f);
-        visFSI->SetLightIntensity(0.9);
-        visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
-        visFSI->AttachSystem(&sysMBS);
-        visFSI->Initialize();
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Cratering");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(0, -3 * byDim, 0.75 * bzDim), ChVector3d(0, 0, 0.75 * bzDim));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     double time = 0.0;
@@ -356,14 +350,15 @@ int main(int argc, char* argv[]) {
         }
 
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
 
             if (snapshots) {
                 std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
                 std::ostringstream filename;
                 filename << out_dir << "/snapshots/" << std::setw(5) << std::setfill('0') << render_frame << ".jpg";
-                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;

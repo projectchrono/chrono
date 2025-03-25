@@ -87,9 +87,9 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
     /// aligned with the chassis reference frame.
     /// Derived classes must call this base class implementation (which only
     /// initializes the road wheel).
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Return current suspension forces or torques, as appropriate (spring and shock).
@@ -108,6 +108,19 @@ class CH_VEHICLE_API ChTrackSuspension : public ChPart {
                       bool has_shock,           ///< [in] specify whether or not the suspension has a damper
                       bool lock_arm             ///< [in] if true, the suspension arm is locked
     );
+
+    /// Construct the concrete track suspension subsystem.
+    /// The suspension subsystem is initialized by attaching it to the specified
+    /// chassis body at the specified location (with respect to and expressed in
+    /// the reference frame of the chassis). It is assumed that the suspension
+    /// reference frame is always centered at the location of the road wheel and
+    /// aligned with the chassis reference frame.
+    /// Derived classes must call this base class implementation (which only
+    /// initializes the road wheel).
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) = 0;
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

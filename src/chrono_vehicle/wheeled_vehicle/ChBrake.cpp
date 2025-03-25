@@ -35,6 +35,10 @@ void ChBrake::UpdateInertiaProperties() {}
 void ChBrake::Initialize(std::shared_ptr<ChChassis> chassis,
                          std::shared_ptr<ChSuspension> suspension,
                          VehicleSide side) {
+    m_parent = chassis;
+
+    Construct(chassis, suspension, side);
+
     // Mark as initialized
     m_initialized = true;
 }

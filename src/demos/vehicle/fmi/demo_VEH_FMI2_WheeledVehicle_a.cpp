@@ -274,13 +274,24 @@ class PowertrainSystem {
     std::shared_ptr<chrono::vehicle::ChTransmission> transmission;
     std::shared_ptr<chrono::vehicle::ChPowertrainAssembly> powertrain;
 
+    class Vehicle : public ChVehicle {
+      public:
+        Vehicle(ChSystem* system) : ChVehicle("vehicle", system) {}
+        virtual std::string GetTemplateName() const override { return ""; }
+        virtual void InitializeInertiaProperties() override {}
+        virtual void UpdateInertiaProperties() {}
+    };
+
     class Chassis : public ChChassis {
       public:
         Chassis() : ChChassis("chassis") {}
         virtual std::string GetTemplateName() const override { return ""; }
         virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsysd(); }
         virtual void EnableCollision(bool state) override {}
-
+        virtual void Construct(ChVehicle* vehicle,
+                               const ChCoordsys<>& chassisPos,
+                               double chassisFwdVel,
+                               int collision_family) override {}
         virtual double GetBodyMass() const override { return 1; }
         virtual ChFrame<> GetBodyCOMFrame() const override { return ChFramed(); }
         virtual ChMatrix33<> GetBodyInertia() const override { return ChMatrix33<>(1); }
@@ -294,8 +305,10 @@ PowertrainSystem::PowertrainSystem(ChSystem& sys,
     transmission = ReadTransmissionJSON(transmission_JSON);
     powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
 
+    auto vehicle = chrono_types::make_shared<Vehicle>(&sys);
+
     auto chassis = chrono_types::make_shared<Chassis>();
-    chassis->Initialize(&sys, ChCoordsysd(), 0.0);
+    chassis->Initialize(vehicle.get(), ChCoordsysd(), 0.0);
     chassis->SetFixed(true);
 
     powertrain->Initialize(chassis);

@@ -37,13 +37,13 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "Balancer"; }
 
-    /// Initialize this subchassis subsystem.
+    /// Construct the balancer subchassis subsystem.
     /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
     /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is
     /// always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis
-                            const ChVector3d& location           ///< [in] location relative to the chassis frame
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis
+                           const ChVector3d& location           ///< [in] location relative to the chassis frame
+                           ) override;
 
     /// Add visualization assets for the balancer subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

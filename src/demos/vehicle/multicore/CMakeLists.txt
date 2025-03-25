@@ -1,9 +1,9 @@
 #=============================================================================
 # CMake configuration file for demos of Chrono::Vehicle with Chrono::Multicore.
-# These example use the OpenGL module for run-time visualization.
+# These example use the VSG module for run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_OPENGL)
+if(NOT CH_ENABLE_MODULE_MULTICORE OR NOT CH_ENABLE_MODULE_VSG)
     return()
 endif()
 
@@ -28,7 +28,7 @@ foreach(PROGRAM ${DEMOS})
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM}
                           Chrono_multicore
-                          Chrono_opengl
+                          Chrono_vsg
                           Chrono_vehicle
                           ChronoModels_vehicle)
     if(MSVC)

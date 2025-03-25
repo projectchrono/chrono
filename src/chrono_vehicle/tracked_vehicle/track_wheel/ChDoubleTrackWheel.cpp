@@ -30,13 +30,10 @@ namespace vehicle {
 
 ChDoubleTrackWheel::ChDoubleTrackWheel(const std::string& name) : ChTrackWheel(name) {}
 
-void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
-                                    std::shared_ptr<ChBody> carrier,
-                                    const ChVector3d& location,
-                                    ChTrackAssembly* track) {
-    // Invoke the base class method
-    ChTrackWheel::Initialize(chassis, carrier, location, track);
-
+void ChDoubleTrackWheel::Construct(std::shared_ptr<ChChassis> chassis,
+                                   std::shared_ptr<ChBody> carrier,
+                                   const ChVector3d& location,
+                                   ChTrackAssembly* track) {
     CreateContactMaterial(m_wheel->GetSystem()->GetContactMethod());
     assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
 

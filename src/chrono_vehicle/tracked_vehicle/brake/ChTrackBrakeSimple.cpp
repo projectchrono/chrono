@@ -24,20 +24,20 @@
 namespace chrono {
 namespace vehicle {
 
-ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {
-    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
-}
+ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {}
 
 ChTrackBrakeSimple::~ChTrackBrakeSimple() {
+    if (!m_initialized)
+        return;
+
     auto sys = m_brake->GetSystem();
-    if (sys) {
-        sys->Remove(m_brake);
-    }
+    if (!sys)
+        return;
+
+    sys->Remove(m_brake);
 }
 
-void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
-    ChTrackBrake::Initialize(chassis, sprocket);
-
+void ChTrackBrakeSimple::Construct(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
     auto hub = sprocket->GetRevolute();
     auto sys = hub->GetSystem();
 
@@ -52,6 +52,8 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
+    m_brake->SetTag(m_obj_tag);
     m_brake->Initialize(mb1, mb2, true, *hub->GetMarker1(), *hub->GetMarker2());
     sys->AddLink(m_brake);
 }

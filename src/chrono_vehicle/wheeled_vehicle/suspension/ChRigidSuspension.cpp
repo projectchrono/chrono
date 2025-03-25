@@ -35,22 +35,15 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRigidSuspension::ChRigidSuspension(const std::string& name) : ChSuspension(name) {}
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRigidSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   std::shared_ptr<ChSubchassis> subchassis,
-                                   std::shared_ptr<ChSteering> steering,
-                                   const ChVector3d& location,
-                                   double left_ang_vel,
-                                   double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChRigidSuspension::Construct(std::shared_ptr<ChChassis> chassis,
+                                  std::shared_ptr<ChSubchassis> subchassis,
+                                  std::shared_ptr<ChSteering> steering,
+                                  const ChVector3d& location,
+                                  double left_ang_vel,
+                                  double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -93,6 +86,7 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
     // Create and initialize joints
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(chassis, m_spindle[side],
                                  ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -101,6 +95,7 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);

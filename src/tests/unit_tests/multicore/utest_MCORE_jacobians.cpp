@@ -26,8 +26,9 @@
 
 #include "../ut_utils.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 // Comment the following line to use multicore collision detection
@@ -234,20 +235,24 @@ TEST(ChronoMulticore, jacobians) {
     sys->DoStepDynamics(time_step);
 
     if (animate) {
-#ifdef CHRONO_OPENGL
-        opengl::ChVisualSystemOpenGL vis;
-        vis.AttachSystem(sys);
-        vis.SetWindowTitle("Jacobians");
-        vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+        auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+        vis->AttachSystem(sys);
+        vis->SetWindowTitle("Unit test");
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
+        vis->SetWindowSize(1280, 720);
+        vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+        vis->EnableSkyBox();
+        vis->SetCameraAngleDeg(40.0);
+        vis->SetLightIntensity(1.0f);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows();
+        vis->Initialize();
 
-        // Loop until reaching the end time...
         while (time < time_end) {
-            if (vis.Run()) {
-                vis.Render();
+            if (vis->Run()) {
+                vis->Render();
             }
             auto pos_rigid = sys->data_manager->host_data.pos_rigid;
             auto rot_rigid = sys->data_manager->host_data.rot_rigid;
@@ -256,7 +261,7 @@ TEST(ChronoMulticore, jacobians) {
             time += time_step;
         }
 #else
-        std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
+        std::cout << "Run-time visualization not available.  Cannot animate mechanism." << std::endl;
         return;
 #endif
     } else {

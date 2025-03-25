@@ -15,9 +15,9 @@ set(DEMOS
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS "Chrono_gpu")
 
-if(CH_ENABLE_MODULE_OPENGL)
-    list(APPEND LIBS "Chrono_gpu_opengl")
-endif()
+#if(CH_ENABLE_MODULE_VSG)
+#    list(APPEND LIBS "Chrono_gpu_vsg")
+#endif()
 
 # ------------------------------------------------------------------------------
 # Add all executables

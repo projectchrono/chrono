@@ -8,9 +8,9 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, OpenGL, VSG, Matlab,
-#   Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor,
-#   Synchrono, Vehicle, VehicleCosim.
+#   Cascade, CSharp, FMI, FSI, GPU, Irrlicht, Matlab, Modal, Multicore,
+#   PardisoMKL, Parsers, Postprocess, Sensor, Synchrono,
+#   Vehicle, VehicleCosim, VSG.
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 #
@@ -113,7 +113,6 @@ set(Chrono_MATLAB_AVAILABLE         @CH_ENABLE_MODULE_MATLAB@)
 set(Chrono_PARDISOMKL_AVAILABLE     @CH_ENABLE_MODULE_PARDISO_MKL@)
 set(Chrono_MUMPS_AVAILABLE          @CH_ENABLE_MODULE_MUMPS@)
 set(Chrono_MULTICORE_AVAILABLE      @CH_ENABLE_MODULE_MULTICORE@)
-set(Chrono_OPENGL_AVAILABLE         @CH_ENABLE_MODULE_OPENGL@)
 set(Chrono_POSTPROCESS_AVAILABLE    @CH_ENABLE_MODULE_POSTPROCESS@)
 set(Chrono_PARSERS_AVAILABLE        @CH_ENABLE_MODULE_PARSERS@)
 set(Chrono_VEHICLE_AVAILABLE        @CH_ENABLE_MODULE_VEHICLE@)
@@ -143,7 +142,6 @@ set(Chrono_MATLAB_DEPENDENCIES         "@DEPENDENCIES_MATLAB@")
 set(Chrono_PARDISOMKL_DEPENDENCIES     "@DEPENDENCIES_PARDISO_MKL@")
 set(Chrono_MUMPS_DEPENDENCIES          "@DEPENDENCIES_MUMPS@")
 set(Chrono_MULTICORE_DEPENDENCIES      "@DEPENDENCIES_MULTICORE@")
-set(Chrono_OPENGL_DEPENDENCIES         "@DEPENDENCIES_OPENGL@")
 set(Chrono_POSTPROCESS_DEPENDENCIES    "@DEPENDENCIES_POSTPROCESS@")
 set(Chrono_PARSERS_DEPENDENCIES        "@DEPENDENCIES_PARSERS@")
 set(Chrono_VEHICLE_DEPENDENCIES        "@DEPENDENCIES_VEHICLE@")
@@ -237,17 +235,13 @@ else()
   set(CHRONO_CXX_FOUND TRUE)
 endif()
 
+
 #-------------------------------------------------------------------------------
 # Find Eigen3
 #-------------------------------------------------------------------------------
 
-if(NOT EIGEN3_INCLUDE_DIR AND NOT Eigen3_ROOT)
-  set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@")
-endif()
-
-if(NOT Eigen3_DIR)
-  set(Eigen3_DIR "@Eigen3_DIR@")
-endif()
+set(EIGEN3_INCLUDE_DIR "@EIGEN3_INCLUDE_DIR@" CACHE PATH "Path to Eigen3 directory (should contain a subfolder named \"Eigen\"")
+set(Eigen3_DIR "@Eigen3_DIR@" CACHE PATH "Path to Eigen3 config file (should contain the \"Eigen3Config.cmake\" file")
 
 find_package(Eigen3 3.3 QUIET)
 
@@ -257,10 +251,9 @@ if(EIGEN3_FOUND)
   endif()
   mark_as_advanced(FORCE EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
-  mark_as_advanced(FORCE Eigen3_ROOT)
 else()
   if(NOT Chrono_FIND_QUIETLY)
-    message("ERROR: Chrono requires Eigen3, but Eigen3 was not found")
+    message("ERROR:  Eigen3 cannot be found. Set either EIGEN3_INCLUDE_DIR or the envvar Eigen3_ROOT to the location of Eigen library or provide location of Eigen3Config.cmake through Eigen3_DIR.")
   endif()
   return()
 endif()
@@ -436,55 +429,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   set(CHRONO_${COMPONENT_UPPER}_FOUND ON)
 
-  if(${COMPONENT_UPPER} MATCHES "OPENGL")
-
-    set(OpenGL_DIR "@OpenGL_DIR@" CACHE PATH "Path to the OpenGL installation.")
-    set(GLEW_DIR "@GLEW_DIR@" CACHE PATH "Path to GLEW installation.")
-    set(glfw3_DIR "@glfw3_DIR@" CACHE PATH "Path to glfw3 installation.")
-    set(glm_DIR "@glm_DIR@" CACHE PATH "Path to glm installation.")
-    find_package(OpenGL QUIET)
-    find_package(GLEW QUIET)
-    find_package(glfw3 QUIET)
-    find_package(glm QUIET)
-
-    if(NOT OPENGL_FOUND)
-      mark_as_advanced(CLEAR OpenGL_DIR)
-    else()
-      mark_as_advanced(FORCE OpenGL_DIR)
-    endif()
-
-    if (NOT GLEW_FOUND)
-      message("WARNING: Chrono::OpenGL requires GLEW, but GLEW was not found. Set GLEW_DIR to the GLEW installa directory.")
-      set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR GLEW_DIR)
-    else()
-      mark_as_advanced(FORCE GLEW_DIR)
-    endif()
-    
-    if (NOT glfw3_FOUND)
-      message("WARNING: Chrono::OpenGL requires glfw3, but glfw3 was not found. Set glfw3_DIR to the glfw install directory.")
-      set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR glfw3_DIR)
-    else()
-      mark_as_advanced(FORCE glfw3_DIR)
-    endif()
-
-    if (NOT glm_FOUND)
-      message("WARNING: Chrono::OpenGL requires GLM, but GLM was not found. Set glm_DIR to the GLM install directory.")
-      set(CHRONO_${COMPONENT_UPPER}_FOUND OFF)
-      mark_as_advanced(CLEAR glm_DIR)
-    else()
-      mark_as_advanced(FORCE glm_DIR)
-    endif()
-
-    if (CHRONO_${COMPONENT_UPPER}_FOUND)
-      list(PREPEND CHRONO_LIB_NAMES "Chrono_opengl")
-      if (NOT CHRONO_STATIC)
-        list(APPEND CHRONO_DLL_NAMES "Chrono_opengl.dll")
-      endif()
-    endif()
-
-  elseif(${COMPONENT_UPPER} MATCHES "MULTICORE")
+  if(${COMPONENT_UPPER} MATCHES "MULTICORE")
 
     if (NOT CHRONO_THRUST_FOUND)
       message("WARNING: Chrono::Multicore requires Thrust, but Thrust was not found")
@@ -669,22 +614,10 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         endif()
       endif()
 
-      if(Chrono_OPENGL_REQUESTED AND Chrono_OPENGL_AVAILABLE)
-        list(PREPEND CHRONO_LIB_NAMES "Chrono_fsisph_opengl")
-        if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_opengl.dll")
-        endif()
-      endif()
-
       # ATTENTION: This is a temporary hack!
-      # We only add to the list of DLLs, when we should fully configure the OpenGL and VSG modules.
-      # However, full configuration of the OpenGL module leads to problems when using in a C# project (because of FindThreads).
+      # We only add to the list of DLLs, when we should fully configure the VSG modules.
       # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
       if (NOT CHRONO_STATIC)
-        if (Chrono_OPENGL_AVAILABLE)
-          list(APPEND CHRONO_DLL_NAMES "Chrono_opengl.dll")
-          list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_opengl.dll")
-        endif()
         if (Chrono_VSG_AVAILABLE)
           list(APPEND CHRONO_DLL_NAMES "Chrono_vsg.dll")
           list(APPEND CHRONO_DLL_NAMES "Chrono_fsisph_vsg.dll")
@@ -831,12 +764,12 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
         list(APPEND CHRONO_DLL_NAMES "Chrono_gpu.dll")
       endif()
 
-      if(Chrono_OPENGL_REQUESTED AND Chrono_OPENGL_AVAILABLE)
-        list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu_opengl")
-        if (NOT CHRONO_STATIC)
-          list(APPEND CHRONO_DLL_NAMES "Chrono_gpu_opengl.dll")
-        endif()
-      endif()
+#      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
+#        list(PREPEND CHRONO_LIB_NAMES "Chrono_gpu_vsg")
+#        if (NOT CHRONO_STATIC)
+#          list(APPEND CHRONO_DLL_NAMES "Chrono_gpu_vsg.dll")
+#        endif()
+#      endif()
 
     endif()
 

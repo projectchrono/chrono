@@ -51,7 +51,6 @@ const std::string ChDeDionAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", 
                                                   "WATT_CNT_RI", "WATT_LE_CH ", "WATT_RI_CH "};
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChDeDionAxle::ChDeDionAxle(const std::string& name) : ChSuspension(name) {}
 
 ChDeDionAxle::~ChDeDionAxle() {
@@ -70,18 +69,12 @@ ChDeDionAxle::~ChDeDionAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                              std::shared_ptr<ChSubchassis> subchassis,
-                              std::shared_ptr<ChSteering> steering,
-                              const ChVector3d& location,
-                              double left_ang_vel,
-                              double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChDeDionAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                             std::shared_ptr<ChSubchassis> subchassis,
+                             std::shared_ptr<ChSteering> steering,
+                             const ChVector3d& location,
+                             double left_ang_vel,
+                             double right_ang_vel) {
     // Unit vectors for orientation matrices.
     ChVector3d u;
     ChVector3d v;
@@ -123,6 +116,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the axle body.
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetName(m_name + "_axleTube");
+    m_axleTube->SetTag(m_obj_tag);
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -131,6 +125,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_axleTubeGuideLong = chrono_types::make_shared<ChLinkLockSpherical>();
     m_axleTubeGuideLong->SetName(m_name + "_sphereAxleTube");
+    m_axleTubeGuideLong->SetTag(m_obj_tag);
     ChVector3d spPos = suspension_to_abs.TransformPointLocalToParent(getLocation(AXLE_C));
     m_axleTubeGuideLong->Initialize(m_axleTube, chassis->GetBody(), ChFrame<>(spPos, QUNIT));
     chassis->GetSystem()->AddLink(m_axleTubeGuideLong);
@@ -140,6 +135,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_CNT_LE) + getLocation(WATT_CNT_RI) / 2.0));
     m_wattCenterLinkBody = chrono_types::make_shared<ChBody>();
     m_wattCenterLinkBody->SetName(m_name + "_wattCenterBody");
+    m_wattCenterLinkBody->SetTag(m_obj_tag);
     m_wattCenterLinkBody->SetPos(cntrPos);
     m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattCenterLinkBody->SetMass(getWattCenterMass());
@@ -150,6 +146,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_LE_CH) + getLocation(WATT_CNT_LE)) / 2.0);
     m_wattLeftLinkBody = chrono_types::make_shared<ChBody>();
     m_wattLeftLinkBody->SetName(m_name + "_wattLeftBody");
+    m_wattLeftLinkBody->SetTag(m_obj_tag);
     m_wattLeftLinkBody->SetPos(lftPos);
     m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattLeftLinkBody->SetMass(getWattSideMass());
@@ -160,6 +157,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
         suspension_to_abs.TransformPointLocalToParent((getLocation(WATT_RI_CH) + getLocation(WATT_CNT_RI)) / 2.0);
     m_wattRightLinkBody = chrono_types::make_shared<ChBody>();
     m_wattRightLinkBody->SetName(m_name + "_wattRightBody");
+    m_wattRightLinkBody->SetTag(m_obj_tag);
     m_wattRightLinkBody->SetPos(rghtPos);
     m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattRightLinkBody->SetMass(getWattSideMass());
@@ -169,12 +167,14 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // link the Watt center link to the axle tube
     m_wattCenterRev = chrono_types::make_shared<ChLinkLockRevolute>();
     m_wattCenterRev->SetName(m_name + "_wattCenterPivot");
+    m_wattCenterRev->SetTag(m_obj_tag);
     m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, ChFrame<>(cntrPos, QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_wattCenterRev);
 
     // link the Watt left link to the center link
     m_wattLeftToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattLeftToCenterSph->SetName(m_name + "_wattLeft2CenterSph");
+    m_wattLeftToCenterSph->SetTag(m_obj_tag);
     m_wattLeftToCenterSph->Initialize(
         m_wattLeftLinkBody, m_wattCenterLinkBody,
         ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_LE)), QUNIT));
@@ -183,6 +183,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // link the Watt left link to the axle tube
     m_wattLeftToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattLeftToAxleTubeSph->SetName(m_name + "_wattLeft2ChassisSph");
+    m_wattLeftToAxleTubeSph->SetTag(m_obj_tag);
     m_wattLeftToAxleTubeSph->Initialize(
         m_wattLeftLinkBody, chassis->GetBody(),
         ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_LE_CH)), QUNIT));
@@ -191,6 +192,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // link the Watt right link to the center link
     m_wattRightToCenterSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattRightToCenterSph->SetName(m_name + "_wattRight2CenterSph");
+    m_wattRightToCenterSph->SetTag(m_obj_tag);
     m_wattRightToCenterSph->Initialize(
         m_wattRightLinkBody, m_wattCenterLinkBody,
         ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_CNT_RI)), QUNIT));
@@ -199,6 +201,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // link the Watt right link to the axle tube
     m_wattRightToAxleTubeSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_wattRightToAxleTubeSph->SetName(m_name + "_wattRight2ChassisSph");
+    m_wattRightToAxleTubeSph->SetTag(m_obj_tag);
     m_wattRightToAxleTubeSph->Initialize(
         m_wattRightLinkBody, chassis->GetBody(),
         ChFrame<>(suspension_to_abs.TransformPointLocalToParent(getLocation(WATT_RI_CH)), QUNIT));
@@ -255,6 +258,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     // Create and initialize the revolute joint between axle tube and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -262,6 +266,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetName(m_name + "_shock" + suffix);
+    m_shock[side]->SetTag(m_obj_tag);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -270,6 +275,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     // Create and initialize the spring
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetName(m_name + "_spring" + suffix);
+    m_spring[side]->SetTag(m_obj_tag);
     m_spring[side]->Initialize(scbeam, m_axleTube, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -279,6 +285,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);

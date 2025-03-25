@@ -44,9 +44,9 @@ ChTranslationalDamperSuspension::~ChTranslationalDamperSuspension() {
 }
 
 // -----------------------------------------------------------------------------
-void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                                 const ChVector3d& location,
-                                                 ChTrackAssembly* track) {
+void ChTranslationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chassis,
+                                                const ChVector3d& location,
+                                                ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -73,6 +73,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
 
     m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetName(m_name + "_arm");
+    m_arm->SetTag(m_obj_tag);
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);
     m_arm->SetMass(GetArmMass());
@@ -102,12 +103,14 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
                                                             chassis->GetBody(), m_arm,
                                                             ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     }
+    m_joint->SetTag(m_obj_tag);
     chassis->AddJoint(m_joint);
 
     // Create and initialize the rotational spring torque element.
     // The reference RSDA frame is aligned with the chassis frame.
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetName(m_name + "_spring");
+    m_spring->SetTag(m_obj_tag);
     m_spring->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     m_spring->SetRestAngle(GetSpringRestAngle());
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
@@ -118,6 +121,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     if (GetDamperTorqueFunctor()) {
         m_damper = chrono_types::make_shared<ChLinkRSDA>();
         m_damper->SetName(m_name + "_damper");
+        m_damper->SetTag(m_obj_tag);
         m_damper->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
         m_damper->RegisterTorqueFunctor(GetDamperTorqueFunctor());
         chassis->GetSystem()->AddLink(m_damper);
@@ -127,14 +131,11 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     if (m_has_shock) {
         m_shock = chrono_types::make_shared<ChLinkTSDA>();
         m_shock->SetName(m_name + "_shock");
+        m_shock->SetTag(m_obj_tag);
         m_shock->Initialize(chassis->GetBody(), m_arm, false, points[SHOCK_C], points[SHOCK_A]);
         m_shock->RegisterForceFunctor(GetShockForceFunctor());
         chassis->GetSystem()->AddLink(m_shock);
     }
-
-    // Invoke the base class implementation. This initializes the associated road wheel.
-    // Note: we must call this here, after the m_arm body is created.
-    ChTrackSuspension::Initialize(chassis, location, track);
 }
 
 void ChTranslationalDamperSuspension::InitializeInertiaProperties() {

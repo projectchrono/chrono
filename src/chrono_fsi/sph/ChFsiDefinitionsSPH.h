@@ -21,8 +21,9 @@
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
-/// @addtogroup fsi_physics
+/// @addtogroup fsisph
 /// @{
 
 /// Physics problem type.
@@ -38,7 +39,7 @@ enum class SPHMethod {
 };
 
 /// Shifting Methods
-enum class ShiftingMethod { NONE, PPST, XSPH, PPST_XSPH, DIFFUSION, DIFFUSION_XSPH};
+enum class ShiftingMethod { NONE, PPST, XSPH, PPST_XSPH, DIFFUSION, DIFFUSION_XSPH };
 
 /// Equation of State type.
 /// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
@@ -63,6 +64,18 @@ enum class FrictionLaw { CONSTANT, LINEAR, NONLINEAR };
 enum class SolverType { JACOBI, BICGSTAB, GMRES, CR, CG, SAP };
 
 // -----------------------------------------------------------------------------
+
+/// Enumeration for specifying whether the sides of a computational domain are
+/// periodic or not. Sides can be combined using binary OR operations.
+namespace PeriodicSide {
+enum Enum {
+    NONE = 0x0000,
+    X = 1 << 0,   ///< X direction (both positive and negative) is periodic
+    Y = 1 << 1,   ///< Y direction (both positive and negative) is periodic
+    Z = 1 << 2,   ///< Z direction (both positive and negative) is periodic
+    ALL = 0xFFFF  ///< All directions (X, Y, Z) are periodic
+};
+}
 
 /// Enumeration for box sides.
 /// These flags are used to identify sides of a box container and can be combined using unary boolean operations.
@@ -131,8 +144,9 @@ enum class OutputLevel {
     CRM_FULL         ///< STATE_PRESSURE plus normal and shear stress
 };
 
-/// @} fsi_physics
+/// @} fsisph
 
+}  // namespace sph
 }  // namespace fsi
 }  // namespace chrono
 

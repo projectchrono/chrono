@@ -81,6 +81,13 @@ def main():
     patch4.SetTexture(veh.GetDataFile("terrain/textures/grass.jpg"), 6.0, 6.0)
 
     terrain.Initialize()
+    
+    # Create the interactive driver system
+    driver = veh.ChInteractiveDriver(hmmwv.GetVehicle())
+    driver.SetSteeringDelta(0.02)
+    driver.SetThrottleDelta(0.02)
+    driver.SetBrakingDelta(0.06)
+    driver.Initialize()
 
     # Create the vehicle Irrlicht interface
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
@@ -92,13 +99,7 @@ def main():
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(hmmwv.GetVehicle())
-
-    # Create the interactive driver system
-    driver = veh.ChInteractiveDriverIRR(vis)
-    driver.SetSteeringDelta(0.02)
-    driver.SetThrottleDelta(0.02)
-    driver.SetBrakingDelta(0.06)
-    driver.Initialize()
+    vis.AttachDriver(driver)
 
     hmmwv.GetVehicle().EnableRealtime(True)
 

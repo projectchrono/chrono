@@ -244,6 +244,22 @@ namespace ChronoDemo
             terrain.Initialize();
 
             //------------------------------------------------------------
+            // Driver Setup
+            //------------------------------------------------------------
+
+            // Set the time response for steering and throttle keyboard inputs.
+            double render_step_size = 1.0 / 50;  // FPS = 50
+            double steering_time = 1.0;          // time to go from 0 to +1 (or from 0 to -1)
+            double throttle_time = 1.0;          // time to go from 0 to +1
+            double braking_time = 0.3;           // time to go from 0 to +1
+
+            ChInteractiveDriver driver = new ChInteractiveDriver(hmmwv.GetVehicle());
+            driver.SetSteeringDelta(render_step_size / steering_time);
+            driver.SetThrottleDelta(render_step_size / throttle_time);
+            driver.SetBrakingDelta(render_step_size / braking_time);
+            driver.Initialize();
+
+            //------------------------------------------------------------
             // Create the vehicle Irrlicht interface
             //------------------------------------------------------------
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
@@ -261,27 +277,11 @@ namespace ChronoDemo
             vis.AddSkyBox();
             vis.AddLogo();
             vis.AttachVehicle(hmmwv.GetVehicle());
-
+            vis.AttachDriver(driver);
 
             // Enable visualisation for reference
             vis.EnableCollisionShapeDrawing(false);
             vis.EnableBodyFrameDrawing(false);
-
-            //------------------------------------------------------------
-            // Driver Setup
-            //------------------------------------------------------------
-
-            // Set the time response for steering and throttle keyboard inputs.
-            double render_step_size = 1.0 / 50;  // FPS = 50
-            double steering_time = 1.0;          // time to go from 0 to +1 (or from 0 to -1)
-            double throttle_time = 1.0;          // time to go from 0 to +1
-            double braking_time = 0.3;           // time to go from 0 to +1
-
-            ChInteractiveDriverIRR driver = new ChInteractiveDriverIRR(vis);
-            driver.SetSteeringDelta(render_step_size / steering_time);
-            driver.SetThrottleDelta(render_step_size / throttle_time);
-            driver.SetBrakingDelta(render_step_size / braking_time);
-            driver.Initialize();
 
             //------------------------------------------------------------
             // Simulation loop

@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -38,8 +39,8 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -47,6 +48,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 
 using std::cout;
 using std::cerr;
@@ -95,7 +97,7 @@ double output_fps = 20;
 // Verbose terminal output
 bool verbose = true;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 100;
 
@@ -108,7 +110,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI);
 int main(int argc, char* argv[]) {
     // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
@@ -134,7 +136,7 @@ int main(int argc, char* argv[]) {
     auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
     ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 10 * bzDim);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Set SPH discretization type, consistent or inconsistent
     sysSPH.SetConsistentDerivativeDiscretization(false, false);
@@ -185,16 +187,33 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-#ifdef CHRONO_OPENGL
-    // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
+
+#ifdef CHRONO_VSG
     if (render) {
-        fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
-        fsi_vis.AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
-        fsi_vis.Initialize();
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(false);
+        visFSI->EnableRigidBodyMarkers(true);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Flexible Toroidal Tire");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
 #endif
 
     // Set MBS solver
@@ -240,11 +259,12 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
         // Render SPH particles
         if (render && time >= render_frame / render_fps) {
-            if (!fsi_vis.Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
 #endif
@@ -276,7 +296,7 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
-    ChFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
     ChSystem& sysMBS = sysFSI.GetMultibodySystem();
 
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));

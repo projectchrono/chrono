@@ -37,8 +37,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -246,12 +247,16 @@ int CreateObjects(ChSystemMulticore* system) {
     mat_c->SetFriction(mu_c);
     mat_c->SetRestitution(cr_c);
 
-    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness,  //
+                              VNULL, QUNIT,                                               //
+                              true, true, false, true);
 #else
     auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_c->SetFriction(mu_c);
 
-    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness,  //
+                              VNULL, QUNIT,                                               //
+                              true, true, false, true);
 #endif
 
     // Create a material for the granular material
@@ -484,16 +489,20 @@ int main(int argc, char* argv[]) {
     int num_contacts = 0;
     std::ofstream hfile(height_file);
 
-#ifdef CHRONO_OPENGL
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(sys);
-    vis.SetWindowTitle("Crater Test");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
-    vis.SetCameraVertical(CameraVerticalDir::Z);
-    vis.SetCameraProperties(0.01f);
+#ifdef CHRONO_VSG
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(sys);
+    vis->SetWindowTitle("Crater Test");
+    vis->SetWindowSize(1280, 720);
+    vis->SetCameraVertical(CameraVerticalDir::Z);
+    vis->AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 #endif
 
     while (time < time_end) {
@@ -537,10 +546,10 @@ int main(int argc, char* argv[]) {
         }
 
         // Advance simulation by one step
-#ifdef CHRONO_OPENGL
-        if (vis.Run()) {
+#ifdef CHRONO_VSG
+        if (vis->Run()) {
             sys->DoStepDynamics(time_step);
-            vis.Render();
+            vis->Render();
         } else
             break;
 #else

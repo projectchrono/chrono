@@ -21,21 +21,23 @@
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiInterface.h"
 
-#include "chrono_fsi/sph/ChFluidSystemSPH.h"
-#include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/ChFsiFluidSystemSPH.h"
 
 namespace chrono {
 namespace fsi {
+namespace sph {
 
-/// @addtogroup fsi_physics
+struct FsiDataManager;
+
+/// @addtogroup fsisph
 /// @{
 
 /// Custom FSI interface between a Chrono multibody system and the SPH-based fluid system.
-/// This custom FSI interface is paired with ChFluidSystemSPH and provides a more efficient coupling with a Chrono MBS
-/// that a generic FSI interface does, because it works directly with the data structures of ChFluidSystemSPH.
+/// This custom FSI interface is paired with ChFsiFluidSystemSPH and provides a more efficient coupling with a Chrono MBS
+/// that a generic FSI interface does, because it works directly with the data structures of ChFsiFluidSystemSPH.
 class ChFsiInterfaceSPH : public ChFsiInterface {
   public:
-    ChFsiInterfaceSPH(ChSystem& sysMBS, ChFluidSystemSPH& sysSPH);
+    ChFsiInterfaceSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH);
     ~ChFsiInterfaceSPH();
 
     /// Exchange solid phase state information between the MBS and fluid system.
@@ -49,11 +51,12 @@ class ChFsiInterfaceSPH : public ChFsiInterface {
     virtual void ExchangeSolidForces() override;
 
   private:
-    sph::FsiDataManager& m_data_mgr;  ///< FSI data manager
+    FsiDataManager* m_data_mgr;  ///< FSI data manager
 };
 
-/// @} fsi_physics
+/// @} fsisph
 
+}  // namespace sph
 }  // end namespace fsi
 }  // end namespace chrono
 

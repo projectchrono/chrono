@@ -27,8 +27,9 @@
 
 #include "../ut_utils.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
@@ -221,19 +222,24 @@ int main(int argc, char* argv[]) {
     double time_end = 1;
 
     if (animate) {
-#ifdef CHRONO_OPENGL
-        opengl::ChVisualSystemOpenGL vis;
-        vis.AttachSystem(msystem_mpr);
-        vis.SetWindowTitle("");
-        vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+        auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+        vis->AttachSystem(msystem_mpr);
+        vis->SetWindowTitle("Unit test");
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
+        vis->SetWindowSize(1280, 720);
+        vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+        vis->EnableSkyBox();
+        vis->SetCameraAngleDeg(40.0);
+        vis->SetLightIntensity(1.0f);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows();
+        vis->Initialize();
 
         while (time < time_end) {
-            if (vis.Run()) {
-                vis.Render();
+            if (vis->Run()) {
+                vis->Render();
             }
 
             Sync(msystem_mpr, msystem_r);
@@ -245,10 +251,9 @@ int main(int argc, char* argv[]) {
 
             time += time_step;
         }
-
 #else
-        std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
-        return 1;
+        std::cout << "Run-time visualization not available.  Cannot animate mechanism." << std::endl;
+        return -1;
 #endif
     } else {
         while (time < time_end) {

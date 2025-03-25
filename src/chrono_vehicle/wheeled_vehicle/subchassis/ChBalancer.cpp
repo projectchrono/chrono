@@ -38,12 +38,7 @@ ChBalancer::~ChBalancer() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
-    ChSubchassis::Initialize(chassis, location);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChBalancer::Construct(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
     to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -91,6 +86,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     // Create beam body
     m_beam[side] = chrono_types::make_shared<ChBody>();
     m_beam[side]->SetName(m_name + "_balancer" + suffix);
+    m_beam[side]->SetTag(m_obj_tag);
     m_beam[side]->SetPos(points[BEAM]);
     m_beam[side]->SetRot(chassisRot);
     m_beam[side]->SetMass(GetBalancerBeamMass());
@@ -101,6 +97,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     m_balancer_joint[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_balancer" + suffix, m_beam[side], chassis->GetBody(),
         ChFrame<>(points[REVOLUTE], joint_rot), GetBushingData());
+    m_balancer_joint[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_balancer_joint[side]);
 
     if (m_balancer_joint[side]->IsKinematic()) {

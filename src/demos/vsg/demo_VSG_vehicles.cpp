@@ -45,7 +45,6 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2i(1200, 800));
     vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
-    vis->SetUseSkyBox(false);
     vis->AddCamera(ChVector3d(8.0, 12.3, 3.0), ChVector3d(-0.1, 1.0, 0.4));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(2.0f);
@@ -168,7 +167,6 @@ int main(int argc, char* argv[]) {
         vis->AddVisualModel(polaris, ChFrame<>(polaris_pos, QUNIT));
     }
 
-    vis->SetLogoVisible(true);
     vis->Initialize();
 
     while (vis->Run()) {

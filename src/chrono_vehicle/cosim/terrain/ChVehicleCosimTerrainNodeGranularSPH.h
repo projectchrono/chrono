@@ -25,10 +25,13 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
 
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
+
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -79,10 +82,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
   private:
     enum class ConstructionMethod { PATCH, FILES };
 
-    ChSystemSMC* m_system;                            ///< containing system
-    CRMTerrain* m_terrain;                            ///< CRM terrain
-    std::string m_specfile;                           ///< CRM terrain specification file
-    std::shared_ptr<fsi::ChFsiVisualization> m_vsys;  ///< run-time visualization system
+    ChSystemSMC* m_system;   ///< containing system
+    CRMTerrain* m_terrain;   ///< CRM terrain
+    std::string m_specfile;  ///< CRM terrain specification file
+#ifdef CHRONO_VSG
+    std::shared_ptr<vsg3d::ChVisualSystemVSG> m_vsys;  ///< run-time visualization system
+#endif
 
     ConstructionMethod m_terrain_type;  ///< construction method for CRMTerrain
     double m_depth;                     ///< SPH soil depth (PATCH type)
@@ -99,8 +104,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     bool m_show_bce;       ///< show BCE markers on interacting solids
 
     virtual ChSystem* GetSystemPostprocess() const override {
+#ifdef CHRONO_VSG
         if (m_vsys)
-            return m_vsys->GetSystem();
+            return &m_vsys->GetSystem(0);
+#endif
         return nullptr;
     }
 

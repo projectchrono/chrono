@@ -202,6 +202,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Log the types (template names) of current vehicle subsystems.
+    void LogSubsystemTypes();
+
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual std::string ExportComponentList() const override;

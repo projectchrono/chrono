@@ -94,7 +94,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// This function is called at least once per step to update auxiliary data, internal states, etc.
     /// The default implementation updates the item's time stamp and its visualization assets (if any are defined anf
     /// only if requested).
-    virtual void Update(double time, bool update_assets);
+    virtual void Update(double time, bool update_assets) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.

@@ -67,7 +67,6 @@ class CH_GPU_API ChGpuVisualization {
     void AddProxyBody(std::shared_ptr<ChBody> body);
 
     /// Initialize the run-time visualization system.
-    /// If the Chrono::OpenGL module is not available, this function is no-op.
     virtual void Initialize();
 
     /// Render the current state of the Chrono::Gpu system. This function, typically invoked from within the main
@@ -75,7 +74,6 @@ class CH_GPU_API ChGpuVisualization {
     /// initialized). This funtion querries the positions of all particles in the Gpu system in order to update the
     /// positions of the proxy bodies.
     /// Returns false if the visualization window was closed.
-    /// If the Chrono::OpenGL module is not available, this function is no-op.
     virtual bool Render() = 0;
 
     /// Return the underlying visualization system.

@@ -334,13 +334,13 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
 
 void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Initialize the chassis subsystem.
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(this, chassisPos, chassisFwdVel, VehicleCollisionFamily::CHASSIS_FAMILY);
 
     // Initialize any rear chassis subsystems and their connectors.
     for (int i = 0; i < m_num_rear_chassis; i++) {
         int front_index = m_rearch_chassis_index[i];
         std::shared_ptr<ChChassis> front = (front_index == -1) ? m_chassis : m_chassis_rear[front_index];
-        m_chassis_rear[i]->Initialize(front, WheeledCollisionFamily::CHASSIS);
+        m_chassis_rear[i]->Initialize(front, VehicleCollisionFamily::CHASSIS_FAMILY);
         m_chassis_connectors[i]->Initialize(front, m_chassis_rear[i]);
     }
 

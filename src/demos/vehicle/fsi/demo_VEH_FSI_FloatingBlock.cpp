@@ -28,10 +28,6 @@
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -45,10 +41,11 @@
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 using namespace chrono::vehicle;
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
-                                              ChFluidSystemSPH& sysSPH,
+                                              ChFsiFluidSystemSPH& sysSPH,
                                               ChFsiSystemSPH& sysFSI,
                                               const ChCoordsys<>& init_pos);
 
@@ -80,7 +77,7 @@ int main(int argc, char* argv[]) {
 
     // Create a physics system and an FSI system
     ChSystemSMC sysMBS;
-    ChFluidSystemSPH sysSPH;
+    ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
@@ -103,7 +100,7 @@ int main(int argc, char* argv[]) {
         ChVector3d(-bxDim / 2 - bxDim - 20.0 * initSpace0, -byDim / 2 - 1.0 * initSpace0 / 2.0, -2.0 * bzDim);
     ChVector3d cMax =
         ChVector3d(bxDim / 2 + bxDim + 20.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
-    sysSPH.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
@@ -244,20 +241,36 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
-    if (render) {
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
 
-        visFSI->SetTitle("Chrono::FSI Floating Block");
-        visFSI->AddCamera(ChVector3d(0, -8 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
-        visFSI->SetCameraMoveScale(1.0f);
+#ifdef CHRONO_VSG
+    if (render) {
+        // FSI plugin
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0);
+
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(true);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleVelocityColorCallback>(0, 5.0));
-        visFSI->AttachSystem(&sysMBS);
-        visFSI->Initialize();
+        visFSI->EnableRigidBodyMarkers(false);
+        visFSI->SetSPHColorCallback(col_callback);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Floating Block");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(ChVector3d(0, -8 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visVSG->SetLightIntensity(0.9f);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     DriverInputs driver_inputs = {0, 0, 0};
@@ -298,8 +311,9 @@ int main(int argc, char* argv[]) {
 
         // Render FSI system
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
 
             if (snapshots) {
                 if (verbose)
@@ -307,7 +321,7 @@ int main(int argc, char* argv[]) {
                 std::ostringstream filename;
                 filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
                          << ".bmp";
-                visFSI->GetVisualSystem()->WriteImageToFile(filename.str());
+                vis->WriteImageToFile(filename.str());
             }
 
             render_frame++;
@@ -330,7 +344,7 @@ int main(int argc, char* argv[]) {
 }
 
 std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
-                                              ChFluidSystemSPH& sysSPH,
+                                              ChFsiFluidSystemSPH& sysSPH,
                                               ChFsiSystemSPH& sysFSI,
                                               const ChCoordsys<>& init_pos) {
     std::string vehicle_json = "Polaris/Polaris.json";

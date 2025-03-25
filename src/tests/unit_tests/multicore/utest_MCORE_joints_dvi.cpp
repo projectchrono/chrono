@@ -29,8 +29,9 @@
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
 #endif
 
 #include "../ut_utils.h"
@@ -147,20 +148,25 @@ TEST_P(JointsDVI, simulate) {
     double time_step = 1e-3;
 
     if (animate) {
-#ifdef CHRONO_OPENGL
-        opengl::ChVisualSystemOpenGL vis;
-        vis.AttachSystem(sys);
-        vis.SetWindowTitle("");
-        vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
-        vis.Initialize();
-        vis.AddCamera(ChVector3d(0, -8, 0), ChVector3d(0, 0, 0));
-        vis.SetCameraVertical(CameraVerticalDir::Z);
+#ifdef CHRONO_VSG
+        auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+        vis->AttachSystem(sys);
+        vis->SetWindowTitle("Unit test");
+        vis->SetCameraVertical(CameraVerticalDir::Z);
+        vis->AddCamera(ChVector3d(6, -6, 1), ChVector3d(0, 0, 0));
+        vis->SetWindowSize(1280, 720);
+        vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+        vis->EnableSkyBox();
+        vis->SetCameraAngleDeg(40.0);
+        vis->SetLightIntensity(1.0f);
+        vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        vis->EnableShadows();
+        vis->Initialize();
 
         while (sys->GetChTime() < time_end) {
-            if (vis.Run()) {
+            if (vis->Run()) {
                 sys->DoStepDynamics(time_step);
-                vis.Render();
+                vis->Render();
             }
         }
 #endif

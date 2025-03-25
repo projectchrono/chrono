@@ -450,8 +450,8 @@ void WriteVisualizationAssets(ChSystem* system,
 
         // Loop over visual shapes -- write information for supported types.
         for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
-            auto& shape = shape_instance.first;
-            auto X_GS = body->GetFrameRefToAbs() * shape_instance.second;
+            auto& shape = shape_instance.shape;
+            auto X_GS = body->GetFrameRefToAbs() * shape_instance.frame;
             auto& pos = X_GS.GetPos();
             auto& rot = X_GS.GetRot();
 
@@ -568,7 +568,7 @@ void WriteVisualizationAssets(ChSystem* system,
         if (!link->GetVisualModel())
             continue;
         for (auto& shape_instance : link->GetVisualModel()->GetShapeInstances()) {
-            auto& shape = shape_instance.first;
+            auto& shape = shape_instance.shape;
             if (std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;

@@ -20,7 +20,7 @@
 #include "chrono_vsg/ChGuiComponentVSG.h"
 
 #include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
-#include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 
 namespace chrono {
@@ -30,9 +30,9 @@ namespace vehicle {
 
 class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
   public:
-    ChVehicleKeyboardHandlerVSG(ChVehicleVisualSystemVSG* app)
-        : m_app(app), m_transmission_auto(nullptr), m_transmission_manual(nullptr) {
-        auto transmission = m_app->m_vehicle->GetTransmission();
+    ChVehicleKeyboardHandlerVSG(ChVehicleVisualSystemVSG* vsys)
+        : m_vsys(vsys), m_transmission_auto(nullptr), m_transmission_manual(nullptr) {
+        auto transmission = m_vsys->m_vehicle->GetTransmission();
         if (transmission) {
             m_transmission_auto = transmission->asAutomatic();  // nullptr for a manual transmission
             m_transmission_manual = transmission->asManual();   // nullptr for an automatic transmission
@@ -41,12 +41,12 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 
     // Keyboard events for chase-cam and interactive driver control
     void process(vsg::KeyPressEvent& keyPress) override {
-        if (!m_app->m_vehicle)
+        if (!m_vsys->m_vehicle)
             return;
-
+        auto driver = dynamic_cast<ChInteractiveDriver*>(m_vsys->GetDriver());
         switch (keyPress.keyModified) {
             case vsg::KEY_V:
-                m_app->m_vehicle->LogConstraintViolations();
+                m_vsys->m_vehicle->LogConstraintViolations();
                 return;
             default:
                 break;
@@ -54,61 +54,61 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 
         switch (keyPress.keyBase) {
             case vsg::KEY_Left:
-                m_app->m_camera->Turn(-1);
+                m_vsys->m_camera->Turn(-1);
                 break;
             case vsg::KEY_Right:
-                m_app->m_camera->Turn(1);
+                m_vsys->m_camera->Turn(1);
                 break;
             case vsg::KEY_Down:
-                m_app->m_camera->Zoom(+1);
+                m_vsys->m_camera->Zoom(+1);
                 break;
             case vsg::KEY_Up:
-                m_app->m_camera->Zoom(-1);
+                m_vsys->m_camera->Zoom(-1);
                 break;
             case vsg::KEY_Prior:
-                m_app->m_camera->Raise(-1);
+                m_vsys->m_camera->Raise(-1);
                 return;
             case vsg::KEY_Next:
-                m_app->m_camera->Raise(+1);
+                m_vsys->m_camera->Raise(+1);
                 return;
             case vsg::KEY_a:
-                if (m_app->m_driver)
-                    m_app->m_driver->SteeringLeft();
+                if (driver)
+                    driver->SteeringLeft();
                 return;
             case vsg::KEY_d:
-                if (m_app->m_driver)
-                    m_app->m_driver->SteeringRight();
+                if (driver)
+                    driver->SteeringRight();
                 return;
             case vsg::KEY_c:
-                if (m_app->m_driver)
-                    m_app->m_driver->SteeringCenter();
+                if (driver)
+                    driver->SteeringCenter();
                 return;
             case vsg::KEY_w:
-                if (m_app->m_driver)
-                    m_app->m_driver->IncreaseThrottle();
+                if (driver)
+                    driver->IncreaseThrottle();
                 return;
             case vsg::KEY_s:
-                if (m_app->m_driver)
-                    m_app->m_driver->DecreaseThrottle();
+                if (driver)
+                    driver->DecreaseThrottle();
                 return;
             case vsg::KEY_r:
-                if (m_app->m_driver)
-                    m_app->m_driver->ReleasePedals();
+                if (driver)
+                    driver->ReleasePedals();
                 return;
             case vsg::KEY_1:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Chase);
+                m_vsys->SetChaseCameraState(utils::ChChaseCamera::Chase);
                 return;
             case vsg::KEY_2:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Follow);
+                m_vsys->SetChaseCameraState(utils::ChChaseCamera::Follow);
                 return;
             case vsg::KEY_3:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Track);
+                m_vsys->SetChaseCameraState(utils::ChChaseCamera::Track);
                 return;
             case vsg::KEY_4:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Inside);
+                m_vsys->SetChaseCameraState(utils::ChChaseCamera::Inside);
                 return;
             case vsg::KEY_5:
-                m_app->SetChaseCameraState(utils::ChChaseCamera::Free);
+                m_vsys->SetChaseCameraState(utils::ChChaseCamera::Free);
                 return;
             default:
                 break;
@@ -151,12 +151,12 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
                     m_transmission_manual->ShiftDown();
                     return;
                 case vsg::KEY_e:
-                    if (m_app->m_driver)
-                        m_app->m_driver->IncreaseClutch();
+                    if (driver)
+                        driver->IncreaseClutch();
                     return;
                 case vsg::KEY_q:
-                    if (m_app->m_driver)
-                        m_app->m_driver->DecreaseClutch();
+                    if (driver)
+                        driver->DecreaseClutch();
                     return;
                 default:
                     break;
@@ -165,7 +165,7 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
     }
 
   private:
-    ChVehicleVisualSystemVSG* m_app;
+    ChVehicleVisualSystemVSG* m_vsys;
     ChAutomaticTransmission* m_transmission_auto;
     ChManualTransmission* m_transmission_manual;
 };
@@ -174,20 +174,12 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 
 class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
-    ChVehicleGuiComponentVSG(ChVehicleVisualSystemVSG* app) : m_app(app) {}
+    ChVehicleGuiComponentVSG(ChVehicleVisualSystemVSG* vsys) : m_vsys(vsys) {}
     virtual void render() override;
 
   private:
-    ChVehicleVisualSystemVSG* m_app;
+    ChVehicleVisualSystemVSG* m_vsys;
 };
-
-void DrawGauge(float val, float v_min, float v_max) {
-    ImGui::PushItemWidth(150.0f);
-    ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
-    ImGui::SliderFloat("", &val, v_min, v_max, "%.2f");
-    ImGui::PopStyleColor();
-    ImGui::PopItemWidth();
-}
 
 void ShowHelp() {
     if (ImGui::CollapsingHeader("Chase camera controls", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -246,27 +238,30 @@ void ChVehicleGuiComponentVSG::render() {
     ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
     ImGui::Begin("Vehicle");
 
+    std::string vehicle_name = "Vehicle: \"" + m_vsys->GetVehicle().GetName() + "\"";
+    ImGui::TextUnformatted(vehicle_name.c_str());
+
     if (ImGui::BeginTable("CamTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Camera State:");
         ImGui::TableNextColumn();
-        ImGui::TextUnformatted(m_app->GetChaseCamera().GetStateName().c_str());
+        ImGui::TextUnformatted(m_vsys->GetChaseCamera().GetStateName().c_str());
         ImGui::EndTable();
     }
 
-    ImGui::Spacing();
+    ////ImGui::Spacing();
 
     if (ImGui::BeginTable("RTFTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("RTF step:");
         ImGui::TableNextColumn();
-        ImGui::Text("%8.2f", m_app->GetStepRTF());
+        ImGui::Text("%8.2f", m_vsys->GetStepRTF());
         ImGui::EndTable();
     }
 
-    ImGui::Spacing();
+    ////ImGui::Spacing();
 
     if (ImGui::BeginTable("VehTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
@@ -274,64 +269,63 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Vehicle Speed:");
         ImGui::TableNextColumn();
-        ImGui::Text("%8.2f m/s", m_app->GetVehicle().GetSpeed());
+        ImGui::Text("%8.2f m/s", m_vsys->GetVehicle().GetSpeed());
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Steering:");
         ImGui::TableNextColumn();
         ImGui::PushItemWidth(150.0f);
         ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
-        DrawGauge(-m_app->GetSteering(), -1, 1);
+        DrawGauge(-m_vsys->GetSteering(), -1, 1);
         ImGui::PopStyleColor();
         ImGui::PopItemWidth();
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (m_app->GetVehicle().GetPowertrainAssembly() &&
-            m_app->GetVehicle().GetPowertrainAssembly()->GetTransmission()->IsManual()) {
+        if (m_vsys->GetVehicle().GetPowertrainAssembly() &&
+            m_vsys->GetVehicle().GetPowertrainAssembly()->GetTransmission()->IsManual()) {
             ImGui::TextUnformatted("Clutch:");
             ImGui::TableNextColumn();
-            DrawGauge(m_app->GetClutch(), 0, 1);
+            DrawGauge(m_vsys->GetClutch(), 0, 1);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
         }
         ImGui::TextUnformatted("Braking:");
         ImGui::TableNextColumn();
-        DrawGauge(m_app->GetBraking(), 0, 1);
+        DrawGauge(m_vsys->GetBraking(), 0, 1);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Throttle:");
         ImGui::TableNextColumn();
-        DrawGauge(m_app->GetThrottle(), 0, 1);
+        DrawGauge(m_vsys->GetThrottle(), 0, 1);
         ImGui::EndTable();
     }
 
-    ImGui::Spacing();
+    ////ImGui::Spacing();
 
     if (ImGui::BeginTable("VehAttitude", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
-        auto terrain = m_app->GetTerrain();
-        static int e = 0;  // 0: global, 1: local
+        auto terrain = m_vsys->GetTerrain();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Vehicle Attitude");
 
+        static int global_attitude = 0;  // 0: global, 1: relative
         if (terrain) {
             ImGui::TableNextColumn();
-            ImGui::RadioButton("absolute", &e, 0);
+            ImGui::RadioButton("absolute", &global_attitude, 0);
             ImGui::SameLine();
-            ImGui::RadioButton("local", &e, 1);
+            ImGui::RadioButton("local", &global_attitude, 1);
         }
 
         double roll = 0;
         double pitch = 0;
-
-        if (e == 0) {
-            roll = m_app->GetVehicle().GetRoll() * CH_RAD_TO_DEG;
-            pitch = m_app->GetVehicle().GetPitch() * CH_RAD_TO_DEG;
+        if (global_attitude == 0) {
+            roll = m_vsys->GetVehicle().GetRoll() * CH_RAD_TO_DEG;
+            pitch = m_vsys->GetVehicle().GetPitch() * CH_RAD_TO_DEG;
         } else {
-            roll = m_app->GetVehicle().GetRoll(*terrain) * CH_RAD_TO_DEG;
-            pitch = m_app->GetVehicle().GetPitch(*terrain) * CH_RAD_TO_DEG;
+            roll = m_vsys->GetVehicle().GetRoll(*terrain) * CH_RAD_TO_DEG;
+            pitch = m_vsys->GetVehicle().GetPitch(*terrain) * CH_RAD_TO_DEG;
         }
 
         ImGui::TableNextRow();
@@ -350,13 +344,13 @@ void ChVehicleGuiComponentVSG::render() {
         ImGui::TableNextColumn();
         ImGui::TextUnformatted("Slip angle:");
         ImGui::TableNextColumn();
-        ImGui::Text("%6.1f deg", m_app->GetVehicle().GetSlipAngle() * CH_RAD_TO_DEG);
+        ImGui::Text("%6.1f deg", m_vsys->GetVehicle().GetSlipAngle() * CH_RAD_TO_DEG);
 
         ImGui::EndTable();
     }
 
     // Display information from powertrain system
-    const auto& powertrain = m_app->GetVehicle().GetPowertrainAssembly();
+    const auto& powertrain = m_vsys->GetVehicle().GetPowertrainAssembly();
 
     if (powertrain) {
         const auto& engine = powertrain->GetEngine();
@@ -365,7 +359,7 @@ void ChVehicleGuiComponentVSG::render() {
         auto transmission_auto = transmission->asAutomatic();  // nullptr for a manual transmission
         ////auto transmission_manual = transmission->asManual();   // nullptr for an automatic transmission
 
-        ImGui::Spacing();
+        ////ImGui::Spacing();
 
         if (ImGui::BeginTable("Powertrain", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
@@ -418,7 +412,7 @@ void ChVehicleGuiComponentVSG::render() {
         }
 
         if (transmission_auto && transmission_auto->HasTorqueConverter()) {
-            ImGui::Spacing();
+            ////ImGui::Spacing();
 
             if (ImGui::BeginTable("TorqueConverter", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                                   ImVec2(0.0f, 0.0f))) {
@@ -447,7 +441,7 @@ void ChVehicleGuiComponentVSG::render() {
         }
     }
 
-    m_app->AppendGUIStats();
+    m_vsys->AppendGUIStats();
 
     static bool show_help = false;
     ImGui::Spacing();
@@ -468,14 +462,17 @@ void ChVehicleGuiComponentVSG::render() {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG(), m_driver(nullptr) {
+ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG() {
     m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
+
+    // Disable global visibility controls
+    m_show_visibility_controls = false;
 }
 
 ChVehicleVisualSystemVSG::~ChVehicleVisualSystemVSG() {}
 
 void ChVehicleVisualSystemVSG::Initialize() {
-    if (m_vsg_initialized)
+    if (m_initialized)
         return;
 
     // Do not create a VSG camera trackball controller
@@ -490,8 +487,6 @@ void ChVehicleVisualSystemVSG::Initialize() {
     // Invoke the base Initialize method
     // Note: this must occur only *after* adding custom GUI components and event handlers
     ChVisualSystemVSG::Initialize();
-
-    m_vsg_initialized = true;
 }
 
 void ChVehicleVisualSystemVSG::Advance(double step) {

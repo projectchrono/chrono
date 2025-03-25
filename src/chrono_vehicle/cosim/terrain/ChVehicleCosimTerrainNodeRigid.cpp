@@ -40,9 +40,6 @@
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -60,7 +57,6 @@ static constexpr int tag_obstacles = 100;
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
-// - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, double width, ChContactMethod method)
     : ChVehicleCosimTerrainNodeChrono(Type::RIGID, length, width, method), m_radius_p(0.01) {
@@ -396,7 +392,6 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
         vsys_vsg->SetWindowTitle("Terrain Node (Rigid)");
         vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetUseSkyBox(false);
         vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
@@ -419,18 +414,6 @@ void ChVehicleCosimTerrainNodeRigid::OnInitialize(unsigned int num_objects) {
         vsys_irr->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
 
         m_vsys = vsys_irr;
-#elif defined(CHRONO_OPENGL)
-        auto vsys_gl = chrono_types::make_shared<opengl::ChVisualSystemOpenGL>();
-        vsys_gl->AttachSystem(m_system);
-        vsys_gl->SetWindowTitle("Terrain Node (Rigid)");
-        vsys_gl->SetWindowSize(1280, 720);
-        vsys_gl->SetRenderMode(opengl::SOLID);
-        vsys_gl->Initialize();
-        vsys_gl->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_gl->SetCameraProperties(0.05f);
-        vsys_gl->SetCameraVertical(CameraVerticalDir::Z);
-
-        m_vsys = vsys_gl;
 #endif
     }
 }

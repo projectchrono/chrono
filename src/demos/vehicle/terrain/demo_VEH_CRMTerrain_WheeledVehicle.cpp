@@ -24,6 +24,7 @@
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
@@ -32,31 +33,32 @@
 #include "chrono_vehicle/terrain/CRMTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
+#include "chrono_vehicle/ChVehicleVisualSystem.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 #include "demos/SetChronoSolver.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 using namespace chrono::vehicle;
 
 using std::cout;
+using std::cerr;
 using std::cin;
 using std::endl;
 
 // ===================================================================================================================
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // CRM terrain patch type
 enum class PatchType { RECTANGULAR, MARKER_DATA, HEIGHT_MAP };
@@ -99,7 +101,6 @@ int main(int argc, char* argv[]) {
     bool visualization_sph = true;         // render SPH particles
     bool visualization_bndry_bce = false;  // render boundary BCE markers
     bool visualization_rigid_bce = true;   // render wheel BCE markers
-    bool chase_cam = true;                 // chase-cam or fixed camera
 
     // CRM material properties
     double density = 1700;
@@ -110,6 +111,7 @@ int main(int argc, char* argv[]) {
 
     // CRM (moving) active box dimension
     double active_box_hdim = 0.4;
+    double settling_time = 0;
 
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
@@ -164,11 +166,11 @@ int main(int argc, char* argv[]) {
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
-    // Disable automatic integration of the (vehicle) multibody system
-    terrain.DisableMBD();
+    // Register the vehicle with the CRM terrain
+    terrain.RegisterVehicle(vehicle.get());
 
     // Set SPH parameters and soil material properties
-    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
@@ -180,7 +182,7 @@ int main(int argc, char* argv[]) {
     terrain.SetElasticSPH(mat_props);
 
     // Set SPH solver parameters
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = spacing;
     sph_params.d0_multiplier = 1;
@@ -198,7 +200,7 @@ int main(int argc, char* argv[]) {
     // Add vehicle wheels as FSI solids
     CreateFSIWheels(vehicle, terrain);
     terrain.SetActiveDomain(ChVector3d(active_box_hdim));
-
+    terrain.SetActiveDomainDelay(settling_time);
     // Construct the terrain and associated path
     cout << "Create terrain..." << endl;
     std::shared_ptr<ChBezierCurve> path;
@@ -260,51 +262,53 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // -----------------------------
+    // Set up output
+    // -----------------------------
+
+    std::string out_dir = GetChronoOutputPath() + "CRM_Wheeled_Vehicle/";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+
+    std::string out_file = out_dir + "/results.txt";
+    utils::ChWriterCSV csv(" ");
+
+    // -----------------------------
     // Create run-time visualization
     // -----------------------------
 
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
-    render = false;
-#endif
+    std::shared_ptr<ChVehicleVisualSystem> vis;
 
-    std::shared_ptr<ChFsiVisualization> visFSI;
-    if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-                break;
-            }
-        }
-
-        visFSI->SetTitle("Wheeled vehicle on CRM deformable terrain");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(ChVector3d(0, 8, 1.5), ChVector3d(0, -1, 0));
-        visFSI->SetCameraMoveScale(0.2f);
+    if (render) {
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                           aabb.min.z(), aabb.max.z()));
-        visFSI->AttachSystem(sysMBS);
-        visFSI->Initialize();
+        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f), aabb.min.z(), aabb.max.z()));
+
+        // Wheeled vehicle VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+        visVSG->AttachVehicle(vehicle.get());
+        visVSG->AttachPlugin(visFSI);
+        visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->EnableSkyBox();
+        visVSG->SetLightIntensity(1.0f);
+        visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+        visVSG->SetCameraAngleDeg(40);
+        visVSG->SetChaseCamera(VNULL, 6.0, 2.0);
+        visVSG->SetChaseCameraPosition(ChVector3d(0, 8, 1.5));
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // ---------------
     // Simulation loop
@@ -313,10 +317,10 @@ int main(int argc, char* argv[]) {
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
+    bool braking = false;
 
     cout << "Start simulation..." << endl;
 
-    ChTimer timer;
     while (time < tend) {
         const auto& veh_loc = vehicle->GetPos();
 
@@ -331,21 +335,22 @@ int main(int argc, char* argv[]) {
             ChClampValue(driver_inputs.m_throttle, driver_inputs.m_throttle, (time - 0.5) / 0.5);
         }
 
-        // Stop vehicle before reaching end of terrain patch
+        // Stop vehicle before reaching end of terrain patch, then end simulation after 2 more second2
         if (veh_loc.x() > x_max) {
             driver_inputs.m_throttle = 0;
             driver_inputs.m_braking = 1;
+            if (!braking) {
+                cout << "Start braking..." << endl;
+                tend = time + 2;
+                braking = true;
+            }
         }
 
         // Run-time visualization
         if (render && time >= render_frame / render_fps) {
-            if (chase_cam) {
-                ChVector3d cam_loc = veh_loc + ChVector3d(-6, 6, 1.5);
-                ChVector3d cam_point = veh_loc;
-                visFSI->UpdateCamera(cam_loc, cam_point);
-            }
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
         if (!render) {
@@ -354,33 +359,33 @@ int main(int argc, char* argv[]) {
 
         // Synchronize systems
         driver.Synchronize(time);
+        vis->Synchronize(time, driver_inputs);
         terrain.Synchronize(time);
         vehicle->Synchronize(time, driver_inputs, terrain);
 
         // Advance system state
         driver.Advance(step_size);
-        timer.reset();
-        timer.start();
-        // (a) Sequential integration of terrain and vehicle systems
-        ////terrain.Advance(step_size);
-        ////vehicle->Advance(step_size);
-        // (b) Concurrent integration (vehicle in main thread)
-        ////std::thread th(&CRMTerrain::Advance, &terrain, step_size);
-        ////vehicle->Advance(step_size);
-        ////th.join();
-        // (c) Concurrent integration (terrain in main thread)
-        std::thread th(&ChWheeledVehicle::Advance, vehicle.get(), step_size);
+        vis->Advance(step_size);
+        // Coupled FSI problem (CRM terrain + vehicle)
         terrain.Advance(step_size);
-        th.join();
 
-        // Set correct overall RTF for the FSI problem
-        timer.stop();
-        double rtf = timer() / step_size;
-        sysFSI.SetRtf(rtf);
+        csv << time << vehicle->GetPos() << vehicle->GetSpeed() << endl;
 
         time += step_size;
         sim_frame++;
     }
+
+    csv.WriteToFile(out_file);
+
+#ifdef CHRONO_POSTPROCESS
+    postprocess::ChGnuPlot gplot(out_dir + "/height.gpl");
+    gplot.SetGrid();
+    std::string title = "Vehicle ref frame height";
+    gplot.SetTitle(title);
+    gplot.SetLabelX("time (s)");
+    gplot.SetLabelY("height (m)");
+    gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2 lc rgb'#3333BB' ");
+#endif
 
     return 0;
 }

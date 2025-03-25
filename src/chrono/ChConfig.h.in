@@ -43,9 +43,6 @@
 // If module MUMPS was enabled, define CHRONO_MUMPS
 @CHRONO_MUMPS@
 
-// If module OPENGL was enabled, define CHRONO_OPENGL
-@CHRONO_OPENGL@
-
 // If module PARSERS was enabled, define CHRONO_PARSERS
 @CHRONO_PARSERS@
 
@@ -212,5 +209,11 @@
 
 // Always use double in custom multicore collision detection
 #define USE_COLLISION_DOUBLE
+
+// -----------------------------------------------------------------------------
+// Length of the path to the Chrono source directory
+// -----------------------------------------------------------------------------
+
+#define SOURCE_PATH_SIZE @SOURCE_PATH_SIZE@
 
 #endif

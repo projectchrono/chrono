@@ -21,16 +21,15 @@
 
 #include "chrono/utils/ChUtils.h"
 
+#include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -105,7 +104,7 @@ int main(int argc, char* argv[]) {
     auto transmission = ReadTransmissionJSON(vehicle::GetDataFile(vehicle_model->TransmissionJSON()));
     auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
     vehicle.InitializePowertrain(powertrain);
-    
+
     // Create and initialize the tires
     for (unsigned int i = 0; i < vehicle.GetNumberAxles(); i++) {
         for (auto& wheel : vehicle.GetAxle(i)->GetWheels()) {
@@ -139,7 +138,7 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(sys, vehicle::GetDataFile(rigidterrain_file));
     terrain.Initialize();
-    
+
     // Set solver and integrator
     double step_size = 2e-3;
     auto solver_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -149,6 +148,13 @@ int main(int argc, char* argv[]) {
         step_size = 2e-4;
     }
     SetChronoSolver(*sys, solver_type, integrator_type);
+
+    // Create the interactive VSG driver system
+    ChInteractiveDriver driver(vehicle);
+    driver.SetSteeringDelta(0.02);
+    driver.SetThrottleDelta(0.02);
+    driver.SetBrakingDelta(0.06);
+    driver.Initialize();
 
     // Create the vehicle run-time visualization interface and the interactive driver
 #ifndef CHRONO_IRRLICHT
@@ -162,11 +168,9 @@ int main(int argc, char* argv[]) {
 
     std::string title = "Vehicle demo - JSON specification - " + vehicle_model->ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
-    std::shared_ptr<ChDriver> driver;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle(title);
             vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
@@ -175,45 +179,30 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
             vis_irr->AttachVehicle(&vehicle);
-
-            // Create the interactive Irrlicht driver system
-            auto driver_irr = chrono_types::make_shared<ChInteractiveDriverIRR>(*vis_irr);
-            driver_irr->SetSteeringDelta(0.02);
-            driver_irr->SetThrottleDelta(0.02);
-            driver_irr->SetBrakingDelta(0.06);
-            driver_irr->Initialize();
+            vis_irr->AttachDriver(&driver);
 
             vis = vis_irr;
-            driver = driver_irr;
 #endif
             break;
         }
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
+            vis_vsg->AttachDriver(&driver);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
             vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
-            // Create the interactive VSG driver system
-            auto driver_vsg = chrono_types::make_shared<ChInteractiveDriverVSG>(*vis_vsg);
-            driver_vsg->SetSteeringDelta(0.02);
-            driver_vsg->SetThrottleDelta(0.02);
-            driver_vsg->SetBrakingDelta(0.06);
-            driver_vsg->Initialize();
-
             vis = vis_vsg;
-            driver = driver_vsg;
 #endif
             break;
         }
@@ -267,10 +256,10 @@ int main(int argc, char* argv[]) {
         }
 
         // Get driver inputs
-        DriverInputs driver_inputs = driver->GetInputs();
+        DriverInputs driver_inputs = driver.GetInputs();
 
         // Update modules (process inputs from other modules)
-        driver->Synchronize(time);
+        driver.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         if (add_trailer)
             trailer->Synchronize(time, driver_inputs, terrain);
@@ -279,7 +268,7 @@ int main(int argc, char* argv[]) {
             vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
-        driver->Advance(step_size);
+        driver.Advance(step_size);
         vehicle.Advance(step_size);
         if (add_trailer)
             trailer->Advance(step_size);

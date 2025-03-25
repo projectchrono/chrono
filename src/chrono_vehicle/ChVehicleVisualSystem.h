@@ -39,10 +39,13 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     virtual ~ChVehicleVisualSystem();
 
     /// Attach a vehicle to this vehicle visualization system.
-    virtual void AttachVehicle(vehicle::ChVehicle* vehicle);
+    virtual void AttachVehicle(ChVehicle* vehicle);
+
+    /// Attach a driver to this vehicle visualization system.
+    virtual void AttachDriver(ChDriver* driver);
 
     /// Attach a terrain system to this vehicle visualization system (optional).
-    virtual void AttachTerrain(vehicle::ChTerrain* terrain);
+    virtual void AttachTerrain(ChTerrain* terrain);
 
     /// Set parameters for the underlying chase camera.
     void SetChaseCamera(const ChVector3d& ptOnChassis,  ///< tracked point on chassis body (in vehicle reference frame)
@@ -68,11 +71,12 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
     virtual void Advance(double step) {}
 
     /// Return the step RTF calculated by the associated vehicle (step time / simulated time).
-    /// See ChVehicle::GetStepRTF
+    /// See ChVehicle::GetStepRTF.
     double GetStepRTF() const;
 
     const ChVehicle& GetVehicle() const { return *m_vehicle; }
     const ChTerrain* GetTerrain() const { return m_terrain; }
+    ChDriver* GetDriver() { return m_driver; }
     const utils::ChChaseCamera& GetChaseCamera() const { return *m_camera; }
     double GetSteering() const { return m_steering; }
     double GetThrottle() const { return m_throttle; }
@@ -81,6 +85,7 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
 
   protected:
     ChVehicle* m_vehicle;  ///< pointer to the associated vehicle system
+    ChDriver* m_driver;    ///< pointer to an associated driver system (may be null)
     ChTerrain* m_terrain;  ///< pointer to an associated terrain system
 
     std::unique_ptr<utils::ChChaseCamera> m_camera;  ///< chase camera

@@ -628,7 +628,8 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                            const ChQuaterniond& rot,
                                            bool collide,
                                            bool overlap,
-                                           bool closed) {
+                                           bool closed,
+                                           bool wireframe) {
     // Verify consistency of input arguments.
     assert(mat->GetContactMethod() == system->GetContactMethod());
 
@@ -663,6 +664,8 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
         AddBoxGeometry(body.get(), mat, ChVector3d(size.x() + o_lap, size.y() + o_lap, thickness),
                        ChVector3d(0, 0, hdim.z() * 2 + hthick));
     }
+
+    body->GetVisualModel()->EnableWireframe(wireframe);
 
     // Attach the body to the system.
     system->AddBody(body);

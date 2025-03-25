@@ -66,9 +66,6 @@ class CH_VEHICLE_API ChSuspensionTestRigDataDriver : public ChSuspensionTestRigD
     /// The driver inputs are obtained through cubic spline interpolation using the provided data points.
     virtual void Synchronize(double time) override;
 
-    /// Get string message.
-    virtual std::string GetInfoMessage() const override { return "Data driver inputs"; }
-
     std::string m_filename;                                     ///< input filename
     std::vector<std::unique_ptr<ChCubicSpline>> m_curve_left;   ///< splines for left post displacements
     std::vector<std::unique_ptr<ChCubicSpline>> m_curve_right;  ///< splines for right post displacements

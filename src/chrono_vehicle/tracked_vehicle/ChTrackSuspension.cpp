@@ -35,12 +35,16 @@ void ChTrackSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::TRACK_SUSPENSION);
+
+    // Call concrete construction function here, to create the arm (carrier) body!
+    Construct(chassis, location, track);
 
     m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
 
     // Set collision flags for the road wheel body
-    m_road_wheel->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
-    m_road_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::IDLERS);
+    m_road_wheel->GetBody()->GetCollisionModel()->SetFamily(VehicleCollisionFamily::TRACK_WHEEL_FAMILY);
+    m_road_wheel->GetBody()->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::IDLER_FAMILY);
 }
 
 void ChTrackSuspension::SetOutput(bool state) {

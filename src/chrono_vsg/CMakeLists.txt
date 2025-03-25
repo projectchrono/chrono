@@ -68,8 +68,6 @@ set(CE_VSG_BASE_FILES
 )
 
 set(CE_VSG_SHAPES_FILES
-    shapes/GetSurfaceShapeData.cpp
-    shapes/GetSurfaceShapeData.h
     shapes/ShaderUtils.cpp
     shapes/ShaderUtils.h
     shapes/ShapeBuilder.cpp

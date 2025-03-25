@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
@@ -36,25 +37,19 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationGL.h"
-#endif
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 using namespace chrono;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
 using namespace chrono::viper;
 using namespace chrono::vehicle;
 
 using std::cout;
 using std::cin;
 using std::endl;
-
-// Run-time visualization system (OpenGL or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     double density = 1700;
@@ -108,7 +103,7 @@ int main(int argc, char* argv[]) {
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
-    ChFluidSystemSPH::ElasticMaterialProperties mat_props;
+    ChFsiFluidSystemSPH::ElasticMaterialProperties mat_props;
     mat_props.density = density;
     mat_props.Young_modulus = youngs_modulus;
     mat_props.Poisson_ratio = poisson_ratio;
@@ -119,7 +114,7 @@ int main(int argc, char* argv[]) {
     mat_props.cohesion_coeff = cohesion;
     terrain.SetElasticSPH(mat_props);
 
-    ChFluidSystemSPH::SPHParameters sph_params;
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
@@ -171,48 +166,35 @@ int main(int argc, char* argv[]) {
     cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
-#ifndef CHRONO_OPENGL
-    if (vis_type == ChVisualSystem::Type::OpenGL)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::OpenGL;
-#endif
-#if !defined(CHRONO_OPENGL) && !defined(CHRONO_VSG)
-    render = false;
-#endif
-
-    std::shared_ptr<ChFsiVisualization> visFSI;
-    if (render) {
-        switch (vis_type) {
-            case ChVisualSystem::Type::OpenGL:
-#ifdef CHRONO_OPENGL
-                visFSI = chrono_types::make_shared<ChFsiVisualizationGL>(&sysFSI);
-#endif
-                break;
-            case ChVisualSystem::Type::VSG: {
+    std::shared_ptr<ChVisualSystem> vis;
 #ifdef CHRONO_VSG
-                visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
-                break;
-            }
-        }
+    if (render) {
+        // FSI plugin
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
+                                                                                    aabb.min.z(), aabb.max.z());
 
-        visFSI->SetTitle("Viper rover on CRM deformable terrain");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
-        visFSI->SetCameraMoveScale(0.2f);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualization::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                           aabb.min.z(), aabb.max.z()));
-        visFSI->AttachSystem(&sys);
-        visFSI->Initialize();
+        visFSI->SetSPHColorCallback(col_callback);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sys);
+        visVSG->SetWindowTitle("Viper rover on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 720);
+        visVSG->SetWindowPosition(400, 400);
+        visVSG->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
+        visVSG->SetLightIntensity(0.9f);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     double time = 0;
@@ -224,8 +206,9 @@ int main(int argc, char* argv[]) {
 
         // Run-time visualization
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
         if (!render) {
