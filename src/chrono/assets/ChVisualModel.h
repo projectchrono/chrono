@@ -39,6 +39,9 @@ class ChApi ChVisualModel {
         std::shared_ptr<ChVisualShape> shape;  /// visual shape (possibly shared)
         ChFramed frame;                        ///< shape position relative to containing model
         bool wireframe;                        ///< wireframe rendering for this instance
+
+        void ArchiveOut(ChArchiveOut& archive_out);
+        void ArchiveIn(ChArchiveIn& archive_in);
     };
 
     ChVisualModel() {}

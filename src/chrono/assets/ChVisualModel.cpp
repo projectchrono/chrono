@@ -86,4 +86,20 @@ void ChVisualModelInstance::Update(const ChFrame<>& frame) {
     m_model->Update(m_owner, frame);
 }
 
+// -----------------------------------------------------------------------------
+
+void ChVisualModel::ShapeInstance::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChVisualModel>();
+    archive_out << CHNVP(shape);
+    archive_out << CHNVP(frame);
+    archive_out << CHNVP(wireframe);
+}
+
+void ChVisualModel::ShapeInstance::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChVisualModel>();
+    archive_in >> CHNVP(shape);
+    archive_in >> CHNVP(frame);
+    archive_in >> CHNVP(wireframe);
+}
+
 }  // namespace chrono
