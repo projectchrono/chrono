@@ -201,6 +201,7 @@ int main(int argc, char* argv[]) {
     CreateFSIWheels(vehicle, terrain);
     terrain.SetActiveDomain(ChVector3d(active_box_hdim));
     terrain.SetActiveDomainDelay(settling_time);
+
     // Construct the terrain and associated path
     cout << "Create terrain..." << endl;
     std::shared_ptr<ChBezierCurve> path;

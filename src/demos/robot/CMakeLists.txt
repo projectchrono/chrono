@@ -30,6 +30,12 @@ if(CH_ENABLE_MODULE_VEHICLE)
     endif()
   endif()
 
+  if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_VSG)
+    set(DEMOS ${DEMOS}
+        demo_ROBOT_Viper_CRM
+    )
+  endif()
+
 endif()
 
 # ------------------------------------------------------------------------------
