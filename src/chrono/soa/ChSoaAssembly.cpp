@@ -87,8 +87,8 @@ void ChSoaAssembly::setYdd(int which, double val) {
 // -----------------------------------------------------------------------------
 
 void ChSoaAssembly::Initialize() {
-    ChAssertAlways(GetSystem());
-    ChAssertAlways(!m_initialized);
+    if (m_initialized)
+        return;
 
     // Traverse all bodies in the system to:
     // - assign their start indices in a state vector in a state derivative vector
@@ -141,8 +141,8 @@ void ChSoaAssembly::applyForces(const ChVectorDynamic<>& y, const ChVectorDynami
             continue;
 
         // Gravitational forces
-        const auto& g = GetSystem()->GetGravitationalAcceleration();
-        body->ApplyGravitationalForce(g);
+        if (GetSystem())
+            body->ApplyGravitationalForce(GetSystem()->GetGravitationalAcceleration());
 
         // Mobility forces
         body->ApplyAllMobilityForces();
