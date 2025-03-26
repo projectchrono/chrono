@@ -2207,7 +2207,7 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     auto com_transform = vsg::MatrixTransform::create();
     com_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
-    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 2.0f, true);
+    auto com_node = m_shapeBuilder->createFrameSymbol(com_transform, 1.0f, 1.0f, true);
     com_node->setValue("Body", body);
     com_node->setValue("MobilizedBody", nullptr);
     com_node->setValue("Transform", com_transform);
@@ -2216,9 +2216,9 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
 
 void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>& mbody) {
     auto cog_transform = vsg::MatrixTransform::create();
-    cog_transform->matrix = vsg::dmat4CH(ChFramed(mbody->getAbsCOMLoc(), QUNIT), m_com_frame_scale);
+    cog_transform->matrix = vsg::dmat4CH(mbody->getAbsCOMPos(), m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
-    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f, 2.0f);
+    auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f, 1.0f, true);
     cog_node->setValue("Body", nullptr);
     cog_node->setValue("MobilizedBody", mbody);
     cog_node->setValue("Transform", cog_transform);
@@ -2474,7 +2474,7 @@ void ChVisualSystemVSG::Update() {
             if (child.node->getValue("Body", body))
                 transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_com_frame_scale);
             else if (child.node->getValue("MobilizedBody", mbody))
-                transform->matrix = vsg::dmat4CH(ChFramed(mbody->getAbsCOMLoc(), QUNIT), m_com_frame_scale);
+                transform->matrix = vsg::dmat4CH(mbody->getAbsCOMPos(), m_com_frame_scale);
             else
                 continue;
         }

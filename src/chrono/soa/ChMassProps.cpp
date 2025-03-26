@@ -17,23 +17,23 @@
 namespace chrono {
 namespace soa {
 
-ChMassProps::ChMassProps() : m_mass(1), m_com_B(0.0f), m_inertiaOB_B(1) {}
+ChMassProps::ChMassProps() : m_mass(1), m_inertia_B(0.0) {}
 
-ChMassProps::ChMassProps(double mass) : m_mass(mass), m_com_B(0.0f), m_inertiaOB_B(1) {
+ChMassProps::ChMassProps(double mass, const ChFramed& X_BC, const ChMatrix33<>& inertia) : m_mass(mass), m_X_BC(X_BC) {
+    const auto& R_BC = X_BC.GetRotMat();
+    m_inertia_B = R_BC.transpose() * inertia * R_BC;
     calcInverse();
 }
 
 ChMassProps::ChMassProps(double mass, const ChVector3d& com, const ChMatrix33<>& inertia)
-    : m_mass(mass), m_com_B(com), m_inertiaOB_B(inertia) {
-    calcInverse();
-}
+    : ChMassProps(mass, ChFramed(com, QUNIT), inertia) {}
 
 ChSpatialMat ChMassProps::asSpatialMat() const {
     ChSpatialMat result;
 
-    auto p_x = ChStarMatrix33<>(m_com_B);
+    auto p_x = ChStarMatrix33<>(m_X_BC.GetPos());
 
-    result.A00() = m_inertiaOB_B;
+    result.A00() = m_inertia_B;
     result.A01() = m_mass * p_x;
     result.A10() = -m_mass * p_x;
     result.A11() = ChMatrix33<>(m_mass);
@@ -44,9 +44,9 @@ ChSpatialMat ChMassProps::asSpatialMat() const {
 void ChMassProps::calcInverse() {
     m_ooMass = 1 / m_mass;
 
-    auto p_x = ChStarMatrix33<>(m_com_B);
+    auto p_x = ChStarMatrix33<>(m_X_BC.GetPos());
 
-    m_invM_B.A00() = calcCentralInertia();
+    m_invM_B.A00() = m_inertia_B;
     m_invM_B.A00() = m_invM_B.A00().inverse().eval();
 
     m_invM_B.A10() = p_x * m_invM_B.A00();
@@ -79,33 +79,6 @@ ChMatrix33<> ChMassProps::calcPointInertia(const ChVector3d& pos, double mass) {
     inertia(2, 2) = mxx + myy;
 
     return inertia;
-}
-
-ChMatrix33<> ChMassProps::calcCentralInertia() const {
-    return m_inertiaOB_B - calcPointInertia(m_com_B, m_mass);
-}
-
-ChMatrix33<> ChMassProps::calcShiftedInertia(const ChVector3d& newOriginB) const {
-    return calcCentralInertia() + calcPointInertia(newOriginB - m_com_B, m_mass);
-}
-
-ChMatrix33<> ChMassProps::calcTransformedInertia(const ChFramed& X_BC) const {
-    const auto& R_BC = X_BC.GetRotMat();
-    auto inertia_shift = calcShiftedInertia(X_BC.GetPos());
-    return R_BC.transpose() * inertia_shift * R_BC;
-}
-
-ChMassProps ChMassProps::calcShiftedMassProps(const ChVector3d& newOriginB) const {
-    return ChMassProps(m_mass, m_com_B - newOriginB, calcShiftedInertia(newOriginB));
-}
-
-ChMassProps ChMassProps::calcTransformedMassProps(const ChFramed& X_BC) const {
-    return ChMassProps(m_mass, X_BC.TransformPointParentToLocal(m_com_B), calcTransformedInertia(X_BC));
-}
-
-ChMassProps ChMassProps::reexpress(const ChMatrix33<>& R_BC) const {
-    auto inertiaOB_C = R_BC.transpose() * m_inertiaOB_B * R_BC;
-    return ChMassProps(m_mass, R_BC.transpose() * m_com_B, inertiaOB_C);
 }
 
 }  // namespace soa

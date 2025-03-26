@@ -541,9 +541,11 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y,
     const ChMatrix33d& R_GB = m_absPos.GetRotMat();
     const ChVector3d& t_GB = m_absPos.GetPos();
 
+    m_X_GC = m_absPos * m_mpropsB.centroidal_frame();
+    m_com_G = m_X_GC.GetPos();
+    m_CB_G = m_com_G - t_GB;
+
     m_inertiaOB_G = R_GB.transpose() * m_mpropsB.inertia() * R_GB;
-    m_CB_G = R_GB * m_mpropsB.com();
-    m_com_G = t_GB + m_CB_G;
 
     auto offDiag = m_mpropsB.mass() * ChStarMatrix33d(m_CB_G);
     m_Mk = ChSpatialMat(m_inertiaOB_G, offDiag, -offDiag, m_mpropsB.mass() * ChMatrix33d(1));

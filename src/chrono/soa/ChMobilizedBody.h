@@ -104,6 +104,8 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
     ChVector3d getAbsVel(const ChVector3d& p_B) const;
     ChVector3d getAbsAcc(const ChVector3d& p_B) const;
 
+    ChFramed getAbsCOMPos() const { return m_X_GC; }
+
     ChVector3d getAbsCOMLoc() const;
     ChVector3d getAbsCOMVel() const;
     ChVector3d getAbsCOMAcc() const;
@@ -353,7 +355,9 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
 
     ChMassProps m_mpropsB;
     ChMatrix33d m_inertiaOB_G;
-    ChVector3d m_CB_G;
+
+    ChFramed m_X_GC;    ///< centroidal frame (relative to global)
+    ChVector3d m_CB_G;  ///< body COM location (expressed in global)
     ChVector3d m_com_G;
 
     ChFramed m_absPos;
