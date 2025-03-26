@@ -83,11 +83,10 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
     const ChVector3d& getRelLinVel() const { return m_V_FM.lin(); }
     const ChVector3d& getRelAngVel() const { return m_V_FM.ang(); }
 
-    const ChFramed& getInboardFrame() const { return m_X_PF; }
-    const ChFramed& getOutboardFrame() const { return m_X_BM; }
-
     virtual void setInboardFrame(const ChFramed& X_PF) { m_X_PF = X_PF; }
     virtual void setOutboardFrame(const ChFramed& X_BM) { m_X_BM = X_BM; }
+    const ChFramed& getInboardFrame() const { return m_X_PF; }
+    const ChFramed& getOutboardFrame() const { return m_X_BM; }
 
     const ChFramed& getAbsPos() const { return m_absPos; }
     const ChVector3d& getAbsLoc() const { return m_absPos.GetPos(); }
@@ -100,15 +99,17 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
     const ChVector3d& getAbsLinAcc() const { return m_absAcc.lin(); }
     const ChVector3d& getAbsAngAcc() const { return m_absAcc.ang(); }
 
-    ChVector3d getAbsLoc(const ChVector3d& p_B) const;
-    ChVector3d getAbsVel(const ChVector3d& p_B) const;
-    ChVector3d getAbsAcc(const ChVector3d& p_B) const;
-
     ChFramed getAbsCOMPos() const { return m_X_GC; }
-
     ChVector3d getAbsCOMLoc() const;
     ChVector3d getAbsCOMVel() const;
     ChVector3d getAbsCOMAcc() const;
+
+    ChFramed getAbsInboardFrame() const;
+    ChFramed getAbsOutboardFrame() const;
+
+    ChVector3d getAbsLoc(const ChVector3d& p_B) const;
+    ChVector3d getAbsVel(const ChVector3d& p_B) const;
+    ChVector3d getAbsAcc(const ChVector3d& p_B) const;
 
     // These functions set the relative positions, velocities, and accelerations for this mobilized body, respectively.
     // They are the default implementations of these virtual methods: they use the rotational and translational quantity

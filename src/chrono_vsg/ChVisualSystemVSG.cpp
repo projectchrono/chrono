@@ -755,7 +755,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     // vsg builder is used for particle visualization
     // for particles (spheres) we use phong shaders only
     m_vsgBuilder = vsg::Builder::create();
-    
+
     // for COM symbols (quads) we want to use flat shaders without Z-buffering
     // we setup a custom flat shader set
     auto flatShaderSet = vsg::createFlatShadedShaderSet();
@@ -851,7 +851,8 @@ void ChVisualSystemVSG::Quit() {
 
 void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_guiFontSize = theSize;
@@ -859,7 +860,8 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowWidth = size[0];
@@ -877,7 +879,8 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
 
 void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowX = pos[0];
@@ -886,7 +889,8 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowX = from_left;
@@ -895,7 +899,8 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowTitle = title;
@@ -980,7 +985,8 @@ ChVector3d ChVisualSystemVSG::GetCameraTarget() const {
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!"
+                  << std::endl;
         return;
     }
     switch (upDir) {
@@ -1001,7 +1007,8 @@ void ChVisualSystemVSG::SetLightIntensity(float intensity) {
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
@@ -1807,6 +1814,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
 void ChVisualSystemVSG::BindMobilizedBody(const std::shared_ptr<soa::ChMobilizedBody>& mbody) {
     BindReferenceFrame(mbody);
     BindCOMFrame(mbody);
+    BindLinkFrame(mbody);
     BindObjectVisualModel(mbody, ObjectType::BODY);
     BindObjectCollisionModel(mbody, mbody->GetTag());
 }
@@ -2227,10 +2235,12 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>
 
 void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     vsg::Mask mask = m_show_joint_frames;
+    JointType type = JointType::LINK;
     {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
         auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f, 1.0f, true);
+        joint_node->setValue("Type", type);
         joint_node->setValue("Link", link);
         joint_node->setValue("Body", 1);
         joint_node->setValue("Transform", joint_transform);
@@ -2240,7 +2250,33 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         auto joint_transform = vsg::MatrixTransform::create();
         joint_transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
         auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f, 1.0f, true);
+        joint_node->setValue("Type", type);
         joint_node->setValue("Link", link);
+        joint_node->setValue("Body", 2);
+        joint_node->setValue("Transform", joint_transform);
+        m_jointFrameScene->addChild(mask, joint_node);
+    }
+}
+
+void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<soa::ChMobilizedBody> mbody) {
+    vsg::Mask mask = m_show_joint_frames;
+    JointType type = JointType::MOBILIZER;
+    {
+        auto joint_transform = vsg::MatrixTransform::create();
+        joint_transform->matrix = vsg::dmat4CH(mbody->getAbsInboardFrame(), m_joint_frame_scale);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.75f, 1.0f, true);
+        joint_node->setValue("Type", type);
+        joint_node->setValue("MobilizedBody", mbody);
+        joint_node->setValue("Body", 1);
+        joint_node->setValue("Transform", joint_transform);
+        m_jointFrameScene->addChild(mask, joint_node);
+    }
+    {
+        auto joint_transform = vsg::MatrixTransform::create();
+        joint_transform->matrix = vsg::dmat4CH(mbody->getAbsOutboardFrame(), m_joint_frame_scale);
+        auto joint_node = m_shapeBuilder->createFrameSymbol(joint_transform, 0.5f, 1.0f, true);
+        joint_node->setValue("Type", type);
+        joint_node->setValue("MobilizedBody", mbody);
         joint_node->setValue("Body", 2);
         joint_node->setValue("Transform", joint_transform);
         m_jointFrameScene->addChild(mask, joint_node);
@@ -2250,8 +2286,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
 // -----------------------------------------------------------------------------
 
 // Utility function to populate a VSG group with visualization shapes (from the given visual model).
-void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
-                                         std::shared_ptr<ChVisualModel> model) {
+void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.shape;
         const auto& X_SM = shape_instance.frame;
@@ -2483,20 +2518,38 @@ void ChVisualSystemVSG::Update() {
     // Update VSG nodes for joint frame visualization
     if (m_show_joint_frames) {
         for (auto& child : m_jointFrameScene->children) {
-            std::shared_ptr<ChLinkBase> link;
+            JointType type;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
-            int body;
-            if (!child.node->getValue("Link", link))
+            if (!child.node->getValue("Type", type))
                 continue;
             if (!child.node->getValue("Transform", transform))
                 continue;
-            if (!child.node->getValue("Body", body))
-                continue;
 
-            if (body == 1)
-                transform->matrix = vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale);
-            else
-                transform->matrix = vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
+            switch (type) {
+                case JointType::LINK: {
+                    std::shared_ptr<ChLinkBase> link;
+                    int body;
+                    if (!child.node->getValue("Link", link))
+                        break;
+                    if (!child.node->getValue("Body", body))
+                        break;
+                    transform->matrix = (body == 1) ? vsg::dmat4CH(link->GetFrame1Abs(), m_joint_frame_scale)
+                                                    : vsg::dmat4CH(link->GetFrame2Abs(), m_joint_frame_scale);
+
+                    break;
+                }
+                case JointType::MOBILIZER: {
+                    std::shared_ptr<soa::ChMobilizedBody> mbody;
+                    int body;
+                    if (!child.node->getValue("MobilizedBody", mbody))
+                        break;
+                    if (!child.node->getValue("Body", body))
+                        break;
+                    transform->matrix = (body == 1) ? vsg::dmat4CH(mbody->getAbsInboardFrame(), m_joint_frame_scale)
+                                                    : vsg::dmat4CH(mbody->getAbsOutboardFrame(), m_joint_frame_scale);
+                    break;
+                }
+            }
         }
     }
 

@@ -375,6 +375,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
   private:
     enum class ObjectType { BODY, LINK, OTHER };
+    enum class JointType {LINK, MOBILIZER};
     enum class PointPointType { SPRING, SEGMENT };
     enum class DeformableType { FEA, OTHER };
 
@@ -475,8 +476,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindCOMFrame(const std::shared_ptr<ChBody>& body);
     void BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>& mbody);
 
-    /// Bind the joint frames.
+    /// Bind the ChLink joint frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
+
+    /// Bind the ChMobilizedBody joint frames.
+    void BindLinkFrame(const std::shared_ptr<soa::ChMobilizedBody> mbody);
 
     void BindCOMSymbols();
 

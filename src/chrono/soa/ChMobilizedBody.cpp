@@ -116,6 +116,14 @@ ChVector3d ChMobilizedBody::getAbsCOMAcc() const {
     return getAbsAcc(m_mpropsB.com());
 }
 
+ChFramed ChMobilizedBody::getAbsInboardFrame() const {
+    return getParent()->getAbsPos() * m_X_PF;
+}
+
+ChFramed ChMobilizedBody::getAbsOutboardFrame() const {
+    return getAbsPos() * m_X_BM;
+}
+
 // -----------------------------------------------------------------------------
 
 double ChMobilizedBody::getQ(int dof) const {
