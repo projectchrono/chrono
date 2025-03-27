@@ -13,16 +13,16 @@
 // =============================================================================
 //
 // Interactive driver for a suspension test rig.
-// Independent of keuboard event handler.
+// Independent of keyboard event handler.
 //
 // =============================================================================
 
 #ifndef CH_STR_INTERACTIVE_DRIVER_H
-    #define CH_STR_INTERACTIVE_DRIVERG_H
+#define CH_STR_INTERACTIVE_DRIVER_H
 
-    #include <string>
+#include <string>
 
-    #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -41,16 +41,16 @@ class CH_VEHICLE_API ChSuspensionTestRigInteractiveDriver : public ChSuspensionT
     /// Get the currently actuated axle.
     int GetActiveAxle() const { return m_crt_axle; }
 
-    /// Get the left post displacement.
+    /// Get the left post displacement for current actuated axle.
     double GetLeft();
 
-    /// Get the right post displacement.
+    /// Get the right post displacement for current actuated axle.
     double GetRight();
 
-    /// Change actuated axle to next (cycle as needed).
+    /// Change current actuated axle to next (cycle as needed).
     void NextAxle();
 
-    /// Change actuated axle to previous (cycle as needed).
+    /// Change current actuated axle to previous (cycle as needed).
     void PreviousAxle();
 
     /// Increment steering input.
@@ -59,26 +59,26 @@ class CH_VEHICLE_API ChSuspensionTestRigInteractiveDriver : public ChSuspensionT
     /// Decrement steering input.
     void DecrementSteering();
 
-    /// Increment displacement of left post.
+    /// Increment displacement of left post for current actuated axle.
     void IncrementLeft();
 
-    /// Decrement displacement of left post.
+    /// Decrement displacement of left post for current actuated axle.
     void DecrementLeft();
 
-    /// Increment displacement of right post.
+    /// Increment displacement of right post for current actuated axle.
     void IncrementRight();
 
-    /// Decrement displacement of right post.
+    /// Decrement displacement of right post for current actuated axle.
     void DecrementRight();
 
     /// Set the time response for post displacement control.
-    /// The provided value represents the time (in seconds) for increasing the displacement input from 0 to 1 (or
-    /// decreasing it from 0 to -1). Default: 1/100.
+    /// This value represents the time (in seconds) for changing the displacement input from 0 to 1 (or 0 to -1).
+    /// Default: 1/100.
     void SetDisplacementDelta(double delta) { m_displ_delta = delta; }
 
     /// Set the time response for steering control.
-    /// The provided value represents the time (in seconds) for increasing the steering input from 0 to 1 (or decreasing
-    /// it from 0 to -1). Default: 1/250.
+    /// This value represents the time (in seconds) for changing the steering input from 0 to 1 (or 0 to -1).
+    /// Default: 1/250.
     void SetSteeringDelta(double delta) { m_steering_delta = delta; }
 
   private:

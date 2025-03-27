@@ -72,25 +72,25 @@ namespace ChronoDemo
             // Create the terrain
             RigidTerrain terrain = new RigidTerrain(system, GetDataFile("terrain/RigidPlane.json"));
             terrain.Initialize();
-            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
 
+            // Create the interactive Irrlicht driver system
+            ChInteractiveDriver driver = new ChInteractiveDriver(vehicle);
+            driver.SetSteeringDelta(0.02);
+            driver.SetThrottleDelta(0.02);
+            driver.SetBrakingDelta(0.06);
+            driver.Initialize();
+
+            // Create the run-time visualization
+            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("CSharp Vehicle Irrlicht Demo");
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 3, 1.5);
             vis.Initialize();
-            
             vis.AddLightDirectional();
             vis.AddSkyBox();
             vis.AddLogo();
-            
             vis.AttachVehicle(vehicle);
+            vis.AttachDriver(driver);
 
-            // Create the interactive Irrlicht driver system
-            ChInteractiveDriverIRR driver_irr = new ChInteractiveDriverIRR(vis);
-            driver_irr.SetSteeringDelta(0.02);
-            driver_irr.SetThrottleDelta(0.02);
-            driver_irr.SetBrakingDelta(0.06);
-            driver_irr.Initialize();        
-            
             // Simulation loop
             double step_size = 2e-3;
 
@@ -103,17 +103,17 @@ namespace ChronoDemo
                 vis.EndScene();
 
                 // Get driver inputs
-                DriverInputs driver_inputs = driver_irr.GetInputs();
+                DriverInputs driver_inputs = driver.GetInputs();
 
                 // Update modules (process inputs from other modules)
                 double time = vehicle.GetSystem().GetChTime();
-                driver_irr.Synchronize(time);
+                driver.Synchronize(time);
                 vehicle.Synchronize(time, driver_inputs, terrain);
                 terrain.Synchronize(time);
                 vis.Synchronize(time, driver_inputs);
 
                 // Advance simulation for one timestep for all modules
-                driver_irr.Advance(step_size);
+                driver.Advance(step_size);
                 vehicle.Advance(step_size);
                 terrain.Advance(step_size);
                 vis.Advance(step_size);

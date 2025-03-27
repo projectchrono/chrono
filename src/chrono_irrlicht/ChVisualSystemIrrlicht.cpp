@@ -770,8 +770,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
                                              std::shared_ptr<ChVisualModel> model,
                                              const ChFrame<>& parent_frame) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
-        auto& shape = shape_instance.first;
-        auto& shape_frame = shape_instance.second;
+        auto& shape = shape_instance.shape;
+        auto& shape_frame = shape_instance.frame;
         core::matrix4CH shape_m4(shape_frame);
 
         if (!shape->IsVisible())

@@ -646,10 +646,10 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
     for (auto& shape_inst : pi.GetVisualModel()->GetShapeInstances()) {
         // variables referring to visualizers will start with VISUALIZER[<counter>]
         // and will be split in .shape and .frame
-        // the frame is NOT the one of the ShapeInstance (which is from shape to body)
+        // the frame is NOT the one of the ChVisualShapeInstance (which is from shape to body)
         // but is a local frame that transforms from shape to world directly
         std::string shape_name = "VISUALIZER[" + std::to_string(visualizers_counter) + "].shape";
-        variables_serializer << CHNVP(shape_inst.first, shape_name.c_str());
+        variables_serializer << CHNVP(shape_inst.shape, shape_name.c_str());
         std::string frame_basename = "VISUALIZER[" + std::to_string(visualizers_counter) + "].frame";
 
         auto update_frame = [](VisTuple& tup) {
@@ -659,7 +659,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
             }
         };
 
-        VisTuple current_tuple = std::make_tuple(ChFrame<>(), &pi, &shape_inst.second, false);
+        VisTuple current_tuple = std::make_tuple(ChFrame<>(), &pi, &shape_inst.frame, false);
         update_frame(current_tuple);
 
         visualizer_frames[visualizers_counter] = current_tuple;
@@ -742,7 +742,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
 
         // Set shape type
 
-        std::shared_ptr<ChVisualShape> shape = shape_inst.first;
+        std::shared_ptr<ChVisualShape> shape = shape_inst.shape;
         auto shape_type = supported_shape_types.find("ChVisualShapeUNKNOWN");
         if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             shape_type = supported_shape_types.find("ChVisualShapeModelFile");

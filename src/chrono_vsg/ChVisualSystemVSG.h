@@ -193,9 +193,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function must be called before Initialize().
     void EnableSkyBox(bool val = true);
 
-    /// Enable/disable rendering objects as wireframe (Default: false).
-    void EnableWireframeMode(bool mode = true) { m_wireframe = mode; }
-
     /// Set the camera up vector (default: Z).
     void SetCameraVertical(CameraVerticalDir upDir);
 
@@ -345,7 +342,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Builder> m_vsgBuilder;
     vsg::ref_ptr<ShapeBuilder> m_shapeBuilder;
 
-    bool m_wireframe;             ///< draw as wireframes
     bool m_capture_image;         ///< export current frame to image file
     std::string m_imageFilename;  ///< name of file to export current frame
 
@@ -463,7 +459,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindPointPoint(const std::shared_ptr<ChPhysicsItem>& item);
 
     /// Bind the visual model assoicated with a particle cloud.
-    void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud, bool wireframe);
+    void BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud);
 
     /// Bind the reference frame for the given ChObj.
     void BindReferenceFrame(const std::shared_ptr<ChObj>& obj);
@@ -477,7 +473,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void BindCOMSymbols();
 
     /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
-    void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model, bool wireframe);
+    void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
 
     /// Utility function to populate a VSG group with collision shapes (from the given collision model).
     /// The VSG shapes are always rendered wireframe.

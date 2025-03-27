@@ -56,7 +56,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     utils::CreateBoxContainer(sys, mat,                         //
                               ChVector3d(1.1, 1.2, 1.1), 0.05,  //
                               VNULL, QuatFromAngleY(-10),       //
-                              true, true, true);
+                              true, true, true, true);
 }
 
 // -----------------------------------------------------------------------------
@@ -151,15 +151,13 @@ int main(int argc, char* argv[]) {
     vis->AttachSystem(&sys);
     vis->SetWindowTitle("Particles NSC");
     vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->AddCamera(ChVector3d(0, -2, -1), ChVector3d(0, 0, -1));
+    vis->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, -1));
     vis->SetWindowSize(1280, 720);
     vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
     vis->EnableSkyBox();
     vis->SetCameraAngleDeg(40.0);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->EnableShadows();
-    vis->EnableWireframeMode();
+    vis->SetLightDirection(-CH_PI_2, CH_PI_4);
     vis->Initialize();
 
     while (vis->Run()) {

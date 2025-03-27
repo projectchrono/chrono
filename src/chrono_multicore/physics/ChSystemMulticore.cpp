@@ -426,7 +426,7 @@ void ChSystemMulticore::UpdateMotorLinks() {
     }
 }
 
-// Update all fluid nodes
+// Update all 3-DOF particles
 void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update3DOF(ch_time);
 }
@@ -561,7 +561,7 @@ void ChSystemMulticore::Setup() {
 
     // Calculate the total number of degrees of freedom (6 per rigid body, 1 per shaft, 1 per motor).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
-                            data_manager->num_fluid_bodies * 3;
+                            data_manager->num_particles * 3;
 
     // Set variables that are stored in the ChSystem class
     assembly.m_num_bodies_active = data_manager->num_rigid_bodies;
@@ -573,8 +573,8 @@ void ChSystemMulticore::Setup() {
     m_num_constr_bil = 0;
     m_num_constr_uni = 0;
     if (data_manager->cd_data)
-        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
-                    data_manager->cd_data->num_fluid_contacts;
+        ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts +
+                    data_manager->cd_data->num_particle_contacts;
     assembly.m_num_bodies_sleep = 0;
     assembly.m_num_bodies_fixed = 0;
 }
@@ -651,8 +651,8 @@ unsigned int ChSystemMulticore::GetNumContacts() {
     if (!data_manager->cd_data)
         return 0;
 
-    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
-           data_manager->cd_data->num_fluid_contacts;
+    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_particle_contacts +
+           data_manager->cd_data->num_particle_contacts;
 }
 
 // -------------------------------------------------------------

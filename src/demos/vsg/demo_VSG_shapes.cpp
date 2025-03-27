@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     utils::AddCapsuleGeometry(bin.get(), mat, c, 1.0, zdir * 6, rot);
 
     for (auto& shapes : bin->GetVisualModel()->GetShapeInstances())
-        shapes.first->SetTexture(GetChronoDataFile("textures/checker2.png"));
+        shapes.shape->SetTexture(GetChronoDataFile("textures/checker2.png"));
 
     int num_divs = 24;  // round primitive shape resolution (corresponding angle = 360/24 = 15 deg)
 

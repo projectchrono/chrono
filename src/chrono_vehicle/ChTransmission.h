@@ -84,14 +84,14 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
     /// Shift down.
     virtual void ShiftDown() = 0;
 
-  protected:
-    ChTransmission(const std::string& name = "");
-
     /// Return this object as an automatic transmission.
     virtual ChAutomaticTransmission* asAutomatic() { return nullptr; }
 
     /// Return this object as a manual transmission.
     virtual ChManualTransmission* asManual() { return nullptr; }
+
+  protected:
+    ChTransmission(const std::string& name = "");
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;
@@ -128,7 +128,6 @@ class CH_VEHICLE_API ChTransmission : public ChPart {
 
     friend class ChPowertrainAssembly;
     friend class ChVehicleVisualSystemIrrlicht;
-    friend class ChInteractiveDriverIRR;
     friend class ChVehicleVisualSystemVSG;
     friend class ChVehicleKeyboardHandlerVSG;
     friend class ChVehicleGuiComponentVSG;

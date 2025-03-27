@@ -19,10 +19,11 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigInteractiveDriverIRR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
 
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
@@ -177,22 +178,6 @@ int main(int argc, char* argv[]) {
 
     rig->GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // ---------------------------------------
-    // Create the vehicle Irrlicht application
-    // ---------------------------------------
-
-    ////ChVector3d target_point = rig->GetPostPosition();
-    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
-
-    auto vis = chrono_types::make_shared<ChVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle("Continuous Band Track Test Rig");
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 0.0), 3.0, 0.0);
-    vis->SetChaseCameraPosition(target_point + ChVector3d(-2, 3, 0));
-    vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(-CH_PI_2);
-    vis->SetChaseCameraMultipliers(1e-4, 10);
-
     // -----------------------------------
     // Create and attach the driver system
     // -----------------------------------
@@ -203,7 +188,7 @@ int main(int argc, char* argv[]) {
         auto data_driver = new ChTrackTestRigDataDriver(vehicle::GetDataFile(driver_file));
         driver = std::unique_ptr<ChTrackTestRigDriver>(data_driver);
     } else {
-        auto irr_driver = new ChTrackTestRigInteractiveDriverIRR(*vis);
+        auto irr_driver = new ChTrackTestRigInteractiveDriver();
         irr_driver->SetThrottleDelta(1.0 / 50);
         irr_driver->SetDisplacementDelta(1.0 / 250);
         driver = std::unique_ptr<ChTrackTestRigDriver>(irr_driver);
@@ -237,11 +222,22 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize();
 
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
+    ////ChVector3d target_point = rig->GetPostPosition();
+    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+
+    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
+    vis->SetWindowTitle("Continuous Band Track Test Rig");
+    vis->SetWindowSize(1280, 1024);
+    vis->AttachTTR(rig);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AttachVehicle(rig);
 
     // ---------------------------------------
     // Contact reporter object (for debugging)
@@ -348,10 +344,6 @@ int main(int argc, char* argv[]) {
 
         // Advance simulation of the rig
         rig->Advance(step_size);
-
-        // Update visualization app
-        vis->Synchronize(rig->GetChTime(), {0, rig->GetThrottleInput(), 0});
-        vis->Advance(step_size);
 
         // Parse all contacts in system
         ////reporter.Process();

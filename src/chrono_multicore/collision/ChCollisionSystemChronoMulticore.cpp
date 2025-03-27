@@ -53,9 +53,9 @@ void ChCollisionSystemChronoMulticore::PreProcess() {
     cd_data->state_data.pos_3dof = &data_manager->host_data.pos_3dof;
     cd_data->state_data.sorted_pos_3dof = &data_manager->host_data.sorted_pos_3dof;
 
-    // Set number of rigid and fluid bodies
+    // Set number of rigid bodies and particles
     cd_data->state_data.num_rigid_bodies = data_manager->num_rigid_bodies;
-    cd_data->state_data.num_fluid_bodies = data_manager->num_fluid_bodies;
+    cd_data->state_data.num_particles = data_manager->num_particles;
 
     // Set 3-dof particle properties
     if (data_manager->node_container) {
@@ -93,18 +93,18 @@ void ChCollisionSystemChronoMulticore::PostProcess() {
     measures.rigid_min_bounding_point = cd_data->rigid_min_bounding_point;
     measures.rigid_max_bounding_point = cd_data->rigid_max_bounding_point;
 
-    measures.ff_bins_per_axis = cd_data->ff_bins_per_axis;
-    measures.ff_min_bounding_point = cd_data->ff_min_bounding_point;
-    measures.ff_max_bounding_point = cd_data->ff_max_bounding_point;
+    measures.part_bins_per_axis = cd_data->part_bins_per_axis;
+    measures.part_min_bounding_point = cd_data->part_min_bounding_point;
+    measures.part_max_bounding_point = cd_data->part_max_bounding_point;
 
     // If needed, remap particle velocities and load sorted particle velocities.
     if (data_manager->node_container) {
-        data_manager->host_data.sorted_vel_3dof.resize(data_manager->num_fluid_bodies);
+        data_manager->host_data.sorted_vel_3dof.resize(data_manager->num_particles);
         const int body_offset =
             data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors;
         auto& v = data_manager->host_data.v;
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
+        for (int i = 0; i < (signed)data_manager->num_particles; i++) {
             int index = cd_data->particle_indices_3dof[i];
             data_manager->host_data.sorted_vel_3dof[i] = data_manager->host_data.vel_3dof[index];
             v[body_offset + i * 3 + 0] = data_manager->host_data.vel_3dof[index].x;

@@ -161,7 +161,6 @@ TEST_P(JointsDVI, simulate) {
         vis->SetLightIntensity(1.0f);
         vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         vis->EnableShadows();
-        vis->EnableWireframeMode();
         vis->Initialize();
 
         while (sys->GetChTime() < time_end) {

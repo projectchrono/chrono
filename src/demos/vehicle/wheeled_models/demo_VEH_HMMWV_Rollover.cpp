@@ -28,13 +28,11 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
-    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif

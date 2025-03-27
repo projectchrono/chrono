@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Interactive driver for a suspension test rig.
-// Independent of keuboard event handler.
+// Independent of keyboard event handler.
 //
 // =============================================================================
 

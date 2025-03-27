@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Flexible Cable");
         visVSG->SetWindowSize(1280, 720);
         visVSG->SetWindowPosition(400, 400);
-        // visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
+        visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 

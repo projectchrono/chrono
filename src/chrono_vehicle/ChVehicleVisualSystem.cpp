@@ -24,6 +24,7 @@ namespace vehicle {
 
 ChVehicleVisualSystem::ChVehicleVisualSystem()
     : m_vehicle(nullptr),
+      m_driver(nullptr),
       m_terrain(nullptr),
       m_stepsize(1e-3),
       m_camera_point(ChVector3d(1, 0, 0)),
@@ -57,7 +58,11 @@ void ChVehicleVisualSystem::AttachVehicle(ChVehicle* vehicle) {
     m_camera->SetMultLimits(m_camera_minMult, m_camera_maxMult);
 }
 
-void ChVehicleVisualSystem::AttachTerrain(vehicle::ChTerrain* terrain) {
+void ChVehicleVisualSystem::AttachDriver(ChDriver* driver) {
+    m_driver = driver;
+}
+
+void ChVehicleVisualSystem::AttachTerrain(ChTerrain* terrain) {
     m_terrain = terrain;
 }
 
