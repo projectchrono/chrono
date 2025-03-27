@@ -183,7 +183,7 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
 
 void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChContactMaterial> mat) {
     assert(m_shape_instances.size() == 0 ||
-           m_shape_instances[0].first->m_material->GetContactMethod() == mat->GetContactMethod());
+           m_shape_instances[0].shape->m_material->GetContactMethod() == mat->GetContactMethod());
     for (auto& si : m_shape_instances)
         si.shape->m_material = mat;
 }
