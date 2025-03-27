@@ -15,6 +15,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
+#include "chrono/core/ChQuaternion.h"
 #include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementCorotational.h"
@@ -71,18 +72,25 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// Get the second node (ending)
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeB() { return nodes[1]; }
 
-    /// Set the reference rotation of nodeA respect to the element rotation.
-    void SetNodeAreferenceRot(ChQuaternion<> mrot) { q_refrotA = mrot; }
-    ChQuaternion<> GetNodeAreferenceRot() { return q_refrotA; }
+    /// Set the reference rotation of nodeA with respect to the element rotation.
+    void SetElemToNodeArefRot(ChQuaternion<> mrot) {
+      q_elemref_to_nodeAref_conj = mrot.GetConjugate();
+      yabs_in_elemref_to_nodeAref_frame = mrot.RotateBack(ChVector3d(0, 1, 0));
+    }
 
-    /// Set the reference rotation of nodeB respect to the element rotation.
-    void SetNodeBreferenceRot(ChQuaternion<> mrot) { q_refrotB = mrot; }
-    ChQuaternion<> GetNodeBreferenceRot() { return q_refrotB; }
+    /// Set the reference rotation of nodeB with respect to the element rotation.
+    void SetElemToNodeBrefRot(ChQuaternion<> mrot) {
+      q_elemref_to_nodeBref_conj = mrot.GetConjugate();
+      yabs_in_elemref_to_nodeBref_frame = mrot.RotateBack(ChVector3d(0, 1, 0));
+    }
 
     /// Get the absolute rotation of element in space
     /// This is not the same of Rotation() , that expresses
     /// the accumulated rotation from starting point.
     ChQuaternion<> GetAbsoluteRotation() { return q_element_abs_rot; }
+
+    /// Set the original reference rotation of element in space
+    void SetRefRotation(ChQuaternion<> q_initial) { q_element_ref_rot = q_initial; }
 
     /// Get the original reference rotation of element in space
     ChQuaternion<> GetRefRotation() { return q_element_ref_rot; }
@@ -282,8 +290,10 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
     ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
 
-    ChQuaternion<> q_refrotA;
-    ChQuaternion<> q_refrotB;
+    ChQuaternion<> q_elemref_to_nodeAref_conj;
+    ChQuaternion<> q_elemref_to_nodeBref_conj;
+    ChVector3d yabs_in_elemref_to_nodeAref_frame;
+    ChVector3d yabs_in_elemref_to_nodeBref_frame;
 
     ChQuaternion<> q_element_abs_rot;
     ChQuaternion<> q_element_ref_rot;
