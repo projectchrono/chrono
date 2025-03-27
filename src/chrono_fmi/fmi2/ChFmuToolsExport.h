@@ -646,7 +646,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
     for (auto& shape_inst : pi.GetVisualModel()->GetShapeInstances()) {
         // variables referring to visualizers will start with VISUALIZER[<counter>]
         // and will be split in .shape and .frame
-        // the frame is NOT the one of the ShapeInstance (which is from shape to body)
+        // the frame is NOT the one of the ChVisualShapeInstance (which is from shape to body)
         // but is a local frame that transforms from shape to world directly
         std::string shape_name = "VISUALIZER[" + std::to_string(visualizers_counter) + "].shape";
         variables_serializer << CHNVP(shape_inst.shape, shape_name.c_str());

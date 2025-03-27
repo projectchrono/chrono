@@ -38,12 +38,18 @@ class ChCollisionModelImpl;
 /// @addtogroup chrono_collision
 /// @{
 
-/// Class defining the geometric model for collision detection.
+/// Definition of an instance of a collision shape in a collision model.
+struct ChApi ChCollisionShapeInstance {
+    std::shared_ptr<ChCollisionShape> shape;  /// collision shape (possibly shared)
+    ChFramed frame;                           ///< shape position relative to containing model
+
+    void ArchiveOut(ChArchiveOut& archive_out);
+    void ArchiveIn(ChArchiveIn& archive_in);
+};
+
+/// Definition of a collision model which encapsulates a set of collision shapes for collision detection.
 class ChApi ChCollisionModel {
   public:
-    /// A ShapeInstance is a pair of a collision shape and its position in the model.
-    typedef std::pair<std::shared_ptr<ChCollisionShape>, ChFrame<>> ShapeInstance;
-
     ChCollisionModel();
     ChCollisionModel(const ChCollisionModel& other);
     ~ChCollisionModel();
@@ -169,10 +175,10 @@ class ChApi ChCollisionModel {
     unsigned int GetNumShapes() const { return (unsigned int)m_shape_instances.size(); }
 
     /// Get the list of collision shapes in this model.
-    const std::vector<ShapeInstance>& GetShapeInstances() const { return m_shape_instances; }
+    const std::vector<ChCollisionShapeInstance>& GetShapeInstances() const { return m_shape_instances; }
 
     /// Get the collision shape with specified index.
-    const ShapeInstance& GetShapeInstance(int index) const { return m_shape_instances[index]; }
+    const ChCollisionShapeInstance& GetShapeInstance(int index) const { return m_shape_instances[index]; }
 
     /// Set the contact material for all collision shapes in the model (all shapes will share the material).
     /// This function is useful in adjusting contact material properties for objects imported from outside (e.g., from
@@ -193,7 +199,7 @@ class ChApi ChCollisionModel {
     short int family_group;  ///< Collision family group
     short int family_mask;   ///< Collision family mask
 
-    std::vector<ShapeInstance> m_shape_instances;  ///< list of collision shapes and positions in model
+    std::vector<ChCollisionShapeInstance> m_shape_instances;  ///< list of collision shapes and positions in model
 
     ChCollisionModelImpl* impl;  ///< concrete implementation of the collision model
 
@@ -222,7 +228,7 @@ class ChCollisionModelImpl {
     /// Note that SyncPosition() should be invoked before calling this.
     virtual ChAABB GetBoundingBox() const = 0;
 
-    ChCollisionModel* model;  // associated collision model
+    ChCollisionModel* model;  ///< associated collision model
 
     friend class ChCollisionModel;
 };

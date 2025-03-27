@@ -30,20 +30,20 @@ namespace chrono {
 // Forward declaration
 class ChObj;
 
-/// Base class for a visual model which encapsulates a set of visual shapes.
-/// Visual models can be instantiated and shared among different Chrono physics items.
+/// Definition of an instance of a visual shape in a visual model.
+struct ChApi ChVisualShapeInstance {
+    std::shared_ptr<ChVisualShape> shape;  /// visual shape (possibly shared)
+    ChFramed frame;                        ///< shape position relative to containing model
+    bool wireframe;                        ///< wireframe rendering for this instance
+
+    void ArchiveOut(ChArchiveOut& archive_out);
+    void ArchiveIn(ChArchiveIn& archive_in);
+};
+
+/// Definition of a visual model which encapsulates a set of visual shapes.
+/// Visual models can be instantiated and shared among different Chrono objects.
 class ChApi ChVisualModel {
   public:
-    /// Definition of an instance of a visual shape in a visual model.
-    struct ShapeInstance {
-        std::shared_ptr<ChVisualShape> shape;  /// visual shape (possibly shared)
-        ChFramed frame;                        ///< shape position relative to containing model
-        bool wireframe;                        ///< wireframe rendering for this instance
-
-        void ArchiveOut(ChArchiveOut& archive_out);
-        void ArchiveIn(ChArchiveIn& archive_in);
-    };
-
     ChVisualModel() {}
     ~ChVisualModel() {}
 
@@ -63,7 +63,7 @@ class ChApi ChVisualModel {
     unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
 
     /// Get the visual shapes in the model.
-    const std::vector<ShapeInstance>& GetShapeInstances() const { return m_shapes; }
+    const std::vector<ChVisualShapeInstance>& GetShapeInstances() const { return m_shapes; }
 
     /// Get the specified visual shape in the model.
     std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].shape; }
@@ -106,15 +106,15 @@ class ChApi ChVisualModel {
     /// Since a visual model can be shared in multiple instances, this function may be called with different owners.
     void Update(ChObj* owner, const ChFrame<>& frame);
 
-    std::vector<ShapeInstance> m_shapes;
+    std::vector<ChVisualShapeInstance> m_shapes;
     std::vector<std::shared_ptr<ChVisualShapeFEA>> m_shapesFEA;
 
     friend class ChVisualModelInstance;
 };
 
-/// A visual model instance encodes a potentially shared visual model and its owning physics item.
-/// Multiple instances of a visual model can be associated with the same physics item or the same visual model can be
-/// instanced in multiple physics items.
+/// Definition of a visual model instance which contains a potentially shared visual model and its owning object.
+/// Multiple instances of a visual model can be associated with the same object or the same visual model can be
+/// instanced in multiple objects.
 class ChApi ChVisualModelInstance {
   public:
     ~ChVisualModelInstance() {}

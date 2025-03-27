@@ -40,15 +40,15 @@ void ChVisualModel::Clear() {
 
 void ChVisualModel::Erase(std::shared_ptr<ChVisualShape> shape) {
     auto it = std::find_if(m_shapes.begin(), m_shapes.end(),
-                           [&shape](const ShapeInstance& element) { return element.shape == shape; });
+                           [&shape](const ChVisualShapeInstance& element) { return element.shape == shape; });
     if (it != m_shapes.end())
         m_shapes.erase(it);
 }
 
 void ChVisualModel::Update(ChObj* owner, const ChFrame<>& frame) {
-    for (auto& shape : m_shapes) {
-        auto xform = frame >> shape.frame;
-        shape.shape->Update(owner, xform);
+    for (auto& si : m_shapes) {
+        auto xform = frame >> si.frame;
+        si.shape->Update(owner, xform);
     }
     for (auto& shapeFEA : m_shapesFEA) {
         shapeFEA->Update(owner, ChFrame<>());
@@ -57,9 +57,9 @@ void ChVisualModel::Update(ChObj* owner, const ChFrame<>& frame) {
 
 ChAABB ChVisualModel::GetBoundingBox() const {
     ChAABB aabb;
-    for (const auto& shape : m_shapes) {
-        auto shape_aabb = shape.shape->GetBoundingBox();
-        aabb += shape_aabb.Transform(shape.frame);
+    for (const auto& si : m_shapes) {
+        auto shape_aabb = si.shape->GetBoundingBox();
+        aabb += shape_aabb.Transform(si.frame);
     }
     return aabb;
 }
@@ -88,15 +88,15 @@ void ChVisualModelInstance::Update(const ChFrame<>& frame) {
 
 // -----------------------------------------------------------------------------
 
-void ChVisualModel::ShapeInstance::ArchiveOut(ChArchiveOut& archive_out) {
-    archive_out.VersionWrite<ChVisualModel>();
+void ChVisualShapeInstance::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChVisualShapeInstance>();
     archive_out << CHNVP(shape);
     archive_out << CHNVP(frame);
     archive_out << CHNVP(wireframe);
 }
 
-void ChVisualModel::ShapeInstance::ArchiveIn(ChArchiveIn& archive_in) {
-    /*int version =*/archive_in.VersionRead<ChVisualModel>();
+void ChVisualShapeInstance::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChVisualShapeInstance>();
     archive_in >> CHNVP(shape);
     archive_in >> CHNVP(frame);
     archive_in >> CHNVP(wireframe);
