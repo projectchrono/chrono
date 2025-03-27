@@ -79,6 +79,12 @@ class CH_FSI_API ChFsiSystem {
     /// (as needed), but these are not attached to the given FEA mesh.
     void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
 
+    /// Enable/disable use of node direction vectors for FSI flexible meshes.
+    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
+    /// calculated from the FSI mesh position states and communicated to the fluid solver. The default is set by a
+    /// concrete ChFsiSystem and the associated FSI interface.
+    void EnableNodeDirections(bool val);
+
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.
     /// The default implementation performs the following operations:

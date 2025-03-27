@@ -65,12 +65,12 @@ void SphMarkerDataH::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-zipIterRigidD FsiBodyStateD::iterator() {
+zipIterRigidH FsiBodyStateH::iterator() {
     return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
                                                         rot.begin(), ang_vel.begin(), ang_acc.begin()));
 }
 
-void FsiBodyStateD::resize(size_t s) {
+void FsiBodyStateH::Resize(size_t s) {
     pos.resize(s);
     lin_vel.resize(s);
     lin_acc.resize(s);
@@ -79,16 +79,18 @@ void FsiBodyStateD::resize(size_t s) {
     ang_acc.resize(s);
 }
 
-void FsiMeshStateH::resize(size_t s) {
-    pos.resize(s);
-    vel.resize(s);
-    acc.resize(s);
+zipIterRigidD FsiBodyStateD::iterator() {
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
+                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
 }
 
-void FsiMeshStateD::resize(size_t s) {
+void FsiBodyStateD::Resize(size_t s) {
     pos.resize(s);
-    vel.resize(s);
-    acc.resize(s);
+    lin_vel.resize(s);
+    lin_acc.resize(s);
+    rot.resize(s);
+    ang_vel.resize(s);
+    ang_acc.resize(s);
 }
 
 void FsiBodyStateD::CopyFromH(const FsiBodyStateH& bodyStateH) {
@@ -98,12 +100,6 @@ void FsiBodyStateD::CopyFromH(const FsiBodyStateH& bodyStateH) {
     thrust::copy(bodyStateH.rot.begin(), bodyStateH.rot.end(), rot.begin());
     thrust::copy(bodyStateH.ang_vel.begin(), bodyStateH.ang_vel.end(), ang_vel.begin());
     thrust::copy(bodyStateH.ang_acc.begin(), bodyStateH.ang_acc.end(), ang_acc.begin());
-}
-
-void FsiMeshStateD::CopyFromH(const FsiMeshStateH& meshStateH) {
-    thrust::copy(meshStateH.pos.begin(), meshStateH.pos.end(), pos.begin());
-    thrust::copy(meshStateH.vel.begin(), meshStateH.vel.end(), vel.begin());
-    thrust::copy(meshStateH.acc.begin(), meshStateH.acc.end(), acc.begin());
 }
 
 FsiBodyStateD& FsiBodyStateD::operator=(const FsiBodyStateD& other) {
@@ -119,6 +115,37 @@ FsiBodyStateD& FsiBodyStateD::operator=(const FsiBodyStateD& other) {
     return *this;
 }
 
+//---------------------------------------------------------------------------------------
+
+void FsiMeshStateH::Resize(size_t s, bool use_node_directions) {
+    pos.resize(s);
+    vel.resize(s);
+    acc.resize(s);
+    if (use_node_directions)
+        dir.resize(s);
+    has_node_directions = use_node_directions;
+}
+
+void FsiMeshStateD::Resize(size_t s, bool use_node_directions) {
+    pos.resize(s);
+    vel.resize(s);
+    acc.resize(s);
+    if (use_node_directions)
+        dir.resize(s);
+    has_node_directions = use_node_directions;
+}
+
+void FsiMeshStateD::CopyFromH(const FsiMeshStateH& meshStateH) {
+    thrust::copy(meshStateH.pos.begin(), meshStateH.pos.end(), pos.begin());
+    thrust::copy(meshStateH.vel.begin(), meshStateH.vel.end(), vel.begin());
+    thrust::copy(meshStateH.acc.begin(), meshStateH.acc.end(), acc.begin());
+}
+
+void FsiMeshStateD::CopyDirectionsFromH(const FsiMeshStateH& meshStateH) {
+    if (meshStateH.has_node_directions)
+        thrust::copy(meshStateH.dir.begin(), meshStateH.dir.end(), dir.begin());
+}
+
 FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
     if (this == &other) {
         return *this;
@@ -126,22 +153,9 @@ FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
     thrust::copy(other.pos.begin(), other.pos.end(), pos.begin());
     thrust::copy(other.vel.begin(), other.vel.end(), vel.begin());
     thrust::copy(other.acc.begin(), other.acc.end(), acc.begin());
+    if (other.has_node_directions)
+        thrust::copy(other.dir.begin(), other.dir.end(), dir.begin());
     return *this;
-}
-
-//---------------------------------------------------------------------------------------
-zipIterRigidH FsiBodyStateH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
-                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
-}
-
-void FsiBodyStateH::resize(size_t s) {
-    pos.resize(s);
-    lin_vel.resize(s);
-    lin_acc.resize(s);
-    rot.resize(s);
-    ang_vel.resize(s);
-    ang_acc.resize(s);
 }
 
 //---------------------------------------------------------------------------------------
@@ -372,7 +386,8 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
                                 unsigned int num_fsi_nodes1D,
                                 unsigned int num_fsi_elements1D,
                                 unsigned int num_fsi_nodes2D,
-                                unsigned int num_fsi_elements2D) {
+                                unsigned int num_fsi_elements2D,
+                                bool use_node_directions) {
     ConstructReferenceArray();
     SetCounters(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
@@ -422,8 +437,8 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     thrust::copy(sphMarkers_H->tauXxYyZzH.begin(), sphMarkers_H->tauXxYyZzH.end(), sphMarkers_D->tauXxYyZzD.begin());
     thrust::copy(sphMarkers_H->tauXyXzYzH.begin(), sphMarkers_H->tauXyXzYzH.end(), sphMarkers_D->tauXyXzYzD.begin());
 
-    fsiBodyState_D->resize(countersH->numFsiBodies);
-    fsiBodyState_H->resize(countersH->numFsiBodies);
+    fsiBodyState_D->Resize(countersH->numFsiBodies);
+    fsiBodyState_H->Resize(countersH->numFsiBodies);
 
     rigid_FSI_ForcesD.resize(countersH->numFsiBodies);
     rigid_FSI_TorquesD.resize(countersH->numFsiBodies);
@@ -431,10 +446,10 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     rigid_BCEsolids_D.resize(countersH->numRigidMarkers);
     rigid_BCEcoords_D.resize(countersH->numRigidMarkers);
 
-    fsiMesh1DState_D->resize(countersH->numFsiNodes1D);
-    fsiMesh1DState_H->resize(countersH->numFsiNodes1D);
-    fsiMesh2DState_D->resize(countersH->numFsiNodes2D);
-    fsiMesh2DState_H->resize(countersH->numFsiNodes2D);
+    fsiMesh1DState_D->Resize(countersH->numFsiNodes1D, use_node_directions);
+    fsiMesh1DState_H->Resize(countersH->numFsiNodes1D, use_node_directions);
+    fsiMesh2DState_D->Resize(countersH->numFsiNodes2D, use_node_directions);
+    fsiMesh2DState_H->Resize(countersH->numFsiNodes2D, use_node_directions);
 
     flex1D_FSIforces_D.resize(countersH->numFsiNodes1D);
     flex2D_FSIforces_D.resize(countersH->numFsiNodes2D);

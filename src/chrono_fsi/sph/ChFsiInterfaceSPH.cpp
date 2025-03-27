@@ -15,8 +15,14 @@
 // Custom FSI interface for coupling the SPH-based fluid system with a Chrono MBS
 // =============================================================================
 
+////#define DEBUG_LOG
+
+#include "chrono/utils/ChUtils.h"
+#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
+
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/FsiInterface.cuh"
 #include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 #include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
@@ -62,6 +68,13 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
 
         // Transfer to device
         m_data_mgr->fsiMesh1DState_D->CopyFromH(*m_data_mgr->fsiMesh1DState_H);
+        if (m_use_node_directions) {
+            calculateDirectionsMesh1D(*m_data_mgr);
+            ChDebugLog("Calculate directions");
+#ifdef DEBUG_LOG
+            printDirectionsMesh1D(*m_data_mgr);
+#endif
+        }
     }
 
     {
@@ -79,6 +92,8 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
 
         // Transfer to device
         m_data_mgr->fsiMesh2DState_D->CopyFromH(*m_data_mgr->fsiMesh2DState_H);
+        if (m_use_node_directions)
+            calculateDirectionsMesh2D(*m_data_mgr);
     }
 }
 

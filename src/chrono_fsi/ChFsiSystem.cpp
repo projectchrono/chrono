@@ -16,12 +16,15 @@
 //
 // =============================================================================
 
+////#define DEBUG_LOG
+
 #include <cmath>
 #include <stdexcept>
 #include <thread>
 
 #include "chrono/core/ChTypes.h"
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
@@ -84,7 +87,15 @@ void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_sysMBS.SetGravitationalAcceleration(gravity);
 }
 
+void ChFsiSystem::EnableNodeDirections(bool val) {
+    ChAssertAlways(m_fsi_interface);
+    ChDebugLog("uses direction data? " << val);
+    m_fsi_interface->EnableNodeDirections(val);
+}
+
 size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
+    ChAssertAlways(m_fsi_interface);
+
     unsigned int index = m_fsi_interface->GetNumBodies();
     auto& fsi_body = m_fsi_interface->AddFsiBody(body);
     m_sysCFD.OnAddFsiBody(index, fsi_body);
@@ -92,6 +103,8 @@ size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
 }
 
 void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    ChAssertAlways(m_fsi_interface);
+
     bool has_contact1D = false;
     bool has_contact2D = false;
 
@@ -175,7 +188,8 @@ void ChFsiSystem::Initialize() {
     m_sysCFD.Initialize(m_fsi_interface->GetNumBodies(),                                        //
                         m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
                         m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D(),  //
-                        body_states, mesh1D_states, mesh2D_states);                             //
+                        body_states, mesh1D_states, mesh2D_states,                              //
+                        m_fsi_interface->UseNodeDirections());                                  //
 
     // Mark system as initialized
     m_is_initialized = true;

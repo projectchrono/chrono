@@ -34,7 +34,7 @@ namespace fsi {
 /// Definition of a body state.
 struct FsiBodyState {
     ChVector3d pos;      ///< global position
-    ChQuaternion<> rot;  ///< orientation with respect to global frame
+    ChQuaterniond rot;   ///< orientation with respect to global frame
     ChVector3d lin_vel;  ///< linear velocity, expressed in the global frame
     ChVector3d ang_vel;  ///< angular velocity, expressed in the global frame
     ChVector3d lin_acc;  ///< linear acceleration, expressed in the global frame
@@ -52,6 +52,9 @@ struct FsiMeshState {
     std::vector<ChVector3d> pos;  ///< global positions
     std::vector<ChVector3d> vel;  ///< velocities, expressed in the global frame
     std::vector<ChVector3d> acc;  ///< accelerations, expressed in the global frame
+    std::vector<ChVector3d> dir;  ///< node directions (unit vectors)
+
+    bool has_node_directions;
 };
 
 /// Definition of a node forces for a mesh.

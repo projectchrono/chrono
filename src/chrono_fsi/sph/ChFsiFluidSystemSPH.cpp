@@ -18,7 +18,8 @@
 
 //// TODO:
 ////   - use ChFsiParamsSPH::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
-// #define DEBUG_LOG
+
+////#define DEBUG_LOG
 
 #include <cmath>
 
@@ -923,6 +924,7 @@ std::string ChFsiFluidSystemSPH::GetSphMethodTypeString() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
+// Convert host data from the provided SOA to the data manager's AOS and copy to device.
 void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_states,
                                           const std::vector<FsiMeshState>& mesh1D_states,
                                           const std::vector<FsiMeshState>& mesh2D_states) {
@@ -950,12 +952,19 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
                 m_data_mgr->fsiMesh1DState_H->pos[index] = ToReal3(mesh1D_states[imesh].pos[inode]);
                 m_data_mgr->fsiMesh1DState_H->vel[index] = ToReal3(mesh1D_states[imesh].vel[inode]);
                 m_data_mgr->fsiMesh1DState_H->acc[index] = ToReal3(mesh1D_states[imesh].acc[inode]);
+                if (mesh1D_states[imesh].has_node_directions)
+                    m_data_mgr->fsiMesh1DState_H->dir[index] = ToReal3(mesh1D_states[imesh].dir[inode]);
+
                 index++;
             }
         }
 
-        if (num_meshes > 0)
+        if (num_meshes > 0) {
+            ChDebugLog(" mesh1D | host size: " << m_data_mgr->fsiMesh1DState_H->dir.size()
+                                               << " device size: " << m_data_mgr->fsiMesh1DState_D->dir.size());
             m_data_mgr->fsiMesh1DState_D->CopyFromH(*m_data_mgr->fsiMesh1DState_H);
+            m_data_mgr->fsiMesh1DState_D->CopyDirectionsFromH(*m_data_mgr->fsiMesh1DState_H);
+        }
     }
 
     {
@@ -967,15 +976,23 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
                 m_data_mgr->fsiMesh2DState_H->pos[index] = ToReal3(mesh2D_states[imesh].pos[inode]);
                 m_data_mgr->fsiMesh2DState_H->vel[index] = ToReal3(mesh2D_states[imesh].vel[inode]);
                 m_data_mgr->fsiMesh2DState_H->acc[index] = ToReal3(mesh2D_states[imesh].acc[inode]);
+                if (mesh2D_states[imesh].has_node_directions)
+                    m_data_mgr->fsiMesh2DState_H->dir[index] = ToReal3(mesh2D_states[imesh].dir[inode]);
+
                 index++;
             }
         }
 
-        if (num_meshes > 0)
+        if (num_meshes > 0) {
+            ChDebugLog(" mesh2D | host size: " << m_data_mgr->fsiMesh2DState_H->dir.size()
+                                               << " device size: " << m_data_mgr->fsiMesh2DState_D->dir.size());
             m_data_mgr->fsiMesh2DState_D->CopyFromH(*m_data_mgr->fsiMesh2DState_H);
+            m_data_mgr->fsiMesh2DState_D->CopyDirectionsFromH(*m_data_mgr->fsiMesh2DState_H);
+        }
     }
 }
 
+// Copy from device and convert host data from the data manager's AOS to the output SOA
 void ChFsiFluidSystemSPH::StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                            std::vector<FsiMeshForce> mesh1D_forces,
                                            std::vector<FsiMeshForce> mesh2D_forces) {
@@ -1087,7 +1104,8 @@ void ChFsiFluidSystemSPH::OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::Initialize() {
-    Initialize(0, 0, 0, 0, 0, std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>());
+    Initialize(0, 0, 0, 0, 0, std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>(),
+               false);
 }
 
 void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
@@ -1097,12 +1115,14 @@ void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                                      unsigned int num_fsi_elements2D,
                                      const std::vector<FsiBodyState>& body_states,
                                      const std::vector<FsiMeshState>& mesh1D_states,
-                                     const std::vector<FsiMeshState>& mesh2D_states) {
+                                     const std::vector<FsiMeshState>& mesh2D_states,
+                                     bool use_node_directions) {
     // Invoke the base class method
-    ChFsiFluidSystem::Initialize(num_fsi_bodies,                              //
-                                 num_fsi_nodes1D, num_fsi_elements1D,         //
-                                 num_fsi_nodes2D, num_fsi_elements2D,         //
-                                 body_states, mesh1D_states, mesh2D_states);  //
+    ChFsiFluidSystem::Initialize(num_fsi_bodies,                             //
+                                 num_fsi_nodes1D, num_fsi_elements1D,        //
+                                 num_fsi_nodes2D, num_fsi_elements2D,        //
+                                 body_states, mesh1D_states, mesh2D_states,  //
+                                 use_node_directions);                       //
 
     // Hack to still allow time step size specified through JSON files
     if (m_paramsH->dT < 0) {
@@ -1203,9 +1223,13 @@ void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
                                      m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
 
     // Initialize the underlying FSU system: set reference arrays, set counters, and resize simulation arrays
-    m_data_mgr->Initialize(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
+    // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
+    m_data_mgr->Initialize(num_fsi_bodies,                                                            //
+                           num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D,  //
+                           use_node_directions);
 
     // Load the initial body and mesh node states
+    ChDebugLog("load initial states");
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects

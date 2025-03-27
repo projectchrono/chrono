@@ -12,7 +12,11 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Base class for interfacing between a Chrono system and an FSI system
+// 1. Definition of the base class for interfacing between a Chrono system and
+//    an FSI-aware fluid system.
+// 2. Implementation of a generic FSI interface that relies on copying data to
+//    intermediate buffers.
+//
 // =============================================================================
 
 #ifndef CH_FSI_INTERFACE_H
@@ -30,7 +34,11 @@ namespace fsi {
 
 // =============================================================================
 
-/// Base class for processing the interface between Chrono and FSI modules.
+/// Base class for interfacing between a Chrono system and an FSI-aware fluid system.
+/// This class provides the functionality of extracting state information from the Chrono MBS and loading fluid forces
+/// acting on the MBS solids. This base class also provides utilities for allocating the exchange data structures,
+/// verifying sizes of the exchange data vectors, and a default implementation for calculating FEA node direction
+/// vectors. A derived class must implement the actual functions for exchanging data between the two systems.
 class CH_FSI_API ChFsiInterface {
   public:
     virtual ~ChFsiInterface();
@@ -86,7 +94,14 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
+    /// Enable calculation and communication of node directions for FSI meshes. Default: false.
+    void EnableNodeDirections(bool val);
+
+    /// Indicate whether or not node directions are being used.
+    bool UseNodeDirections() const { return m_use_node_directions; }
+
     /// Utility function to allocate state vectors.
+    /// If use of node directions is enabled, also resize the vectors of node directions for FSI meshes.
     void AllocateStateVectors(std::vector<FsiBodyState>& body_states,
                               std::vector<FsiMeshState>& mesh1D_states,
                               std::vector<FsiMeshState>& mesh2D_states) const;
@@ -107,12 +122,15 @@ class CH_FSI_API ChFsiInterface {
                            const std::vector<FsiMeshForce>& mesh_forces2D) const;
 
     /// Utility function to get current solid phase states from the multibody system in the provided structures.
+    /// This function is always called once during initialization of the containing ChFsiSystem.
+    /// During simulation, a derived class may use this function in its implementation of `ExchangeSolidStates`.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
     void StoreSolidStates(std::vector<FsiBodyState>& body_states,
                           std::vector<FsiMeshState>& mesh1D_states,
                           std::vector<FsiMeshState>& mesh2D_states);
 
     /// Utility function to apply forces in the provided structures to the multibody system.
+    /// A derived class may use this function in its implementation of `ExchangeSolidForces`.
     /// A runtime exception is thrown if the output vectors do not have the appropriate sizes.
     void LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
                          std::vector<FsiMeshForce>& mesh1D_forces,
@@ -133,7 +151,17 @@ class CH_FSI_API ChFsiInterface {
   protected:
     ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
 
+    /// Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
+    /// For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
+    void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states);
+
+    /// Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
+    /// For 2-D meshes, these are averages of the face normals of adjacent faces.
+    void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states);
+
     bool m_verbose;
+    bool m_initialized;
+    bool m_use_node_directions;
     ChSystem& m_sysMBS;
     ChFsiFluidSystem& m_sysCFD;
 
@@ -144,7 +172,8 @@ class CH_FSI_API ChFsiInterface {
 
 // =============================================================================
 
-/// Generic interface between a Chrono multibody system and a fluid system.
+/// Generic FSI interface between a Chrono multibody system and a fluid system.
+/// This implementation relies on copying data to intermediate buffers.
 class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
   public:
     ChFsiInterfaceGeneric(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
@@ -155,9 +184,11 @@ class CH_FSI_API ChFsiInterfaceGeneric : public ChFsiInterface {
 
   private:
     /// Exchange solid phase state information between the MBS and fluid system.
+    /// The implementation of the generic FSI interface uses intermediate buffers for the body and flex mesh states.
     virtual void ExchangeSolidStates() override;
 
     /// Exchange solid phase force information between the multibody and fluid systems.
+    /// The implementation of the generic FSI interface uses intermediate buffers for the body and nodal forces.
     virtual void ExchangeSolidForces() override;
 
     std::vector<FsiBodyState> m_body_states;
