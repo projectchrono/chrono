@@ -401,6 +401,16 @@ const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
     return accumulators[idx].torque;
 }
 
+//// TODO - get rid of this as soon as ChModalAssembly is dealt with (fixed or removed)
+const ChWrenchd ChBody::GetAccumulatorWrench() const {
+    ChWrenchd wrench;
+    for (const auto& a : accumulators) {
+        wrench.force += a.force;
+        wrench.torque += a.torque;
+    }
+    return wrench;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChBody::ComputeGyro() {

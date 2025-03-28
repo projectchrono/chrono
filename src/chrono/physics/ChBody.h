@@ -340,6 +340,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Note that this is a resultant torque expressed in the body local frame.
     const ChVector3d& GetAccumulatedTorque(unsigned int idx) const;
 
+    // This function should *not* exist. It's here only because of the asinine implementation of ChModalAssembly!
+    // Collects the resultant wrench across all accumulators.
+    const ChWrenchd GetAccumulatorWrench() const;
+
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
