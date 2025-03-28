@@ -36,17 +36,17 @@ class ChSystem;
 /// Class for Rigid Bodies
 ///
 /// A rigid body is an entity with mass and inertia properties moving in the 3D space.
-/// Optionally, an object of the ChBody class (or derived) can:
-/// - be involved in collision, if a collision model is provided (@ref collisions) and the collision is enabled;
-/// - be visualized, if a visual model is provided and a proper visualization system is available (@ref visualization_system);
+/// Optionally, an object of the ChBody class (or derived) can be:
+/// - involved in collision, if a collision model is provided (@ref collisions) and the collision is enabled;
+/// - visualized, if a visual model is provided and a visualization system is available (@ref visualization_system);
 /// - be constrained by means of ChLink objects (@ref links);
 /// - be loaded by ChLoad objects (@ref loads);
 /// - be used in coordinate transformation, being itself inherited from ChFrameMoving;
-/// 
+///
 /// Location and orientation of the ChBody refer to its Center of Mass (CoM).
 /// Since no additional frame is available, also visual and collision shapes refer to the same frame.
 /// Derived classes might offer additional frames (e.g. @ref ChBodyAuxRef).
-/// 
+///
 /// Further info at the @ref rigid_bodies manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
@@ -295,20 +295,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // UTILITIES FOR FORCES/TORQUES:
 
     /// Add a new force and torque accumulator.
-    /// An arbitrary number of accumulators can be specified for a body, differentiated by their index (as returned by this function).
-    /// At eqach step in a simulation loop, a typical use of these accumulators is as follows:
+    /// An arbitrary number of accumulators can be specified for a body, differentiated by their index `idx` (as
+    /// returned by this function). At each step in a simulation loop, a typical use of these accumulators is: 
     /// <pre>
-    ///    EmptyAccumulator(index);
-    ///    AccumulateForce(index, ...);
-    ///    AccumulateTorque(index, ...);
+    ///    EmptyAccumulator(idx);
+    ///    AccumulateForce(idx, ...);
+    ///    AccumulateTorque(idx, ...);
     ///    ...
-    ///    AccumulateForce(index, ...);
+    ///    AccumulateForce(idx, ...);
     ///    ...
     /// </pre>
     unsigned int AddAccumulator();
 
-    /// Clear the force and torque accumulators.
-    void EmptyAccumulator(unsigned int index);
+    /// Clear the accumulator with specififed index.
+    void EmptyAccumulator(unsigned int idx);
 
     /// Include a concentrated body force in the specified accumulator.
     /// The accumulator force and torque are incremented with the specified applied force and induced moment at the body
@@ -316,10 +316,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// integration step). If local = true, the provided applied force and application point are assumed to be expressed
     /// in body coordinates; otherwise (local = false), these quantities are assumed to be expressed in absolute
     /// coordinates.
-    void AccumulateForce(unsigned int index,            ///< index of the accumulator
+    void AccumulateForce(unsigned int idx,              ///< index of the accumulator
                          const ChVector3d& force,       ///< applied force
                          const ChVector3d& appl_point,  ///< application point
-                         bool local                       ///< force and point expressed in body local frame?
+                         bool local                     ///< force and point expressed in body local frame?
     );
 
     /// Include a body torque in the specified accumulator.
@@ -327,24 +327,24 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// force and torque accumulator before reuse (e.g., at each integration step). If local = true, the provided
     /// applied torque is assumed to be expressed in body coordinates; otherwise (local = false), it is assumed to be
     /// expressed in absolute coordinates.
-    void AccumulateTorque(unsigned int index,        ///< index of the accumulator
+    void AccumulateTorque(unsigned int idx,          ///< index of the accumulator
                           const ChVector3d& torque,  ///< applied torque
                           bool local                 ///< torque expressed in body local frame?
     );
 
     /// Return the current value of the accumulated force from the specified accumulator.
     /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
-    const ChVector3d& GetAccumulatedForce(unsigned int index) const;
+    const ChVector3d& GetAccumulatedForce(unsigned int idx) const;
 
     /// Return the current value of the accumulated torque from the specified accumulator.
     /// Note that this is a resultant torque expressed in the body local frame.
-    const ChVector3d& GetAccumulatedTorque(unsigned int index) const;
+    const ChVector3d& GetAccumulatedTorque(unsigned int idx) const;
 
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
     void UpdateMarkers(double time, bool update_assets);
-    
+
     /// Update all children forces of the rigid body, at current body state.
     void UpdateForces(double time, bool update_assets);
 

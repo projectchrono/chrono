@@ -369,36 +369,36 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 // -----------------------------------------------------------------------------
 
 unsigned int ChBody::AddAccumulator() {
-    auto index = accumulators.size();
+    auto idx = accumulators.size();
     accumulators.push_back(WrenchAccumulator());
-    return (unsigned int)index;
+    return (unsigned int)idx;
 }
 
-void ChBody::EmptyAccumulator(unsigned int index) {
-    accumulators[index].force = VNULL;
-    accumulators[index].torque = VNULL;
+void ChBody::EmptyAccumulator(unsigned int idx) {
+    accumulators[idx].force = VNULL;
+    accumulators[idx].torque = VNULL;
 }
 
-void ChBody::AccumulateForce(unsigned int index, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
     ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
                             : AppliedForceParentToWrenchParent(force, appl_point);
-    accumulators[index].force += w_abs.force;
-    accumulators[index].torque += TransformDirectionParentToLocal(w_abs.torque);
+    accumulators[idx].force += w_abs.force;
+    accumulators[idx].torque += TransformDirectionParentToLocal(w_abs.torque);
 }
 
-void ChBody::AccumulateTorque(unsigned int index, const ChVector3d& torque, bool local) {
+void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
     if (local)
-        accumulators[index].torque += torque;
+        accumulators[idx].torque += torque;
     else
-        accumulators[index].torque += TransformDirectionParentToLocal(torque);
+        accumulators[idx].torque += TransformDirectionParentToLocal(torque);
 }
 
-const ChVector3d& ChBody::GetAccumulatedForce(unsigned int index) const {
-    return accumulators[index].force;
+const ChVector3d& ChBody::GetAccumulatedForce(unsigned int idx) const {
+    return accumulators[idx].force;
 }
 
-const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int index) const {
-    return accumulators[index].torque;
+const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
+    return accumulators[idx].torque;
 }
 
 // -----------------------------------------------------------------------------
