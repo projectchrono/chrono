@@ -37,10 +37,10 @@ namespace vehicle {
 
 ChWheel::ChWheel(const std::string& name) : ChPart(name), m_offset(0), m_side(LEFT) {}
 
-// Initialize this wheel by associating it to the specified suspension spindle body.
+// Initialize this wheel by associating it to the specified suspension spindle.
 // Increment the mass and inertia of the spindle body to account for the wheel mass and inertia.
 void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
-                         std::shared_ptr<ChBody> spindle,
+                         std::shared_ptr<ChSpindle> spindle,
                          VehicleSide side,
                          double offset) {
     m_parent = chassis;
@@ -63,24 +63,26 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
         m_spindle->GetCollisionModel()->DisallowCollisionsWith(VehicleCollisionFamily::WHEEL_FAMILY);
     }
 
+    /*
     // Create ChLoad objects to apply terrain forces on spindle
-    m_spindle_terrain_force = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
-    m_spindle_terrain_torque = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
-    m_spindle_terrain_force->SetName(m_name + "_terrain_force");
-    m_spindle_terrain_torque->SetName(m_name + "_terrain_torque");
+    m_spindle->m_tire_force_load = chrono_types::make_shared<ChLoadBodyForce>(m_spindle, VNULL, false, VNULL, false);
+    m_spindle->m_tire_torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_spindle, VNULL, false);
+    m_spindle->m_tire_force_load->SetName(m_name + "_terrain_force");
+    m_spindle->m_tire_torque_load->SetName(m_name + "_terrain_torque");
 
     // Add terrain loads to a container
     if (chassis) {
         // Wheel associated with a vehicle system, use the chassis load container
-        chassis->AddTerrainLoad(m_spindle_terrain_force);
-        chassis->AddTerrainLoad(m_spindle_terrain_torque);
+        chassis->AddTerrainLoad(m_spindle->m_tire_force_load);
+        chassis->AddTerrainLoad(m_spindle->m_tire_torque_load);
     } else {
         // Wheel not associated with a vehicle system, create and use a load container
         auto load_container = chrono_types::make_shared<ChLoadContainer>();
         spindle->GetSystem()->Add(load_container);
-        load_container->Add(m_spindle_terrain_force);
-        load_container->Add(m_spindle_terrain_torque);
+        load_container->Add(m_spindle->m_tire_force_load);
+        load_container->Add(m_spindle->m_tire_torque_load);
     }
+    */
 
     Construct(chassis, spindle, side, offset);
 
@@ -107,12 +109,13 @@ void ChWheel::Synchronize() {
 }
 
 void ChWheel::Synchronize(const TerrainForce& tire_force) {
-    m_spindle->AccumulateForce(tire_force.force, tire_force.point, false);
-    m_spindle->AccumulateTorque(tire_force.moment, false);
+    m_spindle->AccumulateTireForce(tire_force);
 
-    ////m_spindle_terrain_force->SetForce(tire_force.force, false);
-    ////m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
-    ////m_spindle_terrain_torque->SetTorque(tire_force.moment, false);
+    /*
+    m_spindle->m_tire_force_load->SetForce(tire_force.force, false);
+    m_spindle->m_tire_force_load->SetApplicationPoint(tire_force.point, false);
+    m_spindle->m_tire_torque_load->SetTorque(tire_force.moment, false);
+    */
 }
 
 ChVector3d ChWheel::GetPos() const {

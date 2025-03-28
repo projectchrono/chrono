@@ -164,9 +164,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     bool m_tire_pressure;  ///< tire pressure enabled?
     int m_index;           ///< index of the tire
 
-    std::shared_ptr<ChBody> m_spindle;  ///< spindle body
-    std::shared_ptr<ChWheel> m_wheel;   ///< wheel subsystem (to which a tire is attached)
-    std::shared_ptr<ChTire> m_tire;     ///< tire subsystem
+    std::shared_ptr<ChSpindle> m_spindle;  ///< spindle
+    std::shared_ptr<ChWheel> m_wheel;      ///< wheel subsystem (to which a tire is attached)
+    std::shared_ptr<ChTire> m_tire;        ///< tire subsystem
 
     // Communication data (loaded by derived classes)
     utils::ChBodyGeometry m_geometry;  ///< tire geometry and contact material

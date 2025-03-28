@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the spindle body (at origin)
-    auto spindle = chrono_types::make_shared<ChBody>();
+    auto spindle = chrono_types::make_shared<ChSpindle>();
     spindle->SetPos(VNULL);
     spindle->SetMass(wheel_mass);
     spindle->SetFixed(fix_wheel);
