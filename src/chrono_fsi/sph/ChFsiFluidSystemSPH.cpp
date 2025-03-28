@@ -18,8 +18,8 @@
 
 //// TODO:
 ////   - use ChFsiParamsSPH::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
- 
-// // #define DEBUG_LOG
+
+//// #define DEBUG_LOG
 
 #include <cmath>
 
@@ -483,7 +483,7 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
     }
 
-    if (doc.HasMember("Body Active Domain")){
+    if (doc.HasMember("Body Active Domain")) {
         m_paramsH->use_active_domain = true;
         m_paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
     }
@@ -1466,7 +1466,6 @@ void ChFsiFluidSystemSPH::OnSetupStepDynamics() {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double step) {
-
     if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
         m_fluid_dynamics->SortParticles();
     }

@@ -385,8 +385,6 @@ void FsiDataManager::ResetData() {
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
 }
 
-
-
 // ------------------------------------------------------------------------------
 
 void FsiDataManager::ResizeArrays(uint numExtended) {
@@ -477,11 +475,9 @@ struct ActivityScanOp {
     }
 };
 void FsiDataManager::ResizeData(bool first_step) {
-
     // Exclusive scan for extended activity identifier using custom functor to handle -1 values
     thrust::exclusive_scan(thrust::device, extendedActivityIdentifierOriginalD.begin(),
-                           extendedActivityIdentifierOriginalD.end(),
-                           prefixSumExtendedActivityIdD.begin(),
+                           extendedActivityIdentifierOriginalD.end(), prefixSumExtendedActivityIdD.begin(),
                            0,  // Initial value
                            ActivityScanOp());
 
@@ -489,8 +485,7 @@ void FsiDataManager::ResizeData(bool first_step) {
     uint lastPrefixVal = prefixSumExtendedActivityIdD[countersH->numAllMarkers - 1];
     int32_t lastFlagInt32;
     cudaMemcpy(&lastFlagInt32,
-               thrust::raw_pointer_cast(
-                   &extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
+               thrust::raw_pointer_cast(&extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
                sizeof(int32_t), cudaMemcpyDeviceToHost);
     uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
 
@@ -526,7 +521,6 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     markersProximity_D->resize(countersH->numAllMarkers);
 
     derivVelRhoOriginalD.resize(countersH->numAllMarkers);  // unsorted
-
 
     if (paramsH->sph_method == SPHMethod::I2SPH) {
         Real tiny = Real(1e-20);
