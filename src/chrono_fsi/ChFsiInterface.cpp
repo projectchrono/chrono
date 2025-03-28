@@ -105,6 +105,9 @@ FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body) {
     fsi_body.fsi_force = VNULL;
     fsi_body.fsi_torque = VNULL;
 
+    // Create a force accumulator dedicated to FSI fluid forces
+    fsi_body.fsi_accumulator = fsi_body.body->AddAccumulator();
+
     // Store the body
     m_fsi_bodies.push_back(fsi_body);
 
@@ -434,9 +437,10 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
     {
         size_t ibody = 0;
         for (const auto& fsi_body : m_fsi_bodies) {
-            fsi_body.body->EmptyAccumulators();
-            fsi_body.body->AccumulateForce(body_forces[ibody].force, fsi_body.body->GetPos(), false);
-            fsi_body.body->AccumulateTorque(body_forces[ibody].torque, false);
+            fsi_body.body->EmptyAccumulator(fsi_body.fsi_accumulator);
+            fsi_body.body->AccumulateForce(fsi_body.fsi_accumulator, body_forces[ibody].force, fsi_body.body->GetPos(),
+                                           false);
+            fsi_body.body->AccumulateTorque(fsi_body.fsi_accumulator, body_forces[ibody].torque, false);
             ibody++;
         }
     }

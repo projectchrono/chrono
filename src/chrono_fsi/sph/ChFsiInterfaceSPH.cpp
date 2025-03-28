@@ -108,9 +108,10 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         for (const auto& fsi_body : m_fsi_bodies) {
             m_fsi_bodies[index].fsi_force = ToChVector(forcesH[index]);
             m_fsi_bodies[index].fsi_torque = ToChVector(torquesH[index]);
-            fsi_body.body->EmptyAccumulators();
-            fsi_body.body->AccumulateForce(m_fsi_bodies[index].fsi_force, fsi_body.body->GetPos(), false);
-            fsi_body.body->AccumulateTorque(m_fsi_bodies[index].fsi_torque, false);
+            fsi_body.body->EmptyAccumulator(fsi_body.fsi_accumulator);
+            fsi_body.body->AccumulateForce(fsi_body.fsi_accumulator, m_fsi_bodies[index].fsi_force,
+                                           fsi_body.body->GetPos(), false);
+            fsi_body.body->AccumulateTorque(fsi_body.fsi_accumulator, m_fsi_bodies[index].fsi_torque, false);
             index++;
         }
     }
