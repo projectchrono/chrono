@@ -619,6 +619,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     bool m_remove_center1D;
     bool m_remove_center2D;
 
+    /// Needed by resize data to check if it is the first step
+    bool m_first_step;
+
     friend class ChFsiSystemSPH;
     friend class ChFsiInterfaceSPH;
 };

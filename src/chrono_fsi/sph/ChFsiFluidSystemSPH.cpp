@@ -18,8 +18,8 @@
 
 //// TODO:
 ////   - use ChFsiParamsSPH::C_Wi (kernel threshold) for both CFD and CRM (currently, only CRM)
-
-////#define DEBUG_LOG
+ 
+// // #define DEBUG_LOG
 
 #include <cmath>
 
@@ -70,7 +70,8 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
       m_num_flex2D_nodes(0),
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
-      m_output_level(OutputLevel::STATE_PRESSURE) {
+      m_output_level(OutputLevel::STATE_PRESSURE),
+      m_first_step(true) {
     m_paramsH = chrono_types::make_shared<ChFsiParamsSPH>();
     InitParams();
 
@@ -154,6 +155,7 @@ void ChFsiFluidSystemSPH::InitParams() {
 
     //
     m_paramsH->bodyActiveDomain = mR3(1e10, 1e10, 1e10);
+    m_paramsH->use_active_domain = false;
     m_paramsH->settlingTime = Real(0);
 
     //
@@ -481,8 +483,10 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
             m_paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
     }
 
-    if (doc.HasMember("Body Active Domain"))
+    if (doc.HasMember("Body Active Domain")){
+        m_paramsH->use_active_domain = true;
         m_paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
+    }
 
     if (doc.HasMember("Settling Time"))
         m_paramsH->settlingTime = doc["Settling Time"].GetDouble();
@@ -600,6 +604,7 @@ void ChFsiFluidSystemSPH::SetComputationalBoundaries(const ChVector3d& cMin,
 
 void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& boxHalfDim) {
     m_paramsH->bodyActiveDomain = ToReal3(boxHalfDim);
+    m_paramsH->use_active_domain = true;
 }
 
 void ChFsiFluidSystemSPH::SetActiveDomainDelay(double duration) {
@@ -1240,6 +1245,11 @@ void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
     m_fluid_dynamics->Initialize();
 
+    /// If active domains are not used then don't overly resize the arrays
+    if (!m_paramsH->use_active_domain) {
+        m_data_mgr->SetGrowthFactor(1.0f);
+    }
+
     // Check if GPU is available and initialize CUDA device information
     int device;
     cudaGetDevice(&device);
@@ -1449,7 +1459,8 @@ void ChFsiFluidSystemSPH::OnSetupStepDynamics() {
     }
     // Resize data arrays if needed
     if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
-        m_data_mgr->ResizeData();
+        m_data_mgr->ResizeData(m_first_step);
+        m_first_step = false;
     }
 }
 

@@ -161,8 +161,6 @@ FsiMeshStateD& FsiMeshStateD::operator=(const FsiMeshStateD& other) {
 //---------------------------------------------------------------------------------------
 
 void ProximityDataD::resize(size_t s) {
-    gridMarkerHashD.resize(s);
-    gridMarkerIndexD.resize(s);
     mapOriginalToSorted.resize(s);
 }
 
@@ -187,6 +185,13 @@ FsiDataManager::FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params) : paramsH
     markersProximity_D = chrono_types::make_shared<ProximityDataD>();
 
     cudaDeviceInfo = chrono_types::make_shared<CudaDeviceInfo>();
+
+    // Resizing parameters
+    m_max_extended_particles = 0;
+    m_resize_counter = 0;
+    GROWTH_FACTOR = 1.2f;
+    SHRINK_THRESHOLD = 0.75f;
+    SHRINK_INTERVAL = 50;
 }
 
 FsiDataManager::~FsiDataManager() {}
@@ -432,6 +437,9 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
     sortedSphMarkers1_D->rhoPresMuD.resize(numExtended);
     sortedSphMarkers1_D->tauXxYyZzD.resize(numExtended);
     sortedSphMarkers1_D->tauXyXzYzD.resize(numExtended);
+    derivVelRhoD.resize(numExtended);
+    derivTauXxYyZzD.resize(numExtended);
+    derivTauXyXzYzD.resize(numExtended);
     freeSurfaceIdD.resize(numExtended);
     vel_XSPH_D.resize(numExtended);
 
@@ -449,6 +457,9 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         sortedSphMarkers1_D->rhoPresMuD.shrink_to_fit();
         sortedSphMarkers1_D->tauXxYyZzD.shrink_to_fit();
         sortedSphMarkers1_D->tauXyXzYzD.shrink_to_fit();
+        derivVelRhoD.shrink_to_fit();
+        derivTauXxYyZzD.shrink_to_fit();
+        derivTauXyXzYzD.shrink_to_fit();
         freeSurfaceIdD.shrink_to_fit();
         vel_XSPH_D.shrink_to_fit();
 
@@ -465,7 +476,7 @@ struct ActivityScanOp {
         return a + b_value;
     }
 };
-void FsiDataManager::ResizeData() {
+void FsiDataManager::ResizeData(bool first_step) {
 
     // Exclusive scan for extended activity identifier using custom functor to handle -1 values
     thrust::exclusive_scan(thrust::device, extendedActivityIdentifierOriginalD.begin(),
@@ -489,7 +500,7 @@ void FsiDataManager::ResizeData() {
 
     // Resize arrays based on number of active particles
     // Also don't overallocate memory in the case of no active domains
-    if (numExtended < countersH->numAllMarkers) {
+    if (numExtended < countersH->numAllMarkers || first_step) {
         ResizeArrays(numExtended);
     }
 }
@@ -511,20 +522,11 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     }
 
     sphMarkers_D->resize(countersH->numAllMarkers);
-    sortedSphMarkers1_D->resize(countersH->numAllMarkers);
-    sortedSphMarkers2_D->resize(countersH->numAllMarkers);
     sphMarkers_H->resize(countersH->numAllMarkers);
     markersProximity_D->resize(countersH->numAllMarkers);
 
-    derivVelRhoD.resize(countersH->numAllMarkers);          // sorted
     derivVelRhoOriginalD.resize(countersH->numAllMarkers);  // unsorted
 
-    //// TODO: why are these sized for both CFD and CRM?!?
-    derivTauXxYyZzD.resize(countersH->numAllMarkers);
-    derivTauXyXzYzD.resize(countersH->numAllMarkers);
-
-    //// TODO: why is this sized for both WCSPH and ISPH?!?
-    vel_XSPH_D.resize(countersH->numAllMarkers);  // TODO (Huzaifa): Check if this is always sorted or not
 
     if (paramsH->sph_method == SPHMethod::I2SPH) {
         Real tiny = Real(1e-20);
@@ -543,7 +545,6 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     activeListD.resize(countersH->numAllMarkers, 1);
     // Number of neighbors for the particle of given index
     numNeighborsPerPart.resize(countersH->numAllMarkers + 1, 0);
-    freeSurfaceIdD.resize(countersH->numAllMarkers, 0);
 
     thrust::copy(sphMarkers_H->posRadH.begin(), sphMarkers_H->posRadH.end(), sphMarkers_D->posRadD.begin());
     thrust::copy(sphMarkers_H->velMasH.begin(), sphMarkers_H->velMasH.end(), sphMarkers_D->velMasD.begin());

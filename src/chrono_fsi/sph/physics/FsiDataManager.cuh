@@ -229,6 +229,9 @@ struct FsiDataManager {
         FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params);
         virtual ~FsiDataManager();
 
+        /// Set the growth factor for buffer resizing
+        void SetGrowthFactor(float factor) { GROWTH_FACTOR = factor; }
+
         /// Add an SPH particle given its position, physical properties, velocity, and stress.
         void AddSphParticle(Real3 pos,
                             Real rho,
@@ -311,7 +314,9 @@ struct FsiDataManager {
         /// Initializes device vectors to zero.
         void ResetData();
 
-        void ResizeData();
+        /// Resize data based on the active particles
+        /// At first step, the internal resizeArray is always called
+        void ResizeData(bool first_step);
 
         // ------------------------
 
@@ -395,11 +400,11 @@ struct FsiDataManager {
     private:
         void ResizeArrays(uint numExtended);    
         // Memory management parameters
-        uint m_max_extended_particles = 0;                ///< Maximum number of extended particles seen so far
-        uint m_resize_counter = 0;                        ///< Counter for number of resizes since last shrink
-        static constexpr float GROWTH_FACTOR = 1.2f;      ///< Buffer factor for growth (20%)
-        static constexpr float SHRINK_THRESHOLD = 0.75f;  ///< Shrink if using less than 50% of capacity
-        static constexpr uint SHRINK_INTERVAL = 50;       ///< Shrink every N resizes
+        uint m_max_extended_particles;                ///< Maximum number of extended particles seen so far
+        uint m_resize_counter;                        ///< Counter for number of resizes since last shrink
+        float GROWTH_FACTOR;      ///< Buffer factor for growth (20%)
+        float SHRINK_THRESHOLD;  ///< Shrink if using less than 50% of capacity
+        uint SHRINK_INTERVAL;       ///< Shrink every N resizes
 };
 
 /// @} fsisph_physics
