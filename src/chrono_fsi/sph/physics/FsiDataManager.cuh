@@ -225,169 +225,181 @@ struct Counters {
 
 /// Data manager for the SPH-based FSI system.
 struct FsiDataManager {
-    FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params);
-    virtual ~FsiDataManager();
+    public:
+        FsiDataManager(std::shared_ptr<ChFsiParamsSPH> params);
+        virtual ~FsiDataManager();
 
-    /// Add an SPH particle given its position, physical properties, velocity, and stress.
-    void AddSphParticle(Real3 pos,
-                        Real rho,
-                        Real pres,
-                        Real mu,
-                        Real3 vel = mR3(0.0),
-                        Real3 tauXxYyZz = mR3(0.0),
-                        Real3 tauXyXzYz = mR3(0.0));
+        /// Add an SPH particle given its position, physical properties, velocity, and stress.
+        void AddSphParticle(Real3 pos,
+                            Real rho,
+                            Real pres,
+                            Real mu,
+                            Real3 vel = mR3(0.0),
+                            Real3 tauXxYyZz = mR3(0.0),
+                            Real3 tauXyXzYz = mR3(0.0));
 
-    /// Add a BCE marker of given type at the specified position and with specified velocity.
-    void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);
+        /// Add a BCE marker of given type at the specified position and with specified velocity.
+        void AddBceMarker(MarkerType type, Real3 pos, Real3 vel);
 
-    /// Initialize the underlying FSU system.
-    /// Set reference arrays, set counters, and resize simulation arrays.
-    void Initialize(unsigned int num_fsi_bodies,
-                    unsigned int num_fsi_nodes1D,
-                    unsigned int num_fsi_elements1D,
-                    unsigned int num_fsi_nodes2D,
-                    unsigned int num_fsi_elements2D,
-                    bool use_node_directions);
+        /// Initialize the underlying FSU system.
+        /// Set reference arrays, set counters, and resize simulation arrays.
+        void Initialize(unsigned int num_fsi_bodies,
+                        unsigned int num_fsi_nodes1D,
+                        unsigned int num_fsi_elements1D,
+                        unsigned int num_fsi_nodes2D,
+                        unsigned int num_fsi_elements2D,
+                        bool use_node_directions);
 
-    /// Find indices of all SPH particles inside the specified OBB.
-    std::vector<int> FindParticlesInBox(const Real3& hsize,
-                                        const Real3& pos,
-                                        const Real3& ax,
-                                        const Real3& ay,
-                                        const Real3& az);
+        /// Find indices of all SPH particles inside the specified OBB.
+        std::vector<int> FindParticlesInBox(const Real3& hsize,
+                                            const Real3& pos,
+                                            const Real3& ax,
+                                            const Real3& ay,
+                                            const Real3& az);
 
-    /// Extract positions of all markers (SPH and BCE).
-    std::vector<Real3> GetPositions();
+        /// Extract positions of all markers (SPH and BCE).
+        std::vector<Real3> GetPositions();
 
-    /// Extract velocities of all markers (SPH and BCE).
-    std::vector<Real3> GetVelocities();
+        /// Extract velocities of all markers (SPH and BCE).
+        std::vector<Real3> GetVelocities();
 
-    /// Extract accelerations of all markers (SPH and BCE).
-    std::vector<Real3> GetAccelerations();
+        /// Extract accelerations of all markers (SPH and BCE).
+        std::vector<Real3> GetAccelerations();
 
-    /// Extract forces applied to all markers (SPH and BCE).
-    std::vector<Real3> GetForces();
+        /// Extract forces applied to all markers (SPH and BCE).
+        std::vector<Real3> GetForces();
 
-    /// Extract fluid properties of all markers (SPH and BCE).
-    /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    std::vector<Real3> GetProperties();
+        /// Extract fluid properties of all markers (SPH and BCE).
+        /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
+        std::vector<Real3> GetProperties();
 
-    /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<Real3> GetPositions(const std::vector<int>& indices);
+        /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
+        std::vector<Real3> GetPositions(const std::vector<int>& indices);
 
-    /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<Real3> GetVelocities(const std::vector<int>& indices);
+        /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
+        std::vector<Real3> GetVelocities(const std::vector<int>& indices);
 
-    /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<Real3> GetAccelerations(const std::vector<int>& indices);
+        /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
+        std::vector<Real3> GetAccelerations(const std::vector<int>& indices);
 
-    /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
-    std::vector<Real3> GetForces(const std::vector<int>& indices);
+        /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
+        std::vector<Real3> GetForces(const std::vector<int>& indices);
 
-    /// Extract FSI forces on rigid bodies.
-    std::vector<Real3> GetRigidForces();
+        /// Extract FSI forces on rigid bodies.
+        std::vector<Real3> GetRigidForces();
 
-    /// Extract FSI torques on rigid bodies.
-    std::vector<Real3> GetRigidTorques();
+        /// Extract FSI torques on rigid bodies.
+        std::vector<Real3> GetRigidTorques();
 
-    /// Extract FSI forces on flex1D nodes.
-    std::vector<Real3> GetFlex1dForces();
+        /// Extract FSI forces on flex1D nodes.
+        std::vector<Real3> GetFlex1dForces();
 
-    /// Extract FSI forces on flex2D nodes.
-    std::vector<Real3> GetFlex2dForces();
+        /// Extract FSI forces on flex2D nodes.
+        std::vector<Real3> GetFlex2dForces();
 
-    void ConstructReferenceArray();
-    void SetCounters(unsigned int num_fsi_bodies,
-                     unsigned int num_fsi_nodes1D,
-                     unsigned int num_fsi_elements1D,
-                     unsigned int num_fsi_nodes2D,
-                     unsigned int num_fsi_elements2D);
+        void ConstructReferenceArray();
+        void SetCounters(unsigned int num_fsi_bodies,
+                        unsigned int num_fsi_nodes1D,
+                        unsigned int num_fsi_elements1D,
+                        unsigned int num_fsi_nodes2D,
+                        unsigned int num_fsi_elements2D);
 
-    /// Initialize the midpoint device data of the fluid system by copying from the full step.
-    void CopyDeviceDataToHalfStep();
+        /// Initialize the midpoint device data of the fluid system by copying from the full step.
+        void CopyDeviceDataToHalfStep();
 
-    /// Reset device data at beginning of a step.
-    /// Initializes device vectors to zero.
-    void ResetData();
+        /// Reset device data at beginning of a step.
+        /// Initializes device vectors to zero.
+        void ResetData();
 
-    // ------------------------
+        void ResizeData();
 
-    std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
+        // ------------------------
 
-    std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)
-    std::shared_ptr<Counters> countersH;      ///< problem counters (host)
+        std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
 
-    std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< information of SPH particles at state 1 on device
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;  ///< information of SPH particles at state 2 on device
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D;  ///< sorted information of SPH particles at state 1 on device
-    std::shared_ptr<SphMarkerDataH> sphMarkers_H;         ///< information of SPH particles on host
+        std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)
+        std::shared_ptr<Counters> countersH;      ///< problem counters (host)
 
-    // FSI solid states
-    std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< rigid body state (host)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< rigid body state 2 (device)
+        std::shared_ptr<SphMarkerDataD> sphMarkers_D;         ///< information of SPH particles at state 1 on device
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D;  ///< information of SPH particles at state 2 on device
+        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D;  ///< sorted information of SPH particles at state 1 on device
+        std::shared_ptr<SphMarkerDataH> sphMarkers_H;         ///< information of SPH particles on host
 
-    std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
-    std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
-    std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
-    std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
+        // FSI solid states
+        std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< rigid body state (host)
+        std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< rigid body state 2 (device)
 
-    // Flex solid connectivity
-    thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
-    thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
-    thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
-    thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
+        std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
+        std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)
+        std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
+        std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
 
-    // FSI solid BCEs
-    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< rigid body BCE position (local reference frame)
-    thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
-    thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
-    thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
-    thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
+        // Flex solid connectivity
+        thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
+        thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
+        thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
+        thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
 
-    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
-    thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
-    thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
-    thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
-    thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
+        // FSI solid BCEs
+        thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< rigid body BCE position (local reference frame)
+        thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
+        thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
+        thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
+        thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
 
-    // Solid FSI forces
-    thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< surface-integrated forces to rigid bodies
-    thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< surface-integrated torques to rigid bodies
+        thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
+        thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
+        thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
+        thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
+        thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
 
-    thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
-    thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
+        // Solid FSI forces
+        thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< surface-integrated forces to rigid bodies
+        thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< surface-integrated torques to rigid bodies
 
-    std::shared_ptr<ProximityDataD> markersProximity_D;  ///< information of neighbor search on the device
+        thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
+        thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
 
-    // fluidfsiBodiesIndex (host)
-    thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
-    thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
+        std::shared_ptr<ProximityDataD> markersProximity_D;  ///< information of neighbor search on the device
 
-    // Fluid data (device)
-    thrust::device_vector<Real4> derivVelRhoD;          ///< particle dv/dt and d(rho)/dt for particles
-    thrust::device_vector<Real4> derivVelRhoOriginalD;  ///< particle dv/dt and d(rho)/dt - unsorted
+        // fluidfsiBodiesIndex (host)
+        thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
+        thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
 
-    /// Add this method declaration in the FsiDataManager struct
-    size_t GetCurrentGPUMemoryUsage() const;
+        // Fluid data (device)
+        thrust::device_vector<Real4> derivVelRhoD;          ///< particle dv/dt and d(rho)/dt for particles
+        thrust::device_vector<Real4> derivVelRhoOriginalD;  ///< particle dv/dt and d(rho)/dt - unsorted
 
-    thrust::device_vector<Real3> derivTauXxYyZzD;         ///< d(tau)/dt for particles
-    thrust::device_vector<Real3> derivTauXyXzYzD;         ///< d(tau)/dt for particles
-    thrust::device_vector<Real3> vel_XSPH_D;              ///< XSPH velocity for particles
-    thrust::device_vector<Real3> vis_vel_SPH_D;           ///< ISPH velocity for particles
-    thrust::device_vector<Real4> sr_tau_I_mu_i;           ///< ISPH strain-rate, stress, inertia number, friction
-    thrust::device_vector<Real4> sr_tau_I_mu_i_Original;  ///< ISPH strain-rate, stress, inertia number, friction
-    thrust::device_vector<Real3> bceAcc;                  ///< acceleration for boundary/rigid/flex body particles
+        /// Add this method declaration in the FsiDataManager struct
+        size_t GetCurrentGPUMemoryUsage() const;
 
-    thrust::device_vector<int32_t> activityIdentifierOriginalD;          ///< active particle flags - unsorted
-    thrust::device_vector<int32_t> activityIdentifierSortedD;            ///< active particle flags - sorted
-    thrust::device_vector<int32_t> extendedActivityIdentifierOriginalD;  ///< active particle flags - unsorted
-    thrust::device_vector<uint> prefixSumExtendedActivityIdD;            ///< prefix sum of extended particles
-    thrust::device_vector<uint> activeListD;                             ///< active list of particles
-    thrust::device_vector<uint> numNeighborsPerPart;                     ///< number of neighbors for each particle
+        thrust::device_vector<Real3> derivTauXxYyZzD;         ///< d(tau)/dt for particles
+        thrust::device_vector<Real3> derivTauXyXzYzD;         ///< d(tau)/dt for particles
+        thrust::device_vector<Real3> vel_XSPH_D;              ///< XSPH velocity for particles
+        thrust::device_vector<Real3> vis_vel_SPH_D;           ///< ISPH velocity for particles
+        thrust::device_vector<Real4> sr_tau_I_mu_i;           ///< ISPH strain-rate, stress, inertia number, friction
+        thrust::device_vector<Real4> sr_tau_I_mu_i_Original;  ///< ISPH strain-rate, stress, inertia number, friction
+        thrust::device_vector<Real3> bceAcc;                  ///< acceleration for boundary/rigid/flex body particles
 
-    // List of all neighbors (indexed with information from numNeighborsPerPart)
-    thrust::device_vector<uint> neighborList;    ///< neighbor list for all particles
-    thrust::device_vector<uint> freeSurfaceIdD;  ///< identifiers for particles close to free surface
+        thrust::device_vector<int32_t> activityIdentifierOriginalD;          ///< active particle flags - unsorted
+        thrust::device_vector<int32_t> activityIdentifierSortedD;            ///< active particle flags - sorted
+        thrust::device_vector<int32_t> extendedActivityIdentifierOriginalD;  ///< active particle flags - unsorted
+        thrust::device_vector<uint> prefixSumExtendedActivityIdD;            ///< prefix sum of extended particles
+        thrust::device_vector<uint> activeListD;                             ///< active list of particles
+        thrust::device_vector<uint> numNeighborsPerPart;                     ///< number of neighbors for each particle
+
+        // List of all neighbors (indexed with information from numNeighborsPerPart)
+        thrust::device_vector<uint> neighborList;    ///< neighbor list for all particles
+        thrust::device_vector<uint> freeSurfaceIdD;  ///< identifiers for particles close to free surface
+
+    private:
+        void ResizeArrays(uint numExtended);    
+        // Memory management parameters
+        uint m_max_extended_particles = 0;                ///< Maximum number of extended particles seen so far
+        uint m_resize_counter = 0;                        ///< Counter for number of resizes since last shrink
+        static constexpr float GROWTH_FACTOR = 1.2f;      ///< Buffer factor for growth (20%)
+        static constexpr float SHRINK_THRESHOLD = 0.75f;  ///< Shrink if using less than 50% of capacity
+        static constexpr uint SHRINK_INTERVAL = 50;       ///< Shrink every N resizes
 };
 
 /// @} fsisph_physics

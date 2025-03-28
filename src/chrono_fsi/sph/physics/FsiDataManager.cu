@@ -380,6 +380,120 @@ void FsiDataManager::ResetData() {
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
 }
 
+
+
+// ------------------------------------------------------------------------------
+
+void FsiDataManager::ResizeArrays(uint numExtended) {
+    bool should_shrink = false;
+    m_resize_counter++;
+
+    // On first allocation or if we exceed current capacity, grow with buffer
+    if (numExtended > m_max_extended_particles) {
+        // Add buffer for future growth
+        uint new_capacity = static_cast<uint>(numExtended * GROWTH_FACTOR);
+
+        // Reserve space in all arrays
+        markersProximity_D->gridMarkerHashD.reserve(new_capacity);
+        markersProximity_D->gridMarkerIndexD.reserve(new_capacity);
+        sortedSphMarkers2_D->posRadD.reserve(new_capacity);
+        sortedSphMarkers2_D->velMasD.reserve(new_capacity);
+        sortedSphMarkers2_D->rhoPresMuD.reserve(new_capacity);
+        sortedSphMarkers2_D->tauXxYyZzD.reserve(new_capacity);
+        sortedSphMarkers2_D->tauXyXzYzD.reserve(new_capacity);
+        sortedSphMarkers1_D->posRadD.reserve(new_capacity);
+        sortedSphMarkers1_D->velMasD.reserve(new_capacity);
+        sortedSphMarkers1_D->rhoPresMuD.reserve(new_capacity);
+        sortedSphMarkers1_D->tauXxYyZzD.reserve(new_capacity);
+        sortedSphMarkers1_D->tauXyXzYzD.reserve(new_capacity);
+        freeSurfaceIdD.reserve(new_capacity);
+        vel_XSPH_D.reserve(new_capacity);
+
+        m_max_extended_particles = new_capacity;
+    }
+
+    // Check if we should shrink based on counter and memory usage
+    if (m_resize_counter >= SHRINK_INTERVAL) {
+        float usage_ratio = float(numExtended) / markersProximity_D->gridMarkerHashD.capacity();
+        should_shrink = (usage_ratio < SHRINK_THRESHOLD);
+        m_resize_counter = 0;
+    }
+
+    // Always resize to actual size needed
+    markersProximity_D->gridMarkerHashD.resize(numExtended);
+    markersProximity_D->gridMarkerIndexD.resize(numExtended);
+    sortedSphMarkers2_D->posRadD.resize(numExtended);
+    sortedSphMarkers2_D->velMasD.resize(numExtended);
+    sortedSphMarkers2_D->rhoPresMuD.resize(numExtended);
+    sortedSphMarkers2_D->tauXxYyZzD.resize(numExtended);
+    sortedSphMarkers2_D->tauXyXzYzD.resize(numExtended);
+    sortedSphMarkers1_D->posRadD.resize(numExtended);
+    sortedSphMarkers1_D->velMasD.resize(numExtended);
+    sortedSphMarkers1_D->rhoPresMuD.resize(numExtended);
+    sortedSphMarkers1_D->tauXxYyZzD.resize(numExtended);
+    sortedSphMarkers1_D->tauXyXzYzD.resize(numExtended);
+    freeSurfaceIdD.resize(numExtended);
+    vel_XSPH_D.resize(numExtended);
+
+    // Only shrink periodically if needed
+    if (should_shrink) {
+        markersProximity_D->gridMarkerHashD.shrink_to_fit();
+        markersProximity_D->gridMarkerIndexD.shrink_to_fit();
+        sortedSphMarkers2_D->posRadD.shrink_to_fit();
+        sortedSphMarkers2_D->velMasD.shrink_to_fit();
+        sortedSphMarkers2_D->rhoPresMuD.shrink_to_fit();
+        sortedSphMarkers2_D->tauXxYyZzD.shrink_to_fit();
+        sortedSphMarkers2_D->tauXyXzYzD.shrink_to_fit();
+        sortedSphMarkers1_D->posRadD.shrink_to_fit();
+        sortedSphMarkers1_D->velMasD.shrink_to_fit();
+        sortedSphMarkers1_D->rhoPresMuD.shrink_to_fit();
+        sortedSphMarkers1_D->tauXxYyZzD.shrink_to_fit();
+        sortedSphMarkers1_D->tauXyXzYzD.shrink_to_fit();
+        freeSurfaceIdD.shrink_to_fit();
+        vel_XSPH_D.shrink_to_fit();
+
+        // Update max particles to match new capacity
+        m_max_extended_particles = markersProximity_D->gridMarkerHashD.capacity();
+    }
+}
+// Resize data based on the active particles
+// Custom functor for exclusive scan that treats -1 (zombie particles) the same as 0 (sleep particles)
+struct ActivityScanOp {
+    __host__ __device__ int operator()(const int& a, const int& b) const {
+        // Treat -1 the same as 0 (only add positive values)
+        int b_value = (b <= 0) ? 0 : b;
+        return a + b_value;
+    }
+};
+void FsiDataManager::ResizeData() {
+
+    // Exclusive scan for extended activity identifier using custom functor to handle -1 values
+    thrust::exclusive_scan(thrust::device, extendedActivityIdentifierOriginalD.begin(),
+                           extendedActivityIdentifierOriginalD.end(),
+                           prefixSumExtendedActivityIdD.begin(),
+                           0,  // Initial value
+                           ActivityScanOp());
+
+    // copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
+    uint lastPrefixVal = prefixSumExtendedActivityIdD[countersH->numAllMarkers - 1];
+    int32_t lastFlagInt32;
+    cudaMemcpy(&lastFlagInt32,
+               thrust::raw_pointer_cast(
+                   &extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
+               sizeof(int32_t), cudaMemcpyDeviceToHost);
+    uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
+
+    uint numExtended = lastPrefixVal + lastFlag;
+
+    countersH->numExtendedParticles = numExtended;
+
+    // Resize arrays based on number of active particles
+    // Also don't overallocate memory in the case of no active domains
+    if (numExtended < countersH->numAllMarkers) {
+        ResizeArrays(numExtended);
+    }
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void FsiDataManager::Initialize(unsigned int num_fsi_bodies,

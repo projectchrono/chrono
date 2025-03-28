@@ -236,6 +236,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Initialize the SPH fluid system with no FSI support.
     virtual void Initialize() override;
 
+    /// Set up Active domains and array resizing before doing dynamics
+    /// Must be called before DoStepDynamics
+    virtual void OnSetupStepDynamics() override;
+
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
 

@@ -1442,11 +1442,20 @@ void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-
-void ChFsiFluidSystemSPH::OnDoStepDynamics(double step) {
-    if (m_time > m_paramsH->settlingTime) {
+void ChFsiFluidSystemSPH::OnSetupStepDynamics() {
+    // Update particle activity
+    if (m_time >= m_paramsH->settlingTime) {
         m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D);
     }
+    // Resize data arrays if needed
+    if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
+        m_data_mgr->ResizeData();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChFsiFluidSystemSPH::OnDoStepDynamics(double step) {
+
     if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
         m_fluid_dynamics->SortParticles();
     }
