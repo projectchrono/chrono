@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Viper Rover on SCM");
             vis_vsg->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_range));
             vis_vsg->Initialize();

@@ -155,8 +155,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Rollover Demo");
-            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 8.0, 0.3);
             vis_vsg->EnableSkyBox();

@@ -207,8 +207,8 @@ int main(int argc, char* argv[]) {
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sys);
         visVSG->SetWindowTitle("Viper rover on CRM deformable terrain");
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
         visVSG->SetLightIntensity(0.9f);
 

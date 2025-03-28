@@ -178,8 +178,8 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2i(1280, 720));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("Earthquake simulation");
             vis_vsg->EnableSkyBox();
             vis_vsg->AddCamera(ChVector3d(1, 8, -15));
