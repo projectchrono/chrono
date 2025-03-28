@@ -363,41 +363,43 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    // auto lidar = chrono_types::make_shared<ChLidarSensor>(
-    //     my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
-    //     lidar_update_rate,                                                 // update rate
-    //     chrono::ChFrame<double>({0, 0, 2}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
-    //     horizontal_samples,                                                // horizontal samples
-    //     vertical_samples,                                                  // vertical samples/channels
-    //     lidar_hfov,                                                        // horizontal field of view
-    //     lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
-    // );
-    // lidar->SetName("Lidar Sensor");
-    // lidar->SetLag(1 / lidar_update_rate);
-    // lidar->SetCollectionWindow(0);
+    /*
+     auto lidar = chrono_types::make_shared<ChLidarSensor>(
+         my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
+         lidar_update_rate,                                                 // update rate
+         chrono::ChFrame<double>({0, 0, 2}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
+         horizontal_samples,                                                // horizontal samples
+         vertical_samples,                                                  // vertical samples/channels
+         lidar_hfov,                                                        // horizontal field of view
+         lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
+     );
+     lidar->SetName("Lidar Sensor");
+     lidar->SetLag(1 / lidar_update_rate);
+     lidar->SetCollectionWindow(0);
 
-    // if (sensor_vis)
-    //     // Renders the raw lidar data
-    //     lidar->PushFilter(
-    //         chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
+     if (sensor_vis)
+         // Renders the raw lidar data
+         lidar->PushFilter(
+             chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
 
-    // // Convert the range,intensity data to a point cloud (XYZI)
-    // lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
+     // Convert the range,intensity data to a point cloud (XYZI)
+     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
 
-    // if (sensor_vis)
-    //     // Renders the point cloud
-    //     lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point
-    //     Cloud"));
+     if (sensor_vis)
+         // Renders the point cloud
+         lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point
+         Cloud"));
 
-    // if (sensor_save)
-    //     // Save the XYZI data
-    //     lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
+     if (sensor_save)
+         // Save the XYZI data
+         lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
 
-    // // Provides the host access to this XYZI buffer
-    // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
+     // Provides the host access to this XYZI buffer
+     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
 
-    // // add sensor to the manager
-    // manager->AddSensor(lidar);
+     // add sensor to the manager
+     manager->AddSensor(lidar);
+     */
 
     // ---------------
     // Simulate system

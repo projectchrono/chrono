@@ -342,18 +342,18 @@ int main(int argc, char* argv[]) {
 
     cam->PushFilter(chrono_types::make_shared<ChFilterImageResize>(1280, 720, "resize filter"));
 
-    // // filter the sensor to grayscale
+    // filter the sensor to grayscale
     cam->PushFilter(chrono_types::make_shared<ChFilterGrayscale>());
-    //
-    // // we want to visualize this sensor after grayscale, so add the visualize filter to the filter list.
+
+    // we want to visualize this sensor after grayscale, so add the visualize filter to the filter list.
     if (display_data)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Whitted, Final Visualization"));
-    //
-    // // we want to save the grayscale buffer to png
+
+    // we want to save the grayscale buffer to png
     if (save_data)
         cam->PushFilter(chrono_types::make_shared<ChFilterSave>(gray_data_path));
-    //
-    // // we also want to have access to this grayscale buffer on the host.
+
+    // we also want to have access to this grayscale buffer on the host.
     cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager

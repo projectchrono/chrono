@@ -191,8 +191,8 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_axleTube;  ///< handles to the axle tube body
-    // //std::shared_ptr<ChBody> m_tierod;                    ///< handles to the tierod body
-    // //std::shared_ptr<ChLinkLockFree> m_axleTubeGuide;     ///< allows all translations and rotations
+    ////std::shared_ptr<ChBody> m_tierod;                    ///< handles to the tierod body
+    ////std::shared_ptr<ChLinkLockFree> m_axleTubeGuide;     ///< allows all translations and rotations
     std::shared_ptr<ChBody> m_triangleBody;              ///< axle guide body with spherical link and rotary link
     std::shared_ptr<ChLinkLockRevolute> m_triangleRev;   ///< triangle to chassis revolute joint
     std::shared_ptr<ChLinkLockSpherical> m_triangleSph;  ///< triangle to axle tube spherical joint
