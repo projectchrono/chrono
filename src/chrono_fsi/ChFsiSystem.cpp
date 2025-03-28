@@ -241,10 +241,24 @@ void ChFsiSystem::DoStepDynamics(double step) {
     double threshold_CFD = factor * m_step_CFD;
     double threshold_MBD = factor * m_step_MBD;
 
+    m_timer_setup.reset();
     m_timer_step.reset();
     m_timer_FSI.reset();
 
+    // Allow fluid solver to perform setup operations (if any)
+    m_timer_setup.start();
+    m_sysCFD.OnSetupStepDynamics();
+    m_timer_setup.stop();
+
+    // Advance dynamics of the two phases.
+    //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
+    //   2. Advance the dynamics of the fluid system (in the main thread)
+    //   3. Wait for the MBS thread to finish execution.
     m_timer_step.start();
+    std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
+    AdvanceCFD(step, threshold_CFD);
+    th.join();
+    m_timer_step.stop();
 
     // Data exchange between phases:
     //   1. [CFD -> MBS] Apply fluid forces and torques on FSI solids
@@ -255,16 +269,6 @@ void ChFsiSystem::DoStepDynamics(double step) {
     m_fsi_interface->ExchangeSolidStates();
     m_sysCFD.OnExchangeSolidStates();
     m_timer_FSI.stop();
-
-    // Advance dynamics of the two phases.
-    //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)
-    //   2. Advance the dynamics of the fluid system (in the main thread)
-    //   3. Wait for the MBS thread to finish execution.
-    std::thread th(&ChFsiSystem::AdvanceMBS, this, step, threshold_MBD);
-    AdvanceCFD(step, threshold_CFD);
-    th.join();
-
-    m_timer_step.stop();
 
     // Calculate RTF and MBD/CFD timer ratio
     m_RTF = m_timer_step() / step;

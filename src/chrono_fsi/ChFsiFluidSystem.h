@@ -86,6 +86,9 @@ class CH_FSI_API ChFsiFluidSystem {
     /// Additional actions taken after adding a 2-D flexible mesh to the FSI system.
     virtual void OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) = 0;
 
+    /// Optional function to perform setup operations at the beginning of a simulation step.
+    virtual void OnSetupStepDynamics() {}
+
     /// Function to integrate the FSI fluid system in time.
     /// Derived classes are responsible for updating the simulation time (m_time).
     virtual void OnDoStepDynamics(double step) = 0;
