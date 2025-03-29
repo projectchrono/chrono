@@ -481,6 +481,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         visFSI->SetSPHColorCallback(col_callback);
 
         // VSG visual system (attach visFSI as plugin)
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsys->AttachPlugin(visFSI);
         m_vsys->AttachSystem(m_system);
         m_vsys->SetWindowTitle("Terrain Node (GranularSPH)");
