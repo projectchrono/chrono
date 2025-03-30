@@ -43,8 +43,8 @@ then
     rm -rf OCCT-7_4_0
     mkdir OCCT-7_4_0
 
-    wget https://codeload.github.com/Open-Cascade-SAS/OCCT/tar.gz/refs/tags/V7_4_0 -O OCCT-7.4.0.tar.gz
-    tar xzvf OCCT-7.4.0.tar.gz
+    wget -q https://codeload.github.com/Open-Cascade-SAS/OCCT/tar.gz/refs/tags/V7_4_0 -O OCCT-7.4.0.tar.gz
+    tar xzf OCCT-7.4.0.tar.gz
     OCCT_SOURCE_DIR=OCCT-7_4_0
 
 else
