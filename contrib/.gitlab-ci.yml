@@ -69,7 +69,7 @@ linux:doxygen:deploy:
   tags:
     - linux
   image:
-      name: docker.io/nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04
+      name: uwsbel/packages:cuda12.8.1
   before_script:
     # Defining configuration variables
     - export DEBIAN_FRONTEND=noninteractive
