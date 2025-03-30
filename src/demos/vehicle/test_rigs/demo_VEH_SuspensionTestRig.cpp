@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChSuspensionTestRigVisualSystemVSG>();
-            vis_vsg->SetWindowSize(ChVector2i(1280, 1024));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Suspension Test Rig");
             vis_vsg->AttachSTR(rig.get());
             vis_vsg->Initialize();

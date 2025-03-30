@@ -2341,8 +2341,8 @@ void ChVisualSystemVSG::PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::s
     material->SetDiffuseColor(m_collision_color);
 
     for (const auto& shape_instance : model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
-        const auto& X_SM = shape_instance.second;
+        const auto& shape = shape_instance.shape;
+        const auto& X_SM = shape_instance.frame;
 
         if (auto box = std::dynamic_pointer_cast<ChCollisionShapeBox>(shape)) {
             auto transform = vsg::MatrixTransform::create();

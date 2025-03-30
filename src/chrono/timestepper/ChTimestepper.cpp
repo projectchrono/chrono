@@ -590,7 +590,7 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     mintegrable->LoadResidual_Mv(R, V, 1.0);  // R += M*(v_old)
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp,
                                   Qc_clamping);  // Qc = C/dt  (sign will be flipped later in StateSolveCorrection)
-    mintegrable->LoadConstraint_Ct(Qc, 1.0);     // // Qc += Ct  (sign will be flipped later in StateSolveCorrection)
+    mintegrable->LoadConstraint_Ct(Qc, 1.0);     // Qc += Ct  (sign will be flipped later in StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
         V, L, R, Qc,                    //

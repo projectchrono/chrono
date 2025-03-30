@@ -597,7 +597,7 @@ void ChOptixEngine::ConstructScene() {
         }
     }
 
-    // // Assumption made here that other physics items don't have a transform -> not always true!!!
+    // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->GetOtherPhysicsItems()) {
         if (item->GetVisualModel()) {
             for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {

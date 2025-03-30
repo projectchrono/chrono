@@ -69,8 +69,7 @@ class ChParticleEmitter {
         particle_angular_velocity = chrono_types::make_shared<ChRandomParticleVelocity>();
     }
 
-    /// Function that creates random particles with random shape, position
-    /// and alignment each time it is called.
+    /// Function to creates particles with random shape, position and alignment each time it is called.
     /// Typically, one calls this function once per timestep.
     void EmitParticles(ChSystem& msystem, double mdt, ChFrameMoving<> pre_transform = ChFrameMoving<>()) {
         double done_particles_per_step = this->off_count;
@@ -82,10 +81,10 @@ class ChParticleEmitter {
         // Loop for creating particles at the timestep. Note that
         // it would run forever, if there were no returns when flow amount is reached.
         while (true) {
-            if ((use_particle_reservoir) && (this->particle_reservoir <= 0))
+            if (use_particle_reservoir && this->particle_reservoir <= 0)
                 return;
 
-            if ((use_mass_reservoir) && (this->mass_reservoir <= 0))
+            if (use_mass_reservoir && this->mass_reservoir <= 0)
                 return;
 
             // Flow control: break cycle when done

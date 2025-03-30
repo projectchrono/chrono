@@ -50,11 +50,11 @@ ChCollisionModelMulticore::~ChCollisionModelMulticore() {
 
 void ChCollisionModelMulticore::Populate() {
     for (const auto& shape_instance : model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
+        const auto& shape = shape_instance.shape;
         const auto& material = shape->GetMaterial();
 
         // Create collision shapes relative to the body COG frame
-        auto frame = shape_instance.second;
+        auto frame = shape_instance.frame;
         if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(GetBody())) {
             frame = frame >> body_ar->GetFrameRefToCOM();
         }

@@ -84,7 +84,7 @@ __global__ void image_alias_kernel(unsigned char* bufIn,
     int w_in = w_out * factor;
     int h_in = h_out * factor;
     //
-    // // only run for each output pixel
+    // only run for each output pixel
     if (out_index < w_out * h_out * pix_size) {
         int idc_out = out_index % pix_size;
         int idx_out = (out_index / pix_size) % w_out;
@@ -128,7 +128,7 @@ __global__ void image_alias_float_kernel(float* bufIn, float* bufOut, int w_out,
 
     int w_in = w_out * factor;
     //
-    // // only run for each output pixel
+    // only run for each output pixel
     if (out_index < w_out * h_out * pix_size) {
         int idc_out = out_index % pix_size;
         int idx_out = (out_index / pix_size) % w_out;

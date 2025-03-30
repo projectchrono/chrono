@@ -20,8 +20,8 @@
 #define CH_FLUID_SYSTEM_SPH_H
 
 #include "chrono_fsi/ChFsiFluidSystem.h"
-#include "chrono_fsi/sph/ChFsiParamsSPH.h"
 
+#include "chrono_fsi/sph/ChFsiParamsSPH.h"
 #include "chrono_fsi/sph/ChFsiDefinitionsSPH.h"
 #include "chrono_fsi/sph/ChFsiDataTypesSPH.h"
 
@@ -230,10 +230,15 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                             unsigned int num_fsi_elements2D,
                             const std::vector<FsiBodyState>& body_states,
                             const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states) override;
+                            const std::vector<FsiMeshState>& mesh2D_states,
+                            bool use_node_directions) override;
 
     /// Initialize the SPH fluid system with no FSI support.
     virtual void Initialize() override;
+
+    /// Set up Active domains and array resizing before doing dynamics
+    /// Must be called before DoStepDynamics
+    virtual void OnSetupStepDynamics() override;
 
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
@@ -549,13 +554,19 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     void InitParams();
 
     /// Load the given body and mesh node states in the SPH data manager structures.
-    /// This function is not called if the SPH fluid system is paired with the custom SPH FSI interface.
+    /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
+    /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
+    /// generic FSI interface, LoadSolidStates is called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
+    /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
+    /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
     virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
                                  const std::vector<FsiMeshState>& mesh1D_states,
                                  const std::vector<FsiMeshState>& mesh2D_states) override;
 
     /// Store the body and mesh node forces from the SPH data manager to the given vectors.
-    /// This function is not called if the SPH fluid system is paired with the custom SPH FSI interface.
+    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is called from
+    /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
+    /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
     virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) override;
@@ -589,9 +600,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
 
-    std::unique_ptr<FsiDataManager> m_data_mgr;         ///< FSI data manager
+    std::unique_ptr<FsiDataManager> m_data_mgr;       ///< FSI data manager
     std::unique_ptr<FluidDynamics> m_fluid_dynamics;  ///< fluid system
-    std::unique_ptr<BceManager> m_bce_mgr;              ///< BCE manager
+    std::unique_ptr<BceManager> m_bce_mgr;            ///< BCE manager
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all meshes)
@@ -607,6 +618,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     BcePatternMesh2D m_pattern2D;
     bool m_remove_center1D;
     bool m_remove_center2D;
+
+    /// Needed by resize data to check if it is the first step
+    bool m_first_step;
 
     friend class ChFsiSystemSPH;
     friend class ChFsiInterfaceSPH;

@@ -73,7 +73,7 @@ ChTireTestRig::~ChTireTestRig() {
         sys->Remove(m_carrier_body);
         sys->Remove(m_chassis_body);
         sys->Remove(m_slip_body);
-        sys->Remove(m_spindle_body);
+        sys->Remove(m_spindle);
         sys->Remove(m_lin_motor);
         sys->Remove(m_rot_motor);
         sys->Remove(m_slip_lock);
@@ -304,7 +304,7 @@ void ChTireTestRig::Advance(double step) {
         // Synchronize subsystems
         m_terrain->Synchronize(time);
         m_tire->Synchronize(time, *m_terrain.get());
-        m_spindle_body->EmptyAccumulators();
+        m_spindle->EmptyTireAccumulator();
         m_wheel->Synchronize();
 
         // Advance state
@@ -393,17 +393,17 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
         m_slip_body->AddVisualShape(box);
     }
 
-    m_spindle_body = chrono_types::make_shared<ChBody>();
-    m_spindle_body->SetFixed(mode == Mode::SUSPEND);
+    m_spindle = chrono_types::make_shared<ChSpindle>();
+    m_spindle->SetFixed(mode == Mode::SUSPEND);
     ChQuaternion<> qc;
     qc.SetFromAngleX(-m_camber_angle);
-    m_system->AddBody(m_spindle_body);
-    m_spindle_body->SetName("rig_spindle");
-    m_spindle_body->SetMass(0);
-    m_spindle_body->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
-    m_spindle_body->SetPos(ChVector3d(0, 3 * dim, -4 * dim));
-    m_spindle_body->SetRot(qc);
-    utils::ChBodyGeometry::AddVisualizationCylinder(m_spindle_body,              //
+    m_system->AddBody(m_spindle);
+    m_spindle->SetName("rig_spindle");
+    m_spindle->SetMass(0);
+    m_spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
+    m_spindle->SetPos(ChVector3d(0, 3 * dim, -4 * dim));
+    m_spindle->SetRot(qc);
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_spindle,                   //
                                                     ChVector3d(0, 0, 0),         //
                                                     ChVector3d(0, -3 * dim, 0),  //
                                                     dim / 2);
@@ -435,15 +435,15 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     if (mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system->AddLink(m_rot_motor);
-        m_rot_motor->Initialize(m_spindle_body, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+        m_rot_motor->Initialize(m_spindle, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
     } else {
         auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
         m_system->AddLink(revolute);
-        revolute->Initialize(m_spindle_body, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
+        revolute->Initialize(m_spindle, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), z2y));
     }
 
     // Initialize subsystems
-    m_wheel->Initialize(nullptr, m_spindle_body, LEFT);
+    m_wheel->Initialize(nullptr, m_spindle, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
     m_wheel->SetTire(m_tire);
     m_tire->SetStepsize(m_tire_step);
@@ -453,7 +453,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     // Update chassis mass to satisfy requested normal load
     if (m_grav > 0) {
         m_total_mass = m_normal_load / m_grav;
-        double other_mass = m_slip_body->GetMass() + m_spindle_body->GetMass() + m_wheel->GetMass() + m_tire->GetMass();
+        double other_mass = m_slip_body->GetMass() + m_spindle->GetMass() + m_wheel->GetMass() + m_tire->GetMass();
         double chassis_mass = m_total_mass - other_mass;
         if (chassis_mass > mass) {
             m_chassis_body->SetMass(chassis_mass);
@@ -573,7 +573,7 @@ void ChTireTestRig::CreateTerrainGranular() {
 
     double buffer_dist = 2.0 * m_tire->GetRadius();
     double shift_dist = 0.5 * m_tire->GetRadius();
-    terrain->EnableMovingPatch(m_spindle_body, buffer_dist, shift_dist, ChVector3d(0, 0, -2));
+    terrain->EnableMovingPatch(m_spindle, buffer_dist, shift_dist, ChVector3d(0, 0, -2));
 
     m_terrain = terrain;
 }
@@ -637,7 +637,7 @@ void ChTireTestRig::CreateTerrainCRM() {
         auto trimesh = rgd_tire->GetContactMesh();
         utils::ChBodyGeometry geometry;
         geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
-        terrain->AddRigidBody(m_spindle_body, geometry, false);
+        terrain->AddRigidBody(m_spindle, geometry, false);
     }
 
     terrain->Initialize();

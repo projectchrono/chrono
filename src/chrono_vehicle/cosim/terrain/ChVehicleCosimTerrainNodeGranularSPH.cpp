@@ -350,8 +350,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, Body
 void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     rigid_contact.point = ChVector3d(0, 0, 0);
-    rigid_contact.force = proxy->bodies[0]->GetAccumulatedForce();
-    rigid_contact.moment = proxy->bodies[0]->GetAccumulatedTorque();
+    rigid_contact.force = m_terrain->GetFsiBodyForce(proxy->bodies[0]);
+    rigid_contact.moment = m_terrain->GetFsiBodyTorque(proxy->bodies[0]);
 }
 
 // -----------------------------------------------------------------------------
@@ -481,6 +481,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         visFSI->SetSPHColorCallback(col_callback);
 
         // VSG visual system (attach visFSI as plugin)
+        m_vsys = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         m_vsys->AttachPlugin(visFSI);
         m_vsys->AttachSystem(m_system);
         m_vsys->SetWindowTitle("Terrain Node (GranularSPH)");

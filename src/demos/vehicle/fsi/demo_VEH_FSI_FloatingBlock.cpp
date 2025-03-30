@@ -260,8 +260,8 @@ int main(int argc, char* argv[]) {
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
         visVSG->SetWindowTitle("Floating Block");
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(0, -8 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
         visVSG->SetLightIntensity(0.9f);
 

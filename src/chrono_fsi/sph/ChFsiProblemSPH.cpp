@@ -176,6 +176,10 @@ size_t ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
 
 // ----------------------------------------------------------------------------
 
+void ChFsiProblemSPH::EnableNodeDirections(bool val) {
+    m_sysFSI.EnableNodeDirections(val);
+}
+
 void ChFsiProblemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
     m_sysSPH.SetBcePattern1D(pattern, remove_center);
 }

@@ -1108,15 +1108,15 @@ inline __host__ __device__ float length(float4 v) {
 // normalize
 ////////////////////////////////////////////////////////////////////////////////
 
-inline __host__ __device__ float2 normalize(float2 v) {
+inline __host__ __device__ float2 get_normalized(float2 v) {
     float invLen = rsqrtf(dot(v, v));
     return v * invLen;
 }
-inline __host__ __device__ float3 normalize(float3 v) {
+inline __host__ __device__ float3 get_normalized(float3 v) {
     float invLen = rsqrtf(dot(v, v));
     return v * invLen;
 }
-inline __host__ __device__ float4 normalize(float4 v) {
+inline __host__ __device__ float4 get_normalized(float4 v) {
     float invLen = rsqrtf(dot(v, v));
     return v * invLen;
 }
@@ -1544,21 +1544,38 @@ __host__ __device__ inline Real length(Real4 v) {
     return sqrt(dot(v, v));
 }
 
-__host__ __device__ inline Real2 normalize(Real2 v) {
+__host__ __device__ inline Real2 get_normalized(Real2 v) {
     Real invLen = rsqrtr(dot(v, v));
     return v * invLen;
 }
-__host__ __device__ inline Real3 normalize(Real3 v) {
+__host__ __device__ inline Real3 get_normalized(Real3 v) {
     Real invLen = rsqrtr(dot(v, v));
     return v * invLen;
 }
-__host__ __device__ inline Real4 normalize(Real4 v) {
+__host__ __device__ inline Real4 get_normalized(Real4 v) {
     Real invLen = rsqrtr(dot(v, v));
     return v * invLen;
 }
 
+__host__ __device__ inline void normalize(Real2&& v) {
+    Real invLen = rsqrtr(dot(v, v));
+    v *= invLen;
+}
+__host__ __device__ inline void normalize(Real3& v) {
+    Real invLen = rsqrtr(dot(v, v));
+    v *= invLen;
+}
+__host__ __device__ inline void normalize(Real4& v) {
+    Real invLen = rsqrtr(dot(v, v));
+    v *= invLen;
+}
+
 __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
     return make_Real3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+}
+
+__host__ __device__ inline Real3 calc_triangle_normal(const Real3& a, const Real3& b, const Real3& c) {
+    return get_normalized(cross(b-a, c-b));
 }
 
 __host__ __device__ inline Real sgn(Real a) {

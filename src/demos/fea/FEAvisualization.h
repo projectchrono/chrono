@@ -80,8 +80,8 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(vertical);
-            vis_vsg->SetWindowSize(ChVector2i(1280, 720));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle(title);
             vis_vsg->EnableSkyBox();
             vis_vsg->AddCamera(2.0 * cam_pos, cam_target);

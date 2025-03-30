@@ -291,7 +291,7 @@ int main() {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->SetWindowSize(1200, 600);
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Tire Test Rig");
             vis_vsg->AddCamera(ChVector3d(1.0, 2.5, 1.0));
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

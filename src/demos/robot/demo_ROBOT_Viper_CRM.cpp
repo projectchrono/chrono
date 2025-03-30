@@ -51,6 +51,18 @@ using std::cout;
 using std::cin;
 using std::endl;
 
+// ===================================================================================================================
+
+// CRM terrain patch type
+enum class PatchType { RECTANGULAR, HEIGHT_MAP };
+PatchType patch_type = PatchType::HEIGHT_MAP;
+
+// Terrain dimensions (for RECTANGULAR or HEIGHT_MAP patch type)
+double terrain_length = 12;
+double terrain_width = 3;
+
+// ===================================================================================================================
+
 int main(int argc, char* argv[]) {
     double density = 1700;
     double cohesion = 5e3;
@@ -87,7 +99,7 @@ int main(int argc, char* argv[]) {
                                     2e5f,   // kt
                                     20.0f   // gt
     );
-    ChVector3d init_loc(-1, 0.0, 2.4);
+    ChVector3d init_loc(1.25, 0.0, 0.5);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
@@ -147,17 +159,28 @@ int main(int argc, char* argv[]) {
 
     // Construct the terrain
     cout << "Create terrain..." << endl;
-    terrain.Construct(vehicle::GetDataFile("terrain/height_maps/terrain3.bmp"),  // height map image file
-                      4, 4,                                                      // length (X) and width (Y)
-                      {0, 2.55},                                                 // height range
-                      0.3,                                                       // depth
-                      true,                                                      // uniform depth
-                      ChVector3d(0, 0, 0),                                       // patch center
-                      BoxSide::Z_NEG                                             // bottom wall
-    );
+    switch (patch_type) {
+        case PatchType::RECTANGULAR:
+            // Create a rectangular terrain patch
+            terrain.Construct({terrain_length, terrain_width, 0.25},  // length X width X height
+                              ChVector3d(terrain_length / 2, 0, 0),   // patch center
+                              BoxSide::ALL & ~BoxSide::Z_POS          // all boundaries, except top
+            );
+            break;
+        case PatchType::HEIGHT_MAP:
+            // Create a patch from a heigh field map image
+            terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+                              terrain_length, terrain_width,                           // length (X) and width (Y)
+                              {0, 0.3},                                                // height range
+                              0.25,                                                    // depth
+                              true,                                                    // uniform depth
+                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
+                              BoxSide::Z_NEG                                           // bottom wall
+            );
+            break;
+    }
 
     // Initialize the terrain system
-    cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
@@ -184,8 +207,8 @@ int main(int argc, char* argv[]) {
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sys);
         visVSG->SetWindowTitle("Viper rover on CRM deformable terrain");
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
         visVSG->SetLightIntensity(0.9f);
 

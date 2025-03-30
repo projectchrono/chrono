@@ -143,7 +143,7 @@ void FmuComponent::CreateTire() {
     //// This tire FMU uses a locally-flat terrain patch that is updated at each synchronization time.
     tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
 
-    auto spindle = chrono_types::make_shared<ChBody>();
+    auto spindle = chrono_types::make_shared<ChSpindle>();
     sys.AddBody(spindle);
 
     wheel = chrono_types::make_shared<Wheel>();

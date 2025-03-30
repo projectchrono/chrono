@@ -42,7 +42,7 @@ HMMWV_Wheel::HMMWV_Wheel(const std::string& name) : ChWheel(name) {
 }
 
 void HMMWV_Wheel::Construct(std::shared_ptr<ChChassis> chassis,
-                            std::shared_ptr<ChBody> spindle,
+                            std::shared_ptr<ChSpindle> spindle,
                             VehicleSide side,
                             double offset) {
     ChWheel::Construct(chassis, spindle, side, offset);

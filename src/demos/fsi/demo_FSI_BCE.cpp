@@ -110,8 +110,8 @@ std::shared_ptr<ChVisualSystem> CreateVisulization(ChFsiSystemSPH& sysFSI, ChSys
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
         visVSG->SetWindowTitle(title);
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(-0.2, -3.0, 0), ChVector3d(-0.2, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);

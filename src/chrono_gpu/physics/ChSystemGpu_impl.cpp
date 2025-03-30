@@ -1257,7 +1257,7 @@ float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
 
 /// Set particle position
 void ChSystemGpu_impl::SetParticlePosition(int nSphere, double3 position) {
-    // // convert user unit to simulation unit
+    // convert user unit to simulation unit
     int64_t global_pos_X = (int64_t)((double)position.x / (double)LENGTH_SU2UU);
     int64_t global_pos_Y = (int64_t)((double)position.y / (double)LENGTH_SU2UU);
     int64_t global_pos_Z = (int64_t)((double)position.z / (double)LENGTH_SU2UU);

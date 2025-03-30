@@ -94,8 +94,8 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         // Loop over each shape and write its data on a separate line.
         // If we encounter an unsupported type, return false.
         for (const auto& s : body->GetCollisionModel()->GetShapeInstances()) {
-            const auto& shape = s.first;
-            const auto& frame = s.second;
+            const auto& shape = s.shape;
+            const auto& frame = s.frame;
 
             // Write relative position and rotation
             csv << frame.GetPos() << frame.GetRot() << tab;

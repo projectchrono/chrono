@@ -429,14 +429,11 @@ void ChGenericWheeledSuspension::Construct(std::shared_ptr<ChChassis> chassis,
         auto spindleRot = chassisRot * QuatFromAngleZ(sign * getToeAngle()) * QuatFromAngleX(sign * getCamberAngle());
 
         // Spindle body
-        m_spindle[side] = chrono_types::make_shared<ChBody>();
-        m_spindle[side]->SetName(Name({"spindle", side}));
         m_spindle[side]->SetPos(spindlePos);
         m_spindle[side]->SetRot(spindleRot);
         m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
         m_spindle[side]->SetMass(getSpindleMass());
         m_spindle[side]->SetInertiaXX(getSpindleInertia());
-        chassis->GetSystem()->AddBody(m_spindle[side]);
 
         // Spindle revolute joint
         auto abody_id = getSpindleAttachmentBody();
