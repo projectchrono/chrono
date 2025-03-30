@@ -75,3 +75,6 @@ then
 else
     echo "No Debug build of OCCT"
 fi
+
+# Fix the bug mentioned here: https://github.com/clearlinux/distribution/issues/3116
+sed -i -e 's/\\\${OCCT_INSTALL_BIN_LETTER}//' ${CASCADE_INSTALL_DIR}/lib/cmake/opencascade/*
