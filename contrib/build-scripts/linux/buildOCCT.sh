@@ -66,7 +66,7 @@ rm -rf build_occt
 cmake -G "${BUILDSYSTEM}" \
       -B build_occt \
       -S ${OCCT_SOURCE_DIR} \
-      -DCMAKE_INSTALL_PREFIX ${CASCADE_INSTALL_DIR}
+      -DCMAKE_INSTALL_PREFIX=${CASCADE_INSTALL_DIR}
 
 echo -e "\n------------------------ Build and install OCCT\n"
 cmake --build build_occt --config Release
