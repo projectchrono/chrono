@@ -98,8 +98,6 @@ linux:doxygen:deploy:
     # VSG
     - chmod +x $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh
     - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
-    # OpenCascade
-    - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildOCCT.sh $HOME/Packages/occt_install
 
 linux:ubuntu22.04-gcc:build:
   extends: .ubuntu
