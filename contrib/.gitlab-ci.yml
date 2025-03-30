@@ -75,6 +75,7 @@ linux:doxygen:deploy:
     - export DEBIAN_FRONTEND=noninteractive
     - export LIB_DIR="lib"
     - export IOMP5_DIR=""
+    - source /opt/intel/oneapi/setvars.sh
     - apt-get update; apt-get -y install unzip wget python3 python3-pip libomp-dev
       git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
       freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
