@@ -63,15 +63,18 @@ mkdir ${CASCADE_INSTALL_DIR}
 
 echo -e "\n------------------------ Configure OCCT\n"
 rm -rf build_occt
-cmake  -G "${BUILDSYSTEM}" -B build_occt -S ${OCCT_SOURCE_DIR}
+cmake -G "${BUILDSYSTEM}" \
+      -B build_occt \
+      -S ${OCCT_SOURCE_DIR} \
+      -DCMAKE_INSTALL_PREFIX ${CASCADE_INSTALL_DIR}
 
 echo -e "\n------------------------ Build and install OCCT\n"
 cmake --build build_occt --config Release
-cmake --install build_occt --config Release --prefix ${CASCADE_INSTALL_DIR}
+cmake --install build_occt --config Release
 if [ ${BUILDDEBUG} = ON ]
 then
     cmake --build build_occt --config Debug
-    cmake --install build_occt --config Debug --prefix ${CASCADE_INSTALL_DIR}
+    cmake --install build_occt --config Debug
 else
     echo "No Debug build of OCCT"
 fi
