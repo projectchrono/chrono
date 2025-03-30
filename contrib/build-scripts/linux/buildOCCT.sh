@@ -31,7 +31,7 @@ fi
 
 if [ $# -eq 1 ]
 then
-    VSG_INSTALL_DIR=$1
+    CASCADE_INSTALL_DIR=$1
 fi
 
 # ------------------------------------------------------------------------
@@ -62,16 +62,16 @@ mkdir ${CASCADE_INSTALL_DIR}
 # --- OCCT ----------------------------------------------------------------
 
 echo -e "\n------------------------ Configure OCCT\n"
-rm -rf build
-cmake  -G "${BUILDSYSTEM}" -B build -S ${OCCT_SOURCE_DIR}
+rm -rf build_occt
+cmake  -G "${BUILDSYSTEM}" -B build_occt -S ${OCCT_SOURCE_DIR}
 
 echo -e "\n------------------------ Build and install OCCT\n"
-cmake --build build --config Release
-cmake --install build --config Release --prefix ${CASCADE_INSTALL_DIR}
+cmake --build build_occt --config Release
+cmake --install build_occt --config Release --prefix ${CASCADE_INSTALL_DIR}
 if [ ${BUILDDEBUG} = ON ]
 then
-    cmake --build build --config Debug
-    cmake --install build --config Debug --prefix ${CASCADE_INSTALL_DIR}
+    cmake --build build_occt --config Debug
+    cmake --install build_occt --config Debug --prefix ${CASCADE_INSTALL_DIR}
 else
-    echo "No Debug build of vsg"
+    echo "No Debug build of OCCT"
 fi
