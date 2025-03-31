@@ -22,6 +22,7 @@
 #include <optix.h>
 #include <cuda_runtime_api.h>
 #include <nvrtc.h>
+#include <chrono>
 
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChVisualShapeBox.h"

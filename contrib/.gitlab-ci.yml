@@ -69,17 +69,13 @@ linux:doxygen:deploy:
   tags:
     - linux
   image:
-      name: uwsbel/packages:test
+      name: uwsbel/packages:cuda12.8.1
   before_script:
     # Defining configuration variables
     - export DEBIAN_FRONTEND=noninteractive
     - export LIB_DIR="lib"
     - export IOMP5_DIR=""
-    - apt-get update; apt-get -y install unzip wget python3 python3-pip libomp-dev
-      git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
-      freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
-      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-535
-      curl software-properties-common
+    - source /opt/intel/oneapi/setvars.sh
     - ldconfig
     # ROS
     - add-apt-repository universe
@@ -277,7 +273,7 @@ windows:vs2022:build:
   # Build urdf with buildURDF script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.2" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
@@ -291,6 +287,9 @@ windows:vs2022:test:
   needs: ["windows:vs2022:build"]
   extends: .windows
   script:
+  # Build vsg with buildVSG script
+  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin"
   - cd build
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
