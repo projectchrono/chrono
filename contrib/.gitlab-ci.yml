@@ -289,7 +289,7 @@ windows:vs2022:test:
   script:
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\lib"|
+  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\lib"
   - cd build
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
