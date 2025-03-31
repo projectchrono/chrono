@@ -38,12 +38,12 @@ class ChMulticoreVisualizationCloud : public ChParticleCloud {
     }
     virtual bool IsActive() const override { return true; }
     virtual size_t GetNumParticles() const override { return dm->num_particles; }
-    virtual const ChVector3d& GetParticlePos(unsigned int n) const {
+    virtual const ChVector3d& GetParticlePos(unsigned int n) const override {
         const auto& p = dm->host_data.pos_3dof[n];
         tmp = ChVector3(p.x, p.y, p.z);
         return tmp;
     }
-    virtual const ChVector3d& GetParticleVel(unsigned int n) const {
+    virtual const ChVector3d& GetParticleVel(unsigned int n) const override {
         const auto& v = dm->host_data.vel_3dof[n];
         tmp = ChVector3d(v.x, v.y, v.z);
         return tmp;

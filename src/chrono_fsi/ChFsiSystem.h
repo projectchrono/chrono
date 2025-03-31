@@ -79,6 +79,12 @@ class CH_FSI_API ChFsiSystem {
     /// (as needed), but these are not attached to the given FEA mesh.
     void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
 
+    /// Enable/disable use of node direction vectors for FSI flexible meshes.
+    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
+    /// calculated from the FSI mesh position states and communicated to the fluid solver. The default is set by a
+    /// concrete ChFsiSystem and the associated FSI interface.
+    void EnableNodeDirections(bool val);
+
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.
     /// The default implementation performs the following operations:
@@ -105,10 +111,12 @@ class CH_FSI_API ChFsiSystem {
     /// Function to advance the FSI system combined state.
     /// This implements an explicit force-displacement co-simulation step:
     /// - advance fluid dynamics (CFD) to new data exchange point;
-    /// - apply fluid forces on solid objects;
     /// - advance multibody dynamics (MBD) to new data exchange point;
-    /// - extract new states for FSI solid objects;
+    /// - extract (from fluid system) and apply (to MBS) fluid forces on FSI solid objects;
+    /// - extract (from MBS) and apply (to fluid system) new states for FSI solid objects;
     /// Notes:
+    /// - no data exchange is performed before the first step;
+    ///   this assumes that FSI solid states and FSI solid forces are properly initialized
     /// - CFD advance calls ChFsiFluidSystem::DoStepDynamics multiple times (see SetStepsizeCFD);
     /// - MBD advance is executed in a separate, concurrent thread and does not block execution;
     /// - the caller can register a custom callback (of type ChFsiSystem::MBDCallback) to control MBD advance;
@@ -155,6 +163,9 @@ class CH_FSI_API ChFsiSystem {
     /// Return the time in seconds for data exchange between phases over the last step.
     double GetTimerFSI() const { return m_timer_FSI(); }
 
+    /// Return the time in seconds for optional setup operations before a step.
+    double GetTimerStepSetup() const { return m_timer_setup(); }
+
     // ----------
 
     //// TODO: change these to take a shared_ptr to a ChBody
@@ -197,12 +208,13 @@ class CH_FSI_API ChFsiSystem {
 
     std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
 
-    ChTimer m_timer_step;  ///< timer for integration step
-    ChTimer m_timer_FSI;   ///< timer for FSI data exchange
-    double m_timer_CFD;    ///< timer for fluid dynamics integration
-    double m_timer_MBD;    ///< timer for multibody dynamics integration
-    double m_RTF;          ///< real-time factor (simulation time / simulated time)
-    double m_ratio_MBD;    ///< fraction of step simulation time for MBS integration
+    ChTimer m_timer_setup;  ///< timer for setup operations before a step
+    ChTimer m_timer_step;   ///< timer for integration step
+    ChTimer m_timer_FSI;    ///< timer for FSI data exchange
+    double m_timer_CFD;     ///< timer for fluid dynamics integration
+    double m_timer_MBD;     ///< timer for multibody dynamics integration
+    double m_RTF;           ///< real-time factor (simulation time / simulated time)
+    double m_ratio_MBD;     ///< fraction of step simulation time for MBS integration
 };
 
 /// @} fsi_base

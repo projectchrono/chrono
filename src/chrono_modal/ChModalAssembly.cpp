@@ -2059,10 +2059,10 @@ void ChModalAssembly::GetLocalDeformations(ChVectorDynamic<>& u_locred,
 
     //// DEVELOPER NOTES
     // Do not try to do the following since it causes instabilities:
-    // // local elastic displacement
+    // local elastic displacement
     // e_locred = P_perp_0 * u_locred;
 
-    // // local elastic velocity
+    // local elastic velocity
     // edt_locred = P_perp_0 * (P_W.transpose() * v_mod);
 }
 
@@ -2475,11 +2475,12 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         {
             unsigned int offset_loc = 0;
             for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-                m_full_forces_internal.segment(offset_loc, 3) = internal_bodylist[ip]->GetAccumulatedForce().eigen();
-                m_full_forces_internal.segment(offset_loc + 3, 3) =
-                    internal_bodylist[ip]->GetAccumulatedTorque().eigen();
+                const auto& wrench = internal_bodylist[ip]->GetAccumulatorWrench();
+                m_full_forces_internal.segment(offset_loc, 3) = wrench.force.eigen();
+                m_full_forces_internal.segment(offset_loc + 3, 3) = wrench.torque.eigen();
                 offset_loc += internal_bodylist[ip]->GetNumCoordsVelLevel();
             }
+
             for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
                 for (auto& node : internal_meshlist[ip]->GetNodes()) {
                     if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {

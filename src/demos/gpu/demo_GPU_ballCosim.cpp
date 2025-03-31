@@ -110,6 +110,9 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     int render_frame = 0;
     int out_frame = 0;
 
+    // Add force accumulator to the ball body
+    auto accumulator_index = ball_body->AddAccumulator();
+
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step) {
         gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPosDt(),
@@ -119,9 +122,9 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
         ChVector3d ball_torque;
         gpu_sys.CollectMeshContactForces(0, ball_force, ball_torque);
 
-        ball_body->EmptyAccumulators();
-        ball_body->AccumulateForce(ball_force, ball_body->GetPos(), false);
-        ball_body->AccumulateTorque(ball_torque, false);
+        ball_body->EmptyAccumulator(accumulator_index);
+        ball_body->AccumulateForce(accumulator_index, ball_force, ball_body->GetPos(), false);
+        ball_body->AccumulateTorque(accumulator_index, ball_torque, false);
 
         if (t >= out_frame / out_fps) {
             std::cout << "Output frame " << sim_frame + 1 << std::endl;

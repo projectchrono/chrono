@@ -155,7 +155,7 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Status status;
 
     // Create the spindle body
-    m_spindle = chrono_types::make_shared<ChBody>();
+    m_spindle = chrono_types::make_shared<ChSpindle>();
     m_system->AddBody(m_spindle);
 
     // Create the wheel subsystem, arbitrarily assuming LEFT side

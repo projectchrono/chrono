@@ -25,6 +25,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 
@@ -68,7 +69,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     const ChVector3d& GetRelPosition() const { return m_rel_loc; }
 
     /// Get a handle to the spindle body on the specified side.
-    std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
+    std::shared_ptr<ChSpindle> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
 
     /// Get a handle to the axle shaft on the specified side.
     std::shared_ptr<ChShaft> GetAxle(VehicleSide side) const { return m_axle[side]; }
@@ -181,7 +182,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         ) = 0;
 
     ChVector3d m_rel_loc;                                       ///< location relative to chassis
-    std::shared_ptr<ChBody> m_spindle[2];                       ///< handles to spindle bodies
+    std::shared_ptr<ChSpindle> m_spindle[2];                    ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                         ///< handles to axle shafts
     std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];          ///< handles to spindle revolute joints

@@ -325,7 +325,8 @@ void Example4a(const std::string& out_dir, ChSolver::Type solver_type, ChTimeste
 
     // Create 'B', a 3D rigid body
     auto my_bodyB = chrono_types::make_shared<ChBody>();
-    my_bodyB->AccumulateTorque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
+    my_bodyB->AddAccumulator();                                // single accumlator on this body (index = 0)
+    my_bodyB->AccumulateTorque(0, ChVector3d(0, 0, 3), true);  // set some constant torque to body
     sys.Add(my_bodyB);
 
     // Make the torsional spring-damper between shafts A and C.

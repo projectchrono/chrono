@@ -189,6 +189,7 @@ struct ChFsiParamsSPH {
     Real3 zombieMax;  ///< Upper limit point of the zombie domain -> All particles outside this will be frozen
 
     Real3 bodyActiveDomain;  ///< Size of the active domain that influenced by an FSI body
+    bool use_active_domain;  ///< Set to true if active domain is used
     Real settlingTime;       ///< Time for the granular to settle down
 
     int num_proximity_search_steps;  ///< Number of steps between updates to neighbor lists

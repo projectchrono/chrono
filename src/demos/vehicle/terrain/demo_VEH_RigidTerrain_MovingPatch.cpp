@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(hmmwv.GetSystem());
             vis_vsg->SetWindowTitle("RigidTerrain Moving Patch Demo");
-            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
             vis_vsg->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());

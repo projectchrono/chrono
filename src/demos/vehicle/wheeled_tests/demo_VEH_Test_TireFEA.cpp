@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the spindle body (at origin)
-    auto spindle = chrono_types::make_shared<ChBody>();
+    auto spindle = chrono_types::make_shared<ChSpindle>();
     spindle->SetPos(VNULL);
     spindle->SetMass(wheel_mass);
     spindle->SetFixed(fix_wheel);
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("FEA tire");
             vis_vsg->AddCamera(ChVector3d(0, -1.5, 0), VNULL);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);

@@ -12,13 +12,24 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Base class for interfacing between a Chrono system and an FSI system
+// 1. Definition of the base class for interfacing between a Chrono system and
+//    an FSI-aware fluid system.
+// 2. Implementation of a generic FSI interface that relies on copying data to
+//    intermediate buffers.
+//
 // =============================================================================
+
+//// TODO: check if it is possible to use a more efficient implementation based on Thrust (with OpenMP backend)
+
+////#define DEBUG_LOG
 
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 #include "chrono_fsi/ChFsiInterface.h"
+
+#include "chrono/utils/ChUtils.h"
 
 using std::cout;
 using std::cerr;
@@ -30,7 +41,7 @@ namespace fsi {
 // =============================================================================
 
 ChFsiInterface::ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
-    : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true) {}
+    : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true), m_initialized(false), m_use_node_directions(false) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -93,6 +104,9 @@ FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body) {
     fsi_body.body = body;
     fsi_body.fsi_force = VNULL;
     fsi_body.fsi_torque = VNULL;
+
+    // Create a force accumulator dedicated to FSI fluid forces
+    fsi_body.fsi_accumulator = fsi_body.body->AddAccumulator();
 
     // Store the body
     m_fsi_bodies.push_back(fsi_body);
@@ -168,9 +182,16 @@ void ChFsiInterface::Initialize() {
         cout << "  Num nodes 2D:    " << GetNumNodes2D() << endl;
         cout << "  Num elements 2D: " << GetNumElements2D() << endl;
     }
+
+    m_initialized = true;
 }
 
 // ------------
+
+void ChFsiInterface::EnableNodeDirections(bool val) {
+    ChAssertAlways(!m_initialized);
+    m_use_node_directions = val;
+}
 
 void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states,
                                           std::vector<FsiMeshState>& mesh1D_states,
@@ -187,6 +208,8 @@ void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states
         mesh1D_states[imesh].pos.resize(num_nodes);
         mesh1D_states[imesh].vel.resize(num_nodes);
         mesh1D_states[imesh].acc.resize(num_nodes);
+        if (m_use_node_directions)
+            mesh1D_states[imesh].dir.resize(num_nodes);
     }
 
     mesh2D_states.resize(num_meshes2D);
@@ -195,6 +218,8 @@ void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states
         mesh2D_states[imesh].pos.resize(num_nodes);
         mesh2D_states[imesh].vel.resize(num_nodes);
         mesh2D_states[imesh].acc.resize(num_nodes);
+        if (m_use_node_directions)
+            mesh2D_states[imesh].dir.resize(num_nodes);
     }
 }
 
@@ -272,6 +297,11 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                 mesh1D_states[imesh].vel[inode] = node->GetPosDt();
                 mesh1D_states[imesh].acc[inode] = node->GetPosDt2();
             }
+            if (m_use_node_directions) {
+                ChDebugLog("mesh1D " << imesh << " dir size: " << mesh1D_states[imesh].dir.size());
+                CalculateDirectionsMesh1D(fsi_mesh, mesh1D_states[imesh]);
+                mesh1D_states[imesh].has_node_directions = true;
+            }
             imesh++;
         }
     }
@@ -286,9 +316,53 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                 mesh2D_states[imesh].vel[inode] = node->GetPosDt();
                 mesh2D_states[imesh].acc[inode] = node->GetPosDt2();
             }
+            if (m_use_node_directions) {
+                ChDebugLog("mesh2D " << imesh << " dir size: " << mesh2D_states[imesh].dir.size());
+                CalculateDirectionsMesh2D(fsi_mesh, mesh2D_states[imesh]);
+                mesh2D_states[imesh].has_node_directions = true;
+            }
             imesh++;
         }
     }
+}
+
+void ChFsiInterface::CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
+    auto& dir = states.dir;
+    std::fill(dir.begin(), dir.end(), VNULL);
+
+    for (const auto& seg : mesh.contact_surface->GetSegmentsXYZ()) {
+        auto i0 = mesh.ptr2ind_map.at(seg->GetNode(0));
+        auto i1 = mesh.ptr2ind_map.at(seg->GetNode(1));
+        auto d = (states.pos[i1] - states.pos[i0]).GetNormalized();
+        dir[i0] += d;
+        dir[i1] += d;
+    }
+
+    for (auto& d : dir)
+        d.Normalize();
+
+#ifdef DEBUG_LOG
+    for (auto& d : dir)
+        cout << d << endl;
+#endif
+}
+
+void ChFsiInterface::CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
+    auto& dir = states.dir;
+    std::fill(dir.begin(), dir.end(), VNULL);
+
+    for (const auto& tri : mesh.contact_surface->GetTrianglesXYZ()) {
+        auto i0 = mesh.ptr2ind_map.at(tri->GetNode(0));
+        auto i1 = mesh.ptr2ind_map.at(tri->GetNode(1));
+        auto i2 = mesh.ptr2ind_map.at(tri->GetNode(2));
+        auto d = ChTriangle::CalcNormal(states.pos[i0], states.pos[i1], states.pos[i2]);
+        dir[i0] += d;
+        dir[i1] += d;
+        dir[i2] += d;
+    }
+
+    for (auto& d : dir)
+        d.Normalize();
 }
 
 void ChFsiInterface::AllocateForceVectors(std::vector<FsiBodyForce>& body_forces,
@@ -363,9 +437,10 @@ void ChFsiInterface::LoadSolidForces(std::vector<FsiBodyForce>& body_forces,
     {
         size_t ibody = 0;
         for (const auto& fsi_body : m_fsi_bodies) {
-            fsi_body.body->EmptyAccumulators();
-            fsi_body.body->AccumulateForce(body_forces[ibody].force, fsi_body.body->GetPos(), false);
-            fsi_body.body->AccumulateTorque(body_forces[ibody].torque, false);
+            fsi_body.body->EmptyAccumulator(fsi_body.fsi_accumulator);
+            fsi_body.body->AccumulateForce(fsi_body.fsi_accumulator, body_forces[ibody].force, fsi_body.body->GetPos(),
+                                           false);
+            fsi_body.body->AccumulateTorque(fsi_body.fsi_accumulator, body_forces[ibody].torque, false);
             ibody++;
         }
     }

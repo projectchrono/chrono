@@ -216,7 +216,7 @@ TireSystem::TireSystem(ChSystem& sys, const std::string& tire_JSON) {
     ids = {"wheel_FL", "wheel_FR", "wheel_RL", "wheel_RR"};
 
     for (int i = 0; i < 4; i++) {
-        auto spindle = chrono_types::make_shared<ChBody>();
+        auto spindle = chrono_types::make_shared<ChSpindle>();
         sys.AddBody(spindle);
 
         auto wheel = chrono_types::make_shared<Wheel>();

@@ -464,7 +464,7 @@ __global__ void UpdateMeshMarker1DState_D(
     Real3 V0 = vel_fsi_fea_D[seg_nodes.x];       // (absolute) velocity of node 0
     Real3 V1 = vel_fsi_fea_D[seg_nodes.y];       // (absolute) velocity of node 1
 
-    Real3 x_dir = normalize(P1 - P0);
+    Real3 x_dir = get_normalized(P1 - P0);
     Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
     y_dir = y_dir / length(y_dir);
     Real3 z_dir = cross(x_dir, y_dir);
@@ -510,7 +510,7 @@ __global__ void UpdateMeshMarker2DState_D(
     Real3 V1 = vel_fsi_fea_D[tri_nodes.y];      // (absolute) velocity of node 1
     Real3 V2 = vel_fsi_fea_D[tri_nodes.z];      // (absolute) velocity of node 2
 
-    Real3 normal = normalize(cross(P1 - P0, P2 - P1));
+    Real3 normal = get_normalized(cross(P1 - P0, P2 - P1));
 
     Real lambda0 = flex2D_BCEcoords_D[index].x;  // barycentric coordinate
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
@@ -585,7 +585,7 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
     Real3 V0 = vel_fsi_fea_D[seg_nodes.x];       // (absolute) velocity of node 0
     Real3 V1 = vel_fsi_fea_D[seg_nodes.y];       // (absolute) velocity of node 1
 
-    Real3 x_dir = normalize(P1 - P0);
+    Real3 x_dir = get_normalized(P1 - P0);
     Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
     y_dir = y_dir / length(y_dir);
     Real3 z_dir = cross(x_dir, y_dir);
@@ -630,7 +630,7 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
     Real3 V1 = vel_fsi_fea_D[tri_nodes.y];      // (absolute) velocity of node 1
     Real3 V2 = vel_fsi_fea_D[tri_nodes.z];      // (absolute) velocity of node 2
 
-    Real3 normal = normalize(cross(P1 - P0, P2 - P1));
+    Real3 normal = get_normalized(cross(P1 - P0, P2 - P1));
 
     Real lambda0 = flex2D_BCEcoords_D[index].x;  // barycentric coordinate
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate

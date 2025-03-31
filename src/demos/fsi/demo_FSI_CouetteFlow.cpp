@@ -303,8 +303,8 @@ int main(int argc, char* argv[]) {
         visVSG->AttachPlugin(visFSI);
         visVSG->AttachSystem(&sysMBS);
         visVSG->SetWindowTitle("Couette Flow");
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
         visVSG->SetCameraVertical(CameraVerticalDir::Y);
         visVSG->AddCamera(ChVector3<>(1.1 * bxDim, 1.8 * byDim, 0), VNULL);
         visVSG->SetLightIntensity(0.9f);

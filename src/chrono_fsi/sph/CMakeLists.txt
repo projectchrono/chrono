@@ -48,6 +48,7 @@ source_group("" FILES ${FSISPH_BASE_FILES})
 set(FSISPH_PHYSICS_FILES
     physics/MarkerType.cuh
     physics/FsiDataManager.cuh
+    physics/FsiInterface.cuh
     physics/BceManager.cuh
     physics/FluidDynamics.cuh
     physics/CollisionSystem.cuh
@@ -57,7 +58,8 @@ set(FSISPH_PHYSICS_FILES
     physics/SphGeneral.cuh
 
     physics/FsiDataManager.cu
- 	physics/BceManager.cu
+    physics/FsiInterface.cu
+    physics/BceManager.cu
     physics/FluidDynamics.cu
     physics/CollisionSystem.cu
     physics/FsiForce.cu

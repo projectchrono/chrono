@@ -1853,13 +1853,6 @@ void FsiForceWCSPH::CalculateShifting() {
 
     // TODO: Is this check necessary?
     // Calculate vel_XSPH
-    if (m_data_mgr.vel_XSPH_D.size() != m_data_mgr.countersH->numAllMarkers) {
-        printf("m_data_mgr.vel_XSPH_D.size() %zd countersH->numAllMarkers %zd \n", m_data_mgr.vel_XSPH_D.size(),
-               m_data_mgr.countersH->numAllMarkers);
-        throw std::runtime_error(
-            "Error! size error m_data_mgr.vel_XSPH_D Thrown from "
-            "CalculateShifting!\n");
-    }
 
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;

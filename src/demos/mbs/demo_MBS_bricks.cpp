@@ -199,8 +199,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("VSG Bricks Demo");
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->EnableSkyBox();

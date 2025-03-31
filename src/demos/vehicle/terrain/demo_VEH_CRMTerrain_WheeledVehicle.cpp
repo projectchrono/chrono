@@ -201,6 +201,7 @@ int main(int argc, char* argv[]) {
     CreateFSIWheels(vehicle, terrain);
     terrain.SetActiveDomain(ChVector3d(active_box_hdim));
     terrain.SetActiveDomainDelay(settling_time);
+
     // Construct the terrain and associated path
     cout << "Create terrain..." << endl;
     std::shared_ptr<ChBezierCurve> path;
@@ -294,8 +295,8 @@ int main(int argc, char* argv[]) {
         visVSG->AttachVehicle(vehicle.get());
         visVSG->AttachPlugin(visFSI);
         visVSG->SetWindowTitle("Wheeled vehicle on CRM deformable terrain");
-        visVSG->SetWindowSize(1280, 720);
-        visVSG->SetWindowPosition(400, 400);
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
         visVSG->EnableSkyBox();
         visVSG->SetLightIntensity(1.0f);
         visVSG->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

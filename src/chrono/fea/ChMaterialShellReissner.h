@@ -200,8 +200,8 @@ class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
     );
 
-    /// /// Compute the 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
-    /// stresses/strains.
+    // Compute the 12x12 stiffness matrix [Km] , that is [ds/de], the tangent of the constitutive relation
+    // stresses/strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
         const ChVector3d& eps_u,  ///< strains along \e u direction

@@ -61,6 +61,7 @@ namespace sph {
 // This is not 32 ints but rather a single int32_t
 #define INT_32CAST(x) (int32_t*)thrust::raw_pointer_cast(&x[0])
 #define mI2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])
+#define mI3CAST(x) (int3*)thrust::raw_pointer_cast(&x[0])
 #define mI4CAST(x) (int4*)thrust::raw_pointer_cast(&x[0])
 #define U1CAST(x) (uint*)thrust::raw_pointer_cast(&x[0])
 #define U2CAST(x) (uint2*)thrust::raw_pointer_cast(&x[0])

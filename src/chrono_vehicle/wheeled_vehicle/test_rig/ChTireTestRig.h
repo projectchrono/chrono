@@ -268,7 +268,7 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChBody> m_carrier_body;  ///< rig carrier body
     std::shared_ptr<ChBody> m_chassis_body;  ///< "chassis" body which carries normal load
     std::shared_ptr<ChBody> m_slip_body;     ///< intermediate body for controlling slip angle
-    std::shared_ptr<ChBody> m_spindle_body;  ///< wheel spindle body
+    std::shared_ptr<ChSpindle> m_spindle;    ///< wheel spindle
 
     bool m_ls_actuated;                    ///< is linear spped actuated?
     bool m_rs_actuated;                    ///< is angular speed actuated?

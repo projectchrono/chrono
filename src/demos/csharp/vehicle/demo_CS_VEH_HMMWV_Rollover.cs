@@ -109,7 +109,7 @@ namespace ChronoDemo
             ChQuaterniond slope = (isYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_DEG_TO_RAD);
 
             // Rotate for Y-Up world
-            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_PI_2));
+            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y);  // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_PI_2));
             // Adjust the slope rotation for the Y-Up world
             ChQuaterniond resultantSlopeRot = new ChQuaterniond();
             resultantSlopeRot.Cross(slope, rotateYUp);
