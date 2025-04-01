@@ -781,170 +781,82 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     dofs_increment = displ - dofs_old;
     dofs_old = displ;
 
-	//
-	// Get facet area and length of beam
-	//
-	double area=this->section->Get_area();	
-	ChMatrix33<double> nmL=this->section->Get_facetFrame();	
-	if(ChElementCBLCON::LargeDeflection){	// TODO JBC: I believe this should go into Update()
-		ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());		
-		for (int id=0; id<3; id++){				
-			nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
-		}
-	}
-	// 
-	Amatrix AI; 	
-	Amatrix AJ;
-	// A matrix is calculated based on initial coordinates
-	this->ComputeAmatrix(AI, this->section->Get_center() , 
-						     this->nodes[0]->GetX0().GetPos());
-									
-	this->ComputeAmatrix( AJ, this->section->Get_center() , 
-							  this->nodes[1]->GetX0().GetPos());
-									
-	//ChMatrix33<double> nmL=this->section->Get_facetFrame();
-	//ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());		
-	//	
-	ChMatrixNM<double,3,6> mBI;
-	ChMatrixNM<double,3,6> mBJ;
-	ChVectorN<double,3> n;
-	for (int id=0;id<3;id++) {			
-			n<< nmL(id,0), nmL(id,1), nmL(id,2);
-			//
-			// NodeA
-			//
-			mBI.block<1,6>(id,0) = n.transpose()*AI/length;				
-			//
-			// NodeB
-			//				
-			mBJ.block<1,6>(id,0) = n.transpose()*AJ/length;
+    //
+    // Get facet area and length of beam
+    //
+    double area=this->section->Get_area();
+    ChMatrix33<double> nmL=this->section->Get_facetFrame();
+    if(ChElementCBLCON::LargeDeflection){// TODO JBC: If the facet orientation is made to coincide with the quaternion, we could save a lot and move this to Update()
+        ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
+        for (int id=0; id<3; id++){
+            nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
+        }
+    }
 
-		}
-	//
-	// Get Stress values at facet center
-	//ChVectorDynamic<> mstress;
-	//this->ComputeStress(mstress);
-	
-	auto mysection=this->section;
-	ChVector3d mstress;
-	ChVector3d dmstrain;
-	ChVector3d mcouple;
-	ChVector3d dcurvature;
-	StateVarVector statev;
-	this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
-	statev=mysection->Get_StateVar();
-	// compute volumetric strain
-	double epsV=0;	
+    auto mysection=this->section;
+    ChVector3d mstress;
+    ChVector3d dmstrain;
+    ChVector3d mcouple;
+    ChVector3d dcurvature;
+    StateVarVector statev;
+    this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
+    statev=mysection->Get_StateVar();
+    double epsV=0; // TODO JBC: Volumetric strain seems to be a remnant of LDPM. remove it when refactoring ComputeStress
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;  
-	
-	auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();	
+
+    auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
     if (nonMechanicalStrain.size()){
-		mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, epsV, statev, area, width, height, mstress, mcouple);
-	}else{
-		mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, epsV, statev, area, width, height, mstress, mcouple);
-	}	
-		
-	mysection->Set_StateVar(statev);	
-	
-    			//std::cout<<"W: "<<width<<"\t"<<"h: "<<height<<"\n";
-    			
-	//std::cout<<"\nmstress:\n"<<mstress<<std::endl;	
-    // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
+        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, epsV, statev, area, width, height, mstress, mcouple);
+    }else{
+        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, epsV, statev, area, width, height, mstress, mcouple);
+    }
+
+    mysection->Set_StateVar(statev);
+
+
+    ChVector3d force = area * (nmL.transpose() * mstress);
+    ChVector3d xc_xi;
+    ChVector3d xc_xj;
+    // For small deflection, use the initial position of the nodes and facet centers
+    // to determine the displacement induced by the node rotation
+    if (!LargeDeflection) {
+        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
+        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
+    }
+    else { // TODO: Find out how to evolve position of the center for large displacement
+        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
+        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
+    }
     ChVectorDynamic<> Fi_local(12);
-	
-	Fi_local.segment(0,6)=-area*length*(mstress.eigen().transpose()*mBI);
-	Fi_local.segment(6,6)= area*length*(mstress.eigen().transpose()*mBJ);
-	
-	//std::cout<<"\nFi_local-1:\n"<<Fi_local<<std::endl;
-	ChVectorDynamic<> Fmu(6);
-	if(ChElementCBLCON::EnableCoupleForces){
-		//ChMatrix33<double> rotmat(q_delta);		        
-		//nmL=rotmat*nmL;	
-		//nmL=this->section->Get_facetFrame();
-		ChMatrixNM<double, 6, 3> Bx;
-		Bx.block<3,3>(3,0)=nmL.transpose();
-		Bx.block<3,3>(0,0)=-Bx.block<3,3>(3,0);
-		
-		//ChVectorDynamic<> Fmu(6);
-		Fmu=area*(Bx*mcouple.eigen());
-		//std::cout<<"length:\t"<<length<<"area:\t"<<area<<std::endl;
-		//std::cout<<"mcouple:\t"<<mcouple<<std::endl;
-		//std::cout<<"nmL:\n"<<nmL<<std::endl;	
-		Fi_local.segment(3,3)+= Fmu.segment(0,3); //area*(nmL*mcouple);
-		Fi_local.segment(9,3)+= Fmu.segment(3,3); //area*(nmL*mcouple);
-		//std::cout<<"Fmu:\n"<<area*(nmL*mcouple)<<std::endl;
-		
-	}
-	//std::cout<<"\nFi_local:\n"<<Fi_local<<std::endl;
-	
-	//std::cout<< "Fi_local : "<< Fi_local << std::endl;
-    //// set up vector of nodal velocities (in local element system)
-    //ChVectorDynamic<> displ_dt(12);
-    //this->GetField_dt(displ_dt);
-	/*
-    // Rayleigh damping - stiffness proportional
-    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDampingBeta() * Km * displ_dt;
 
-    Fi_local += FiR_local;
+    Fi_local.segment(0,3) = -force.eigen();
+    Fi_local.segment(3,3) = -xc_xi.Cross(force).eigen();
+    Fi_local.segment(6,3) =  force.eigen();
+    Fi_local.segment(9,3) =  xc_xj.Cross(force).eigen();
 
-    // Rayleigh damping - mass proportional
-    if (this->section->GetBeamRaleyghDampingAlpha()) {
-        ChMatrixDynamic<> Mloc(12, 12);
-        Mloc.setZero();
-        ChMatrix33<> Mxw;
-
-        // the "lumped" M mass matrix must be computed
-        ChMatrixNM<double, 6, 6> sectional_mass;
-        this->section->ComputeInertiaMatrix(sectional_mass);
-
-        // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] 
-        double node_multiplier_fact = 0.5 * length * (this->section->GetBeamRaleyghDampingAlpha());
-        for (int i = 0; i < nodes.size(); ++i) {
-            int stride = i * 6; 
-            Mloc.block<6, 6>(stride, stride) += sectional_mass * node_multiplier_fact;
-        }
-        FiR_local = Mloc * displ_dt;
-        Fi_local += FiR_local;
-    }
     
-	*/
-	
-     //Fi_local *= -1.0;
-    //
-    // Corotate local internal loads
-    //
-	
-    /*
-    // Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame
-    ChMatrix33<> Atoabs(this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
-    std::vector<ChMatrix33<>*> R;
-    R.push_back(&Atoabs);
-    R.push_back(&AtolocwelA);
-    R.push_back(&Atoabs);
-    R.push_back(&AtolocwelB);
-    ChMatrixCorotation::ComputeCK(Fi_local, R, 4, Fi);*/
-     
+    //std::cout<<"\nFi_local-1:\n"<<Fi_local<<std::endl;
+    ChVectorDynamic<> Fmu(6);
+    if(ChElementCBLCON::EnableCoupleForces){
+        //ChMatrix33<double> rotmat(q_delta);
+        //nmL=rotmat*nmL;
+        //nmL=this->section->Get_facetFrame();
+        ChMatrixNM<double, 6, 3> Bx;
+        Bx.block<3,3>(3,0)=nmL.transpose();
+        Bx.block<3,3>(0,0)=-Bx.block<3,3>(3,0);
+
+        //ChVectorDynamic<> Fmu(6);
+        Fmu=area*(Bx*mcouple.eigen());
+        //std::cout<<"length:\t"<<length<<"area:\t"<<area<<std::endl;
+        //std::cout<<"mcouple:\t"<<mcouple<<std::endl;
+        //std::cout<<"nmL:\n"<<nmL<<std::endl;
+        Fi_local.segment(3,3)+= Fmu.segment(0,3); //area*(nmL*mcouple);
+        Fi_local.segment(9,3)+= Fmu.segment(3,3); //area*(nmL*mcouple);
+        //std::cout<<"Fmu:\n"<<area*(nmL*mcouple)<<std::endl;
+    }
+
     Fi=-Fi_local;
-       
-    	
-    	//}
-    //Fi=-Km*displ;
-	/*
-    // Add also inertial quadratic terms: gyroscopic and centrifugal
-    
-    // CASE OF LUMPED MASS - fast
-    double node_multiplier = 0.5 * length;
-    ChVector3d mFcent_i;
-    ChVector3d mTgyro_i;
-    for (int i = 0; i < nodes.size(); ++i) {
-        this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetAngVelLocal());
-        Fi.segment(i * 6, 3)     -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
-        Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
-    }
-    */
 
 #ifdef BEAM_VERBOSE
     GetLog() << "\nInternal forces (local): \n";
