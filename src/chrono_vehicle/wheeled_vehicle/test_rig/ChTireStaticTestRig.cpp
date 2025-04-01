@@ -136,24 +136,24 @@ void ChTireStaticTestRig::Initialize(Mode mode) {
     }
 
     // Create the spindle (wheel) body
-    m_spindle_body = chrono_types::make_shared<ChBody>();
-    m_spindle_body->SetFixed(mode == Mode::SUSPEND);
-    m_system->AddBody(m_spindle_body);
-    m_spindle_body->SetName("rig_spindle");
-    m_spindle_body->SetMass(0);
-    m_spindle_body->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
-    m_spindle_body->SetPos(ChVector3d(0, 0, spindle_height));
-    m_spindle_body->SetRot(QUNIT);
+    m_spindle = chrono_types::make_shared<ChSpindle>();
+    m_spindle->SetFixed(mode == Mode::SUSPEND);
+    m_system->AddBody(m_spindle);
+    m_spindle->SetName("rig_spindle");
+    m_spindle->SetMass(0);
+    m_spindle->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
+    m_spindle->SetPos(ChVector3d(0, 0, spindle_height));
+    m_spindle->SetRot(QUNIT);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
         vis_mat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
         auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(dim / 2, 2 * post_offset);
         cyl->SetMaterial(0, vis_mat);
-        m_spindle_body->AddVisualShape(cyl, ChFramed(VNULL, Q_ROTATE_Z_TO_Y));
+        m_spindle->AddVisualShape(cyl, ChFramed(VNULL, Q_ROTATE_Z_TO_Y));
     }
 
     // Initialize wheel and tire subsystems
-    m_wheel->Initialize(nullptr, m_spindle_body, LEFT);
+    m_wheel->Initialize(nullptr, m_spindle, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
     m_wheel->SetTire(m_tire);
     m_tire->SetStepsize(m_tire_step);
@@ -186,7 +186,7 @@ void ChTireStaticTestRig::Initialize(Mode mode) {
     // Create a motor to apply radial load
     m_motor_r = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
     m_system->AddLink(m_motor_r);
-    m_motor_r->Initialize(m_ground_body, m_spindle_body, ChFrame<>());
+    m_motor_r->Initialize(m_ground_body, m_spindle, ChFrame<>());
     m_motor_r->SetMotorFunction(chrono_types::make_shared<ChFunctionSetpoint>());
 
     // Connect plate to ground through a plane-plane joint
@@ -258,7 +258,7 @@ bool ChTireStaticTestRig::Advance(double step) {
     // Synchronize subsystems
     m_terrain.Synchronize(time);
     m_tire->Synchronize(time, m_terrain);
-    m_spindle_body->EmptyAccumulators();
+    m_spindle->EmptyTireAccumulator();
     m_wheel->Synchronize();
 
     // Advance state
@@ -337,7 +337,7 @@ void ChTireStaticTestRig::StateTransition(double time) {
         case State::DROPPING: {
             // Switch to compression phase when contact occurs and cache current spindle z
             if (m_system->GetNumContacts() > 0) {
-                m_spindle_z_ref = m_spindle_body->GetPos().z();
+                m_spindle_z_ref = m_spindle->GetPos().z();
                 new_state = State::COMPRESSING;
                 cout << "\nt = " << time << endl;
                 cout << "  num. contacts:    " << m_system->GetNumContacts() << endl;
@@ -396,7 +396,7 @@ void ChTireStaticTestRig::Output(double time) {
 
     switch (m_mode) {
         case Mode::TEST_R: {
-            m_csv << 1e-3 * (m_spindle_z_ref - m_spindle_body->GetPos().z()) << m_motor_r->GetMotorForce();
+            m_csv << 1e-3 * (m_spindle_z_ref - m_spindle->GetPos().z()) << m_motor_r->GetMotorForce();
             break;
         }
         case Mode::TEST_X: {

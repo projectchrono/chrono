@@ -349,10 +349,10 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Wheeled vehicle with MBTire");
             vis_vsg->SetWindowSize(ChVector2i(1200, 800));
             vis_vsg->SetWindowPosition(ChVector2i(100, 100));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->AttachTerrain(terrain.get());

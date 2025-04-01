@@ -177,9 +177,9 @@ class CH_VEHICLE_API ChTireStaticTestRig {
     float m_plate_Young_modulus;  ///< Young's modulus (Pa)
     float m_plate_restitution;    ///< coefficient of restitution
 
-    std::shared_ptr<ChBody> m_ground_body;   ///< ground body
-    std::shared_ptr<ChBody> m_spindle_body;  ///< wheel spindle body
-    std::shared_ptr<ChBody> m_plate_body;    ///< rig plate body
+    std::shared_ptr<ChBody> m_ground_body;  ///< ground body
+    std::shared_ptr<ChSpindle> m_spindle;   ///< wheel spindle
+    std::shared_ptr<ChBody> m_plate_body;   ///< rig plate body
 
     std::shared_ptr<ChLinkMotorLinearSpeed> m_motor_r;    ///< motor to apply radial load
     std::shared_ptr<ChLinkMotorLinearSpeed> m_motor_x;    ///< motor to apply longitudinal plate displacement
