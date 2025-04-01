@@ -83,12 +83,13 @@ set(FSISPH_MATH_FILES
 source_group("math" FILES ${FSISPH_MATH_FILES})
 
 set(FSISPH_UTILS_FILES
-    utils/UtilsPrintSph.cuh
     utils/UtilsDevice.cuh
-    utils/UtilsTypeConvert.cuh
-
-    utils/UtilsPrintSph.cu
     utils/UtilsDevice.cu
+    utils/UtilsTypeConvert.cuh
+    utils/UtilsPrintSph.cuh
+    utils/UtilsPrintSph.cu
+    utils/Relocate.cuh
+    utils/Relocate.cu
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 

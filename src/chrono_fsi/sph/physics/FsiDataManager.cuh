@@ -320,6 +320,19 @@ struct FsiDataManager {
 
     // ------------------------
 
+    struct SelectorFunction {
+        __host__ __device__ virtual bool operator()(const Real3& x) const = 0;
+    };
+
+    struct RelocateFunction {
+        __host__ __device__ virtual Real3 operator()(Real3& x) const = 0;
+    };
+
+    void Shift(MarkerType type, const RelocateFunction& op_relocate);
+    void Move(MarkerType type, const SelectorFunction& op_select, const RelocateFunction& op_relocate);
+
+    // ------------------------
+
     std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
 
     std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)

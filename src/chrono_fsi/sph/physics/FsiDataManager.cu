@@ -27,6 +27,7 @@
 #include <thrust/functional.h>
 #include <thrust/execution_policy.h>
 #include <thrust/transform.h>
+#include <thrust/zip_function.h>
 
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 #include "chrono_fsi/sph/math/CustomMath.cuh"
@@ -914,6 +915,82 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
 
     return total_bytes;
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+
+struct MoveFunction {
+    typedef thrust::tuple<Real4, Real3, Real4, Real3, Real3> TupleType;
+
+    MoveFunction(const FsiDataManager::RelocateFunction& user_op) : op(user_op) {}
+    __host__ __device__ void operator()(Real4& a, Real3& b, Real4& c, Real3& d, Real3& e);
+
+    const FsiDataManager::RelocateFunction& op;
+};
+
+__host__ __device__ void MoveFunction::operator()(Real4& a, Real3& b, Real4& c, Real3& d, Real3& e) {
+    Real3 pos = mR3(a);
+    Real w = a.w;
+    op.operator()(pos);
+    a = mR4(pos, w);
+    //// TODO: what should we do with all other particle properties?
+    ////    1. Consider them as an initialization
+    ////       velocity <- 0
+    ////       density <- init_density
+    ////       pressure <- ???
+    ////       mu <- ??
+    ////       tau <-- 0?
+    ////    2. Let caller specify somehow?
+}
+
+void FsiDataManager::Shift(MarkerType type, const RelocateFunction& op) {
+    // Get start and end indices in marker data vectors based on specified type
+    //// TODO
+    int start_idx = 0;
+    int end_idx = 10;
+
+    // Transform all markers in the specified range
+    //// TODO: check issues here (where is the problem? in the iterators? in the functor?)
+    thrust::for_each(sphMarkers_D->iterator() + start_idx, sphMarkers_D->iterator() + end_idx,
+                     thrust::make_zip_function(MoveFunction(op)));
+}
+
+void FsiDataManager::Move(MarkerType type, const SelectorFunction& op_select, const RelocateFunction& op_relocate) {
+  //// TODO
+}
+
+/*
+struct MoveFunction {
+    typedef thrust::tuple<Real4, Real3, Real4, Real3, Real3> TupleType;
+
+    MoveFunction(FsiDataManager::RelocateFunction& user_op) : op(user_op) {}
+    __host__ __device__ TupleType operator()(TupleType& x);
+
+    FsiDataManager::RelocateFunction& op;
+};
+
+__host__ __device__ MoveFunction::TupleType MoveFunction::operator()(MoveFunction::TupleType& x) {
+    Real3 pos = mR3(thrust::get<0>(x));
+    Real w = thrust::get<0>(x).w;
+    op.operator()(pos);
+
+    TupleType y = x;
+    thrust::get<0>(y) = mR4(pos, w);
+
+    return y;
+}
+
+void FsiDataManager::Shift(MarkerType type, RelocateFunction& op) {
+    // Get start and end indices in marker data vectors based on specified type
+    //// TODO
+    size_t start_idx = 0;
+    size_t end_idx = 10;
+
+    // Transform in place
+    thrust::transform(sphMarkers_D->iterator() + start_idx, sphMarkers_D->iterator() + end_idx,
+                      sphMarkers_D->iterator() + start_idx, MoveFunction(op));
+}
+*/
+
 
 }  // namespace sph
 }  // end namespace fsi

@@ -624,6 +624,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     friend class ChFsiSystemSPH;
     friend class ChFsiInterfaceSPH;
+    friend class ChFsiProblemSPH;
 };
 
 /// @} fsisph

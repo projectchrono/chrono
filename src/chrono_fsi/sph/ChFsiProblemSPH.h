@@ -270,6 +270,15 @@ class CH_FSI_API ChFsiProblemSPH {
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
+    // Only derived classes can use the following particle and marker relocation functions
+
+    void ShiftBCE(const ChVector3d& shift_dist);
+    void ShiftSPH(const ChVector3d& shift_dist);
+    struct MoveSelectionFunction {
+        virtual bool operator()(const ChVector3d& p) const = 0;
+    };
+    void MoveSPH(const MoveSelectionFunction& op, const ChAABB& aabb);
+
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
     double m_spacing;                  ///< particle and marker spacing
@@ -290,6 +299,8 @@ class CH_FSI_API ChFsiProblemSPH {
 
     bool m_verbose;      ///< if true, write information to standard output
     bool m_initialized;  ///< set to 'true' once terrain is initialized
+
+    friend class SelectorFunctionWrapper;
 };
 
 // ----------------------------------------------------------------------------

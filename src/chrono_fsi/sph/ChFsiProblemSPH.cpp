@@ -27,6 +27,8 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
+#include "chrono_fsi/sph/utils/Relocate.cuh"
+#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -533,6 +535,26 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyForce(std::shared_ptr<ChBody> body)
 const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body) const {
     auto index = m_fsi_bodies.at(body);
     return m_sysFSI.GetFsiBodyTorque(index);
+}
+
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::ShiftBCE(const ChVector3d& shift_dist) {
+    shiftBCE(ToReal3(shift_dist), m_spacing, *m_sysSPH.m_data_mgr);
+}
+
+void ChFsiProblemSPH::ShiftSPH(const ChVector3d& shift_dist) {
+    shiftSPH(ToReal3(shift_dist), m_spacing, *m_sysSPH.m_data_mgr);
+}
+
+struct SelectorFunctionWrapper : public FsiDataManager::SelectorFunction {
+    SelectorFunctionWrapper(const ChFsiProblemSPH::MoveSelectionFunction& op_select) : op(op_select) {}
+    __host__ __device__ virtual bool operator()(const Real3& x) const { return op(ToChVector(x)); }
+    const ChFsiProblemSPH::MoveSelectionFunction& op;
+};
+
+void ChFsiProblemSPH::MoveSPH(const MoveSelectionFunction& op, const ChAABB& aabb) {
+    moveSPH(SelectorFunctionWrapper(op), ToReal3(aabb.min), ToReal3(aabb.max), m_spacing, *m_sysSPH.m_data_mgr);
 }
 
 // ============================================================================

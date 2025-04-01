@@ -19,8 +19,8 @@
 //
 // =============================================================================
 
-#ifndef CRM_SPH_TERRAIN_H
-#define CRM_SPH_TERRAIN_H
+#ifndef CRM_TERRAIN_H
+#define CRM_TERRAIN_H
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
@@ -55,11 +55,39 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     /// CRMTerrain::Advance.
     void RegisterVehicle(ChVehicle* vehicle);
 
-    virtual void Synchronize(double time) override {}
+    /// Construct a rectangular terrain with moving patch capabilities.
+    /// The terrain patch is rectangular (of the specified dimensions,), and positioned so that the rear-most point in
+    /// the x direction on its centerline is at the global origin. The moving boundary is always assumed to be in the
+    /// positive x direction. The algorithm monitors the distance from a sentinel body (see SetMovingPatchSentinel) to
+    /// the current front boundary. When the sentinel nears the front boundary, the rear and front boundary BCE markers
+    /// are shifted by the specified shift distance and SPH particles relocated from rear to front.
+    void ConstructMovingPatch(const ChVector3d& box_size,    ///< box dimensions
+                              std::shared_ptr<ChBody> body,  ///< tracked body
+                              double buffer_distance,        ///< look-ahead distance
+                              double shift_distance          ///< chunk size of relocated particles
+    );
+
+    /// Return true after a call to Synchronize during which the moving patch was relocated.
+    bool PatchMoved() const { return m_moved; }
+
+    virtual void Synchronize(double time) override;
     virtual void Advance(double step) override;
     virtual double GetHeight(const ChVector3d& loc) const override { return 0.0; }
     virtual chrono::ChVector3d GetNormal(const ChVector3d& loc) const override { return ChWorldFrame::Vertical(); }
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override { return 0.0f; }
+
+  private:
+    // Moving patch variables
+    std::shared_ptr<ChBody> m_sentinel;  ///< tracked sentinel body
+    bool m_moving_patch;                 ///< moving patch feature enabled?
+    bool m_moved;                        ///< was the patch moved?
+    double m_buffer_dist;                ///< minimum distance to front boundary
+    double m_shift_dist;                 ///< length of relocated volume
+    double m_rear;                       ///< rear X boundary location
+    double m_front;                      ///< front X boundary location
+    unsigned int m_shift_cells;          ///< length of relocated volume in grid cells
+    double m_rear_cells;                 ///< rear X boundary location in grid cells
+    double m_front_cells;                ///< front X boundary location in grid cells
 };
 
 /// @} vehicle_terrain
