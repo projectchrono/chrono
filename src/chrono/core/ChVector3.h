@@ -23,6 +23,7 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChOutputASCII.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -246,6 +247,15 @@ class ChVector3 {
                              ChVector3<Real>& Vy,
                              ChVector3<Real>& Vz,
                              ChVector3<Real> x_sugg = ChVector3<Real>(1, 0, 0)) const;
+
+    /// Output three orthonormal vectors considering this vector defining the first axis.
+    /// Optionally, the \a V2_sugg vector can be used to suggest the second axis.
+    /// It is recommended to set \a V2_sugg to be not parallel to this vector.
+    /// Rely on Gram-Schmidt orthonormalization.
+    void GetDirectionAxes(ChVector3<Real>& V1,
+                          ChVector3<Real>& V2,
+                          ChVector3<Real>& V3,
+                          ChVector3<Real> V2_sugg = ChVector3<Real>(1, 1, 1)) const;
 
     /// Return the index of the largest component in absolute value.
     int GetMaxComponent() const;
@@ -958,6 +968,44 @@ inline void ChVector3<Real>::GetDirectionAxesAsZ(ChVector3<Real>& Vx,
     }
 
     Vx.Cross(Vy, Vz);
+}
+
+template <class Real>
+inline void ChVector3<Real>::GetDirectionAxes(ChVector3<Real>& V1,
+                                              ChVector3<Real>& V2,
+                                              ChVector3<Real>& V3,
+                                              ChVector3<Real> V2_sugg) const {
+    V1 = *this;
+    if (!V1.Normalize()) { // JBC: If zero is passed, I would argue this should be an error! Not a warning or a change to some arbitrary vector!
+        std::cerr << "Fatal: " << __FUNCTION__ << "first vector V1="<<V1<<" has zero length."<<std::endl;
+        throw std::runtime_error("Cannot perform Gram-Schmidt");
+    }
+
+    V3.Cross(V1, V2_sugg);
+    if (V3.Normalize()) {
+        // TODO JBC: Normalize() tests length against the numeric limits.
+        // Very small numbers can pass this test and cause very large errors and loss or orthogonality.
+        // Consider testing against such number here, e.g., V3.length2() <= 1e-10 * V2_sugg.length2(), rather than against numeric limit inside Normalize()
+        // Current implementation seems slightly less prone to this issue than implementation attempt using V2 = V2_sugg - V2_sugg.Dot(V1) * V1, and checking V2.Normalize()
+        V2.Cross(V3, V1);
+    } else {
+        std::cerr << "Warning: suggested second  vector V2_sugg=" << V2_sugg << " is either zero, or collinear to first vector V1=" << V1 << std::endl;
+        // Find one (among infinitely many) vector normal to V1 = (a, b, c), e.g., (0, -c, b), (c, 0, -a), (-b, a, 0)
+        // If two components are zero, e.g., V1 = (1, 0, 0), heuristics above may give a zero-vector.
+        // V1 normalized so one component >= sqrt(1/3): find it and select above heuristic that ensures non-zero normal vector.
+        double pad = 0.95; // Padding safety for rounding errors
+        for (int i = 0; i < 3; i++) {
+            if (std::abs(V1[i]) >= pad * CH_SQRT_1_3) {
+                V2[(i + 1) % 3] = 0.0;
+                V2[(i + 2) % 3] = V1[i];
+                V2[i] = -V1[(i + 2) % 3];
+                break;
+            }
+        }
+        V2.Normalize();
+        std::cerr << "Second vector modified to V2=" << V2 << " in " << __FUNCTION__ << std::endl;
+        V3.Cross(V1, V2);
+    }
 }
 
 template <class Real>
