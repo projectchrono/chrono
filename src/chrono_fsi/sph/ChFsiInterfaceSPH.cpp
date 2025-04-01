@@ -15,8 +15,14 @@
 // Custom FSI interface for coupling the SPH-based fluid system with a Chrono MBS
 // =============================================================================
 
+////#define DEBUG_LOG
+
+#include "chrono/utils/ChUtils.h"
+#include "chrono_fsi/sph/utils/UtilsPrintSph.cuh"
+
 #include "chrono_fsi/sph/ChFsiInterfaceSPH.h"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/FsiInterface.cuh"
 #include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 #include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
@@ -53,15 +59,22 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
             ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (const auto& node : fsi_mesh.ind2ptr_map) {
-                m_data_mgr->fsiMesh1DState_H->pos_fsi_fea_H[index] = ToReal3(node.second->GetPos());
-                m_data_mgr->fsiMesh1DState_H->vel_fsi_fea_H[index] = ToReal3(node.second->GetPosDt());
-                m_data_mgr->fsiMesh1DState_H->acc_fsi_fea_H[index] = ToReal3(node.second->GetPosDt2());
+                m_data_mgr->fsiMesh1DState_H->pos[index] = ToReal3(node.second->GetPos());
+                m_data_mgr->fsiMesh1DState_H->vel[index] = ToReal3(node.second->GetPosDt());
+                m_data_mgr->fsiMesh1DState_H->acc[index] = ToReal3(node.second->GetPosDt2());
                 index++;
             }
         }
 
         // Transfer to device
         m_data_mgr->fsiMesh1DState_D->CopyFromH(*m_data_mgr->fsiMesh1DState_H);
+        if (m_use_node_directions) {
+            calculateDirectionsMesh1D(*m_data_mgr);
+            ChDebugLog("Calculate directions");
+#ifdef DEBUG_LOG
+            printDirectionsMesh1D(*m_data_mgr);
+#endif
+        }
     }
 
     {
@@ -70,15 +83,17 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
             ////int num_nodes = (int)fsi_mesh.ind2ptr_map.size();
             for (const auto& node : fsi_mesh.ind2ptr_map) {
-                m_data_mgr->fsiMesh2DState_H->pos_fsi_fea_H[index] = ToReal3(node.second->GetPos());
-                m_data_mgr->fsiMesh2DState_H->vel_fsi_fea_H[index] = ToReal3(node.second->GetPosDt());
-                m_data_mgr->fsiMesh2DState_H->acc_fsi_fea_H[index] = ToReal3(node.second->GetPosDt2());
+                m_data_mgr->fsiMesh2DState_H->pos[index] = ToReal3(node.second->GetPos());
+                m_data_mgr->fsiMesh2DState_H->vel[index] = ToReal3(node.second->GetPosDt());
+                m_data_mgr->fsiMesh2DState_H->acc[index] = ToReal3(node.second->GetPosDt2());
                 index++;
             }
         }
 
         // Transfer to device
         m_data_mgr->fsiMesh2DState_D->CopyFromH(*m_data_mgr->fsiMesh2DState_H);
+        if (m_use_node_directions)
+            calculateDirectionsMesh2D(*m_data_mgr);
     }
 }
 
@@ -93,9 +108,10 @@ void ChFsiInterfaceSPH::ExchangeSolidForces() {
         for (const auto& fsi_body : m_fsi_bodies) {
             m_fsi_bodies[index].fsi_force = ToChVector(forcesH[index]);
             m_fsi_bodies[index].fsi_torque = ToChVector(torquesH[index]);
-            fsi_body.body->EmptyAccumulators();
-            fsi_body.body->AccumulateForce(m_fsi_bodies[index].fsi_force, fsi_body.body->GetPos(), false);
-            fsi_body.body->AccumulateTorque(m_fsi_bodies[index].fsi_torque, false);
+            fsi_body.body->EmptyAccumulator(fsi_body.fsi_accumulator);
+            fsi_body.body->AccumulateForce(fsi_body.fsi_accumulator, m_fsi_bodies[index].fsi_force,
+                                           fsi_body.body->GetPos(), false);
+            fsi_body.body->AccumulateTorque(fsi_body.fsi_accumulator, m_fsi_bodies[index].fsi_torque, false);
             index++;
         }
     }

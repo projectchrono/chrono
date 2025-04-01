@@ -93,6 +93,12 @@ class CH_FSI_API ChFsiProblemSPH {
                             const ChVector3d& interior_point,
                             double scale);
 
+    /// Enable/disable use of node direction vectors for FSI flexible meshes.
+    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
+    /// calculated from the FSI mesh position states and communicated to the SPH fluid solver which uses these to 
+    /// generate BCE markers. By default, this option is enabled in the SPH fluid solver.
+    void EnableNodeDirections(bool val);
+
     /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
     void SetBcePattern1D(BcePatternMesh1D pattern,   ///< marker pattern in cross-section
@@ -148,11 +154,6 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Set integration step size for multibody dynamics.
     /// If a value is not provided, the MBS system is integrated with the same step used for fluid dynamics.
     void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
-
-    /// Disable automatic integration of the associated multibody system.
-    /// If MBD integration is disabled, it is the caller's responsibility to advance the dynamics of the associated
-    /// multibody system, separate from the call to advance the dynamics of the fluid system.
-    void DisableMBD() { m_sysFSI.DisableMBD(); }
 
     /// Explicitly set the computational domain limits.
     /// By default, this is set so that it encompasses all SPH particles and BCE markers.
@@ -269,7 +270,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
-    ChFsiFluidSystemSPH m_sysSPH;         ///< underlying Chrono SPH system
+    ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body

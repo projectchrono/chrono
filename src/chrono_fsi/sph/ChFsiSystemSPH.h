@@ -45,7 +45,8 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     ChFsiFluidSystemSPH& GetFluidSystemSPH() const;
 
   private:
-    ChFsiFluidSystemSPH& m_sysSPH;
+    ChFsiFluidSystemSPH& m_sysSPH;  ///< cached SPH fluid solver
+    bool m_generic_fsi_interface;
 };
 
 /// @} fsisph

@@ -112,7 +112,7 @@ inline __device__ bool addBCForces_Sphere_matBased(unsigned int sphID,
         // m_eff, sphere_data->contact_duration[contact_id]);
 
         float3 normalized_bc_omega = sphere_params.radius / (float)sphereRadius_SU * sphere_params.sphere_angularVelo;
-        // // force_accum is normal force
+        // force_accum is normal force
         // if (calc_rolling_fr == true){
         float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2w_SU,
                                                gran_params->spinning_coeff_s2w_SU, force_accum, sphOmega,

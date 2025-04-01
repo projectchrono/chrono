@@ -180,8 +180,8 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
     rapidjson::Value jsonArray(rapidjson::kArrayType);
 
     for (const auto& item : model->GetShapeInstances()) {
-        const auto& shape = item.first;   // visual shape
-        const auto& frame = item.second;  // shape position in model
+        const auto& shape = item.shape;   // visual shape
+        const auto& frame = item.frame;  // shape position in model
 
         rapidjson::Value obj(rapidjson::kObjectType);
         if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {

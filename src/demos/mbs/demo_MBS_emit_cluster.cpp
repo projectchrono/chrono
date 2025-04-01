@@ -29,23 +29,24 @@ using namespace chrono;
 using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
 
-//     A callback executed at each particle creation can be attached to the emitter.
-//     For example, we need that new particles will be bound to Irrlicht visualization:
+// Callback executed at each particle creation can be attached to the emitter.
+// For example, we need that new particles will be bound to Irrlicht visualization:
 class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
   public:
-    virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
-                           ChCoordsys<> mcoords,
-                           ChRandomShapeCreator& mcreator) override {
+    virtual void OnAddBody(std::shared_ptr<ChBody> body, ChCoordsys<> coords, ChRandomShapeCreator& creator) override {
         // Bind visual model to the visual system
-        mbody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-        vis->BindItem(mbody);
+        body->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+        vis->BindItem(body);
 
         // Bind the collision model to the collision system
-        if (mbody->GetCollisionModel())
-            coll->Add(mbody->GetCollisionModel());
+        if (body->GetCollisionModel())
+            coll->Add(body->GetCollisionModel());
 
-        // Dsable gyroscopic forces for increased integrator stability
-        mbody->SetUseGyroTorque(false);
+        // Disable gyroscopic forces for increased integrator stability
+        body->SetUseGyroTorque(false);
+
+        // Create a force/torque accumulator for this body
+        body->AddAccumulator();
     }
     ChVisualSystem* vis;
     ChCollisionSystem* coll;
@@ -166,6 +167,11 @@ int main(int argc, char* argv[]) {
     // Turn off default -9.8 downward gravity
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
+    // Add one force accumulator to each body in the system
+    for (auto& body : sys.GetBodies()) {
+        body->AddAccumulator();
+    }
+
     // Simulation loop
     double timestep = 0.01;
     while (vis->Run()) {
@@ -176,26 +182,24 @@ int main(int argc, char* argv[]) {
         // Create particle flow
         emitter.EmitParticles(sys, timestep);
 
-        // Apply custom forcefield (brute force approach..)
-        // A) reset 'user forces accumulators':
-        for (auto body : sys.GetBodies()) {
-            body->EmptyAccumulators();
+        // A) reset body force accumulators
+        for (auto& body : sys.GetBodies()) {
+            body->EmptyAccumulator(0);
         }
 
-        // B) store user computed force:
-        // double G_constant = 6.674e-11; // gravitational constant
+        // B) store user computed force
         double G_constant = 6.674e-3;  // gravitational constant - HACK to speed up simulation
         for (unsigned int i = 0; i < sys.GetBodies().size(); i++) {
-            auto abodyA = sys.GetBodies()[i];
+            auto& bodyA = sys.GetBodies()[i];
             for (unsigned int j = i + 1; j < sys.GetBodies().size(); j++) {
-                auto abodyB = sys.GetBodies()[j];
-                ChVector3d D_attract = abodyB->GetPos() - abodyA->GetPos();
+                auto& bodyB = sys.GetBodies()[j];
+                ChVector3d D_attract = bodyB->GetPos() - bodyA->GetPos();
                 double r_attract = D_attract.Length();
-                double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (std::pow(r_attract, 2));
+                double f_attract = G_constant * (bodyA->GetMass() * bodyB->GetMass()) / (std::pow(r_attract, 2));
                 ChVector3d F_attract = (D_attract / r_attract) * f_attract;
 
-                abodyA->AccumulateForce(F_attract, abodyA->GetPos(), false);
-                abodyB->AccumulateForce(-F_attract, abodyB->GetPos(), false);
+                bodyA->AccumulateForce(0, +F_attract, bodyA->GetPos(), false);
+                bodyB->AccumulateForce(0, -F_attract, bodyB->GetPos(), false);
             }
         }
 

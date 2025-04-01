@@ -44,6 +44,9 @@ class CollisionSystem {
     FsiDataManager& m_data_mgr;  ///< FSI data manager
     // Note: this is cached on every call to ArrangeData()
     std::shared_ptr<SphMarkerDataD> m_sphMarkersD;  ///< Information of the particles in the original array
+
+    /// Smart resize that handles both initial allocation and subsequent resizes efficiently
+    void ResizeArrays(uint numExtended);
 };
 
 /// @} fsisph_physics

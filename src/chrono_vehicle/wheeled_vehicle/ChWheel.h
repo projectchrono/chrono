@@ -28,8 +28,9 @@
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 
 namespace chrono {
 namespace vehicle {
@@ -65,7 +66,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// corresponds to an "inner" wheel. The wheel mass and inertia are used to increment those of the associated
     /// spindle body.
     void Initialize(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
-                    std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                    std::shared_ptr<ChSpindle> spindle,  ///< associated suspension spindle
                     VehicleSide side,                    ///< wheel mounted on left/right side
                     double offset = 0                    ///< offset from associated spindle center
     );
@@ -90,7 +91,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     void SetTire(std::shared_ptr<ChTire> tire) { m_tire = tire; }
 
     /// Get the associated spindle body.
-    std::shared_ptr<ChBody> GetSpindle() const { return m_spindle; }
+    std::shared_ptr<ChSpindle> GetSpindle() const { return m_spindle; }
 
     /// Get the vehicle side on which this wheel is mounted.
     VehicleSide GetSide() const { return m_side; }
@@ -125,7 +126,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// corresponds to an "inner" wheel. The wheel mass and inertia are used to increment those of the associated
     /// spindle body.
     virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
-                           std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                           std::shared_ptr<ChSpindle> spindle,  ///< associated suspension spindle
                            VehicleSide side,                    ///< wheel mounted on left/right side
                            double offset                        ///< offset from associated spindle center
     ) {}
@@ -136,17 +137,14 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual double GetWheelMass() const = 0;
     virtual const ChVector3d& GetWheelInertia() const = 0;
 
-    std::shared_ptr<ChBody> m_spindle;  ///< associated suspension spindle body
-    std::shared_ptr<ChTire> m_tire;     ///< attached tire subsystem
-    VehicleSide m_side;                 ///< wheel mounted on left/right side
-    double m_offset;                    ///< offset from spindle center
+    std::shared_ptr<ChSpindle> m_spindle;  ///< associated suspension spindle body
+    std::shared_ptr<ChTire> m_tire;        ///< attached tire subsystem
+    VehicleSide m_side;                    ///< wheel mounted on left/right side
+    double m_offset;                       ///< offset from spindle center
 
     std::string m_vis_mesh_file;                                 ///< visualization mesh file (may be empty)
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< visualization mesh asset
     std::shared_ptr<ChVisualShape> m_cyl_shape;                  ///< visualization cylinder asset
-
-    std::shared_ptr<ChLoadBodyForce> m_spindle_terrain_force;    ///< terrain force loads on the spindle
-    std::shared_ptr<ChLoadBodyTorque> m_spindle_terrain_torque;  ///< terrain torque loads on the spindle
 
     friend class ChTire;
     friend class ChWheeledVehicle;

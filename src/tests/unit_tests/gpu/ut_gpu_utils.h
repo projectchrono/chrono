@@ -56,9 +56,8 @@ std::vector<chrono::ChVector3<T>> loadPositionCheckpoint(std::string infile) {
 
     return sphere_positions;
 }
-// load sphere positions from a checkpoint file
 
-// // load a custom column from a checkpoint file
+// load a custom column from a checkpoint file
 std::vector<float> loadColumnCheckpoint(std::string infile, int i) {
     // file stream to load in
     std::ifstream ptFile(infile);
@@ -80,7 +79,7 @@ std::vector<float> loadColumnCheckpoint(std::string infile, int i) {
 }
 // load a custom column from a checkpoint file
 
-// // load sphere velocities from a checkpoint file
+// load sphere velocities from a checkpoint file
 template <typename T>
 std::vector<chrono::ChVector3<T>> loadVelocityCheckpoint(std::string infile) {
     // file stream to load in

@@ -26,6 +26,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChWorldFrame.h"
 
 namespace chrono {
@@ -47,6 +48,12 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
 
     /// Set the delay time for the active domain.
     void SetActiveDomainDelay(double delay);
+
+    /// Register callback to control dynamics of an associated vehicle.
+    /// If using this function, the calling program should not explicitly call ChVehicle::Advance. This function will be
+    /// called, in the appropriate sequence, when advancing the dynamics of the coupled FSI problem through
+    /// CRMTerrain::Advance.
+    void RegisterVehicle(ChVehicle* vehicle);
 
     virtual void Synchronize(double time) override {}
     virtual void Advance(double step) override;

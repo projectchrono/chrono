@@ -1547,11 +1547,12 @@ __device__ void ShiftingAccumulateNeighborContrib(uint index,
         if constexpr (SHIFT == ShiftingMethod::PPST || SHIFT == ShiftingMethod::PPST_XSPH) {
             // Fictitious sphere for PPST
             Real dFictitious = paramsD.d0 * Real(1.241);
-            Real oodFictitious = 1 / dFictitious;
-
-            Real delta_ij = (dFictitious - d) * oodFictitious;
-            Real beta = (delta_ij > 0) ? paramsD.shifting_ppst_push : paramsD.shifting_ppst_pull;
-            inner_sum += beta * fmax(delta_ij, static_cast<Real>(-0.1f)) * (dist3 / d);
+            if (d < 1.25f * dFictitious) {  // TODO: If we don't put this, flexible cable crashes - why do we need this?
+                Real oodFictitious = 1 / dFictitious;
+                Real delta_ij = (dFictitious - d) * oodFictitious;
+                Real beta = (delta_ij > 0) ? paramsD.shifting_ppst_push : paramsD.shifting_ppst_pull;
+                inner_sum += beta * fmax(delta_ij, static_cast<Real>(-0.1f)) * (dist3 / d);
+            }
         }
 
         if constexpr (SHIFT == ShiftingMethod::DIFFUSION || SHIFT == ShiftingMethod::DIFFUSION_XSPH) {
@@ -1693,9 +1694,7 @@ void FsiForceWCSPH::Initialize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
-                                     Real time,
-                                     bool firstHalfStep) {
+void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) {
     m_sortedSphMarkers_D = sortedSphMarkers_D;
     m_bce_mgr.updateBCEAcc();
     CollideWrapper(time, firstHalfStep);
@@ -1854,13 +1853,6 @@ void FsiForceWCSPH::CalculateShifting() {
 
     // TODO: Is this check necessary?
     // Calculate vel_XSPH
-    if (m_data_mgr.vel_XSPH_D.size() != m_data_mgr.countersH->numAllMarkers) {
-        printf("m_data_mgr.vel_XSPH_D.size() %zd countersH->numAllMarkers %zd \n", m_data_mgr.vel_XSPH_D.size(),
-               m_data_mgr.countersH->numAllMarkers);
-        throw std::runtime_error(
-            "Error! size error m_data_mgr.vel_XSPH_D Thrown from "
-            "CalculateShifting!\n");
-    }
 
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;

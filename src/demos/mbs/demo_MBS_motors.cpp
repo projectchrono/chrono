@@ -808,15 +808,14 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(sys);
             vis_vsg->SetWindowTitle("Motors");
             vis_vsg->AddCamera(ChVector3d(4.5, 4.5, -10.5));
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
-            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

@@ -36,7 +36,7 @@ const double Generic_Wheel::m_width = 0.22;
 Generic_Wheel::Generic_Wheel(const std::string& name) : ChWheel(name) {}
 
 void Generic_Wheel::Construct(std::shared_ptr<ChChassis> chassis,
-                              std::shared_ptr<ChBody> spindle,
+                              std::shared_ptr<ChSpindle> spindle,
                               VehicleSide side,
                               double offset) {
     ChWheel::Construct(chassis, spindle, side, offset);

@@ -48,6 +48,7 @@ class CH_FSI_API ChFsiFluidSystem {
 
     /// Initialize the fluid system using initial states of solid FSI objects.
     /// A call to this function marks completion of the fluid system construction.
+    /// The boolean `has_node_directions` indicates whether or not mesh states also contain node directions.
     virtual void Initialize(unsigned int num_fsi_bodies,
                             unsigned int num_fsi_nodes1D,
                             unsigned int num_fsi_elements1D,
@@ -55,7 +56,8 @@ class CH_FSI_API ChFsiFluidSystem {
                             unsigned int num_fsi_elements2D,
                             const std::vector<FsiBodyState>& body_states,
                             const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states);
+                            const std::vector<FsiMeshState>& mesh2D_states,
+                            bool use_node_directions);
 
     /// Initialize the fluid system with no FSI support.
     virtual void Initialize();
@@ -83,6 +85,9 @@ class CH_FSI_API ChFsiFluidSystem {
 
     /// Additional actions taken after adding a 2-D flexible mesh to the FSI system.
     virtual void OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) = 0;
+
+    /// Optional function to perform setup operations at the beginning of a simulation step.
+    virtual void OnSetupStepDynamics() {}
 
     /// Function to integrate the FSI fluid system in time.
     /// Derived classes are responsible for updating the simulation time (m_time).

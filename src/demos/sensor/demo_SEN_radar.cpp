@@ -125,24 +125,24 @@ int main(int argc, char* argv[]) {
     //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
     //    floor->SetPosDt(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
-    floor->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    floor->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetPos({4, 3, 2});
     box->SetFixed(true);
     sys.Add(box);
-    box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    box->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box1->SetPos({4, -3, 2});
     box1->SetFixed(true);
     sys.Add(box1);
-    box1->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    box1->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
 
     auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box2->SetPos({4, 0, 2});
     box2->SetFixed(true);
-    box2->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(green);
+    box2->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(green);
     sys.Add(box2);
 
     // -------------------------------------------

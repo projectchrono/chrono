@@ -48,6 +48,7 @@ source_group("" FILES ${FSISPH_BASE_FILES})
 set(FSISPH_PHYSICS_FILES
     physics/MarkerType.cuh
     physics/FsiDataManager.cuh
+    physics/FsiInterface.cuh
     physics/BceManager.cuh
     physics/FluidDynamics.cuh
     physics/CollisionSystem.cuh
@@ -57,7 +58,8 @@ set(FSISPH_PHYSICS_FILES
     physics/SphGeneral.cuh
 
     physics/FsiDataManager.cu
- 	physics/BceManager.cu
+    physics/FsiInterface.cu
+    physics/BceManager.cu
     physics/FluidDynamics.cu
     physics/CollisionSystem.cu
     physics/FsiForce.cu
@@ -89,12 +91,6 @@ set(FSISPH_UTILS_FILES
     utils/UtilsDevice.cu
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
-
-set(FSISPH_VIS_FILES
-    visualization/ChFsiVisualizationSPH.h
-    visualization/ChFsiVisualizationSPH.cpp
-)
-source_group("visualization" FILES ${FSISPH_VIS_FILES})
 
 # --------------- 3rd party STB FILES
 
@@ -141,7 +137,6 @@ add_library(Chrono_fsisph
     ${FSISPH_PHYSICS_FILES}
     ${FSISPH_MATH_FILES}
     ${FSISPH_UTILS_FILES}
-    ${FSISPH_VIS_FILES}
     ${FSISPH_STB_FILES}
 )
 add_library(Chrono::fsisph ALIAS Chrono_fsisph)

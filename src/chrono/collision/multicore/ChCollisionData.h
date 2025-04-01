@@ -62,7 +62,7 @@ struct shape_container {
 struct state_container {
     state_container()
         : num_rigid_bodies(0),
-          num_fluid_bodies(0),
+          num_particles(0),
           pos_rigid(nullptr),
           rot_rigid(nullptr),
           active_rigid(nullptr),
@@ -72,7 +72,7 @@ struct state_container {
 
     // Counters
     uint num_rigid_bodies;  ///< number of rigid bodies in a system
-    uint num_fluid_bodies;  ///< number of fluid bodies in the system
+    uint num_particles;     ///< number of 3-DOF particles in the system
 
     // Object data
     std::vector<real3>* pos_rigid;       ///< [num_rigid_bodies] rigid body positions
@@ -81,8 +81,8 @@ struct state_container {
     std::vector<char>* collide_rigid;    ///< [num_rigid_bodies] flags indicating bodies that participate in collision
 
     // Information for 3dof nodes
-    std::vector<real3>* pos_3dof;         ///< [num_fluid_bodies] 3-dof particle positions
-    std::vector<real3>* sorted_pos_3dof;  ///< [num_fluid_bodies] (output) 3-dof particle positions sorted by bin index
+    std::vector<real3>* pos_3dof;         ///< [num_particles] 3-dof particle positions
+    std::vector<real3>* sorted_pos_3dof;  ///< [num_particles] (output) 3-dof particle positions sorted by bin index
 };
 
 /// Global data for the custom Chrono multicore collision system.
@@ -111,14 +111,14 @@ class ChApi ChCollisionData {
           rigid_min_bounding_point(real3(0)),
           rigid_max_bounding_point(real3(0)),
           //
-          ff_min_bounding_point(real3(0)),
-          ff_max_bounding_point(real3(0)),
-          ff_bins_per_axis(vec3(0)),
+          part_min_bounding_point(real3(0)),
+          part_max_bounding_point(real3(0)),
+          part_bins_per_axis(vec3(0)),
           //
           num_rigid_shapes(0),
           num_rigid_contacts(0),
-          num_rigid_fluid_contacts(0),
-          num_fluid_contacts(0) {
+          num_rigid_particle_contacts(0),
+          num_particle_contacts(0) {
         if (owns_data) {
             state_data.pos_rigid = new std::vector<real3>;
             state_data.rot_rigid = new std::vector<quaternion>;
@@ -171,15 +171,15 @@ class ChApi ChCollisionData {
     std::vector<vec2> bids_rigid_rigid;  ///< [num_rigid_contacts] body IDs for each rigid-rigid contact pair
 
     // Rigid-particle geometric collision data
-    std::vector<real3> norm_rigid_fluid;    ///< [num_rigid_fluid_contacts]
-    std::vector<real3> cpta_rigid_fluid;    ///< [num_rigid_fluid_contacts]
-    std::vector<real> dpth_rigid_fluid;     ///< [num_rigid_fluid_contacts]
-    std::vector<int> neighbor_rigid_fluid;  ///< [num_rigid_fluid_contacts]
-    std::vector<int> c_counts_rigid_fluid;  ///< [num_fluid_bodies]
+    std::vector<real3> norm_rigid_particle;    ///< [num_rigid_particle_contacts]
+    std::vector<real3> cpta_rigid_particle;    ///< [num_rigid_particle_contacts]
+    std::vector<real> dpth_rigid_particle;     ///< [num_rigid_particle_contacts]
+    std::vector<int> neighbor_rigid_particle;  ///< [num_rigid_particle_contacts]
+    std::vector<int> c_counts_rigid_particle;  ///< [num_particles]
 
     // 3dof particle neighbor information
-    std::vector<int> neighbor_3dof_3dof;  ///< [num_fluid_contacts]
-    std::vector<int> c_counts_3dof_3dof;  ///< [num_fluid_contacts]
+    std::vector<int> neighbor_3dof_3dof;  ///< [num_particle_contacts]
+    std::vector<int> c_counts_3dof_3dof;  ///< [num_particle_contacts]
 
     // Sorting map for 3dof particles
     std::vector<int> particle_indices_3dof;
@@ -200,9 +200,9 @@ class ChApi ChCollisionData {
     real3 rigid_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of rigid AABBs
     real3 rigid_max_bounding_point;  ///< RTF (right-top-front) corner of union of rigid AABBs
 
-    real3 ff_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of fluid AABBs
-    real3 ff_max_bounding_point;  ///< RTF (right-top-front) corner of union of fluid AABBs
-    vec3 ff_bins_per_axis;        ///< grid resolution for fluid particles
+    real3 part_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of particle AABBs
+    real3 part_max_bounding_point;  ///< RTF (right-top-front) corner of union of particle AABBs
+    vec3 part_bins_per_axis;        ///< grid resolution for particles
 
     std::vector<uint> bin_intersections;    ///< [num_rigid_shapes+1] number of bin intersections for each shape AABB
     std::vector<uint> bin_number;           ///< [num_bin_aabb_intersections] bin index for bin-shape AABB intersections
@@ -215,10 +215,10 @@ class ChApi ChCollisionData {
     // Indexing variables
     // ------------------
 
-    uint num_rigid_shapes;          ///< number of collision models in a system
-    uint num_rigid_contacts;        ///< number of contacts between rigid bodies in a system
-    uint num_rigid_fluid_contacts;  ///< number of contacts between rigid and fluid objects
-    uint num_fluid_contacts;        ///< number of contacts between fluid objects
+    uint num_rigid_shapes;             ///< number of collision models in a system
+    uint num_rigid_contacts;           ///< number of contacts between rigid bodies in a system
+    uint num_rigid_particle_contacts;  ///< number of contacts between rigid and particle objects
+    uint num_particle_contacts;        ///< number of contacts between particle objects
 };
 
 /// @} collision_mc

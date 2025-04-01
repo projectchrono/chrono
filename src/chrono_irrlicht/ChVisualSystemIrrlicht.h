@@ -70,11 +70,11 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Enable/disable full-screen mode (default false).
     /// Must be called before Initialize().
-    void SetFullscreen(bool val);
+    void EnableFullscreen(bool val);
 
     /// Enable/disable shadows (default false).
     /// Must be called before Initialize().
-    void SetShadows(bool val);
+    void EnableShadows(bool val);
 
     /// Set the device driver type (default irr::video::EDT_DIRECT3D9).
     /// Must be called before Initialize().

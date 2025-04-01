@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/assets/ChVisualSystem.h"
 
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
@@ -36,7 +37,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -50,6 +50,18 @@ using namespace chrono::vehicle;
 using std::cout;
 using std::cin;
 using std::endl;
+
+// ===================================================================================================================
+
+// CRM terrain patch type
+enum class PatchType { RECTANGULAR, HEIGHT_MAP };
+PatchType patch_type = PatchType::HEIGHT_MAP;
+
+// Terrain dimensions (for RECTANGULAR or HEIGHT_MAP patch type)
+double terrain_length = 12;
+double terrain_width = 3;
+
+// ===================================================================================================================
 
 int main(int argc, char* argv[]) {
     double density = 1700;
@@ -87,7 +99,7 @@ int main(int argc, char* argv[]) {
                                     2e5f,   // kt
                                     20.0f   // gt
     );
-    ChVector3d init_loc(-1, 0.0, 2.4);
+    ChVector3d init_loc(1.25, 0.0, 0.5);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
@@ -147,17 +159,28 @@ int main(int argc, char* argv[]) {
 
     // Construct the terrain
     cout << "Create terrain..." << endl;
-    terrain.Construct(vehicle::GetDataFile("terrain/height_maps/terrain3.bmp"),  // height map image file
-                      4, 4,                                                      // length (X) and width (Y)
-                      {0, 2.55},                                                 // height range
-                      0.3,                                                       // depth
-                      true,                                                      // uniform depth
-                      ChVector3d(0, 0, 0),                                       // patch center
-                      BoxSide::Z_NEG                                             // bottom wall
-    );
+    switch (patch_type) {
+        case PatchType::RECTANGULAR:
+            // Create a rectangular terrain patch
+            terrain.Construct({terrain_length, terrain_width, 0.25},  // length X width X height
+                              ChVector3d(terrain_length / 2, 0, 0),   // patch center
+                              BoxSide::ALL & ~BoxSide::Z_POS          // all boundaries, except top
+            );
+            break;
+        case PatchType::HEIGHT_MAP:
+            // Create a patch from a heigh field map image
+            terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
+                              terrain_length, terrain_width,                           // length (X) and width (Y)
+                              {0, 0.3},                                                // height range
+                              0.25,                                                    // depth
+                              true,                                                    // uniform depth
+                              ChVector3d(terrain_length / 2, 0, 0),                    // patch center
+                              BoxSide::Z_NEG                                           // bottom wall
+            );
+            break;
+    }
 
     // Initialize the terrain system
-    cout << "Initialize CRM terrain..." << endl;
     terrain.Initialize();
 
     auto aabb = terrain.GetSPHBoundingBox();
@@ -166,30 +189,35 @@ int main(int argc, char* argv[]) {
     cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << endl;
 
     // Create run-time visualization
-#ifndef CHRONO_VSG
-    render = false;
-#endif
-
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI;
-    if (render) {
+    std::shared_ptr<ChVisualSystem> vis;
 #ifdef CHRONO_VSG
-        visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
-#endif
+    if (render) {
+        // FSI plugin
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
+                                                                                    aabb.min.z(), aabb.max.z());
 
-        visFSI->SetTitle("Viper rover on CRM deformable terrain");
-        visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
-        visFSI->SetCameraMoveScale(0.2f);
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(visualization_sph);
         visFSI->EnableBoundaryMarkers(visualization_bndry_bce);
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
-        visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-        visFSI->SetSPHColorCallback(chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.10f, 0.40f, 0.65f),
-                                                                                           aabb.min.z(), aabb.max.z()));
-        visFSI->AttachSystem(&sys);
-        visFSI->Initialize();
+        visFSI->SetSPHColorCallback(col_callback);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sys);
+        visVSG->SetWindowTitle("Viper rover on CRM deformable terrain");
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
+        visVSG->AddCamera(init_loc + ChVector3d(0, 6, 0.5), init_loc);
+        visVSG->SetLightIntensity(0.9f);
+
+        visVSG->Initialize();
+        vis = visVSG;
     }
+#else
+    render = false;
+#endif
 
     // Start the simulation
     double time = 0;
@@ -201,8 +229,9 @@ int main(int argc, char* argv[]) {
 
         // Run-time visualization
         if (render && time >= render_frame / render_fps) {
-            if (!visFSI->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
         if (!render) {

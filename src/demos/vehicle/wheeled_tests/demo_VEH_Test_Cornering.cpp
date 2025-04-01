@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
     vis->SetWindowSize(1200, 800);
     vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-    vis->SetShadows(true);
+    vis->EnableShadows();
     vis->AttachVehicle(&vehicle);
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

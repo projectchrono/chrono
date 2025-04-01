@@ -46,7 +46,7 @@ class CH_MODELS_API HMMWV_Wheel : public ChWheel {
     virtual double GetWidth() const override { return m_width; }
 
     virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< chassis vehicle (may be null)
-                           std::shared_ptr<ChBody> spindle,     ///< associated suspension spindle body
+                           std::shared_ptr<ChSpindle> spindle,  ///< associated suspension spindle
                            VehicleSide side,                    ///< wheel mounted on left/right side
                            double offset                        ///< offset from associated spindle center
                            ) override;

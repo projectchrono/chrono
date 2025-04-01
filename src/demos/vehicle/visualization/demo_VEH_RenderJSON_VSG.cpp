@@ -199,13 +199,13 @@ int main(int argc, char* argv[]) {
     vis.AttachSystem(&sys);
     vis.SetWindowTitle("JSON visualization - " + setup.VehicleJSON());
     vis.AddCamera(factor * ChVector3d(-1.75, -1.75, 1.0), ChVector3d(0, 0, 0.5));
-    vis.SetWindowSize(ChVector2i(800, 600));
-    vis.SetWindowPosition(ChVector2i(100, 100));
-    vis.SetUseSkyBox(false);
+    vis.SetWindowSize(1280, 800);
+    vis.SetWindowPosition(100, 100);
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.SetCameraAngleDeg(40.0);
     vis.SetLightIntensity(1.0f);
     vis.SetLightDirection(CH_PI_2, CH_PI_4);
+    vis.EnableShadows();
 
     // Attach the custom event receiver (use key 'U' to trigger a vehicle update)
     auto kbhandler = chrono_types::make_shared<KeyboardHandlerVSG>(vehicle, is_wheeled);

@@ -18,10 +18,26 @@
 #include <algorithm>
 #include <cmath>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/utils/ChConstants.h"
 
 namespace chrono {
+
+#ifndef SOURCE_PATH_SIZE
+    #define SOURCE_PATH_SIZE 0
+#endif
+
+#define __FILENAME__ ((__FILE__) + (SOURCE_PATH_SIZE))
+
+#ifdef DEBUG_LOG
+    #define ChDebugLog(x)                                                                       \
+        do {                                                                                    \
+            std::cerr << "[DBG " << __FILENAME__ << "::" << __func__ << "] " << x << std::endl; \
+        } while (0)
+#else
+    #define ChDebugLog(x)
+#endif
 
 #define ChAssertAlways(exp)                                                                                    \
     {                                                                                                          \

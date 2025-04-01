@@ -50,17 +50,17 @@ int main(int argc, char* argv[]) {
 
     // CREATE A DEFORMABLE TIRE
 
-    // The rim body:
-    auto mrim = chrono_types::make_shared<ChBody>();
-    sys.Add(mrim);
-    mrim->SetMass(80);
-    mrim->SetInertiaXX(ChVector3d(1, 1, 1));
-    mrim->SetPos(tire_center + ChVector3d(0, 0.2, 0));
-    mrim->SetRot(QuatFromAngleZ(CH_PI_2));
+    // The spindle
+    auto spindle = chrono_types::make_shared<ChSpindle>();
+    sys.Add(spindle);
+    spindle->SetMass(80);
+    spindle->SetInertiaXX(ChVector3d(1, 1, 1));
+    spindle->SetPos(tire_center + ChVector3d(0, 0.2, 0));
+    spindle->SetRot(QuatFromAngleZ(CH_PI_2));
 
     // The wheel object:
     auto wheel = chrono_types::make_shared<Wheel>(vehicle::GetDataFile("hmmwv/wheel/HMMWV_Wheel.json"));
-    wheel->Initialize(nullptr, mrim, LEFT);
+    wheel->Initialize(nullptr, spindle, LEFT);
 
     // The tire:
     auto tire_reissner =
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_PI / 4.0));
-    motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
+    motor->Initialize(spindle, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
     sys.Add(motor);
 
     // THE DEFORMABLE TERRAIN

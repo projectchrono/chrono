@@ -30,7 +30,6 @@
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
 #include "chrono_fsi/ChFsiBenchmark.h"
 
-#include "chrono_fsi/sph/visualization/ChFsiVisualizationSPH.h"
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
@@ -242,24 +241,27 @@ void FsiRigidBceScalingTest<num_boxes>::ExecuteStep() {
 template <unsigned int num_boxes>
 void FsiRigidBceScalingTest<num_boxes>::SimulateVis() {
 #ifdef CHRONO_VSG
-    std::shared_ptr<ChFsiVisualizationSPH> visFSI =
-        chrono_types::make_shared<ChFsiVisualizationVSG>(&m_sysFSI->GetFluidSystemSPH());
-    visFSI->SetTitle("FSI Box Benchmark");
-    visFSI->SetSize(1280, 720);
-    visFSI->AddCamera(ChVector3d(0, -3 * m_box_size.y(), 0.75 * m_box_size.z()),
-                      ChVector3d(0, 0, 0.75 * m_box_size.z()));
-    visFSI->SetCameraMoveScale(0.1f);
-    visFSI->SetLightIntensity(0.9);
-    visFSI->SetLightDirection(-CH_PI_2, CH_PI / 6);
+    // FSI plugin
+    auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&m_sysFSI->GetFluidSystemSPH());
     visFSI->EnableFluidMarkers(true);
     visFSI->EnableBoundaryMarkers(true);
     visFSI->EnableRigidBodyMarkers(false);
-    visFSI->SetRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-    visFSI->SetParticleRenderMode(ChFsiVisualizationSPH::RenderMode::SOLID);
-    visFSI->AttachSystem(&m_sysFSI->GetMultibodySystem());
-    visFSI->Initialize();
 
-    while (visFSI->Render()) {
+    // VSG visual system (attach visFSI as plugin)
+    auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    visVSG->AttachPlugin(visFSI);
+    visVSG->AttachSystem(&m_sysFSI->GetMultibodySystem());
+    visVSG->SetWindowTitle("FSI Box Benchmark");
+    visVSG->SetWindowSize(1280, 800);
+    visVSG->AddCamera(ChVector3d(0, -3 * m_box_size.y(), 0.75 * m_box_size.z()),
+                      ChVector3d(0, 0, 0.75 * m_box_size.z()));
+    visVSG->SetLightIntensity(0.9f);
+    visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+    visVSG->Initialize();
+
+    while (visVSG->Run()) {
+        visVSG->Render();
         ExecuteStep();
     }
 #endif

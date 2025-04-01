@@ -214,8 +214,7 @@ void ChTrackTestRigVisualSystemVSG::Initialize() {
         SetCameraAngleDeg(40.0);
         SetLightIntensity(1.0f);
         SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-        SetShadows(true);
-        SetWireFrameMode(false);
+        EnableShadows(true);
         AddCamera(ChVector3d(0, -6, 0.5), ChVector3d(0, 0, 0.5));
 
         // Add custom GUI

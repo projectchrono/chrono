@@ -94,8 +94,8 @@ void ChCollisionModelBullet::Populate() {
     auto full_margin = GetSuggestedFullMargin();
 
     for (const auto& shape_instance : model->GetShapeInstances()) {
-        const auto& shape = shape_instance.first;
-        const auto& frame = shape_instance.second;
+        const auto& shape = shape_instance.shape;
+        const auto& frame = shape_instance.frame;
 
         switch (shape->GetType()) {
             case ChCollisionShape::Type::SPHERE: {

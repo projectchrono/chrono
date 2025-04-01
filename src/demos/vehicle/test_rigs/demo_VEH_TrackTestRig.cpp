@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
-            vis_vsg->SetWindowSize(ChVector2i(1280, 1024));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Track Test Rig");
             vis_vsg->AttachTTR(rig);
             vis_vsg->Initialize();

@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("M113 Vehicle Demo");
-            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->AttachDriver(driver.get());
             vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);

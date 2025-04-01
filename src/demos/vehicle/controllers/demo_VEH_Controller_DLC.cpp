@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

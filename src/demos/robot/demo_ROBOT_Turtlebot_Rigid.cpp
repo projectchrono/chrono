@@ -153,11 +153,11 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Turtlebot Robot on Rigid Terrain");
             vis_vsg->AddCamera(ChVector3d(0, 2.5, 0.5));
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

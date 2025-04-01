@@ -339,6 +339,8 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChWheeledTrailer.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
+    wheeled_vehicle/ChSpindle.h
+    wheeled_vehicle/ChSpindle.cpp
     wheeled_vehicle/ChWheel.h
     wheeled_vehicle/ChWheel.cpp
     wheeled_vehicle/ChTire.h

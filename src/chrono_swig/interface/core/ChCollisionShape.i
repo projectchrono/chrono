@@ -79,9 +79,9 @@ class ChCollisionModel;
 %include "../../../chrono/collision/ChCollisionShapeTriangleMesh.h"
 
 
-// Define ShapeInstance as a pair of shared_ptr<ChCollisionShape> and ChFrame<>
-%template(ShapeInstance) std::pair<std::shared_ptr<chrono::ChCollisionShape>, chrono::ChFrame<double>>;
+// Define CollisionShapeInstance as a pair of shared_ptr<ChCollisionShape> and ChFrame<>
+%template(CollisionShapeInstance) std::pair<std::shared_ptr<chrono::ChCollisionShape>, chrono::ChFrame<double>>;
 
-// Define a vector of ShapeInstance
-%template(vector_ShapeInstance) std::vector<std::pair<std::shared_ptr<chrono::ChCollisionShape>, chrono::ChFrame<double>>>;
+// Define a vector of CollisionShapeInstance
+%template(vector_CollisionShapeInstance) std::vector<std::pair<std::shared_ptr<chrono::ChCollisionShape>, chrono::ChFrame<double>>>;
 

@@ -179,13 +179,13 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Rigid Terrain Demo");
-            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->AttachDriver(&driver);
             vis_vsg->AttachTerrain(&terrain);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

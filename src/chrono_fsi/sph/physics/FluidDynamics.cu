@@ -544,6 +544,39 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
     sr_tau_I_mu_i_Original[index] = sr_tau_I_mu_i[id];
 }
 
+__global__ void CopySortedToOriginal_D(MarkerGroup group,
+                                       const Real4* sortedPosRad,
+                                       const Real3* sortedVelMas,
+                                       const Real4* sortedRhoPresMu,
+                                       const Real3* sortedTauXxYyZz,
+                                       const Real3* sortedTauXyXXzYz,
+                                       const Real4* derivVelRho,
+                                       const uint numActive,
+                                       Real4* posRadOriginal,
+                                       Real3* velMasOriginal,
+                                       Real4* rhoPresMuOriginal,
+                                       Real3* tauXxYyZzOriginal,
+                                       Real3* tauXyXzYzOriginal,
+                                       Real4* derivVelRhoOriginal,
+                                       uint* gridMarkerIndex,
+                                       volatile bool* error_flag) {
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numActive)
+        return;
+
+    Real type = sortedRhoPresMu[id].w;
+    if (!IsInMarkerGroup(group, type))
+        return;
+
+    uint index = gridMarkerIndex[id];
+    posRadOriginal[index] = sortedPosRad[id];
+    velMasOriginal[index] = sortedVelMas[id];
+    rhoPresMuOriginal[index] = sortedRhoPresMu[id];
+    derivVelRhoOriginal[index] = derivVelRho[id];
+    tauXxYyZzOriginal[index] = sortedTauXxYyZz[id];
+    tauXyXzYzOriginal[index] = sortedTauXyXXzYz[id];
+}
+
 // -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
@@ -578,10 +611,10 @@ void FluidDynamics::SortParticles() {
 
 // -----------------------------------------------------------------------------
 void FluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
-                                   std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                   Real dT,
-                                   Real time,
-                                   bool firstHalfStep) {
+                                 std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
+                                 Real dT,
+                                 Real time,
+                                 bool firstHalfStep) {
     if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
         forceSystem->ForceSPH(sortedSphMarkers2_D, time, firstHalfStep);
         UpdateFluid(sortedSphMarkers1_D, dT);
@@ -603,7 +636,7 @@ void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) 
 
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos_fsi_fea_D), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos_fsi_fea_D),
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
         INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
         mR4CAST(sphMarkersD->rhoPresMuD), error_flagD);
     cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
@@ -635,8 +668,8 @@ void FluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkers
 
 // -----------------------------------------------------------------------------
 void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
-                                           std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
-                                           std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+                                         std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
+                                         std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
@@ -644,15 +677,25 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
-
-    CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
-        group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-        mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-        numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
-        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoOriginalD),
-        mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        error_flagD);
+    if (m_data_mgr.paramsH->sph_method == SPHMethod::I2SPH) {
+        CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
+            group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
+            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
+            numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
+            mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
+            mR4CAST(m_data_mgr.derivVelRhoOriginalD), mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original),
+            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), error_flagD);
+    } else {
+        CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
+            group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
+            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), numActive,
+            mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
+            mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
+            mR4CAST(m_data_mgr.derivVelRhoOriginalD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
+            error_flagD);
+    }
     cudaCheckErrorFlag(error_flagD, "CopySortedToOriginal_D");
 
     cudaFreeErrorFlag(error_flagD);
@@ -727,7 +770,7 @@ void FluidDynamics::DensityReinitialization() {
     cudaDeviceSynchronize();
     cudaCheckError();
     FsiForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
-                                                    m_data_mgr.markersProximity_D->gridMarkerIndexD);
+                                                  m_data_mgr.markersProximity_D->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

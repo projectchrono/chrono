@@ -33,8 +33,8 @@ struct FsiDataManager;
 /// @{
 
 /// Custom FSI interface between a Chrono multibody system and the SPH-based fluid system.
-/// This custom FSI interface is paired with ChFsiFluidSystemSPH and provides a more efficient coupling with a Chrono MBS
-/// that a generic FSI interface does, because it works directly with the data structures of ChFsiFluidSystemSPH.
+/// This custom FSI interface is paired with ChFsiFluidSystemSPH and provides a more efficient coupling with a Chrono
+/// MBS that a generic FSI interface does, because it works directly with the data structures of ChFsiFluidSystemSPH.
 class ChFsiInterfaceSPH : public ChFsiInterface {
   public:
     ChFsiInterfaceSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH);
