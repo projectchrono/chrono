@@ -340,6 +340,142 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     }
 }
 
+
+TEST(CBLConnectorTest, internal_forces){
+    ChSystemSMC sys;
+    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    my_mesh->SetAutomaticGravity(false);
+    sys.Add(my_mesh);
+
+    double E0 = 8000;
+    double alpha = 0.2373;
+
+    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(5e-8,
+                                                                E0,
+                                                                alpha,
+                                                                30,
+                                                                78.,
+                                                                0.2,
+                                                                5.0,
+                                                                3000,
+                                                                120,
+                                                                0,
+                                                                9900,
+                                                                3000,
+                                                                3,
+                                                                0.5,
+                                                                5,
+                                                                0.1,
+                                                                0.2,
+                                                                0.2,
+                                                                600,
+                                                                1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
+
+    // Computing internal forces requires computing the stress
+    // To have simple analytical results for this test simple, we enforce linear elasticity
+    my_mat->SetElasticAnalysisFlag(true);
+    // TODO JBC: Not sure what this does yet
+    my_mat->SetCoupleMultiplier(0.0);
+
+    // Test input
+    double length = 3.0;
+    ChVector3d trans(12.0, -3.0, 6.0);
+    double rot_angle = -22.0 * CH_DEG_TO_RAD;
+    ChVector3d rot_axis(1.0, 1.0, -0.5);
+    rot_axis.Normalize(); // Must be normalized
+    double facet_width = 0.648;
+    double facet_height = 0.176;
+    double facet_area = facet_height * facet_width;
+    double facet_center_from_A = 0.178;
+
+    // Connector setup
+    ChQuaterniond q;
+    q.SetFromAngleAxis(rot_angle, rot_axis);
+    ChMatrix33<double> facetFrame(q);
+    ChVector3d posNodeA = q.Rotate(ChVector3d(0.0, 0.0, 0.0)) + trans;
+    ChVector3d posNodeB = q.Rotate(ChVector3d(length, 0.0, 0.0)) + trans;
+    ChVector3d Ydir = q.Rotate(ChVector3d(0.0, 1.0, 0.0));
+    ChVector3d center = posNodeA + facet_center_from_A * (posNodeB-posNodeA);
+
+    // CBL expects the facet frame matrix to be stored as the transpose of the rotation matrix:
+    // - n on the first row
+    // - m on the second row
+    // - l on the second row
+    // TODO JBC: I think this should eventually be changed as it might be confusing
+    // that this is different from all the other "frames" defined as ChMatrix33 in Chrono
+    auto my_section = chrono_types::make_shared<ChBeamSectionCBLCON>(my_mat, facet_area, center, facetFrame.transpose());
+    my_section->SetHeight(facet_height);
+    my_section->SetWidth(facet_width);
+
+    ChBuilderCBLCON builder;
+    int num_elem = 1;
+    builder.BuildBeam(my_mesh, my_section, num_elem, posNodeA, posNodeB, Ydir);
+    auto connector = builder.GetLastBeamElements()[0];
+
+    // Performing some kind of step / analysis is required for chrono to run the appropriate setup
+    // Functions setupInitial() etc, are all private functions and inaccessible from here, otherwise we use them to make a minimal setup
+
+    // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
+    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011 + TODO: FIND REF FOR CURVATURE
+    ChElementCBLCON::LargeDeflection=false;
+    ChElementCBLCON::EnableCoupleForces=false; // TODO: make it work with and without couple Forces
+
+    sys.DoStepDynamics(0);
+
+    // Displace node B to cause imposed local strain
+    ChVector3d imposed_local_strain(0.398, -0.67, 0.495);
+    ChVectorDynamic<> pos1;
+    connector->GetNodeB()->SetPos(posNodeB + length * (facetFrame * imposed_local_strain));
+
+    // TODO JBC: Perform the test for the bending moments once we have a reference for curvature calculations
+    // Rotate node B to cause curvature
+
+
+    // Chrono CBL calculation of the internal forces
+    ChVectorDynamic<> Fi;
+    connector->ComputeInternalForces(Fi);
+
+
+    // Analytical calculation of the internal forces
+    // Equation (12) (13) of https://doi.org/10.1016/j.cemconcomp.2011.02.011
+    ChVectorN<double, 12> Fi_analytical;
+    ChVector3<> stress = imposed_local_strain * E0 * ChVector3d(1.0, alpha, alpha);
+    ChVector3<> xc_xi = center - posNodeA;
+    ChVector3<> xc_xj = center - posNodeB;
+    ChMatrixNM<double,3,6> Ai, Aj;
+    Ai << 1.0, 0.0, 0.0, 0.0      ,  xc_xi[2], -xc_xi[1],
+          0.0, 1.0, 0.0, -xc_xi[2],  0.0     ,  xc_xi[0],
+          0.0, 0.0, 1.0,  xc_xi[1], -xc_xi[0],  0.0     ;
+    Aj << 1.0, 0.0, 0.0, 0.0      ,  xc_xj[2], -xc_xj[1],
+          0.0, 1.0, 0.0, -xc_xj[2],  0.0     ,  xc_xj[0],
+          0.0, 0.0, 1.0,  xc_xj[1], -xc_xj[0],  0.0     ;
+    ChVectorN<double, 6> Bn_i_tr, Bm_i_tr, Bl_i_tr;
+	ChVectorN<double, 6> Bn_j_tr, Bm_j_tr, Bl_j_tr;
+    Bn_i_tr = Ai.transpose() * facetFrame.GetAxisX().eigen() / length;
+    Bm_i_tr = Ai.transpose() * facetFrame.GetAxisY().eigen() / length;
+    Bl_i_tr = Ai.transpose() * facetFrame.GetAxisZ().eigen() / length;
+    Bn_j_tr = Aj.transpose() * facetFrame.GetAxisX().eigen() / length;
+    Bm_j_tr = Aj.transpose() * facetFrame.GetAxisY().eigen() / length;
+    Bl_j_tr = Aj.transpose() * facetFrame.GetAxisZ().eigen() / length;
+    Fi_analytical.segment(0,6) = - length * facet_area * (stress[0] * Bn_i_tr + stress[1] * Bm_i_tr + stress[2] * Bl_i_tr);
+    Fi_analytical.segment(6,6) =   length * facet_area * (stress[0] * Bn_j_tr + stress[1] * Bm_j_tr + stress[2] * Bl_j_tr);
+
+
+    Fi_analytical *= -1.0;
+    // // Stiffness from facet bending
+    // if (ChElementCBLCON::EnableCoupleForces) {
+    //     // TODO
+    //     // Code below copied from ChElementCBLCON::ComputeInternalForces for reference
+    //     // Until I get a paper that references that calculation
+    // }
+
+
+    double tol = 1e-10;
+    for (int i = 0; i < 12; i++) {
+        ASSERT_NEAR(Fi(i), Fi_analytical(i), tol);
+    }
+}
+
 TEST(CBLConnectorTest, update_rotation){
     // TODO when we implement large displacement
 }
