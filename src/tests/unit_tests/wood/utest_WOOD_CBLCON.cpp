@@ -94,7 +94,13 @@ TEST(CBLConnectorTest, compute_strain){
     double facet_area = 1.0;
     double center_from_A = 0.6;
     ChMatrix33<double> facetFrame(ChQuaterniond(1, 0, 0, 0));
-    auto my_section = chrono_types::make_shared<ChBeamSectionCBLCON>(my_mat, facet_area, posNodeA + center_from_A * (posNodeB-posNodeA), facetFrame);
+    // CBL expects the facet frame matrix to be stored as the transpose of the rotation matrix:
+    // - n on the first row
+    // - m on the second row
+    // - l on the second row
+    // TODO JBC: I think this should eventually be changed as it might be confusing
+    // that this is different from all the other "frames" defined as ChMatrix33 in Chrono
+    auto my_section = chrono_types::make_shared<ChBeamSectionCBLCON>(my_mat, facet_area, posNodeA + center_from_A * (posNodeB-posNodeA), facetFrame.transpose());
 
     ChBuilderCBLCON builder;
     int num_elem = 1;
@@ -229,7 +235,13 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     ChVector3d Ydir = q.Rotate(ChVector3d(0.0, 1.0, 0.0));
     ChVector3d center = posNodeA + facet_center_from_A * (posNodeB-posNodeA);
 
-    auto my_section = chrono_types::make_shared<ChBeamSectionCBLCON>(my_mat, facet_area, center, facetFrame);
+    // CBL expects the facet frame matrix to be stored as the transpose of the rotation matrix:
+    // - n on the first row
+    // - m on the second row
+    // - l on the second row
+    // TODO JBC: I think this should eventually be changed as it might be confusing
+    // that this is different from all the other "frames" defined as ChMatrix33 in Chrono
+    auto my_section = chrono_types::make_shared<ChBeamSectionCBLCON>(my_mat, facet_area, center, facetFrame.transpose());
 
     ChBuilderCBLCON builder;
     int num_elem = 1;
@@ -258,13 +270,7 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
                    0.0   , AEL_T, 0.0  ,
                    0.0   , 0.0  , AEL_T;
 
-    // The face frame matrix is stored as the transpose of the rotation matrix:
-    // - n on the first row
-    // - m on the second row
-    // - l on the second row
-    // TODO JBC: I think this should eventually be changed as it might be confusing
-    // that this is different from all the other "frames" defined as ChMatrix33 in Chrono
-    ChMatrix33<> Rf = connector->section->Get_facetFrame().transpose();
+    ChMatrix33<> Rf = facetFrame;
 
     ChVector3<> xc_xi = center - posNodeA;
     ChVector3<> xc_xj = center - posNodeB;
