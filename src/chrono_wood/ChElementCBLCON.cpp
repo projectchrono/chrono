@@ -127,12 +127,6 @@ void ChElementCBLCON::Update() {
     //this->GetStateBlock(displ);
     //dofs_increment=displ-dofs_old;
     //dofs_old=displ;
-    //
-    // Compute local stiffness matrix:
-    //
-    //ComputeStiffnessMatrix();  
-  
-	
 }
 
 void ChElementCBLCON::UpdateRotation() {
@@ -390,22 +384,23 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
 
 
 void ChElementCBLCON::ComputeStiffnessMatrix() {
-		assert(section);
-		Km.resize(12,12);
+        assert(section);
+        Km.resize(12,12);
 
         double normal_stiff = this->section->Get_material()->Get_E0() * this->section->Get_area() / this->length;
         double tangent_stiff = normal_stiff * this->section->Get_material()->Get_alpha();
         Eigen::DiagonalMatrix<double, 3> K_diag(normal_stiff, tangent_stiff, tangent_stiff);
 
-		ChMatrix33<double> nmL=this->section->Get_facetFrame();
-		//
-		if(ChElementCBLCON::LargeDeflection){	// TODO JBC: I believe this should be moved to Update()
-			ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
-			for (int id=0; id<3; id++){				
-				nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
-			}	
-		}
-        ChMatrix33<> K_local = nmL.transpose() * K_diag * nmL;
+        ChMatrix33<double> nmL = this->section->Get_facetFrame();
+        //
+        if(ChElementCBLCON::LargeDeflection){// TODO JBC: If the facet orientation is made to coincide with the quaternion, we could save a lot and move this to Update()
+            ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
+            for (int id=0; id<3; id++){
+                nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
+            }
+        }
+        ChMatrix33<double> nmL_tr = nmL.transpose();
+        ChMatrix33<> K_local = nmL_tr * K_diag * nmL;
 
         // For small deflection, use the initial position of the nodes and facet centers
         // to determine the displacement induced by the node rotation
@@ -458,55 +453,28 @@ void ChElementCBLCON::ComputeStiffnessMatrix() {
         Km.block<3,3>(9,6) =  K_local_Aj_Id;
         Km.block<3,3>(9,9) =  K_local_Aj_Aj;
 
-		if (ChElementCBLCON::EnableCoupleForces){
-		        //nmL=this->section->Get_facetFrame();
-                		
-            double E0= this->section->Get_material()->Get_E0();
-            double alpha=this->section-> Get_material()->Get_alpha();    	
-            double area=this->section->Get_area();
+        if (ChElementCBLCON::EnableCoupleForces){
+            double mult = this->section->Get_material()->GetCoupleMultiplier();
+            double w = this->section->GetWidth();
+            double h = this->section->GetHeight();
+            // Current bending stiffness calculations assumes:
+            // - Linear variations of the angle along the connector
+            // - No offset of the section centroid
+            // - Section height/width in direction of 2nd/3rd axis M/L of local frame, respectively
+            // - Polar moment of area for rectangular cross section
+            // TODO JBC: Should we take into account the offset for the top and bottom connectors? It is taken into account in the mass matrix, why not here in the stiffness matrix?
+            // TODO JBC: Polar moment of area is an approximation assuming stress grows linearly from axis, which is not correct for rectangular profiles, should we change to more exact or good enough for this?
+            double rM = w * w / 12.0;
+            double rL = h * h / 12.0;
+            double rN = rM + rL;
 
-			double multiplier=this->section->Get_material()->GetCoupleMultiplier()*area*E0/length;
-			double w=this->section->GetWidth()/2.; 
-    			double h=this->section->GetHeight()/2.; 
-    			double onethird=1./3.;
-    			double rM=w*w*onethird;
-    			double rL=h*h*onethird;
-    			double rN=rM+rL;
-    			//std::cout<<"nmL: "<<nmL<<std::endl;
-    			//std::cout<<"rN: "<<rN<<"\t"<<"rM: "<<rM<<"\t"<<"rL: "<<rL<<"\n";
-    			//std::cout<<"W: "<<w<<"\t"<<"h: "<<h<<"\n";
-    			//std::cout<<"alpha: "<<alpha<<"\t"<<"beta: "<<this->section->Get_material()->GetCoupleMultiplier()<<"\n";
-		        //ChMatrix33<double> rotmat(q_delta);		        
-			//nmL=rotmat*nmL;
-			//std::cout<<"rot-nmL: "<<nmL<<std::endl;
-			ChMatrix33<double> Dmat;
-			Dmat.setZero();			
-			Dmat(1,1)=rM*multiplier;
-			Dmat(2,2)=rL*multiplier;
-			Dmat(0,0)=alpha*rN*multiplier;
-			//std::cout<<"Dmat: \n"<<Dmat<<std::endl;
-			ChMatrix33<double> kmu=nmL.transpose()*Dmat*nmL;
-			Km.block<3,3>(3,3)+=kmu;
-			Km.block<3,3>(9,3)-=kmu;
-			Km.block<3,3>(9,9)+=kmu;
-			Km.block<3,3>(3,9)-=kmu;
-			//std::cout<<"kmu\n"<<kmu<<std::endl;
-			//exit(1);
-			
-		}
-		
-		
-		//std::cout<<"PNA: "<<this->GetNodeA()->Frame().GetPos()<<"\t"<<"PNB: "<<this->GetNodeB()->Frame().GetPos()<<std::endl;
-		//std::cout<<"center: "<<this->section->Get_center()<<std::endl;
-		//std::cout<<"nmL:\n"<<nmL<<std::endl;
-		//std::cout<<"AI: \n"<< AI <<std::endl;
-		//std::cout<<"AJ: \n"<< AJ <<std::endl;
-		//for (int ik=0; ik<12; ik++)
-		//	if (Km(ik,ik)==0)
-		//		Km(ik,ik)+=aLE_T/1000;
-		//std::cout<<"Km: \n"<<Km<<std::endl;
-		
-		
+            Eigen::DiagonalMatrix<double, 3> Kb_diag(rN * tangent_stiff * mult, rM * normal_stiff * mult, rL * normal_stiff * mult);
+            ChMatrix33<double> Kb_local = nmL_tr * Kb_diag * nmL;
+            Km.block<3,3>(3,3) += Kb_local;
+            Km.block<3,3>(3,9) -= Kb_local;
+            Km.block<3,3>(9,3) -= Kb_local;
+            Km.block<3,3>(9,9) += Kb_local;
+        }
 }
 
 
