@@ -105,23 +105,6 @@ void ChElementCBLCON::ShapeFunctions(ShapeVector& N, double eta) {
     N(9) = dN_rb;
 }
 
-void ChElementCBLCON:: ComputeAmatrix( Amatrix& Amat, chrono::ChVector3d X , chrono::ChVector3d XI ){
-		
-		Amat.setZero();
-		Amat(0,0)=1.0;
-		Amat(1,1)=1.0;
-		Amat(2,2)=1.0;
-		//
-		Amat(0,4)=X[2]-XI[2];
-		Amat(0,5)=XI[1]-X[1];
-		//
-		Amat(1,3)=XI[2]-X[2];
-		Amat(1,5)=X[0]-XI[0];
-		//
-		Amat(2,3)=X[1]-XI[1];
-		Amat(2,4)=XI[0]-X[0];
-		
-	}
 
 void ChElementCBLCON::Update() {
     // parent class update:
@@ -226,8 +209,8 @@ void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
         // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
         return delta_rot_angle * delta_rot_dir;
     };
-	
-	mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
+    
+    mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
     mD.segment(3, 3) = getRotation(nodes[0]).eigen();
 
     mD.segment(6, 3) = getDisplacement(nodes[1]).eigen();
@@ -902,37 +885,40 @@ void ChElementCBLCON::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector
 void ChElementCBLCON::EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) {
     ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
-	/*	
-    ShapeVector N;
-    ShapeFunctions(N, eta);  // Evaluate compressed shape functions
-
-    u_displ.x() = N(0) * displ(0) + N(3) * displ(6);     // x_a   x_b
-    u_displ.y() = N(1) * displ(1) + N(4) * displ(7)      // y_a   y_b
-                  + N(2) * displ(5) + N(5) * displ(11);  // Rz_a  Rz_b
-    u_displ.z() = N(1) * displ(2) + N(4) * displ(8)      // z_a   z_b
-                  - N(2) * displ(4) - N(5) * displ(10);  // Ry_a  Ry_b
-
-    u_rotaz.x() = N(0) * displ(3) + N(3) * displ(9);    // Rx_a  Rx_b
-    u_rotaz.y() = -N(6) * displ(2) - N(7) * displ(8) +  // z_a   z_b   note - sign
-                  N(8) * displ(4) + N(9) * displ(10);   // Ry_a  Ry_b
-    u_rotaz.z() = N(6) * displ(1) + N(7) * displ(7) +   // y_a   y_b
-                  N(8) * displ(5) + N(9) * displ(11);   // Rz_a  Rz_b
-    	*/
-    Amatrix Amat;
-    double Nx1 = (1. / 2.) * (1 - eta);
-    double Nx2 = (1. / 2.) * (1 + eta);
-    ChVector3d point = Nx1 * this->nodes[0]->Frame().GetPos() +  Nx2 * this->nodes[1]->Frame().GetPos();
-    if (eta<=0.5) {
-    	
-    	this->ComputeAmatrix(Amat, point , this->nodes[0]->GetX0().GetPos());
-    	u_displ=Amat*displ.segment(0, 3);
-    	u_rotaz=Amat*displ.segment(3, 3);
-    }else{
-    	this->ComputeAmatrix(Amat, point , this->nodes[1]->GetX0().GetPos());
-    	u_displ=Amat*displ.segment(6, 3);
-    	u_rotaz=Amat*displ.segment(9, 3);
+    ChVector3d ui = displ.segment(0,3);
+    ChVector3d ri = displ.segment(3,3);
+    ChVector3d uj = displ.segment(6,3);
+    ChVector3d rj = displ.segment(9,3);
+    ChVector3d xc_xi;
+    ChVector3d xc_xj;
+    // For small deflection, use the initial position of the nodes and facet centers
+    // to determine the displacement induced by the node rotation
+    if (!LargeDeflection) {
+        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos();
+        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos();
     }
-    //std::cout<<"u_displ: "<<u_displ<<"\t"<<"u_rotaz:\t"<<u_rotaz<<std::endl;
+    else { // TODO: Find out how to evolve position of the center for large displacement
+        xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
+        xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
+    }
+
+    // TODO JBC: This assumes small displacements
+    // If the connector is broken and stretched, length will be very large eta_center poorly estimated
+    // If we want to display the broken connector, I think a much bigger refactor would be needed because it does not really make sense
+    // to call this function over normalized eta, and for many points uniformly distributed along the beam at a given resolution.
+    // We should instead call over the actual distance, and evaluate only at the ends and facet discontinuities. Dispaly it as 2 elements, not one.
+    double eta_center = -1.0 + 2.0 * xc_xi.Length() / this->length;
+
+    // TODO JBC: I think using the rotation matrix rather, than the cross product, would give the true displacement for large displacement without other changes necessary
+    if (eta <= eta_center) {
+        double factor = (eta + 1.0) / (eta_center + 1.0);
+        u_displ = ui + ri.Cross(xc_xi) * factor;
+        u_rotaz = ri;
+    } else {
+        double factor = (1.0 - eta) / (1.0 - eta_center);
+        u_displ = uj + rj.Cross(xc_xj) * factor;
+        u_rotaz = rj;
+    }
 }
 
 void ChElementCBLCON::EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) {

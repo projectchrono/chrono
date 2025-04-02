@@ -43,21 +43,6 @@ using namespace wood;
 
 // TODO: Write a Fixture to avoid repeating the code for setting up the test
 
-TEST(CBLConnectorTest, Amatrix) {
-    ChElementCBLCON connector;
-    ChMatrixNM<double,3,6> A;
-    connector.ComputeAmatrix(A, ChVector3d(0.0, 0.0, 0.0), ChVector3d(1.0, 2.0, 3.0));
-    ASSERT_DOUBLE_EQ(A(0,0), 1.0);
-    ASSERT_DOUBLE_EQ(A(1,1), 1.0);
-    ASSERT_DOUBLE_EQ(A(2,2), 1.0);
-    ASSERT_DOUBLE_EQ(A(0,4), -3.0);
-    ASSERT_DOUBLE_EQ(A(0,5), 2.0);
-    ASSERT_DOUBLE_EQ(A(1,3), 3.0);
-    ASSERT_DOUBLE_EQ(A(1,5), -1.0);
-    ASSERT_DOUBLE_EQ(A(2,3), -2.0);
-    ASSERT_DOUBLE_EQ(A(2,4), 1.0);
-}
-
 TEST(CBLConnectorTest, compute_strain){
     ChSystemSMC sys;
     auto my_mesh = chrono_types::make_shared<ChMesh>();

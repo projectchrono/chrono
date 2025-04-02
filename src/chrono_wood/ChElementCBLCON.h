@@ -124,8 +124,6 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
     ///      | .    .   -6  .   8   .   .   .   -7  .   9   .   |
     ///      | .    6   .   .   .   8   .   7   .   .   .   9   |
     void ShapeFunctions(ShapeVector& N, double eta);
-	
-	void ComputeAmatrix( Amatrix& A, chrono::ChVector3d X , chrono::ChVector3d XI );
 
     virtual void Update() override;
 
@@ -316,7 +314,7 @@ class ChWoodApi ChElementCBLCON : public ChElementBeam,
 
     bool use_numerical_diff_for_KR = false;
 
-  public:
+  public: // TODO JBC: WHY IS ALL OF THAT PUBLIC ?!?! I Think some of it must be private, let's discuss!
     /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
     /// stiffness Kl of each element, if needed, etc.
     virtual void SetupInitial(ChSystem* system) override;
