@@ -179,6 +179,7 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
 
     double E0 = 8000;
     double alpha = 0.2373;
+    double couple_multiplier = 0.761;
     auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(5e-8,
                                                                 E0,
                                                                 alpha,
@@ -199,7 +200,7 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
                                                                 0.2,
                                                                 600,
                                                                 1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
-    my_mat->SetCoupleMultiplier(1.0);
+    my_mat->SetCoupleMultiplier(couple_multiplier);
     my_mat->SetElasticAnalysisFlag(true);
 
     // Test input
@@ -208,7 +209,9 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     double rot_angle = -22.0 * CH_DEG_TO_RAD;
     ChVector3d rot_axis(1.0, 1.0, -0.5);
     rot_axis.Normalize(); // Must be normalized
-    double facet_area = 0.459;
+    double facet_width = 0.648;
+    double facet_height = 0.176;
+    double facet_area = facet_height * facet_width;
     double facet_center_from_A = 0.178;
 
     // Connector setup
@@ -227,6 +230,8 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     // TODO JBC: I think this should eventually be changed as it might be confusing
     // that this is different from all the other "frames" defined as ChMatrix33 in Chrono
     auto my_section = chrono_types::make_shared<ChBeamSectionCBLCON>(my_mat, facet_area, center, facetFrame.transpose());
+    my_section->SetHeight(facet_height);
+    my_section->SetWidth(facet_width);
 
     ChBuilderCBLCON builder;
     int num_elem = 1;
@@ -237,9 +242,10 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     // Functions setupInitial() etc, are all private functions and inaccessible from here, otherwise we use them to make a minimal setup
 
     // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
-    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011 + TODO: FIND REF FOR CURVATURE
+    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011
+    // Bending stiffness computed according to assumptions detailed below
     ChElementCBLCON::LargeDeflection=false;
-    ChElementCBLCON::EnableCoupleForces=false; // TODO: make it work with and without couple Forces
+    ChElementCBLCON::EnableCoupleForces=true;
 
     sys.DoStepDynamics(0);
     connector->ComputeStiffnessMatrix();
@@ -249,11 +255,9 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     ChMatrixNM<double, 12, 12> analytical_matrix;
 
     ChMatrix33<> stiff_local;
-    double AEL_N = facet_area * E0 / length;
-	double AEL_T = AEL_N * alpha;
-    stiff_local << AEL_N , 0.0  , 0.0  ,
-                   0.0   , AEL_T, 0.0  ,
-                   0.0   , 0.0  , AEL_T;
+    stiff_local << facet_area * E0 / length , 0.0                             , 0.0                             ,
+                   0.0                      , facet_area * E0 * alpha / length, 0.0                             ,
+                   0.0                      , 0.0                             , facet_area * E0 * alpha / length;
 
     ChMatrix33<> Rf = facetFrame;
 
@@ -276,44 +280,25 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
 
     // Stiffness from facet bending
     if (ChElementCBLCON::EnableCoupleForces) {
-        // TODO
-        // Code below copied from ChElementCBLCON::ComputeStiffnessMatrix for reference
-        // Until I get a paper that references that calculation
+        // Current bending stiffness calculations assume:
+        // - Linear shape functions for the angles
+        // - No offset of the section centroid
+        // - Section height/width in direction of 2nd/3rd axis M/L of local frame, respectively
+        // - Polar moment of area for rectangular cross section
+        double I_M = facet_height * (facet_width * facet_width * facet_width) / 12.0;
+        double I_L = facet_width * (facet_height * facet_height * facet_height) / 12.0;
+        double I_N = I_M + I_L;
+        ChMatrix33<> stiff_bending_local;
+        stiff_bending_local << E0 * alpha * I_N / length  , 0.0               , 0.0               ,
+                               0.0                         , E0 * I_M / length, 0.0               ,
+                               0.0                         , 0.0               , E0 * I_L / length;
+        stiff_bending_local *= couple_multiplier;
+        ChMatrix33<> analytical_bending_block = Rf * stiff_bending_local * Rf.transpose();
 
-
-		// if (ChElementCBLCON::EnableCoupleForces){
-		//         //nmL=this->section->Get_facetFrame();
-		// 	double multiplier=this->section->Get_material()->GetCoupleMultiplier()*area*E0/length;
-		// 	double w=this->section->GetWidth()/2.; 
-    	// 		double h=this->section->GetHeight()/2.; 
-    	// 		double onethird=1./3.;
-    	// 		double rM=w*w*onethird;
-    	// 		double rL=h*h*onethird;
-    	// 		double rN=rM+rL;
-    	// 		//std::cout<<"nmL: "<<nmL<<std::endl;
-    	// 		//std::cout<<"rN: "<<rN<<"\t"<<"rM: "<<rM<<"\t"<<"rL: "<<rL<<"\n";
-    	// 		//std::cout<<"W: "<<w<<"\t"<<"h: "<<h<<"\n";
-    	// 		//std::cout<<"alpha: "<<alpha<<"\t"<<"beta: "<<this->section->Get_material()->GetCoupleMultiplier()<<"\n";
-		//         //ChMatrix33<double> rotmat(q_delta);		        
-		// 	//nmL=rotmat*nmL;
-		// 	//std::cout<<"rot-nmL: "<<nmL<<std::endl;
-		// 	ChMatrix33<double> Dmat;
-		// 	Dmat.setZero();			
-		// 	Dmat(1,1)=rM*multiplier;
-		// 	Dmat(2,2)=rL*multiplier;
-		// 	Dmat(0,0)=alpha*rN*multiplier;
-		// 	//std::cout<<"Dmat: \n"<<Dmat<<std::endl;
-		// 	ChMatrix33<double> kmu=nmL.transpose()*Dmat*nmL;
-		// 	Km.block<3,3>(3,3)+=kmu;
-		// 	Km.block<3,3>(9,3)-=kmu;
-		// 	Km.block<3,3>(9,9)+=kmu;
-		// 	Km.block<3,3>(3,9)-=kmu;
-		// 	//std::cout<<"kmu\n"<<kmu<<std::endl;
-		// 	//exit(1);
-			
-		// }
-    // std::cout<< analytical_matrix << std::endl << std::endl << std::endl;
-    // std::cout<< connector->Km << std::endl;
+        analytical_matrix.block<3,3>(3,3) += analytical_bending_block;
+        analytical_matrix.block<3,3>(3,9) -= analytical_bending_block;
+        analytical_matrix.block<3,3>(9,3) -= analytical_bending_block;
+        analytical_matrix.block<3,3>(9,9) += analytical_bending_block;
     }
 
     double tol = 1e-10;
