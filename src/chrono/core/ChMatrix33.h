@@ -390,7 +390,7 @@ inline void ChMatrix33<Real>::SetFromAxisX(const ChVector3<Real>& x_dir, const C
     ChVector3<Real> mX;
     ChVector3<Real> mY;
     ChVector3<Real> mZ;
-    x_dir.GetDirectionAxesAsX(mX, mY, mZ, y_sugg);
+    x_dir.GetDirectionAxes(mX, mY, mZ, y_sugg);
     this->SetFromDirectionAxes(mX, mY, mZ);
 }
 
@@ -399,7 +399,7 @@ inline void ChMatrix33<Real>::SetFromAxisY(const ChVector3<Real>& y_dir, const C
     ChVector3<Real> mX;
     ChVector3<Real> mY;
     ChVector3<Real> mZ;
-    y_dir.GetDirectionAxesAsY(mX, mY, mZ, z_sugg);
+    y_dir.GetDirectionAxes(mY, mZ, mX, z_sugg);
     this->SetFromDirectionAxes(mX, mY, mZ);
 }
 
@@ -408,7 +408,7 @@ inline void ChMatrix33<Real>::SetFromAxisZ(const ChVector3<Real>& z_dir, const C
     ChVector3<Real> mX;
     ChVector3<Real> mY;
     ChVector3<Real> mZ;
-    z_dir.GetDirectionAxesAsZ(mX, mY, mZ, x_sugg);
+    z_dir.GetDirectionAxes(mZ, mX, mY, x_sugg);
     this->SetFromDirectionAxes(mX, mY, mZ);
 }
 

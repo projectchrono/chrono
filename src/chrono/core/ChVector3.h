@@ -255,7 +255,7 @@ class ChVector3 {
     void GetDirectionAxes(ChVector3<Real>& V1,
                           ChVector3<Real>& V2,
                           ChVector3<Real>& V3,
-                          ChVector3<Real> V2_sugg = ChVector3<Real>(1, 1, 1)) const;
+                          ChVector3<Real> V2_sugg = ChVector3<Real>(0, 1, 0)) const;
 
     /// Return the index of the largest component in absolute value.
     int GetMaxComponent() const;
