@@ -330,6 +330,8 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
     double rho=this->section->Get_material()->Get_density();
 
     ChMatrix33<double> nmL=this->section->Get_facetFrame();
+    ChMatrix33<double> nmL_tr=nmL.transpose();
+
     auto computeMass = [&](double L, int pos) {
         double mass = Area * rho * std::abs(L);
         double MJxx = mass * L * L / 3.0; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
@@ -341,18 +343,18 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
         M(1 + pos, 1 + pos) = mass;
         M(2 + pos, 2 + pos) = mass;
 
-        ChMatrix33<> block_upper_right, block_lower_right;
-        block_upper_right.setZero();
-        block_lower_right.setZero();
+        ChMatrix33<> block_UR_local, block_LR_local;
+        block_UR_local.setZero();
+        block_LR_local.setZero();
         if (this->section->GetSectionType() == this->section->transverse_generic) {
             MJzz *= 0.25; // TODO JBC: For some reason this is 12 for the default (transverse generic?) connector
         } else {
             double sign = (this->section->GetSectionType() == this->section->transverse_top) ? 1.0 : -1.0;
-            block_upper_right(0, 2) = sign * 0.5 * mass * h;
-            block_upper_right(2, 0) = -sign * 0.5 * mass * h;
+            block_UR_local(0, 2) = sign * 0.5 * mass * h;
+            block_UR_local(2, 0) = -sign * 0.5 * mass * h;
 
-            block_lower_right(0, 1) = sign * 0.25 * mass * h * L;
-            block_lower_right(1, 0) = sign * 0.25 * mass * h * L;
+            block_LR_local(0, 1) = sign * 0.25 * mass * h * L;
+            block_LR_local(1, 0) = sign * 0.25 * mass * h * L;
 
             // TODO JBC: I don't understand the geometry:
             // why the longitudinal connector has MJzz = m * h * h /3.0 ? and not 1/12 ?
@@ -361,19 +363,20 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
             //
         }
 
-        block_lower_right(0, 0) = MJyy + MJzz;
-        block_lower_right(1, 1) = MJyy + MJxx;
-        block_lower_right(2, 2) = MJzz + MJxx;
+        block_LR_local(0, 0) = MJyy + MJzz;
+        block_LR_local(1, 1) = MJyy + MJxx;
+        block_LR_local(2, 2) = MJzz + MJxx;
 
         //double cm_x=L/2.;
         // TODO JBC: I do not understand why we are adding these. there is no x-excentricity of the midline, right ?
         // I think these should be zero?
-        block_upper_right(1, 2) =  0.5 * mass * L;
-        block_upper_right(2, 1) = -0.5 * mass * L;
+        block_UR_local(1, 2) =  0.5 * mass * L;
+        block_UR_local(2, 1) = -0.5 * mass * L;
 
-        M.block<3,3>(pos, pos + 3) = nmL * block_upper_right * nmL.transpose();
-        M.block<3,3>(pos + 3, pos) = M.block<3,3>(pos, pos + 3).transpose();
-        M.block<3,3>(pos + 3, pos + 3) = nmL * block_lower_right * nmL.transpose();
+        ChMatrix33<> block_UR = nmL * block_UR_local * nmL_tr;
+        M.block<3,3>(pos, pos + 3) = block_UR;
+        M.block<3,3>(pos + 3, pos) = block_UR.transpose();
+        M.block<3,3>(pos + 3, pos + 3) = nmL * block_LR_local * nmL_tr;
     };
 
     computeMass(LA, 0);
