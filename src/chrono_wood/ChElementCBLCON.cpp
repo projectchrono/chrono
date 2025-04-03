@@ -130,42 +130,32 @@ void ChElementCBLCON::Update() {
 }
 
 void ChElementCBLCON::UpdateRotation() {
-    ChMatrix33<> A0(this->q_element_ref_rot);	
     ChMatrix33<> Aabs;
-    if (!LargeDeflection) {
-        Aabs = A0;
-        q_element_abs_rot = q_element_ref_rot;
-    } else {
-    	/*
-        ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-        // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
-        //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
-        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector3d(0, 1, 0)));
-        // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
-        //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
-        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0)));
-        // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
-        ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
-        Aabs.SetFromAxisX(mXele_w, myele_w);
-        q_element_abs_rot = Aabs.GetQuaternion();
-        */
-        
-        // TODO JBC: I think the code below does not work for large displacement.
-        // the Y axis of the nodes are not necessarily aligned (even on average) with the y axis of the beam
-        // This approach may rotate the L and M directions of the facet by the wrong amount,
-        // causing the strain increment not to be added in the correct direction
-        // I believe the commented code above for beams should be used instead
-    	ChVector3d mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
-    	ChVector3d myele =
-        (nodes[0]->Frame().GetRotMat().GetAxisY() + nodes[1]->Frame().GetRotMat().GetAxisY()).GetNormalized();
-    	Aabs.SetFromAxisX(mXele, myele);
-    	q_element_abs_rot = Aabs.GetQuaternion();
-    	
-    	
-    	
-    }
+    /*
+    ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+    // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
+    //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
+    ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector3d(0, 1, 0)));
+    // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
+    //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
+    ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0)));
+    // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
+    ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
+    Aabs.SetFromAxisX(mXele_w, myele_w);
+    q_element_abs_rot = Aabs.GetQuaternion();
+    */
 
-    //this->A = A0.transpose() * Aabs;
+    // TODO JBC: I think the code below does not work for large displacement.
+    // the Y axis of the nodes are not necessarily aligned (even on average) with the y axis of the beam
+    // This approach may rotate the L and M directions of the facet by the wrong amount,
+    // causing the strain increment not to be added in the correct direction
+    // I believe the commented code above for beams should be used instead
+    ChVector3d mXele = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+    ChVector3d mYele =
+    (nodes[0]->Frame().GetRotMat().GetAxisY() + nodes[1]->Frame().GetRotMat().GetAxisY()).GetNormalized();
+    Aabs.SetFromAxisX(mXele, mYele);
+    q_element_abs_rot = Aabs.GetQuaternion();
+    this->A.SetFromQuaternion(q_element_ref_rot.GetConjugate() * q_element_abs_rot);
 }
 
 
