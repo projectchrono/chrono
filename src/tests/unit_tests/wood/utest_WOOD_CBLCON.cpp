@@ -349,7 +349,7 @@ TEST(CBLConnectorTest, internal_forces){
     ChElementCBLCON::LargeDeflection=false;
     // Bending stiffness computed according to assumptions detailed below
     my_mat->SetCoupleMultiplier(couple_multiplier);
-    ChElementCBLCON::EnableCoupleForces=false;
+    ChElementCBLCON::EnableCoupleForces=true;
 
 
     // Test input
@@ -427,15 +427,9 @@ TEST(CBLConnectorTest, internal_forces){
     // Once/if we debug and refactor this aspect of the code, this test should fail and we should use the commented line above instead
     ChVector3d rot_incr = qB.GetRotVec() - qB_ini.GetRotVec();
 
-    // Facet strain
-    ChVector3<> imposed_local_strain = facetFrame.transpose() * (dispB + rot_incr.Cross(center - posNodeB)) / length;
-    // Facet curvature
-
-    // TODO JBC: Perform the test for the bending moments once we have a reference for curvature calculations
-
-
     ChVectorN<double, 12> Fi_analytical;
-    ChVector3<> stress = imposed_local_strain * E0 * ChVector3d(1.0, alpha, alpha);
+    ChVector3<> imposed_local_strain = facetFrame.transpose() * (dispB + rot_incr.Cross(center - posNodeB)) / length;
+    ChVector3<> stress_local = imposed_local_strain * E0 * ChVector3d(1.0, alpha, alpha);
     ChVector3<> xc_xi = center - posNodeA;
     ChVector3<> xc_xj = center - posNodeB;
     ChMatrixNM<double,3,6> Ai, Aj;
@@ -453,18 +447,24 @@ TEST(CBLConnectorTest, internal_forces){
     Bn_j_tr = Aj.transpose() * facetFrame.GetAxisX().eigen() / length;
     Bm_j_tr = Aj.transpose() * facetFrame.GetAxisY().eigen() / length;
     Bl_j_tr = Aj.transpose() * facetFrame.GetAxisZ().eigen() / length;
-    Fi_analytical.segment(0,6) = - length * facet_area * (stress[0] * Bn_i_tr + stress[1] * Bm_i_tr + stress[2] * Bl_i_tr);
-    Fi_analytical.segment(6,6) =   length * facet_area * (stress[0] * Bn_j_tr + stress[1] * Bm_j_tr + stress[2] * Bl_j_tr);
+    Fi_analytical.segment(0,6) = - length * facet_area * (stress_local[0] * Bn_i_tr + stress_local[1] * Bm_i_tr + stress_local[2] * Bl_i_tr);
+    Fi_analytical.segment(6,6) =   length * facet_area * (stress_local[0] * Bn_j_tr + stress_local[1] * Bm_j_tr + stress_local[2] * Bl_j_tr);
 
 
+    if (ChElementCBLCON::EnableCoupleForces) {
+        // Current bending/torsion moments calculations assume:
+        // - No offset of the section centroid
+        // - Section height/width in direction of 2nd/3rd axis M/L of local frame, respectively
+        // - Polar moment of area for rectangular cross section
+        double I_M = facet_height * (facet_width * facet_width * facet_width) / 12.0;
+        double I_L = facet_width * (facet_height * facet_height * facet_height) / 12.0;
+        double I_N = I_M + I_L;
+        ChVector3<> imposed_local_curvature = facetFrame.transpose() * rot_incr / length;
+        ChVector3<> couple = facetFrame * (imposed_local_curvature * E0 * couple_multiplier * ChVector3d(alpha * I_N, I_M, I_L));
+        Fi_analytical.segment(3,3) += -couple.eigen();
+        Fi_analytical.segment(9,3) +=  couple.eigen();
+    }
     Fi_analytical *= -1.0;
-    // // Stiffness from facet bending
-    // if (ChElementCBLCON::EnableCoupleForces) {
-    //     // TODO
-    //     // Code below copied from ChElementCBLCON::ComputeInternalForces for reference
-    //     // Until I get a paper that references that calculation
-    // }
-
 
     double tol = 1e-10;
     for (int i = 0; i < 12; i++) {
