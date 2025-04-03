@@ -11,11 +11,11 @@
 // =============================================================================
 // Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
-// Class for CBLCON elements:  
+// Class for CBLCON elements:
 //
 //  i)   Internal forces
 //  ii)  Stiffness matrix
-//  iii) Mass matrix  
+//  iii) Mass matrix
 //  iv)  Body forces
 //
 // Formulation of the CBLCON element can be found in: https://doi.org/10.1016/j.cemconcomp.2011.02.011
@@ -113,16 +113,16 @@ void ChElementCBLCON::Update() {
     // always keep updated the rotation matrix A:
     // TODO JBC: Because we inherit from a corotational element, I think we should keep that updated
     //  and use the disable_corotational on top / instead of LargeDeflection flag we defiend here
-	if (ChElementCBLCON::LargeDeflection){
-		this->UpdateRotation();
-		this->length = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-	}	
-	//
-	if(this->macro_strain){		
-		this->section->ComputeEigenStrain(this->macro_strain);
-	}
+    if (ChElementCBLCON::LargeDeflection){
+        this->UpdateRotation();
+        this->length = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+    }
+    //
+    if(this->macro_strain){
+        this->section->ComputeEigenStrain(this->macro_strain);
+    }
     // get displacement increment between current step and previous step
-    // update total displacement increment 
+    // update total displacement increment
     //ChVectorDynamic<> displ(12);
     //this->GetStateBlock(displ);
     //dofs_increment=displ-dofs_old;
@@ -186,7 +186,7 @@ void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
             local_disp = node->Frame().GetPos() - node->GetX0().GetPos(); // TODO: temporary
         return local_disp;
     };
-    
+
     // Node rotations
     // If Large deflection disabled, return rotation in global frame
     // TODO: Go back to this function when we decide how to enable and formulate large deflection
@@ -203,7 +203,7 @@ void ChElementCBLCON::GetStateBlock(ChVectorDynamic<>& mD) {
         // TODO: Consider changing GetRotVec() to return within [-PI .. PI]
         return delta_rot_angle * delta_rot_dir;
     };
-    
+
     mD.segment(0, 3) = getDisplacement(nodes[0]).eigen();
     mD.segment(3, 3) = getRotation(nodes[0]).eigen();
 
@@ -230,7 +230,7 @@ void ChElementCBLCON::GetField_dt(ChVectorDynamic<>& mD_dt) {
 
 
 void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, ChVector3d& mstrain, ChVector3d& curvature) {
-	// 
+    //
     ChVector3d ui = displ_incr.segment(0,3);
     ChVector3d ri = displ_incr.segment(3,3);
     ChVector3d uj = displ_incr.segment(6,3);
@@ -270,25 +270,25 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
 
 // TODO: this is not used consider deleting
 void ChElementCBLCON::ComputeStress(ChVector3d& mstress) {
-	ChVector3d mstrain;
-	ChVector3d curvature;
+    ChVector3d mstrain;
+    ChVector3d curvature;
     // Displacement and rotation increment of nodes:
-	this->ComputeStrainIncrement(dofs_increment, mstrain, curvature);
-	//std::cout<<"\nmstrain:\n"<<mstrain<<std::endl;	
-	//
-	double E0=this->section-> Get_material()->Get_E0();
-	double alpha=this->section-> Get_material()->Get_alpha();	
-	//
-	double epsQ=pow(mstrain[0]*mstrain[0]+alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5);
-	double strsQ=E0*epsQ;	
-	//
-	if (epsQ!=0) {
-		mstress[0]=strsQ*mstrain[0]/epsQ;
-		mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
-		mstress[2]=alpha*strsQ*mstrain[2]/epsQ;
-	}else{
-		mstress.Set(0.0);
-	}	
+    this->ComputeStrainIncrement(dofs_increment, mstrain, curvature);
+    //std::cout<<"\nmstrain:\n"<<mstrain<<std::endl;
+    //
+    double E0=this->section-> Get_material()->Get_E0();
+    double alpha=this->section-> Get_material()->Get_alpha();
+    //
+    double epsQ=pow(mstrain[0]*mstrain[0]+alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5);
+    double strsQ=E0*epsQ;
+    //
+    if (epsQ!=0) {
+        mstress[0]=strsQ*mstrain[0]/epsQ;
+        mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
+        mstress[2]=alpha*strsQ*mstrain[2]/epsQ;
+    }else{
+        mstress.Set(0.0);
+    }
 }
 
 
@@ -482,8 +482,8 @@ void ChElementCBLCON::ComputeStiffnessMatrix() {
 
 
 void ChElementCBLCON::ComputeGeometricStiffnessMatrix() {
-    assert(section);    
-    
+    assert(section);
+
 }
 
 
@@ -492,7 +492,7 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-	//this->mass = this->length * this->section->GetMassPerUnitLength();
+    //this->mass = this->length * this->section->GetMassPerUnitLength();
     //this->mass = this->length * 1.0;
     // Compute initial rotation
     ChMatrix33<> A0;
@@ -514,14 +514,14 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     // Initiliaze state variables:
     //
-	// All state variables initialized at zero, which is the value in the Section constructor
+    // All state variables initialized at zero, which is the value in the Section constructor
     // Nothing to do here
 
     //
-	if(this->macro_strain){
-			this->section->ComputeProjectionMatrix();
-			this->section->ComputeEigenStrain(this->macro_strain);			
-	}
+    if(this->macro_strain){
+            this->section->ComputeProjectionMatrix();
+            this->section->ComputeEigenStrain(this->macro_strain);
+    }
 
     //
     // Compute local stiffness matrix:
@@ -530,27 +530,27 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     //
     // Compute local geometric stiffness matrix normalized by pull force P: Kg/P
     //
-    ComputeGeometricStiffnessMatrix();   
+    ComputeGeometricStiffnessMatrix();
 }
 
 void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 12) && (H.cols() == 12));
     assert(section);
-	
+
     //
     // The K stiffness matrix and R damping matrix of this element:
     //
-    if (Kfactor || Rfactor) {    
+    if (Kfactor || Rfactor) {
 
         if (use_numerical_diff_for_KR) {
-	    //std::cout<<"////////////////////////////////////////////////////////\n";
+        //std::cout<<"////////////////////////////////////////////////////////\n";
             // numerical evaluation of the K R  matrices
             double delta_p = 1e-5;
             double delta_r = 1e-3;
 
             ChVectorDynamic<> Fi0(12);
             ChVectorDynamic<> FiD(12);
-            this->ComputeInternalForces(Fi0);	    
+            this->ComputeInternalForces(Fi0);
             ChMatrixDynamic<> H_num(12, 12);
 
             // K
@@ -558,42 +558,42 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
             ChQuaternion<> qa0 = this->GetNodeA()->GetRot();
             ChVector3d     pb0 = this->GetNodeB()->GetPos();
             ChQuaternion<> qb0 = this->GetNodeB()->GetRot();
-            for (int i = 0; i < 3; ++i) {            	
-                ChVector3d paD = pa0; 
+            for (int i = 0; i < 3; ++i) {
+                ChVector3d paD = pa0;
                 paD[i] += delta_p;
                 this->GetNodeA()->SetPos(paD);
-                this->ComputeInternalForces(FiD);              
+                this->ComputeInternalForces(FiD);
                 H_num.block<12,1>(0, i) = (FiD - Fi0) / delta_p;
                 this->GetNodeA()->SetPos(pa0);
             }
-            for (int i = 0; i < 3; ++i) {            	
+            for (int i = 0; i < 3; ++i) {
                 ChVector3d rotator(VNULL);  rotator[i] = delta_r;
                 ChQuaternion<> mdeltarotL;  mdeltarotL.SetFromRotVec(rotator); // rot.in local basis - as in system wide vectors
                 ChQuaternion<> qaD = qa0 * mdeltarotL;
                 this->GetNodeA()->SetRot(qaD);
-                this->ComputeInternalForces(FiD);                
+                this->ComputeInternalForces(FiD);
                 H_num.block<12,1>(0, i+3) = (FiD - Fi0) / delta_r;
                 this->GetNodeA()->SetRot(qa0);
             }
-            for (int i = 0; i < 3; ++i) {            	
-                ChVector3d pbD = pb0; 
+            for (int i = 0; i < 3; ++i) {
+                ChVector3d pbD = pb0;
                 pbD[i] += delta_p;
                 this->GetNodeB()->SetPos(pbD);
                 this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+6) = (FiD - Fi0) / delta_p;                
+                H_num.block<12,1>(0, i+6) = (FiD - Fi0) / delta_p;
                 this->GetNodeB()->SetPos(pb0);
             }
-            for (int i = 0; i < 3; ++i) {            	
+            for (int i = 0; i < 3; ++i) {
                 ChVector3d rotator(VNULL);  rotator[i] = delta_r;
                 ChQuaternion<> mdeltarotL;  mdeltarotL.SetFromRotVec(rotator); // rot.in local basis - as in system wide vectors
                 ChQuaternion<> qbD = qb0 * mdeltarotL;
                 this->GetNodeB()->SetRot(qbD);
                 this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+9) = (FiD - Fi0) / delta_r;                
+                H_num.block<12,1>(0, i+9) = (FiD - Fi0) / delta_r;
                 this->GetNodeB()->SetRot(qb0);
             }
-            H.block(0, 0, 12, 12) =  -H_num * Kfactor;			
-			//exit(2);
+            H.block(0, 0, 12, 12) =  -H_num * Kfactor;
+            //exit(2);
             /*
             // R
             ChVector3d va0 = this->GetNodeA()->GetPosDt();
@@ -601,7 +601,7 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
             ChVector3d vb0 = this->GetNodeB()->GetPosDt();
             ChVector3d wb0 = this->GetNodeB()->GetAngVelLocal();
             for (int i = 0; i < 3; ++i) {
-                ChVector3d vaD = va0; 
+                ChVector3d vaD = va0;
                 vaD[i] += delta_p;
                 this->GetNodeA()->SetPos_dt(vaD);
                 this->ComputeInternalForces(FiD);
@@ -609,7 +609,7 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
                 this->GetNodeA()->SetPos_dt(va0);
             }
             for (int i = 0; i < 3; ++i) {
-                ChVector3d waD = wa0; 
+                ChVector3d waD = wa0;
                 waD[i] += delta_r;
                 this->GetNodeA()->SetWvel_loc(waD);
                 this->ComputeInternalForces(FiD);
@@ -617,7 +617,7 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
                 this->GetNodeA()->SetWvel_loc(wa0);
             }
             for (int i = 0; i < 3; ++i) {
-                ChVector3d vbD = vb0; 
+                ChVector3d vbD = vb0;
                 vbD[i] += delta_p;
                 this->GetNodeB()->SetPos_dt(vbD);
                 this->ComputeInternalForces(FiD);
@@ -625,7 +625,7 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
                 this->GetNodeB()->SetPos_dt(vb0);
             }
             for (int i = 0; i < 3; ++i) {
-                ChVector3d wbD = wb0; 
+                ChVector3d wbD = wb0;
                 wbD[i] += delta_r;
                 this->GetNodeB()->SetWvel_loc(wbD);
                 this->ComputeInternalForces(FiD);
@@ -633,16 +633,16 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
                 this->GetNodeB()->SetWvel_loc(wb0);
             }
             H.block(0, 0, 12, 12) += - H_num * Rfactor;
-		*/
+        */
         }
         else {
 
             // K stiffness:
-            
+
 
 
             ChMatrixDynamic<> H_local;
-            
+
 
             if (this->use_geometric_stiffness) {
                 // K = Km+Kg
@@ -654,29 +654,29 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] = (kf+rf*beta)*[Km] + kf*Kg
                 //H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta()) + this->Kg * Px * Kfactor;
-		H_local = this->Km * ( Kfactor ) + this->Kg * Px * Kfactor;
+        H_local = this->Km * ( Kfactor ) + this->Kg * Px * Kfactor;
             }
             else {
                 // K = Km
 
                 // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] = (kf+rf*beta)*[K]
                 //H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta());
-		H_local = this->Km * Kfactor;
-				
+        H_local = this->Km * Kfactor;
+
             }
 
             //H.block(0, 0, 12, 12) = CKCt;
-			
-	    H.block(0, 0, 12, 12) = H_local;
-           
+
+        H.block(0, 0, 12, 12) = H_local;
+
         }
 
-    } 
+    }
     else
-		H.setZero();
+        H.setZero();
 
     //
-    // The M mass matrix of this element:  
+    // The M mass matrix of this element:
     //
 
     if (Mfactor || (Rfactor) ) {
@@ -684,12 +684,12 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
         ChMatrixDynamic<> Mloc(12, 12);
         Mloc.setZero();
         //ChMatrix33<> Mxw;
-	this->ComputeMmatrixGlobal(Mloc);
+    this->ComputeMmatrixGlobal(Mloc);
         H.block(0, 0, 12, 12) += Mloc* Mfactor;
 
         /*
         //  The following would be needed if consistent mass matrix is used, but...
-		// Corotational M mass:
+        // Corotational M mass:
          ChMatrixDynamic<> CK(12, 12);
          ChMatrixDynamic<> CKCt(12, 12);  // the global, corotated, K matrix
          ChMatrix33<> Atoabs(this->q_element_abs_rot);
@@ -704,31 +704,31 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
          ChMatrixCorotation::ComputeCK(Mloc, R, 4, CK);
          ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
 
-         H.block(0,0,12,12) += CKCt; 
-	*/	 
-		
-		/*
-        // 
-		//
+         H.block(0,0,12,12) += CKCt;
+    */
+
+        /*
+        //
+        //
         // "lumped" M mass matrix
         //
         ChMatrixNM<double, 6, 6> sectional_mass;
         this->section->ComputeInertiaMatrix(sectional_mass);
         // ..rather do this because lumped mass matrix does not need rotation transf.
-		
+
         H.block(0, 0, 12, 12) += Mloc;
 
         //// TODO better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
         // materials.
-		*/
+        */
     }
-	
+
 }
 
 void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
     assert(section);
-    
+
     // Displacement and rotation increment of nodes:
     ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);
@@ -757,7 +757,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     statev=mysection->Get_StateVar();
     double epsV=0; // TODO JBC: Volumetric strain seems to be a remnant of LDPM. remove it when refactoring ComputeStress
     double width=mysection->GetWidth()/2;
-    double height=mysection->GetHeight()/2;  
+    double height=mysection->GetHeight()/2;
 
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
     if (nonMechanicalStrain.size()){
@@ -789,7 +789,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     Fi_local.segment(6,3) =  force.eigen();
     Fi_local.segment(9,3) =  xc_xj.Cross(force).eigen();
 
-    
+
     //std::cout<<"\nFi_local-1:\n"<<Fi_local<<std::endl;
     ChVectorDynamic<> Fmu(6);
     if(ChElementCBLCON::EnableCoupleForces){
@@ -827,13 +827,13 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         GetLog() << Fi(c) << "  ";
     GetLog() << "\n";
 #endif
- 
+
 }
 
 
 
 void ChElementCBLCON::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
-    
+
     // no so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(12, 12);
     this->ComputeMmatrixGlobal(mM);
@@ -844,7 +844,7 @@ void ChElementCBLCON::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector
     mG.segment(0, 3) = G_acc.eigen();
     mG.segment(6, 3) = G_acc.eigen();
 
-    // Gravity forces as M*g, always works, regardless of the way M 
+    // Gravity forces as M*g, always works, regardless of the way M
     // is computed (lumped or consistent, with offset center of mass or centered, etc.)
     // [Maybe one can replace this function with a faster ad-hoc implementation in case of lumped masses.]
     Fg = mM * mG;
@@ -900,8 +900,8 @@ void ChElementCBLCON::EvaluateSectionFrame(const double eta, ChVector3d& point, 
     //std::cout<<"\n\neta: "<<eta<<"\t";
     //std::cout<< "nodeA: "<< this->nodes[0]->Frame().GetPos() <<   "  nodeB: "<< this->nodes[1]->Frame().GetPos()<<std::endl;
     this->EvaluateSectionDisplacement(eta, u_displ, u_rotaz);
-    
-    
+
+
     // Since   d = [Atw]' Xt - [A0w]'X0   , so we have
     //        Xt = [Atw] (d +  [A0w]'X0)
 
@@ -911,15 +911,15 @@ void ChElementCBLCON::EvaluateSectionFrame(const double eta, ChVector3d& point, 
     point = Nx1 * this->nodes[0]->Frame().GetPos() +  Nx2 * this->nodes[1]->Frame().GetPos();
     ChQuaternion<> msectionrot;
     msectionrot.SetFromAngleAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
-    rot = this->q_element_abs_rot * msectionrot;    
+    rot = this->q_element_abs_rot * msectionrot;
     //rot = this->q_element_abs_rot * this->q_element_ref_rot;
-    //rot=  this->nodes[0]->Frame().GetRot() * Nx1 +  this->nodes[1]->Frame().GetRot() * Nx2;  
-    //std::cout<<"point: "<<point<<"\t"<<"rot: "<<rot<<std::endl;     
+    //rot=  this->nodes[0]->Frame().GetRot() * Nx1 +  this->nodes[1]->Frame().GetRot() * Nx2;
+    //std::cout<<"point: "<<point<<"\t"<<"rot: "<<rot<<std::endl;
 }
 
 void ChElementCBLCON::EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) {
     assert(section);
-	
+
 }
 
 void ChElementCBLCON::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
@@ -991,19 +991,19 @@ void ChElementCBLCON::ComputeNF(const double U,
 }
 
 double ChElementCBLCON::GetDensity() {
-	return 1;
+    return 1;
     //return this->section->GetMassPerUnitLength();
 }
 
 
 
 ChMatrixNM<double, 1, 9> ChElementCBLCON::ComputeMacroStressContribution(){
-	ChMatrixNM<double, 1, 9> macro_stress;
-	double area =this->section->Get_area();	
-	auto statev= this->section->Get_StateVar();		
-	macro_stress =(this->section->GetProjectionMatrix()).transpose()*statev.segment(3,3)*area*this->length;
-	
-	return macro_stress;
+    ChMatrixNM<double, 1, 9> macro_stress;
+    double area =this->section->Get_area();
+    auto statev= this->section->Get_StateVar();
+    macro_stress =(this->section->GetProjectionMatrix()).transpose()*statev.segment(3,3)*area*this->length;
+
+    return macro_stress;
 }
 
 

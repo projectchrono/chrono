@@ -11,10 +11,10 @@
 // =============================================================================
 // Authors: Erol Lale, Jibril B. Coulibaly
 // =============================================================================
-// Section class for LDPM and CSL elements 
+// Section class for CBL Connectors
 //
 //  i)   Material
-//  ii)  Projected area of facets
+//  ii)  Projected area of facets // TODO JBC: Facet already normal?
 //  iii) Center of facets  
 //  iv)  System of reference of facets
 //
@@ -27,7 +27,7 @@
 namespace chrono {
 namespace wood {
 
-// Construct CSL or LDPM section.
+// Construct CBL Connector section.
 
 ChBeamSectionCBLCON::ChBeamSectionCBLCON( std::shared_ptr<ChWoodMaterialVECT> material,  // material 
                                     double area,    // Projected total area of the facet

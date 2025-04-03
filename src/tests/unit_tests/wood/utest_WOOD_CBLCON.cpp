@@ -42,6 +42,7 @@ using namespace chrono;
 using namespace wood;
 
 // TODO: Write a Fixture to avoid repeating the code for setting up the test
+// TODO: Branch and duplicate test with / without largeDeflection (when implemented) and coupled forces
 
 TEST(CBLConnectorTest, compute_strain){
     ChSystemSMC sys;
@@ -200,8 +201,14 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
                                                                 0.2,
                                                                 600,
                                                                 1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
-    my_mat->SetCoupleMultiplier(couple_multiplier);
+
+    // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
+    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011
     my_mat->SetElasticAnalysisFlag(true);
+    ChElementCBLCON::LargeDeflection=false;
+    // Bending stiffness computed according to assumptions detailed below
+    my_mat->SetCoupleMultiplier(couple_multiplier);
+    ChElementCBLCON::EnableCoupleForces=true;
 
     // Test input
     double length = 3.0;
@@ -240,14 +247,9 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
 
     // Performing some kind of step / analysis is required for chrono to run the appropriate setup
     // Functions setupInitial() etc, are all private functions and inaccessible from here, otherwise we use them to make a minimal setup
-
-    // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
-    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011
-    // Bending stiffness computed according to assumptions detailed below
-    ChElementCBLCON::LargeDeflection=false;
-    ChElementCBLCON::EnableCoupleForces=true;
-
     sys.DoStepDynamics(0);
+
+    // Chrono-CBL calculation of the stiffness matrix
     connector->ComputeStiffnessMatrix();
 
 
