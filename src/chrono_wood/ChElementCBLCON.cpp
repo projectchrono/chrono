@@ -237,6 +237,7 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
     ChVector3d rj = displ_incr.segment(9,3);
     ChVector3d xc_xi;
     ChVector3d xc_xj;
+    double linv = 1.0 / this->length;
     // For small deflection, use the initial position of the nodes and facet centers
     // to determine the displacement induced by the node rotation
     if (!LargeDeflection) {
@@ -248,22 +249,22 @@ void ChElementCBLCON::ComputeStrainIncrement(ChVectorN<double, 12>& displ_incr, 
         xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
     }
 
-	ChMatrix33<double> nmL=this->section->Get_facetFrame();
-	if(ChElementCBLCON::LargeDeflection){	// TODO: JBC: I think that should go into Update()
-		ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
-		for (int id=0; id<3; id++){				
-			nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
-		}	
-	}
+    ChMatrix33<double> nmL=this->section->Get_facetFrame();
+    if(ChElementCBLCON::LargeDeflection){	// TODO JBC: If the facet orientation is made to coincide with the quaternion, we could save a lot and move this to Update()
+        ChQuaternion<> q_delta=(this->q_element_abs_rot *  this->q_element_ref_rot.GetConjugate());
+        for (int id=0; id<3; id++){
+            nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
+        }
+    }
 
     // Strain
-    ChVector3d strain_increment = (uj + rj.Cross(xc_xj) - (ui + ri.Cross(xc_xi))) / this->length;
+    ChVector3d strain_increment = (uj + rj.Cross(xc_xj) - (ui + ri.Cross(xc_xi))) * linv;
     mstrain = nmL * strain_increment;
 
     // Curvature
-	if (ChElementCBLCON::EnableCoupleForces){
-		curvature = nmL * (rj - ri) / this->length;
-	}
+    if (ChElementCBLCON::EnableCoupleForces){
+        curvature = nmL * (rj - ri) * linv;
+    }
 }
 
 
