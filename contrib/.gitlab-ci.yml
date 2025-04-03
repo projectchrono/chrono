@@ -250,6 +250,8 @@ linux:ubuntu22.04:deploy-python3.10:
 #------------------#
 
 .windows:
+  variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/chrono
   tags:
   - windows11
   before_script:
