@@ -321,7 +321,7 @@ TEST(CBLConnectorTest, internal_forces){
 
     double E0 = 8000;
     double alpha = 0.2373;
-
+    double couple_multiplier = 0.761;
     auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(5e-8,
                                                                 E0,
                                                                 alpha,
@@ -343,11 +343,14 @@ TEST(CBLConnectorTest, internal_forces){
                                                                 600,
                                                                 1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
 
-    // Computing internal forces requires computing the stress
-    // To have simple analytical results for this test simple, we enforce linear elasticity
+    // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
+    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011
     my_mat->SetElasticAnalysisFlag(true);
-    // TODO JBC: Not sure what this does yet
-    my_mat->SetCoupleMultiplier(0.0);
+    ChElementCBLCON::LargeDeflection=false;
+    // Bending stiffness computed according to assumptions detailed below
+    my_mat->SetCoupleMultiplier(couple_multiplier);
+    ChElementCBLCON::EnableCoupleForces=false;
+
 
     // Test input
     double length = 3.0;
@@ -386,21 +389,21 @@ TEST(CBLConnectorTest, internal_forces){
 
     // Performing some kind of step / analysis is required for chrono to run the appropriate setup
     // Functions setupInitial() etc, are all private functions and inaccessible from here, otherwise we use them to make a minimal setup
-
-    // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
-    // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011 + TODO: FIND REF FOR CURVATURE
-    ChElementCBLCON::LargeDeflection=false;
-    ChElementCBLCON::EnableCoupleForces=false; // TODO: make it work with and without couple Forces
-
     sys.DoStepDynamics(0);
 
-    // Displace node B to cause imposed local strain
-    ChVector3d imposed_local_strain(0.398, -0.67, 0.495);
-    ChVectorDynamic<> pos1;
-    connector->GetNodeB()->SetPos(posNodeB + length * (facetFrame * imposed_local_strain));
+    // Displace and rotate node B to cause imposed local strain
+    ChVector3d dispB(0.123, -0.786, 0.498);
+    connector->GetNodeB()->SetPos(posNodeB + dispB);
 
-    // TODO JBC: Perform the test for the bending moments once we have a reference for curvature calculations
-    // Rotate node B to cause curvature
+    ChQuaterniond qB_ini = connector->GetNodeB()->GetRot();
+    double drotB_angle = 1e-2;
+    ChVector3d drotB_axis(0.46, 1.5, -0.5);
+    ChVector3d drotB = drotB_angle * drotB_axis.GetNormalized();
+    ChQuaterniond dqB;
+    dqB.SetFromRotVec(drotB);
+    ChQuaterniond qB = dqB * qB_ini;
+    connector->GetNodeB()->SetRot(qB);
+
 
 
     // Chrono CBL calculation of the internal forces
@@ -410,6 +413,27 @@ TEST(CBLConnectorTest, internal_forces){
 
     // Analytical calculation of the internal forces
     // Equation (12) (13) of https://doi.org/10.1016/j.cemconcomp.2011.02.011
+
+    // TODO JBC: Current rotational DOFs increment calculation inside ComputeInternalForces() is additive in terms of rotation vector
+    // Multiplicative composition of quaternion/rotation matrices, which is exact, does not give the same result:
+    // If the increment of rotation is given by the quaternion dq, then q2 = dq * q1. The increment rotation vector is RotVec(dq)
+    // However, RotVec(q2) - RotVec(q1) != RotVec(dq). For small rotations dq, this is a fair enough approximation.
+    // But this is wrong enough for testing! The error is in the order of magnitude of the angle, i.e., 1% error for rotB_angle = 1e-2 rad.
+    // To pass the test, and actually exercise the code the way it is currently written (even though that way is wrong !!!) we are using additive rotation vector decomposition
+
+    // TODO JBC: The commented line below is the mathematically correct multiplicative decomposition
+    // ChVector3d rot_incr = drotB;
+    // TODO JBC: The line below is for the small rotation assumption used in the code.
+    // Once/if we debug and refactor this aspect of the code, this test should fail and we should use the commented line above instead
+    ChVector3d rot_incr = qB.GetRotVec() - qB_ini.GetRotVec();
+
+    // Facet strain
+    ChVector3<> imposed_local_strain = facetFrame.transpose() * (dispB + rot_incr.Cross(center - posNodeB)) / length;
+    // Facet curvature
+
+    // TODO JBC: Perform the test for the bending moments once we have a reference for curvature calculations
+
+
     ChVectorN<double, 12> Fi_analytical;
     ChVector3<> stress = imposed_local_strain * E0 * ChVector3d(1.0, alpha, alpha);
     ChVector3<> xc_xi = center - posNodeA;

@@ -732,7 +732,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Displacement and rotation increment of nodes:
     ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);
-    dofs_increment = displ - dofs_old;
+    dofs_increment = displ - dofs_old; // TODO JBC: Rotations are not additive, in general this is wrong for rotation DOFS and the approximation only holds for infinitesimal rotations, with error ~ angle !
     dofs_old = displ;
 
     //
