@@ -737,6 +737,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             nmL.block<1,3>(id,0)=q_delta.Rotate(nmL.block<1,3>(id,0)).eigen();
         }
     }
+    ChMatrix33<double> nmL_tr = nmL.transpose();
 
     auto mysection=this->section;
     ChVector3d mstress;
@@ -759,8 +760,7 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     mysection->Set_StateVar(statev);
 
-
-    ChVector3d force = area * (nmL.transpose() * mstress);
+    ChVector3d force = area * (nmL_tr * mstress);
     ChVector3d xc_xi;
     ChVector3d xc_xj;
     // For small deflection, use the initial position of the nodes and facet centers
@@ -773,52 +773,17 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         xc_xi = this->section->Get_center() - this->nodes[0]->GetX0().GetPos(); // TEMPORARY
         xc_xj = this->section->Get_center() - this->nodes[1]->GetX0().GetPos(); // TEMPORARY
     }
-    ChVectorDynamic<> Fi_local(12);
 
-    Fi_local.segment(0,3) = -force.eigen();
-    Fi_local.segment(3,3) = -xc_xi.Cross(force).eigen();
-    Fi_local.segment(6,3) =  force.eigen();
-    Fi_local.segment(9,3) =  xc_xj.Cross(force).eigen();
+    Fi.segment(0,3) =  force.eigen();
+    Fi.segment(3,3) =  xc_xi.Cross(force).eigen();
+    Fi.segment(6,3) = -force.eigen();
+    Fi.segment(9,3) = -xc_xj.Cross(force).eigen();
 
-
-    //std::cout<<"\nFi_local-1:\n"<<Fi_local<<std::endl;
-    ChVectorDynamic<> Fmu(6);
     if(ChElementCBLCON::EnableCoupleForces){
-        //ChMatrix33<double> rotmat(q_delta);
-        //nmL=rotmat*nmL;
-        //nmL=this->section->Get_facetFrame();
-        ChMatrixNM<double, 6, 3> Bx;
-        Bx.block<3,3>(3,0)=nmL.transpose();
-        Bx.block<3,3>(0,0)=-Bx.block<3,3>(3,0);
-
-        //ChVectorDynamic<> Fmu(6);
-        Fmu=area*(Bx*mcouple.eigen());
-        //std::cout<<"length:\t"<<length<<"area:\t"<<area<<std::endl;
-        //std::cout<<"mcouple:\t"<<mcouple<<std::endl;
-        //std::cout<<"nmL:\n"<<nmL<<std::endl;
-        Fi_local.segment(3,3)+= Fmu.segment(0,3); //area*(nmL*mcouple);
-        Fi_local.segment(9,3)+= Fmu.segment(3,3); //area*(nmL*mcouple);
-        //std::cout<<"Fmu:\n"<<area*(nmL*mcouple)<<std::endl;
+        ChVector3d couple_global = area * (nmL_tr * mcouple);
+        Fi.segment(3,3) += couple_global.eigen();
+        Fi.segment(9,3) -= couple_global.eigen();
     }
-
-    Fi=-Fi_local;
-
-#ifdef BEAM_VERBOSE
-    GetLog() << "\nInternal forces (local): \n";
-    for (int c = 0; c < 6; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n";
-    for (int c = 6; c < 12; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n\nInternal forces (ABS) : \n";
-    for (int c = 0; c < 6; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
-    for (int c = 6; c < 12; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
-#endif
-
 }
 
 

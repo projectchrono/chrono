@@ -407,7 +407,7 @@ TEST(CBLConnectorTest, internal_forces){
 
 
     // Chrono CBL calculation of the internal forces
-    ChVectorDynamic<> Fi;
+    ChVectorDynamic<> Fi(12);
     connector->ComputeInternalForces(Fi);
 
 
