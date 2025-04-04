@@ -9,8 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale
-//			Ke Yu
+// Authors: Erol Lale, Ke Yu, Jibril B. Coulibaly
 // =============================================================================
 // Material class for LDPM and CSL elements 
 //
@@ -181,8 +180,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		statev(3) = mstress[0];
 		statev(4) = mstress[1];
 		statev(5) = mstress[2];
-		statev(8) = pow(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)), 0.5);
-		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5);
+		statev(8) = pow(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)), 0.5); // TODO JBC: Why doesn't statev(8) take bending into account?
+		statev(9) = pow(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha, 0.5); // TODO JBC: Why doesn't statev(9) take bending into account?
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
 		//
@@ -264,7 +263,104 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
 }
 
+void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& curvature_incr, double &length, StateVarVector& statev, double& width, double& height, ChVector3d& stress, ChVector3d& surfacic_couple) {  
+    ChVector3d strain(statev[0] + strain_incr[0], statev[1] + strain_incr[1], statev[2] + strain_incr[2]);
+    ChVector3d curvature;
 
+    // TODO JBC: passed argument width and height are actually the HALF WIDTH and HALF HEIGHT...	
+    double area = width * height * 4.0;
+    double E_N = m_E0;
+    double E_T = m_E0 * m_alpha;
+    double h2 = height * height;
+    double w2 = width * width;
+    double epsQ;
+    double epsT;
+    double sigQ = 0.0;
+    double secant_N = 0.0;
+    double secant_T = 0.0;
+    double Wint = 0.0;
+    double w = 0.0;
+    constexpr double strain_tol = 1e-10;
+    bool energy_and_crack_calculations_need_stress = false;
+    
+    if (mcouple_mult) {		
+        epsQ = std::sqrt(strain[0] * strain[0] + m_alpha * (strain[1] * strain[1] + strain[2] * strain[2]));
+        epsT = std::sqrt(strain[1] * strain[1] + strain[2] * strain[2]);
+    } else {
+        double multiplier=this->GetCoupleMultiplier()/3.;
+        curvature.Set(statev[12] + curvature_incr[0], statev[13] + curvature_incr[1], statev[14] + curvature_incr[2]);
+
+        epsQ = sqrt(strain[0] * strain[0] + m_alpha * (strain[1] * strain[1] + strain[2] * strain[2])+
+                    multiplier*(m_alpha*curvature[0]*curvature[0]*(w2+h2)+ curvature[1]*curvature[1]*w2+
+                    curvature[2]*curvature[2]*h2));
+        epsT = sqrt(strain[1] * strain[1] + strain[2] * strain[2]+multiplier*curvature[0]*curvature[0]*(w2+h2));
+    }
+
+    if (m_ElasticAnalysis) {
+        secant_N = E_N;
+        secant_T = E_T;
+        sigQ = m_E0 * epsQ;
+        Wint = length * area * 0.5 * sigQ * epsQ;
+    } else if (epsQ > strain_tol) {
+        // JBC: move it in here because We still want to compute and zero the state variable if that happens
+        // If for any reason we go from loading to epsQ <= 1e-16, the state variables will otherwise remain where they were, instead of going to zero.
+        energy_and_crack_calculations_need_stress = true;
+        if (strain[0] > strain_tol) {     // TODO JBC: WHY NOT ZERO ?!?!?! Is there a case where very small positive values should not lead to fracture? 
+            sigQ = FractureBC(strain, length, epsQ, epsT, statev);
+        } else {  
+            sigQ = CompressBC(strain, length, epsQ, epsT, statev);
+        }
+        secant_N = sigQ / epsQ;
+        secant_T = m_alpha * secant_N;
+    }
+
+    // Compute stress
+    stress[0] = secant_N * strain[0];
+    stress[1] = secant_T * strain[1];
+    stress[2] = secant_T * strain[2];
+    // Compute couples
+    if(mcouple_mult) { // TODO JBC: this is not a great way of checking if we are computing moments, we should use a bool, there is also a flag in the CBLCON element
+        surfacic_couple[0] = mcouple_mult * secant_T * curvature[0] * (w2 + h2) / 3.0;
+        surfacic_couple[1] = mcouple_mult * secant_N * curvature[1] * w2 / 3.0;
+        surfacic_couple[2] = mcouple_mult * secant_N * curvature[2] * h2 / 3.0;
+    }
+
+    // Update state variables
+    if (energy_and_crack_calculations_need_stress) {
+        Wint = statev(10) + length * area * 0.5 * ((stress[0] + statev(3)) * strain_incr[0] +
+                                                   (stress[1] + statev(4)) * strain_incr[1] +
+                                                   (stress[2] + statev(5)) * strain_incr[2]); // TODO JBC: What about curvature here ?
+        double inelastic_strain_N = strain[0] - stress[0] / E_N;
+        double inelastic_strain_M = strain[1] - stress[1] / E_T;
+        double inelastic_strain_L = strain[2] - stress[2] / E_T;
+        w = length * std::sqrt(inelastic_strain_N * inelastic_strain_N +
+                               inelastic_strain_M * inelastic_strain_M +
+                               inelastic_strain_L * inelastic_strain_L);
+    }
+    // TODO JBC: I think updating the state variables in place is wrong by design, and a bug!
+    // Overwriting sv here means these change every iteration at a given step, while we would want to use the last converged value instead.
+    // This is a much bigger discussiion related to how Chrono core updates elements as well (it updates multiple times in some time steppers, which I think is wrong, so even if we fixed our things this would still not work as it should)
+    statev(0) = strain[0];
+    statev(1) = strain[1];
+    statev(2) = strain[2];
+    statev(3) = stress[0];
+    statev(4) = stress[1];
+    statev(5) = stress[2];
+    statev(6) = std::max(strain[0], statev(6));
+    statev(7) = std::max(epsT, statev(7));
+    statev(8) = epsQ; // TODO JBC: This is a change from the original since epsQ contains bending, while in the original epsQ is recomputed for strain only. Not sure if that makes sense. These sv are not used so the behaviro should be the same
+    statev(9) = sigQ;
+    statev(10) = Wint;
+    statev(11) = w;
+    if(mcouple_mult) {				
+        statev(12) = curvature[0];
+        statev(13) = curvature[1];
+        statev(14) = curvature[2];	
+        statev(15) = surfacic_couple[0];
+        statev(16) = surfacic_couple[1];
+        statev(17) = surfacic_couple[2];
+    }
+}
 
 void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, double &epsV, StateVarVector& statev,  double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple) {  
     	ChVector3d mstrain;

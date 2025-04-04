@@ -10,6 +10,7 @@ SET(LIBRARIES
 
 SET(TESTS
     utest_WOOD_CBLCON
+    utest_WOOD_MaterialVECT
 )
 
 # A hack to set the working directory in which to execute the CTest
