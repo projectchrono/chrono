@@ -230,6 +230,19 @@ bool ChArchiveInBinary::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr,
 
         new_ptr = bVal.value().GetRawPtr();
 
+        if (this->on_external_conflict_rebind && (this->external_id_ptr.find(obj_ID) != this->external_id_ptr.end())) {
+            // consume input serialized data anyway to keep the file scanning in sync
+            bVal.value().CallArchiveIn(*this, true_classname);
+            // delete the new object 
+            bVal.value().CallDestructor();
+            // return info that no obj is created
+            new_ptr = 0;
+            // force to point to the already existin obj contained in  external_id_ptr 
+            bVal.value().SetRawPtr(ChCastingMap::Convert(true_classname, bVal.value().GetObjectPtrTypeindex(), external_id_ptr[obj_ID]));
+            // for profiling
+            ++counter_external_conflict_rebind;
+        }
+
         if (new_ptr) {
             PutNewPointer(new_ptr, obj_ID);
             // 3) Deserialize

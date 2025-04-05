@@ -87,6 +87,8 @@ class ChFunctorArchiveIn {
     /// classes. If classname not registered, creates simply via new(T).
     virtual void CallConstructorDefault(const std::string& classname) = 0;
 
+    virtual void CallDestructor() = 0;
+
     /// Set the pointer (use static_cast)
     virtual void SetRawPtr(void* mptr) = 0;
 
@@ -117,6 +119,10 @@ class ChFunctorArchiveInSpecific : public ChFunctorArchiveIn {
 
     virtual void CallConstructor(ChArchiveIn& archive_in, const std::string& classname) override {
         throw std::runtime_error("Cannot call CallConstructor() for a constructed object.");
+    }
+
+    virtual void CallDestructor() override {
+        throw std::runtime_error("Cannot call CallDestructor() for a constructed object.");
     }
 
     virtual void CallConstructorDefault(const std::string& classname) override {
@@ -182,6 +188,10 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
 
     virtual void CallConstructorDefault(const std::string& classname) override {
         this->_constructor_default(classname);
+    }
+
+    virtual void CallDestructor() override {
+        this->_destructor();
     }
 
     virtual void SetRawPtr(void* mptr) override { *pt2Object = static_cast<TClass*>(mptr); };
@@ -258,6 +268,11 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
         else
             throw std::runtime_error("Cannot call CallConstructorDefault(). Class " + classname +
                                      " not registered, and is without default constructor.");
+    }
+
+    template <class Tc = TClass>
+        void _destructor() {
+            delete (*pt2Object);
     }
 
     template <class Tc = TClass>
@@ -1285,6 +1300,9 @@ class ChApi ChArchiveIn : public ChArchive {
     bool can_tolerate_missing_tokens;
     bool try_tolerate_missing_tokens;
 
+    bool on_external_conflict_rebind;
+    int  counter_external_conflict_rebind;
+
   public:
     ChArchiveIn();
 
@@ -1321,6 +1339,15 @@ class ChApi ChArchiveIn : public ChArchive {
     /// Access the map of shared_pointer(s) used when re-binding pointers.
     /// Automatically managed, no need to manipulate except for debug or optimizations.
     std::unordered_map<void*, shared_pair_type>& SharedPointersMap() { return shared_ptr_map; }
+
+    /// Assume one deserialize a ptr to an object whose object ID is corresponding to an ID that is 
+    /// in already the external_id_ptr. If this SetOnExternalConflictRebind(true), as default, then the 
+    /// deserialized object is deleted and ptr will point to the already existing object in external_id_ptr.
+    /// Otherwise if SetOnExternalConflictRebind(false), the object will be created as usual (at the risk of having n objects with same tag).
+    void SetOnExternalConflictRebind(bool mset) { this->on_external_conflict_rebind = mset; }
+    
+    /// Returns n. of times that an event of on_external_conflict_rebind type has happened, for profiling/debugging
+    int GetCounterExternalConflictRebind() {  return this->counter_external_conflict_rebind; }
 
     /// Returns true if the class can tolerate missing tokes;
     /// on the contrary the archive must contain a complete set of info about the object that is going to be loaded
