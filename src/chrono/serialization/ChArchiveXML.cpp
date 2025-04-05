@@ -472,28 +472,30 @@ bool ChArchiveInXML::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, st
         }
 
         if (!is_reference) {
-            // See ChArchiveJSON for detailed explanation
-            bVal.value().CallConstructor(*this, true_classname);
-
-            void* new_ptr_void = bVal.value().GetRawPtr();
 
             size_t obj_ID = 0;
             if (rapidxml::xml_attribute<>* midval = level->first_attribute("_object_ID")) {
                 try {
                     obj_ID = std::stoull(midval->value());
-                } catch (...) {
+                }
+                catch (...) {
                     throw std::runtime_error("Invalid _object_ID in '" + std::string(bVal.name()) + "'");
                 }
             }
 
-            if (new_ptr_void) {
-                PutNewPointer(new_ptr_void, obj_ID);
+            // See ChArchiveJSON for detailed explanation
+            bVal.value().CallConstructor(*this, true_classname);
+
+            new_ptr = bVal.value().GetRawPtr();
+
+            if (new_ptr) {
+                PutNewPointer(new_ptr, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this, true_classname);
             } else {
                 throw std::runtime_error("Archive cannot create object " + std::string(bVal.name()) + "\n");
             }
-            new_ptr = bVal.value().GetRawPtr();
+
         } else {
             if (ref_ID) {
                 if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {

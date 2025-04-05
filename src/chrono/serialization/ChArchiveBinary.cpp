@@ -228,16 +228,16 @@ bool ChArchiveInBinary::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr,
         // see ChArchiveJSON for further details
         bVal.value().CallConstructor(*this, true_classname);
 
-        void* new_ptr_void = bVal.value().GetRawPtr();
+        new_ptr = bVal.value().GetRawPtr();
 
-        if (new_ptr_void) {
-            PutNewPointer(new_ptr_void, obj_ID);
+        if (new_ptr) {
+            PutNewPointer(new_ptr, obj_ID);
             // 3) Deserialize
             bVal.value().CallArchiveIn(*this, true_classname);
         } else {
             throw std::runtime_error("Archive cannot create object" + true_classname);
         }
-        new_ptr = bVal.value().GetRawPtr();
+
     }
 
     ////TODO: DARIOM check if it is needed

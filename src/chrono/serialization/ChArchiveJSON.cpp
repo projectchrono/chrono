@@ -520,10 +520,6 @@ bool ChArchiveInJSON::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, s
     }
 
     if (!is_reference) {
-        // 2) Dynamically create: call new(), or deserialize constructor params+call new()
-        // The constructor to be called will be the one specified by true_classname (i.e. the true type of the
-        // object), not by the type of bVal.value() which is just the type of the pointer
-        bVal.value().CallConstructor(*this, true_classname);
 
         size_t obj_ID = 0;
         if (level->HasMember("_object_ID")) {
@@ -531,14 +527,19 @@ bool ChArchiveInJSON::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, s
                 throw std::runtime_error("Wrong _object_ID for entry: '" + std::string(bVal.name()) + "'");
             }
             obj_ID = (*level)["_object_ID"].GetUint64();
-        } else
+        }
+        else
             throw std::runtime_error("Missing _object_ID for entry: '" + std::string(bVal.name()) + "'");
 
-        // Calling bVal.value().GetRawPtr() will retrieve the true address of the object
-        void* true_ptr = bVal.value().GetRawPtr();
+        // 2) Dynamically create: call new(), or deserialize constructor params+call new()
+        // The constructor to be called will be the one specified by true_classname (i.e. the true type of the
+        // object), not by the type of bVal.value() which is just the type of the pointer
+        bVal.value().CallConstructor(*this, true_classname);
 
-        if (true_ptr) {
-            PutNewPointer(true_ptr, obj_ID);
+        new_ptr = bVal.value().GetRawPtr();
+
+        if (new_ptr) {
+            PutNewPointer(new_ptr, obj_ID);
             // 3) Deserialize
             // It is required to specify the "true_classname" since the bValue.value() might be of a different type
             // compared to the true object, while we need to call the ArchiveIn of the proper derived class.
@@ -546,8 +547,7 @@ bool ChArchiveInJSON::in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, s
         } else {
             throw std::runtime_error("Archive cannot create object " + std::string(bVal.name()) + "\n");
         }
-
-        new_ptr = bVal.value().GetRawPtr();
+        
     } else {
         if (ref_ID) {
             if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
