@@ -539,18 +539,31 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body
 
 // ----------------------------------------------------------------------------
 
-void ChFsiProblemSPH::ShiftBCE(const ChVector3d& shift_dist) {
-    shiftBCE(ToReal3(shift_dist), *m_sysSPH.m_data_mgr);
+void ChFsiProblemSPH::BCEShift(const ChVector3d& shift_dist) {
+    FsiDataManager::DefaultProperties props;
+    props.rho0 = m_sysSPH.GetDensity();
+    props.mu0 = m_sysSPH.GetViscosity();
+
+    shift_BCE(ToReal3(shift_dist), props, *m_sysSPH.m_data_mgr);
 }
 
-void ChFsiProblemSPH::ShiftSPH(const ChVector3d& shift_dist) {
-    shiftSPH(ToReal3(shift_dist), *m_sysSPH.m_data_mgr);
+void ChFsiProblemSPH::SPHShift(const ChVector3d& shift_dist) {
+    FsiDataManager::DefaultProperties props;
+    props.rho0 = m_sysSPH.GetDensity();
+    props.mu0 = m_sysSPH.GetViscosity();
+
+    shift_SPH(ToReal3(shift_dist), props, *m_sysSPH.m_data_mgr);
 }
 
-void ChFsiProblemSPH::MoveSPH(const ChAABB& aabb_src, const ChAABB& aabb_dest) {
-    moveSPH(ToReal3(aabb_src.min), ToReal3(aabb_src.max),    //
-            ToReal3(aabb_dest.min), ToReal3(aabb_dest.max),  //
-            Real(m_spacing), *m_sysSPH.m_data_mgr);
+void ChFsiProblemSPH::SPHMoveAABB(const ChAABB& aabb_src, const ChAABB& aabb_dest) {
+    FsiDataManager::DefaultProperties props;
+    props.rho0 = m_sysSPH.GetDensity();
+    props.mu0 = m_sysSPH.GetViscosity();
+
+    moveAABB_SPH(ToReal3(aabb_src.min), ToReal3(aabb_src.max),    //
+                 ToReal3(aabb_dest.min), ToReal3(aabb_dest.max),  //
+                 Real(m_spacing),                                 //
+                 props, *m_sysSPH.m_data_mgr);                    //
 }
 
 // ============================================================================

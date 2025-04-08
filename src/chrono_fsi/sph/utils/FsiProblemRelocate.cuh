@@ -28,15 +28,16 @@ namespace sph {
 /// @addtogroup fsisph_utils
 /// @{
 
-void shiftBCE(const Real3& shift, FsiDataManager& dm);
-void shiftSPH(const Real3& shift, FsiDataManager& dm);
+void shift_BCE(const Real3& shift, const FsiDataManager::DefaultProperties& props, FsiDataManager& dm);
+void shift_SPH(const Real3& shift, const FsiDataManager::DefaultProperties& props, FsiDataManager& dm);
 
-void moveSPH(const Real3& aabb_src_min,
-             const Real3& aabb_src_max,
-             const Real3& aabb_dest_min,
-             const Real3& aabb_dest_max,
-             Real spacing,
-             FsiDataManager& dm);
+void moveAABB_SPH(const Real3& aabb_src_min,
+                  const Real3& aabb_src_max,
+                  const Real3& aabb_dest_min,
+                  const Real3& aabb_dest_max,
+                  Real spacing,
+                  const FsiDataManager::DefaultProperties& props,
+                  FsiDataManager& dm);
 
 /// @} fsisph_utils
 

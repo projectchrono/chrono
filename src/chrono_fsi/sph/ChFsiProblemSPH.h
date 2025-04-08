@@ -272,9 +272,9 @@ class CH_FSI_API ChFsiProblemSPH {
 
     // Only derived classes can use the following particle and marker relocation functions
 
-    void ShiftBCE(const ChVector3d& shift_dist);
-    void ShiftSPH(const ChVector3d& shift_dist);
-    void MoveSPH(const ChAABB& aabb_src, const ChAABB& aabb_dest);
+    void BCEShift(const ChVector3d& shift_dist);
+    void SPHShift(const ChVector3d& shift_dist);
+    void SPHMoveAABB(const ChAABB& aabb_src, const ChAABB& aabb_dest);
 
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system

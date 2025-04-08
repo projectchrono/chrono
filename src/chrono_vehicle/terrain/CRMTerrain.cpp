@@ -108,8 +108,8 @@ void CRMTerrain::Synchronize(double time) {
     ChDebugLog("Move patch (" << dist << " < " << m_buffer_dist << ")   shift: " << m_shift_dist);
 
     // Move patch (operate directly on device data)
-    ShiftBCE(ChVector3d(m_shift_dist, 0, 0));
-    MoveSPH(m_rearAABB, m_frontAABB);
+    BCEShift(ChVector3d(m_shift_dist, 0, 0));
+    SPHMoveAABB(m_rearAABB, m_frontAABB);
 
     m_rear += m_shift_dist;
     m_front += m_shift_dist;

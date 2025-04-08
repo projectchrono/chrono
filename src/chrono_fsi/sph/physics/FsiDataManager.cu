@@ -926,7 +926,7 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
 
 // Relocation function to shift marker position by a given vector
 struct shift_op {
-    shift_op(const Real3& shift) : s(shift) {}
+    shift_op(const Real3& shift, const FsiDataManager::DefaultProperties& props) : s(shift), p(props) {}
 
     template <typename T>
     __device__ T operator()(const T& a) const {
@@ -936,22 +936,21 @@ struct shift_op {
         pos += s;
         thrust::get<0>(a) = mR4(pos, posw.w);
 
-        //// TODO: what should we do with all other particle properties?
-        ////    1. Consider them as an initialization
-        ////       velocity <- 0
-        ////       density <- init_density
-        ////       pressure <- ???
-        ////       mu <- ??
-        ////       tau <-- 0?
-        ////    2. Let caller specify somehow?
+        // Reset all other marker properties
+        Real3 zero = mR3(0);
+        thrust::get<1>(a) = zero;                                        // velocity
+        thrust::get<2>(a) = mR4(p.rho0, 0, p.mu0, thrust::get<2>(a).w);  // rho, pres, mu, type
+        thrust::get<3>(a) = zero;                                        // tau diagonal
+        thrust::get<4>(a) = zero;                                        // tau off-diagonal
 
         return a;
     }
 
     Real3 s;
+    FsiDataManager::DefaultProperties p;
 };
 
-void FsiDataManager::Shift(MarkerType type, const Real3& shift) const {
+void FsiDataManager::Shift(MarkerType type, const Real3& shift, const DefaultProperties& props) const {
     // Get start and end indices in marker data vectors based on specified type
     int start_idx = 0;
     int end_idx = 0;
@@ -967,7 +966,7 @@ void FsiDataManager::Shift(MarkerType type, const Real3& shift) const {
     }
 
     // Transform all markers in the specified range
-    thrust::for_each(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), shift_op(shift));
+    thrust::for_each(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), shift_op(shift, props));
 }
 
 // --------------------------
@@ -995,23 +994,34 @@ struct inaabb_op {
 
 // Relocation function to move particle in given AABB
 struct toaabb_op {
-    toaabb_op(const Real3& aabb_min, const Real3& aabb_max, Real spacing)
-        : min(aabb_min), max(aabb_max), delta(spacing) {}
+    toaabb_op(const Real3& aabb_min,
+              const Real3& aabb_max,
+              Real spacing,
+              const FsiDataManager::DefaultProperties& props)
+        : min(aabb_min), max(aabb_max), delta(spacing), p(props) {}
 
     template <typename T>
     __device__ T operator()(const T& a) const {
+        // Modify position
         Real4 posw = thrust::get<0>(a);
         Real3 pos = mR3(posw);
-        //// TODO
-        pos += mR3(0, 2, 0);  // testing...
-
+        pos += mR3(0, 2, 0);  // testing...   //// TODO
         thrust::get<0>(a) = mR4(pos, posw.w);
+
+        // Reset all other marker properties
+        Real3 zero = mR3(0);
+        thrust::get<1>(a) = zero;                                        // velocity
+        thrust::get<2>(a) = mR4(p.rho0, 0, p.mu0, thrust::get<2>(a).w);  // rho, pres, mu, type
+        thrust::get<3>(a) = zero;                                        // tau diagonal
+        thrust::get<4>(a) = zero;                                        // tau off-diagonal
+
         return a;
     }
 
     Real3 min;
     Real3 max;
     Real delta;
+    FsiDataManager::DefaultProperties p;
 };
 
 void FsiDataManager::MoveAABB(MarkerType type,
@@ -1019,7 +1029,8 @@ void FsiDataManager::MoveAABB(MarkerType type,
                               const Real3& aabb_src_max,
                               const Real3& aabb_dest_min,
                               const Real3& aabb_dest_max,
-                              Real spacing) const {
+                              Real spacing,
+                              const DefaultProperties& props) const {
     // Get start and end indices in marker data vectors based on specified type
     int start_idx = 0;
     int end_idx = 0;
@@ -1034,10 +1045,17 @@ void FsiDataManager::MoveAABB(MarkerType type,
             break;
     }
 
+    ////for (int i = start_idx; i < start_idx + 10; i++)
+    ////    std::cout << sphMarkers_D->posRadD[i] << " | " << sphMarkers_D->velMasD[i] << std::endl;
+
     thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),  //
                          sphMarkers_D->iterator(start_idx),                                   //
-                         toaabb_op(aabb_dest_min, aabb_dest_max, spacing),                    //
+                         toaabb_op(aabb_dest_min, aabb_dest_max, spacing, props),             //
                          inaabb_op(aabb_src_min, aabb_src_max));                              //
+
+    ////std::cout << "----" << std::endl;
+    ////for (int i = start_idx; i < start_idx + 10; i++)
+    ////    std::cout << sphMarkers_D->posRadD[i] << " | " << sphMarkers_D->velMasD[i] << std::endl;
 }
 
 // --------------------------
@@ -1056,7 +1074,8 @@ struct selector_wrapper {
 };
 
 struct relocate_wrapper {
-    relocate_wrapper(const FsiDataManager::RelocateFunction& user_op) : op(user_op) {}
+    relocate_wrapper(const FsiDataManager::RelocateFunction& user_op, const FsiDataManager::DefaultProperties& props)
+        : op(user_op), p(props) {}
 
     template <typename T>
     __device__ T operator()(const T& a) const {
@@ -1066,22 +1085,23 @@ struct relocate_wrapper {
         op.operator()(pos);
         thrust::get<0>(a) = mR4(pos, posw.w);
 
-        //// TODO: what should we do with all other particle properties?
-        ////    1. Consider them as an initialization
-        ////       velocity <- 0
-        ////       density <- init_density
-        ////       pressure <- ???
-        ////       mu <- ??
-        ////       tau <-- 0?
-        ////    2. Let caller specify somehow?
+        // Reset all other marker properties
+        Real3 zero = mR3(0);
+        thrust::get<1>(a) = zero;                                        // velocity
+        thrust::get<2>(a) = mR4(p.rho0, 0, p.mu0, thrust::get<2>(a).w);  // rho, pres, mu, type
+        thrust::get<3>(a) = zero;                                        // tau diagonal
+        thrust::get<4>(a) = zero;                                        // tau off-diagonal
 
         return a;
     }
 
     const FsiDataManager::RelocateFunction& op;
+    FsiDataManager::DefaultProperties p;
 };
 
-void FsiDataManager::Relocate(MarkerType type, const RelocateFunction& relocate_op) {
+void FsiDataManager::Relocate(MarkerType type,
+                              const RelocateFunction& relocate_op,
+                              const DefaultProperties& props) const {
     // Get start and end indices in marker data vectors based on specified type
     int start_idx = 0;
     int end_idx = 0;
@@ -1096,10 +1116,14 @@ void FsiDataManager::Relocate(MarkerType type, const RelocateFunction& relocate_
             break;
     }
 
-    thrust::for_each(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), relocate_wrapper(relocate_op));
+    thrust::for_each(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),
+                     relocate_wrapper(relocate_op, props));
 }
 
-void FsiDataManager::Relocate(MarkerType type, const SelectorFunction& selector_op, const RelocateFunction& relocate_op) {
+void FsiDataManager::Relocate(MarkerType type,
+                              const RelocateFunction& relocate_op,
+                              const SelectorFunction& selector_op,
+                              const DefaultProperties& props) const {
     // Get start and end indices in marker data vectors based on specified type
     int start_idx = 0;
     int end_idx = 0;
@@ -1114,105 +1138,10 @@ void FsiDataManager::Relocate(MarkerType type, const SelectorFunction& selector_
             break;
     }
 
-    thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),  //
-                         sphMarkers_D->iterator(start_idx),                                   //
-                         relocate_wrapper(relocate_op), selector_wrapper(selector_op));       //
+    thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),    //
+                         sphMarkers_D->iterator(start_idx),                                     //
+                         relocate_wrapper(relocate_op, props), selector_wrapper(selector_op));  //
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-struct modify_tuple1 {
-    modify_tuple1(int factor) : _factor(factor) {}
-    __host__ __device__ void operator()(Real3& a, float& b, float& c) const {
-        a *= _factor;
-        b *= _factor;
-        c *= _factor;
-    }
-    int _factor;
-};
-
-struct modify_tuple2 {
-    modify_tuple2(int factor) : _factor(factor) {}
-    template <typename T>
-    __host__ __device__ void operator()(const T a) const {
-        thrust::get<0>(a) *= _factor;
-        thrust::get<1>(a) *= _factor;
-        thrust::get<2>(a) *= _factor;
-    }
-    int _factor;
-};
-
-void FsiDataManager::Shift(MarkerType type, const RelocateFunction& op) {
-    size_t n = 5;
-    int start_idx = 1;
-    int end_idx = start_idx + 3;
-
-    thrust::device_vector<Real3> X(n);
-    thrust::device_vector<float> Y(n);
-    thrust::device_vector<float> Z(n);
-
-    X[0] = mR3(0,0,0), X[1] = mR3(1,1,1), X[2] = mR3(2,2,2), X[3] = mR3(3,3,3), X[4] = mR3(4,4,4);
-    Y[0] = 4, Y[1] = 5, Y[2] = 6, Y[3] = 7, Y[4] = 8;
-    Z[0] = 7, Z[1] = 8, Z[2] = 9, Z[3] = 10, Z[4] = 11;
-
-
-    thrust::host_vector<Real3> Xh = X;
-    thrust::host_vector<float> Yh = Y;
-    thrust::host_vector<float> Zh = Z;
-    std::cout << "original" << std::endl;
-    for (const auto& v : Xh)
-        std::cout << v << "  ";
-    std::cout << std::endl;
-    for (const auto& v : Yh)
-        std::cout << v << "  ";
-    std::cout << std::endl;
-    for (const auto& v : Zh)
-        std::cout << v << "  ";
-    std::cout << std::endl;
-    
-    thrust::for_each(
-        thrust::device,
-        thrust::make_zip_iterator(
-            thrust::make_tuple(X.begin() + start_idx, Y.begin() + start_idx, Z.begin() + start_idx)),
-        thrust::make_zip_iterator(thrust::make_tuple(X.begin() + end_idx, Y.begin() + end_idx, Z.begin() + end_idx)),
-        thrust::make_zip_function(modify_tuple1(2)));
-
-    //thrust::for_each(
-    //    thrust::device,
-    //    thrust::make_zip_iterator(thrust::make_tuple(X.begin() + start_idx, Y.begin() + start_idx, Z.begin() + start_idx)),
-    //    thrust::make_zip_iterator(thrust::make_tuple(X.begin() + end_idx, Y.begin() + end_idx, Z.begin() + end_idx)),
-    //    modify_tuple2(2));
-
-    std::cout << "modify in place" << std::endl;
-    Xh = X;
-    Yh = Y;
-    Zh = Z;
-    std::cout << "original" << std::endl;
-    for (const auto& v : Xh)
-        std::cout << v << "  ";
-    std::cout << std::endl;
-    for (const auto& v : Yh)
-        std::cout << v << "  ";
-    std::cout << std::endl;
-    for (const auto& v : Zh)
-        std::cout << v << "  ";
-    std::cout << std::endl;
-}
-*/
 
 }  // namespace sph
 }  // end namespace fsi

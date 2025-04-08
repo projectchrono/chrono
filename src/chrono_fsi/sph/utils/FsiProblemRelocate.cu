@@ -42,13 +42,14 @@ struct shift_op : public FsiDataManager::RelocateFunction {
     Real3 s;
 };
 
-void shiftBCE(const Real3& shift, FsiDataManager& dm) {
-    dm.Shift(MarkerType::BCE_WALL, shift);
-    ////dm.Relocate(MarkerType::BCE_WALL, shift_op(shift));
+void shift_BCE(const Real3& shift, const FsiDataManager::DefaultProperties& props, FsiDataManager& dm) {
+    dm.Shift(MarkerType::BCE_WALL, shift, props);
+    ////dm.Relocate(MarkerType::BCE_WALL, shift_op(shift), props);
 }
 
-void shiftSPH(const Real3& shift, FsiDataManager& dm) {
-    dm.Shift(MarkerType::SPH_PARTICLE, shift);
+void shift_SPH(const Real3& shift, const FsiDataManager::DefaultProperties& props, FsiDataManager& dm) {
+    dm.Shift(MarkerType::SPH_PARTICLE, shift, props);
+    ////dm.Relocate(MarkerType::SPH_PARTICLE, shift_op(shift), props);
 }
 
 // -----------------------------------------------------------------------------
@@ -74,21 +75,23 @@ struct toaabb_op : public FsiDataManager::RelocateFunction {
     toaabb_op(const Real3& aabb_min, const Real3& aabb_max, Real spacing)
         : min(aabb_min), max(aabb_max), delta(spacing) {}
     __device__ virtual void operator()(Real3& pos) const override {
-        //// TODO
-        pos += mR3(0, 2, 0);  // testing...
+        pos += mR3(0, 2, 0);  // testing... //// TODO
     }
     Real3 min;
     Real3 max;
     Real delta;
 };
 
-void moveSPH(const Real3& aabb_src_min,
-             const Real3& aabb_src_max,
-             const Real3& aabb_dest_min,
-             const Real3& aabb_dest_max,
-             Real spacing,
-             FsiDataManager& dm) {
-    dm.MoveAABB(MarkerType::SPH_PARTICLE, aabb_src_min, aabb_src_max, aabb_dest_min, aabb_dest_max, spacing);
+void moveAABB_SPH(const Real3& aabb_src_min,
+                  const Real3& aabb_src_max,
+                  const Real3& aabb_dest_min,
+                  const Real3& aabb_dest_max,
+                  Real spacing,
+                  const FsiDataManager::DefaultProperties& props,
+                  FsiDataManager& dm) {
+    dm.MoveAABB(MarkerType::SPH_PARTICLE, aabb_src_min, aabb_src_max, aabb_dest_min, aabb_dest_max, spacing, props);
+    ////dm.Relocate(MarkerType::SPH_PARTICLE, toaabb_op(aabb_dest_min, aabb_dest_max, spacing),
+    ////            inaabb_op(aabb_src_min, aabb_src_max), props);
 }
 
 }  // namespace sph
