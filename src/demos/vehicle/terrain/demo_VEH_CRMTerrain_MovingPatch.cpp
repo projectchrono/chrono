@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     // Parameters
     // ----------
 
-    double tend = 30;         // simulation end time
+    double tend = 300;        // simulation end time
     double render_fps = 200;  // rendering FPS
 
     // Terrain dimensions
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     // Camera location
     enum CameraType { FIXED, FRONT, TRACK };
-    CameraType cam_type = TRACK;
+    CameraType cam_type = FIXED;
 
     // -------------
     // Create system
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
 
     visVSG->SetWindowTitle("CRM moving patch demo");
     visVSG->SetCameraVertical(CameraVerticalDir::Z);
-    visVSG->AddCamera(ChVector3d(0, -5, 0), ChVector3d(0, 0, 0));
+    visVSG->AddCamera(ChVector3d(0, -3, 1), ChVector3d(0, 0, 0));
     visVSG->SetWindowSize(1280, 720);
     visVSG->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
     visVSG->EnableSkyBox();
@@ -247,14 +247,14 @@ int main(int argc, char* argv[]) {
         terrain.Synchronize(time);
 
         // Advance dynamics of multibody and fluid systems concurrently
-        /*
+        
         static bool moved = false;
         if (terrain.PatchMoved())
             moved = true;
         if (!moved)
             terrain.DoStepDynamics(step_size);
-        */
-        terrain.DoStepDynamics(step_size);
+        
+        ////terrain.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

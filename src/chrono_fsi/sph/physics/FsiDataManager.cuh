@@ -83,7 +83,7 @@ struct SphMarkerDataD {
     thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the total stress (diagonal) of particles
     thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the total stress (off-diagonal) of particles
 
-    zipIterSphD iterator();
+    zipIterSphD iterator(int offset);
     void resize(size_t s);
 };
 
@@ -95,7 +95,7 @@ struct SphMarkerDataH {
     thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the total stress (diagonal) of particles
     thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the total stress (off-diagonal) of particles
 
-    zipIterSphH iterator();
+    zipIterSphH iterator(int offset);
     void resize(size_t s);
 };
 
@@ -108,7 +108,7 @@ struct FsiBodyStateH {
     thrust::host_vector<Real3> ang_vel;  ///< body angular velocities (local frame)
     thrust::host_vector<Real3> ang_acc;  ///< body angular accelerations (local frame)
 
-    zipIterRigidH iterator();
+    zipIterRigidH iterator(int offset);
     void Resize(size_t s);
 };
 
@@ -122,7 +122,8 @@ struct FsiBodyStateD {
     thrust::device_vector<Real3> ang_vel;  ///< body angular velocities (local frame)
     thrust::device_vector<Real3> ang_acc;  ///< body angular accelerations (local frame)
 
-    zipIterRigidD iterator();
+    zipIterRigidD iterator(int offset);
+
     void CopyFromH(const FsiBodyStateH& bodyStateH);
     FsiBodyStateD& operator=(const FsiBodyStateD& other);
     void Resize(size_t s);
@@ -214,6 +215,7 @@ struct Counters {
     size_t numBceMarkers;       ///< total number of BCE markers
     size_t numAllMarkers;       ///< total number of particles in the simulation
 
+    size_t startBoundaryMarkers;  ///< index of first BCE marker on boundaries
     size_t startRigidMarkers;     ///< index of first BCE marker on first rigid body
     size_t startFlexMarkers1D;    ///< index of first BCE marker on first flex segment
     size_t startFlexMarkers2D;    ///< index of first BCE marker on first flex face
@@ -321,15 +323,27 @@ struct FsiDataManager {
     // ------------------------
 
     struct SelectorFunction {
-        __host__ __device__ virtual bool operator()(const Real3& x) const = 0;
+        __device__ virtual bool operator()(const Real3& x) const = 0;
     };
 
     struct RelocateFunction {
-        __host__ __device__ virtual Real3 operator()(Real3& x) const = 0;
+        __device__ virtual void operator()(Real3& x) const = 0;
     };
 
-    void Shift(MarkerType type, const RelocateFunction& op_relocate);
-    void Move(MarkerType type, const SelectorFunction& op_select, const RelocateFunction& op_relocate);
+    void Relocate(MarkerType type, const RelocateFunction& relocate_op);
+    void Relocate(MarkerType type, const SelectorFunction& selector_op, const RelocateFunction& relocate_op);
+
+
+    /// Shift position of all markers of specified type by the given vector.
+    void Shift(MarkerType type, const Real3& shift) const;
+
+    /// Move particles of specified type from the source AABB to the destination AABB.
+    void MoveAABB(MarkerType type,
+                  const Real3& aabb_src_min,
+                  const Real3& aabb_src_max,
+                  const Real3& aabb_dest_min,
+                  const Real3& aabb_dest_max,
+                  Real spacing) const;
 
     // ------------------------
 

@@ -12,7 +12,7 @@
 // Author: Radu Serban
 // =============================================================================
 //
-// Device ulities for moving SPH particles and BCE markers external to the solver
+// Device utilities for moving SPH particles and BCE markers external to the solver
 //
 // =============================================================================
 
@@ -28,13 +28,14 @@ namespace sph {
 /// @addtogroup fsisph_utils
 /// @{
 
-void shiftBCE(const Real3& shift_dist, double spacing, FsiDataManager& dm);
-void shiftSPH(const Real3& shift_dist, double spacing, FsiDataManager& dm);
+void shiftBCE(const Real3& shift, FsiDataManager& dm);
+void shiftSPH(const Real3& shift, FsiDataManager& dm);
 
-void moveSPH(const FsiDataManager::SelectorFunction& op_select,
-             const Real3& aabb_min,
-             const Real3& aabb_max,
-             double spacing,
+void moveSPH(const Real3& aabb_src_min,
+             const Real3& aabb_src_max,
+             const Real3& aabb_dest_min,
+             const Real3& aabb_dest_max,
+             Real spacing,
              FsiDataManager& dm);
 
 /// @} fsisph_utils

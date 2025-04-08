@@ -274,10 +274,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     void ShiftBCE(const ChVector3d& shift_dist);
     void ShiftSPH(const ChVector3d& shift_dist);
-    struct MoveSelectionFunction {
-        virtual bool operator()(const ChVector3d& p) const = 0;
-    };
-    void MoveSPH(const MoveSelectionFunction& op, const ChAABB& aabb);
+    void MoveSPH(const ChAABB& aabb_src, const ChAABB& aabb_dest);
 
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system

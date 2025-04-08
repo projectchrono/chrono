@@ -79,9 +79,14 @@ void CRMTerrain::ConstructMovingPatch(const ChVector3d& box_size,
     m_rear = 0;
     m_front = box_size.x();
 
-    // m_rear_cells:   current location of inner-most rear BCE X layer
-    // m_front_cells:  current location of inner-most front BCE X layer 
-    // m_shifty_cells: number of relocated SPH X layers 
+    m_rearAABB = ChAABB(ChVector3d(-m_spacing + m_rear, -m_spacing - box_size.y(), -m_spacing),                    //
+                        ChVector3d(m_rear + m_shift_dist, +m_spacing + box_size.y(), +m_spacing + box_size.z()));  //
+    m_frontAABB = ChAABB(ChVector3d(m_front, -box_size.y(), 0),                                                    //
+                         ChVector3d(m_front + m_shift_dist, +box_size.y(), box_size.z()));                         //
+
+    // m_rear_cells:  current location of inner-most rear BCE X layer
+    // m_front_cells: current location of inner-most front BCE X layer 
+    // m_shift_cells: number of relocated SPH X layers 
     m_rear_cells = 0;
     m_front_cells = std::round(m_front / m_spacing) + 1;
     m_shift_cells = std::round(m_shift_dist / m_spacing);
@@ -103,8 +108,16 @@ void CRMTerrain::Synchronize(double time) {
     ChDebugLog("Move patch (" << dist << " < " << m_buffer_dist << ")   shift: " << m_shift_dist);
 
     // Move patch (operate directly on device data)
-    ////ShiftBCE(ChVector3d(m_shift_dist, 0, 0));
-    ////MoveSPH(...);
+    ShiftBCE(ChVector3d(m_shift_dist, 0, 0));
+    MoveSPH(m_rearAABB, m_frontAABB);
+
+    m_rear += m_shift_dist;
+    m_front += m_shift_dist;
+    m_rearAABB.min.x() = -m_spacing + m_rear;
+    m_rearAABB.max.x() = m_rear + m_shift_dist;
+    m_frontAABB.min.x() = m_front;
+    m_frontAABB.max.x() = m_front + m_shift_dist;
+
     m_moved = true;
 }
 

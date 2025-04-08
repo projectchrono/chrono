@@ -85,6 +85,10 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     double m_shift_dist;                 ///< length of relocated volume
     double m_rear;                       ///< rear X boundary location
     double m_front;                      ///< front X boundary location
+
+    ChAABB m_rearAABB;
+    ChAABB m_frontAABB;
+
     unsigned int m_shift_cells;          ///< length of relocated volume in grid cells
     double m_rear_cells;                 ///< rear X boundary location in grid cells
     double m_front_cells;                ///< front X boundary location in grid cells

@@ -22,6 +22,7 @@
 
 #include <cuda_runtime.h>
 #include <cmath>
+#include <ostream>
 
 #include "chrono_fsi/ChConfigFsi.h"
 
@@ -65,6 +66,24 @@ struct Real4 {
     Real z;
     Real w;
 };
+
+/// Insertion of a Real2 to output stream.
+inline std::ostream& operator<<(std::ostream& out, const Real2& v) {
+    out << v.x << "  " << v.y;
+    return out;
+}
+
+/// Insertion of a Real3 to output stream.
+inline std::ostream& operator<<(std::ostream& out, const Real3& v) {
+    out << v.x << "  " << v.y << "  " << v.z;
+    return out;
+}
+
+/// Insertion of a Real4 to output stream.
+inline std::ostream& operator<<(std::ostream& out, const Real4& v) {
+    out << v.x << "  " << v.y << "  " << v.z << "  " << v.w;
+    return out;
+}
 
 /// @} fsisph
 

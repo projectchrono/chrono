@@ -38,9 +38,10 @@ namespace sph {
 
 //---------------------------------------------------------------------------------------
 
-zipIterSphD SphMarkerDataD::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin(),
-                                                        tauXxYyZzD.begin(), tauXyXzYzD.begin()));
+zipIterSphD SphMarkerDataD::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin() + offset, velMasD.begin() + offset,
+                                                        rhoPresMuD.begin() + offset, tauXxYyZzD.begin() + offset,
+                                                        tauXyXzYzD.begin() + offset));
 }
 
 void SphMarkerDataD::resize(size_t s) {
@@ -51,9 +52,10 @@ void SphMarkerDataD::resize(size_t s) {
     tauXyXzYzD.resize(s);
 }
 
-zipIterSphH SphMarkerDataH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin(),
-                                                        tauXxYyZzH.begin(), tauXyXzYzH.begin()));
+zipIterSphH SphMarkerDataH::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin() + offset, velMasH.begin() + offset,
+                                                        rhoPresMuH.begin() + offset, tauXxYyZzH.begin() + offset,
+                                                        tauXyXzYzH.begin() + offset));
 }
 
 void SphMarkerDataH::resize(size_t s) {
@@ -66,9 +68,10 @@ void SphMarkerDataH::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-zipIterRigidH FsiBodyStateH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
-                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
+zipIterRigidH FsiBodyStateH::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset,
+                                                        lin_acc.begin() + offset, rot.begin() + offset,
+                                                        ang_vel.begin() + offset, ang_acc.begin() + offset));
 }
 
 void FsiBodyStateH::Resize(size_t s) {
@@ -80,9 +83,10 @@ void FsiBodyStateH::Resize(size_t s) {
     ang_acc.resize(s);
 }
 
-zipIterRigidD FsiBodyStateD::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
-                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
+zipIterRigidD FsiBodyStateD::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset,
+                                                        lin_acc.begin() + offset, rot.begin() + offset,
+                                                        ang_vel.begin() + offset, ang_acc.begin() + offset));
 }
 
 void FsiBodyStateD::Resize(size_t s) {
@@ -234,18 +238,19 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
     countersH->numFsiNodes1D = num_fsi_nodes1D;
     countersH->numFsiNodes2D = num_fsi_nodes2D;
 
-    countersH->numGhostMarkers = 0;     // Number of ghost particles
-    countersH->numHelperMarkers = 0;    // Number of helper particles
-    countersH->numFluidMarkers = 0;     // Number of fluid SPH particles
-    countersH->numBoundaryMarkers = 0;  // Number of boundary BCE markers
-    countersH->numRigidMarkers = 0;     // Number of rigid BCE markers
-    countersH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment BCE markers
-    countersH->numFlexMarkers2D = 0;    // Number of flexible 2-D face BCE markers
-    countersH->numBceMarkers = 0;       // Total number of BCE markers
-    countersH->numAllMarkers = 0;       // Total number of SPH + BCE particles
-    countersH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
-    countersH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
-    countersH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
+    countersH->numGhostMarkers = 0;       // Number of ghost particles
+    countersH->numHelperMarkers = 0;      // Number of helper particles
+    countersH->numFluidMarkers = 0;       // Number of fluid SPH particles
+    countersH->numBoundaryMarkers = 0;    // Number of boundary BCE markers
+    countersH->numRigidMarkers = 0;       // Number of rigid BCE markers
+    countersH->numFlexMarkers1D = 0;      // Number of flexible 1-D segment BCE markers
+    countersH->numFlexMarkers2D = 0;      // Number of flexible 2-D face BCE markers
+    countersH->numBceMarkers = 0;         // Total number of BCE markers
+    countersH->numAllMarkers = 0;         // Total number of SPH + BCE particles
+    countersH->startBoundaryMarkers = 0;  // Start index of the boundary BCE markers
+    countersH->startRigidMarkers = 0;     // Start index of the rigid BCE markers
+    countersH->startFlexMarkers1D = 0;    // Start index of the 1-D flexible BCE markers
+    countersH->startFlexMarkers2D = 0;    // Start index of the 2-D flexible BCE markers
 
     size_t rSize = referenceArray.size();
 
@@ -287,7 +292,8 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
                                countersH->numFlexMarkers1D + countersH->numFlexMarkers2D;
     countersH->numAllMarkers = countersH->numFluidMarkers + countersH->numBceMarkers;
 
-    countersH->startRigidMarkers = countersH->numFluidMarkers + countersH->numBoundaryMarkers;
+    countersH->startBoundaryMarkers = countersH->numFluidMarkers;
+    countersH->startRigidMarkers = countersH->startBoundaryMarkers + countersH->numBoundaryMarkers;
     countersH->startFlexMarkers1D = countersH->startRigidMarkers + countersH->numRigidMarkers;
     countersH->startFlexMarkers2D = countersH->startFlexMarkers1D + countersH->numFlexMarkers1D;
 }
@@ -463,7 +469,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         vel_XSPH_D.shrink_to_fit();
 
         // Update max particles to match new capacity
-        m_max_extended_particles = markersProximity_D->gridMarkerHashD.capacity();
+        m_max_extended_particles = (uint)markersProximity_D->gridMarkerHashD.capacity();
     }
 }
 // Resize data based on the active particles
@@ -918,79 +924,295 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-struct MoveFunction {
-    typedef thrust::tuple<Real4, Real3, Real4, Real3, Real3> TupleType;
+// Relocation function to shift marker position by a given vector
+struct shift_op {
+    shift_op(const Real3& shift) : s(shift) {}
 
-    MoveFunction(const FsiDataManager::RelocateFunction& user_op) : op(user_op) {}
-    __host__ __device__ void operator()(Real4& a, Real3& b, Real4& c, Real3& d, Real3& e);
+    template <typename T>
+    __device__ T operator()(const T& a) const {
+        // Modify position
+        Real4 posw = thrust::get<0>(a);
+        Real3 pos = mR3(posw);
+        pos += s;
+        thrust::get<0>(a) = mR4(pos, posw.w);
+
+        //// TODO: what should we do with all other particle properties?
+        ////    1. Consider them as an initialization
+        ////       velocity <- 0
+        ////       density <- init_density
+        ////       pressure <- ???
+        ////       mu <- ??
+        ////       tau <-- 0?
+        ////    2. Let caller specify somehow?
+
+        return a;
+    }
+
+    Real3 s;
+};
+
+void FsiDataManager::Shift(MarkerType type, const Real3& shift) const {
+    // Get start and end indices in marker data vectors based on specified type
+    int start_idx = 0;
+    int end_idx = 0;
+    switch (type) {
+        case MarkerType::BCE_WALL:
+            start_idx = (int)countersH->startBoundaryMarkers;
+            end_idx = start_idx + (int)countersH->numBoundaryMarkers;
+            break;
+        case MarkerType::SPH_PARTICLE:
+            start_idx = 0;
+            end_idx = start_idx + (int)countersH->numFluidMarkers;
+            break;
+    }
+
+    // Transform all markers in the specified range
+    thrust::for_each(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), shift_op(shift));
+}
+
+// --------------------------
+
+// Selector function to find particles in a given AABB
+struct inaabb_op {
+    inaabb_op(const Real3& aabb_min, const Real3& aabb_max) : min(aabb_min), max(aabb_max) {}
+
+    template <typename T>
+    __device__ bool operator()(const T& a) const {
+        Real4 posw = thrust::get<0>(a);
+        Real3 pos = mR3(posw);
+        if (pos.x < min.x || pos.x > max.x)
+            return false;
+        if (pos.y < min.y || pos.y > max.y)
+            return false;
+        if (pos.z < min.z || pos.z > max.z)
+            return false;
+        return true;
+    }
+
+    Real3 min;
+    Real3 max;
+};
+
+// Relocation function to move particle in given AABB
+struct toaabb_op {
+    toaabb_op(const Real3& aabb_min, const Real3& aabb_max, Real spacing)
+        : min(aabb_min), max(aabb_max), delta(spacing) {}
+
+    template <typename T>
+    __device__ T operator()(const T& a) const {
+        Real4 posw = thrust::get<0>(a);
+        Real3 pos = mR3(posw);
+        //// TODO
+        pos += mR3(0, 2, 0);  // testing...
+
+        thrust::get<0>(a) = mR4(pos, posw.w);
+        return a;
+    }
+
+    Real3 min;
+    Real3 max;
+    Real delta;
+};
+
+void FsiDataManager::MoveAABB(MarkerType type,
+                              const Real3& aabb_src_min,
+                              const Real3& aabb_src_max,
+                              const Real3& aabb_dest_min,
+                              const Real3& aabb_dest_max,
+                              Real spacing) const {
+    // Get start and end indices in marker data vectors based on specified type
+    int start_idx = 0;
+    int end_idx = 0;
+    switch (type) {
+        case MarkerType::BCE_WALL:
+            start_idx = (int)countersH->startBoundaryMarkers;
+            end_idx = start_idx + (int)countersH->numBoundaryMarkers;
+            break;
+        case MarkerType::SPH_PARTICLE:
+            start_idx = 0;
+            end_idx = start_idx + (int)countersH->numFluidMarkers;
+            break;
+    }
+
+    thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),  //
+                         sphMarkers_D->iterator(start_idx),                                   //
+                         toaabb_op(aabb_dest_min, aabb_dest_max, spacing),                    //
+                         inaabb_op(aabb_src_min, aabb_src_max));                              //
+}
+
+// --------------------------
+
+struct selector_wrapper {
+    selector_wrapper(const FsiDataManager::SelectorFunction& user_op) : op(user_op) {}
+
+    template <typename T>
+    __device__ bool operator()(const T& a) const {
+        Real4 posw = thrust::get<0>(a);
+        Real3 pos = mR3(posw);
+        return op(pos);
+    }
+
+    const FsiDataManager::SelectorFunction& op;
+};
+
+struct relocate_wrapper {
+    relocate_wrapper(const FsiDataManager::RelocateFunction& user_op) : op(user_op) {}
+
+    template <typename T>
+    __device__ T operator()(const T& a) const {
+        // Modify position
+        Real4 posw = thrust::get<0>(a);
+        Real3 pos = mR3(posw);
+        op.operator()(pos);
+        thrust::get<0>(a) = mR4(pos, posw.w);
+
+        //// TODO: what should we do with all other particle properties?
+        ////    1. Consider them as an initialization
+        ////       velocity <- 0
+        ////       density <- init_density
+        ////       pressure <- ???
+        ////       mu <- ??
+        ////       tau <-- 0?
+        ////    2. Let caller specify somehow?
+
+        return a;
+    }
 
     const FsiDataManager::RelocateFunction& op;
 };
 
-__host__ __device__ void MoveFunction::operator()(Real4& a, Real3& b, Real4& c, Real3& d, Real3& e) {
-    Real3 pos = mR3(a);
-    Real w = a.w;
-    op.operator()(pos);
-    a = mR4(pos, w);
-    //// TODO: what should we do with all other particle properties?
-    ////    1. Consider them as an initialization
-    ////       velocity <- 0
-    ////       density <- init_density
-    ////       pressure <- ???
-    ////       mu <- ??
-    ////       tau <-- 0?
-    ////    2. Let caller specify somehow?
-}
-
-void FsiDataManager::Shift(MarkerType type, const RelocateFunction& op) {
+void FsiDataManager::Relocate(MarkerType type, const RelocateFunction& relocate_op) {
     // Get start and end indices in marker data vectors based on specified type
-    //// TODO
     int start_idx = 0;
-    int end_idx = 10;
+    int end_idx = 0;
+    switch (type) {
+        case MarkerType::BCE_WALL:
+            start_idx = (int)countersH->startBoundaryMarkers;
+            end_idx = start_idx + (int)countersH->numBoundaryMarkers;
+            break;
+        case MarkerType::SPH_PARTICLE:
+            start_idx = 0;
+            end_idx = start_idx + (int)countersH->numFluidMarkers;
+            break;
+    }
 
-    // Transform all markers in the specified range
-    //// TODO: check issues here (where is the problem? in the iterators? in the functor?)
-    thrust::for_each(sphMarkers_D->iterator() + start_idx, sphMarkers_D->iterator() + end_idx,
-                     thrust::make_zip_function(MoveFunction(op)));
+    thrust::for_each(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), relocate_wrapper(relocate_op));
 }
 
-void FsiDataManager::Move(MarkerType type, const SelectorFunction& op_select, const RelocateFunction& op_relocate) {
-  //// TODO
+void FsiDataManager::Relocate(MarkerType type, const SelectorFunction& selector_op, const RelocateFunction& relocate_op) {
+    // Get start and end indices in marker data vectors based on specified type
+    int start_idx = 0;
+    int end_idx = 0;
+    switch (type) {
+        case MarkerType::BCE_WALL:
+            start_idx = (int)countersH->startBoundaryMarkers;
+            end_idx = start_idx + (int)countersH->numBoundaryMarkers;
+            break;
+        case MarkerType::SPH_PARTICLE:
+            start_idx = 0;
+            end_idx = start_idx + (int)countersH->numFluidMarkers;
+            break;
+    }
+
+    thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),  //
+                         sphMarkers_D->iterator(start_idx),                                   //
+                         relocate_wrapper(relocate_op), selector_wrapper(selector_op));       //
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
-struct MoveFunction {
-    typedef thrust::tuple<Real4, Real3, Real4, Real3, Real3> TupleType;
-
-    MoveFunction(FsiDataManager::RelocateFunction& user_op) : op(user_op) {}
-    __host__ __device__ TupleType operator()(TupleType& x);
-
-    FsiDataManager::RelocateFunction& op;
+struct modify_tuple1 {
+    modify_tuple1(int factor) : _factor(factor) {}
+    __host__ __device__ void operator()(Real3& a, float& b, float& c) const {
+        a *= _factor;
+        b *= _factor;
+        c *= _factor;
+    }
+    int _factor;
 };
 
-__host__ __device__ MoveFunction::TupleType MoveFunction::operator()(MoveFunction::TupleType& x) {
-    Real3 pos = mR3(thrust::get<0>(x));
-    Real w = thrust::get<0>(x).w;
-    op.operator()(pos);
+struct modify_tuple2 {
+    modify_tuple2(int factor) : _factor(factor) {}
+    template <typename T>
+    __host__ __device__ void operator()(const T a) const {
+        thrust::get<0>(a) *= _factor;
+        thrust::get<1>(a) *= _factor;
+        thrust::get<2>(a) *= _factor;
+    }
+    int _factor;
+};
 
-    TupleType y = x;
-    thrust::get<0>(y) = mR4(pos, w);
+void FsiDataManager::Shift(MarkerType type, const RelocateFunction& op) {
+    size_t n = 5;
+    int start_idx = 1;
+    int end_idx = start_idx + 3;
 
-    return y;
-}
+    thrust::device_vector<Real3> X(n);
+    thrust::device_vector<float> Y(n);
+    thrust::device_vector<float> Z(n);
 
-void FsiDataManager::Shift(MarkerType type, RelocateFunction& op) {
-    // Get start and end indices in marker data vectors based on specified type
-    //// TODO
-    size_t start_idx = 0;
-    size_t end_idx = 10;
+    X[0] = mR3(0,0,0), X[1] = mR3(1,1,1), X[2] = mR3(2,2,2), X[3] = mR3(3,3,3), X[4] = mR3(4,4,4);
+    Y[0] = 4, Y[1] = 5, Y[2] = 6, Y[3] = 7, Y[4] = 8;
+    Z[0] = 7, Z[1] = 8, Z[2] = 9, Z[3] = 10, Z[4] = 11;
 
-    // Transform in place
-    thrust::transform(sphMarkers_D->iterator() + start_idx, sphMarkers_D->iterator() + end_idx,
-                      sphMarkers_D->iterator() + start_idx, MoveFunction(op));
+
+    thrust::host_vector<Real3> Xh = X;
+    thrust::host_vector<float> Yh = Y;
+    thrust::host_vector<float> Zh = Z;
+    std::cout << "original" << std::endl;
+    for (const auto& v : Xh)
+        std::cout << v << "  ";
+    std::cout << std::endl;
+    for (const auto& v : Yh)
+        std::cout << v << "  ";
+    std::cout << std::endl;
+    for (const auto& v : Zh)
+        std::cout << v << "  ";
+    std::cout << std::endl;
+    
+    thrust::for_each(
+        thrust::device,
+        thrust::make_zip_iterator(
+            thrust::make_tuple(X.begin() + start_idx, Y.begin() + start_idx, Z.begin() + start_idx)),
+        thrust::make_zip_iterator(thrust::make_tuple(X.begin() + end_idx, Y.begin() + end_idx, Z.begin() + end_idx)),
+        thrust::make_zip_function(modify_tuple1(2)));
+
+    //thrust::for_each(
+    //    thrust::device,
+    //    thrust::make_zip_iterator(thrust::make_tuple(X.begin() + start_idx, Y.begin() + start_idx, Z.begin() + start_idx)),
+    //    thrust::make_zip_iterator(thrust::make_tuple(X.begin() + end_idx, Y.begin() + end_idx, Z.begin() + end_idx)),
+    //    modify_tuple2(2));
+
+    std::cout << "modify in place" << std::endl;
+    Xh = X;
+    Yh = Y;
+    Zh = Z;
+    std::cout << "original" << std::endl;
+    for (const auto& v : Xh)
+        std::cout << v << "  ";
+    std::cout << std::endl;
+    for (const auto& v : Yh)
+        std::cout << v << "  ";
+    std::cout << std::endl;
+    for (const auto& v : Zh)
+        std::cout << v << "  ";
+    std::cout << std::endl;
 }
 */
-
 
 }  // namespace sph
 }  // end namespace fsi
