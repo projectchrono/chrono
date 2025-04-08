@@ -21,6 +21,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChVector2.h"
+#include "chrono/geometry/ChGeometry.h"
 
 #include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 
@@ -51,6 +52,11 @@ inline ChQuaternion<> ToChQuaternion(const Real4& q4) {
     return ChQuaternion<>(q4.x, q4.y, q4.z, q4.w);
 }
 
+/// Convert a RealAABB to a ChAABB.
+inline ChAABB ToChAABB(const RealAABB& aabb) {
+    return ChAABB(ToChVector(aabb.min), ToChVector(aabb.max));
+}
+
 /// Convert a ChVector2 data structure to a Real2 data structure.
 inline Real2 ToReal2(const ChVector2<>& v2) {
     return mR2(v2.x(), v2.y());
@@ -69,6 +75,11 @@ inline Real4 ToReal4(const ChVector3d& v3, Real m) {
 /// Convert a ChQuaternion data structure to a Real4 data structure.
 inline Real4 ToReal4(const ChQuaternion<>& q4) {
     return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
+}
+
+/// Convert a ChAABB to a RealAABB.
+inline RealAABB ToRealAABB(const ChAABB& aabb) {
+    return RealAABB(ToReal3(aabb.min), ToReal3(aabb.max));
 }
 
 /// @} fsisph_utils

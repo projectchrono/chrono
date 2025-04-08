@@ -31,10 +31,8 @@ namespace sph {
 void shift_BCE(const Real3& shift, const FsiDataManager::DefaultProperties& props, FsiDataManager& dm);
 void shift_SPH(const Real3& shift, const FsiDataManager::DefaultProperties& props, FsiDataManager& dm);
 
-void moveAABB_SPH(const Real3& aabb_src_min,
-                  const Real3& aabb_src_max,
-                  const Real3& aabb_dest_min,
-                  const Real3& aabb_dest_max,
+void moveAABB_SPH(const RealAABB& aabb_src,
+                  const RealAABB& aabb_dest,
                   Real spacing,
                   const FsiDataManager::DefaultProperties& props,
                   FsiDataManager& dm);

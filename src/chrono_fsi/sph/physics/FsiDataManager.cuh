@@ -332,21 +332,17 @@ struct FsiDataManager {
 
     /// Move particles of specified type from the source AABB to the destination AABB.
     void MoveAABB(MarkerType type,
-                  const Real3& aabb_src_min,
-                  const Real3& aabb_src_max,
-                  const Real3& aabb_dest_min,
-                  const Real3& aabb_dest_max,
+                  const RealAABB& aabb_src,
+                  const RealAABB& aabb_dest,
                   Real spacing,
                   const DefaultProperties& props) const;
 
     struct SelectorFunction {
         __device__ virtual bool operator()(const Real3& x) const = 0;
     };
-
     struct RelocateFunction {
         __device__ virtual void operator()(Real3& x) const = 0;
     };
-
     void Relocate(MarkerType type, const RelocateFunction& relocate_op, const DefaultProperties& props) const;
     void Relocate(MarkerType type,
                   const RelocateFunction& relocate_op,

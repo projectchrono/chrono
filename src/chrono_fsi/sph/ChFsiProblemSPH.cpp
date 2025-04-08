@@ -560,10 +560,7 @@ void ChFsiProblemSPH::SPHMoveAABB(const ChAABB& aabb_src, const ChAABB& aabb_des
     props.rho0 = m_sysSPH.GetDensity();
     props.mu0 = m_sysSPH.GetViscosity();
 
-    moveAABB_SPH(ToReal3(aabb_src.min), ToReal3(aabb_src.max),    //
-                 ToReal3(aabb_dest.min), ToReal3(aabb_dest.max),  //
-                 Real(m_spacing),                                 //
-                 props, *m_sysSPH.m_data_mgr);                    //
+    moveAABB_SPH(ToRealAABB(aabb_src), ToRealAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
 }
 
 // ============================================================================

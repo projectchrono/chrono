@@ -20,9 +20,11 @@
 #ifndef CHFSI_DATA_TYPES_H
 #define CHFSI_DATA_TYPES_H
 
-#include <cuda_runtime.h>
 #include <cmath>
 #include <ostream>
+
+#include <cuda_runtime.h>
+#include <cuda/std/limits>
 
 #include "chrono_fsi/ChConfigFsi.h"
 
@@ -65,6 +67,38 @@ struct Real4 {
     Real y;
     Real z;
     Real w;
+};
+
+/// Axis-aligned bounding box (real coordinates).
+struct RealAABB {
+    RealAABB() {
+        constexpr Real v = ::cuda::std::numeric_limits<Real>::max();
+        min.x = +v;
+        min.y = +v;
+        min.z = +v;
+        max.x = -v;
+        max.y = -v;
+        max.z = -v;
+    }
+    RealAABB(const Real3& aabb_min, const Real3& aabb_max) : min(aabb_min), max(aabb_max) {}
+    Real3 min;  ///< low AABB corner
+    Real3 max;  ///< high AABB corner
+};
+
+/// Axis-aligned bounding box (integer grid coordinates).
+struct IntAABB {
+    IntAABB() {
+        constexpr int v = ::cuda::std::numeric_limits<int>::max();
+        min.x = +v;
+        min.y = +v;
+        min.z = +v;
+        max.x = -v;
+        max.y = -v;
+        max.z = -v;
+    }
+    IntAABB(const int3& aabb_min, const int3& aabb_max) : min(aabb_min), max(aabb_max) {}
+    int3 min;  ///< low AABB corner
+    int3 max;  ///< high AABB corner
 };
 
 /// Insertion of a Real2 to output stream.

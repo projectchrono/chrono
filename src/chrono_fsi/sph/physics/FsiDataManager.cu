@@ -973,32 +973,28 @@ void FsiDataManager::Shift(MarkerType type, const Real3& shift, const DefaultPro
 
 // Selector function to find particles in a given AABB
 struct inaabb_op {
-    inaabb_op(const Real3& aabb_min, const Real3& aabb_max) : min(aabb_min), max(aabb_max) {}
+    inaabb_op(const RealAABB& aabb_src) : aabb(aabb_src) {}
 
     template <typename T>
     __device__ bool operator()(const T& a) const {
         Real4 posw = thrust::get<0>(a);
         Real3 pos = mR3(posw);
-        if (pos.x < min.x || pos.x > max.x)
+        if (pos.x < aabb.min.x || pos.x > aabb.max.x)
             return false;
-        if (pos.y < min.y || pos.y > max.y)
+        if (pos.y < aabb.min.y || pos.y > aabb.max.y)
             return false;
-        if (pos.z < min.z || pos.z > max.z)
+        if (pos.z < aabb.min.z || pos.z > aabb.max.z)
             return false;
         return true;
     }
 
-    Real3 min;
-    Real3 max;
+    RealAABB aabb;
 };
 
 // Relocation function to move particle in given AABB
 struct toaabb_op {
-    toaabb_op(const Real3& aabb_min,
-              const Real3& aabb_max,
-              Real spacing,
-              const FsiDataManager::DefaultProperties& props)
-        : min(aabb_min), max(aabb_max), delta(spacing), p(props) {}
+    toaabb_op(const RealAABB& aabb_dest, Real spacing, const FsiDataManager::DefaultProperties& props)
+        : aabb(aabb_dest), delta(spacing), p(props) {}
 
     template <typename T>
     __device__ T operator()(const T& a) const {
@@ -1018,17 +1014,14 @@ struct toaabb_op {
         return a;
     }
 
-    Real3 min;
-    Real3 max;
+    RealAABB aabb;
     Real delta;
     FsiDataManager::DefaultProperties p;
 };
 
 void FsiDataManager::MoveAABB(MarkerType type,
-                              const Real3& aabb_src_min,
-                              const Real3& aabb_src_max,
-                              const Real3& aabb_dest_min,
-                              const Real3& aabb_dest_max,
+                              const RealAABB& aabb_src,
+                              const RealAABB& aabb_dest,
                               Real spacing,
                               const DefaultProperties& props) const {
     // Get start and end indices in marker data vectors based on specified type
@@ -1050,8 +1043,8 @@ void FsiDataManager::MoveAABB(MarkerType type,
 
     thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),  //
                          sphMarkers_D->iterator(start_idx),                                   //
-                         toaabb_op(aabb_dest_min, aabb_dest_max, spacing, props),             //
-                         inaabb_op(aabb_src_min, aabb_src_max));                              //
+                         toaabb_op(aabb_dest, spacing, props),                                //
+                         inaabb_op(aabb_src));                                                //
 
     ////std::cout << "----" << std::endl;
     ////for (int i = start_idx; i < start_idx + 10; i++)
