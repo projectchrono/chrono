@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     double target_speed = 7.0;
     double tend = 30;
     double step_size = 5e-4;
-    double active_box_hdim = 0.4;
+    double active_box_dim = 0.8;
 
     bool render = true;       // use run-time visualization
     double render_fps = 200;  // rendering FPS
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
     // Add track shoes as FSI bodies
     CreateFSITracks(vehicle, terrain);
-    terrain.SetActiveDomain(ChVector3d(active_box_hdim));
+    terrain.SetActiveDomain(ChVector3d(active_box_dim));
 
     cout << "Create terrain..." << endl;
     // Construct flat rectangular CRM terrain

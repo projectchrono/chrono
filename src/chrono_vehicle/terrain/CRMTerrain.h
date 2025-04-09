@@ -41,10 +41,10 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     /// Create a CRM terrain object.
     CRMTerrain(ChSystem& sys, double spacing);
 
-    /// Set half-dimensions of the active domain.
+    /// Set dimensions of the active domain AABB.
     /// This value activates only those SPH particles that are within an AABB of the specified size from an object
     /// interacting with the "fluid" phase.
-    void SetActiveDomain(const ChVector3d& half_dim);
+    void SetActiveDomain(const ChVector3d& box_dim);
 
     /// Set the delay time for the active domain.
     void SetActiveDomainDelay(double delay);

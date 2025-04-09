@@ -587,10 +587,10 @@ void ChFsiFluidSystemSPH::SetSPHMethod(SPHMethod SPH_method) {
     m_paramsH->sph_method = SPH_method;
 }
 
-void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& boxDim) {
-    m_paramsH->boxDimX = boxDim.x();
-    m_paramsH->boxDimY = boxDim.y();
-    m_paramsH->boxDimZ = boxDim.z();
+void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
+    m_paramsH->boxDimX = box_dim.x();
+    m_paramsH->boxDimY = box_dim.y();
+    m_paramsH->boxDimZ = box_dim.z();
 }
 
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides) {
@@ -600,8 +600,8 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
     m_paramsH->periodic_sides = periodic_sides;
 }
 
-void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& boxHalfDim) {
-    m_paramsH->bodyActiveDomain = ToReal3(boxHalfDim);
+void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
+    m_paramsH->bodyActiveDomain = ToReal3(box_dim / 2);
     m_paramsH->use_active_domain = true;
 }
 

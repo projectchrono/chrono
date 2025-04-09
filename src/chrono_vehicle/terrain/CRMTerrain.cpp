@@ -49,8 +49,8 @@ CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
       m_buffer_dist(0),
       m_shift_dist(0) {}
 
-void CRMTerrain::SetActiveDomain(const ChVector3d& half_dim) {
-    GetFluidSystemSPH().SetActiveDomain(half_dim);
+void CRMTerrain::SetActiveDomain(const ChVector3d& box_dim) {
+    GetFluidSystemSPH().SetActiveDomain(box_dim);
 }
 
 void CRMTerrain::SetActiveDomainDelay(double delay) {

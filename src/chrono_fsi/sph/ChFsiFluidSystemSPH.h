@@ -125,7 +125,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     void SetShiftingMethod(ShiftingMethod shifting_method);
 
     /// Set the fluid container dimension
-    void SetContainerDim(const ChVector3d& boxDim);
+    void SetContainerDim(const ChVector3d& box_dim);
 
     /// Set computational domain and periodic boundary conditions on its sides.
     /// `periodic_sides` indicates the directions of the computational domain (axis-aligned) for which periodic boundary
@@ -133,11 +133,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// bit-wise or & and. Default is periodic_sides = NONE.
     void SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides = PeriodicSide::NONE);
 
-    /// Set half-dimensions of the active domain.
+    /// Set dimensions of the active domain AABB.
     /// This value activates only those SPH particles that are within an AABB of the specified size from an object
-    /// interacting with the "fluid" phase. Note that this setting should *not* be used for actual (CFD) simulations,
-    /// but rather oinly when Chrono::FSI is used for continuum representation of granular dynamics (in terramechanics).
-    void SetActiveDomain(const ChVector3d& boxHalfDim);
+    /// interacting with the "fluid" phase.
+    /// Note that this setting should *not* be used for CFD simulations, but rather only when solving problems using the
+    /// CRM (continuum representation of granular dynamics) for terramechanics simulations.
+    void SetActiveDomain(const ChVector3d& box_dim);
 
     /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
     /// This parameter is used for settling operations where all particles must be active through the settling process.

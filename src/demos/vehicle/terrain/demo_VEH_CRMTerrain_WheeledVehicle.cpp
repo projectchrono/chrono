@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     double poisson_ratio = 0.3;
 
     // CRM (moving) active box dimension
-    double active_box_hdim = 0.4;
+    double active_box_dim = 0.8;
     double settling_time = 0;
 
     // Set SPH spacing
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
 
     // Add vehicle wheels as FSI solids
     CreateFSIWheels(vehicle, terrain);
-    terrain.SetActiveDomain(ChVector3d(active_box_hdim));
+    terrain.SetActiveDomain(ChVector3d(active_box_dim));
     terrain.SetActiveDomainDelay(settling_time);
 
     // Construct the terrain and associated path

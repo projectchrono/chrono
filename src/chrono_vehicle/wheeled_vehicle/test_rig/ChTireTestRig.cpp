@@ -625,7 +625,7 @@ void ChTireTestRig::CreateTerrainCRM() {
                        BoxSide::ALL & ~BoxSide::Z_POS);
 
     // Guesstimate of reasonable active domain size
-    terrain->SetActiveDomain(ChVector3d(m_tire->GetRadius() * 2, m_tire->GetWidth() * 2, m_tire->GetRadius() * 2));
+    terrain->SetActiveDomain(ChVector3d(4 * m_tire->GetRadius(), 4 * m_tire->GetWidth(), 4 * m_tire->GetRadius()));
 
     if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
         std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;
