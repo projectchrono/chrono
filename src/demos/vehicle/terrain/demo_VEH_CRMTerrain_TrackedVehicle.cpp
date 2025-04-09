@@ -39,6 +39,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_VSG
+    #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
@@ -74,7 +75,7 @@ int main(int argc, char* argv[]) {
     double target_speed = 7.0;
     double tend = 30;
     double step_size = 5e-4;
-    double active_box_dim = 0.8;
+    ChVector3d active_box_dim(0.3, 0.4, 0.4);
 
     bool render = true;       // use run-time visualization
     double render_fps = 200;  // rendering FPS
@@ -140,7 +141,7 @@ int main(int argc, char* argv[]) {
 
     // Add track shoes as FSI bodies
     CreateFSITracks(vehicle, terrain);
-    terrain.SetActiveDomain(ChVector3d(active_box_dim));
+    terrain.SetActiveDomain(active_box_dim);
 
     cout << "Create terrain..." << endl;
     // Construct flat rectangular CRM terrain
@@ -182,10 +183,10 @@ int main(int argc, char* argv[]) {
         visFSI->EnableRigidBodyMarkers(visualization_rigid_bce);
         visFSI->SetSPHColorCallback(col_callback);
 
-        // VSG visual system (attach visFSI as plugin)
-        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        // Tracked vehicle VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
+        visVSG->AttachVehicle(vehicle.get());
         visVSG->AttachPlugin(visFSI);
-        visVSG->AttachSystem(sysMBS);
         visVSG->SetWindowTitle("Tracked vehicle on CRM deformable terrain");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);

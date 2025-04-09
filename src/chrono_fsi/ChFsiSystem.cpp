@@ -99,6 +99,9 @@ size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
     unsigned int index = m_fsi_interface->GetNumBodies();
     auto& fsi_body = m_fsi_interface->AddFsiBody(body);
     m_sysCFD.OnAddFsiBody(index, fsi_body);
+    
+    m_fsi_bodies.push_back(body);
+
     return index;
 }
 

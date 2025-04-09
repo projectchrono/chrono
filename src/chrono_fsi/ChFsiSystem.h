@@ -168,6 +168,9 @@ class CH_FSI_API ChFsiSystem {
 
     // ----------
 
+    /// Get a list of the FSI rigid bodies.
+    std::vector<std::shared_ptr<ChBody>> GetFsiBodies() const { return m_fsi_bodies; }
+
     //// TODO: change these to take a shared_ptr to a ChBody
 
     /// Return the FSI applied force on the body with specified index (as returned by AddFsiBody).
@@ -201,6 +204,8 @@ class CH_FSI_API ChFsiSystem {
 
     void AdvanceCFD(double step, double threshold);
     void AdvanceMBS(double step, double threshold);
+
+    std::vector<std::shared_ptr<ChBody>> m_fsi_bodies;
 
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics

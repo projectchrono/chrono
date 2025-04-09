@@ -21,6 +21,9 @@
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 #include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
+#include "chrono_vsg/utils/ChConversionsVSG.h"
+#include "chrono_vsg/shapes/ShapeBuilder.h"
+
 namespace chrono {
 namespace fsi {
 namespace sph {
@@ -145,6 +148,19 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
+        if (m_vsysFSI->m_use_active_boxes &&
+            ImGui::BeginTable("ActiveBoxes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                              ImVec2(0.0f, 0.0f))) {
+            ImGui::TableNextColumn();
+            static bool boxes_visible = m_vsysFSI->m_active_boxes;
+            if (ImGui::Checkbox("Active Boxes", &boxes_visible)) {
+                m_vsysFSI->m_active_boxes = !m_vsysFSI->m_active_boxes;
+                m_vsysFSI->SetActiveBoxVisibility(m_vsysFSI->m_active_boxes, -1);
+            }
+
+            ImGui::EndTable();
+        }
+
         ImGui::End();
     }
 
@@ -161,13 +177,16 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_rigid_bce_markers(true),
       m_flex_bce_markers(true),
       m_bndry_bce_markers(false),
+      m_active_boxes(false),
       m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
       m_rigid_bce_color(ChColor(0.10f, 0.60f, 0.30f)),
       m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
+      m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
       m_write_images(false),
       m_image_dir(".") {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
+    m_activeBoxScene = vsg::Switch::create();
 }
 
 ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
@@ -266,6 +285,11 @@ void ChFsiVisualizationVSG::OnInitialize() {
         m_vsys->SetParticleCloudVisibility(m_flex_bce_markers, ParticleCloudTag::BCE_FLEX);
     }
 
+    // Cache information about active domains
+    m_use_active_boxes = m_sysSPH->GetParams().use_active_domain;
+    m_active_box_hsize = ToChVector(m_sysSPH->GetParams().bodyActiveDomain);
+
+    // Create custom GUI for the FSI plugin
     auto fsi_states = chrono_types::make_shared<FSIStatsVSG>(this);
     m_vsys->AddGuiComponent(fsi_states);
 
@@ -278,6 +302,49 @@ void ChFsiVisualizationVSG::OnInitialize() {
         std::cerr << "          This negatively affects rendering performance, especially for large particle systems."
                   << std::endl;
     }
+}
+
+void ChFsiVisualizationVSG::OnBindAssets() {
+    if (!m_use_active_boxes)
+        return;
+
+    // Create the VSG group for the active boxes
+    m_vsys->GetVSGScene()->addChild(m_activeBoxScene);
+
+    // Loop over all FSI bodies and bind a model for its active box
+    for (const auto& body : m_sysFSI->GetFsiBodies())
+        BindActiveBox(body, body->GetTag());
+}
+
+void ChFsiVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
+    if (!m_vsys->IsInitialized() || !m_use_active_boxes)
+        return;
+
+    for (auto& child : m_activeBoxScene->children) {
+        int c_tag;
+        child.node->getValue("Tag", c_tag);
+        if (c_tag == tag || tag == -1)
+            child.mask = vis;
+    }
+}
+
+void ChFsiVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag) {
+    auto material = chrono_types::make_shared<ChVisualMaterial>();
+    material->SetDiffuseColor(m_active_box_color);
+
+    auto transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
+    auto group =
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+
+    // Set group properties
+    group->setValue("Object", obj);
+    group->setValue("Tag", tag);
+    group->setValue("Transform", transform);
+
+    // Add the group to the global holder
+    vsg::Mask mask = m_active_boxes;
+    m_activeBoxScene->addChild(mask, group);
 }
 
 void ChFsiVisualizationVSG::OnRender() {
@@ -345,6 +412,19 @@ void ChFsiVisualizationVSG::OnRender() {
     if (m_flex_bce_markers) {
         for (unsigned int i = 0; i < m_sysSPH->GetNumFlexBodyMarkers(); i++) {
             m_flex_bce_cloud->Particle(i).SetPos(ToChVector(m_pos[p + i]));
+        }
+    }
+
+    // Update positions of all active boxes
+    if (m_use_active_boxes) {
+        for (const auto& child : m_activeBoxScene->children) {
+            std::shared_ptr<ChBody> obj;
+            vsg::ref_ptr<vsg::MatrixTransform> transform;
+            if (!child.node->getValue("Object", obj))
+                continue;
+            if (!child.node->getValue("Transform", transform))
+                continue;
+            transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
         }
     }
 }

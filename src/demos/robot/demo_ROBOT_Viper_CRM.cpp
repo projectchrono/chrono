@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     double tend = 30;
     double step_size = 5e-4;
-    ChVector3d active_box_dim(0.8, 0.6, 1.0);
+    ChVector3d active_box_dim(0.6, 0.6, 0.6);
 
     bool render = true;       // use run-time visualization
     double render_fps = 200;  // rendering FPS
