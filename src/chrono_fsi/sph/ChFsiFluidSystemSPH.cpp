@@ -593,11 +593,9 @@ void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& boxDim) {
     m_paramsH->boxDimZ = boxDim.z();
 }
 
-void ChFsiFluidSystemSPH::SetComputationalBoundaries(const ChVector3d& cMin,
-                                                     const ChVector3d& cMax,
-                                                     int periodic_sides) {
-    m_paramsH->cMin = ToReal3(cMin);
-    m_paramsH->cMax = ToReal3(cMax);
+void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides) {
+    m_paramsH->cMin = ToReal3(computational_AABB.min);
+    m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
     m_paramsH->periodic_sides = periodic_sides;
 }

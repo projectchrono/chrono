@@ -156,8 +156,8 @@ class CH_FSI_API ChFsiProblemSPH {
     void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
 
     /// Explicitly set the computational domain limits.
-    /// By default, this is set so that it encompasses all SPH particles and BCE markers.
-    void SetComputationalDomain(ChAABB aabb, int periodic_sides) {
+    /// By default, this is set so that it encompasses all SPH particles and BCE markers with no periodic sides.
+    void SetComputationalDomain(const ChAABB& aabb, int periodic_sides = PeriodicSide::NONE) {
         m_domain_aabb = aabb;
         m_periodic_sides = periodic_sides;
     }

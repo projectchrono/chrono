@@ -49,6 +49,7 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
       m_initialized(false),
       m_offset_sph(VNULL),
       m_offset_bce(VNULL),
+      m_periodic_sides(PeriodicSide::NONE),
       m_verbose(false) {
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
@@ -307,12 +308,12 @@ void ChFsiProblemSPH::Initialize() {
     // Set computational domain
     if (!m_domain_aabb.IsInverted()) {
         // Use provided computational domain
-        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, m_periodic_sides);
+        m_sysSPH.SetComputationalDomain(m_domain_aabb, m_periodic_sides);
     } else {
-        // Set computational domain based on actual AABB of all markers
+        // Calculate computational domain based on actual AABB of all markers
         int bce_layers = m_sysSPH.GetNumBCELayers();
         m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
-        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, static_cast<int>(PeriodicSide::NONE));
+        m_sysSPH.SetComputationalDomain(m_domain_aabb, PeriodicSide::NONE);
     }
 
     // Initialize the underlying FSI system

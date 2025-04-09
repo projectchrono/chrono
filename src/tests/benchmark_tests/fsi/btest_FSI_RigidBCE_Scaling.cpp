@@ -133,13 +133,12 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         ChVector3d(m_box_size.x() * box_multiplier, m_box_size.y() * box_multiplier, m_box_size.z()));
     m_sysSPH->SetConsistentDerivativeDiscretization(false, false);  // No consistent discertization
 
-    // Set domain boundaries - This depends on how many of 50 boxes are there since for each hundred added, we add it
-    // along z
+    // Set domain boundaries, based on actual number of boxes (added in layers in the Z direction)
     ChVector3d cMin(-m_box_size.x() / 2, -m_box_size.y() / 2,
-                    -(box_multiplier * m_box_size.z()) * (m_num_boxes / m_boxes_per_layer + 1));
-    ChVector3d cMax(m_box_size.x() / 2, m_box_size.y() / 2,
-                    (box_multiplier * m_box_size.z()) * (m_num_boxes / m_boxes_per_layer + 1));
-    m_sysSPH->SetComputationalBoundaries(cMin, cMax, PeriodicSide::ALL);
+                    -box_multiplier * m_box_size.z() * (m_num_boxes / m_boxes_per_layer + 1));
+    ChVector3d cMax(+m_box_size.x() / 2, +m_box_size.y() / 2,
+                    +box_multiplier * m_box_size.z() * (m_num_boxes / m_boxes_per_layer + 1));
+    m_sysSPH->SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::ALL);
 
     chrono::utils::ChGridSampler<> sampler(sph_params.initial_spacing);
     ChVector3d boxCenter(0.0, 0.0, 0.0);
