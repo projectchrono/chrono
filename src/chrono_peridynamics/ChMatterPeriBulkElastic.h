@@ -35,7 +35,7 @@ class ChPeridynamics;
 class  ChApiPeridynamics ChMatterDataPerBoundBulk : public ChMatterDataPerBound { 
 public: 
     bool broken = false;
-    double F_per_bond = 0;  // force density in this bound
+    double F_density = 0;  // force density per volume squared in this bound
 };
 
 
@@ -77,17 +77,17 @@ public:
                 double horizon = mbound.nodeA->GetHorizonRadius();
                 double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
 
-                double force_val = 0.5 * (18.0 * k_bulk / pih4) * stretch;
+                double force_density_val =  (18.0 * k_bulk / pih4) * stretch;
                 
                 if (this->r_bulk > 0)
-                    force_val += 0.5 * (18.0 * r_bulk / pih4) * svel;
+                    force_density_val +=  (18.0 * r_bulk / pih4) * svel;
 
-                mbound.F_per_bond = force_val;
-                mbound.nodeB->F_peridyn += -vdir * force_val * mbound.nodeA->volume;
-                mbound.nodeA->F_peridyn += vdir * force_val * mbound.nodeB->volume;
+                mbound.F_density = force_density_val;
+                mbound.nodeB->F_peridyn += -vdir * force_density_val * mbound.nodeA->volume * mbound.nodeB->volume;
+                mbound.nodeA->F_peridyn += vdir * force_density_val * mbound.nodeB->volume * mbound.nodeA->volume;
 
                 if (stretch > max_stretch) {
-                    mbound.F_per_bond = 0;
+                    mbound.F_density = 0;
                     mbound.broken = true;
                     // the following will propagate the fracture geometry so that broken parts can collide
                     mbound.nodeA->is_boundary = true; 
@@ -213,8 +213,8 @@ public:
         BROKEN      ///< Broken - far apart, full collision surfaces generated
     };
     bond_state state = bond_state::ACTIVE;
-    double F_per_bond = 0;  // force density in this bound
-    double Phi; // residual of constraint-based implicit form
+    double force_density_val = 0;  // force density per vol squared in this bond, for postprocessing
+    double Phi; // residual   (d-zeta)= (sdist - old_sdist),  for implicit form
     double Km;  // tangent stiffness matrix, for implicit form
 
     ChConstraintTwoGenericBoxed constraint;
@@ -272,19 +272,16 @@ public:
                 double horizon = mbound.nodeA->GetHorizonRadius();
                 double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 
-                double force_val = 0.5 * (18.0 * k_bulk / pih4) * stretch;
+                mbound.force_density_val = (18.0 * k_bulk / pih4) * stretch;
 
                 if (this->r_bulk > 0)
-                   force_val += 0.5 * (18.0 * r_bulk / pih4) * svel;
+                    mbound.force_density_val += (18.0 * r_bulk / pih4) * svel;
 
-                mbound.F_per_bond = force_val; // not used, real val.computed as dual variable in solve, here only for postprocessing
-
-                // constraint stretch
-                mbound.Phi = stretch;
+                // constraint elongation
+                mbound.Phi = sdist - old_sdist;
                 
-                // tangent stiffness
-                double avg_volumeAB = 0.5 * (mbound.nodeA->volume + mbound.nodeB->volume);
-                bound.second.Km = (avg_volumeAB * 0.5 * (18.0 * k_bulk / pih4));
+                // tangent stiffness,   Km = c * 1/zeta * w_jk
+                bound.second.Km = ((18.0 * k_bulk / pih4) * (1.0/old_sdist) * mbound.nodeA->volume * mbound.nodeB->volume);
 
                 // compute here the jacobians, no need to move in LoadConstraintJacobians()
                 mbound.constraint.Get_Cq_a()(0) = -vdir.x() / old_sdist;
@@ -295,13 +292,13 @@ public:
                 mbound.constraint.Get_Cq_b()(2) = vdir.z() / old_sdist;
 
                 if (stretch > max_stretch_fracture) {
-                    mbound.F_per_bond = 0;
+                    mbound.force_density_val = 0;
                     mbound.state = ChMatterDataPerBoundBulkImplicit::bond_state::FRACTURED;
                     mbound.constraint.SetBoxedMinMax(0, 1e30); // enable complementarity, reaction>0.
                 }
 
                 if (stretch > max_stretch_break) {
-                    mbound.F_per_bond = 0;
+                    mbound.force_density_val = 0;
                     mbound.state = ChMatterDataPerBoundBulkImplicit::bond_state::BROKEN;
                     // the following will propagate the fracture geometry so that broken parts can collide
                     mbound.nodeA->is_boundary = true;
@@ -573,10 +570,10 @@ public:
             return 0.0;
         
         // linear decrease
-        return horizon / zeta;
+        //return horizon / zeta;
 
         // constant one:
-        //return 1.0;
+        return 1.0;
 
         // piecewise decay
         /*
@@ -672,13 +669,13 @@ public:
 
             double a = 9.0 * this->k_bulk / (8.0 * CH_PI * pow(horizon, 4.));
             double b = 15.0 * this->poisson / (2.0 * CH_PI * pow(horizon, 5.));
-            double a_d = 9.0 / (4.0 * CH_PI * pow(horizon, 4.)) * 0.5*(this->k_bulk - (5./3.)*this->poisson);
+            //double a_d = 9.0 / (4.0 * CH_PI * pow(horizon, 4.)) * 0.5*(this->k_bulk - (5./3.)*this->poisson);
 
-            double A_dil_A = 4.0 * omega * a_d * Vdot(vdir, old_vdir) * mnodedataA.theta;
-            double A_dil_B = 4.0 * omega * a_d * Vdot(vdir, old_vdir) * mnodedataB.theta;
+            double A_dil_A = 4.0 * omega * a * Vdot(vdir, old_vdir) * mnodedataA.theta;
+            double A_dil_B = 4.0 * omega * a * Vdot(vdir, old_vdir) * mnodedataB.theta;
 
-            double A_dev_A = 4.0 * omega * b * e; //* (e - (horizon / 4.0) * Vdot(vdir, old_vdir) * mnodedataA.theta);
-            double A_dev_B = 4.0 * omega * b * e; //* (e - (horizon / 4.0) * Vdot(vdir, old_vdir) * mnodedataB.theta);
+            double A_dev_A = 4.0 * omega * b *  (e - (horizon / 4.0) * Vdot(vdir, old_vdir) * mnodedataA.theta);
+            double A_dev_B = 4.0 * omega * b *  (e - (horizon / 4.0) * Vdot(vdir, old_vdir) * mnodedataB.theta);
            
             double t_A = (A_dil_A + A_dev_A);
             double t_B = (A_dil_B + A_dev_B);
@@ -690,8 +687,8 @@ public:
                 t_B += viscforce;
             }
             
-            mbound.nodeB->F_peridyn += -vdir * 0.5 * t_B * mbound.nodeA->volume;
-            mbound.nodeA->F_peridyn +=  vdir * 0.5 * t_A * mbound.nodeB->volume;
+            mbound.nodeB->F_peridyn += -vdir * (t_B + t_A) * mbound.nodeA->volume  * mbound.nodeB->volume;
+            mbound.nodeA->F_peridyn +=  vdir * (t_B + t_A) * mbound.nodeB->volume  * mbound.nodeA->volume;
         }
 
     }
