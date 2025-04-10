@@ -139,6 +139,21 @@ void ChLinkBeamIGAFrame::IntLoadResidual_CqL(const unsigned int off_L,    // off
     constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
 }
 
+/*
+void ChLinkBeamIGAFrame::IntLoadResidual_Cqv(const unsigned int off_L,    // offset in L 
+    ChVectorDynamic<>& L,        // result:  L += c*Cq*v
+    const ChVectorDynamic<>& V,  // the V vector
+    const double c               // a scaling factor
+) {
+    double foo;  
+    if (!IsActive())
+        return;
+
+    constraint2.AddJacobianTimesVectorInto(foo, V); L(off_L + 0) += c * foo;
+    constraint3.AddJacobianTimesVectorInto(foo, V); L(off_L + 1) += c * foo;
+}
+*/
+
 void ChLinkBeamIGAFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                              ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                              const double c,            // a scaling factor

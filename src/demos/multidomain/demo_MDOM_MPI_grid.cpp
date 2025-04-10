@@ -220,8 +220,7 @@ int main(int argc, char* argv[]) {
 
                     mrigidBody->AddVisualModel(visualmodel); // the  "visualmodel" is shared
 
-                    // [also the collision models should be taken out of the for loops and shared
-                    // among ChBody briks via AddCollisionModel(), but it crashes - must find and remove bug]
+                    // [collision models can NOT be shared and taken out of the for loops] and shared
                     auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size_x, size_y, size_z);
                     mrigidBody->AddCollisionShape(cshape);
                     mrigidBody->EnableCollision(true);
