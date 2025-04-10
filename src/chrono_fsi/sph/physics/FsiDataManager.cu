@@ -17,17 +17,24 @@
 //
 // =============================================================================
 
+////#define DEBUG_LOG
+
 #include <algorithm>
 
+#include <thrust/execution_policy.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/constant_iterator.h>
+#include <thrust/count.h>
 #include <thrust/copy.h>
 #include <thrust/fill.h>
 #include <thrust/gather.h>
 #include <thrust/for_each.h>
-#include <thrust/iterator/counting_iterator.h>
 #include <thrust/functional.h>
-#include <thrust/execution_policy.h>
 #include <thrust/transform.h>
+#include <thrust/partition.h>
 #include <thrust/zip_function.h>
+
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 #include "chrono_fsi/sph/math/CustomMath.cuh"
@@ -991,7 +998,7 @@ struct inaabb_op {
     RealAABB aabb;
 };
 
-// Relocation function to move particle in given AABB
+// Relocation function to move particle to given AABB
 struct toaabb_op {
     toaabb_op(const RealAABB& aabb_dest, Real spacing, const FsiDataManager::DefaultProperties& props)
         : aabb(aabb_dest), delta(spacing), p(props) {}
@@ -1019,11 +1026,41 @@ struct toaabb_op {
     FsiDataManager::DefaultProperties p;
 };
 
-void FsiDataManager::MoveAABB(MarkerType type,
-                              const RealAABB& aabb_src,
-                              const RealAABB& aabb_dest,
-                              Real spacing,
-                              const DefaultProperties& props) const {
+
+// Relocation function to move particle to given grid integer AABB
+struct togrid_op {
+    togrid_op(const IntAABB& aabb_dest, Real spacing, const FsiDataManager::DefaultProperties& props)
+        : aabb(aabb_dest), delta(spacing), p(props) {}
+
+    template <typename T>
+    __device__ T operator()(const T& a, int index) const {
+        // Modify position
+        Real4 posw = thrust::get<0>(a);
+        Real3 pos = mR3(posw);
+        pos += mR3(0, 2, 0);  // testing...   //// TODO
+        thrust::get<0>(a) = mR4(pos, posw.w);
+
+        // Reset all other marker properties
+        Real3 zero = mR3(0);
+        thrust::get<1>(a) = zero;                                        // velocity
+        thrust::get<2>(a) = mR4(p.rho0, 0, p.mu0, thrust::get<2>(a).w);  // rho, pres, mu, type
+        thrust::get<3>(a) = zero;                                        // tau diagonal
+        thrust::get<4>(a) = zero;                                        // tau off-diagonal
+
+        return a;
+    }
+
+    IntAABB aabb;
+    Real delta;
+    FsiDataManager::DefaultProperties p;
+};
+
+
+void FsiDataManager::MoveAABB2AABB(MarkerType type,
+                                   const RealAABB& aabb_src,
+                                   const RealAABB& aabb_dest,
+                                   Real spacing,
+                                   const DefaultProperties& props) const {
     // Get start and end indices in marker data vectors based on specified type
     int start_idx = 0;
     int end_idx = 0;
@@ -1051,7 +1088,45 @@ void FsiDataManager::MoveAABB(MarkerType type,
     ////    std::cout << sphMarkers_D->posRadD[i] << " | " << sphMarkers_D->velMasD[i] << std::endl;
 }
 
+void FsiDataManager::MoveAABB2AABB(MarkerType type,
+                                   const RealAABB& aabb_src,
+                                   const IntAABB& aabb_dest,
+                                   Real spacing,
+                                   const DefaultProperties& props) const {
+    // Get start and end indices in marker data vectors based on specified type
+    int start_idx = 0;
+    int end_idx = 0;
+    switch (type) {
+        case MarkerType::BCE_WALL:
+            start_idx = (int)countersH->startBoundaryMarkers;
+            end_idx = start_idx + (int)countersH->numBoundaryMarkers;
+            break;
+        case MarkerType::SPH_PARTICLE:
+            start_idx = 0;
+            end_idx = start_idx + (int)countersH->numFluidMarkers;
+            break;
+    }
+
+    // Move markers to be relocated at beginning
+    auto middle = thrust::partition(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), inaabb_op(aabb_src));
+
+    auto n_candidate = sphMarkers_D->iterator(end_idx) - sphMarkers_D->iterator(start_idx);
+    auto n_move = middle - sphMarkers_D->iterator(start_idx);
+
+    ChDebugLog("Num candidate markers: " << n_candidate);
+    ChDebugLog("Num moved markers:     " << n_move);
+
+    // Move markers to grid AABB (based on values in indices)
+    auto indices = thrust::make_counting_iterator(0);
+    thrust::transform(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(start_idx + n_move),  //
+                      indices,                                                                        //
+                      sphMarkers_D->iterator(start_idx),                                              //
+                      togrid_op(aabb_dest, spacing, props));                                          //
+}
+
 // --------------------------
+
+//// TODO -- function pointers not well supported with CUDA
 
 struct selector_wrapper {
     selector_wrapper(const FsiDataManager::SelectorFunction& user_op) : op(user_op) {}

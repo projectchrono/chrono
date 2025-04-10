@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     double body_rad = 0.2;               // Radius (m)
     double body_speed = 5 * kmh_to_ms;  // Forward speed (m/s)
 
-    ChVector3d pos(0.5, 0, terrain_depth + 1.5 * body_rad);
+    ChVector3d pos(0.5, terrain_width / 2, terrain_depth + 1.5 * body_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
 
     visVSG->SetWindowTitle("CRM moving patch demo");
     visVSG->SetCameraVertical(CameraVerticalDir::Z);
-    visVSG->AddCamera(ChVector3d(0, -3, 1), ChVector3d(0, 0, 0));
+    visVSG->AddCamera(ChVector3d(terrain_length / 2, -3, 2), ChVector3d(terrain_length / 2, 0, 0));
     visVSG->SetWindowSize(1280, 720);
     visVSG->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
     visVSG->EnableSkyBox();

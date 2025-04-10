@@ -80,13 +80,21 @@ struct toaabb_op : public FsiDataManager::RelocateFunction {
     Real delta;
 };
 
-void moveAABB_SPH(const RealAABB& aabb_src,
-                  const RealAABB& aabb_dest,
-                  Real spacing,
-                  const FsiDataManager::DefaultProperties& props,
-                  FsiDataManager& dm) {
-    dm.MoveAABB(MarkerType::SPH_PARTICLE, aabb_src, aabb_dest, spacing, props);
+void moveAABB2AABB_SPH(const RealAABB& aabb_src,
+                       const RealAABB& aabb_dest,
+                       Real spacing,
+                       const FsiDataManager::DefaultProperties& props,
+                       FsiDataManager& dm) {
+    dm.MoveAABB2AABB(MarkerType::SPH_PARTICLE, aabb_src, aabb_dest, spacing, props);
     ////dm.Relocate(MarkerType::SPH_PARTICLE, toaabb_op(aabb_dest, spacing), inaabb_op(aabb_src), props);
+}
+
+void moveAABB2AABB_SPH(const RealAABB& aabb_src,
+                       const IntAABB& aabb_dest,
+                       Real spacing,
+                       const FsiDataManager::DefaultProperties& props,
+                       FsiDataManager& dm) {
+    dm.MoveAABB2AABB(MarkerType::SPH_PARTICLE, aabb_src, aabb_dest, spacing, props);
 }
 
 }  // namespace sph

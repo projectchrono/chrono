@@ -331,11 +331,18 @@ struct FsiDataManager {
     void Shift(MarkerType type, const Real3& shift, const DefaultProperties& props) const;
 
     /// Move particles of specified type from the source AABB to the destination AABB.
-    void MoveAABB(MarkerType type,
-                  const RealAABB& aabb_src,
-                  const RealAABB& aabb_dest,
-                  Real spacing,
-                  const DefaultProperties& props) const;
+    void MoveAABB2AABB(MarkerType type,
+                       const RealAABB& aabb_src,
+                       const RealAABB& aabb_dest,
+                       Real spacing,
+                       const DefaultProperties& props) const;
+
+    /// Move particles of specified type from the source AABB to the destination (grid) AABB.
+    void MoveAABB2AABB(MarkerType type,
+                       const RealAABB& aabb_src,
+                       const IntAABB& aabb_dest,
+                       Real spacing,
+                       const DefaultProperties& props) const;
 
     struct SelectorFunction {
         __device__ virtual bool operator()(const Real3& x) const = 0;

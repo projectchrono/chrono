@@ -56,11 +56,11 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     void RegisterVehicle(ChVehicle* vehicle);
 
     /// Construct a rectangular terrain with moving patch capabilities.
-    /// The terrain patch is rectangular (of the specified dimensions,), and positioned so that the rear-most point in
-    /// the x direction on its centerline is at the global origin. The moving boundary is always assumed to be in the
-    /// positive x direction. The algorithm monitors the distance from a sentinel body (see SetMovingPatchSentinel) to
-    /// the current front boundary. When the sentinel nears the front boundary, the rear and front boundary BCE markers
-    /// are shifted by the specified shift distance and SPH particles relocated from rear to front.
+    /// The terrain patch is rectangular (of the specified dimensions,), and positioned so that the "lowest" point of
+    /// the terrain box is at the global origin. The moving boundary is always assumed to be in the positive x
+    /// direction. The algorithm monitors the distance from a sentinel body (see SetMovingPatchSentinel) to the current
+    /// front boundary. When the sentinel nears the front boundary, the rear and front boundary BCE markers are shifted
+    /// by the specified shift distance and SPH particles relocated from rear to front.
     void ConstructMovingPatch(const ChVector3d& box_size,    ///< box dimensions
                               std::shared_ptr<ChBody> body,  ///< tracked body
                               double buffer_distance,        ///< look-ahead distance
@@ -77,21 +77,20 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override { return 0.0f; }
 
   private:
-    // Moving patch variables
+    void UpdateAABB();
+
     std::shared_ptr<ChBody> m_sentinel;  ///< tracked sentinel body
     bool m_moving_patch;                 ///< moving patch feature enabled?
     bool m_moved;                        ///< was the patch moved?
-    double m_buffer_dist;                ///< minimum distance to front boundary
-    double m_shift_dist;                 ///< length of relocated volume
-    double m_rear;                       ///< rear X boundary location
-    double m_front;                      ///< front X boundary location
+    double m_buffer;                     ///< minimum distance to front boundary
+
+    int m_Ishift;  ///< length of relocated volume in grid coordinates
+    int m_Irear;   ///< current X location of rear-most SPH particles in grid coordinates
+    int m_Ifront;  ///< current X location of front-most SPH particles in grid coordinates
 
     ChAABB m_rearAABB;
     ChAABB m_frontAABB;
-
-    unsigned int m_shift_cells;          ///< length of relocated volume in grid cells
-    double m_rear_cells;                 ///< rear X boundary location in grid cells
-    double m_front_cells;                ///< front X boundary location in grid cells
+    ChIntAABB m_IfrontAABB;
 };
 
 /// @} vehicle_terrain

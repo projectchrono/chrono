@@ -556,12 +556,20 @@ void ChFsiProblemSPH::SPHShift(const ChVector3d& shift_dist) {
     shift_SPH(ToReal3(shift_dist), props, *m_sysSPH.m_data_mgr);
 }
 
-void ChFsiProblemSPH::SPHMoveAABB(const ChAABB& aabb_src, const ChAABB& aabb_dest) {
+void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChAABB& aabb_dest) {
     FsiDataManager::DefaultProperties props;
     props.rho0 = m_sysSPH.GetDensity();
     props.mu0 = m_sysSPH.GetViscosity();
 
-    moveAABB_SPH(ToRealAABB(aabb_src), ToRealAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
+    moveAABB2AABB_SPH(ToRealAABB(aabb_src), ToRealAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
+}
+
+void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest) {
+    FsiDataManager::DefaultProperties props;
+    props.rho0 = m_sysSPH.GetDensity();
+    props.mu0 = m_sysSPH.GetViscosity();
+
+    moveAABB2AABB_SPH(ToRealAABB(aabb_src), ToIntAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
 }
 
 // ============================================================================
