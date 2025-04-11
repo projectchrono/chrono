@@ -67,7 +67,7 @@ class FluidDynamics {
         std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,  ///< SPH particle information at the first half step
         Real dT,                                              ///< simulation stepsize
         Real time,                                            ///< simulation time
-        bool firstHalfStep = true  ///< flag to indicate the first half step in case of explicit integration
+        bool proximity_search                                 //// TODO: obsolete
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.

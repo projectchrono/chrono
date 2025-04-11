@@ -63,7 +63,7 @@ class FsiForceISPH : public FsiForce {
     size_t numAllMarkers;
     size_t NNZ;
 
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool proximity_search) override;
 
     void PreProcessor(bool calcLaplacianOperator);
 

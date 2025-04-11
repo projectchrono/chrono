@@ -572,6 +572,12 @@ void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& 
     moveAABB2AABB_SPH(ToRealAABB(aabb_src), ToIntAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
 }
 
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::ForceProximitySearch() {
+    m_sysSPH.m_force_proximity_search = true;
+}
+
 // ============================================================================
 
 void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {

@@ -71,7 +71,7 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
       m_output_level(OutputLevel::STATE_PRESSURE),
-      m_first_step(true) {
+      m_force_proximity_search(false) {
     m_paramsH = chrono_types::make_shared<ChFsiParamsSPH>();
     InitParams();
 
@@ -1456,43 +1456,39 @@ void ChFsiFluidSystemSPH::Initialize(unsigned int num_fsi_bodies,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiFluidSystemSPH::OnSetupStepDynamics() {
+void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Update particle activity
-    if (m_time >= m_paramsH->settlingTime) {
+    if (time >= m_paramsH->settlingTime) {
         m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D);
     }
-    // Resize data arrays if needed
-    if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
-        m_data_mgr->ResizeData(m_first_step);
-        m_first_step = false;
-    }
-}
 
-//--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiFluidSystemSPH::OnDoStepDynamics(double step) {
-    if (m_time < 1e-6 || int(round(m_time / m_paramsH->dT)) % m_paramsH->num_proximity_search_steps == 0) {
+    // Check if proximity search must be performed at this step (note that this always happens at first step)
+    bool proximity_search = m_frame % m_paramsH->num_proximity_search_steps == 0 || m_force_proximity_search;
+
+    if (proximity_search) {
+        // Resize arrays (make sure this always happens at first frame)
+        m_data_mgr->ResizeData(m_frame == 0);
+
+        // Sort particles (for broadphase proximity search)
         m_fluid_dynamics->SortParticles();
     }
 
     m_data_mgr->ResetData();
-
+    
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
             m_data_mgr->CopyDeviceDataToHalfStep();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers1_D,  //
-                                           step / 2, m_time, true);
-            m_time += step / 2;
+                                           step / 2, time, proximity_search);
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers1_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           step, m_time, false);
-            m_time += step / 2;
+                                           step, time + step / 2, false);
             break;
         }
 
         case SPHMethod::I2SPH: {
             m_bce_mgr->updateBCEAcc();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           0.0, m_time, false);
-            m_time += step;
+                                           0.0, time, false);
             break;
         }
     }
@@ -1501,6 +1497,8 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double step) {
                                            m_data_mgr->sphMarkers_D);
 
     ChDebugLog("GPU Memory usage: " << m_data_mgr->GetCurrentGPUMemoryUsage() / 1024.0 / 1024.0 << " MB");
+
+    m_force_proximity_search = false;
 }
 
 void ChFsiFluidSystemSPH::OnExchangeSolidForces() {

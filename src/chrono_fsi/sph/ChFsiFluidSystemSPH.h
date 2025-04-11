@@ -243,11 +243,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Initialize the SPH fluid system with no FSI support.
     virtual void Initialize() override;
-
-    /// Set up Active domains and array resizing before doing dynamics
-    /// Must be called before DoStepDynamics
-    virtual void OnSetupStepDynamics() override;
-
+    
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
 
@@ -599,9 +595,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// The BCE markers are created in the absolute coordinate frame.
     unsigned int AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh);
 
-    /// Function to integrate the fluid system in time.
-    /// It uses a Runge-Kutta 2nd order algorithm to update the fluid dynamics.
-    virtual void OnDoStepDynamics(double step) override;
+    /// Function to integrate the fluid system from `time` to `time + step`.
+    virtual void OnDoStepDynamics(double time, double step) override;
 
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnExchangeSolidForces() override;
@@ -610,6 +605,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     virtual void OnExchangeSolidStates() override;
 
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
+    bool m_force_proximity_search;
 
     std::unique_ptr<FsiDataManager> m_data_mgr;       ///< FSI data manager
     std::unique_ptr<FluidDynamics> m_fluid_dynamics;  ///< fluid system
@@ -629,9 +625,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     BcePatternMesh2D m_pattern2D;
     bool m_remove_center1D;
     bool m_remove_center2D;
-
-    /// Needed by resize data to check if it is the first step
-    bool m_first_step;
 
     friend class ChFsiSystemSPH;
     friend class ChFsiInterfaceSPH;

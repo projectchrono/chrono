@@ -121,7 +121,7 @@ class FsiForce {
     /// Function to calculate forces on SPH particles.
     /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
     /// FsiForceISPH) or an explicit integrator using WCPSH method (see FsiForceWCSPH).
-    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) = 0;
+    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool proximity_search) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects)
     /// between device (GPU) and host (CPU).

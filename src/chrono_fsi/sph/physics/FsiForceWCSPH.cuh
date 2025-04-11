@@ -43,7 +43,7 @@ class FsiForceWCSPH : public FsiForce {
     int density_initialization;
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool proximity_search) override;
 
     void neighborSearch();
 
@@ -54,7 +54,7 @@ class FsiForceWCSPH : public FsiForce {
     /// A wrapper around collide function.
     /// Calculates the force on particles, and copies the sorted XSPH velocities to the original.
     /// The latter is needed later for position update.
-    void CollideWrapper(Real time, bool firstHalfStep);
+    void CollideWrapper(Real time, bool proximity_search);
 };
 
 /// @} fsisph_physics

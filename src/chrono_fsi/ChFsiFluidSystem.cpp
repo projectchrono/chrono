@@ -37,7 +37,8 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiFluidSystem::ChFsiFluidSystem() : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_RTF(0) {}
+ChFsiFluidSystem::ChFsiFluidSystem()
+    : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_frame(0), m_RTF(0) {}
 
 ChFsiFluidSystem::~ChFsiFluidSystem() {}
 
@@ -71,10 +72,13 @@ void ChFsiFluidSystem::DoStepDynamics(double step) {
     m_timer_step.reset();
     m_timer_step.start();
 
-    OnDoStepDynamics(step);
+    OnDoStepDynamics(m_time, step);
 
     m_timer_step.stop();
     m_RTF = m_timer_step() / step;
+
+    m_frame++;
+    m_time += step;
 }
 
 }  // end namespace fsi

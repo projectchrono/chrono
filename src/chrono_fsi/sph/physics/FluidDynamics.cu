@@ -614,12 +614,12 @@ void FluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarker
                                  std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
                                  Real dT,
                                  Real time,
-                                 bool firstHalfStep) {
+                                 bool proximity_search) {
     if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
-        forceSystem->ForceSPH(sortedSphMarkers2_D, time, firstHalfStep);
+        forceSystem->ForceSPH(sortedSphMarkers2_D, time, proximity_search);
         UpdateFluid(sortedSphMarkers1_D, dT);
     } else {
-        forceSystem->ForceSPH(sortedSphMarkers1_D, time, firstHalfStep);
+        forceSystem->ForceSPH(sortedSphMarkers1_D, time, proximity_search);
     }
 
     ApplyBoundarySPH_Markers(sortedSphMarkers2_D);

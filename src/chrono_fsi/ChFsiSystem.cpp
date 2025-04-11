@@ -244,14 +244,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
     double threshold_CFD = factor * m_step_CFD;
     double threshold_MBD = factor * m_step_MBD;
 
-    m_timer_setup.reset();
     m_timer_step.reset();
     m_timer_FSI.reset();
-
-    // Allow fluid solver to perform setup operations (if any)
-    m_timer_setup.start();
-    m_sysCFD.OnSetupStepDynamics();
-    m_timer_setup.stop();
 
     // Advance dynamics of the two phases.
     //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)

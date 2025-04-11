@@ -1694,10 +1694,11 @@ void FsiForceWCSPH::Initialize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) {
+void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
+                             Real time, bool proximity_search) {
     m_sortedSphMarkers_D = sortedSphMarkers_D;
     m_bce_mgr.updateBCEAcc();
-    CollideWrapper(time, firstHalfStep);
+    CollideWrapper(time, proximity_search);
     if (m_data_mgr.paramsH->shifting_method != ShiftingMethod::NONE) {
         CalculateShifting();
     }
@@ -1742,15 +1743,13 @@ void FsiForceWCSPH::neighborSearch() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceWCSPH::CollideWrapper(Real time, bool firstHalfStep) {
+void FsiForceWCSPH::CollideWrapper(Real time, bool proximity_search) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
     // Perform Proxmity search at specified frequency
-    if (firstHalfStep &&
-        (time < 1e-6 ||
-         int(round(time / m_data_mgr.paramsH->dT)) % m_data_mgr.paramsH->num_proximity_search_steps == 0))
+    if (proximity_search)
         neighborSearch();
 
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;

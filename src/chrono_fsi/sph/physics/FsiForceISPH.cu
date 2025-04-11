@@ -957,7 +957,7 @@ struct my_Functor_real4y {
     __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
 };
 
-void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) {
+void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool proximity_search) {
     // Readability replacements
     auto& pH = m_data_mgr.paramsH;
     auto& cH = m_data_mgr.countersH;

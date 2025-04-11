@@ -276,6 +276,7 @@ class CH_FSI_API ChFsiProblemSPH {
     void SPHShift(const ChVector3d& shift_dist);
     void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChAABB& aabb_dest);
     void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest);
+    void ForceProximitySearch();
 
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system

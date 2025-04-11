@@ -163,9 +163,6 @@ class CH_FSI_API ChFsiSystem {
     /// Return the time in seconds for data exchange between phases over the last step.
     double GetTimerFSI() const { return m_timer_FSI(); }
 
-    /// Return the time in seconds for optional setup operations before a step.
-    double GetTimerStepSetup() const { return m_timer_setup(); }
-
     // ----------
 
     /// Get a list of the FSI rigid bodies.
@@ -213,7 +210,6 @@ class CH_FSI_API ChFsiSystem {
 
     std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
 
-    ChTimer m_timer_setup;  ///< timer for setup operations before a step
     ChTimer m_timer_step;   ///< timer for integration step
     ChTimer m_timer_FSI;    ///< timer for FSI data exchange
     double m_timer_CFD;     ///< timer for fluid dynamics integration
