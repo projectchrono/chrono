@@ -166,6 +166,9 @@ void CRMTerrain::Synchronize(double time) {
         cout << "  Updated computational domain: " << domainAABB.min << "  " << domainAABB.max << endl;
     }
 
+    // Force proximity search at the beginning of next step
+    ForceProximitySearch();
+
     m_moved = true;
 }
 
