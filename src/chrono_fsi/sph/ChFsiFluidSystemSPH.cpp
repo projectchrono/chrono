@@ -600,6 +600,12 @@ void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AAB
     m_paramsH->periodic_sides = periodic_sides;
 }
 
+void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB) {
+    m_paramsH->cMin = ToReal3(computational_AABB.min);
+    m_paramsH->cMax = ToReal3(computational_AABB.max);
+    m_paramsH->use_default_limits = false;
+}
+
 void ChFsiFluidSystemSPH::SetActiveDomain(const ChVector3d& box_dim) {
     m_paramsH->bodyActiveDomain = ToReal3(box_dim / 2);
     m_paramsH->use_active_domain = true;
@@ -2636,6 +2642,10 @@ int ChFsiFluidSystemSPH::GetNumBCELayers() const {
 
 ChVector3d ChFsiFluidSystemSPH::GetContainerDim() const {
     return ChVector3d(m_paramsH->boxDimX, m_paramsH->boxDimY, m_paramsH->boxDimZ);
+}
+
+ChAABB ChFsiFluidSystemSPH::GetComputationalDomain() const {
+    return ChAABB(ToChVector(m_paramsH->cMin), ToChVector(m_paramsH->cMax));
 }
 
 double ChFsiFluidSystemSPH::GetDensity() const {

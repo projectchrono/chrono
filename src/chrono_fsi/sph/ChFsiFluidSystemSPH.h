@@ -131,7 +131,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// `periodic_sides` indicates the directions of the computational domain (axis-aligned) for which periodic boundary
     /// conditions are enforced. This is an integer which can be one of the `PeriodicSide` values or a combination using
     /// bit-wise or & and. Default is periodic_sides = NONE.
-    void SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides = PeriodicSide::NONE);
+    void SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides);
+
+    /// Set computational domain.
+    /// Note that this version leaves the setting for periodic BC sides unchanged.
+    void SetComputationalDomain(const ChAABB& computational_AABB);
 
     /// Set dimensions of the active domain AABB.
     /// This value activates only those SPH particles that are within an AABB of the specified size from an object
@@ -253,8 +257,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Return the number of BCE layers.
     int GetNumBCELayers() const;
 
-    /// Set the fluid container dimension
+    /// Get the fluid container dimensions.
     ChVector3d GetContainerDim() const;
+
+    /// Get the computational domain.
+    ChAABB GetComputationalDomain() const;
 
     /// Return density.
     double GetDensity() const;

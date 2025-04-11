@@ -77,20 +77,20 @@ class CH_VEHICLE_API CRMTerrain : public ChTerrain, public fsi::sph::ChFsiProble
     virtual float GetCoefficientFriction(const ChVector3d& loc) const override { return 0.0f; }
 
   private:
-    void UpdateAABB();
+    void UpdateAABBs();
 
     std::shared_ptr<ChBody> m_sentinel;  ///< tracked sentinel body
     bool m_moving_patch;                 ///< moving patch feature enabled?
     bool m_moved;                        ///< was the patch moved?
     double m_buffer;                     ///< minimum distance to front boundary
 
-    int m_Ishift;  ///< length of relocated volume in grid coordinates
-    int m_Irear;   ///< current X location of rear-most SPH particles in grid coordinates
-    int m_Ifront;  ///< current X location of front-most SPH particles in grid coordinates
+    int m_Ishift;  ///< number of grid cells in X direction of relocated volume
+    int m_Irear;   ///< current X grid coordinate of rear-most SPH particles
+    int m_Ifront;  ///< current X grid coordinate of front-most SPH particles
 
-    ChAABB m_rearAABB;
-    ChAABB m_frontAABB;
-    ChIntAABB m_IfrontAABB;
+    ChAABB m_rearAABB;       ///< AABB containing the particles to be moved
+    ChAABB m_frontAABB;      ///< AABB destination for moved particles
+    ChIntAABB m_IfrontAABB;  ///< grid AABB destination for moved particles
 };
 
 /// @} vehicle_terrain

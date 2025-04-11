@@ -621,7 +621,7 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector
     std::vector<ChVector3i> sph;
     sph.reserve(num_sph);
 
-    // Generate SPH and bottom BCE points
+    // Generate SPH points
     for (int Ix = 0; Ix < Nx; Ix++) {
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Iz = 0; Iz < Nz; Iz++) {

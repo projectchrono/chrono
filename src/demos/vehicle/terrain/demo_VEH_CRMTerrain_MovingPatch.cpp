@@ -59,15 +59,18 @@ int main(int argc, char* argv[]) {
     // Terrain dimensions
     double terrain_length = 3.0;
     double terrain_width = 1.0;
-    double terrain_depth = 0.25;
+    double terrain_depth = 0.24;
+
+    // Set CRM spacing
+    double spacing = 0.04;
 
     // Moving patch settings
-    double buffer_dist = 2.0;  // Look-ahead distance (m)
-    double shift_dist = 0.4;   // Patch shift distance (m)
+    double buffer_dist = 2.6;  // Look-ahead distance
+    double shift_dist = 0.2;   // Patch shift distance
 
     // Camera location
-    enum CameraType { FIXED, FRONT, TRACK };
-    CameraType cam_type = FIXED;
+    enum CameraType { FREE, TOP, FRONT, TRACK };
+    CameraType cam_type = FREE;
 
     // -------------
     // Create system
@@ -90,7 +93,7 @@ int main(int argc, char* argv[]) {
     double body_rad = 0.2;               // Radius (m)
     double body_speed = 5 * kmh_to_ms;  // Forward speed (m/s)
 
-    ChVector3d pos(0.5, terrain_width / 2, terrain_depth + 1.5 * body_rad);
+    ChVector3d pos(0, terrain_width / 2, terrain_depth + 1.5 * body_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
@@ -131,12 +134,9 @@ int main(int argc, char* argv[]) {
     double youngs_modulus = 1e6;
     double poisson_ratio = 0.3;
 
-    // Set SPH spacing
-    double spacing = 0.04;
-
     CRMTerrain terrain(sysMBS, spacing);
     ChFsiSystemSPH& sysFSI = terrain.GetSystemFSI();
-    terrain.SetVerbose(false);
+    terrain.SetVerbose(true);
     terrain.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     terrain.SetStepSizeCFD(step_size);
 
@@ -222,6 +222,12 @@ int main(int argc, char* argv[]) {
                 break;
 
             switch (cam_type) {
+                case TOP: {
+                    ChVector3d cam_point = body->GetPos();
+                    ChVector3d cam_loc = cam_point + ChVector3d(0, 0, 2);
+                    visVSG->UpdateCamera(cam_loc, cam_point);
+                    break;
+                }
                 case FRONT: {
                     double body_x = body->GetPos().x();
                     ChVector3d cam_loc(body_x + buffer_dist, -5, 0);
@@ -254,7 +260,7 @@ int main(int argc, char* argv[]) {
         if (!moved)
             terrain.DoStepDynamics(step_size);
         
-        ////terrain.DoStepDynamics(step_size);
+        //terrain.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;

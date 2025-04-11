@@ -931,12 +931,13 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-// Relocation function to shift marker position by a given vector
+// Relocation function to shift marker position by a given vector.
+// Implements a Thrust unary function to be used with thrust::for_each.
 struct shift_op {
     shift_op(const Real3& shift, const FsiDataManager::DefaultProperties& props) : s(shift), p(props) {}
 
     template <typename T>
-    __device__ T operator()(const T& a) const {
+    __device__ void operator()(const T& a) const {
         // Modify position
         Real4 posw = thrust::get<0>(a);
         Real3 pos = mR3(posw);
@@ -949,8 +950,6 @@ struct shift_op {
         thrust::get<2>(a) = mR4(p.rho0, 0, p.mu0, thrust::get<2>(a).w);  // rho, pres, mu, type
         thrust::get<3>(a) = zero;                                        // tau diagonal
         thrust::get<4>(a) = zero;                                        // tau off-diagonal
-
-        return a;
     }
 
     Real3 s;
@@ -978,7 +977,8 @@ void FsiDataManager::Shift(MarkerType type, const Real3& shift, const DefaultPro
 
 // --------------------------
 
-// Selector function to find particles in a given AABB
+// Selector function to find particles in a given AABB.
+// Implements a Thrust predicate to be used with thrust::transform_if or thrust::partition.
 struct inaabb_op {
     inaabb_op(const RealAABB& aabb_src) : aabb(aabb_src) {}
 
@@ -998,7 +998,9 @@ struct inaabb_op {
     RealAABB aabb;
 };
 
-// Relocation function to move particle to given AABB
+// Relocation function to move particle to a given AABB.
+// Implements a Thrust unary function to be used with thrust::transform_if or thrust::for_each.
+//// TODO: deprecate?
 struct toaabb_op {
     toaabb_op(const RealAABB& aabb_dest, Real spacing, const FsiDataManager::DefaultProperties& props)
         : aabb(aabb_dest), delta(spacing), p(props) {}
@@ -1026,19 +1028,36 @@ struct toaabb_op {
     FsiDataManager::DefaultProperties p;
 };
 
-
-// Relocation function to move particle to given grid integer AABB
+// Relocation function to move particles to a given integer AABB.
+// Implements a Thrust unary function to be used with thrust::for_each.
+// Operates on a tuple {index, data_tuple}.
 struct togrid_op {
     togrid_op(const IntAABB& aabb_dest, Real spacing, const FsiDataManager::DefaultProperties& props)
         : aabb(aabb_dest), delta(spacing), p(props) {}
 
     template <typename T>
-    __device__ T operator()(const T& a, int index) const {
-        // Modify position
-        Real4 posw = thrust::get<0>(a);
-        Real3 pos = mR3(posw);
-        pos += mR3(0, 2, 0);  // testing...   //// TODO
-        thrust::get<0>(a) = mR4(pos, posw.w);
+    __device__ T operator()(const T& t) const {
+        int index = thrust::get<0>(t);
+        auto a = thrust::get<1>(t);
+
+        // 1. Convert linear index to 3D grid coordinates in an AABB of same size as destination AABB
+        int idx = index;
+        auto dim = aabb.max - aabb.min;
+        int x = idx % (dim.x + 1);
+        idx /= (dim.x + 1);
+        int y = idx % (dim.y + 1);
+        idx /= (dim.y + 1);
+        int z = idx;
+
+        // 2. Shift marker grid ccordinates to current destination AABB
+        x += aabb.min.x;
+        y += aabb.min.y;
+        z += aabb.min.z;
+
+        // Modify marker position in real coordinates (preserve marker type)
+        auto w = thrust::get<0>(a).w;
+        Real3 pos = mR3(delta * x, delta * y, delta * z);
+        thrust::get<0>(a) = mR4(pos, w);
 
         // Reset all other marker properties
         Real3 zero = mR3(0);
@@ -1046,8 +1065,8 @@ struct togrid_op {
         thrust::get<2>(a) = mR4(p.rho0, 0, p.mu0, thrust::get<2>(a).w);  // rho, pres, mu, type
         thrust::get<3>(a) = zero;                                        // tau diagonal
         thrust::get<4>(a) = zero;                                        // tau off-diagonal
-
-        return a;
+    
+        return t;
     }
 
     IntAABB aabb;
@@ -1055,7 +1074,7 @@ struct togrid_op {
     FsiDataManager::DefaultProperties p;
 };
 
-
+//// TODO: deprecate?
 void FsiDataManager::MoveAABB2AABB(MarkerType type,
                                    const RealAABB& aabb_src,
                                    const RealAABB& aabb_dest,
@@ -1075,17 +1094,10 @@ void FsiDataManager::MoveAABB2AABB(MarkerType type,
             break;
     }
 
-    ////for (int i = start_idx; i < start_idx + 10; i++)
-    ////    std::cout << sphMarkers_D->posRadD[i] << " | " << sphMarkers_D->velMasD[i] << std::endl;
-
     thrust::transform_if(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx),  //
                          sphMarkers_D->iterator(start_idx),                                   //
                          toaabb_op(aabb_dest, spacing, props),                                //
                          inaabb_op(aabb_src));                                                //
-
-    ////std::cout << "----" << std::endl;
-    ////for (int i = start_idx; i < start_idx + 10; i++)
-    ////    std::cout << sphMarkers_D->posRadD[i] << " | " << sphMarkers_D->velMasD[i] << std::endl;
 }
 
 void FsiDataManager::MoveAABB2AABB(MarkerType type,
@@ -1107,21 +1119,25 @@ void FsiDataManager::MoveAABB2AABB(MarkerType type,
             break;
     }
 
-    // Move markers to be relocated at beginning
+    // Move markers to be relocated at beginning of data structure
     auto middle = thrust::partition(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), inaabb_op(aabb_src));
 
     auto n_candidate = sphMarkers_D->iterator(end_idx) - sphMarkers_D->iterator(start_idx);
-    auto n_move = middle - sphMarkers_D->iterator(start_idx);
+    auto n_move = (int)(middle - sphMarkers_D->iterator(start_idx));
 
     ChDebugLog("Num candidate markers: " << n_candidate);
     ChDebugLog("Num moved markers:     " << n_move);
 
-    // Move markers to grid AABB (based on values in indices)
-    auto indices = thrust::make_counting_iterator(0);
-    thrust::transform(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(start_idx + n_move),  //
-                      indices,                                                                        //
-                      sphMarkers_D->iterator(start_idx),                                              //
-                      togrid_op(aabb_dest, spacing, props));                                          //
+    // Relocate markers based on their index
+    thrust::counting_iterator<uint> idx_first(0);
+    thrust::counting_iterator<uint> idx_last = idx_first + n_move;
+
+    auto data_first = sphMarkers_D->iterator(start_idx);
+    auto data_last = sphMarkers_D->iterator(start_idx + n_move);
+
+    thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(idx_first, data_first)),
+                     thrust::make_zip_iterator(thrust::make_tuple(idx_last, data_last)),
+                     togrid_op(aabb_dest, spacing, props));
 }
 
 // --------------------------
