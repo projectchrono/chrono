@@ -168,7 +168,7 @@ public:
         return (is_boundary || !is_elastic || is_requiring_bonds);
     }
 
-    ChVector3d F_peridyn; // placeholder for storing peridynamics force densities, automatically computed
+    ChVector3d F_peridyn; // placeholder for storing peridynamics force (not force density), automatically computed
 
     double volume;
     double h_rad;

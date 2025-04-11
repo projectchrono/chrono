@@ -233,7 +233,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
             if (!node->IsFixed()) {
                 // add gravity too
                 ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
-                ChVector3d TotForce = (node->F_peridyn*node->volume) + node->GetForce() + Gforce;
+                ChVector3d TotForce = (node->F_peridyn) + node->GetForce() + Gforce;
 
                 R.segment(off + local_off, 3) += c * TotForce.eigen();
                 local_off += 3;
@@ -377,7 +377,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         for (auto& node : vnodes) {
             // add gravity
             ChVector3d Gforce = GetSystem()->GetGravitationalAcceleration() * node->GetMass();
-            ChVector3d TotForce = (node->F_peridyn * node->volume) + node->GetForce() + Gforce;
+            ChVector3d TotForce = (node->F_peridyn) + node->GetForce() + Gforce;
 
             node->Variables().Force() += factor * TotForce.eigen();
         }
