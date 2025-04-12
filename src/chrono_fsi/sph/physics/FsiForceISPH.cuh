@@ -58,12 +58,10 @@ class FsiForceISPH : public FsiForce {
     thrust::device_vector<Real3> b3Vector;
     thrust::device_vector<Real> Residuals;
 
-    bool* error_flagD;
-
     size_t numAllMarkers;
     size_t NNZ;
 
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) override;
 
     void PreProcessor(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, bool calcLaplacianOperator);
 };

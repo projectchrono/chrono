@@ -41,7 +41,7 @@ class FsiForceWCSPH : public FsiForce {
 
   private:
     /// Function to calculate forces on SPH particles.
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) override;
 
     /// Perform density re-initialization (as needed).
     void DensityReinitialization(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
@@ -64,8 +64,6 @@ class FsiForceWCSPH : public FsiForce {
     uint numActive;   ///< total number of threads
     uint numBlocks;   ///< number of blocks
     uint numThreads;  ///< number of threads per block
-
-    bool* error_flagD; ///< error flag from CUDA kernels
 };
 
 /// @} fsisph_physics

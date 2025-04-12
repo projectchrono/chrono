@@ -1477,13 +1477,14 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Zero-out step data (derivatives and intermediate vectors)
     m_data_mgr->ResetData();
 
+    // Advance fluid particle and marker states from `time` to `time+step`
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
-            m_data_mgr->CopyDeviceDataToHalfStep();   //// 2 -> 1
+            m_data_mgr->CopyDeviceDataToHalfStep();  //// 2 -> 1
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers1_D,  //
-                                           step / 2, time);
+                                           time, step / 2);
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers1_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           step, time + step / 2);
+                                           time + step / 2, step);
             //// TODO Radu: why is step (and not step/2) passed here?!?
             break;
         }
@@ -1491,7 +1492,7 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
         case SPHMethod::I2SPH: {
             m_bce_mgr->updateBCEAcc();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           step, time);
+                                           time, step);
             break;
         }
     }

@@ -62,8 +62,8 @@ class FluidDynamics {
     void IntegrateSPH(
         std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,  ///< SPH particle information at the second half step
         std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,  ///< SPH particle information at the first half step
-        Real dT,                                              ///< simulation stepsize
-        Real time                                             ///< simulation time
+        Real time,                                            ///< current simulation time
+        Real step                                             ///< simulation stepsize
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.

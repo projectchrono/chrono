@@ -70,13 +70,13 @@ void FluidDynamics::ProximitySearch() {
 
 void FluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
                                  std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                 Real dT,
-                                 Real time) {
+                                 Real time,
+                                 Real step) {
     if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
-        forceSystem->ForceSPH(sortedSphMarkers2_D, time);
-        UpdateFluid(sortedSphMarkers1_D, dT);
+        forceSystem->ForceSPH(sortedSphMarkers2_D, time, step);
+        UpdateFluid(sortedSphMarkers1_D, step);
     } else {
-        forceSystem->ForceSPH(sortedSphMarkers1_D, time);
+        forceSystem->ForceSPH(sortedSphMarkers1_D, time, step);
     }
 
     ApplyBoundarySPH_Markers(sortedSphMarkers2_D);   //// TODO RADU: why is this done on sortedSphMarkers2_D?!?!

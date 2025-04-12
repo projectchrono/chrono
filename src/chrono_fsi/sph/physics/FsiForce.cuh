@@ -118,7 +118,7 @@ class FsiForce {
     virtual ~FsiForce();
 
     /// Function to calculate forces on SPH particles.
-    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time) = 0;
+    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, Real step) = 0;
 
     /// Synchronize the copy of the data (parameters and number of objects) between device (GPU) and host (CPU).
     /// This function needs to be called once the host data are modified.
@@ -161,12 +161,12 @@ class FsiForce {
     /// Function to set the linear solver type for the solver implemented using the ISPH method (FsiForceISPH).
     void SetLinearSolver(SolverType type);
 
-
   protected:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
     BceManager& m_bce_mgr;       ///< BCE manager
 
     bool m_verbose;
+    bool* m_errflagD;
 
     friend class FluidDynamics;
 };
