@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Base class for processing proximity in fsi system.
@@ -24,6 +24,8 @@
 namespace chrono {
 namespace fsi {
 namespace sph {
+
+// =============================================================================
 
 // Create the active list
 // Writes only if active - thus active list has all active partices at the front
@@ -96,7 +98,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
     // Store particle index associated to the hash we stored in gridMarkerHashD
     gridMarkerIndexD[globalIndex] = index;
 }
-// ------------------------------------------------------------------------------
+
 __global__ void findCellStartEndD(uint* cellStartD,        // output: cell start index
                                   uint* cellEndD,          // output: cell end index
                                   uint* gridMarkerHashD,   // input: sorted grid hashes
@@ -135,7 +137,17 @@ __global__ void findCellStartEndD(uint* cellStartD,        // output: cell start
     if (index == numActive - 1)
         cellEndD[hash] = index + 1;
 }
-// ------------------------------------------------------------------------------
+
+__global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerIndex, uint numActive) {
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numActive)
+        return;
+
+    uint index = gridMarkerIndex[id];
+
+    mapOriginalToSorted[index] = id;
+}
+
 __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
                              Real4* __restrict__ sortedPosRadD,
                              Real3* __restrict__ sortedVelMasD,
@@ -186,40 +198,121 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
     }
 }
 
-// ------------------------------------------------------------------------------
-__global__ void OriginalToSortedD(uint* mapOriginalToSorted, uint* gridMarkerIndex, uint numActive) {
-    uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numActive)
+// =============================================================================
+
+__global__ void neighborSearchNum(const Real4* sortedPosRad,
+                                  const Real4* sortedRhoPreMu,
+                                  const uint* cellStart,
+                                  const uint* cellEnd,
+                                  const uint numActive,
+                                  uint* numNeighborsPerPart,
+                                  volatile bool* error_flag) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numActive) {
         return;
+    }
 
-    uint index = gridMarkerIndex[id];
+    Real3 posRadA = mR3(sortedPosRad[index]);
+    int3 gridPos = calcGridPos(posRadA);
+    Real SuppRadii = 2.0f * paramsD.h;
+    Real SqRadii = SuppRadii * SuppRadii;
+    uint j_num = 0;
 
-    mapOriginalToSorted[index] = id;
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int z = -1; z <= 1; z++) {
+                int3 neighborPos = gridPos + mI3(x, y, z);
+                // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
+                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
+                    neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
+                    neighborPos.z < paramsD.minBounds.z || neighborPos.z > paramsD.maxBounds.z) {
+                    continue;
+                }
+                uint gridHash = calcGridHash(neighborPos);
+                uint startIndex = cellStart[gridHash];
+                uint endIndex = cellEnd[gridHash];
+                for (uint j = startIndex; j < endIndex; j++) {
+                    Real3 posRadB = mR3(sortedPosRad[j]);
+                    Real3 dist3 = Distance(posRadA, posRadB);
+                    Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+                    if (dd < SqRadii) {
+                        j_num++;
+                    }
+                }
+            }
+        }
+    }
+    numNeighborsPerPart[index] = j_num;
 }
-// ------------------------------------------------------------------------------
+
+__global__ void neighborSearchID(const Real4* sortedPosRad,
+                                 const Real4* sortedRhoPreMu,
+                                 const uint* cellStart,
+                                 const uint* cellEnd,
+                                 const uint numActive,
+                                 const uint* numNeighborsPerPart,
+                                 uint* neighborList,
+                                 volatile bool* error_flag) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numActive) {
+        return;
+    }
+    Real3 posRadA = mR3(sortedPosRad[index]);
+    int3 gridPos = calcGridPos(posRadA);
+    Real SuppRadii = 2.0f * paramsD.h;
+    Real SqRadii = SuppRadii * SuppRadii;
+    uint j_num = 1;
+    neighborList[numNeighborsPerPart[index]] = index;
+
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int z = -1; z <= 1; z++) {
+                int3 neighborPos = gridPos + mI3(x, y, z);
+                // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
+                if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
+                    neighborPos.y < paramsD.minBounds.y || neighborPos.y > paramsD.maxBounds.y ||
+                    neighborPos.z < paramsD.minBounds.z || neighborPos.z > paramsD.maxBounds.z) {
+                    continue;
+                }
+                uint gridHash = calcGridHash(neighborPos);
+                uint startIndex = cellStart[gridHash];
+                uint endIndex = cellEnd[gridHash];
+                for (uint j = startIndex; j < endIndex; j++) {
+                    if (j != index) {
+                        Real3 posRadB = mR3(sortedPosRad[j]);
+                        Real3 dist3 = Distance(posRadA, posRadB);
+                        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
+                        if (dd < SqRadii) {
+                            neighborList[numNeighborsPerPart[index] + j_num] = j;
+                            j_num++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =============================================================================
 
 CollisionSystem::CollisionSystem(FsiDataManager& data_mgr) : m_data_mgr(data_mgr), m_sphMarkersD(nullptr) {}
 
 CollisionSystem::~CollisionSystem() {}
-// ------------------------------------------------------------------------------
+
 void CollisionSystem::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
 }
 
-// ------------------------------------------------------------------------------
-
-void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
+                                  std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
 
-    m_sphMarkersD = sphMarkersD;
+    m_sphMarkersD = sphMarkersD;  //// TODO RADU: why is this cached?!?!
 
-    //=========================================================================================================
     // Create active list where all active particles are at the front of the array
-    //=========================================================================================================
-
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
@@ -235,30 +328,21 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     m_data_mgr.markersProximity_D->cellStartD.resize(numCells);
     m_data_mgr.markersProximity_D->cellEndD.resize(numCells);
 
-    // =========================================================================================================
     // Calculate Hash
-    // =========================================================================================================
-    // Now only need to launch active particles
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
-    // Execute Kernel
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
                                          U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                          U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD),
                                          m_data_mgr.countersH->numExtendedParticles, error_flagD);
     cudaCheckErrorFlag(error_flagD, "calcHashD");
 
-    // =========================================================================================================
     // Sort Particles based on Hash
-    // =========================================================================================================
     thrust::sort_by_key(
         m_data_mgr.markersProximity_D->gridMarkerHashD.begin(),
         m_data_mgr.markersProximity_D->gridMarkerHashD.begin() + m_data_mgr.countersH->numExtendedParticles,
         m_data_mgr.markersProximity_D->gridMarkerIndexD.begin());
 
-    // =========================================================================================================
     // Find the start index and the end index of the sorted array in each cell
-    // =========================================================================================================
-
     thrust::fill(m_data_mgr.markersProximity_D->cellStartD.begin(), m_data_mgr.markersProximity_D->cellStartD.end(), 0);
     thrust::fill(m_data_mgr.markersProximity_D->cellEndD.begin(), m_data_mgr.markersProximity_D->cellEndD.end(), 0);
 
@@ -270,23 +354,19 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
         m_data_mgr.countersH->numExtendedParticles);
 
-    // =========================================================================================================
-    // Launch a kernel to find the location of original particles in the sorted arrays.
+    // Launch a kernel to find the location of original particles in the sorted arrays
     // This is faster than using thrust::sort_by_key()
-    // =========================================================================================================
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
                                                  U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                                  m_data_mgr.countersH->numExtendedParticles);
 
-    // =========================================================================================================
     // Reorder the arrays according to the sorted index of all particles
-    // =========================================================================================================
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     reorderDataD<<<numBlocks, numThreads>>>(
-        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
-        mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->rhoPresMuD),
-        mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXxYyZzD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->tauXyXzYzD),
+        U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), mR4CAST(sortedSphMarkersD->posRadD),
+        mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
         INT_32CAST(m_data_mgr.activityIdentifierSortedD), mR4CAST(m_sphMarkersD->posRadD),
         mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
         mR3CAST(m_sphMarkersD->tauXyXzYzD), INT_32CAST(m_data_mgr.activityIdentifierOriginalD),
@@ -294,6 +374,43 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
 
     cudaDeviceSynchronize();
     cudaCheckError();
+
+    cudaFreeErrorFlag(error_flagD);
+}
+
+void CollisionSystem::NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
+    bool* error_flagD;
+    cudaMallocErrorFlag(error_flagD);
+    cudaResetErrorFlag(error_flagD);
+
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
+    uint numBlocksShort, numThreadsShort;
+    computeGridSize(numActive, 1024, numBlocksShort, numThreadsShort);
+
+    // Execute the kernel
+    thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
+
+    // start neighbor search
+    // first pass
+    neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
+        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+        U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "neighborSearchNum");
+
+    // In-place exclusive scan for num of neighbors
+    thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
+                           m_data_mgr.numNeighborsPerPart.begin());
+
+    m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
+    thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
+
+    // second pass
+    neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
+        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
+        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
+    cudaCheckErrorFlag(error_flagD, "neighborSearchID");
 
     cudaFreeErrorFlag(error_flagD);
 }

@@ -17,6 +17,8 @@
 
 #include "chrono/utils/ChConstants.h"
 #include "chrono_fsi/sph/physics/FluidDynamics.cuh"
+#include "chrono_fsi/sph/physics/FsiForceWCSPH.cuh"
+#include "chrono_fsi/sph/physics/FsiForceISPH.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
 
 using std::cout;
@@ -577,11 +579,12 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
     tauXyXzYzOriginal[index] = sortedTauXyXXzYz[id];
 }
 
-// -----------------------------------------------------------------------------
-// CLASS FOR FLUID DYNAMICS SYSTEM
-// -----------------------------------------------------------------------------
+// =============================================================================
+
 FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
     : m_data_mgr(data_mgr), m_verbose(verbose) {
+    collisionSystem = chrono_types::make_shared<CollisionSystem>(data_mgr);
+
     switch (m_data_mgr.paramsH->sph_method) {
         default:
         case SPHMethod::WCSPH:
@@ -598,28 +601,30 @@ FluidDynamics::~FluidDynamics() {}
 // -----------------------------------------------------------------------------
 
 void FluidDynamics::Initialize() {
-    forceSystem->Initialize();
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
     cudaMemcpyFromSymbol(m_data_mgr.paramsH.get(), paramsD, sizeof(ChFsiParamsSPH));
+
+    forceSystem->Initialize();
+    collisionSystem->Initialize();
 }
 
 // -----------------------------------------------------------------------------
-void FluidDynamics::SortParticles() {
-    forceSystem->fsiCollisionSystem->ArrangeData(m_data_mgr.sphMarkers_D);
+void FluidDynamics::ProximitySearch() {
+    collisionSystem->ArrangeData(m_data_mgr.sphMarkers_D, m_data_mgr.sortedSphMarkers2_D);
+    collisionSystem->NeighborSearch(m_data_mgr.sortedSphMarkers2_D);
 }
 
 // -----------------------------------------------------------------------------
 void FluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
                                  std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
                                  Real dT,
-                                 Real time,
-                                 bool proximity_search) {
+                                 Real time) {
     if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
-        forceSystem->ForceSPH(sortedSphMarkers2_D, time, proximity_search);
+        forceSystem->ForceSPH(sortedSphMarkers2_D, time);
         UpdateFluid(sortedSphMarkers1_D, dT);
     } else {
-        forceSystem->ForceSPH(sortedSphMarkers1_D, time, proximity_search);
+        forceSystem->ForceSPH(sortedSphMarkers1_D, time);
     }
 
     ApplyBoundarySPH_Markers(sortedSphMarkers2_D);

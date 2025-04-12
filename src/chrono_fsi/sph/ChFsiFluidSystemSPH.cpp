@@ -1469,26 +1469,28 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
         // Resize arrays (make sure this always happens at first frame)
         m_data_mgr->ResizeData(m_frame == 0);
 
-        // Sort particles (for broadphase proximity search)
-        m_fluid_dynamics->SortParticles();
+        // Perform proximity search
+        m_fluid_dynamics->ProximitySearch();
     }
 
+    // Zero-out step data (derivatives and intermediate vectors)
     m_data_mgr->ResetData();
-    
+
     switch (m_paramsH->sph_method) {
         case SPHMethod::WCSPH: {
-            m_data_mgr->CopyDeviceDataToHalfStep();
+            m_data_mgr->CopyDeviceDataToHalfStep();   //// 2 -> 1
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers1_D,  //
-                                           step / 2, time, proximity_search);
+                                           step / 2, time);
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers1_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           step, time + step / 2, false);
+                                           step, time + step / 2);
+            //// TODO Radu: why is step (and not step/2) passed here?!?
             break;
         }
 
         case SPHMethod::I2SPH: {
             m_bce_mgr->updateBCEAcc();
             m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           0.0, time, false);
+                                           step, time);
             break;
         }
     }

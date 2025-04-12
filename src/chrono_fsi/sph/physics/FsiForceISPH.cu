@@ -957,7 +957,7 @@ struct my_Functor_real4y {
     __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
 };
 
-void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool proximity_search) {
+void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time) {
     // Readability replacements
     auto& pH = m_data_mgr.paramsH;
     auto& cH = m_data_mgr.countersH;
@@ -986,9 +986,6 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
     uint numThreads, numBlocks;
     computeGridSize((uint)numAllMarkers + 1, 256, numBlocks, numThreads);
-
-    // TODO: shall i include the proximity search freq?
-    neighborSearch();
 
     // ----- calcRho_kernel=== calc_A_tensor==calc_L_tensor==Function_Gradient_Laplacian_Operator
     PreProcessor(true);
@@ -1229,7 +1226,6 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
         error_flagD);
     cudaCheckErrorFlag(error_flagD, "Velocity_Correction_and_update");
 
-    // fsiCollisionSystem->ArrangeData(sphMarkersD);
     PreProcessor(false);
 
     rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
@@ -1271,37 +1267,6 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
     csrValLaplacian.clear();
     csrValFunction.clear();
     AMatrix.clear();
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceISPH::neighborSearch() {
-    cudaResetErrorFlag(error_flagD);
-
-    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
-    uint numBlocksShort, numThreadsShort;
-    computeGridSize(numActive, 256, numBlocksShort, numThreadsShort);
-
-    // Execute the kernel
-    thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
-
-    neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
-        U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "neighborSearchNum");
-
-    // in-place exclusive scan for num of neighbors
-    thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
-                           m_data_mgr.numNeighborsPerPart.begin());
-    m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
-    thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
-
-    // second pass
-    neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "neighborSearchID");
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

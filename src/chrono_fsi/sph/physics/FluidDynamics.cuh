@@ -19,11 +19,10 @@
 #ifndef CH_FLUIDDYNAMICS_H_
 #define CH_FLUIDDYNAMICS_H_
 
-#include "chrono_fsi/sph/physics/FsiForce.cuh"
-#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
-#include "chrono_fsi/sph/physics/FsiForceWCSPH.cuh"
-#include "chrono_fsi/sph/physics/FsiForceISPH.cuh"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
+#include "chrono_fsi/sph/physics/FsiForce.cuh"
+#include "chrono_fsi/sph/physics/CollisionSystem.cuh"
+#include "chrono_fsi/sph/utils/UtilsDevice.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -52,22 +51,19 @@ class FluidDynamics {
     /// Destructor of the fluid/granular dynamics class.
     ~FluidDynamics();
 
-    /// Sort particles
-    void SortParticles();
+    /// Perform proximity search.
+    /// Sort particles (broad-phase) and create neighbor lists (narrow-phase)
+    void ProximitySearch();
 
-    /// Integrate the fluid/granular system in time.
-    /// The underlying SPH method implementation goes inside this function.
-    /// In a explicit scheme, to perform the integration, the force system
-    /// calculates the forces between the particles. Then the forces are
-    /// used to to update the particles position, velocity, and density in
-    /// time, the latter is used to update the pressure from an equation of
-    /// state. In the implicit scheme, the pressures are updated instead of density.
+    /// Integrate the SPH fluid system in time.
+    /// In a explicit scheme, the force system calculates the forces between the particles which are then used to update
+    /// the particles position, velocity, and density. The density is then used, through the equation of state, to
+    /// update pressure. in In the implicit scheme, the pressures are updated instead of density.
     void IntegrateSPH(
         std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,  ///< SPH particle information at the second half step
         std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,  ///< SPH particle information at the first half step
         Real dT,                                              ///< simulation stepsize
-        Real time,                                            ///< simulation time
-        bool proximity_search                                 //// TODO: obsolete
+        Real time                                             ///< simulation time
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.
@@ -75,14 +71,13 @@ class FluidDynamics {
                               std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2,
                               std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
-    /// Function to Shepard Filtering.
-    /// It calculates the densities directly, not based on the derivative of the
-    /// density. This function is used in addition to the density update in UpdateFluid.
+    /// Function to perform Shepard filtering.
+    /// It calculates the densities directly, not based on the derivative of the density. This function is used in
+    /// addition to the density update in UpdateFluid.
     void DensityReinitialization();
 
     /// Synchronize the copy of the data between device (GPU) and host (CPU).
-    /// Including the parameters and number of objects.
-    /// This function needs to be called once the host data are modified.
+    /// Including the parameters and number of objects. This function needs to be called once the host data are modified.
     void Initialize();
 
     /// Return the FsiForce type used in the simulation.
@@ -93,8 +88,9 @@ class FluidDynamics {
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
   protected:
-    FsiDataManager& m_data_mgr;               ///< FSI data manager
-    std::shared_ptr<FsiForce> forceSystem;  ///< force system object; calculates the force between particles
+    FsiDataManager& m_data_mgr;                        ///< FSI data manager
+    std::shared_ptr<FsiForce> forceSystem;             ///< force system object; calculates the force between particles
+    std::shared_ptr<CollisionSystem> collisionSystem;  ///< collision system for building neighbors list
 
     bool m_verbose;
 

@@ -1694,63 +1694,20 @@ void FsiForceWCSPH::Initialize() {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D,
-                             Real time, bool proximity_search) {
+void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time) {
     m_sortedSphMarkers_D = sortedSphMarkers_D;
     m_bce_mgr.updateBCEAcc();
-    CollideWrapper(time, proximity_search);
+    CollideWrapper(time);
     if (m_data_mgr.paramsH->shifting_method != ShiftingMethod::NONE) {
         CalculateShifting();
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceWCSPH::neighborSearch() {
+void FsiForceWCSPH::CollideWrapper(Real time) {
     bool* error_flagD;
     cudaMallocErrorFlag(error_flagD);
     cudaResetErrorFlag(error_flagD);
-
-    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
-    uint numBlocksShort, numThreadsShort;
-    computeGridSize(numActive, 1024, numBlocksShort, numThreadsShort);
-
-    // Execute the kernel
-    thrust::fill(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(), 0);
-
-    // start neighbor search
-    // first pass
-    neighborSearchNum<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
-        U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "neighborSearchNum");
-
-    // in-place exclusive scan for num of neighbors
-    thrust::exclusive_scan(m_data_mgr.numNeighborsPerPart.begin(), m_data_mgr.numNeighborsPerPart.end(),
-                           m_data_mgr.numNeighborsPerPart.begin());
-
-    m_data_mgr.neighborList.resize(m_data_mgr.numNeighborsPerPart.back());
-    thrust::fill(m_data_mgr.neighborList.begin(), m_data_mgr.neighborList.end(), 0);
-
-    // second pass
-    neighborSearchID<<<numBlocksShort, numThreadsShort>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD), numActive,
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "neighborSearchID");
-
-    cudaFreeErrorFlag(error_flagD);
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-void FsiForceWCSPH::CollideWrapper(Real time, bool proximity_search) {
-    bool* error_flagD;
-    cudaMallocErrorFlag(error_flagD);
-    cudaResetErrorFlag(error_flagD);
-
-    // Perform Proxmity search at specified frequency
-    if (proximity_search)
-        neighborSearch();
 
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
