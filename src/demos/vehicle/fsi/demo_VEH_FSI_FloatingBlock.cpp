@@ -260,8 +260,9 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Floating Block");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(0, -8 * byDim, 0.5 * bzDim), ChVector3d(0, 0, 0.4 * bzDim));
+        visVSG->AddCamera(ChVector3d(0, -7 * byDim, 3 + bzDim / 2), ChVector3d(0, 0, bzDim / 2));
         visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI_4);
 
         visVSG->Initialize();
         vis = visVSG;

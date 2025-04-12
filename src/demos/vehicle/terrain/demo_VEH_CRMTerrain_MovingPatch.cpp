@@ -57,16 +57,16 @@ int main(int argc, char* argv[]) {
     double render_fps = 200;  // rendering FPS
 
     // Terrain dimensions
-    double terrain_length = 3.0;
-    double terrain_width = 1.0;
-    double terrain_depth = 0.24;
+    double terrain_length = 0.4;
+    double terrain_width = 0.16;
+    double terrain_depth = 0.12;
 
     // Set CRM spacing
     double spacing = 0.04;
 
     // Moving patch settings
-    double buffer_dist = 2.6;  // Look-ahead distance
-    double shift_dist = 0.2;   // Patch shift distance
+    double buffer_dist = 0.2;  // Look-ahead distance
+    double shift_dist = 0.12;   // Patch shift distance
 
     // Camera location
     enum CameraType { FREE, TOP, FRONT, TRACK };
@@ -163,6 +163,7 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
     sph_params.boundary_type = BoundaryType::ADAMI;
+    ////sph_params.num_proximity_search_steps = 1;
     terrain.SetSPHParameters(sph_params);
 
     // No FSI bodies
@@ -193,7 +194,7 @@ int main(int argc, char* argv[]) {
     auto visVSG = chrono_types::make_shared<ChVisualSystemVSG>();
     visVSG->AttachSystem(&sysMBS);
     visVSG->AttachPlugin(visFSI);
-
+    visVSG->ToggleAbsFrameVisibility();
     visVSG->SetWindowTitle("CRM moving patch demo");
     visVSG->SetCameraVertical(CameraVerticalDir::Z);
     visVSG->AddCamera(ChVector3d(terrain_length / 2, -3, 2), ChVector3d(terrain_length / 2, 0, 0));
@@ -254,13 +255,13 @@ int main(int argc, char* argv[]) {
 
         // Advance dynamics of multibody and fluid systems concurrently
         
-        static bool moved = false;
-        if (terrain.PatchMoved())
-            moved = true;
-        if (!moved)
-            terrain.DoStepDynamics(step_size);
+        ////static bool moved = false;
+        ////if (terrain.PatchMoved())
+        ////    moved = true;
+        ////if (!moved)
+        ////    terrain.DoStepDynamics(step_size);
         
-        //terrain.DoStepDynamics(step_size);
+        terrain.DoStepDynamics(step_size);
 
         time += step_size;
         sim_frame++;
