@@ -87,6 +87,9 @@ class FluidDynamics {
     /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
     void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
+    /// Check if arrays must be resized due to change in particle activity.
+    bool CheckActivityArrayResize();
+
   protected:
     FsiDataManager& m_data_mgr;                        ///< FSI data manager
     std::shared_ptr<FsiForce> forceSystem;             ///< force system object; calculates the force between particles

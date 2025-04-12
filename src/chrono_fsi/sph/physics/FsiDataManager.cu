@@ -480,48 +480,6 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
     }
 }
 
-// Resize data based on the active particles
-// Custom functor for exclusive scan that treats -1 (zombie particles) the same as 0 (sleep particles)
-struct ActivityScanOp {
-    __host__ __device__ int operator()(const int& a, const int& b) const {
-        // Treat -1 the same as 0 (only add positive values)
-        int b_value = (b <= 0) ? 0 : b;
-        return a + b_value;
-    }
-};
-
-void FsiDataManager::ResizeData(bool first_step) {
-    //// TODO (for Huzaifa) ->  move everything, except the actual resizing into UpdateActivity and have it return/set a
-    ///flag indicating if resize is needed.
-
-    // Exclusive scan for extended activity identifier using custom functor to handle -1 values
-    thrust::exclusive_scan(thrust::device, extendedActivityIdentifierOriginalD.begin(),
-                           extendedActivityIdentifierOriginalD.end(), prefixSumExtendedActivityIdD.begin(),
-                           0,  // Initial value
-                           ActivityScanOp());
-
-    // Copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
-    uint lastPrefixVal = prefixSumExtendedActivityIdD[countersH->numAllMarkers - 1];
-    int32_t lastFlagInt32;
-    cudaMemcpy(&lastFlagInt32,
-               thrust::raw_pointer_cast(&extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
-               sizeof(int32_t), cudaMemcpyDeviceToHost);
-    uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
-
-    uint numExtended = lastPrefixVal + lastFlag;
-
-    countersH->numExtendedParticles = numExtended;
-
-
-    //// TODO (for Huzaifa) -> move this in OnStepDynamics and call ResizeArrays if above flag is true or this is the first frame.
-    
-    // Resize arrays based on number of active particles
-    // Also don't overallocate memory in the case of no active domains
-    if (numExtended < countersH->numAllMarkers || first_step) {
-        ResizeArrays(numExtended);
-    }
-}
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void FsiDataManager::Initialize(unsigned int num_fsi_bodies,

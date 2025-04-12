@@ -316,9 +316,8 @@ struct FsiDataManager {
     /// Initializes device vectors to zero.
     void ResetData();
 
-    /// Resize data based on the active particles
-    /// At first step, the internal resizeArray is always called
-    void ResizeData(bool first_step);
+    /// Resize data arrays based on particle activity.
+    void ResizeArrays(uint numExtended);
 
     // ------------------------
 
@@ -436,7 +435,6 @@ struct FsiDataManager {
     thrust::device_vector<uint> freeSurfaceIdD;  ///< identifiers for particles close to free surface
 
   private:
-    void ResizeArrays(uint numExtended);
     // Memory management parameters
     uint m_max_extended_particles;  ///< Maximum number of extended particles seen so far
     uint m_resize_counter;          ///< Counter for number of resizes since last shrink

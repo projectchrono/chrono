@@ -1462,14 +1462,15 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
         m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D);
     }
 
-    // Check if proximity search must be performed at this step (note that this always happens at first step)
+    // Resize arrays
+    bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();
+    if (m_frame == 0 || resize_arrays) {
+        m_data_mgr->ResizeArrays(m_data_mgr->countersH->numExtendedParticles);
+    }
+
+    // Perform proximity search
     bool proximity_search = m_frame % m_paramsH->num_proximity_search_steps == 0 || m_force_proximity_search;
-
     if (proximity_search) {
-        // Resize arrays (make sure this always happens at first frame)
-        m_data_mgr->ResizeData(m_frame == 0);
-
-        // Perform proximity search
         m_fluid_dynamics->ProximitySearch();
     }
 
@@ -1500,6 +1501,7 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
 
     ChDebugLog("GPU Memory usage: " << m_data_mgr->GetCurrentGPUMemoryUsage() / 1024.0 / 1024.0 << " MB");
 
+    // Reset flag for forcing a proximity search
     m_force_proximity_search = false;
 }
 
