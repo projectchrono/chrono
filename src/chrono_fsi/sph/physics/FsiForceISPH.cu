@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha
+// Author: Milad Rakhsha, Radu Serban
 // =============================================================================
 
 #include <cstdio>
@@ -957,21 +957,19 @@ struct my_Functor_real4y {
     __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
 };
 
-void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time) {
+void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time) {
     // Readability replacements
     auto& pH = m_data_mgr.paramsH;
     auto& cH = m_data_mgr.countersH;
 
     cudaResetErrorFlag(error_flagD);
 
-    m_sortedSphMarkers_D = sortedSphMarkers_D;
-
-    thrust::device_vector<Real3>::iterator iter_vel = thrust::max_element(
-        m_sortedSphMarkers_D->velMasD.begin(), m_sortedSphMarkers_D->velMasD.end(), compare_Real3_mag());
+    thrust::device_vector<Real3>::iterator iter_vel =
+        thrust::max_element(sortedSphMarkersD->velMasD.begin(), sortedSphMarkersD->velMasD.end(), compare_Real3_mag());
     Real MaxVel = length(*iter_vel);
 
     ////thrust::device_vector<Real4>::iterator iter_mu = thrust::max_element(
-    ////    m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(), compare_Real4_z());
+    ////    sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), compare_Real4_z());
     ////Real Maxmu = length(*iter_mu);
 
     size_t end_fluid = cH->numGhostMarkers + cH->numHelperMarkers + cH->numFluidMarkers;
@@ -988,13 +986,13 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
     computeGridSize((uint)numAllMarkers + 1, 256, numBlocks, numThreads);
 
     // ----- calcRho_kernel=== calc_A_tensor==calc_L_tensor==Function_Gradient_Laplacian_Operator
-    PreProcessor(true);
+    PreProcessor(sortedSphMarkersD, true);
 
     // ------
 
-    thrust::device_vector<Real4> rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
-    thrust::device_vector<Real4> posRadD_old = m_sortedSphMarkers_D->posRadD;
-    thrust::device_vector<Real3> velMasD_old = m_sortedSphMarkers_D->velMasD;
+    thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
+    thrust::device_vector<Real4> posRadD_old = sortedSphMarkersD->posRadD;
+    thrust::device_vector<Real3> velMasD_old = sortedSphMarkersD->velMasD;
 
     thrust::fill(V_star_old.begin(), V_star_old.end(), mR3(0));
     thrust::fill(V_star_new.begin(), V_star_new.end(), mR3(0));
@@ -1004,11 +1002,11 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
     if (pH->non_newtonian) {
         Viscosity_correction<<<numBlocks, numThreads>>>(
-            mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
-            mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-            mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD),
-            mR4CAST(m_data_mgr.sr_tau_I_mu_i), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction),
-            R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), updatePortion,
+            mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
+            mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i), R1CAST(csrValLaplacian),
+            mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList),
+            U1CAST(m_data_mgr.numNeighborsPerPart), updatePortion,
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), numAllMarkers, pH->dT, yeild_strain, error_flagD);
         cudaCheckErrorFlag(error_flagD, "Viscosity_correction");
     }
@@ -1017,9 +1015,9 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
     double LinearSystemClock_V = clock();
     V_star_Predictor<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
-        mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD),
-        mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD), R1CAST(AMatrix), mR3CAST(b3Vector), mR3CAST(V_star_old),
+        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+        mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
+        mR3CAST(sortedSphMarkersD->tauXyXzYzD), R1CAST(AMatrix), mR3CAST(b3Vector), mR3CAST(V_star_old),
         R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), R1CAST(_sumWij_inv), mR3CAST(Normals),
         U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart),
 
@@ -1044,12 +1042,12 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
     Real MaxRes = 100;
     while ((MaxRes > 1e-10 || Iteration < 3) && Iteration < pH->LinearSolver_Max_Iter) {
         Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(
-            mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
+            mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
             mR3CAST(b3Vector), R1CAST(q_old), R1CAST(q_new), R1CAST(b1Vector), U1CAST(m_data_mgr.neighborList),
             U1CAST(m_data_mgr.numNeighborsPerPart), true, error_flagD);
         cudaCheckErrorFlag(error_flagD, "Jacobi_SOR_Iter");
 
-        Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), mR3CAST(V_star_old),
+        Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_star_old),
                                                        mR3CAST(V_star_new), R1CAST(q_old), R1CAST(q_new),
                                                        R1CAST(Residuals), true, error_flagD);
         cudaCheckErrorFlag(error_flagD, "Update_AND_Calc_Res");
@@ -1100,10 +1098,10 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
     thrust::fill(q_new.begin(), q_new.end(), pH->Pressure_Constraint * pH->base_pressure);
 
     Pressure_Equation<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
-        mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix), R1CAST(b1Vector), mR3CAST(V_star_new),
-        R1CAST(q_new), R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv),
-        mR3CAST(Normals), U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart),
+        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(AMatrix), R1CAST(b1Vector), mR3CAST(V_star_new), R1CAST(q_new),
+        R1CAST(csrValFunction), R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(_sumWij_inv), mR3CAST(Normals),
+        U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart),
 
         mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
         mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
@@ -1158,7 +1156,7 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
         thrust::fill(Residuals.begin(), Residuals.end(), 0.0);
         while ((MaxRes > pH->LinearSolver_Abs_Tol || Iteration < 3) && Iteration < pH->LinearSolver_Max_Iter) {
             Jacobi_SOR_Iter<<<numBlocks, numThreads>>>(
-                mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
+                mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(AMatrix), mR3CAST(V_star_old), mR3CAST(V_star_new),
                 mR3CAST(b3Vector), R1CAST(q_old), R1CAST(q_new), R1CAST(b1Vector), U1CAST(m_data_mgr.neighborList),
                 U1CAST(m_data_mgr.numNeighborsPerPart), false, error_flagD);
             cudaCheckErrorFlag(error_flagD, "Jacobi_SOR_Iter");
@@ -1175,9 +1173,9 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
             //                                       q_new[numAllMarkers] * AMatrix[Contact_i[numAllMarkers + 1] - 1];
             //            }mu_s_
 
-            Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-                                                           mR3CAST(V_star_old), mR3CAST(V_star_new), R1CAST(q_old),
-                                                           R1CAST(q_new), R1CAST(Residuals), false, error_flagD);
+            Update_AND_Calc_Res<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(V_star_old),
+                                                           mR3CAST(V_star_new), R1CAST(q_old), R1CAST(q_new),
+                                                           R1CAST(Residuals), false, error_flagD);
             cudaCheckErrorFlag(error_flagD, "Update_AND_Calc_Res");
 
             Iteration++;
@@ -1191,8 +1189,8 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
     }
     //    Real4_y unary_op_p;
     //    thrust::plus<Real> binary_op;
-    //    Real Ave_pressure = thrust::transform_reduce(m_sortedSphMarkers_D->rhoPresMuD.begin(),
-    //                                                 m_sortedSphMarkers_D->rhoPresMuD.end(), unary_op_p, 0.0,
+    //    Real Ave_pressure = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(),
+    //                                                 sortedSphMarkersD->rhoPresMuD.end(), unary_op_p, 0.0,
     //                                                 binary_op)
     //                                                 /
     //                        (cH->numFluidMarkers);
@@ -1210,31 +1208,31 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
     // ----- Velocity_Correction_and_update
     double updateClock = clock();
-    rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
-    posRadD_old = m_sortedSphMarkers_D->posRadD;
-    velMasD_old = m_sortedSphMarkers_D->velMasD;
+    rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
+    posRadD_old = sortedSphMarkersD->posRadD;
+    velMasD_old = sortedSphMarkersD->velMasD;
 
     thrust::fill(m_data_mgr.vis_vel_SPH_D.begin(), m_data_mgr.vis_vel_SPH_D.end(), mR3(0.0));
 
     Velocity_Correction_and_update<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        mR4CAST(rhoPresMuD_old), mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
-        mR3CAST(m_sortedSphMarkers_D->tauXxYyZzD), mR3CAST(m_sortedSphMarkers_D->tauXyXzYzD),
+        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->velMasD), mR3CAST(velMasD_old),
+        mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
         mR4CAST(m_data_mgr.sr_tau_I_mu_i), mR3CAST(m_data_mgr.vis_vel_SPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
         mR3CAST(V_star_new), R1CAST(q_new), R1CAST(csrValFunction), mR3CAST(csrValGradient), R1CAST(csrValLaplacian),
         U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), numAllMarkers, MaxVel, pH->dT,
         error_flagD);
     cudaCheckErrorFlag(error_flagD, "Velocity_Correction_and_update");
 
-    PreProcessor(false);
+    PreProcessor(sortedSphMarkersD, false);
 
-    rhoPresMuD_old = m_sortedSphMarkers_D->rhoPresMuD;
-    posRadD_old = m_sortedSphMarkers_D->posRadD;
-    velMasD_old = m_sortedSphMarkers_D->velMasD;
+    rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
+    posRadD_old = sortedSphMarkersD->posRadD;
+    velMasD_old = sortedSphMarkersD->velMasD;
 
     Shifting<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(posRadD_old), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
-        mR4CAST(rhoPresMuD_old), mR3CAST(m_sortedSphMarkers_D->velMasD), mR3CAST(velMasD_old),
+        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(posRadD_old), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+        mR4CAST(rhoPresMuD_old), mR3CAST(sortedSphMarkersD->velMasD), mR3CAST(velMasD_old),
         mR3CAST(m_data_mgr.vis_vel_SPH_D), R1CAST(csrValFunction), mR3CAST(csrValGradient),
         U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), numAllMarkers, MaxVel, pH->dT,
         error_flagD);
@@ -1242,10 +1240,9 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
     Real4_x unary_op(pH->rho0);
     thrust::plus<Real> binary_op;
-    Real Ave_density_Err =
-        thrust::transform_reduce(m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(),
-                                 unary_op, Real(0), binary_op) /
-        (cH->numFluidMarkers * pH->rho0);
+    Real Ave_density_Err = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(),
+                                                    sortedSphMarkersD->rhoPresMuD.end(), unary_op, Real(0), binary_op) /
+                           (cH->numFluidMarkers * pH->rho0);
 
     double updateComputation = (clock() - updateClock) / (double)CLOCKS_PER_SEC;
     Real Re = pH->L_Characteristic * pH->rho0 * MaxVel / pH->mu0;
@@ -1255,11 +1252,10 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
     // post-processing for conservative formulation
     if (pH->Conservative_Form && pH->ClampPressure) {
-        Real minP =
-            thrust::transform_reduce(m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(),
-                                     Real4_y_min(), Real(1e9), thrust::minimum<Real>());
+        Real minP = thrust::transform_reduce(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(),
+                                             Real4_y_min(), Real(1e9), thrust::minimum<Real>());
         my_Functor_real4y negate(minP);
-        thrust::for_each(m_sortedSphMarkers_D->rhoPresMuD.begin(), m_sortedSphMarkers_D->rhoPresMuD.end(), negate);
+        thrust::for_each(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), negate);
         printf("Shifting min pressure of %.3e to 0\n", minP);
     }
 
@@ -1271,7 +1267,7 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void FsiForceISPH::PreProcessor(bool calcLaplacianOperator) {
+void FsiForceISPH::PreProcessor(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, bool calcLaplacianOperator) {
     cudaResetErrorFlag(error_flagD);
 
     uint numThreads, numBlocks;
@@ -1282,7 +1278,7 @@ void FsiForceISPH::PreProcessor(bool calcLaplacianOperator) {
     thrust::fill(G_i.begin(), G_i.end(), 0);
 
     calcRho_kernel<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv),
+        mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv),
         U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
     cudaCheckErrorFlag(error_flagD, "calcRho_kernel");
 
@@ -1296,8 +1292,8 @@ void FsiForceISPH::PreProcessor(bool calcLaplacianOperator) {
     thrust::fill(csrValFunction.begin(), csrValFunction.end(), 0.0);
 
     calcNormalizedRho_Gi_fillInMatrixIndices<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
-        mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals),
+        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), mR3CAST(Normals),
         U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
 
     cudaCheckErrorFlag(error_flagD, "calcNormalizedRho_Gi_fillInMatrixIndices");
@@ -1306,21 +1302,21 @@ void FsiForceISPH::PreProcessor(bool calcLaplacianOperator) {
         printf("| calc_A_tensor+");
 
         calc_A_tensor<<<numBlocks, numThreads>>>(
-            R1CAST(A_i), R1CAST(G_i), mR4CAST(m_sortedSphMarkers_D->posRadD), mR4CAST(m_sortedSphMarkers_D->rhoPresMuD),
+            R1CAST(A_i), R1CAST(G_i), mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
         cudaCheckErrorFlag(error_flagD, "calc_A_tensor");
 
         calc_L_tensor<<<numBlocks, numThreads>>>(
-            R1CAST(A_i), R1CAST(L_i), R1CAST(G_i), mR4CAST(m_sortedSphMarkers_D->posRadD),
-            mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList),
+            R1CAST(A_i), R1CAST(L_i), R1CAST(G_i), mR4CAST(sortedSphMarkersD->posRadD),
+            mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList),
             U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
         cudaCheckErrorFlag(error_flagD, "calc_L_tensor");
     }
 
     Function_Gradient_Laplacian_Operator<<<numBlocks, numThreads>>>(
-        mR4CAST(m_sortedSphMarkers_D->posRadD), mR3CAST(m_sortedSphMarkers_D->velMasD),
-        mR4CAST(m_sortedSphMarkers_D->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), R1CAST(L_i),
-        R1CAST(csrValLaplacian), mR3CAST(csrValGradient), R1CAST(csrValFunction), U1CAST(m_data_mgr.neighborList),
+        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+        mR4CAST(sortedSphMarkersD->rhoPresMuD), R1CAST(_sumWij_inv), R1CAST(G_i), R1CAST(L_i), R1CAST(csrValLaplacian),
+        mR3CAST(csrValGradient), R1CAST(csrValFunction), U1CAST(m_data_mgr.neighborList),
         U1CAST(m_data_mgr.numNeighborsPerPart), error_flagD);
     cudaCheckErrorFlag(error_flagD, "Gradient_Laplacian_Operator");
 }

@@ -166,9 +166,6 @@ class FsiForce {
     FsiDataManager& m_data_mgr;  ///< FSI data manager
     BceManager& m_bce_mgr;       ///< BCE manager
 
-    // NOTE: this is cached at each call to ForceSPH()
-    std::shared_ptr<SphMarkerDataD> m_sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
-
     bool m_verbose;
 
     friend class FluidDynamics;

@@ -31,8 +31,7 @@ FsiForce::FsiForce(FsiDataManager& data_mgr,
                        bool verbose)
     : m_data_mgr(data_mgr),
       m_bce_mgr(bce_mgr),
-      m_verbose(verbose),
-      m_sortedSphMarkers_D(nullptr) {
+      m_verbose(verbose) {
 }
 
 void FsiForce::Initialize() {

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha
+// Author: Milad Rakhsha, Radu Serban
 // =============================================================================
 
 #ifndef CH_FSI_FORCEI2SPH_H_
@@ -25,13 +25,13 @@ namespace sph {
 /// @addtogroup fsisph_physics
 /// @{
 
-/// Inter-particle force calculation for the I2SPH method.
+/// Inter-particle force calculation for the implicit SPH method.
 class FsiForceISPH : public FsiForce {
   public:
     /// Force class implemented using incompressible SPH method with implicit integrator.
     FsiForceISPH(FsiDataManager& data_mgr,  ///< FSI data manager
-                    BceManager& bce_mgr,       ///< BCE manager
-                    bool verbose               ///< verbose output
+                 BceManager& bce_mgr,       ///< BCE manager
+                 bool verbose               ///< verbose output
     );
 
     ~FsiForceISPH();
@@ -63,9 +63,9 @@ class FsiForceISPH : public FsiForce {
     size_t numAllMarkers;
     size_t NNZ;
 
-    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time) override;
+    void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time) override;
 
-    void PreProcessor(bool calcLaplacianOperator);
+    void PreProcessor(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, bool calcLaplacianOperator);
 };
 
 /// @} fsisph_physics
