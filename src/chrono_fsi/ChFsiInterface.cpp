@@ -266,6 +266,49 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
     return true;
 }
 
+// Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
+// For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
+void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
+    auto& dir = states.dir;
+    std::fill(dir.begin(), dir.end(), VNULL);
+
+    for (const auto& seg : mesh.contact_surface->GetSegmentsXYZ()) {
+        auto i0 = mesh.ptr2ind_map.at(seg->GetNode(0));
+        auto i1 = mesh.ptr2ind_map.at(seg->GetNode(1));
+        auto d = (states.pos[i1] - states.pos[i0]).GetNormalized();
+        dir[i0] += d;
+        dir[i1] += d;
+    }
+
+    for (auto& d : dir)
+        d.Normalize();
+
+#ifdef DEBUG_LOG
+    for (auto& d : dir)
+        cout << d << endl;
+#endif
+}
+
+// Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
+// For 2-D meshes, these are averages of the face normals of adjacent faces.
+void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
+    auto& dir = states.dir;
+    std::fill(dir.begin(), dir.end(), VNULL);
+
+    for (const auto& tri : mesh.contact_surface->GetTrianglesXYZ()) {
+        auto i0 = mesh.ptr2ind_map.at(tri->GetNode(0));
+        auto i1 = mesh.ptr2ind_map.at(tri->GetNode(1));
+        auto i2 = mesh.ptr2ind_map.at(tri->GetNode(2));
+        auto d = ChTriangle::CalcNormal(states.pos[i0], states.pos[i1], states.pos[i2]);
+        dir[i0] += d;
+        dir[i1] += d;
+        dir[i2] += d;
+    }
+
+    for (auto& d : dir)
+        d.Normalize();
+}
+
 void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                                       std::vector<FsiMeshState>& mesh1D_states,
                                       std::vector<FsiMeshState>& mesh2D_states) {
@@ -324,45 +367,6 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
             imesh++;
         }
     }
-}
-
-void ChFsiInterface::CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
-    auto& dir = states.dir;
-    std::fill(dir.begin(), dir.end(), VNULL);
-
-    for (const auto& seg : mesh.contact_surface->GetSegmentsXYZ()) {
-        auto i0 = mesh.ptr2ind_map.at(seg->GetNode(0));
-        auto i1 = mesh.ptr2ind_map.at(seg->GetNode(1));
-        auto d = (states.pos[i1] - states.pos[i0]).GetNormalized();
-        dir[i0] += d;
-        dir[i1] += d;
-    }
-
-    for (auto& d : dir)
-        d.Normalize();
-
-#ifdef DEBUG_LOG
-    for (auto& d : dir)
-        cout << d << endl;
-#endif
-}
-
-void ChFsiInterface::CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
-    auto& dir = states.dir;
-    std::fill(dir.begin(), dir.end(), VNULL);
-
-    for (const auto& tri : mesh.contact_surface->GetTrianglesXYZ()) {
-        auto i0 = mesh.ptr2ind_map.at(tri->GetNode(0));
-        auto i1 = mesh.ptr2ind_map.at(tri->GetNode(1));
-        auto i2 = mesh.ptr2ind_map.at(tri->GetNode(2));
-        auto d = ChTriangle::CalcNormal(states.pos[i0], states.pos[i1], states.pos[i2]);
-        dir[i0] += d;
-        dir[i1] += d;
-        dir[i2] += d;
-    }
-
-    for (auto& d : dir)
-        d.Normalize();
 }
 
 void ChFsiInterface::AllocateForceVectors(std::vector<FsiBodyForce>& body_forces,

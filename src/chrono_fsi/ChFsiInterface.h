@@ -151,14 +151,6 @@ class CH_FSI_API ChFsiInterface {
   protected:
     ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
 
-    /// Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
-    /// For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
-    void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states);
-
-    /// Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
-    /// For 2-D meshes, these are averages of the face normals of adjacent faces.
-    void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states);
-
     bool m_verbose;
     bool m_initialized;
     bool m_use_node_directions;
