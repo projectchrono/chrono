@@ -484,8 +484,9 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
     }
 
     if (doc.HasMember("Body Active Domain")) {
+        auto size = LoadVectorJSON(doc["Body Active Domain"]);
         m_paramsH->use_active_domain = true;
-        m_paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
+        m_paramsH->bodyActiveDomain = size / 2;
     }
 
     if (doc.HasMember("Settling Time"))
