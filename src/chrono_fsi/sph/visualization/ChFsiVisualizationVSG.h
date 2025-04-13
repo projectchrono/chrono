@@ -136,6 +136,7 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
   private:
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
 
+    void BindComputationalDomain();
     void BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag);
 
     ChFsiSystemSPH* m_sysFSI;       ///< associated FSI system

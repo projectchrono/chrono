@@ -148,12 +148,11 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::EndTable();
         }
 
-        if (m_vsysFSI->m_use_active_boxes &&
-            ImGui::BeginTable("ActiveBoxes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+        if (ImGui::BeginTable("ActiveBoxes", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
             static bool boxes_visible = m_vsysFSI->m_active_boxes;
-            if (ImGui::Checkbox("Active Boxes", &boxes_visible)) {
+            if (ImGui::Checkbox("Active Domains", &boxes_visible)) {
                 m_vsysFSI->m_active_boxes = !m_vsysFSI->m_active_boxes;
                 m_vsysFSI->SetActiveBoxVisibility(m_vsysFSI->m_active_boxes, -1);
             }
@@ -305,11 +304,14 @@ void ChFsiVisualizationVSG::OnInitialize() {
 }
 
 void ChFsiVisualizationVSG::OnBindAssets() {
+    // Create the VSG group for the active domains
+    m_vsys->GetVSGScene()->addChild(m_activeBoxScene);
+
+    // Create the box for the computational domain
+    BindComputationalDomain();
+
     if (!m_use_active_boxes)
         return;
-
-    // Create the VSG group for the active boxes
-    m_vsys->GetVSGScene()->addChild(m_activeBoxScene);
 
     // Loop over all FSI bodies and bind a model for its active box
     for (const auto& body : m_sysFSI->GetFsiBodies())
@@ -317,7 +319,7 @@ void ChFsiVisualizationVSG::OnBindAssets() {
 }
 
 void ChFsiVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
-    if (!m_vsys->IsInitialized() || !m_use_active_boxes)
+    if (!m_vsys->IsInitialized())
         return;
 
     for (auto& child : m_activeBoxScene->children) {
@@ -326,6 +328,27 @@ void ChFsiVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
         if (c_tag == tag || tag == -1)
             child.mask = vis;
     }
+}
+
+void ChFsiVisualizationVSG::BindComputationalDomain() {
+    auto material = chrono_types::make_shared<ChVisualMaterial>();
+    material->SetDiffuseColor(m_active_box_color);
+
+    auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
+
+    auto transform = vsg::MatrixTransform::create();
+    transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
+    auto group =
+        m_vsys->GetVSGShapeBuilder()->CreatePbrShape(vsg3d::ShapeBuilder::ShapeType::BOX, material, transform, true);
+
+    // Set group properties
+    group->setValue("Object", nullptr);
+    group->setValue("Tag", -1);
+    group->setValue("Transform", transform);
+
+    // Add the group to the global holder
+    vsg::Mask mask = m_active_boxes;
+    m_activeBoxScene->addChild(mask, group);
 }
 
 void ChFsiVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag) {
@@ -416,14 +439,17 @@ void ChFsiVisualizationVSG::OnRender() {
     }
 
     // Update positions of all active boxes
-    if (m_use_active_boxes) {
-        for (const auto& child : m_activeBoxScene->children) {
-            std::shared_ptr<ChBody> obj;
-            vsg::ref_ptr<vsg::MatrixTransform> transform;
-            if (!child.node->getValue("Object", obj))
-                continue;
-            if (!child.node->getValue("Transform", transform))
-                continue;
+    for (const auto& child : m_activeBoxScene->children) {
+        std::shared_ptr<ChBody> obj;
+        vsg::ref_ptr<vsg::MatrixTransform> transform;
+        if (!child.node->getValue("Object", obj))
+            continue;
+        if (!child.node->getValue("Transform", transform))
+            continue;
+        if (obj == nullptr) {
+            auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
+            transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
+        } else {
             transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos(), QUNIT), m_active_box_hsize);
         }
     }
