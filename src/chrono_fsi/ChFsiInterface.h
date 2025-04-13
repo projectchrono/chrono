@@ -48,7 +48,9 @@ class CH_FSI_API ChFsiInterface {
     // ------------
 
     /// Add a rigid body.
-    FsiBody& AddFsiBody(std::shared_ptr<ChBody> body);
+    /// The fluid-solid interaction is based on the provided rigid geometry.
+    /// If geometry=nullptr, it is assumed that the interaction geometry is provided separately.
+    FsiBody& AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry);
 
     /// Add a flexible solid with segment set contact to the FSI system.
     FsiMesh1D& AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);

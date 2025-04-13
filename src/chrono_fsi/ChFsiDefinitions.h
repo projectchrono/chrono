@@ -24,8 +24,12 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
+#include "chrono/utils/ChBodyGeometry.h"
 
 namespace chrono {
+
+using chrono::utils::ChBodyGeometry;
+
 namespace fsi {
 
 /// @addtogroup fsi_base
@@ -66,10 +70,11 @@ struct FsiMeshForce {
 
 /// Description of a rigid body exposed to the FSI system.
 struct FsiBody {
-    std::shared_ptr<ChBody> body;  ///< rigid body exposed to FSI system
-    ChVector3d fsi_force;          ///< fluid force at body COM (expressed in absolute frame)
-    ChVector3d fsi_torque;         ///< induced torque (expressed in absolute frame)
-    unsigned int fsi_accumulator;  ///< index of the body force accumulator for fluid forces
+    std::shared_ptr<ChBody> body;              ///< rigid body exposed to FSI system
+    std::shared_ptr<ChBodyGeometry> geometry;  ///< geometry for FSI interaction
+    ChVector3d fsi_force;                      ///< fluid force at body COM (expressed in absolute frame)
+    ChVector3d fsi_torque;                     ///< induced torque (expressed in absolute frame)
+    unsigned int fsi_accumulator;              ///< index of the body force accumulator for fluid forces
 };
 
 /// Description of an FEA mesh with 1-D segments exposed to the FSI system.

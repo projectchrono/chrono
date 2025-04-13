@@ -279,7 +279,7 @@ void ChFsiProblemSPH::Initialize() {
     // Create the body BCE markers and update AABB
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& b : m_bodies) {
-        auto body_index = m_sysFSI.AddFsiBody(b.body);
+        auto body_index = m_sysFSI.AddFsiBody(b.body, nullptr);
         m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
         m_fsi_bodies[b.body] = body_index;
         for (const auto& p : b.bce) {

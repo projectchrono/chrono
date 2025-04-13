@@ -99,9 +99,10 @@ const ChVector3d& ChFsiInterface::GetFsiBodyTorque(size_t i) const {
 
 // ------------
 
-FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body) {
+FsiBody& ChFsiInterface::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry) {
     FsiBody fsi_body;
     fsi_body.body = body;
+    fsi_body.geometry = geometry;
     fsi_body.fsi_force = VNULL;
     fsi_body.fsi_torque = VNULL;
 

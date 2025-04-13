@@ -229,20 +229,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Set kernel type.
     void SetKernelType(KernelType kernel_type);
-
-    /// Initialize the SPH fluid system with FSI support.
-    virtual void Initialize(unsigned int num_fsi_bodies,
-                            unsigned int num_fsi_nodes1D,
-                            unsigned int num_fsi_elements1D,
-                            unsigned int num_fsi_nodes2D,
-                            unsigned int num_fsi_elements2D,
-                            const std::vector<FsiBodyState>& body_states,
-                            const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states,
-                            bool use_node_directions) override;
-
-    /// Initialize the SPH fluid system with no FSI support.
-    virtual void Initialize() override;
     
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
@@ -560,10 +546,19 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Initialize simulation parameters with default values.
     void InitParams();
 
+    /// Initialize the SPH fluid system with FSI support.
+    virtual void Initialize(const std::vector<FsiBody>& fsi_bodies,
+                            const std::vector<FsiMesh1D>& fsi_meshes1D,
+                            const std::vector<FsiMesh2D>& fsi_meshes2D,
+                            const std::vector<FsiBodyState>& body_states,
+                            const std::vector<FsiMeshState>& mesh1D_states,
+                            const std::vector<FsiMeshState>& mesh2D_states,
+                            bool use_node_directions) override;
+
     /// Load the given body and mesh node states in the SPH data manager structures.
     /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
     /// manager. LoadSolidStates is always called once during initialization. If the SPH fluid solver is paired with the
-    /// generic FSI interface, LoadSolidStates is called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
+    /// generic FSI interface, LoadSolidStates is also called from ChFsiInterfaceGeneric::ExchangeSolidStates at each
     /// co-simulation data exchange. If using the custom SPH FSI interface, MBS states are copied directly to the
     /// device memory in ChFsiInterfaceSPH::ExchangeSolidStates.
     virtual void LoadSolidStates(const std::vector<FsiBodyState>& body_states,
@@ -571,21 +566,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                  const std::vector<FsiMeshState>& mesh2D_states) override;
 
     /// Store the body and mesh node forces from the SPH data manager to the given vectors.
-    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is called from
+    /// If the SPH fluid solver is paired with the generic FSI interface, StoreSolidForces is also called from
     /// ChFsiInterfaceGeneric::ExchangeSolidForces at each co-simulation data exchange. If using the custom SPH FSI
     /// interface, MBS forces are copied directly from the device memory in ChFsiInterfaceSPH::ExchangeSolidForces.
     virtual void StoreSolidForces(std::vector<FsiBodyForce> body_forces,
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) override;
 
-    /// Additional actions taken after adding a rigid body to the FSI system.
-    virtual void OnAddFsiBody(unsigned int index, FsiBody& fsi_body) override;
-
     /// Add a flexible solid with segment set contact to the FSI system.
-    virtual void OnAddFsiMesh1D(unsigned int index, FsiMesh1D& fsi_mesh) override;
+    void AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh);
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    virtual void OnAddFsiMesh2D(unsigned int index, FsiMesh2D& fsi_mesh) override;
+    void AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh);
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.

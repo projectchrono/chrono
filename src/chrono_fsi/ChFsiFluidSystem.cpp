@@ -50,22 +50,10 @@ void ChFsiFluidSystem::SetStepSize(double step) {
     m_step = step;
 }
 
-void ChFsiFluidSystem::Initialize(unsigned int num_fsi_bodies,
-                                  unsigned int num_fsi_nodes1D,
-                                  unsigned int num_fsi_elements1D,
-                                  unsigned int num_fsi_nodes2D,
-                                  unsigned int num_fsi_elements2D,
-                                  const std::vector<FsiBodyState>& body_states,
-                                  const std::vector<FsiMeshState>& mesh1D_states,
-                                  const std::vector<FsiMeshState>& mesh2D_states,
-                                  bool use_node_directions) {
-    // Mark system as initialized
-    m_is_initialized = true;
-}
-
 void ChFsiFluidSystem::Initialize() {
-    // Mark system as initialized
-    m_is_initialized = true;
+    Initialize(std::vector<FsiBody>(), std::vector<FsiMesh1D>(), std::vector<FsiMesh2D>(),             //
+               std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>(),  //
+               false);
 }
 
 void ChFsiFluidSystem::DoStepDynamics(double step) {

@@ -93,18 +93,18 @@ void ChFsiSystem::EnableNodeDirections(bool val) {
     m_fsi_interface->EnableNodeDirections(val);
 }
 
-size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
+size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry) {
     ChAssertAlways(m_fsi_interface);
 
     unsigned int index = m_fsi_interface->GetNumBodies();
-    auto& fsi_body = m_fsi_interface->AddFsiBody(body);
-    m_sysCFD.OnAddFsiBody(index, fsi_body);
-
+    auto& fsi_body = m_fsi_interface->AddFsiBody(body, geometry);
     return index;
 }
 
-void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
+size_t ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
     ChAssertAlways(m_fsi_interface);
+
+    size_t index = 0;
 
     bool has_contact1D = false;
     bool has_contact2D = false;
@@ -113,11 +113,11 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
             if (surface_segs->GetNumSegments() > 0)
-                AddFsiMesh1D(surface_segs);
+                index = AddFsiMesh1D(surface_segs);
             has_contact1D = true;
         } else if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
             if (surface_mesh->GetNumTriangles() > 0)
-                AddFsiMesh2D(surface_mesh);
+                index = AddFsiMesh2D(surface_mesh);
             has_contact2D = true;
         }
     }
@@ -130,7 +130,7 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
             contact_material_data.CreateMaterial(ChContactMethod::SMC));
         surface_segs->AddAllSegments(*mesh, 0);
         if (surface_segs->GetNumSegments() > 0)
-            AddFsiMesh1D(surface_segs);
+            index = AddFsiMesh1D(surface_segs);
     }
 
     // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
@@ -141,20 +141,22 @@ void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
             contact_material_data.CreateMaterial(ChContactMethod::SMC));
         surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
         if (surface_mesh->GetNumTriangles() > 0)
-            AddFsiMesh2D(surface_mesh);
+            index = AddFsiMesh2D(surface_mesh);
     }
+
+    return index;
 }
 
-void ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
+size_t ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
     unsigned int index = m_fsi_interface->GetNumMeshes1D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh1D(surface);
-    m_sysCFD.OnAddFsiMesh1D(index, fsi_mesh);
+    return index;
 }
 
-void ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
+size_t ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
     unsigned int index = m_fsi_interface->GetNumMeshes2D();
     auto& fsi_mesh = m_fsi_interface->AddFsiMesh2D(surface);
-    m_sysCFD.OnAddFsiMesh2D(index, fsi_mesh);
+    return index;
 }
 
 void ChFsiSystem::Initialize() {
@@ -186,13 +188,14 @@ void ChFsiSystem::Initialize() {
 
     // Initialize fluid system with initial solid states
     m_sysCFD.SetStepSize(m_step_CFD);
-    m_sysCFD.Initialize(m_fsi_interface->GetNumBodies(),                                        //
-                        m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
-                        m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D(),  //
-                        body_states, mesh1D_states, mesh2D_states,                              //
-                        m_fsi_interface->UseNodeDirections());                                  //
+    m_sysCFD.Initialize(m_fsi_interface->GetBodies(),               //
+                        m_fsi_interface->GetMeshes1D(),             //
+                        m_fsi_interface->GetMeshes2D(),             //
+                        body_states, mesh1D_states, mesh2D_states,  //
+                        m_fsi_interface->UseNodeDirections());      //
 
-    // Mark system as initialized
+    // Mark systems as initialized
+    m_sysCFD.m_is_initialized = true;
     m_is_initialized = true;
 }
 
