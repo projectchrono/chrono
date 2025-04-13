@@ -84,6 +84,17 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
+    /// Get the set of bodies added to the FSI interface.
+    const std::vector<FsiBody>& GetBodies() const { return m_fsi_bodies; }
+    
+    /// Get the set of 1D meshes added to the FSI interface.
+    const std::vector<FsiMesh1D>& GetMeshes1D() const { return m_fsi_meshes1D; }
+    
+    /// Get the set of 2D meshes added to the FSI interface.
+    const std::vector<FsiMesh2D>& GetMeshes2D() const { return m_fsi_meshes2D; }
+
+    // ------------
+
     /// Return the FSI applied force on the body with specified index.
     /// The force is applied at the body COM and is expressed in the absolute frame.
     const ChVector3d& GetFsiBodyForce(size_t i) const;

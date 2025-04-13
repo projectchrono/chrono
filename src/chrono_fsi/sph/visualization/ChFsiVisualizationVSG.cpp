@@ -314,8 +314,8 @@ void ChFsiVisualizationVSG::OnBindAssets() {
         return;
 
     // Loop over all FSI bodies and bind a model for its active box
-    for (const auto& body : m_sysFSI->GetFsiBodies())
-        BindActiveBox(body, body->GetTag());
+    for (const auto& fsi_body : m_sysFSI->GetBodies())
+        BindActiveBox(fsi_body.body, fsi_body.body->GetTag());
 }
 
 void ChFsiVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
