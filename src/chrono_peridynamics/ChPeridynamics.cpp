@@ -243,7 +243,9 @@ void ChPeridynamics::FillBox(
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector3d pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
+                ChVector3d pos( ix * spacing + 0.5 * spacing - 0.5 * size.x(), 
+                                iy * spacing + 0.5 * spacing - 0.5 * size.y(),
+                                iz * spacing + 0.5 * spacing - 0.5 * size.z());
                 pos += ChVector3d(mrandomness * ChRandom::Get() * spacing, mrandomness * ChRandom::Get() * spacing,
                                     mrandomness * ChRandom::Get() * spacing);
                 ChVector3d mpos = boxcoords.TransformPointLocalToParent(pos);
@@ -255,6 +257,7 @@ void ChPeridynamics::FillBox(
                 mnode->is_elastic = true;
                 mnode->coll_rad = collrad;
                 mnode->h_rad = horizon;
+                mnode->vol_half_size = spacing *0.5;
                 this->AddNode(mnode);
                 mmatter->AddNode(mnode);
                 if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) || (iz == samples_z - 1)) {
@@ -274,6 +277,7 @@ void ChPeridynamics::FillBox(
                     mnode->is_elastic = true;
                     mnode->coll_rad = collrad;
                     mnode->h_rad = horizon;
+                    mnode->vol_half_size = spacing * 0.5;
                     this->AddNode(mnode);
                     mmatter->AddNode(mnode);
                 }

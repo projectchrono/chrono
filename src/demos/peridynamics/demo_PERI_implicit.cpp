@@ -89,10 +89,10 @@ int main(int argc, char* argv[]) {
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
     
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
-    my_perimaterial->k_bulk = 9e9;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->r_bulk = 2000;        // damping 
-    my_perimaterial->max_stretch_fracture = 0.001; // beyond this, fracture happens (bonds still in place, but become unilateral)
-    my_perimaterial->max_stretch_break    = 0.003; // beyond this, bull break happens (bonds removed, collision surface generated)
+    my_perimaterial->k_bulk = 300e6;       // bulk stiffness (unit N/m^2)
+    my_perimaterial->damping = 0.001;          // bulk damping as Rayleigh beta 
+    my_perimaterial->max_stretch_fracture = 0.1; // 0.001 beyond this, fracture happens (bonds still in place, but become unilateral)
+    my_perimaterial->max_stretch_break    = 0.3; // 0.003 beyond this, bull break happens (bonds removed, collision surface generated)
 
     // IMPORTANT!
     // This contains all the peridynamics particles and their materials. 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     my_peridynamics->FillBox(
         my_perimaterial,
         ChVector3d(3, 1.5, 3),                        // size of box
-        4.0 / 40.0,                                   // resolution step
+        4.0 / 15.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
         false,                                        // do a centered cubic lattice initial arrangement

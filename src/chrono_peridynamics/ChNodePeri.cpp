@@ -29,9 +29,9 @@ using namespace peridynamics;
 
 
 ChNodePeri::ChNodePeri()
-    : volume(0.01), h_rad(0.2), coll_rad(0.0001) {
+    : volume(1e-6), h_rad(1.6e-6), coll_rad(0.005), vol_half_size(0.01) {
 
-    SetMass(0.01);
+    SetMass(1e-6);
 }
 
 ChNodePeri::ChNodePeri(const ChNodePeri& other) : ChNodeFEAxyz(other) {
@@ -39,6 +39,7 @@ ChNodePeri::ChNodePeri(const ChNodePeri& other) : ChNodeFEAxyz(other) {
     h_rad = other.h_rad;
     SetMass(other.GetMass());
     volume = other.volume;
+    vol_half_size= other.vol_half_size;
     F_peridyn = other.F_peridyn;
     is_boundary = other.is_boundary;
     is_colliding = other.is_colliding;

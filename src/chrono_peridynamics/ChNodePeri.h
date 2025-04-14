@@ -59,6 +59,11 @@ public:
     /// Set collision radius (for colliding with bodies, boundaries, etc.)
     void SetCollisionRadius(double mr);
 
+    /// Get half size of volume cell, assumed approx. as a cube. Used for volume correction with fading on horizon, at quadrature
+    double GetVolumeHalfSize() { return vol_half_size; }
+    /// Set half size of volume cell, assumed approx. as a cube. Used for volume correction with fading on horizon, at quadrature
+    void SetVolumeHalfSize(double mvol_half_size) { vol_half_size = mvol_half_size; }
+
 
     /// Access the variables of the node.
     //virtual ChVariablesNode& Variables() override { return variables; }
@@ -173,6 +178,8 @@ public:
     double volume;
     double h_rad;
     double coll_rad;
+    double vol_half_size;
+    double vol_accumulator;
 };
 
 

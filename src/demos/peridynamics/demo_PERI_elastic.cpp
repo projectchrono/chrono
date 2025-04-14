@@ -90,16 +90,16 @@ int main(int argc, char* argv[]) {
     // Create peridynamics material 
     // This is a very simple one: a linear bond-based elastic material, defined
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
-    /*
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
     my_perimaterial->k_bulk =  300e6;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->r_bulk = 50000;      // bulk damping (unit Ns/m^3)
-    */
+    my_perimaterial->damping = 0.001;    // bulk as Rayleigh beta
+    /*
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriLinearElastic>();
     my_perimaterial->k_bulk = 300e6;    // bulk stiffness (unit N/m^2)
     my_perimaterial->poisson = 0.25;  // Poisson coefficient 
     my_perimaterial->r_bulk = 0;      // bulk damping (unit Ns/m^3)
-    
+    */
+
     // IMPORTANT!
     // This contains all the peridynamics particles and their materials. 
     auto my_peridynamics = chrono_types::make_shared<ChPeridynamics>();
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     // nodes and bonds with dots, lines etc. Suggestion: use the Blender importer add-on 
     // for rendering properties in falsecolor and other advanced features.
     
-    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriLinearElastic>(my_perimaterial);
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterial);
     my_peridynamics->AddVisualShape(mglyphs_nodes);
     mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.

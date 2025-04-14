@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
     my_perimaterial->k_bulk = 20e9;            // bulk stiffness (unit N/m^2)
-    my_perimaterial->r_bulk = 50000;          // bulk damping (unit Ns/m^3)
+    my_perimaterial->damping = 0.001;          // bulk damping as Rayleigh beta
     my_perimaterial->max_stretch = 0.005;     // beyond this, fracture happens
 
 

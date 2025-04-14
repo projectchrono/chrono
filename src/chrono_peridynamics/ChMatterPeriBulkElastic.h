@@ -50,17 +50,45 @@ public:
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100; 
 
-    /// bulk damping, unit  Pa*s/m, i.e. Ns/m^3
-    double r_bulk = 10;
+    /// damping, as Rayleigh beta (bulk stiffness-proportional)
+    double damping = 0.001;
     
     /// maximum stretch - after this, bonds will break. Default no break.
     double max_stretch = 1e30;
 
     ChMatterPeriBulkElastic() {};
 
+    /// When doing quadrature, particle volumes that overlap with the horizon should be scaled
+    /// proportionally to how much of their volume is really inside the horizon sphere. A simple
+    /// and very often used approximation is the following 'fading' function.
+    double VolumeCorrection(double dist, double horizon, double vol_half_size) {
+        if (dist < (horizon - vol_half_size))
+            return 1.0;
+        else
+            if (dist < horizon)
+                return 1.0 - (dist-(horizon- vol_half_size))/(vol_half_size);
+            else
+                return 0.0;
+    }
+
     // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
+
+        // see [Ganzenmueller et al. "Improvements to the Prototype Micro - Brittle Linear Elasticity Model of Peridynamics"]
+        // loop on nodes for resetting volume accumulator   //***TODO*** maybe faster in SetupInitial
+        for (auto& node : this->nodes) {
+            node.first->vol_accumulator = node.first->volume;
+        }
+        // loop on bonds for sum of connected volumes to nodes   //***TODO*** maybe faster in SetupInitial
+        for (auto& bound : this->bounds) {
+            ChMatterDataPerBoundBulk& mbond = bound.second;
+            if (!mbond.broken) {
+                mbond.nodeA->vol_accumulator += mbond.nodeB->volume;
+                mbond.nodeB->vol_accumulator += mbond.nodeA->volume;
+            }
+        }
+
         // loop on bounds
         for (auto& bound : this->bounds) {
             ChMatterDataPerBoundBulk& mbound = bound.second;
@@ -74,17 +102,24 @@ public:
 
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
-                double horizon = mbound.nodeA->GetHorizonRadius();
-                double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
+                // Original PMB in Silling
+                // double vol_half_size = mbound.nodeA->GetVolumeHalfSize();
+                // double horizon = mbound.nodeA->GetHorizonRadius();
+                // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
+                // double force_density_val =  (18.0 * k_bulk / pih4) * stretch; // original in Silling
 
-                double force_density_val =  (18.0 * k_bulk / pih4) * stretch;
+                // Modified PMB in Ganzenmueller et.al.
+                double c_gmuller = 0.5 * ((18.0 * k_bulk / mbound.nodeA->vol_accumulator) + (18.0 * k_bulk / mbound.nodeB->vol_accumulator));
+                double force_density_val = (c_gmuller / old_sdist) * stretch;  
                 
-                if (this->r_bulk > 0)
-                    force_density_val +=  (18.0 * r_bulk / pih4) * svel;
+                if (this->damping > 0)
+                    force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
                 mbound.F_density = force_density_val;
-                mbound.nodeB->F_peridyn += -vdir * force_density_val * mbound.nodeA->volume * mbound.nodeB->volume;
-                mbound.nodeA->F_peridyn += vdir * force_density_val * mbound.nodeB->volume * mbound.nodeA->volume;
+                double wVV_ji = mbound.nodeA->volume * mbound.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
+
+                mbound.nodeB->F_peridyn += -vdir * force_density_val * wVV_ji;
+                mbound.nodeA->F_peridyn += vdir * force_density_val * wVV_ji;
 
                 if (stretch > max_stretch) {
                     mbound.F_density = 0;
@@ -242,8 +277,8 @@ public:
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100;
 
-    /// bulk damping, unit  Pa*s/m, i.e. Ns/m^3
-    double r_bulk = 10;
+    /// damping, as Rayleigh beta (bulk stiffness-proportional)
+    double damping = 0.001;
 
     /// maximum stretch for fracure - after this, bonds will become unilateral. Default no break.
     double max_stretch_fracture = 1e30;
@@ -253,9 +288,37 @@ public:
 
     ChMatterPeriBulkImplicit() {};
 
+    /// When doing quadrature, particle volumes that overlap with the horizon should be scaled
+    /// proportionally to how much of their volume is really inside the horizon sphere. A simple
+    /// and very often used approximation is the following 'fading' function.
+    double VolumeCorrection(double dist, double horizon, double vol_half_size) {
+        if (dist < (horizon - vol_half_size))
+            return 1.0;
+        else
+            if (dist < horizon)
+                return 1.0 - (dist - (horizon - vol_half_size)) / (vol_half_size);
+            else
+                return 0.0;
+    }
+
     // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
+
+        // see [Ganzenmueller et al. "Improvements to the Prototype Micro - Brittle Linear Elasticity Model of Peridynamics"]
+        // loop on nodes for resetting volume accumulator   //***TODO*** maybe faster in SetupInitial
+        for (auto& node : this->nodes) {
+            node.first->vol_accumulator = node.first->volume;
+        }
+        // loop on bonds for sum of connected volumes to nodes   //***TODO*** maybe faster in SetupInitial
+        for (auto& bound : this->bounds) {
+            ChMatterDataPerBoundBulkImplicit& mbond = bound.second;
+            if (mbond.state == ChMatterDataPerBoundBulkImplicit::bond_state::ACTIVE) {
+                mbond.nodeA->vol_accumulator += mbond.nodeB->volume;
+                mbond.nodeB->vol_accumulator += mbond.nodeA->volume;
+            }
+        }
+
         // loop on bounds
         for (auto& bound : this->bounds) {
             ChMatterDataPerBoundBulkImplicit& mbound = bound.second;
@@ -269,27 +332,34 @@ public:
 
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
-                double horizon = mbound.nodeA->GetHorizonRadius();
-                double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
-                
-                mbound.force_density_val = (18.0 * k_bulk / pih4) * stretch;
+                // Original PMB in Silling
+                // double horizon = mbound.nodeA->GetHorizonRadius();
+                // double vol_half_size = mbound.nodeA->GetVolumeHalfSize();
+                // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
+                // double c_silling = (18.0 * k_bulk /  (chrono::CH_PI * horizon * horizon * horizon * horizon) )
+                // double force_density_val =  c_silling * stretch; // original in Silling
 
-                if (this->r_bulk > 0)
-                    mbound.force_density_val += (18.0 * r_bulk / pih4) * svel;
+                // Modified PMB in Ganzenmueller et.al.
+                double c_gmuller = 0.5 * ((18.0 * k_bulk / mbound.nodeA->vol_accumulator) + (18.0 * k_bulk / mbound.nodeB->vol_accumulator));
+                double force_density_val = (c_gmuller / old_sdist) * stretch;  // in Ganzenmueller et.al.
+
+                if (this->damping > 0)
+                    force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
                 // constraint elongation
                 mbound.Phi = sdist - old_sdist;
                 
                 // tangent stiffness,   Km = c * 1/zeta * w_jk
-                bound.second.Km = ((18.0 * k_bulk / pih4) * (1.0/old_sdist) * mbound.nodeA->volume * mbound.nodeB->volume);
+                double wVV_jk = mbound.nodeA->volume * mbound.nodeB->volume; // * VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
+                bound.second.Km = (c_gmuller / (old_sdist * old_sdist) ) * wVV_jk;  // that is..   Km= (c_gmuller / old_sdist) * (1.0/old_sdist) * wVV_jk;
 
                 // compute here the jacobians, no need to move in LoadConstraintJacobians()
-                mbound.constraint.Get_Cq_a()(0) = -vdir.x() / old_sdist;
-                mbound.constraint.Get_Cq_a()(1) = -vdir.y() / old_sdist;
-                mbound.constraint.Get_Cq_a()(2) = -vdir.z() / old_sdist;
-                mbound.constraint.Get_Cq_b()(0) = vdir.x() / old_sdist;
-                mbound.constraint.Get_Cq_b()(1) = vdir.y() / old_sdist;
-                mbound.constraint.Get_Cq_b()(2) = vdir.z() / old_sdist;
+                mbound.constraint.Get_Cq_a()(0) = -vdir.x();// / old_sdist;
+                mbound.constraint.Get_Cq_a()(1) = -vdir.y();// / old_sdist;
+                mbound.constraint.Get_Cq_a()(2) = -vdir.z();// / old_sdist;
+                mbound.constraint.Get_Cq_b()(0) = vdir.x();// / old_sdist;
+                mbound.constraint.Get_Cq_b()(1) = vdir.y();// / old_sdist;
+                mbound.constraint.Get_Cq_b()(2) = vdir.z();// / old_sdist;
 
                 if (stretch > max_stretch_fracture) {
                     mbound.force_density_val = 0;
@@ -347,7 +417,7 @@ public:
 
         double h = 1.0 / c;  // was: this->container->GetSystem()->GetStep(); note not all steppers have c = 1/h
 
-        double alpha = this->r_bulk / this->k_bulk; // [R]=alpha*[K]
+        double alpha = this->damping;
         double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
@@ -357,9 +427,9 @@ public:
             // TODO  move to LoadKRMMatrices() the following
             // or move in a future IntLoadConstraint_Compliance, or right in IntToDescriptor
             // set compliance 1/h^2 * K^-1, here assuming c=1/h
-            bound.second.constraint.SetComplianceTerm((inv_hhpa) / bound.second.Km);
+            bound.second.constraint.SetComplianceTerm(inv_hhpa / bound.second.Km);//1. / bound.second.Km);// ?
 
-            double qc = inv_hpa * bound.second.Phi;
+            double qc = c * bound.second.Phi; //inv_hpa* bound.second.Phi;
 
             // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
             // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
@@ -563,7 +633,9 @@ public:
     /// maximum stretch - after this, bonds will break. Default no break.
     double max_stretch = 1e30;
 
-    ChMatterPeriLinearElastic() {};
+    ChMatterPeriLinearElastic() {
+        assert(false); // Material not ready to use. TO DO
+    };
 
     double InfluenceFunction(double zeta, double horizon) {
         if (zeta > horizon)
