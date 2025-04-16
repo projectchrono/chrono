@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Class for performing time integration in fluid system.
@@ -17,6 +17,7 @@
 
 #include <thrust/execution_policy.h>
 #include <thrust/scan.h>
+#include <thrust/logical.h>
 
 #include "chrono/utils/ChConstants.h"
 #include "chrono_fsi/sph/physics/FluidDynamics.cuh"
@@ -31,8 +32,8 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
-    : m_data_mgr(data_mgr), m_verbose(verbose) {
+FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose, bool check_errors)
+    : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors) {
     collisionSystem = chrono_types::make_shared<CollisionSystem>(data_mgr);
 
     switch (m_data_mgr.paramsH->sph_method) {
@@ -68,19 +69,50 @@ void FluidDynamics::ProximitySearch() {
 
 // -----------------------------------------------------------------------------
 
-void FluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,
-                                 std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,
-                                 Real time,
-                                 Real step) {
-    if (m_data_mgr.paramsH->sph_method == SPHMethod::WCSPH) {
-        forceSystem->ForceSPH(sortedSphMarkers2_D, time, step);
-        UpdateFluid(sortedSphMarkers1_D, step);
-    } else {
-        forceSystem->ForceSPH(sortedSphMarkers1_D, time, step);
+void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in, std::shared_ptr<SphMarkerDataD>& out) {
+    thrust::copy(in->posRadD.begin(), in->posRadD.end(), out->posRadD.begin());
+    thrust::copy(in->velMasD.begin(), in->velMasD.end(), out->velMasD.begin());
+    thrust::copy(in->rhoPresMuD.begin(), in->rhoPresMuD.end(), out->rhoPresMuD.begin());
+    if (m_data_mgr.paramsH->elastic_SPH) {
+        thrust::copy(in->tauXxYyZzD.begin(), in->tauXxYyZzD.end(), out->tauXxYyZzD.begin());
+        thrust::copy(in->tauXyXzYzD.begin(), in->tauXyXzYzD.end(), out->tauXyXzYzD.begin());
     }
+}
 
-    ApplyBoundarySPH_Markers(sortedSphMarkers2_D);   //// TODO RADU: why is this done on sortedSphMarkers2_D?!?!
-                                                     ////     for WCSPH, this is the state at the previous time!
+void FluidDynamics::AdvanceWCSPH(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
+    switch (scheme) {
+        case IntegrationScheme::EULER: {
+            Real dummy = 0;  // force calculation for WCSPH does not need the step size
+
+            forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
+            EulerStep(y, h);                     // y <==  y_{n+1} = y_n + h * f(t_n, y_n)
+            ApplyBoundarySPH_Markers(y);
+
+            break;
+        }
+
+        case IntegrationScheme::RK2: {
+            Real dummy = 0;  // force calculation for WCSPH does not need the step size
+
+            auto& y_tmp = m_data_mgr.sortedSphMarkers1_D;
+            CopySortedMarkers(y, y_tmp);  // y_tmp <- y_n
+
+            forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
+            EulerStep(y_tmp, h / 2);             // y_tmp <==  K1 = y_n + (h/2) * f(t_n, y_n)
+            ApplyBoundarySPH_Markers(y_tmp);
+
+            forceSystem->ForceSPH(y_tmp, t + h / 2, dummy);  // f(t_n + h/2, K1)
+            EulerStep(y, h);                                 // y <== y_{n+1} = y_n + h * f(t_n + h/2, K1)
+            ApplyBoundarySPH_Markers(y);
+
+            break;
+        }
+    }
+}
+
+void FluidDynamics::AdvanceISPH(std::shared_ptr<SphMarkerDataD> y, Real t, Real h) {
+    forceSystem->ForceSPH(y, t, h);
+    ApplyBoundarySPH_Markers(y);
 }
 
 // -----------------------------------------------------------------------------
@@ -92,8 +124,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 const Real3* pos_nodes2D_D,
                                 int32_t* activityIdentifierD,
                                 int32_t* extendedActivityIdD,
-                                const Real4* rhoPreMuD,
-                                volatile bool* error_flag) {
+                                const Real4* rhoPreMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers) {
         return;
@@ -183,10 +214,6 @@ __global__ void UpdateActivityD(const Real4* posRadD,
 }
 
 void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    bool* error_flagD;
-    cudaMallocErrorFlag(error_flagD);
-    cudaResetErrorFlag(error_flagD);
-
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
@@ -194,10 +221,8 @@ void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) 
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
         INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-        mR4CAST(sphMarkersD->rhoPresMuD), error_flagD);
-    cudaCheckErrorFlag(error_flagD, "UpdateActivityD");
-
-    cudaFreeErrorFlag(error_flagD);
+        mR4CAST(sphMarkersD->rhoPresMuD));
+    cudaCheckError();
 }
 
 // -----------------------------------------------------------------------------
@@ -238,206 +263,177 @@ bool FluidDynamics::CheckActivityArrayResize() {
 
 // -----------------------------------------------------------------------------
 
-// Kernel to update the fluid properities. It updates the stress tensor, density, velocity and position relying on
-// explicit Euler scheme. Pressure is obtained from the density and an Equation of State.
-__global__ void UpdateFluidD(Real4* posRadD,
-                             Real3* velMasD,
-                             Real4* rhoPresMuD,
-                             Real3* tauXxYyZzD,
-                             Real3* tauXyXzYzD,
-                             Real3* vel_XSPH_D,
-                             Real4* derivVelRhoD,
-                             Real3* derivTauXxYyZzD,
-                             Real3* derivTauXyXzYzD,
-                             Real4* sr_tau_I_mu_iD,
-                             uint* freeSurfaceIdD,
-                             int32_t* activityIdentifierSortedD,
-                             const uint numActive,
-                             Real dT,
-                             volatile bool* error_flag) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= numActive) {
-        return;
-    }
-
-    // Only update active particles not extended active particles
-    if (activityIdentifierSortedD[index] <= 0) {
-        return;
-    }
-
-    Real4 rhoPresMu = rhoPresMuD[index];
-    if (IsBceMarker(rhoPresMu.w)) {
-        return;
-    }
-
-    Real4 derivVelRho = derivVelRhoD[index];
-    Real h = posRadD[index].w;
-
-    // This is only implemented for granular material
-    Real p_tr, p_n;
-
-    if (paramsD.elastic_SPH) {
-        //--------------------------------
-        // ** total stress tau
-        //--------------------------------
-        Real3 tauXxYyZz = tauXxYyZzD[index];
-        Real3 tauXyXzYz = tauXyXzYzD[index];
-        Real3 derivTauXxYyZz = derivTauXxYyZzD[index];
-        Real3 derivTauXyXzYz = derivTauXyXzYzD[index];
-        Real3 updatedTauXxYyZz = tauXxYyZz + mR3(derivTauXxYyZz) * dT;
-        Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
-
-        // check if there is a plastic flow
-        p_n = -CH_1_3 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);
-        tauXxYyZz.x += p_n;
-        tauXxYyZz.y += p_n;
-        tauXxYyZz.z += p_n;
-        p_tr = -CH_1_3 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
-        updatedTauXxYyZz.x += p_tr;
-        updatedTauXxYyZz.y += p_tr;
-        updatedTauXxYyZz.z += p_tr;
-
-        Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                      2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
-                      2.0 * square(updatedTauXyXzYz.z);
-        Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) + 2.0 * square(tauXyXzYz.x) +
-                     2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
-        tau_tr = sqrt(0.5 * tau_tr);
-        tau_n = sqrt(0.5 * tau_n);
-        Real Chi = abs(tau_tr - tau_n) * paramsD.INV_G_shear / dT;
-        // should use the positive magnitude according to "A
-        // constitutive law for dense granular flows" Nature 2006
-        Real mu_s = paramsD.mu_fric_s;
-        Real mu_2 = paramsD.mu_fric_2;
-        // Real s_0 = mu_s * p_tr;
-        // Real s_2 = mu_2 * p_tr;
-        // Real xi = 1.1;
-        Real dia = paramsD.ave_diam;
-        Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
-        Real I = Chi * dia * sqrt(paramsD.rho0 / (p_tr + 1.0e-9));
-
-        Real coh = paramsD.Coh_coeff;
-        // Real Chi_cri = 0.1;
-        // if (Chi < Chi_cri){
-        //     coh = paramsD.Coh_coeff * (1.0 - sin(-1.57 + 3.14 * (Chi / Chi_cri))) / 2.0;
-        //     // coh = paramsD.Coh_coeff * (1.0 - I / I_cri);
-        // } else {
-        //     coh = 0.0;
-        // }
-        Real inv_mus = 1.0 / paramsD.mu_fric_s;
-        Real p_cri = -coh * inv_mus;
-        if (p_tr > p_cri) {
-            Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
-            // Real G0 = paramsD.G_shear;
-            // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
-            // Real B0 = s_2 + tau_tr + alpha;
-            // Real H0 = s_2*tau_tr + s_0*alpha;
-            // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
-            // if(tau_tr>s_0){
-            //     Real coeff = tau_n1/(tau_tr+1e-9);
-            //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
-            //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
-            // }
-            Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
-            // should use tau_max instead of s_0 according to
-            // "A constitutive law for dense granular flows" Nature 2006
-            if (tau_tr > tau_max) {
-                Real coeff = tau_max / (tau_tr + 1e-9);
-                updatedTauXxYyZz = updatedTauXxYyZz * coeff;
-                updatedTauXyXzYz = updatedTauXyXzYz * coeff;
-            }
-        }
-        // Set stress to zero if the pressure is smaller than the threshold
-        if (p_tr < p_cri) {
-            updatedTauXxYyZz = mR3(0.0);
-            updatedTauXyXzYz = mR3(0.0);
-            p_tr = 0.0;
-            // Real coeff = abs(p_cri / (p_tr + 1e-9));
-            // if (p_tr < 2.0 * p_cri){
-            //     coeff = 0.0;
-            // } else {
-            //     coeff = abs(1.0 - (p_tr - p_cri) / p_cri);
-            // }
-            // updatedTauXxYyZz = updatedTauXxYyZz * coeff;
-            // updatedTauXyXzYz = updatedTauXyXzYz * coeff;
-            // p_tr = p_cri * coeff;
-        }
-        // Set stress to zero if the particle is close to free surface
-        if (freeSurfaceIdD[index] == 1) {
-            updatedTauXxYyZz = mR3(0.0);
-            updatedTauXyXzYz = mR3(0.0);
-            p_tr = 0.0;
-        }
-
-        tauXxYyZzD[index] = updatedTauXxYyZz - mR3(p_tr);
-        tauXyXzYzD[index] = updatedTauXyXzYz;
-    }
-
-    //-------------
-    // ** position
-    //-------------
-    Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index];
-    Real3 posRad = mR3(posRadD[index]);
-    Real3 updatedPositon = posRad + vel_XSPH * dT;
-    if (!IsFinite(updatedPositon)) {
-        printf("Error! particle position is NAN: thrown from FluidDynamics.cu, UpdateFluidDKernel !\n");
-        *error_flag = true;
-        return;
-    }
-    posRadD[index] = mR4(updatedPositon, h);
-
-    //-------------
-    // ** velocity
-    //-------------
-    // Note that the velocity update should not use the XSPH contribution
-    // It adds dissipation to the solution, and provides numerical damping
-    Real3 velMas = velMasD[index];
-    Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
-    velMasD[index] = updatedVelocity;
-
-    //-------------
-    // ** density
-    //-------------
-    if (paramsD.elastic_SPH) {  // This is only implemented for granular material
-        rhoPresMu.y = p_tr;
-        rhoPresMu.x = paramsD.rho0;
-    } else {
-        Real rho2 = rhoPresMu.x + derivVelRho.w * dT;
-        rhoPresMu.y = Eos(rho2, paramsD.eos_type);
-        rhoPresMu.x = rho2;
-    }
-    if (!IsFinite(rhoPresMu)) {
-        printf("Error! particle rho pressure is NAN: thrown from FluidDynamics.cu, UpdateFluidDKernel !\n");
-        *error_flag = true;
-        return;
-    }
-    rhoPresMuD[index] = rhoPresMu;
-
-    // Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
-    // derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
-    // calculate the force that is f=m dv/dt
-    // derivVelRhoD[index] *= paramsD.markerMass;
+__device__ void PositionEulerStep(Real dT, const Real3& vel, Real4& pos) {
+    Real3 p = mR3(pos);
+    p += dT * vel;
+    pos = mR4(p, pos.w);
 }
 
-void FluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT) {
-    bool* error_flagD;
-    cudaMallocErrorFlag(error_flagD);
-    cudaResetErrorFlag(error_flagD);
+__device__ void VelocityEulerStep(Real dT, const Real3& acc, Real3& vel) {
+    vel += dT * acc;
+}
 
+__device__ void DensityEulerStep(Real dT, const Real& deriv, Real4& rho_p, EosType eos) {
+    rho_p.x += dT * deriv;
+    rho_p.y = Eos(rho_p.x, eos);
+}
+
+__device__ void TauEulerStep(Real dT,
+                             const Real3& deriv_tau_diag,
+                             const Real3& deriv_tau_offdiag,
+                             bool close_to_surface,
+                             Real3& tau_diag,
+                             Real3& tau_offdiag,
+                             Real4& rho_p) {
+    Real3 new_tau_diag = tau_diag + dT * deriv_tau_diag;
+    Real3 new_tau_offdiag = tau_offdiag + dT * deriv_tau_offdiag;
+
+    // Check for plastic flow
+    Real p_n = -CH_1_3 * (tau_diag.x + tau_diag.y + tau_diag.z);
+    Real p_tr = -CH_1_3 * (new_tau_diag.x + new_tau_diag.y + new_tau_diag.z);
+    tau_diag += mR3(p_n);
+    new_tau_diag += mR3(p_tr);
+
+    Real tau_n = square(tau_diag.x) + square(tau_diag.y) + square(tau_diag.z) +                             //
+                 2 * (square(tau_offdiag.x) + square(tau_offdiag.y) + square(tau_offdiag.z));               //
+    Real tau_tr = square(new_tau_diag.x) + square(new_tau_diag.y) + square(new_tau_diag.z) +                //
+                  2 * (square(new_tau_offdiag.x) + square(new_tau_offdiag.y) + square(new_tau_offdiag.z));  //
+    tau_n = sqrt(0.5 * tau_n);
+    tau_tr = sqrt(0.5 * tau_tr);
+    Real Chi = abs(tau_tr - tau_n) * paramsD.INV_G_shear / dT;
+
+    // Should use the positive magnitude according to "A constitutive law for dense granular flows" Nature 2006
+    Real mu_s = paramsD.mu_fric_s;
+    Real mu_2 = paramsD.mu_fric_2;
+    // Real s_0 = mu_s * p_tr;
+    // Real s_2 = mu_2 * p_tr;
+    // Real xi = 1.1;
+    Real dia = paramsD.ave_diam;
+    Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
+    Real I = Chi * dia * sqrt(paramsD.rho0 / (p_tr + 1.0e-9));
+
+    Real coh = paramsD.Coh_coeff;
+    // Real Chi_cri = 0.1;
+    // if (Chi < Chi_cri){
+    //     coh = paramsD.Coh_coeff * (1.0 - sin(-1.57 + 3.14 * (Chi / Chi_cri))) / 2.0;
+    //     // coh = paramsD.Coh_coeff * (1.0 - I / I_cri);
+    // } else {
+    //     coh = 0.0;
+    // }
+
+    Real inv_mus = 1.0 / paramsD.mu_fric_s;
+    Real p_cri = -coh * inv_mus;
+    if (p_tr < p_cri) {
+        new_tau_diag = mR3(0.0);
+        new_tau_offdiag = mR3(0.0);
+        p_tr = 0.0;
+    } else {
+        Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0e-9) / (I0 + I + 1.0e-9);
+        // Real G0 = paramsD.G_shear;
+        // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
+        // Real B0 = s_2 + tau_tr + alpha;
+        // Real H0 = s_2*tau_tr + s_0*alpha;
+        // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
+        // if(tau_tr>s_0){
+        //     Real coeff = tau_n1/(tau_tr+1e-9);
+        //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
+        //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
+        // }
+        Real tau_max = p_tr * mu + coh;  // p_tr*paramsD.Q_FA;
+        // should use tau_max instead of s_0 according to
+        // "A constitutive law for dense granular flows" Nature 2006
+        if (tau_tr > tau_max) {
+            Real coeff = tau_max / (tau_tr + 1e-9);
+            new_tau_diag *= coeff;
+            new_tau_offdiag *= coeff;
+        }
+    }
+
+    // Set stress to zero if the particle is close to free surface
+    if (close_to_surface == 1) {
+        new_tau_diag = mR3(0.0);
+        new_tau_offdiag = mR3(0.0);
+        p_tr = 0.0;
+    }
+
+    tau_diag = new_tau_diag - mR3(p_tr);
+    tau_offdiag = new_tau_offdiag;
+
+    rho_p.y = p_tr;
+    rho_p.x = paramsD.rho0;
+}
+
+// Kernel to update the fluid properities of a particle, using an explicit Euler step.
+// It updates the particle position and velocity. For a CFD problem, it also advances the density and calculates
+// pressure from the Equation of State. For a CRM problem, it updates the stress tensor and the pressure (density is
+// kept constant).
+//
+// Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
+// derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
+// calculate the force that is f=m dv/dt
+// derivVelRhoD[index] *= paramsD.markerMass;
+__global__ void EulerStepD(Real4* posRadD,
+                           Real3* velMasD,
+                           Real4* rhoPresMuD,
+                           Real3* tauXxYyZzD,
+                           Real3* tauXyXzYzD,
+                           const Real3* vel_XSPH_D,
+                           const Real4* derivVelRhoD,
+                           const Real3* derivTauXxYyZzD,
+                           const Real3* derivTauXyXzYzD,
+                           const Real4* sr_tau_I_mu_iD,
+                           const uint* freeSurfaceIdD,
+                           const int32_t* activityIdentifierSortedD,
+                           const uint numActive,
+                           Real dT) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numActive)
+        return;
+
+    // Only update active SPH particles, not extended active particles
+    if (IsBceMarker(rhoPresMuD[index].w)  || activityIdentifierSortedD[index] <= 0)
+        return;
+
+    // Euler step for position
+    PositionEulerStep(dT, velMasD[index] + vel_XSPH_D[index], posRadD[index]);
+
+    // Euler step for velocity
+    VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
+
+    if (paramsD.elastic_SPH) {
+        // Euler step for tau and pressure update
+        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], freeSurfaceIdD[index], tauXxYyZzD[index],
+                     tauXyXzYzD[index], rhoPresMuD[index]);
+    } else {
+        // Euler step for density and pressure update from EOS
+        DensityEulerStep(dT, derivVelRhoD[index].w, rhoPresMuD[index], paramsD.eos_type);
+    }
+}
+
+template <typename T>
+struct check_infinite {
+    __host__ __device__ bool operator()(const T& v) { return !IsFinite(v); }
+};
+
+void FluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT) {
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    UpdateFluidD<<<numBlocks, numThreads>>>(
-        mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
-        mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
-        mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D), mR4CAST(m_data_mgr.derivVelRhoD),
+    EulerStepD<<<numBlocks, numThreads>>>(
+        mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
+        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
+        mR4CAST(m_data_mgr.derivVelRhoD),
         mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
-        U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT,
-        error_flagD);
-    cudaCheckErrorFlag(error_flagD, "UpdateFluidD");
+        U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT);
+    cudaCheckError();
 
-    cudaFreeErrorFlag(error_flagD);
+    if (m_check_errors) {
+        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
+            cudaThrowError("A particle position is NaN");
+        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
+            cudaThrowError("A particle density is NaN");
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -459,8 +455,7 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
                                        Real3* tauXyXzYzOriginal,
                                        Real4* derivVelRhoOriginal,
                                        Real4* sr_tau_I_mu_i_Original,
-                                       uint* gridMarkerIndex,
-                                       volatile bool* error_flag) {
+                                       uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -494,8 +489,7 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
                                        Real3* tauXxYyZzOriginal,
                                        Real3* tauXyXzYzOriginal,
                                        Real4* derivVelRhoOriginal,
-                                       uint* gridMarkerIndex,
-                                       volatile bool* error_flag) {
+                                       uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -516,10 +510,6 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
 void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
                                          std::shared_ptr<SphMarkerDataD> sortedSphMarkersD,
                                          std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    bool* error_flagD;
-    cudaMallocErrorFlag(error_flagD);
-    cudaResetErrorFlag(error_flagD);
-
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
@@ -531,7 +521,7 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
             numActive, mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
             mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
             mR4CAST(m_data_mgr.derivVelRhoOriginalD), mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original),
-            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), error_flagD);
+            U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     } else {
         CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
             group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
@@ -539,12 +529,9 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), numActive,
             mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
             mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-            mR4CAST(m_data_mgr.derivVelRhoOriginalD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-            error_flagD);
+            mR4CAST(m_data_mgr.derivVelRhoOriginalD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     }
-    cudaCheckErrorFlag(error_flagD, "CopySortedToOriginal_D");
-
-    cudaFreeErrorFlag(error_flagD);
+    cudaCheckError();
 }
 
 // -----------------------------------------------------------------------------
@@ -681,19 +668,16 @@ void FluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sor
     if (m_data_mgr.paramsH->x_periodic) {
         ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-        cudaDeviceSynchronize();
         cudaCheckError();
     }
     if (m_data_mgr.paramsH->y_periodic) {
         ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-        cudaDeviceSynchronize();
         cudaCheckError();
     }
     if (m_data_mgr.paramsH->z_periodic) {
         ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-        cudaDeviceSynchronize();
         cudaCheckError();
     }
 }
@@ -707,18 +691,15 @@ void FluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDa
     computeGridSize(numActive, 256, numBlocks, numThreads);
     ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
                                                          mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-    cudaDeviceSynchronize();
     cudaCheckError();
 
     // these are useful anyway for out of bound particles
     ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
                                                             mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-    cudaDeviceSynchronize();
     cudaCheckError();
 
     ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
                                                             mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-    cudaDeviceSynchronize();
     cudaCheckError();
 }
 
@@ -807,7 +788,6 @@ void FluidDynamics::DensityReinitialization() {
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
         U1CAST(m_data_mgr.markersProximity_D->cellEndD));
 
-    cudaDeviceSynchronize();
     cudaCheckError();
     FsiForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
                                                   m_data_mgr.markersProximity_D->gridMarkerIndexD);

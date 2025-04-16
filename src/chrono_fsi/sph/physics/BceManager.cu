@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Luning Bakke
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Luning Bakke, Radu Serban
 // =============================================================================
 //
 // Base class for processing boundary condition enforcing (bce) markers forces
@@ -35,8 +35,8 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-BceManager::BceManager(FsiDataManager& data_mgr, bool use_node_directions, bool verbose)
-    : m_data_mgr(data_mgr), m_use_node_directions(use_node_directions), m_verbose(verbose) {
+BceManager::BceManager(FsiDataManager& data_mgr, bool use_node_directions, bool verbose, bool check_errors)
+    : m_data_mgr(data_mgr), m_use_node_directions(use_node_directions), m_verbose(verbose), m_check_errors(check_errors) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
     m_rigidBodyBlockSize = 512;

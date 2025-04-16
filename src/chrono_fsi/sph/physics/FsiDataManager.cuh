@@ -309,9 +309,6 @@ struct FsiDataManager {
                      unsigned int num_fsi_nodes2D,
                      unsigned int num_fsi_elements2D);
 
-    /// Initialize the midpoint device data of the fluid system by copying from the full step.
-    void CopyDeviceDataToHalfStep();
-
     /// Reset device data at beginning of a step.
     /// Initializes device vectors to zero.
     void ResetData();

@@ -116,6 +116,9 @@ int main(int argc, char* argv[]) {
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
 
+    // SPH integration sacheme
+    IntegrationScheme integration_scheme = IntegrationScheme::RK2;
+
     // --------------
     // Create vehicle
     // --------------
@@ -184,6 +187,7 @@ int main(int argc, char* argv[]) {
     // Set SPH solver parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = integration_scheme;
     sph_params.initial_spacing = spacing;
     sph_params.d0_multiplier = 1;
     sph_params.kernel_threshold = 0.8;

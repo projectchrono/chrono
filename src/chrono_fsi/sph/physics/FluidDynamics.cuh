@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Class for performing time integration in fluid system.
@@ -44,8 +44,9 @@ class FluidDynamics {
     /// - Copy the pointer to SPH particle data, parameters,
     ///   and number of objects to member variables.
     FluidDynamics(FsiDataManager& data_mgr,  ///< FSI data manager
-                    BceManager& bce_mgr,       ///< BCE manager
-                    bool verbose               ///< verbose output
+                  BceManager& bce_mgr,       ///< BCE manager
+                  bool verbose,              ///< verbose output
+                  bool check_errors          ///< check CUDA errors
     );
 
     /// Destructor of the fluid/granular dynamics class.
@@ -55,15 +56,24 @@ class FluidDynamics {
     /// Sort particles (broad-phase) and create neighbor lists (narrow-phase)
     void ProximitySearch();
 
-    /// Integrate the SPH fluid system in time.
+    //// TODO: make private
+    void CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in, std::shared_ptr<SphMarkerDataD>& out);
+
+    /// Advance the dynamics of the SPH fluid system (WCSPH explict scheme).
     /// In a explicit scheme, the force system calculates the forces between the particles which are then used to update
     /// the particles position, velocity, and density. The density is then used, through the equation of state, to
-    /// update pressure. in In the implicit scheme, the pressures are updated instead of density.
-    void IntegrateSPH(
-        std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D,  ///< SPH particle information at the second half step
-        std::shared_ptr<SphMarkerDataD> sortedSphMarkers1_D,  ///< SPH particle information at the first half step
-        Real time,                                            ///< current simulation time
-        Real step                                             ///< simulation stepsize
+    /// update pressure.
+    void AdvanceWCSPH(std::shared_ptr<SphMarkerDataD> y,  ///< marker state (in/out)
+                      Real t,                             ///< current simulation time
+                      Real h,                             ///< simulation stepsize
+                      IntegrationScheme scheme            ///< integration scheme
+    );
+
+    /// Advance the dynamics of the SPH fluid system (ISPH implict scheme).
+    /// Unlike for an explicit scheme, in the implicit scheme, the pressures are updated instead of density.
+    void AdvanceISPH(std::shared_ptr<SphMarkerDataD> y,  ///< marker state (in/out)
+                     Real t,                             ///< current simulation time
+                     Real h                              ///< simulation stepsize
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.
@@ -74,6 +84,7 @@ class FluidDynamics {
     /// Function to perform Shepard filtering.
     /// It calculates the densities directly, not based on the derivative of the density. This function is used in
     /// addition to the density update in UpdateFluid.
+    //// TODO RADU: where is this used?!?  Obsololete?
     void DensityReinitialization();
 
     /// Synchronize the copy of the data between device (GPU) and host (CPU).
@@ -90,15 +101,16 @@ class FluidDynamics {
     /// Check if arrays must be resized due to change in particle activity.
     bool CheckActivityArrayResize();
 
-  protected:
+  private:
     FsiDataManager& m_data_mgr;                        ///< FSI data manager
     std::shared_ptr<FsiForce> forceSystem;             ///< force system object; calculates the force between particles
     std::shared_ptr<CollisionSystem> collisionSystem;  ///< collision system for building neighbors list
 
     bool m_verbose;
+    bool m_check_errors;
 
-    /// Update SPH particles data for explicit integration.
-    void UpdateFluid(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real dT);
+    /// Advance the state of the fluid system using an explicit Euler step.
+    void EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT);
 
     /// Apply periodic boundary to the normal SPH particles.
     void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);

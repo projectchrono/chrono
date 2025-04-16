@@ -67,14 +67,15 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        SPHMethod sph_method;            ///< SPH method (default: WCSPH)
-        EosType eos_type;                ///< equation of state (default: ISOTHERMAL)
-        ViscosityType viscosity_type;    ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
-        BoundaryType boundary_type;      ///< boundary treatment (default: ADAMI)
-        KernelType kernel_type;          ///< kernel type (default: CUBIC_CPLINE)
-        ShiftingMethod shifting_method;  ///< shifting method (default: XSPH)
-        int num_bce_layers;              ///< number of BCE layers (boundary and solids, default: 3)
-        double initial_spacing;          ///< initial particle spacing (default: 0.01)
+        SPHMethod sph_method;                  ///< SPH method (default: WCSPH)
+        IntegrationScheme integration_scheme;  ///< Integration scheme (default: RK2)
+        EosType eos_type;                      ///< equation of state (default: ISOTHERMAL)
+        ViscosityType viscosity_type;          ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
+        BoundaryType boundary_type;            ///< boundary treatment (default: ADAMI)
+        KernelType kernel_type;                ///< kernel type (default: CUBIC_CPLINE)
+        ShiftingMethod shifting_method;        ///< shifting method (default: XSPH)
+        int num_bce_layers;                    ///< number of BCE layers (boundary and solids, default: 3)
+        double initial_spacing;                ///< initial particle spacing (default: 0.01)
         double d0_multiplier;       ///< kernel length multiplier, h = d0_multiplier * initial_spacing (default: 1.2)
         double max_velocity;        ///< maximum velocity (default: 1.0)
         double shifting_xsph_eps;   ///< XSPH coefficient (default: 0.5)
@@ -113,6 +114,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Read Chrono::FSI parameters from the specified JSON file.
     void ReadParametersFromFile(const std::string& json_file);
+
+    /// Enable/disable CUDA error checks (default: enabled).
+    void EnableCudaErrorCheck(bool val) { m_check_errors = val; }
 
     /// Set initial spacing.
     void SetInitialSpacing(double spacing);
@@ -188,8 +192,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the linear system solver for implicit methods.
     void SetSPHLinearSolver(SolverType lin_solver);
 
-    /// Set the SPH method and, optionally, the linear solver type.
+    /// Set the SPH method.
     void SetSPHMethod(SPHMethod SPH_method);
+
+    /// Set the integration scheme.
+    void SetIntegrationScheme(IntegrationScheme scheme);
 
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
     void SetNumProximitySearchSteps(int steps);
@@ -612,6 +619,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 
     OutputLevel m_output_level;
+    bool m_check_errors;
 
     BcePatternMesh1D m_pattern1D;
     BcePatternMesh2D m_pattern2D;

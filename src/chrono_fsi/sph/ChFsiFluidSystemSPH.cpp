@@ -71,7 +71,8 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
       m_num_flex1D_elements(0),
       m_num_flex2D_elements(0),
       m_output_level(OutputLevel::STATE_PRESSURE),
-      m_force_proximity_search(false) {
+      m_force_proximity_search(false),
+      m_check_errors (true) {
     m_paramsH = chrono_types::make_shared<ChFsiParamsSPH>();
     InitParams();
 
@@ -96,6 +97,7 @@ void ChFsiFluidSystemSPH::InitParams() {
 
     // SPH parameters
     m_paramsH->sph_method = SPHMethod::WCSPH;
+    m_paramsH->integration_scheme = IntegrationScheme::RK2;
     m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
     m_paramsH->boundary_type = BoundaryType::ADAMI;
@@ -588,6 +590,10 @@ void ChFsiFluidSystemSPH::SetSPHMethod(SPHMethod SPH_method) {
     m_paramsH->sph_method = SPH_method;
 }
 
+void ChFsiFluidSystemSPH::SetIntegrationScheme(IntegrationScheme scheme) {
+    m_paramsH->integration_scheme = scheme;
+}
+
 void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
     m_paramsH->boxDimX = box_dim.x();
     m_paramsH->boxDimY = box_dim.y();
@@ -856,6 +862,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->sph_method = sph_params.sph_method;
+    m_paramsH->integration_scheme = sph_params.integration_scheme;
 
     m_paramsH->eos_type = sph_params.eos_type;
     m_paramsH->viscosity_type = sph_params.viscosity_type;
@@ -1402,8 +1409,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, use_node_directions, m_verbose);
-    m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose);
+    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, use_node_directions, m_verbose, m_check_errors);
+    m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
 
     // Initialize worker objects
     m_bce_mgr->Initialize(m_fsi_bodies_bce_num);
@@ -1508,23 +1515,15 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     m_data_mgr->ResetData();
 
     // Advance fluid particle and marker states from `time` to `time+step`
+    auto& state = m_data_mgr->sortedSphMarkers2_D;
     switch (m_paramsH->sph_method) {
-        case SPHMethod::WCSPH: {
-            m_data_mgr->CopyDeviceDataToHalfStep();  //// 2 -> 1
-            m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers1_D,  //
-                                           time, step / 2);
-            m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers1_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           time + step / 2, step);
-            //// TODO Radu: why is step (and not step/2) passed here?!?
+        case SPHMethod::WCSPH:
+            m_fluid_dynamics->AdvanceWCSPH(state, time, step, m_paramsH->integration_scheme);
             break;
-        }
-
-        case SPHMethod::I2SPH: {
+        case SPHMethod::I2SPH:
             m_bce_mgr->updateBCEAcc();
-            m_fluid_dynamics->IntegrateSPH(m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sortedSphMarkers2_D,  //
-                                           time, step);
+            m_fluid_dynamics->AdvanceISPH(state, time, step);
             break;
-        }
     }
 
     m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D,

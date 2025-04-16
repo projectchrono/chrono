@@ -32,10 +32,22 @@ enum class PhysicsProblem {
     CRM   ///< continuous granular problem
 };
 
+//// TODO RADU: - fix the inconsistency related to solid force calculation between WCSPH and ISPH.
+////            - once that is done, we can get rid of "WCSPH" and add ISPH as an integration scheme.
+////            - that also means that this option need not be included in params.
+
 /// SPH method.
 enum class SPHMethod {
     WCSPH,  ///< Weakly Compressible SPH (explicit)
     I2SPH   ///< Implicit SPH
+};
+
+/// Explicit integration scheme (for WCSPH).
+enum class IntegrationScheme {
+    EULER,      ///< Explicit Euler
+    RK2,        ///< Runge-Kutta 2
+    VERLET,     ///< Velocity Verlet
+    SYMPLECTIC  ///< Symplectic Euler
 };
 
 /// Shifting Methods

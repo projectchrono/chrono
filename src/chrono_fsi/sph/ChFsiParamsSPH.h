@@ -37,12 +37,13 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct ChFsiParamsSPH {
-    SPHMethod sph_method;            ///< SPH method (WCSPH or I2SPH)
-    EosType eos_type;                ///< Equation of state type (Tait or isothermal)
-    ViscosityType viscosity_type;    ///< Viscosity treatment type (physics-based laminar flow or artificial)
-    BoundaryType boundary_type;      ///< Boundary type (Adami or Holmes)
-    KernelType kernel_type;          ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
-    ShiftingMethod shifting_method;  ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
+    SPHMethod sph_method;                  ///< SPH method (WCSPH or I2SPH)
+    IntegrationScheme integration_scheme;  ///< Integration scheme
+    EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
+    ViscosityType viscosity_type;          ///< Viscosity treatment type (physics-based laminar flow or artificial)
+    BoundaryType boundary_type;            ///< Boundary type (Adami or Holmes)
+    KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
+    ShiftingMethod shifting_method;        ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
 
     bool elastic_SPH;  ///< Set physics problem: CFD (false) or CRM granular (true)
 

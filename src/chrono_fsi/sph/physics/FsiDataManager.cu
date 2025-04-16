@@ -364,22 +364,6 @@ void FsiDataManager::ConstructReferenceArray() {
     numComponentMarkers.clear();
 }
 
-void FsiDataManager::CopyDeviceDataToHalfStep() {
-    thrust::copy(sortedSphMarkers2_D->posRadD.begin(), sortedSphMarkers2_D->posRadD.end(),
-                 sortedSphMarkers1_D->posRadD.begin());
-    thrust::copy(sortedSphMarkers2_D->velMasD.begin(), sortedSphMarkers2_D->velMasD.end(),
-                 sortedSphMarkers1_D->velMasD.begin());
-    thrust::copy(sortedSphMarkers2_D->rhoPresMuD.begin(), sortedSphMarkers2_D->rhoPresMuD.end(),
-                 sortedSphMarkers1_D->rhoPresMuD.begin());
-
-    if (paramsH->elastic_SPH) {
-        thrust::copy(sortedSphMarkers2_D->tauXxYyZzD.begin(), sortedSphMarkers2_D->tauXxYyZzD.end(),
-                     sortedSphMarkers1_D->tauXxYyZzD.begin());
-        thrust::copy(sortedSphMarkers2_D->tauXyXzYzD.begin(), sortedSphMarkers2_D->tauXyXzYzD.end(),
-                     sortedSphMarkers1_D->tauXyXzYzD.begin());
-    }
-}
-
 void FsiDataManager::ResetData() {
     auto zero4 = mR4(0);
     auto zero3 = mR3(0);

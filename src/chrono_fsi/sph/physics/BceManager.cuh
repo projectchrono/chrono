@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Base class for processing boundary condition enforcing (BCE) particles forces
@@ -38,7 +38,8 @@ class BceManager {
   public:
     BceManager(FsiDataManager& data_mgr,  ///< FSI data
                bool use_node_directions,  ///< use higher-order interpolation for flex solid BCEs
-               bool verbose               ///< verbose terminal output
+               bool verbose,              ///< verbose terminal output
+               bool check_errors          ///< check CUDA errors
     );
 
     ~BceManager();
@@ -93,6 +94,7 @@ class BceManager {
 
     bool m_use_node_directions;
     bool m_verbose;
+    bool m_check_errors;
 
     // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
     void CalcRigidBceAcceleration();
