@@ -2322,6 +2322,7 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool
 //--------------------------------------------------------------------------------------------------------------------------------
 
 //// TODO RADU: consider using monotone cubic Hermite interpolation instead of cubic Bezier
+//// TODO RADU: do we really need to calculate exact locatrions of BCE markers here or just get the right count?
 
 unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID,
                                                 const FsiMesh1D& fsi_mesh,
@@ -2368,16 +2369,8 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID,
         const auto& V0 = seg->GetNode(0)->GetPosDt();  // vertex 0 velocity (absolute coordinates)
         const auto& V1 = seg->GetNode(1)->GetPosDt();  // vertex 1 velocity (absolute coordinates)
 
-        auto x_dir = P1 - P0;       // segment direction
-        auto len = x_dir.Length();  // segment direction
-        x_dir /= len;               // normalized direction
-
+        auto len = (P1 - P0).Length();          // segment length
         int n = (int)std::ceil(len / spacing);  // required divisions on segment
-
-        // Create two directions orthogonal to 'x_dir'
-        ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
-        y_dir.Normalize();
-        ChVector3<> z_dir = Vcross(x_dir, y_dir);
 
         unsigned int n_bce = 0;  // number of BCE markers on segment
         for (int i = 0; i <= n; i++) {
@@ -2389,18 +2382,33 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID,
             auto t = double(i) / n;
 
             ChVector3d P;
+            ChVector3d D;
             if (use_node_directions) {
                 auto t2 = t * t;
                 auto t3 = t2 * t;
+
                 auto a0 = 2 * t3 - 3 * t2 + 1;
-                auto b0 = t3 - 2 * t2 + t;
                 auto a1 = -2 * t3 + 3 * t2;
+                auto b0 = t3 - 2 * t2 + t;
                 auto b1 = t3 - t2;
                 P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
+
+                auto a0d = 6 * t2 - 6 * t;
+                auto a1d = -6 * t2 + 6 * t;
+                auto b0d = 3 * t2 - 4 * t + 1;
+                auto b1d = 3 * t2 - 2 * t;
+                D = P0 * a0d + P1 * a1d + dir[i0] * b0d + dir[i1] * b1d;
             } else {
                 P = P0 * (1 - t) + P1 * t;
+                D = P1 - P0;
             }
             ChVector3d V = V0 * (1 - t) + V1 * t;
+
+            // Create local frame
+            ChVector3d x_dir = D.GetNormalized();
+            ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
+            y_dir.Normalize();
+            ChVector3<> z_dir = Vcross(x_dir, y_dir);
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {

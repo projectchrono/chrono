@@ -27,9 +27,9 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include "chrono_fsi/ChFsiInterface.h"
-
 #include "chrono/utils/ChUtils.h"
+
+#include "chrono_fsi/ChFsiInterface.h"
 
 using std::cout;
 using std::cerr;
@@ -267,9 +267,16 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
     return true;
 }
 
+// Options for nodal direction calculation
+// NODAL_DIR_METHOD = 1:  average over adjacent elements
+// NODAL_DIR_METHOD = 2:  normalized sum over adjacent elements
+
+#define NODAL_DIR_METHOD 1
+
 // Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
 // For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
 void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
+    std::vector<int> counts(mesh.GetNumNodes(), 0);
     std::fill(states.dir.begin(), states.dir.end(), VNULL);
 
     for (const auto& seg : mesh.contact_surface->GetSegmentsXYZ()) {
@@ -277,14 +284,24 @@ void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
         auto i1 = mesh.ptr2ind_map.at(seg->GetNode(1));
         const auto& P0 = states.pos[i0];
         const auto& P1 = states.pos[i1];
-        ////auto d = (P1 - P0).GetNormalized();
         auto d = P1 - P0;
+#if NODAL_DIR_METHOD == 2
+        d.Normalize();
+#endif
         states.dir[i0] += d;
         states.dir[i1] += d;
+        counts[i0]++;
+        counts[i1]++;
     }
 
-    ////for (auto& d : states.dir)
-    ////    d.Normalize();
+#if NODAL_DIR_METHOD == 1
+    std::transform(states.dir.begin(), states.dir.end(), counts.begin(), states.dir.begin(),
+                   [](const ChVector3d& v, int count) { return v / count; });
+#elif NODAL_DIR_METHOD == 2
+    // Normalize nodal directions
+    for (auto& d : states.dir)
+        d.Normalize();
+#endif
 
 #ifdef DEBUG_LOG
     for (auto& d : states.dir)
@@ -295,6 +312,7 @@ void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
 // Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
 // For 2-D meshes, these are averages of the face normals of adjacent faces.
 void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
+    std::vector<int> counts(mesh.GetNumNodes(), 0);
     std::fill(states.dir.begin(), states.dir.end(), VNULL);
 
     for (const auto& tri : mesh.contact_surface->GetTrianglesXYZ()) {
@@ -304,15 +322,26 @@ void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
         const auto& P0 = states.pos[i0];
         const auto& P1 = states.pos[i1];
         const auto& P2 = states.pos[i2];
-        ////auto d = ChTriangle::CalcNormal(P0, P1, P2);
         auto d = Vcross(P1 - P0, P2 - P0);
+#if NODAL_DIR_METHOD == 2
+        d.Normalize();
+#endif
         states.dir[i0] += d;
         states.dir[i1] += d;
         states.dir[i2] += d;
+        counts[i0]++;
+        counts[i1]++;
+        counts[i2]++;
     }
 
-    ////for (auto& d : states.dir)
-    ////    d.Normalize();
+#if NODAL_DIR_METHOD == 1
+    std::transform(states.dir.begin(), states.dir.end(), counts.begin(), states.dir.begin(),
+                   [](const ChVector3d& v, int count) { return v / count; });
+#elif NODAL_DIR_METHOD == 2
+    // Normalize nodal directions
+    for (auto& d : states.dir)
+        d.Normalize();
+#endif
 }
 
 void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,

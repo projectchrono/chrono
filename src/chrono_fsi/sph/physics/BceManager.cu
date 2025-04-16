@@ -883,8 +883,8 @@ void BceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
     thrust::transform(dirs.begin(), dirs.end(), dirs.begin(), normalizeReal3());
 #endif
     
-    thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
-    std::cout << std::endl;
+    ////thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
+    ////std::cout << std::endl;
 }
 
 __global__ void UpdateMeshMarker1DState_D(
@@ -904,11 +904,10 @@ __global__ void UpdateMeshMarker1DState_D(
         return;
 
     uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
-    uint sortedIndex = mapOriginalToSorted[flex_index];
-    uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    uint3 flex_solid = flex1D_BCEsolids_D[index];            // associated flex mesh and segment
+    uint flex_seg = flex_solid.z;                            // index of segment in global list
     ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
-    uint flex_seg = flex_solid.z;  // index of segment in global list
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
     Real3 P0 = pos_fsi_fea_D[seg_nodes.x];       // (absolute) position of node 0
@@ -916,34 +915,45 @@ __global__ void UpdateMeshMarker1DState_D(
     Real3 V0 = vel_fsi_fea_D[seg_nodes.x];       // (absolute) velocity of node 0
     Real3 V1 = vel_fsi_fea_D[seg_nodes.y];       // (absolute) velocity of node 1
 
-    Real3 x_dir = get_normalized(P1 - P0);
-    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
-    y_dir = y_dir / length(y_dir);
-    Real3 z_dir = cross(x_dir, y_dir);
-
     Real t = flex1D_BCEcoords_D[index].x;      // segment coordinate
     Real y_val = flex1D_BCEcoords_D[index].y;  // off-segment y coordinate
     Real z_val = flex1D_BCEcoords_D[index].z;  // off-segment z coordinate
 
     Real3 P;  // position along segment center-line
+    Real3 D;  // normal along segment center-line
     if (use_dirs) {
         auto t2 = t * t;
         auto t3 = t2 * t;
+
         auto a0 = 2 * t3 - 3 * t2 + 1;
-        auto b0 = t3 - 2 * t2 + t;
         auto a1 = -2 * t3 + 3 * t2;
+        auto b0 = t3 - 2 * t2 + t;
         auto b1 = t3 - t2;
         P = P0 * a0 + P1 * a1 + dirs[seg_nodes.x] * b0 + dirs[seg_nodes.y] * b1;
+
+        auto a0d = 6 * t2 - 6 * t;
+        auto a1d = -6 * t2 + 6 * t;
+        auto b0d = 3 * t2 - 4 * t + 1;
+        auto b1d = 3 * t2 - 2 * t;
+        D = P0 * a0d + P1 * a1d + dirs[seg_nodes.x] * b0d + dirs[seg_nodes.y] * b1d;
     } else {
         P = P0 * (1 - t) + P1 * t;
+        D = P1 - P0;
     }
+
+    // Create local frame
+    Real3 x_dir = get_normalized(D);
+    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
+    y_dir = y_dir / length(y_dir);
+    Real3 z_dir = cross(x_dir, y_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
 
-    Real h = posRadD[sortedIndex].w;
-    posRadD[sortedIndex] = mR4(P, h);
-    velMasD[sortedIndex] = V;
+    uint sorted_flex_index = mapOriginalToSorted[flex_index];
+    Real h = posRadD[sorted_flex_index].w;
+    posRadD[sorted_flex_index] = mR4(P, h);
+    velMasD[sorted_flex_index] = V;
 }
 
 __global__ void UpdateMeshMarker1DStateUnsorted_D(
@@ -963,9 +973,9 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
 
     uint flex_index = index + countersD.startFlexMarkers1D;  // index for current 1-D flex BCE marker
     uint3 flex_solid = flex1D_BCEsolids_D[index];            // associated flex mesh and segment
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    uint flex_seg = flex_solid.z;                            // index of segment in global list
     ////uint flex_mesh_seg = flex_solid.y;                         // index of segment in associated mesh
-    uint flex_seg = flex_solid.z;  // index of segment in global list
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
 
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];  // indices of the 2 nodes on associated segment
     Real3 P0 = pos_fsi_fea_D[seg_nodes.x];       // (absolute) position of node 0
@@ -973,27 +983,37 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
     Real3 V0 = vel_fsi_fea_D[seg_nodes.x];       // (absolute) velocity of node 0
     Real3 V1 = vel_fsi_fea_D[seg_nodes.y];       // (absolute) velocity of node 1
 
-    Real3 x_dir = get_normalized(P1 - P0);
-    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
-    y_dir = y_dir / length(y_dir);
-    Real3 z_dir = cross(x_dir, y_dir);
-
     Real t = flex1D_BCEcoords_D[index].x;      // segment coordinate
     Real y_val = flex1D_BCEcoords_D[index].y;  // off-segment y coordinate
     Real z_val = flex1D_BCEcoords_D[index].z;  // off-segment z coordinate
 
     Real3 P;  // position along segment center-line
+    Real3 D;  // normal along segment center-line
     if (use_dirs) {
         auto t2 = t * t;
         auto t3 = t2 * t;
+
         auto a0 = 2 * t3 - 3 * t2 + 1;
-        auto b0 = t3 - 2 * t2 + t;
         auto a1 = -2 * t3 + 3 * t2;
+        auto b0 = t3 - 2 * t2 + t;
         auto b1 = t3 - t2;
         P = P0 * a0 + P1 * a1 + dirs[seg_nodes.x] * b0 + dirs[seg_nodes.y] * b1;
+
+        auto a0d = 6 * t2 - 6 * t;
+        auto a1d = -6 * t2 + 6 * t;
+        auto b0d = 3 * t2 - 4 * t + 1;
+        auto b1d = 3 * t2 - 2 * t;
+        D = P0 * a0d + P1 * a1d + dirs[seg_nodes.x] * b0d + dirs[seg_nodes.y] * b1d;
     } else {
         P = P0 * (1 - t) + P1 * t;
+        D = P1 - P0;
     }
+
+    // Create local frame
+    Real3 x_dir = get_normalized(D);
+    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
+    y_dir = y_dir / length(y_dir);
+    Real3 z_dir = cross(x_dir, y_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -1147,11 +1167,10 @@ __global__ void UpdateMeshMarker2DState_D(
         return;
 
     uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
-    uint sortedIndex = mapOriginalToSorted[flex_index];
-    uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    uint3 flex_solid = flex2D_BCEsolids_D[index];            // associated flex mesh and face
+    uint flex_tri = flex_solid.z;                            // index of triangle in global list
     ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
-    uint flex_tri = flex_solid.z;  // index of triangle in global list
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
     Real3 P0 = pos_fsi_fea_D[tri_nodes.x];      // (absolute) position of node 0
@@ -1168,13 +1187,16 @@ __global__ void UpdateMeshMarker2DState_D(
 
     //// TODO RADU - calculate interpolated normal and P based on 'use_dirs'
 
-    Real3 normal = get_normalized(cross(P1 - P0, P2 - P1));
-    Real3 P = P0 * lambda0 + P1 * lambda1 + P2 * lambda2 + z_val * normal;  // BCE marker position
-    Real3 V = V0 * lambda0 + V1 * lambda1 + V2 * lambda2;                   // BCE marker velocity
+    Real3 P = P0 * lambda0 + P1 * lambda1 + P2 * lambda2;  // centerline position
+    Real3 D = cross(P1 - P0, P2 - P1);                     // local normal
 
-    Real h = posRadD[sortedIndex].w;
-    posRadD[sortedIndex] = mR4(P, h);
-    velMasD[sortedIndex] = V;
+    P += z_val * get_normalized(D);                        // BCE marker position
+    Real3 V = V0 * lambda0 + V1 * lambda1 + V2 * lambda2;  // BCE marker velocity
+
+    uint sorted_flex_index = mapOriginalToSorted[flex_index];
+    Real h = posRadD[sorted_flex_index].w;
+    posRadD[sorted_flex_index] = mR4(P, h);
+    velMasD[sorted_flex_index] = V;
 }
 
 __global__ void UpdateMeshMarker2DStateUnsorted_D(
@@ -1194,9 +1216,9 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
 
     uint flex_index = index + countersD.startFlexMarkers2D;  // index for current 2-D flex BCE marker
     uint3 flex_solid = flex2D_BCEsolids_D[index];            // associated flex mesh and face
-    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
+    uint flex_tri = flex_solid.z;                            // index of triangle in global list
     ////uint flex_mesh_tri = flex_solid.y;                         // index of triangle in associated mesh
-    uint flex_tri = flex_solid.z;  // index of triangle in global list
+    ////uint flex_mesh = flex_solid.x;                             // index of associated mesh
 
     auto tri_nodes = flex2D_Nodes_D[flex_tri];  // indices of the 3 nodes on associated face
     Real3 P0 = pos_fsi_fea_D[tri_nodes.x];      // (absolute) position of node 0
@@ -1213,9 +1235,11 @@ __global__ void UpdateMeshMarker2DStateUnsorted_D(
 
     //// TODO RADU - calculate interpolated normal and P based on 'use_dirs'
 
-    Real3 normal = get_normalized(cross(P1 - P0, P2 - P1));
-    Real3 P = P0 * lambda0 + P1 * lambda1 + P2 * lambda2 + z_val * normal;  // BCE marker position
-    Real3 V = V0 * lambda0 + V1 * lambda1 + V2 * lambda2;                   // BCE marker velocity
+    Real3 P = P0 * lambda0 + P1 * lambda1 + P2 * lambda2;  // centerline position
+    Real3 D = cross(P1 - P0, P2 - P1);                     // local normal
+
+    P += z_val * get_normalized(D);                        // BCE marker position
+    Real3 V = V0 * lambda0 + V1 * lambda1 + V2 * lambda2;  // BCE marker velocity
 
     Real h = posRadD[flex_index].w;
     posRadD[flex_index] = mR4(P, h);
