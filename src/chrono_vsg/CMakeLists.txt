@@ -68,14 +68,11 @@ set(CE_VSG_BASE_FILES
 )
 
 set(CE_VSG_SHAPES_FILES
-    shapes/LabelPrinter.h
-    shapes/LabelPrinter.cpp
-    shapes/init_rowmans.h
     shapes/ShaderUtils.cpp
     shapes/ShaderUtils.h
     shapes/ShapeBuilder.cpp
     shapes/ShapeBuilder.h
-    )
+)
 
 set(CE_VSG_RESOURCES_FILES
     resources/chronoLineShader_frag.h
@@ -91,15 +88,7 @@ set(CE_VSG_UTILS_FILES
     utils/ChUtilsVSG.cpp
     utils/ChUtilsVSG.h
     utils/ChConversionsVSG.cpp
-    utils/ChConversionsVSG.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_BMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_DataStructures.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_Geometry.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_Geometry.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
-)
+    utils/ChConversionsVSG.h)
 
 source_group("" FILES ${CE_VSG_BASE_FILES})
 source_group("shapes" FILES ${CE_VSG_SHAPES_FILES})
