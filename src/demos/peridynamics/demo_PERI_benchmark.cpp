@@ -70,7 +70,7 @@ double size_z = 0.6;
 #define CANT_FEA_X 12
 #define CANT_FEA_Y 6
 #define CANT_FEA_Z 6
-#define CANT_PERI_X 16
+#define CANT_PERI_X 24
 
 
 
@@ -362,7 +362,7 @@ int test_cantilever_torsion(int argc, char* argv[], bool do_fea, bool do_peri) {
 
         // Create a material, that must be assigned to each element and set its parameters
         auto material = chrono_types::make_shared<ChContinuumElastic>();
-        material->SetYoungModulus(5e6);  // rubber 10e6, steel 200e9
+        material->SetYoungModulus(5e6);//5e6);  // rubber 10e6, steel 200e9
         material->SetPoissonRatio(0.25);
         material->SetRayleighDampingBeta(0.001);
         material->SetDensity(1000);
@@ -590,28 +590,57 @@ int test_cantilever_torsion(int argc, char* argv[], bool do_fea, bool do_peri) {
         // Modify some setting of the physical system for the simulation, if you want
         sys.SetSolverType(ChSolver::Type::PSOR);
         if (sys.GetSolver()->IsIterative()) {
-            sys.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(false);
+            sys.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(true);
             sys.GetSolver()->AsIterative()->EnableWarmStart(true);
-            sys.GetSolver()->AsIterative()->SetMaxIterations(910);
+            sys.GetSolver()->AsIterative()->SetMaxIterations(550);
+            sys.GetSolver()->AsIterative()->SetTolerance(1e-5);
         }
-
-
+        
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>(12);
+        mkl_solver->UseSparsityPatternLearner(false);
+        mkl_solver->LockSparsityPattern(true);
+        mkl_solver->SetVerbose(false);
+        sys.SetSolver(mkl_solver);
+        
         sys.Update();
 
+
+        // -----Blender postprocess, optional
+        // Create an exporter to Blender
+        ChBlender blender_exporter = ChBlender(&sys);
+        blender_exporter.SetBasePath(GetChronoOutputPath() + "BLENDER_PERI_TORSION");
+        blender_exporter.AddAll();
+        blender_exporter.SetCamera(ChVector3d(size_x, 0.6, -1.5), ChVector3d(size_x / 2, 0, 0), 50);  // pos, aim, angle
+        blender_exporter.ExportScript();
+
+
+
         std::ofstream my_output(GetChronoOutputPath() + "peridynamic_torsion_peri.txt");
+
+        ChTimer cputime;
 
         // Simulation loop
         while (vis.Run() && sys.GetChTime() < 3) {
             vis.BeginScene();
             vis.Render();
             vis.EndScene();
-            sys.DoStepDynamics(0.05);
+            cputime.start(); 
+            sys.DoStepDynamics(0.04);
+            cputime.stop();
 
             my_output << sys.GetChTime() << ", " << motor->GetMotorTorque() << ", " << motor->GetMotorAngleDt() << ", " << motor->GetMotorAngle() << "\n";
+
+            if (sys.GetNumSteps() % 1 == 0)
+                blender_exporter.ExportData();
         }
+
+        std::cout << "\n\n  Tot time DoStepDynamics T=" << cputime.GetTimeSeconds()
+            << "[s],  n steps=" << sys.GetNumSteps()
+            << "  t/n_step=" << cputime.GetTimeMilliseconds() / sys.GetNumSteps() << "[ms] \n\n";
 
     }
 
+    
 
     return 0;
 }
