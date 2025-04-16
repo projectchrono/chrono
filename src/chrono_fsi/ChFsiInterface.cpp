@@ -270,22 +270,24 @@ bool ChFsiInterface::CheckStateVectors(const std::vector<FsiBodyState>& body_sta
 // Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
 // For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
 void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
-    auto& dir = states.dir;
-    std::fill(dir.begin(), dir.end(), VNULL);
+    std::fill(states.dir.begin(), states.dir.end(), VNULL);
 
     for (const auto& seg : mesh.contact_surface->GetSegmentsXYZ()) {
         auto i0 = mesh.ptr2ind_map.at(seg->GetNode(0));
         auto i1 = mesh.ptr2ind_map.at(seg->GetNode(1));
-        auto d = (states.pos[i1] - states.pos[i0]).GetNormalized();
-        dir[i0] += d;
-        dir[i1] += d;
+        const auto& P0 = states.pos[i0];
+        const auto& P1 = states.pos[i1];
+        ////auto d = (P1 - P0).GetNormalized();
+        auto d = P1 - P0;
+        states.dir[i0] += d;
+        states.dir[i1] += d;
     }
 
-    for (auto& d : dir)
-        d.Normalize();
+    ////for (auto& d : states.dir)
+    ////    d.Normalize();
 
 #ifdef DEBUG_LOG
-    for (auto& d : dir)
+    for (auto& d : states.dir)
         cout << d << endl;
 #endif
 }
@@ -293,21 +295,24 @@ void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states) {
 // Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
 // For 2-D meshes, these are averages of the face normals of adjacent faces.
 void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states) {
-    auto& dir = states.dir;
-    std::fill(dir.begin(), dir.end(), VNULL);
+    std::fill(states.dir.begin(), states.dir.end(), VNULL);
 
     for (const auto& tri : mesh.contact_surface->GetTrianglesXYZ()) {
         auto i0 = mesh.ptr2ind_map.at(tri->GetNode(0));
         auto i1 = mesh.ptr2ind_map.at(tri->GetNode(1));
         auto i2 = mesh.ptr2ind_map.at(tri->GetNode(2));
-        auto d = ChTriangle::CalcNormal(states.pos[i0], states.pos[i1], states.pos[i2]);
-        dir[i0] += d;
-        dir[i1] += d;
-        dir[i2] += d;
+        const auto& P0 = states.pos[i0];
+        const auto& P1 = states.pos[i1];
+        const auto& P2 = states.pos[i2];
+        ////auto d = ChTriangle::CalcNormal(P0, P1, P2);
+        auto d = Vcross(P1 - P0, P2 - P0);
+        states.dir[i0] += d;
+        states.dir[i1] += d;
+        states.dir[i2] += d;
     }
 
-    for (auto& d : dir)
-        d.Normalize();
+    ////for (auto& d : states.dir)
+    ////    d.Normalize();
 }
 
 void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,

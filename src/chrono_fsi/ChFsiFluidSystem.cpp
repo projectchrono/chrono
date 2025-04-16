@@ -38,7 +38,7 @@ namespace chrono {
 namespace fsi {
 
 ChFsiFluidSystem::ChFsiFluidSystem()
-    : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_frame(0), m_RTF(0) {}
+    : m_is_initialized(false), m_verbose(false), m_step(-1), m_time(0), m_frame(0), m_RTF(0) {}
 
 ChFsiFluidSystem::~ChFsiFluidSystem() {}
 

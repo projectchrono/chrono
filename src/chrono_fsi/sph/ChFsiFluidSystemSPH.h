@@ -574,18 +574,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                   std::vector<FsiMeshForce> mesh2D_forces) override;
 
     /// Add a flexible solid with segment set contact to the FSI system.
-    void AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh);
+    void AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh, bool use_node_directions);
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    void AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh);
+    void AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh, bool use_node_directions);
 
     /// Create and add BCE markers associated with the given set of contact segments.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh);
+    unsigned int AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh, bool use_node_directions);
 
     /// Create and add BCE markers associated with the given mesh contact surface.
     /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh);
+    unsigned int AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh, bool use_node_directions);
 
     /// Function to integrate the fluid system from `time` to `time + step`.
     virtual void OnDoStepDynamics(double time, double step) override;

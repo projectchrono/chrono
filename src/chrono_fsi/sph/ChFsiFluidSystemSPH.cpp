@@ -1268,17 +1268,18 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
     uint num_fsi_nodes1D = 0;
     uint num_fsi_elements1D = 0;
     for (const auto& m : fsi_meshes1D) {
-        AddFsiMesh1D(num_fsi_meshes1D, m);
+        AddFsiMesh1D(num_fsi_meshes1D, m, use_node_directions);
         num_fsi_meshes1D++;
         num_fsi_nodes1D += m.GetNumNodes();
         num_fsi_elements1D += m.GetNumElements();
     }
 
+    // Process FSI 2D meshes: create BCE markers
     uint num_fsi_meshes2D = 0;
     uint num_fsi_nodes2D = 0;
     uint num_fsi_elements2D = 0;
     for (const auto& m : fsi_meshes2D) {
-        AddFsiMesh2D(num_fsi_meshes2D, m);
+        AddFsiMesh2D(num_fsi_meshes2D, m, use_node_directions);
         num_fsi_meshes2D++;
         num_fsi_nodes1D += m.GetNumNodes();
         num_fsi_elements1D += m.GetNumElements();
@@ -1401,7 +1402,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_verbose);
+    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, use_node_directions, m_verbose);
     m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose);
 
     // Initialize worker objects
@@ -1432,7 +1433,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
     CheckSPHParameters();
 }
 
-void ChFsiFluidSystemSPH::AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh) {
+void ChFsiFluidSystemSPH::AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh, bool use_node_directions) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& seg : fsi_mesh.contact_surface->GetSegmentsXYZ()) {
         auto node0_index = m_num_flex1D_nodes + fsi_mesh.ptr2ind_map.at(seg->GetNode(0));
@@ -1441,7 +1442,7 @@ void ChFsiFluidSystemSPH::AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_
     }
 
     // Create the BCE markers based on the mesh contact segments
-    auto num_bce = AddBCE_mesh1D(index, fsi_mesh);
+    auto num_bce = AddBCE_mesh1D(index, fsi_mesh, use_node_directions);
 
     // Update total number of flex 1-D nodes and segments
     auto num_nodes = fsi_mesh.GetNumNodes();
@@ -1457,7 +1458,7 @@ void ChFsiFluidSystemSPH::AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_
     }
 }
 
-void ChFsiFluidSystemSPH::AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh) {
+void ChFsiFluidSystemSPH::AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh, bool use_node_directions) {
     // Load index-based mesh connectivity (append to global list of 1-D flex segments)
     for (const auto& tri : fsi_mesh.contact_surface->GetTrianglesXYZ()) {
         auto node0_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map.at(tri->GetNode(0));
@@ -1467,7 +1468,7 @@ void ChFsiFluidSystemSPH::AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_
     }
 
     // Create the BCE markers based on the mesh contact surface
-    auto num_bce = AddBCE_mesh2D(index, fsi_mesh);
+    auto num_bce = AddBCE_mesh2D(index, fsi_mesh, use_node_directions);
 
     // Update total number of flex 2-D nodes and faces
     auto num_nodes = fsi_mesh.GetNumNodes();
@@ -2320,8 +2321,30 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh) {
+//// TODO RADU: consider using monotone cubic Hermite interpolation instead of cubic Bezier
+
+unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID,
+                                                const FsiMesh1D& fsi_mesh,
+                                                bool use_node_directions) {
     const auto& surface = fsi_mesh.contact_surface;
+
+    // Calculate nodal directions if requested
+    std::vector<ChVector3d> dir;
+    if (use_node_directions) {
+        dir.resize(fsi_mesh.GetNumNodes());
+        std::fill(dir.begin(), dir.end(), VNULL);
+        for (const auto& seg : surface->GetSegmentsXYZ()) {
+            const auto& node0 = seg->GetNode(0);
+            const auto& node1 = seg->GetNode(1);
+            auto i0 = fsi_mesh.ptr2ind_map.at(node0);
+            auto i1 = fsi_mesh.ptr2ind_map.at(node1);
+            auto d = (node1->GetPos() - node0->GetPos()).GetNormalized();
+            dir[i0] += d;
+            dir[i1] += d;
+        }
+        for (auto& d : dir)
+            d.Normalize();
+    }
 
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
@@ -2335,6 +2358,9 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMe
     unsigned int num_bce = 0;
     for (unsigned int segID = 0; segID < num_seg; segID++) {
         const auto& seg = surface->GetSegmentsXYZ()[segID];
+
+        auto i0 = fsi_mesh.ptr2ind_map.at(seg->GetNode(0));
+        auto i1 = fsi_mesh.ptr2ind_map.at(seg->GetNode(1));
 
         const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
         const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
@@ -2360,10 +2386,21 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMe
             if (i == n && !seg->OwnsNode(1))  // segment does not own vertex 1
                 continue;
 
-            auto lambda = ChVector2<>(n - i, i) / n;
+            auto t = double(i) / n;
 
-            auto P = P0 * lambda[0] + P1 * lambda[1];
-            auto V = V0 * lambda[0] + V1 * lambda[1];
+            ChVector3d P;
+            if (use_node_directions) {
+                auto t2 = t * t;
+                auto t3 = t2 * t;
+                auto a0 = 2 * t3 - 3 * t2 + 1;
+                auto b0 = t3 - 2 * t2 + t;
+                auto a1 = -2 * t3 + 3 * t2;
+                auto b1 = t3 - t2;
+                P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
+            } else {
+                P = P0 * (1 - t) + P1 * t;
+            }
+            ChVector3d V = V0 * (1 - t) + V1 * t;
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
@@ -2377,7 +2414,7 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMe
 
                     m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(Q), ToReal3(V));
 
-                    m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3({lambda[0], y_val, z_val}));
+                    m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3({t, y_val, z_val}));
                     m_data_mgr->flex1D_BCEsolids_H.push_back(mU3(meshID, segID, m_num_flex1D_elements + segID));
                     n_bce++;
                 }
@@ -2391,8 +2428,31 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID, const FsiMe
     return num_bce;
 }
 
-unsigned int ChFsiFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh) {
+unsigned int ChFsiFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID,
+                                                const FsiMesh2D& fsi_mesh,
+                                                bool use_node_directions) {
     const auto& surface = fsi_mesh.contact_surface;
+
+    // Calculate nodal directions if requested
+    std::vector<ChVector3d> dir;
+    if (use_node_directions) {
+        dir.resize(fsi_mesh.GetNumNodes());
+        std::fill(dir.begin(), dir.end(), VNULL);
+        for (const auto& tri : surface->GetTrianglesXYZ()) {
+            const auto& node0 = tri->GetNode(0);
+            const auto& node1 = tri->GetNode(1);
+            const auto& node2 = tri->GetNode(2);
+            auto i0 = fsi_mesh.ptr2ind_map.at(node0);
+            auto i1 = fsi_mesh.ptr2ind_map.at(node1);
+            auto i2 = fsi_mesh.ptr2ind_map.at(node2);
+            auto d = ChTriangle::CalcNormal(node0->GetPos(), node1->GetPos(), node2->GetPos());
+            dir[i0] += d;
+            dir[i1] += d;
+            dir[i2] += d;
+        }
+        for (auto& d : dir)
+            d.Normalize();
+    }
 
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
@@ -2483,6 +2543,8 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID, const FsiMe
                     continue;
                 if (k == 0 && !tri->OwnsEdge(0))  // triangle does not own edge v0-v1 = e0
                     continue;
+
+                //// TODO RADU - add cubic interpolation (position and normal) if using nodal directions
 
                 auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
                 auto V = lambda[0] * V0 + lambda[1] * V1 + lambda[2] * V2;  // absolute velocity of BCE marker

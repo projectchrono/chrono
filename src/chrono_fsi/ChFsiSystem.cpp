@@ -70,6 +70,7 @@ ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
 
 void ChFsiSystem::SetVerbose(bool verbose) {
     ChAssertAlways(m_fsi_interface);
+    m_sysCFD.SetVerbose(verbose);
     m_fsi_interface->SetVerbose(verbose);
     m_verbose = verbose;
 }
