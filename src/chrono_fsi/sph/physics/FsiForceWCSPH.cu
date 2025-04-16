@@ -576,7 +576,11 @@ void FsiForceWCSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, 
     m_bce_mgr.updateBCEAcc();
 
     // Perform density re-initialization
-    DensityReinitialization(sortedSphMarkersD);
+    if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
+        DensityReinitialization(sortedSphMarkersD);
+        density_initialization = 0;
+    }
+    density_initialization++;
 
     // Impose boundary conditions and calculate derivatives
     if (m_data_mgr.paramsH->elastic_SPH) {
@@ -659,17 +663,13 @@ void FsiForceWCSPH::DensityReinitialization(std::shared_ptr<SphMarkerDataD> sort
     cudaResetErrorFlag(m_errflagD);
 
     // Re-Initialize the density after several time steps if needed
-    if (density_initialization >= m_data_mgr.paramsH->densityReinit) {
-        thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
-        printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
-        calcRho_kernel<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, density_initialization,
-            m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "calcRho_kernel");
-        density_initialization = 0;
-    }
-    density_initialization++;
+    thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
+    printf("Re-initializing density after %d steps.\n", m_data_mgr.paramsH->densityReinit);
+    calcRho_kernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
+                                              mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
+                                              U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
+                                              numActive, density_initialization, m_errflagD);
+    cudaCheckErrorFlag(m_errflagD, "calcRho_kernel");
 }
 
 // -----------------------------------------------------------------------------
