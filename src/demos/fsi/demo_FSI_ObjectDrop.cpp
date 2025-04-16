@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     int num_bce_layers = 4;
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.num_bce_layers = num_bce_layers;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + fsi.GetSphMethodTypeString() + "_" + viscosity_type + "_" + boundary_type + "_ps" +
+    out_dir = out_dir + fsi.GetSphIntegrationSchemeString() + "_" + viscosity_type + "_" + boundary_type + "_ps" +
               std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;

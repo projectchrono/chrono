@@ -36,15 +36,10 @@ FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool
     : m_data_mgr(data_mgr), m_verbose(verbose), m_check_errors(check_errors) {
     collisionSystem = chrono_types::make_shared<CollisionSystem>(data_mgr);
 
-    switch (m_data_mgr.paramsH->sph_method) {
-        default:
-        case SPHMethod::WCSPH:
-            forceSystem = chrono_types::make_shared<FsiForceWCSPH>(data_mgr, bce_mgr, verbose);
-            break;
-        case SPHMethod::I2SPH:
-            forceSystem = chrono_types::make_shared<FsiForceISPH>(data_mgr, bce_mgr, verbose);
-            break;
-    }
+    if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
+        forceSystem = chrono_types::make_shared<FsiForceISPH>(data_mgr, bce_mgr, verbose);
+    else
+        forceSystem = chrono_types::make_shared<FsiForceWCSPH>(data_mgr, bce_mgr, verbose);
 }
 
 FluidDynamics::~FluidDynamics() {}
@@ -79,7 +74,7 @@ void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
     }
 }
 
-void FluidDynamics::AdvanceWCSPH(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
+void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
     switch (scheme) {
         case IntegrationScheme::EULER: {
             Real dummy = 0;  // force calculation for WCSPH does not need the step size
@@ -107,12 +102,14 @@ void FluidDynamics::AdvanceWCSPH(std::shared_ptr<SphMarkerDataD> y, Real t, Real
 
             break;
         }
-    }
-}
 
-void FluidDynamics::AdvanceISPH(std::shared_ptr<SphMarkerDataD> y, Real t, Real h) {
-    forceSystem->ForceSPH(y, t, h);
-    ApplyBoundarySPH_Markers(y);
+        case IntegrationScheme::IMPLICIT_SPH: {
+            forceSystem->ForceSPH(y, t, h);
+            ApplyBoundarySPH_Markers(y);
+
+            break;
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -381,7 +378,6 @@ __global__ void EulerStepD(Real4* posRadD,
                            const Real4* derivVelRhoD,
                            const Real3* derivTauXxYyZzD,
                            const Real3* derivTauXyXzYzD,
-                           const Real4* sr_tau_I_mu_iD,
                            const uint* freeSurfaceIdD,
                            const int32_t* activityIdentifierSortedD,
                            const uint numActive,
@@ -423,8 +419,7 @@ void FluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Rea
     EulerStepD<<<numBlocks, numThreads>>>(
         mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
         mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
-        mR4CAST(m_data_mgr.derivVelRhoD),
-        mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
+        mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
         U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT);
     cudaCheckError();
 
@@ -439,23 +434,23 @@ void FluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Rea
 // -----------------------------------------------------------------------------
 
 // Kernel to copy sorted data back to original order (ISPH)
-__global__ void CopySortedToOriginal_D(MarkerGroup group,
-                                       const Real4* sortedPosRad,
-                                       const Real3* sortedVelMas,
-                                       const Real4* sortedRhoPresMu,
-                                       const Real3* sortedTauXxYyZz,
-                                       const Real3* sortedTauXyXXzYz,
-                                       const Real4* derivVelRho,
-                                       const Real4* sr_tau_I_mu_i,
-                                       const uint numActive,
-                                       Real4* posRadOriginal,
-                                       Real3* velMasOriginal,
-                                       Real4* rhoPresMuOriginal,
-                                       Real3* tauXxYyZzOriginal,
-                                       Real3* tauXyXzYzOriginal,
-                                       Real4* derivVelRhoOriginal,
-                                       Real4* sr_tau_I_mu_i_Original,
-                                       uint* gridMarkerIndex) {
+__global__ void CopySortedToOriginalISPH_D(MarkerGroup group,
+                                           const Real4* sortedPosRad,
+                                           const Real3* sortedVelMas,
+                                           const Real4* sortedRhoPresMu,
+                                           const Real3* sortedTauXxYyZz,
+                                           const Real3* sortedTauXyXXzYz,
+                                           const Real4* derivVelRho,
+                                           const Real4* sr_tau_I_mu_i,
+                                           const uint numActive,
+                                           Real4* posRadOriginal,
+                                           Real3* velMasOriginal,
+                                           Real4* rhoPresMuOriginal,
+                                           Real3* tauXxYyZzOriginal,
+                                           Real3* tauXyXzYzOriginal,
+                                           Real4* derivVelRhoOriginal,
+                                           Real4* sr_tau_I_mu_i_Original,
+                                           uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -475,21 +470,21 @@ __global__ void CopySortedToOriginal_D(MarkerGroup group,
 }
 
 // Kernel to copy sorted data back to original order (WCSPH)
-__global__ void CopySortedToOriginal_D(MarkerGroup group,
-                                       const Real4* sortedPosRad,
-                                       const Real3* sortedVelMas,
-                                       const Real4* sortedRhoPresMu,
-                                       const Real3* sortedTauXxYyZz,
-                                       const Real3* sortedTauXyXXzYz,
-                                       const Real4* derivVelRho,
-                                       const uint numActive,
-                                       Real4* posRadOriginal,
-                                       Real3* velMasOriginal,
-                                       Real4* rhoPresMuOriginal,
-                                       Real3* tauXxYyZzOriginal,
-                                       Real3* tauXyXzYzOriginal,
-                                       Real4* derivVelRhoOriginal,
-                                       uint* gridMarkerIndex) {
+__global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
+                                            const Real4* sortedPosRad,
+                                            const Real3* sortedVelMas,
+                                            const Real4* sortedRhoPresMu,
+                                            const Real3* sortedTauXxYyZz,
+                                            const Real3* sortedTauXyXXzYz,
+                                            const Real4* derivVelRho,
+                                            const uint numActive,
+                                            Real4* posRadOriginal,
+                                            Real3* velMasOriginal,
+                                            Real4* rhoPresMuOriginal,
+                                            Real3* tauXxYyZzOriginal,
+                                            Real3* tauXyXzYzOriginal,
+                                            Real4* derivVelRhoOriginal,
+                                            uint* gridMarkerIndex) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -513,8 +508,8 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
-    if (m_data_mgr.paramsH->sph_method == SPHMethod::I2SPH) {
-        CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
+    if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
+        CopySortedToOriginalISPH_D<<<numBlocks, numThreads>>>(
             group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sr_tau_I_mu_i),
@@ -523,7 +518,7 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
             mR4CAST(m_data_mgr.derivVelRhoOriginalD), mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original),
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     } else {
-        CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
+        CopySortedToOriginalWCSPH_D<<<numBlocks, numThreads>>>(
             group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), numActive,

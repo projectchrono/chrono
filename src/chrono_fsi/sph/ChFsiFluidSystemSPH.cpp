@@ -96,7 +96,6 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->L_Characteristic = Real(1.0);
 
     // SPH parameters
-    m_paramsH->sph_method = SPHMethod::WCSPH;
     m_paramsH->integration_scheme = IntegrationScheme::RK2;
     m_paramsH->eos_type = EosType::ISOTHERMAL;
     m_paramsH->viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
@@ -229,19 +228,19 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
 
     if (doc.HasMember("SPH Parameters")) {
         if (doc["SPH Parameters"].HasMember("Method")) {
-            std::string SPH = doc["SPH Parameters"]["Method"].GetString();
+            std::string method = doc["SPH Parameters"]["Method"].GetString();
             if (m_verbose)
-                cout << "Modeling method is: " << SPH << endl;
-            if (SPH == "I2SPH") {
-                m_paramsH->sph_method = SPHMethod::I2SPH;
+                cout << "Modeling method is: " << method << endl;
+            if (method == "I2SPH") {
+                m_paramsH->integration_scheme = IntegrationScheme::IMPLICIT_SPH;
                 if (doc["SPH Parameters"].HasMember("Shifting Coefficient"))
                     m_paramsH->shifting_beta_implicit = doc["SPH Parameters"]["Shifting Coefficient"].GetDouble();
-            } else if (SPH == "WCSPH")
-                m_paramsH->sph_method = SPHMethod::WCSPH;
-            else {
-                cerr << "Incorrect SPH method in the JSON file: " << SPH << endl;
-                cerr << "Falling back to WCSPH " << endl;
-                m_paramsH->sph_method = SPHMethod::WCSPH;
+            } else if (method == "WCSPH") {
+                m_paramsH->integration_scheme = IntegrationScheme::RK2;
+            } else {
+                cerr << "Incorrect SPH method in the JSON file: " << method << endl;
+                cerr << "Falling back to RK2 WCSPH " << endl;
+                m_paramsH->integration_scheme = IntegrationScheme::RK2;
             }
         }
 
@@ -586,10 +585,6 @@ void ChFsiFluidSystemSPH::SetSPHLinearSolver(SolverType lin_solver) {
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChFsiFluidSystemSPH::SetSPHMethod(SPHMethod SPH_method) {
-    m_paramsH->sph_method = SPH_method;
-}
-
 void ChFsiFluidSystemSPH::SetIntegrationScheme(IntegrationScheme scheme) {
     m_paramsH->integration_scheme = scheme;
 }
@@ -701,7 +696,7 @@ void ChFsiFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
 void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check parameter compatibility with physics problem
     if (m_paramsH->elastic_SPH) {
-        if (m_paramsH->sph_method != SPHMethod::WCSPH) {
+        if (m_paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
             cerr << "ERROR: Only WCSPH can be used for granular CRM problems." << endl;
             throw std::runtime_error("ISPH not supported for granular CRM problems.");
         }
@@ -834,7 +829,7 @@ void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_pro
 }
 
 ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
-    : sph_method(SPHMethod::WCSPH),
+    : integration_scheme(IntegrationScheme::RK2),
       initial_spacing(0.01),
       d0_multiplier(1.2),
       max_velocity(1.0),
@@ -861,7 +856,6 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       eos_type(EosType::ISOTHERMAL) {}
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
-    m_paramsH->sph_method = sph_params.sph_method;
     m_paramsH->integration_scheme = sph_params.integration_scheme;
 
     m_paramsH->eos_type = sph_params.eos_type;
@@ -925,19 +919,29 @@ std::string ChFsiFluidSystemSPH::GetPhysicsProblemString() const {
     return (m_paramsH->elastic_SPH ? "CRM" : "CFD");
 }
 
-std::string ChFsiFluidSystemSPH::GetSphMethodTypeString() const {
+std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {
     std::string method = "";
-    switch (m_paramsH->sph_method) {
-        case SPHMethod::WCSPH:
-            method = "WCSPH";
+    switch (m_paramsH->integration_scheme) {
+        case IntegrationScheme::EULER:
+            method = "WCSPH_EULER";
             break;
-        case SPHMethod::I2SPH:
-            method = "I2SPH";
+        case IntegrationScheme::RK2:
+            method = "WCSPH_RK2";
+            break;
+        case IntegrationScheme::VERLET:
+            method = "WC_SPH_VERLET";
+            break;
+        case IntegrationScheme::SYMPLECTIC:
+            method = "WCSPH_SYMPLECTIC";
+            break;
+        case IntegrationScheme::IMPLICIT_SPH:
+            method = "ISPH";
             break;
     }
 
     return method;
 }
+
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -1514,17 +1518,8 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Zero-out step data (derivatives and intermediate vectors)
     m_data_mgr->ResetData();
 
-    // Advance fluid particle and marker states from `time` to `time+step`
-    auto& state = m_data_mgr->sortedSphMarkers2_D;
-    switch (m_paramsH->sph_method) {
-        case SPHMethod::WCSPH:
-            m_fluid_dynamics->AdvanceWCSPH(state, time, step, m_paramsH->integration_scheme);
-            break;
-        case SPHMethod::I2SPH:
-            m_bce_mgr->updateBCEAcc();
-            m_fluid_dynamics->AdvanceISPH(state, time, step);
-            break;
-    }
+    // Advance fluid particle states from `time` to `time+step`
+    m_fluid_dynamics->DoStepDynamics(m_data_mgr->sortedSphMarkers2_D, time, step, m_paramsH->integration_scheme);
 
     m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D,
                                            m_data_mgr->sphMarkers_D);

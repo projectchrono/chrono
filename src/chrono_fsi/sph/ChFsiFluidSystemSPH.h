@@ -67,7 +67,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Structure with SPH method parameters.
     struct CH_FSI_API SPHParameters {
-        SPHMethod sph_method;                  ///< SPH method (default: WCSPH)
         IntegrationScheme integration_scheme;  ///< Integration scheme (default: RK2)
         EosType eos_type;                      ///< equation of state (default: ISOTHERMAL)
         ViscosityType viscosity_type;          ///< viscosity treatment (default: ARTIFICIAL_UNILATERAL)
@@ -192,10 +191,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the linear system solver for implicit methods.
     void SetSPHLinearSolver(SolverType lin_solver);
 
-    /// Set the SPH method.
-    void SetSPHMethod(SPHMethod SPH_method);
-
-    /// Set the integration scheme.
+    /// Set the integration scheme (default: RK2).
+    /// All explicit integration schemes use a so-called Weakly-Compressible SPH formulation, based on an equation of
+    /// state that relates pressure to density.
     void SetIntegrationScheme(IntegrationScheme scheme);
 
     /// Set the number of steps between successive updates to neighbor lists (default: 4).
@@ -547,7 +545,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
   public:
     PhysicsProblem GetPhysicsProblem() const;
     std::string GetPhysicsProblemString() const;
-    std::string GetSphMethodTypeString() const;
+    std::string GetSphIntegrationSchemeString() const;
 
   private:
     /// Initialize simulation parameters with default values.

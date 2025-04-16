@@ -99,7 +99,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     m_sysSPH->SetElasticSPH(material);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = 0.02;  // 2 cm
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;

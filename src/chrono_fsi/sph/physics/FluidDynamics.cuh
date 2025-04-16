@@ -59,21 +59,14 @@ class FluidDynamics {
     //// TODO: make private
     void CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in, std::shared_ptr<SphMarkerDataD>& out);
 
-    /// Advance the dynamics of the SPH fluid system (WCSPH explict scheme).
+    /// Advance the dynamics of the SPH fluid system.
     /// In a explicit scheme, the force system calculates the forces between the particles which are then used to update
-    /// the particles position, velocity, and density. The density is then used, through the equation of state, to
-    /// update pressure.
-    void AdvanceWCSPH(std::shared_ptr<SphMarkerDataD> y,  ///< marker state (in/out)
-                      Real t,                             ///< current simulation time
-                      Real h,                             ///< simulation stepsize
-                      IntegrationScheme scheme            ///< integration scheme
-    );
-
-    /// Advance the dynamics of the SPH fluid system (ISPH implict scheme).
-    /// Unlike for an explicit scheme, in the implicit scheme, the pressures are updated instead of density.
-    void AdvanceISPH(std::shared_ptr<SphMarkerDataD> y,  ///< marker state (in/out)
-                     Real t,                             ///< current simulation time
-                     Real h                              ///< simulation stepsize
+    /// the particles position, velocity, and density; The density is then used, through the equation of state, to
+    /// update pressure. For the implicit SPH scheme, the pressures are updated instead of density.
+    void DoStepDynamics(std::shared_ptr<SphMarkerDataD> y,  ///< marker state (in/out)
+                        Real t,                             ///< current simulation time
+                        Real h,                             ///< simulation stepsize
+                        IntegrationScheme scheme            ///< integration scheme
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.

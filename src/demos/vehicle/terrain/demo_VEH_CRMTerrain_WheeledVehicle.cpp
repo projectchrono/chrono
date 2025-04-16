@@ -186,7 +186,6 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solver parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
     sph_params.integration_scheme = integration_scheme;
     sph_params.initial_spacing = spacing;
     sph_params.d0_multiplier = 1;

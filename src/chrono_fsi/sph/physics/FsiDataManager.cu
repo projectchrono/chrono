@@ -486,7 +486,7 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
 
     derivVelRhoOriginalD.resize(countersH->numAllMarkers);  // unsorted
 
-    if (paramsH->sph_method == SPHMethod::I2SPH) {
+    if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
         Real tiny = Real(1e-20);
         vis_vel_SPH_D.resize(countersH->numAllMarkers, mR3(tiny));
         sr_tau_I_mu_i.resize(countersH->numAllMarkers, mR4(tiny));           // sorted

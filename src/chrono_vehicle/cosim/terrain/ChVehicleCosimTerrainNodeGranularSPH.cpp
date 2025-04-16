@@ -227,7 +227,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     sysFSI.SetStepSizeCFD(m_step_size);
     sysFSI.SetStepsizeMBD(m_step_size);
 
-    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
+    sysSPH.SetIntegrationScheme(IntegrationScheme::RK2);
     sysSPH.SetConsistentDerivativeDiscretization(false, false);
     sysSPH.SetOutputLevel(OutputLevel::STATE);
     sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));

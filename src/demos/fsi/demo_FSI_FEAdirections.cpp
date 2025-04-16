@@ -80,7 +80,7 @@ class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVis
 int main(int argc, char* argv[]) {
     // Parse command line arguments
     double t_end = 10.0;
-    bool verbose = true;
+    bool verbose = false;
     bool render = true;
     double render_fps = 400;
 
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.0;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
@@ -138,8 +138,8 @@ int main(int argc, char* argv[]) {
     fsi.EnableNodeDirections(use_FEA_node_directions);
 
     // Dimension of computational domain and intial fluid domain
-    ChVector3d csize(3.0, 0.2, 2.0);
-    ChVector3d fsize(1.0, 0.2, 1.0);
+    ChVector3d csize(3.0, 0.2, 1.5);
+    ChVector3d fsize(1.0, 0.2, 0.8);
 
     // Create FSI solid phase
     auto ground = chrono_types::make_shared<ChBody>();
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Flexible Cable");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
+        visVSG->AddCamera(ChVector3d(0.0, -1.5, 0.25), ChVector3d(0.0, 0, 0.25));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
@@ -283,11 +283,11 @@ void CreateContainer(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground, const
                           ChVector3d(0, -csize.y() / 2 - 0.05, csize.z() / 2), QUNIT, false);
 }
 
-std::shared_ptr<ChMesh> CreateFlexibleCable1(ChSystem& sysMBS, double loc_x, std::shared_ptr<ChBody> ground) {
+std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, int num_elements, double arc, std::shared_ptr<ChBody> ground) {
     // Material Properties
-    double E = 5e9;
+    double E = 8e7;
     double density = 8000;
-    double BeamRayleighDamping = 0.02;
+    double BeamRayleighDamping = 0.1;
 
     auto section = chrono_types::make_shared<ChBeamSectionCable>();
     section->SetDiameter(0.02);
@@ -297,10 +297,9 @@ std::shared_ptr<ChMesh> CreateFlexibleCable1(ChSystem& sysMBS, double loc_x, std
 
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
-    int num_elements = 5;
     auto length = 0.15;
-    auto dq = QuatFromAngleY(-CH_PI_4 / (num_elements - 1));
-    auto p = ChVector3d(loc_x, 0.0, 0.02);
+    auto dq = QuatFromAngleY(arc / (num_elements - 1));
+    auto p = ChVector3d(loc_x, 0.0, 0.005);
     auto dir = ChVector3d(0, 0, 1);
 
     mesh->AddNode(chrono_types::make_shared<ChNodeFEAxyzD>(p, dir));
@@ -344,87 +343,14 @@ std::shared_ptr<ChMesh> CreateFlexibleCable1(ChSystem& sysMBS, double loc_x, std
     return mesh;
 }
 
-std::shared_ptr<ChMesh> CreateFlexibleCable2(ChSystem& sysMBS, double loc_x, std::shared_ptr<ChBody> ground) {
-    // Material Properties
-    double E = 5e8;
-    double density = 8000;
-    double BeamRayleighDamping = 0.02;
-
-    auto section = chrono_types::make_shared<ChBeamSectionCable>();
-    section->SetDiameter(0.02);
-    section->SetYoungModulus(E);
-    section->SetDensity(density);
-    section->SetRayleighDamping(BeamRayleighDamping);
-
-    auto mesh = chrono_types::make_shared<fea::ChMesh>();
-
-    auto length = 0.4;
-
-    auto p0 = ChVector3d(loc_x, 0.0, 0.02);
-    auto p1 = p0 + ChVector3d(0, 0, length);
-    auto p2 = p1 + ChVector3d(length, 0, 0);
-
-    auto d0 = ChVector3d(0, 0, 1);
-    auto d1 = ChVector3d(CH_SQRT_2 / 2, 0, CH_SQRT_2 / 2);
-    auto d2 = ChVector3d(1, 0, 0);
-
-    auto node0 = chrono_types::make_shared<ChNodeFEAxyzD>(p0, d0);
-    auto node1 = chrono_types::make_shared<ChNodeFEAxyzD>(p1, d1);
-    auto node2 = chrono_types::make_shared<ChNodeFEAxyzD>(p2, d2);
-    mesh->AddNode(node0);
-    mesh->AddNode(node1);
-    mesh->AddNode(node2);
-
-    {
-        auto element = chrono_types::make_shared<ChElementCableANCF>();
-        element->SetNodes(node0, node1);
-        element->SetSection(section);
-        element->SetRestLength(length);
-        mesh->AddElement(element);
-    }
-
-    {
-        auto element = chrono_types::make_shared<ChElementCableANCF>();
-        element->SetNodes(node1, node2);
-        element->SetSection(section);
-        element->SetRestLength(length);
-        mesh->AddElement(element);
-    }
-
-    auto pos_const = chrono_types::make_shared<ChLinkNodeFrame>();
-    auto dir_const = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
-    pos_const->Initialize(node0, ground);
-    dir_const->Initialize(node0, ground);
-    dir_const->SetDirectionInAbsoluteCoords(node0->GetSlope1());
-    sysMBS.Add(pos_const);
-    sysMBS.Add(dir_const);
-
-    sysMBS.Add(mesh);
-
-    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
-    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
-    vis_mesh->SetSmoothFaces(true);
-    vis_mesh->SetWireframe(false);
-    mesh->AddVisualShapeFEA(vis_mesh);
-
-    return mesh;
-}
-
 void CreateCables(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground) {
     ChSystem& sysMBS = fsi.GetMultibodySystem();
 
-    // Downstream locations
-    double cable1_x = -0.3;
-    double cable2_x = +0.8;
-
     fsi.SetBcePattern1D(BcePatternMesh1D::STAR, false);
 
-    // Create the first flexible cable and add to FSI system
-    auto mesh1 = CreateFlexibleCable1(sysMBS, cable1_x, ground);
+    auto mesh1 = CreateFlexibleCable(sysMBS, -0.1, 4, 0.0, ground);
     fsi.AddFeaMesh(mesh1, false);
 
-    // Create the second flexible cable
-    auto mesh2 = CreateFlexibleCable2(sysMBS, cable2_x, ground);
-    fsi.AddFeaMesh(mesh2, false);
+    //auto mesh1 = CreateFlexibleCable(sysMBS, 0.0, 4, -CH_PI / 3, ground);
+    //fsi.AddFeaMesh(mesh1, false);
 }

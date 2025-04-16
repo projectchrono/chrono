@@ -71,7 +71,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(m_vsysFSI->m_sysSPH->GetSphMethodTypeString().c_str());
+            ImGui::TextUnformatted(m_vsysFSI->m_sysSPH->GetSphIntegrationSchemeString().c_str());
 
             if (m_vsysFSI->m_sysFSI) {
                 ImGui::TableNextRow();

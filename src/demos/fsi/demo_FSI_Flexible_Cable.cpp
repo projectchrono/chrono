@@ -59,7 +59,7 @@ using std::endl;
 // -----------------------------------------------------------------------------
 
 // Physics problem type
-PhysicsProblem problem_type = PhysicsProblem::CFD;
+PhysicsProblem problem_type = PhysicsProblem::CRM;
 
 // Dimension of the domain
 double cxDim = 3.0;
@@ -70,6 +70,9 @@ double czDim = 2.0;
 bool create_flex_cable2 = false;
 bool create_cylinder_post = false;
 bool create_cylinder_free = false;
+
+// Use nodal directions
+bool use_FEA_node_directions = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -176,9 +179,12 @@ int main(int argc, char* argv[]) {
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
+    // Enable/disable use of node directions for FSI flexible meshes
+    fsi.EnableNodeDirections(use_FEA_node_directions);
+
     switch (problem_type) {
         case PhysicsProblem::CFD:
-            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.integration_scheme = IntegrationScheme::RK2;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.0;
             sph_params.max_velocity = 10;
@@ -193,7 +199,7 @@ int main(int argc, char* argv[]) {
             break;
 
         case PhysicsProblem::CRM:
-            sph_params.sph_method = SPHMethod::WCSPH;
+            sph_params.integration_scheme = IntegrationScheme::RK2;
             sph_params.initial_spacing = initial_spacing;
             sph_params.d0_multiplier = 1.0;
             sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
@@ -259,7 +265,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString() + "/";
+    out_dir = out_dir + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString() + "/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -316,6 +322,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
+        ////visVSG->AddCamera(ChVector3d(-0.3, -1.5, 0.0), ChVector3d(-0.3, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
@@ -418,9 +425,8 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, double E, std::shared_ptr<ChBody> ground) {
+std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, double E, int num_elements, std::shared_ptr<ChBody> ground) {
     double length_cable = 0.8;
-    int num_cable_element = 15;
 
     // Material Properties
     double density = 8000;
@@ -438,9 +444,9 @@ std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, doub
     ChBuilderCableANCF builder;
     builder.BuildBeam(mesh,                                  // FEA mesh with nodes and elements
                       msection_cable,                        // section material for cable elements
-                      num_cable_element,                     // number of elements in the segment
+                      num_elements,                          // number of elements in the segment
                       ChVector3d(loc_x, 0.0, length_cable),  // beam start point
-                      ChVector3d(loc_x, 0.0, 0.02),          // beam end point
+                      ChVector3d(loc_x, 0.0, 0.005),         // beam end point
                       node_indices,                          // node indices
                       node_nbrs                              // neighbor node indices
     );
@@ -550,12 +556,12 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
     fsi.SetBcePattern1D(BcePatternMesh1D::STAR, false);
 
     // Create the first flexible cable and add to FSI system
-    auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 5e9, ground);
+    auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 2.5e8, 4, ground);
     fsi.AddFeaMesh(mesh1, false);
 
     // Create second flexible cable
     if (create_flex_cable2) {
-        auto mesh2 = CreateFlexibleCable(sysMBS, cable2_x, 5e8, ground);
+        auto mesh2 = CreateFlexibleCable(sysMBS, cable2_x, 5e8, 15, ground);
         fsi.AddFeaMesh(mesh2, false);
     }
 

@@ -395,7 +395,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = 1;
@@ -448,7 +448,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + fsi.GetSphMethodTypeString();
+    out_dir = out_dir + fsi.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;

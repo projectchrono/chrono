@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString() + "_ps" +
+    out_dir = out_dir + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString() + "_ps" +
               std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;

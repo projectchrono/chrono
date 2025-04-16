@@ -37,7 +37,6 @@ namespace sph {
 
 /// Structure with FSI simulation parameters.
 struct ChFsiParamsSPH {
-    SPHMethod sph_method;                  ///< SPH method (WCSPH or I2SPH)
     IntegrationScheme integration_scheme;  ///< Integration scheme
     EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
     ViscosityType viscosity_type;          ///< Viscosity treatment type (physics-based laminar flow or artificial)

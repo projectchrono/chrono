@@ -222,7 +222,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     PhysicsProblem GetPhysicsProblem() const { return m_sysSPH.GetPhysicsProblem(); }
     std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
-    std::string GetSphMethodTypeString() const { return m_sysSPH.GetSphMethodTypeString(); }
+    std::string GetSphIntegrationSchemeString() const { return m_sysSPH.GetSphIntegrationSchemeString(); }
 
   protected:
     /// Create a ChFsiProblemSPH object.

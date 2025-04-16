@@ -185,6 +185,7 @@ bool GetProblemSpecs(int argc,
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.01;
     double step_size = 1e-4;
+    IntegrationScheme integration_scheme = IntegrationScheme::RK2;
 
     // Parse command line arguments
     double t_end = 0.7;
@@ -234,7 +235,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = integration_scheme;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.1;

@@ -28,11 +28,11 @@ namespace sph {
 /// Inter-particle force calculation for explicit SPH schemes.
 class FsiForceWCSPH : public FsiForce {
   public:
-    /// Force class implemented using WCSPH with explicit integrator.
+    /// Force class implemented using WCSPH with an explicit integrator.
     /// Supports for both fluid and granular material dynamics.
     FsiForceWCSPH(FsiDataManager& data_mgr,  ///< FSI data manager
                   BceManager& bce_mgr,       ///< BCE manager
-                  bool verbose               ///< verbose terminal output
+                  bool verbose               ///< verbose output
     );
 
     ~FsiForceWCSPH();

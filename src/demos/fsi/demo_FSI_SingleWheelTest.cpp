@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetCohesionForce(1.0e2);
 
     // Setup the SPH method
-    sysSPH.SetSPHMethod(SPHMethod::WCSPH);
+    sysSPH.SetIntegrationScheme(IntegrationScheme::RK2);
 
     sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
     sysSPH.SetShiftingPPSTParameters(3.0, 0.0);

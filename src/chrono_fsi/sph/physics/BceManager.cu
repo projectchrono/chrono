@@ -377,8 +377,7 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
                                   const uint* __restrict__ mapOriginalToSorted,
                                   const uint numRigidMarkers,
                                   const Real markerMass,
-                                  const uint startRigidMarkers,
-                                  const SPHMethod sph_method) {
+                                  const uint startRigidMarkers) {
     extern __shared__ char sharedMem[];
     const uint blockSize = blockDim.x;
 
@@ -409,11 +408,10 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
     Real3 Force = make_Real3(0.0f, 0.0f, 0.0f);
     Real3 Torque = make_Real3(0.0f, 0.0f, 0.0f);
     if (threadIdx_x < validThreads) {
-        if (sph_method == SPHMethod::WCSPH) {
-            Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
-        } else {
+        if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
             Force = mR3(derivVelRhoD[sortedIndex]);
-        }
+        else
+          Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
 
         Real3 dist3 = mR3(posRadD[sortedIndex]) - posRigidD[RigidIndex];
         Torque = cross(dist3, Force);
@@ -458,8 +456,7 @@ __global__ void CalcFlex1DForces_D(Real3* __restrict__ flex1D_FSIforces_D,
                                    const uint* __restrict__ mapOriginalToSorted,
                                    const uint numFlexMarkers1D,
                                    const uint startFlexMarkers1D,
-                                   const Real markerMass,
-                                   const SPHMethod sph_method) {
+                                   const Real markerMass) {
     extern __shared__ char sharedMem[];
     // Each thread handles a segment which contains 2 nodes
     const int maxNodesPerMarker = 2;
@@ -481,11 +478,10 @@ __global__ void CalcFlex1DForces_D(Real3* __restrict__ flex1D_FSIforces_D,
     uint flex_seg = flex_solid.z;
 
     Real3 Force;
-    if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
-    } else {
+    if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
         Force = mR3(derivVelRhoD[sortedIndex]);
-    }
+    else
+        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
     uint2 seg_nodes = flex1D_Nodes_D[flex_seg];
     uint n0 = seg_nodes.x;
     uint n1 = seg_nodes.y;
@@ -527,8 +523,7 @@ __global__ void CalcFlex2DForces_D(Real3* __restrict__ flex2D_FSIforces_D,
                                    const uint* __restrict__ mapOriginalToSorted,
                                    const uint numFlexMarkers2D,
                                    const uint startFlexMarkers2D,
-                                   const Real markerMass,
-                                   const SPHMethod sph_method) {
+                                   const Real markerMass) {
     extern __shared__ char sharedMem[];
 
     // Each marker deals with 3 nodes in the 2D case
@@ -551,11 +546,10 @@ __global__ void CalcFlex2DForces_D(Real3* __restrict__ flex2D_FSIforces_D,
     uint flex_tri = flex_solid.z;
 
     Real3 Force;
-    if (paramsD.sph_method == SPHMethod::WCSPH) {
-        Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
-    } else {
+    if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
         Force = mR3(derivVelRhoD[sortedIndex]);
-    }
+    else
+        Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
 
     uint3 tri_nodes = flex2D_Nodes_D[flex_tri];
     uint n0 = tri_nodes.x;
@@ -611,7 +605,7 @@ void BceManager::Rigid_Forces_Torques() {
         mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
         U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->numRigidMarkers,
-        m_data_mgr.paramsH->markerMass, (uint)m_data_mgr.countersH->startRigidMarkers, m_data_mgr.paramsH->sph_method);
+        m_data_mgr.paramsH->markerMass, (uint)m_data_mgr.countersH->startRigidMarkers);
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -638,8 +632,7 @@ void BceManager::Flex1D_Forces() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
         (uint)m_data_mgr.countersH->numFlexMarkers1D,                //
         (uint)m_data_mgr.countersH->startFlexMarkers1D,              //
-        m_data_mgr.paramsH->markerMass,                              //
-        m_data_mgr.paramsH->sph_method                               //
+        m_data_mgr.paramsH->markerMass
     );
 
     cudaDeviceSynchronize();
@@ -667,8 +660,7 @@ void BceManager::Flex2D_Forces() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
         (uint)m_data_mgr.countersH->numFlexMarkers2D,                //
         (uint)m_data_mgr.countersH->startFlexMarkers2D,              //
-        m_data_mgr.paramsH->markerMass,                              //
-        m_data_mgr.paramsH->sph_method                               //
+        m_data_mgr.paramsH->markerMass
     );
 
     cudaDeviceSynchronize();

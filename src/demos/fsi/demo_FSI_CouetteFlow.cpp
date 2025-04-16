@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::I2SPH;
+    sph_params.integration_scheme = IntegrationScheme::IMPLICIT_SPH;
     sph_params.num_bce_layers = 3;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -401,7 +401,7 @@ int main(int argc, char* argv[]) {
     ofile.close();
 
 #ifdef CHRONO_POSTPROCESS
-    std::string title = "Couette flow - Torques (" + sysSPH.GetSphMethodTypeString() + ")";
+    std::string title = "Couette flow - Torques (" + sysSPH.GetSphIntegrationSchemeString() + ")";
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
     gplot.SetGrid();
     gplot.SetLabelX("time (s)");
