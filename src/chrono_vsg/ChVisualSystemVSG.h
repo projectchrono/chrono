@@ -273,6 +273,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Indicate whether or not the default (base) GUI is visible.
     bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
+    /// Change logo image.
+    void SetLogo(const std::string& filename) { m_logo_filename = filename; }
+
     /// Disable showing the Chrono logo (default: true).
     void HideLogo() { m_show_logo = false; }
 

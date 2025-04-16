@@ -179,8 +179,8 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_active_boxes(false),
       m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
-      m_rigid_bce_color(ChColor(0.10f, 0.60f, 0.30f)),
-      m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
+      m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
+      m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
       m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
       m_write_images(false),
       m_image_dir(".") {
@@ -197,8 +197,8 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_bndry_bce_markers(false),
       m_sph_color(ChColor(0.10f, 0.40f, 0.65f)),
       m_bndry_bce_color(ChColor(0.65f, 0.30f, 0.03f)),
-      m_rigid_bce_color(ChColor(0.10f, 0.60f, 0.30f)),
-      m_flex_bce_color(ChColor(0.40f, 0.10f, 0.65f)),
+      m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
+      m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
       m_write_images(false),
       m_image_dir(".") {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");

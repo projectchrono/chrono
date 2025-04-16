@@ -130,15 +130,18 @@ int main(int argc, char* argv[]) {
     {
         ChVector3d dim(bxDim + 4 * init_space, byDim + 0 * init_space, 2 * init_space);
         ChVector3d loc(0, 0, -init_space);
-        ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(dim), ChFrame<>(loc, QUNIT));
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(dim);
+        vis_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        ground->AddVisualShape(vis_shape, ChFrame<>(loc, QUNIT));
     }
 
     // Left wall of the container
     {
         ChVector3d dim(2 * init_space, byDim, bzDim + 4 * init_space);
         ChVector3d loc(+bxDim / 2 + init_space, 0, bzDim / 2);
-        ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(dim), ChFrame<>(loc, QUNIT));
-
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(dim);
+        vis_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        ground->AddVisualShape(vis_shape, ChFrame<>(loc, QUNIT));
         ground->AddCollisionShape(chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, dim),
                                   ChFrame<>(loc, QUNIT));
     }
@@ -146,17 +149,21 @@ int main(int argc, char* argv[]) {
     // Right wall of the container
     {
         ChVector3d dim(2 * init_space, byDim, bzDim + 4 * init_space);
-        ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(dim),
-                               ChFrame<>(ChVector3d(-bxDim / 2 - init_space, 0, bzDim / 2), QUNIT));
+        ChVector3d loc(-bxDim / 2 - init_space, 0, bzDim / 2);
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(dim);
+        ground->AddVisualShape(vis_shape, ChFrame<>(loc, QUNIT));
+        vis_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         ground->AddCollisionShape(chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, dim),
-                                  ChFrame<>(ChVector3d(-bxDim / 2 - init_space, 0, bzDim / 2), QUNIT));
+                                  ChFrame<>(loc, QUNIT));
     }
 
     // Left platform
     {
         ChVector3d dim(bxDim, byDim, 2 * init_space);
         ChVector3d loc(-bxDim / 2 - bxDim / 2 - 3 * init_space, 0, bzDim + init_space);
-        ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(dim), ChFrame<>(loc, QUNIT));
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(dim);
+        vis_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        ground->AddVisualShape(vis_shape, ChFrame<>(loc, QUNIT));
         ground->AddCollisionShape(chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, dim),
                                   ChFrame<>(loc, QUNIT));
     }
@@ -165,7 +172,9 @@ int main(int argc, char* argv[]) {
     {
         ChVector3d dim(bxDim, byDim, 2 * init_space);
         ChVector3d loc(+bxDim / 2 + bxDim / 2 + 3 * init_space, 0, bzDim + init_space);
-        ground->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(dim), ChFrame<>(loc, QUNIT));
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(dim);
+        vis_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        ground->AddVisualShape(vis_shape, ChFrame<>(loc, QUNIT));
         ground->AddCollisionShape(chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, dim),
                                   ChFrame<>(loc, QUNIT));
     }
@@ -194,18 +203,23 @@ int main(int argc, char* argv[]) {
     auto floating_plate = chrono_types::make_shared<ChBody>();
     floating_plate->SetPos(plate_center);
     floating_plate->SetFixed(false);
-    floating_plate->EnableCollision(true);
-
-    auto plate_collision_shape = chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, plate_size);
-    floating_plate->AddCollisionShape(plate_collision_shape, ChFrame<>());
-    auto plate_visualization_shape = chrono_types::make_shared<ChVisualShapeBox>(plate_size);
-    floating_plate->AddVisualShape(plate_visualization_shape, ChFrame<>());
     floating_plate->SetMass(plate_mass);
     floating_plate->SetInertiaXX(plate_inertia);
+    floating_plate->EnableCollision(true);
+
+    {
+        auto vis_shape = chrono_types::make_shared<ChVisualShapeBox>(plate_size);
+        vis_shape->SetTexture(GetChronoDataFile("textures/spheretexture.png"), 4, 2);
+        floating_plate->AddVisualShape(vis_shape, ChFrame<>());
+        floating_plate->AddCollisionShape(chrono_types::make_shared<ChCollisionShapeBox>(cmaterial, plate_size),
+                                          ChFrame<>());
+    }
+
     sysMBS.AddBody(floating_plate);
     sysFSI.AddFsiBody(floating_plate);
     sysSPH.AddBoxBCE(floating_plate, ChFrame<>(), plate_size, true);
 
+    // Create vehicle
     ChVector3d veh_init_pos(-bxDim / 2 - bxDim * CH_1_3, 0, bzDim + 3 * init_space + 0.1);
     auto vehicle = CreateVehicle(sysMBS, sysSPH, sysFSI, ChCoordsys<>(veh_init_pos, QUNIT));
 
@@ -253,8 +267,9 @@ int main(int argc, char* argv[]) {
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
-        visFSI->EnableBoundaryMarkers(true);
+        visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);
+        visFSI->EnableFlexBodyMarkers(false);
         visFSI->SetSPHColorCallback(col_callback);
 
         // Vehicle VSG visual system (attach visFSI as plugin)
@@ -264,6 +279,8 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Floating Block");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
+        visVSG->SetLogo(GetChronoDataFile("logo_chrono_alpha.png"));
+        visVSG->SetClearColor(ChColor(0.1f, 0.15f, 0.2f));
         visVSG->SetChaseCameraPosition(ChVector3d(0, -7 * byDim, 3 + bzDim / 2), ChVector3d(0, 0, bzDim / 2));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI_4);
