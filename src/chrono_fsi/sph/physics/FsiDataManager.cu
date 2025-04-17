@@ -370,10 +370,12 @@ void FsiDataManager::ResetData() {
 
     thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), zero4);
     thrust::fill(derivVelRhoOriginalD.begin(), derivVelRhoOriginalD.end(), zero4);
-    thrust::fill(sr_tau_I_mu_i.begin(), sr_tau_I_mu_i.end(), zero4);
     thrust::fill(freeSurfaceIdD.begin(), freeSurfaceIdD.end(), 0);
 
     thrust::fill(vel_XSPH_D.begin(), vel_XSPH_D.end(), zero3);
+
+    if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
+        thrust::fill(sr_tau_I_mu_i.begin(), sr_tau_I_mu_i.end(), zero4);
 
     //// TODO: ISPH only
     thrust::fill(bceAcc.begin(), bceAcc.end(), zero3);
@@ -844,9 +846,11 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += derivTauXyXzYzD.capacity() * sizeof(Real3);
     total_bytes += vel_XSPH_D.capacity() * sizeof(Real3);
     total_bytes += vis_vel_SPH_D.capacity() * sizeof(Real3);
-    total_bytes += sr_tau_I_mu_i.capacity() * sizeof(Real4);
-    total_bytes += sr_tau_I_mu_i_Original.capacity() * sizeof(Real4);
     total_bytes += bceAcc.capacity() * sizeof(Real3);
+    if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
+        total_bytes += sr_tau_I_mu_i.capacity() * sizeof(Real4);
+        total_bytes += sr_tau_I_mu_i_Original.capacity() * sizeof(Real4);
+    }
 
     // Activity and neighbor data
     total_bytes += activityIdentifierOriginalD.capacity() * sizeof(int32_t);
@@ -1072,10 +1076,9 @@ void FsiDataManager::MoveAABB2AABB(MarkerType type,
     // Move markers to be relocated at beginning of data structure
     auto middle = thrust::partition(sphMarkers_D->iterator(start_idx), sphMarkers_D->iterator(end_idx), inaabb_op(aabb_src));
 
-    auto n_candidate = sphMarkers_D->iterator(end_idx) - sphMarkers_D->iterator(start_idx);
     auto n_move = (int)(middle - sphMarkers_D->iterator(start_idx));
 
-    ChDebugLog("Num candidate markers: " << n_candidate);
+    ChDebugLog("Num candidate markers: " << sphMarkers_D->iterator(end_idx) - sphMarkers_D->iterator(start_idx));
     ChDebugLog("Num moved markers:     " << n_move);
 
     // Relocate markers based on their index

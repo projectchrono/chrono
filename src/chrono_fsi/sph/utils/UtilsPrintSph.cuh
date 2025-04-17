@@ -40,6 +40,7 @@ namespace sph {
 void saveParticleDataCFD(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
 void saveParticleDataCFD(const std::string& dir,
                          OutputLevel level,
+                         bool implicit_scheme,
                          const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
                          const thrust::device_vector<Real4>& derivVelRhoD,

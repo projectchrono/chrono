@@ -318,6 +318,8 @@ struct FsiDataManager {
 
     // ------------------------
 
+    //// TODO RADU - move to FsiProblemRelocate.cu/cuh
+
     struct DefaultProperties {
         Real rho0;
         Real mu0;
