@@ -94,7 +94,7 @@ public:
     virtual void ComputeCollisionStateChanges() = 0;
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally) 
-    /// Base behaviour in ChMatterPeri: resets the ChNodePeri::F vector of each ChNodePeri to zero. 
+    /// Base behaviour in ChMatterPeri: resets the ChNodePeri::F_peridyn vector of each ChNodePeri to zero. 
     virtual void ComputeForcesReset() = 0;
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT:  ***IMPORTANT***
@@ -276,7 +276,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
         if ((anodeA->GetPos() - anodeB->GetPos()).Length() > (anodeA->GetHorizonRadius()))
             return false;
 
-        if ((this->GetContainer()->GetChTime()>0.01) && anodeA->is_boundary && anodeB->is_boundary && anodeA->is_elastic && anodeB->is_elastic)
+        if ((this->GetContainer()->GetChTime()>0.01) && anodeA->is_boundary && anodeB->is_boundary && (!anodeA->is_fluid) && (!anodeB->is_fluid) )
             return false;
 
         // add bond to container using ptr of two nodes as unique key
@@ -290,7 +290,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
     /// Base behaviour: 
     ///  - resets the ChNodePeri::F vector of each ChNodePeri to zero.
     ///  - adds or remove collision model from the collision engine 
-    ///  - resets is_elastic optimization flag (is is_elastic, bonds are persistent and collision engine not needed)
+    ///  - resets is_fluid optimization flag (is not is_fluid, bonds are persistent as an elastic, and collision engine not needed)
     virtual void ComputeForcesReset() override {
         
         for (auto& nodedata : nodes) {
@@ -301,7 +301,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
 
             // Initialize flag to mark if the bonds are persistent, as in elastic media. Default: true.
             // Plastic w.large deformation or fluids will flag is_elastic to false, if needed.
-            mnode->is_elastic = true;
+            mnode->is_fluid = false;
 
         }
     }
@@ -328,7 +328,6 @@ class  ChMatterPeri : public ChMatterPeriBase {
                         cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
                     else
                         cshape = chrono_types::make_shared<ChCollisionShapePoint>(matsurface, VNULL, coll_rad); // ..Point like ..Sphere, but no point-vs-point contact generation 
-                    //auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(matsurface, coll_rad);
                     mnode->AddCollisionShape(cshape);
                     mnode->GetCollisionModel()->SetSafeMargin(coll_rad);
                     mnode->GetCollisionModel()->SetEnvelope(std::max(0.0, aabb_rad - coll_rad));
@@ -345,11 +344,11 @@ class  ChMatterPeri : public ChMatterPeriBase {
 
             // Deactivate this flag, that is used only to force the generation of bonds once. 
             // If collison model for proximity collision was needed, than it was alredy setup few lines above 
-            mnode->is_requiring_bonds = false;
+//            mnode->is_requiring_bonds = false;
         }
 
         for (auto& nodedata : nodes) {
-            nodedata.second.node->is_elastic = true;
+            nodedata.second.node->is_fluid = false;
         }
     };
     

@@ -59,10 +59,10 @@ public:
     /// Set collision radius (for colliding with bodies, boundaries, etc.)
     void SetCollisionRadius(double mr);
 
-    /// Get half size of volume cell, assumed approx. as a cube. Used for volume correction with fading on horizon, at quadrature
-    double GetVolumeHalfSize() { return vol_half_size; }
-    /// Set half size of volume cell, assumed approx. as a cube. Used for volume correction with fading on horizon, at quadrature
-    void SetVolumeHalfSize(double mvol_half_size) { vol_half_size = mvol_half_size; }
+    /// Get size of volume cell, assumed approx. as a cube. Used for volume correction with fading on horizon, at quadrature
+    double GetVolumeSize() { return vol_size; }
+    /// Set size of volume cell, assumed approx. as a cube. Used for volume correction with fading on horizon, at quadrature
+    void SetVolumeSize(double mvol_size) { vol_size = mvol_size; }
 
 
     /// Access the variables of the node.
@@ -163,14 +163,14 @@ public:
     //
     // DATA
     //
-    bool is_requiring_bonds = true;  // requires collision detection to initialize bonds even if elastic
+    bool is_requiring_bonds = true;  // requires collision detection to initialize bonds even if is_fluid is false
     bool is_boundary = false;        // always requires collsion detection
-    bool is_elastic = false;         // if true, once computed, bonds do not require updating via collision detection proximities
+    bool is_fluid = true;            // if not is_fluid, once computed, bonds do not require updating via collision detection proximities
 
     bool is_colliding = false;       // has a collision model that is already inserted in ChSystem collision engine
 
     bool IsRequiringCollision() {
-        return (is_boundary || !is_elastic || is_requiring_bonds);
+        return (is_boundary || is_fluid || is_requiring_bonds);
     }
 
     ChVector3d F_peridyn; // placeholder for storing peridynamics force (not force density), automatically computed
@@ -178,7 +178,7 @@ public:
     double volume;
     double h_rad;
     double coll_rad;
-    double vol_half_size;
+    double vol_size;
     double vol_accumulator;
 };
 

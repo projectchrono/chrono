@@ -172,6 +172,9 @@ int main(int argc, char* argv[]) {
         mphysicalSystem.GetSolver()->AsIterative()->SetMaxIterations(10);
     }
 
+    // IMPORTANT call this to generate bonds between nodes!
+    ChPeridynamics::SetupInitialBonds(&mphysicalSystem, my_peridynamics);
+
     //
     // THE SOFT-REAL-TIME CYCLE
     //

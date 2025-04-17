@@ -126,6 +126,14 @@ void ChPeridynamics::SetupInitial() {
         mat->SetupInitial();
 }
 
+void ChPeridynamics::SetupInitialBonds(ChSystem* sys, std::shared_ptr<ChPeridynamics> peri) {
+    sys->Setup();
+    sys->Update();
+    sys->ComputeCollisions();
+    for (auto& node : peri->GetNodes())
+        node->is_requiring_bonds = false;
+}
+
 void ChPeridynamics::Setup() {
     n_dofs = 0;
     n_constr = 0;
@@ -154,7 +162,6 @@ void ChPeridynamics::Update(double mytime, bool update_assets) {
         // tentatively mark as updated
         is_updated = true;
     }
-
 }
 
 
@@ -199,7 +206,7 @@ void ChPeridynamics::Fill(
         mnode->SetPos(mpos);
         mnode->SetMass(per_node_mass);
         mnode->volume = per_node_volume;
-        mnode->is_elastic = true;
+        mnode->is_fluid = false;
         mnode->coll_rad = collrad;
         mnode->h_rad = horizon;
 
@@ -249,10 +256,10 @@ void ChPeridynamics::FillBox(
                 mnode->SetPos(mpos);
                 mnode->SetMass(nodemass);
                 mnode->volume = nodevol;
-                mnode->is_elastic = true;
+                mnode->is_fluid = false;
                 mnode->coll_rad = collrad;
                 mnode->h_rad = horizon;
-                mnode->vol_half_size = spacing *0.5;
+                mnode->vol_size = spacing;
                 this->AddNode(mnode);
                 mmatter->AddNode(mnode);
                 if ((ix == 0) || (ix == samples_x - 1) || (iy == 0) || (iy == samples_y - 1) || (iz == 0) || (iz == samples_z - 1)) {
@@ -308,7 +315,7 @@ void ChPeridynamics::FillBox(
                 A_matter = v_mmatter[iint].first;
                 if (xmax >= interfaces[iint]) {
                     //std::cout << " INTERFACE at  int << " << iint << "  ix=" << ix << "   xmin " << xmin << "  xmax" << xmax<< "\n";
-                    //B_matter = v_mmatter[iint + 1].first; // node cell overlaps interface
+                    B_matter = v_mmatter[iint + 1].first; // node cell overlaps interface
                 }
                 break;
             }
@@ -327,15 +334,15 @@ void ChPeridynamics::FillBox(
                 mnode->SetX0(mpos);
                 mnode->SetPos(mpos);
                 mnode->SetMass(nodemass);
-                mnode->is_elastic = true;
+                mnode->is_fluid = false;
                 mnode->coll_rad = collrad;
                 mnode->h_rad = horizon;
                 mnode->volume = nodevol;
-                mnode->vol_half_size = spacing * 0.5;
+                mnode->vol_size = spacing;
                 if (B_matter) {  
                     // node is at interface, shared betwen two matters. Correct volume:
                     mnode->volume = 0.5 * nodevol;
-                    mnode->vol_half_size = 0.5 * spacing * 0.5; // ?
+                    mnode->vol_size = spacing * 0.5; // ?
                 }
                 this->AddNode(mnode);
                 if (A_matter)

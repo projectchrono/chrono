@@ -108,7 +108,7 @@ public:
                 }
             }
             else {
-                if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                if (mbond.broken)
                     bonds.erase(bond.first);
             }
 

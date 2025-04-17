@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
     // This is a very simple one: a linear bond-based elastic material, defined
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
-    my_perimaterial->k_bulk =  300e6;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->damping = 0.001;    // bulk as Rayleigh beta
+    my_perimaterial->k_bulk =  30e6;    // bulk stiffness (unit N/m^2)
+    my_perimaterial->damping = 0.0001;    // bulk as Rayleigh beta
     /*
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriLinearElastic>();
     my_perimaterial->k_bulk = 300e6;    // bulk stiffness (unit N/m^2)
@@ -176,6 +176,11 @@ int main(int argc, char* argv[]) {
     if (mphysicalSystem.GetSolver()->IsIterative()) {
         mphysicalSystem.GetSolver()->AsIterative()->SetMaxIterations(25);
     }
+
+
+    // IMPORTANT call this to generate bonds between nodes!
+    ChPeridynamics::SetupInitialBonds(&mphysicalSystem, my_peridynamics);
+
 
     //
     // THE SOFT-REAL-TIME CYCLE

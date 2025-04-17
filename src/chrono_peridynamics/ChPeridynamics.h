@@ -150,8 +150,11 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     //
 
     /// Setup initial lattice of bonds, running a single shot of collision detection
-    /// and then calling Compute.
-    //void SetupInitialBonds();  // NOT NEEDED?
+    /// and then calling Compute. It may require some CPU time.
+    /// Note: call this as late as possible, after you created all peridynamic material,
+    /// ex. just before running the simulation loop.
+    /// Call as a static function:   ChPeridynamics::SetupInitialBonds(my_sys, my_peridynamics);
+    static void SetupInitialBonds(ChSystem* sys, std::shared_ptr<ChPeridynamics> peri); 
 
     /// This recomputes the number of DOFs, constraints,
     /// as well as state offsets of contained items.
@@ -334,7 +337,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         unsigned int local_Loff = 0;
         for (auto& mymat : this->materials) {
             mymat->IntToDescriptor(off_v + local_off, v, R, off_L + local_Loff, L, Qc);
-            local_off += mymat->GetNumConstraints();
+            local_Loff += mymat->GetNumConstraints();
         }
     }
     virtual void IntFromDescriptor(const unsigned int off_v,
@@ -351,7 +354,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
         unsigned int local_Loff = 0;
         for (auto& mymat : this->materials) {
             mymat->IntFromDescriptor(off_v + local_off, v, off_L + local_Loff, L);
-            local_off += mymat->GetNumConstraints();
+            local_Loff += mymat->GetNumConstraints();
         }
     }
 

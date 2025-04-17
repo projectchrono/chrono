@@ -61,12 +61,12 @@ public:
     /// When doing quadrature, particle volumes that overlap with the horizon should be scaled
     /// proportionally to how much of their volume is really inside the horizon sphere. A simple
     /// and very often used approximation is the following 'fading' function.
-    double VolumeCorrection(double dist, double horizon, double vol_half_size) {
-        if (dist < (horizon - vol_half_size))
+    double VolumeCorrection(double dist, double horizon, double vol_size) {
+        if (dist < (horizon - vol_size))
             return 1.0;
         else
             if (dist < horizon)
-                return 1.0 - (dist-(horizon- vol_half_size))/(vol_half_size);
+                return 1.0 - (dist- (horizon- vol_size))/(vol_size);
             else
                 return 0.0;
     }
@@ -84,8 +84,8 @@ public:
         for (auto& bond : this->bonds) {
             ChMatterDataPerBondBulk& mbond = bond.second;
             if (!mbond.broken) {
-                mbond.nodeA->vol_accumulator += mbond.nodeB->volume;
-                mbond.nodeB->vol_accumulator += mbond.nodeA->volume;
+                mbond.nodeA->vol_accumulator += mbond.nodeB->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
+                mbond.nodeB->vol_accumulator += mbond.nodeA->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
             }
         }
 
@@ -103,7 +103,7 @@ public:
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
                 // Original PMB in Silling
-                // double vol_half_size = mbond.nodeA->GetVolumeHalfSize();
+                // double vol_size = mbond.nodeA->GetVolumeSize();
                 // double horizon = mbond.nodeA->GetHorizonRadius();
                 // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 // double force_density_val =  (18.0 * k_bulk / pih4) * stretch; // original in Silling
@@ -116,7 +116,7 @@ public:
                     force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
                 mbond.F_density = force_density_val;
-                double wVV_ji = mbond.nodeA->volume * mbond.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
+                double wVV_ji = mbond.nodeA->volume * mbond.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
 
                 mbond.nodeB->F_peridyn += -vdir * force_density_val * wVV_ji;
                 mbond.nodeA->F_peridyn += vdir * force_density_val * wVV_ji;
@@ -130,7 +130,9 @@ public:
                 }
             }
             else {
-                if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                //if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                //    bonds.erase(bond.first);
+                if (mbond.broken)
                     bonds.erase(bond.first);
             }
 
@@ -251,7 +253,7 @@ public:
     };
     bond_state state = bond_state::ACTIVE;
     double force_density_val = 0;  // force density per vol squared in this bond, for postprocessing
-    double Phi; // residual   (d-zeta)= (sdist - old_sdist),  for implicit form
+    double d_zeta;   // elongation   (d-zeta)= (sdist - old_sdist),  residual for implicit form
     double Km;  // tangent stiffness matrix, for implicit form
 
     ChConstraintTwoGenericBoxed constraint;
@@ -293,12 +295,12 @@ public:
     /// When doing quadrature, particle volumes that overlap with the horizon should be scaled
     /// proportionally to how much of their volume is really inside the horizon sphere. A simple
     /// and very often used approximation is the following 'fading' function.
-    double VolumeCorrection(double dist, double horizon, double vol_half_size) {
-        if (dist < (horizon - vol_half_size))
+    double VolumeCorrection(double dist, double horizon, double vol_size) {
+        if (dist < (horizon - vol_size))
             return 1.0;
         else
             if (dist < horizon)
-                return 1.0 - (dist - (horizon - vol_half_size)) / (vol_half_size);
+                return 1.0 - (dist - (horizon - vol_size)) / (vol_size);
             else
                 return 0.0;
     }
@@ -336,7 +338,7 @@ public:
 
                 // Original PMB in Silling
                 // double horizon = mbond.nodeA->GetHorizonRadius();
-                // double vol_half_size = mbond.nodeA->GetVolumeHalfSize();
+                // double vol_size = mbond.nodeA->GetVolumeSize();
                 // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 // double c_silling = (18.0 * k_bulk /  (chrono::CH_PI * horizon * horizon * horizon * horizon) )
                 // double force_density_val =  c_silling * stretch; // original in Silling
@@ -348,11 +350,12 @@ public:
                 if (this->damping > 0)
                     force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
+                
                 // constraint elongation
-                mbond.Phi = sdist - old_sdist;
+                mbond.d_zeta = sdist - old_sdist;
                 
                 // tangent stiffness,   Km = c * 1/zeta * w_jk
-                double wVV_jk = mbond.nodeA->volume * mbond.nodeB->volume; // * VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
+                double wVV_jk = mbond.nodeA->volume * mbond.nodeB->volume; // * VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
                 bond.second.Km = (c_gmuller / (old_sdist * old_sdist) ) * wVV_jk;  // that is..   Km= (c_gmuller / old_sdist) * (1.0/old_sdist) * wVV_jk;
 
                 // compute here the jacobians, no need to move in LoadConstraintJacobians()
@@ -382,9 +385,11 @@ public:
     }
 
     virtual void Setup() override {
-        // cleanup bonds that are broken and far apart 
+        // cleanup bonds that are broken 
         for (auto& bond : this->bonds) {
-            if ((bond.second.nodeB->GetPos() - bond.second.nodeA->GetPos()).Length() > bond.second.nodeA->GetHorizonRadius())
+            //if ((bond.second.nodeB->GetPos() - bond.second.nodeA->GetPos()).Length() > bond.second.nodeA->GetHorizonRadius())
+            //    bonds.erase(bond.first);
+            if (bond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN)
                 bonds.erase(bond.first);
         }
     }
@@ -429,9 +434,9 @@ public:
             // TODO  move to LoadKRMMatrices() the following
             // or move in a future IntLoadConstraint_Compliance, or right in IntToDescriptor
             // set compliance 1/h^2 * K^-1, here assuming c=1/h
-            bond.second.constraint.SetComplianceTerm(inv_hhpa / bond.second.Km);//1. / bond.second.Km);// ?
+            bond.second.constraint.SetComplianceTerm(inv_hhpa / bond.second.Km);
 
-            double qc = inv_hpa* bond.second.Phi;
+            double qc = inv_hpa* bond.second.d_zeta;
 
             // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbond
             // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
@@ -512,6 +517,8 @@ public:
         this->m_properties.push_back(acc_property);
     }
 
+    bool draw_colliding = true;
+    bool draw_noncolliding = true;
 
 protected:
     ChPropertyVector* vel_property = 0;
@@ -520,18 +527,28 @@ protected:
     virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         if (!mmatter)
             return;
-        this->Reserve(mmatter->GetNnodes());
+
+        int totglyphs = 0;
+        for (const auto& anode : mmatter->GetMapOfNodes()) {
+            if ((anode.first->is_colliding && this->draw_colliding) ||
+                (!anode.first->is_colliding && this->draw_noncolliding))
+                    ++totglyphs;
+        }
+        this->Reserve(totglyphs);
 
         auto mcolor = this->GetColor();
 
         unsigned int i = 0;
         for (const auto& anode : mmatter->GetMapOfNodes()) {
-            this->SetGlyphPoint(i, anode.first->GetPos(), mcolor);
-            if (vel_property)
-                vel_property->data[i] = anode.first->GetPosDt();
-            if (acc_property)
-                acc_property->data[i] = anode.first->GetPosDt2();
-            ++i;
+            if ((anode.first->is_colliding && this->draw_colliding) ||
+                (!anode.first->is_colliding && this->draw_noncolliding))  {
+                    this->SetGlyphPoint(i, anode.first->GetPos(), mcolor);
+                    if (vel_property)
+                        vel_property->data[i] = anode.first->GetPosDt();
+                    if (acc_property)
+                        acc_property->data[i] = anode.first->GetPosDt2();
+                    ++i;
+            }
         }
 
     }
@@ -572,7 +589,7 @@ protected:
         unsigned int i = 0;
         for (const auto& abond : mmatter->GetMapOfBonds()) {
             if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) && draw_active) {
-                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(0, 0, 1));
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(0.15, 0.84, 1));
                 ++i;
             }
             if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) && draw_broken) {
@@ -580,7 +597,7 @@ protected:
                 ++i;
             }
             if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED) && draw_fractured) {
-                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 1, 0));
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 0.5, 0));
                 ++i;
             }
 
@@ -644,19 +661,9 @@ public:
     double InfluenceFunction(double zeta, double horizon) {
         if (zeta > horizon)
             return 0.0;
-        
-        // linear decrease
-        //return horizon / zeta;
 
-        // constant one:
-        return 1.0;
-
-        // piecewise decay
-        /*
-        double normdist = zeta / horizon;
-        double value = normdist < 0.5 ? 1.0 : -4.0 * normdist * normdist + 4.0 * normdist;
-        return value;
-        */
+        // inv.linear decrease
+        return horizon / zeta;
     }
 
 
@@ -719,7 +726,7 @@ public:
                 mnodedataB.theta += form * mbond.nodeA->volume;
             }
             else {
-                if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                if (mbond.broken)
                     bonds.erase(bond.first);
             }
         }

@@ -90,7 +90,7 @@ public:
         for (auto& node : this->nodes) {
             node.second.density = 0;
             node.second.pressure = 0;
-            node.first->is_elastic = false; // this forces continuous collision proximity search
+            node.first->is_fluid = true; // this forces continuous collision proximity search
         }
 
         // 2- Per-edge initialization and accumulation of particles's density
