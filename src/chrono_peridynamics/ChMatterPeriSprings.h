@@ -146,10 +146,10 @@ protected:
         if (!mmatter)
             return;
         this->Reserve(mmatter->GetNnodes());
-
+        auto mcolor = this->GetColor();
         unsigned int i = 0;
         for (const auto& anode : mmatter->GetMapOfNodes()) {
-            this->SetGlyphPoint(i, anode.first->GetPos());
+            this->SetGlyphPoint(i, anode.first->GetPos(), mcolor);
             if (vel_property) 
                 vel_property->data[i] = anode.first->GetPosDt();
             if (acc_property)

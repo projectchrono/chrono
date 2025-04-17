@@ -721,10 +721,12 @@ int test_cantilever_fracture(int argc, char* argv[], bool do_collisiononly, bool
         
         auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialA);
         my_peridynamics->AddVisualShape(mglyphs_nodesA);
+        mglyphs_nodesA->SetColor(ChColor(0, 1, 0.5));
         mglyphs_nodesA->SetGlyphsSize(0.02);
         
         auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialB);
         my_peridynamics->AddVisualShape(mglyphs_nodesB);
+        mglyphs_nodesB->SetColor(ChColor(0, 0, 1));
         mglyphs_nodesB->SetGlyphsSize(0.022);
         
 
