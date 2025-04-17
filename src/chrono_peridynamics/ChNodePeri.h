@@ -163,9 +163,9 @@ public:
     //
     // DATA
     //
-    bool is_requiring_bonds = true;  // requires collision detection to initialize bounds even if elastic
+    bool is_requiring_bonds = true;  // requires collision detection to initialize bonds even if elastic
     bool is_boundary = false;        // always requires collsion detection
-    bool is_elastic = false;         // if true, once computed, bounds do not require updating via collision detection proximities
+    bool is_elastic = false;         // if true, once computed, bonds do not require updating via collision detection proximities
 
     bool is_colliding = false;       // has a collision model that is already inserted in ChSystem collision engine
 

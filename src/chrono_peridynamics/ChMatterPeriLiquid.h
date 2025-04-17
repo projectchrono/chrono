@@ -68,7 +68,7 @@ public:
 /// Simple SPH material, with viscosity and compressibility.
 /// This material can interact with collisioon shapes and other peridynamic materials.
 
-class ChApiPeridynamics ChMatterPeriLiquid : public ChMatterPeri<ChMatterDataLiquid, ChMatterDataPerBound> {
+class ChApiPeridynamics ChMatterPeriLiquid : public ChMatterPeri<ChMatterDataLiquid, ChMatterDataPerBond> {
 public:
     /// fluid viscosity
     double viscosity = 0.01; 
@@ -94,21 +94,21 @@ public:
         }
 
         // 2- Per-edge initialization and accumulation of particles's density
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBound& mbound = bound.second;
-            ChMatterDataLiquid& nodeA_data = nodes[mbound.nodeA];
-            ChMatterDataLiquid& nodeB_data = nodes[mbound.nodeB];
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBond& mbond = bond.second;
+            ChMatterDataLiquid& nodeA_data = nodes[mbond.nodeA];
+            ChMatterDataLiquid& nodeB_data = nodes[mbond.nodeB];
 
-            ChVector3d x_A = mbound.nodeA->GetPos();
-            ChVector3d x_B = mbound.nodeB->GetPos();
+            ChVector3d x_A = mbond.nodeA->GetPos();
+            ChVector3d x_B = mbond.nodeB->GetPos();
 
             ChVector3d r_BA = x_B - x_A;
             double dist_BA = r_BA.Length();
 
-            double W_k_poly6 = W_poly6(dist_BA, mbound.nodeA->GetHorizonRadius());
+            double W_k_poly6 = W_poly6(dist_BA, mbond.nodeA->GetHorizonRadius());
 
-            nodeA_data.density += mbound.nodeA->GetMass() * W_k_poly6;
-            nodeB_data.density += mbound.nodeB->GetMass() * W_k_poly6;
+            nodeA_data.density += mbond.nodeA->GetMass() * W_k_poly6;
+            nodeB_data.density += mbond.nodeB->GetMass() * W_k_poly6;
         }
 
         // 3- Per-node volume and pressure computation
@@ -125,34 +125,34 @@ public:
         }
 
         // 4- Per-edge forces computation and accumulation
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBound& mbound = bound.second;
-            ChMatterDataLiquid& nodeA_data = nodes[mbound.nodeA];
-            ChMatterDataLiquid& nodeB_data = nodes[mbound.nodeB];
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBond& mbond = bond.second;
+            ChMatterDataLiquid& nodeA_data = nodes[mbond.nodeA];
+            ChMatterDataLiquid& nodeB_data = nodes[mbond.nodeB];
 
-            ChVector3d x_A = mbound.nodeA->GetPos();
-            ChVector3d x_B = mbound.nodeB->GetPos();
+            ChVector3d x_A = mbond.nodeA->GetPos();
+            ChVector3d x_B = mbond.nodeB->GetPos();
 
             ChVector3d r_BA = x_B - x_A;
             double dist_BA = r_BA.Length();
 
             // increment pressure forces
             ChVector3d W_k_press;
-            W_gr_press(W_k_press, r_BA, dist_BA, mbound.nodeA->GetHorizonRadius());
+            W_gr_press(W_k_press, r_BA, dist_BA, mbond.nodeA->GetHorizonRadius());
 
             double avg_press = 0.5 * (nodeA_data.pressure + nodeB_data.pressure);
 
-            ChVector3d pressureForceA = W_k_press * mbound.nodeA->volume * avg_press * mbound.nodeB->volume;
-            mbound.nodeA->F_peridyn += pressureForceA / mbound.nodeA->volume;
-            mbound.nodeB->F_peridyn -= pressureForceA / mbound.nodeB->volume;
+            ChVector3d pressureForceA = W_k_press * mbond.nodeA->volume * avg_press * mbond.nodeB->volume;
+            mbond.nodeA->F_peridyn += pressureForceA / mbond.nodeA->volume;
+            mbond.nodeB->F_peridyn -= pressureForceA / mbond.nodeB->volume;
 
             // increment viscous forces..
-            double W_k_visc = W_sq_visco(dist_BA, mbound.nodeA->GetHorizonRadius());
-            ChVector3d velBA = mbound.nodeA->GetPosDt() - mbound.nodeB->GetPosDt();
+            double W_k_visc = W_sq_visco(dist_BA, mbond.nodeA->GetHorizonRadius());
+            ChVector3d velBA = mbond.nodeA->GetPosDt() - mbond.nodeB->GetPosDt();
 
-            ChVector3d viscforceBA = velBA * (mbound.nodeA->volume * this->viscosity * mbound.nodeA->volume * W_k_visc);
-            mbound.nodeA->F_peridyn += viscforceBA / mbound.nodeA->volume;
-            mbound.nodeB->F_peridyn -= viscforceBA / mbound.nodeB->volume;
+            ChVector3d viscforceBA = velBA * (mbond.nodeA->volume * this->viscosity * mbond.nodeA->volume * W_k_visc);
+            mbond.nodeA->F_peridyn += viscforceBA / mbond.nodeA->volume;
+            mbond.nodeB->F_peridyn -= viscforceBA / mbond.nodeB->volume;
         }
     }
 

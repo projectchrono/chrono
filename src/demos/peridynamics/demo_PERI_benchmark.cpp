@@ -22,8 +22,11 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/functions/ChFunctionConstAcc.h"
+#include "chrono/functions/ChFunctionRotationAxis.h"
+#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
+#include "chrono/physics/ChLinkMotionImposed.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -250,7 +253,6 @@ int test_cantilever_push(int argc, char* argv[], bool do_fea, bool do_peri) {
             size_x / CANT_PERI_X,                         // resolution step
             1000,                                         // initial density
             ChCoordsys<>(ChVector3d(size_x / 2, 0, 0), QUNIT),  // position & rotation of box
-            false,                                        // do a centered cubic lattice initial arrangement
             1.7,                                          // set the horizon radius (as multiples of step) 
             0.2);                                         // set the collision radius (as multiples of step) for interface particles
 
@@ -525,7 +527,6 @@ int test_cantilever_torsion(int argc, char* argv[], bool do_fea, bool do_peri) {
             size_x / CANT_PERI_X,                         // resolution step
             1000,                                         // initial density
             ChCoordsys<>(ChVector3d(size_x / 2, 0, 0), QUNIT),  // position & rotation of box
-            false,                                        // do a centered cubic lattice initial arrangement
             1.7,                                          // set the horizon radius (as multiples of step) 
             0.2);                                         // set the collision radius (as multiples of step) for interface particles
 
@@ -647,11 +648,211 @@ int test_cantilever_torsion(int argc, char* argv[], bool do_fea, bool do_peri) {
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#define CANT_PERI_X 18
+
+int test_cantilever_fracture(int argc, char* argv[], bool do_collisiononly, bool do_peri) {
+
+    size_x = 1.2;
+    size_y = 0.6;
+    size_z = 0.3;
+
+    if (do_collisiononly) {
+    }
+
+    ////////////////////
+
+    if (do_peri) {
+
+        // Create a Chrono::Engine physical system
+        ChSystemSMC sys;
+
+        // Set small collision envelopes for objects that will be created from now on
+        ChCollisionModel::SetDefaultSuggestedEnvelope(0.0002);
+        ChCollisionModel::SetDefaultSuggestedMargin(0.0002);
+        sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+        ChVector3d hexpos(0, 0, 0);
+        ChMatrix33<> hexrot(QuatFromAngleY(0));
+
+        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+        my_perimaterialA->k_bulk = 7e6 * (2. / 3.);  // bulk stiffness (unit N/m^2)  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
+        my_perimaterialA->damping = 0.0002;               // Rayleigh beta damping 
+        //    my_perimaterial->max_stretch_fracture = 0.5; //  beyond this, fracture happens (bonds still in place, but become unilateral)
+        //    my_perimaterial->max_stretch_break = 0.6; //  beyond this, bull break happens (bonds removed, collision surface generated)
+
+        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+        my_perimaterialB->k_bulk = 6e6 * (2. / 3.);  // bulk stiffness (unit N/m^2)  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
+        my_perimaterialB->damping = 0.0002;               // Rayleigh beta damping 
+        my_perimaterialB->max_stretch = 0.02; //  beyond this, fracture happens (bonds still in place, but become unilateral)
+        //my_perimaterial->max_stretch_fracture = 0.1; //  beyond this, fracture happens (bonds still in place, but become unilateral)
+        //my_perimaterial->max_stretch_break = 0.6; //  beyond this, bull break happens (bonds removed, collision surface generated)
+
+
+            // IMPORTANT!
+            // This contains all the peridynamics particles and their materials. 
+        auto my_peridynamics = chrono_types::make_shared<ChPeridynamics>();
+        sys.Add(my_peridynamics);
+
+        my_peridynamics->AddMatter(my_perimaterialA);
+        my_peridynamics->AddMatter(my_perimaterialB);
+
+        std::vector<std::pair<std::shared_ptr<ChMatterPeriBase>, double>> layers{ 
+            {my_perimaterialA, size_y / 2},
+            {my_perimaterialB, size_y / 2+0.01} 
+        };
+
+        // Use the FillBox easy way to create the set of nodes in the Peridynamics matter
+        my_peridynamics->FillBox(
+            layers,
+            ChVector3d(size_y, size_x, size_z),           // size of box
+            size_x / CANT_PERI_X,                         // resolution step
+            1000,                                         // initial density
+            ChCoordsys<>(ChVector3d(size_x / 2, 0, 0), Q_ROTATE_X_TO_Y), // position & rotation of box
+            1.7,                                          // set the horizon radius (as multiples of step) 
+            0.2);                                         // set the collision radius (as multiples of step) for interface particles
+
+
+        // Attach visualization to peridynamics. 
+        
+        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialA);
+        my_peridynamics->AddVisualShape(mglyphs_nodesA);
+        mglyphs_nodesA->SetGlyphsSize(0.02);
+        
+        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialB);
+        my_peridynamics->AddVisualShape(mglyphs_nodesB);
+        mglyphs_nodesB->SetGlyphsSize(0.022);
+        
+
+        // Create a truss
+        auto truss = chrono_types::make_shared<ChBody>();
+        truss->SetFixed(true);
+        sys.Add(truss);
+
+        // Create a weight
+        auto hammer = chrono_types::make_shared<ChBodyEasyBox>(size_x * 0.2, size_y * 1.5, size_z * 1.5,
+            3000,      // density
+            true,      // visualization?
+            false      // collision?
+        );
+        hammer->SetPos(ChVector3d(size_x + 0.1 * size_x, 0, 0));
+        sys.Add(hammer);
+
+        // Create constraints between nodes and truss
+        // (for example, fix to ground all nodes which are near y=0)
+        for (unsigned int inode = 0; inode < my_peridynamics->GetNnodes(); ++inode) {
+            if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_peridynamics->GetNodes()[inode])) {
+                if (node->GetPos().x() < size_x / CANT_PERI_X - 0.01) {
+                    node->SetFixed(true);
+                }
+                if (node->GetPos().x() > (size_x - size_x / CANT_PERI_X - 0.01)) {
+                    auto constraint = chrono_types::make_shared<ChLinkNodeFrame>();
+                    constraint->Initialize(node, hammer);
+                    sys.Add(constraint);
+                }
+            }
+        }
+
+        // Motor constraint
+        auto motor = chrono_types::make_shared<ChLinkMotionImposed>();
+        motor->Initialize(truss, hammer, ChFrame<>(hammer->GetPos(), QuatFromAngleY(0)));
+        auto motion_rot = chrono_types::make_shared<ChFunctionConstAcc>(17 * CH_DEG_TO_RAD, 0.1, 0.9, 2.5);
+        auto mrot = chrono_types::make_shared<ChFunctionRotationAxis>();
+        mrot->SetFunctionAngle(motion_rot);
+        mrot->SetAxis(VECT_Z);
+        auto motion_pos = chrono_types::make_shared<ChFunctionConstAcc>(0.2, 0.1, 0.9, 2.5);
+        auto mpos = chrono_types::make_shared<ChFunctionPositionXYZFunctions>();
+        mpos->SetFunctionY(motion_pos);
+        motor->SetRotationFunction(mrot);
+        motor->SetPositionFunction(mpos);
+        sys.Add(motor);
+
+        // Create the visualization system
+        ChVisualSystemIrrlicht vis;
+        vis.SetWindowSize(800, 600);
+        vis.SetWindowTitle("Irrlicht Peridynamics visualization");
+        vis.Initialize();
+        vis.AddLogo();
+        vis.AddSkyBox();
+        vis.AddTypicalLights();
+        vis.AddCamera(ChVector3d(size_x, 0.6, -1.5), ChVector3d(size_x / 2, 0, 0));
+        vis.AttachSystem(&sys);
+
+        sys.SetGravitationalAcceleration(VNULL);
+
+        // Modify some setting of the physical system for the simulation, if you want
+        sys.SetSolverType(ChSolver::Type::PSOR);
+        if (sys.GetSolver()->IsIterative()) {
+            sys.GetSolver()->AsIterative()->EnableDiagonalPreconditioner(true);
+            sys.GetSolver()->AsIterative()->EnableWarmStart(true);
+            sys.GetSolver()->AsIterative()->SetMaxIterations(5);
+            sys.GetSolver()->AsIterative()->SetTolerance(1e-5);
+        }
+
+        /*
+        
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>(24);
+        mkl_solver->UseSparsityPatternLearner(false);
+        mkl_solver->LockSparsityPattern(true);
+        mkl_solver->SetVerbose(false);
+        sys.SetSolver(mkl_solver);
+        */
+
+        sys.Update();
+
+
+        // -----Blender postprocess, optional
+        // Create an exporter to Blender
+        ChBlender blender_exporter = ChBlender(&sys);
+        blender_exporter.SetBasePath(GetChronoOutputPath() + "BLENDER_PERI_TORSION");
+        blender_exporter.AddAll();
+        blender_exporter.SetCamera(ChVector3d(size_x, 0.6, -1.5), ChVector3d(size_x / 2, 0, 0), 50);  // pos, aim, angle
+        blender_exporter.ExportScript();
+
+
+
+        std::ofstream my_output(GetChronoOutputPath() + "peridynamic_torsion_peri.txt");
+
+        ChTimer cputime;
+
+        // Simulation loop
+        while (vis.Run() && sys.GetChTime() < 3) {
+            vis.BeginScene();
+            vis.Render();
+            vis.EndScene();
+            cputime.start();
+            sys.DoStepDynamics(0.0004);
+            cputime.stop();
+
+            //my_output << sys.GetChTime() << ", " << motor->GetMotorTorque() << ", " << motor->GetMotorAngleDt() << ", " << motor->GetMotorAngle() << "\n";
+
+            if (sys.GetNumSteps() % 1 == 0)
+                blender_exporter.ExportData();
+        }
+
+        std::cout << "\n\n  Tot time DoStepDynamics T=" << cputime.GetTimeSeconds()
+            << "[s],  n steps=" << sys.GetNumSteps()
+            << "  t/n_step=" << cputime.GetTimeMilliseconds() / sys.GetNumSteps() << "[ms] \n\n";
+
+    }
+
+
+
+    return 0;
+}
 
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -711,7 +912,6 @@ int test_1(int argc, char* argv[]) {
         4.0 / 15.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT),  // position & rotation of box
-        false,                                        // do a centered cubic lattice initial arrangement
         1.6,                                          // set the horizon radius (as multiples of step) 
         0.4);                                         // set the collision radius (as multiples of step) for interface particles
 
@@ -732,11 +932,11 @@ int test_1(int argc, char* argv[]) {
     mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
     
-    auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriBulkImplicitBounds>(my_perimaterial);
-    mglyphs_bounds->draw_active = false;
-    mglyphs_bounds->draw_broken = true;
-    mglyphs_bounds->draw_fractured = true;
-    my_peridynamics->AddVisualShape(mglyphs_bounds);
+    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterial);
+    mglyphs_bonds->draw_active = false;
+    mglyphs_bonds->draw_broken = true;
+    mglyphs_bonds->draw_fractured = true;
+    my_peridynamics->AddVisualShape(mglyphs_bonds);
     
 
     // -----Blender postprocess, optional
@@ -809,7 +1009,10 @@ int main(int argc, char* argv[]) {
 
     test_cantilever_push(argc, argv, false, false);
 
-    test_cantilever_torsion(argc, argv, false, true);
+    test_cantilever_torsion(argc, argv, false, false);
+
+    test_cantilever_fracture(argc, argv, false, true);
+
 
     //test_1(argc, argv);
     

@@ -17,7 +17,7 @@
 // a meshless framework: differently from conventional FEA it does not need 
 // that the solid is preprocessed as a tetrahedral mesh. In the peridynamics 
 // context, the solid is made with a node cloud, where nodes are connected
-// each other (if withing a small distance called 'horizon') by microscopic bounds. 
+// each other (if withing a small distance called 'horizon') by microscopic bonds. 
 //
 // =============================================================================
 
@@ -114,7 +114,6 @@ int main(int argc, char* argv[]) {
         4.0 / 15.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
-        false,                                        // do a centered cubic lattice initial arrangement
         1.6,                                          // set the horizon radius (as multiples of step) 
         0.4);                                         // set the collision radius (as multiples of step) for interface particles
 
@@ -136,10 +135,10 @@ int main(int argc, char* argv[]) {
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
     
     /*
-    auto mglyphs_bounds = chrono_types::make_shared<ChVisualPeriBulkElasticBounds>(my_perimaterial);
-    mglyphs_bounds->draw_unbroken = false;
-    mglyphs_bounds->draw_broken = true;
-    my_peridynamics->AddVisualShape(mglyphs_bounds);
+    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBulkElasticBonds>(my_perimaterial);
+    mglyphs_bonds->draw_unbroken = false;
+    mglyphs_bonds->draw_broken = true;
+    my_peridynamics->AddVisualShape(mglyphs_bonds);
     */
 
     // -----Blender postprocess, optional

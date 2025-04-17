@@ -48,16 +48,16 @@ public:
     // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBound& mbound = bound.second;
-            ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-            ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+        // loop on bonds
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBond& mbond = bond.second;
+            ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+            ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
             ChVector3d     vdir = vdist.GetNormalized();
-            double         vel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+            double         vel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
             ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k  + vel * this->r;
-            mbound.nodeB->F_peridyn += -vdir * force_val;
-            mbound.nodeA->F_peridyn += vdir * force_val;
+            mbond.nodeB->F_peridyn += -vdir * force_val;
+            mbond.nodeA->F_peridyn += vdir * force_val;
         }
     };
 };
@@ -69,12 +69,12 @@ public:
 
 
 
-class  ChApiPeridynamics ChMatterDataPerBoundBreakable : public ChMatterDataPerBound { 
+class  ChApiPeridynamics ChMatterDataPerBondBreakable : public ChMatterDataPerBond { 
 public: 
     bool broken = false;
 };
 
-class ChApiPeridynamics ChMatterPeriSpringsBreakable : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBreakable> {
+class ChApiPeridynamics ChMatterPeriSpringsBreakable : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBreakable> {
 public:
     double k = 100;
     double r = 10;
@@ -85,31 +85,31 @@ public:
     // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundBreakable& mbound = bound.second;
-            if (!mbound.broken) {
-                ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+        // loop on bonds
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondBreakable& mbond = bond.second;
+            if (!mbond.broken) {
+                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+                ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
                 ChVector3d     vdir = vdist.GetNormalized();
-                double         vel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+                double         vel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
                 ChVector3d force_val = (vdist.Length() - old_vdist.Length()) * this->k + vel * this->r;
-                mbound.nodeB->F_peridyn += -vdir * force_val / mbound.nodeB->volume; //divide by volumes because F_peridyn are force _densities_
-                mbound.nodeA->F_peridyn += vdir * force_val / mbound.nodeA->volume;
+                mbond.nodeB->F_peridyn += -vdir * force_val / mbond.nodeB->volume; //divide by volumes because F_peridyn are force _densities_
+                mbond.nodeA->F_peridyn += vdir * force_val / mbond.nodeA->volume;
 
                 double stretch = (vdist.Length() - old_vdist.Length()) / old_vdist.Length();
                 if (stretch > max_stretch) {
-                    mbound.nodeA->F_peridyn = 0;
-                    mbound.nodeB->F_peridyn = 0;
-                    mbound.broken = true;
+                    mbond.nodeA->F_peridyn = 0;
+                    mbond.nodeB->F_peridyn = 0;
+                    mbond.broken = true;
                     // the following will propagate the fracture geometry so that broken parts can collide
-                    mbound.nodeA->is_boundary = true; 
-                    mbound.nodeB->is_boundary = true;
+                    mbond.nodeA->is_boundary = true; 
+                    mbond.nodeB->is_boundary = true;
                 }
             }
             else {
-                if ((mbound.nodeB->GetPos() - mbound.nodeA->GetPos()).Length() > mbound.nodeA->GetHorizonRadius())
-                    bounds.erase(bound.first);
+                if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                    bonds.erase(bond.first);
             }
 
         }
@@ -163,10 +163,10 @@ protected:
 };
 
 
-class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakableBounds : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriSpringsBreakableBonds : public ChGlyphs {
 public:
-    ChVisualPeriSpringsBreakableBounds(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriSpringsBreakableBounds() {}
+    ChVisualPeriSpringsBreakableBonds(std::shared_ptr<ChMatterPeriSpringsBreakable> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriSpringsBreakableBonds() {}
 
     bool draw_broken = true;
     bool draw_unbroken = false;
@@ -177,16 +177,16 @@ protected:
             return;
 
         unsigned int count = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if (abound.second.broken && draw_broken)
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if (abond.second.broken && draw_broken)
                 ++count;
-            if (!abound.second.broken && draw_unbroken)
+            if (!abond.second.broken && draw_unbroken)
                 ++count;
         }
         this->Reserve(count);
 
         unsigned int i = 0;
-        for (const auto& anode : mmatter->GetMapOfBounds()) {
+        for (const auto& anode : mmatter->GetMapOfBonds()) {
             if (anode.second.broken && draw_broken) {
                 this->SetGlyphVector(i, anode.second.nodeA->GetPos(), anode.second.nodeB->GetPos() - anode.second.nodeA->GetPos(), ChColor(1, 0, 0));
                 ++i;

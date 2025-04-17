@@ -32,10 +32,10 @@ class ChPeridynamics;
 
 /// Helper class: the per-bond auxialiary data for ChMatterPeriBulkElastic
 
-class  ChApiPeridynamics ChMatterDataPerBoundBulk : public ChMatterDataPerBound { 
+class  ChApiPeridynamics ChMatterDataPerBondBulk : public ChMatterDataPerBond { 
 public: 
     bool broken = false;
-    double F_density = 0;  // force density per volume squared in this bound
+    double F_density = 0;  // force density per volume squared in this bond
 };
 
 
@@ -45,7 +45,7 @@ public:
 /// elasticity models. Having a fixed Poisson ration can be a limitation, but the positive
 /// note is that this material is very computationally-efficient.
 
-class ChApiPeridynamics ChMatterPeriBulkElastic : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBulk> {
+class ChApiPeridynamics ChMatterPeriBulkElastic : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBulk> {
 public:
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100; 
@@ -81,57 +81,57 @@ public:
             node.first->vol_accumulator = node.first->volume;
         }
         // loop on bonds for sum of connected volumes to nodes   //***TODO*** maybe faster in SetupInitial
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundBulk& mbond = bound.second;
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondBulk& mbond = bond.second;
             if (!mbond.broken) {
                 mbond.nodeA->vol_accumulator += mbond.nodeB->volume;
                 mbond.nodeB->vol_accumulator += mbond.nodeA->volume;
             }
         }
 
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundBulk& mbound = bound.second;
-            if (!mbound.broken) {
-                ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+        // loop on bonds
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondBulk& mbond = bond.second;
+            if (!mbond.broken) {
+                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+                ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
                 double     old_sdist = old_vdist.Length();
                 double         sdist = vdist.Length();
                 ChVector3d     vdir = vdist.GetNormalized();
-                double         svel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+                double         svel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
 
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
                 // Original PMB in Silling
-                // double vol_half_size = mbound.nodeA->GetVolumeHalfSize();
-                // double horizon = mbound.nodeA->GetHorizonRadius();
+                // double vol_half_size = mbond.nodeA->GetVolumeHalfSize();
+                // double horizon = mbond.nodeA->GetHorizonRadius();
                 // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 // double force_density_val =  (18.0 * k_bulk / pih4) * stretch; // original in Silling
 
                 // Modified PMB in Ganzenmueller et.al.
-                double c_gmuller = 0.5 * ((18.0 * k_bulk / mbound.nodeA->vol_accumulator) + (18.0 * k_bulk / mbound.nodeB->vol_accumulator));
+                double c_gmuller = 0.5 * ((18.0 * k_bulk / mbond.nodeA->vol_accumulator) + (18.0 * k_bulk / mbond.nodeB->vol_accumulator));
                 double force_density_val = (c_gmuller / old_sdist) * stretch;  
                 
                 if (this->damping > 0)
                     force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
-                mbound.F_density = force_density_val;
-                double wVV_ji = mbound.nodeA->volume * mbound.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
+                mbond.F_density = force_density_val;
+                double wVV_ji = mbond.nodeA->volume * mbond.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
 
-                mbound.nodeB->F_peridyn += -vdir * force_density_val * wVV_ji;
-                mbound.nodeA->F_peridyn += vdir * force_density_val * wVV_ji;
+                mbond.nodeB->F_peridyn += -vdir * force_density_val * wVV_ji;
+                mbond.nodeA->F_peridyn += vdir * force_density_val * wVV_ji;
 
                 if (stretch > max_stretch) {
-                    mbound.F_density = 0;
-                    mbound.broken = true;
+                    mbond.F_density = 0;
+                    mbond.broken = true;
                     // the following will propagate the fracture geometry so that broken parts can collide
-                    mbound.nodeA->is_boundary = true; 
-                    mbound.nodeB->is_boundary = true;
+                    mbond.nodeA->is_boundary = true; 
+                    mbond.nodeB->is_boundary = true;
                 }
             }
             else {
-                if ((mbound.nodeB->GetPos() - mbound.nodeA->GetPos()).Length() > mbound.nodeA->GetHorizonRadius())
-                    bounds.erase(bound.first);
+                if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                    bonds.erase(bond.first);
             }
 
         }
@@ -190,13 +190,13 @@ protected:
 
 
 
-/// Class for visualization of ChMatterPeriBulkElastic  bounds
+/// Class for visualization of ChMatterPeriBulkElastic  bonds
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriBulkElasticBounds : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriBulkElasticBonds : public ChGlyphs {
 public:
-    ChVisualPeriBulkElasticBounds(std::shared_ptr<ChMatterPeriBulkElastic> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriBulkElasticBounds() {}
+    ChVisualPeriBulkElasticBonds(std::shared_ptr<ChMatterPeriBulkElastic> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriBulkElasticBonds() {}
 
     bool draw_broken = true;
     bool draw_unbroken = false;
@@ -207,22 +207,22 @@ protected:
             return;
 
         unsigned int count = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if (abound.second.broken && draw_broken)
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if (abond.second.broken && draw_broken)
                 ++count;
-            if (!abound.second.broken && draw_unbroken)
+            if (!abond.second.broken && draw_unbroken)
                 ++count;
         }
         this->Reserve(count);
 
         unsigned int i = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if (abound.second.broken && draw_broken) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(1, 0, 0));
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if (abond.second.broken && draw_broken) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 0, 0));
                 ++i;
             }
-            if (!abound.second.broken && draw_unbroken) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(0, 0, 1));
+            if (!abond.second.broken && draw_unbroken) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(0, 0, 1));
                 ++i;
             }
         }
@@ -240,7 +240,7 @@ protected:
 
 /// Helper class: the per-bond auxialiary data for ChMatterPeriBulkElasticImplicit
 
-class  ChApiPeridynamics ChMatterDataPerBoundBulkImplicit : public ChMatterDataPerBound {
+class  ChApiPeridynamics ChMatterDataPerBondBulkImplicit : public ChMatterDataPerBond {
 public:
     enum class bond_state {
         ACTIVE,     ///< Regular bond, push-pull
@@ -256,7 +256,7 @@ public:
     //ChConstraintTwoGeneric constraint;
 
     void Initialize(ChNodePeri* mA, ChNodePeri* mB) override {
-        ChMatterDataPerBound::Initialize(mA, mB);
+        ChMatterDataPerBond::Initialize(mA, mB);
         constraint.SetVariables(mA->GetVariables1(), mB->GetVariables1());
         constraint.SetBoxedMinMax(-1e30, 1e30); // unlimited forces by default
     };
@@ -272,7 +272,7 @@ public:
 /// elasticity models. Having a fixed Poisson ration can be a limitation, but the positive
 /// note is that this material is computationally-efficient.
 
-class ChApiPeridynamics ChMatterPeriBulkImplicit : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBoundBulkImplicit> {
+class ChApiPeridynamics ChMatterPeriBulkImplicit : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBulkImplicit> {
 public:
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100;
@@ -311,68 +311,68 @@ public:
             node.first->vol_accumulator = node.first->volume;
         }
         // loop on bonds for sum of connected volumes to nodes   //***TODO*** maybe faster in SetupInitial
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundBulkImplicit& mbond = bound.second;
-            if (mbond.state == ChMatterDataPerBoundBulkImplicit::bond_state::ACTIVE) {
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondBulkImplicit& mbond = bond.second;
+            if (mbond.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) {
                 mbond.nodeA->vol_accumulator += mbond.nodeB->volume;
                 mbond.nodeB->vol_accumulator += mbond.nodeA->volume;
             }
         }
 
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundBulkImplicit& mbound = bound.second;
-            if (mbound.state != ChMatterDataPerBoundBulkImplicit::bond_state::BROKEN) {
-                ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+        // loop on bonds
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondBulkImplicit& mbond = bond.second;
+            if (mbond.state != ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) {
+                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+                ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
                 double     old_sdist = old_vdist.Length();
                 double         sdist = vdist.Length();
                 ChVector3d     vdir = vdist.GetNormalized();
-                double         svel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+                double         svel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
 
                 double     stretch = (sdist - old_sdist) / old_sdist;
 
                 // Original PMB in Silling
-                // double horizon = mbound.nodeA->GetHorizonRadius();
-                // double vol_half_size = mbound.nodeA->GetVolumeHalfSize();
+                // double horizon = mbond.nodeA->GetHorizonRadius();
+                // double vol_half_size = mbond.nodeA->GetVolumeHalfSize();
                 // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 // double c_silling = (18.0 * k_bulk /  (chrono::CH_PI * horizon * horizon * horizon * horizon) )
                 // double force_density_val =  c_silling * stretch; // original in Silling
 
                 // Modified PMB in Ganzenmueller et.al.
-                double c_gmuller = 0.5 * ((18.0 * k_bulk / mbound.nodeA->vol_accumulator) + (18.0 * k_bulk / mbound.nodeB->vol_accumulator));
+                double c_gmuller = 0.5 * ((18.0 * k_bulk / mbond.nodeA->vol_accumulator) + (18.0 * k_bulk / mbond.nodeB->vol_accumulator));
                 double force_density_val = (c_gmuller / old_sdist) * stretch;  // in Ganzenmueller et.al.
 
                 if (this->damping > 0)
                     force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
                 // constraint elongation
-                mbound.Phi = sdist - old_sdist;
+                mbond.Phi = sdist - old_sdist;
                 
                 // tangent stiffness,   Km = c * 1/zeta * w_jk
-                double wVV_jk = mbound.nodeA->volume * mbound.nodeB->volume; // * VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
-                bound.second.Km = (c_gmuller / (old_sdist * old_sdist) ) * wVV_jk;  // that is..   Km= (c_gmuller / old_sdist) * (1.0/old_sdist) * wVV_jk;
+                double wVV_jk = mbond.nodeA->volume * mbond.nodeB->volume; // * VolumeCorrection(old_sdist, horizon, vol_half_size); // vol corr. not relevant in Ganzenmueller 
+                bond.second.Km = (c_gmuller / (old_sdist * old_sdist) ) * wVV_jk;  // that is..   Km= (c_gmuller / old_sdist) * (1.0/old_sdist) * wVV_jk;
 
                 // compute here the jacobians, no need to move in LoadConstraintJacobians()
-                mbound.constraint.Get_Cq_a()(0) = -vdir.x();// / old_sdist;
-                mbound.constraint.Get_Cq_a()(1) = -vdir.y();// / old_sdist;
-                mbound.constraint.Get_Cq_a()(2) = -vdir.z();// / old_sdist;
-                mbound.constraint.Get_Cq_b()(0) = vdir.x();// / old_sdist;
-                mbound.constraint.Get_Cq_b()(1) = vdir.y();// / old_sdist;
-                mbound.constraint.Get_Cq_b()(2) = vdir.z();// / old_sdist;
+                mbond.constraint.Get_Cq_a()(0) = -vdir.x();// / old_sdist;
+                mbond.constraint.Get_Cq_a()(1) = -vdir.y();// / old_sdist;
+                mbond.constraint.Get_Cq_a()(2) = -vdir.z();// / old_sdist;
+                mbond.constraint.Get_Cq_b()(0) = vdir.x();// / old_sdist;
+                mbond.constraint.Get_Cq_b()(1) = vdir.y();// / old_sdist;
+                mbond.constraint.Get_Cq_b()(2) = vdir.z();// / old_sdist;
 
                 if (stretch > max_stretch_fracture) {
-                    mbound.force_density_val = 0;
-                    mbound.state = ChMatterDataPerBoundBulkImplicit::bond_state::FRACTURED;
-                    mbound.constraint.SetBoxedMinMax(0, 1e30); // enable complementarity, reaction>0.
+                    mbond.force_density_val = 0;
+                    mbond.state = ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED;
+                    mbond.constraint.SetBoxedMinMax(0, 1e30); // enable complementarity, reaction>0.
                 }
 
                 if (stretch > max_stretch_break) {
-                    mbound.force_density_val = 0;
-                    mbound.state = ChMatterDataPerBoundBulkImplicit::bond_state::BROKEN;
+                    mbond.force_density_val = 0;
+                    mbond.state = ChMatterDataPerBondBulkImplicit::bond_state::BROKEN;
                     // the following will propagate the fracture geometry so that broken parts can collide
-                    mbound.nodeA->is_boundary = true;
-                    mbound.nodeB->is_boundary = true;
+                    mbond.nodeA->is_boundary = true;
+                    mbond.nodeB->is_boundary = true;
                 }
                   
             }
@@ -380,15 +380,15 @@ public:
     }
 
     virtual void Setup() override {
-        // cleanup bounds that are broken and far apart 
-        for (auto& bound : this->bounds) {
-            if ((bound.second.nodeB->GetPos() - bound.second.nodeA->GetPos()).Length() > bound.second.nodeA->GetHorizonRadius())
-                bounds.erase(bound.first);
+        // cleanup bonds that are broken and far apart 
+        for (auto& bond : this->bonds) {
+            if ((bond.second.nodeB->GetPos() - bond.second.nodeA->GetPos()).Length() > bond.second.nodeA->GetHorizonRadius())
+                bonds.erase(bond.first);
         }
     }
 
     virtual unsigned int GetNumConstraints() override { 
-        return bounds.size(); 
+        return bonds.size(); 
     }
 
     virtual void IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -398,8 +398,8 @@ public:
     ) override {
 
         int boff = 0;
-        for (auto& bound : this->bounds) {
-            bound.second.constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L + boff) * c);
+        for (auto& bond : this->bonds) {
+            bond.second.constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L + boff) * c);
             ++boff;
         }
     }
@@ -421,17 +421,17 @@ public:
         double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-        for (auto& bound : this->bounds) {
+        for (auto& bond : this->bonds) {
             
 
             // TODO  move to LoadKRMMatrices() the following
             // or move in a future IntLoadConstraint_Compliance, or right in IntToDescriptor
             // set compliance 1/h^2 * K^-1, here assuming c=1/h
-            bound.second.constraint.SetComplianceTerm(inv_hhpa / bound.second.Km);//1. / bound.second.Km);// ?
+            bond.second.constraint.SetComplianceTerm(inv_hhpa / bond.second.Km);//1. / bond.second.Km);// ?
 
-            double qc = c * bound.second.Phi; //inv_hpa* bound.second.Phi;
+            double qc = inv_hpa* bond.second.Phi;
 
-            // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
+            // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbond
             // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
             // For this reason, do not do any clamping.
             //if (do_clamp) {
@@ -446,8 +446,8 @@ public:
 
     /// Register with the given system descriptor any ChConstraint objects associated with this item.
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override {
-        for (auto& bound : this->bounds) {
-            descriptor.InsertConstraint(&bound.second.constraint);
+        for (auto& bond : this->bonds) {
+            descriptor.InsertConstraint(&bond.second.constraint);
         }
     }
 
@@ -464,9 +464,9 @@ public:
         const ChVectorDynamic<>& Qc) {
 
         int boff = 0;
-        for (auto& bound : this->bounds) {
-            bound.second.constraint.SetLagrangeMultiplier(L(off_L+boff));
-            bound.second.constraint.SetRightHandSide(Qc(off_L+boff));
+        for (auto& bond : this->bonds) {
+            bond.second.constraint.SetLagrangeMultiplier(L(off_L+boff));
+            bond.second.constraint.SetRightHandSide(Qc(off_L+boff));
             ++boff;
         }
     }
@@ -477,8 +477,8 @@ public:
         ChVectorDynamic<>& L) {
 
         int boff = 0;
-        for (auto& bound : this->bounds) {
-            L(off_L + boff) = bound.second.constraint.GetLagrangeMultiplier();
+        for (auto& bond : this->bonds) {
+            L(off_L + boff) = bond.second.constraint.GetLagrangeMultiplier();
             ++boff;
         }
     }
@@ -540,10 +540,10 @@ protected:
 /// Class for visualization of ChMatterPeriBulkImplicit  bonds
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriBulkImplicitBounds : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriBulkImplicitBonds : public ChGlyphs {
 public:
-    ChVisualPeriBulkImplicitBounds(std::shared_ptr<ChMatterPeriBulkImplicit> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriBulkImplicitBounds() {}
+    ChVisualPeriBulkImplicitBonds(std::shared_ptr<ChMatterPeriBulkImplicit> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriBulkImplicitBonds() {}
 
     bool draw_broken = true;
     bool draw_active = false;
@@ -555,28 +555,28 @@ protected:
             return;
 
         unsigned int count = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if ((abound.second.state == ChMatterDataPerBoundBulkImplicit::bond_state::ACTIVE) && draw_active)
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) && draw_active)
                 ++count;
-            if ((abound.second.state == ChMatterDataPerBoundBulkImplicit::bond_state::BROKEN) && draw_broken)
+            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) && draw_broken)
                 ++count;
-            if ((abound.second.state == ChMatterDataPerBoundBulkImplicit::bond_state::FRACTURED) && draw_fractured)
+            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED) && draw_fractured)
                 ++count;
         }
         this->Reserve(count);
 
         unsigned int i = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if ((abound.second.state == ChMatterDataPerBoundBulkImplicit::bond_state::ACTIVE) && draw_active) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(0, 0, 1));
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) && draw_active) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(0, 0, 1));
                 ++i;
             }
-            if ((abound.second.state == ChMatterDataPerBoundBulkImplicit::bond_state::BROKEN) && draw_broken) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(1, 0, 0));
+            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) && draw_broken) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 0, 0));
                 ++i;
             }
-            if ((abound.second.state == ChMatterDataPerBoundBulkImplicit::bond_state::FRACTURED) && draw_fractured) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(1, 1, 0));
+            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED) && draw_fractured) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 1, 0));
                 ++i;
             }
 
@@ -595,7 +595,7 @@ protected:
 
 
 
-/// Helper class: the per-node auxiliary data for ChMatterDataPerBoundLinearElastic
+/// Helper class: the per-node auxiliary data for ChMatterDataPerBondLinearElastic
 
 class  ChApiPeridynamics ChMatterDataPerNodeLinearElastic : public ChMatterDataPerNode {
 public:
@@ -603,12 +603,12 @@ public:
     double theta = 0; // dilation
 };
 
-/// Helper class: the per-bound auxiliary data for ChMatterDataPerBoundLinearElastic
+/// Helper class: the per-bond auxiliary data for ChMatterDataPerBondLinearElastic
 
-class  ChApiPeridynamics ChMatterDataPerBoundLinearElastic : public ChMatterDataPerBound {
+class  ChApiPeridynamics ChMatterDataPerBondLinearElastic : public ChMatterDataPerBond {
 public:
     bool   broken = false;
-    double F_per_bond = 0;  // force density in this bound
+    double F_per_bond = 0;  // force density in this bond
 };
 
 
@@ -619,7 +619,7 @@ public:
 /// This comes at a cost of slower performance compared to the ChMatterPeriBulkElastic 
 /// bond-based elasticity model, that has Poisson fixed to 1/4. 
 
-class ChApiPeridynamics ChMatterPeriLinearElastic : public ChMatterPeri<ChMatterDataPerNodeLinearElastic, ChMatterDataPerBoundLinearElastic> {
+class ChApiPeridynamics ChMatterPeriLinearElastic : public ChMatterPeri<ChMatterDataPerNodeLinearElastic, ChMatterDataPerBondLinearElastic> {
 public:
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100;
@@ -665,17 +665,17 @@ public:
             mnodedata.m = 0;
             mnodedata.theta = 0;
         }
-        // loop on bounds
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundLinearElastic& mbound = bound.second;
-            ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
+        // loop on bonds
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondLinearElastic& mbond = bond.second;
+            ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
             double     old_sdist = old_vdist.Length();
-            double horizon = mbound.nodeA->GetHorizonRadius();
+            double horizon = mbond.nodeA->GetHorizonRadius();
             double omega = this->InfluenceFunction(old_sdist, horizon);
-            ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbound.nodeA];
-            ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbound.nodeB];
-            mnodedataA.m += omega * old_sdist * old_sdist * mbound.nodeB->volume;
-            mnodedataB.m += omega * old_sdist * old_sdist * mbound.nodeA->volume;
+            ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
+            ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
+            mnodedataA.m += omega * old_sdist * old_sdist * mbond.nodeB->volume;
+            mnodedataB.m += omega * old_sdist * old_sdist * mbond.nodeA->volume;
         }
         */
     }
@@ -693,51 +693,51 @@ public:
             mnodedata.theta = 0;
         }
 
-        // loop on bounds for dilation 
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundLinearElastic& mbound = bound.second;
-            if (!mbound.broken) {
-                ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-                ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+        // loop on bonds for dilation 
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondLinearElastic& mbond = bond.second;
+            if (!mbond.broken) {
+                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+                ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
                 double     old_sdist = old_vdist.Length();
                 double         sdist = vdist.Length();
                 ChVector3d     vdir  = vdist/sdist;
 
-                double horizon = mbound.nodeA->GetHorizonRadius();
+                double horizon = mbond.nodeA->GetHorizonRadius();
                 double omega = this->InfluenceFunction(old_sdist, horizon);
 
-                ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbound.nodeA];
-                ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbound.nodeB];
+                ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
+                ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
 
                 double s = (sdist/old_sdist) -1.0; // stretch
                 double form = s * omega * 9.0 / (4.0 * CH_PI * horizon * horizon * horizon * horizon) * Vdot(vdir,old_vdist);
-                mnodedataA.theta += form * mbound.nodeB->volume;
-                mnodedataB.theta += form * mbound.nodeA->volume;
+                mnodedataA.theta += form * mbond.nodeB->volume;
+                mnodedataB.theta += form * mbond.nodeA->volume;
             }
             else {
-                if ((mbound.nodeB->GetPos() - mbound.nodeA->GetPos()).Length() > mbound.nodeA->GetHorizonRadius())
-                    bounds.erase(bound.first);
+                if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
+                    bonds.erase(bond.first);
             }
         }
 
-        // loop on bounds for force computation 
-        for (auto& bound : this->bounds) {
-            ChMatterDataPerBoundLinearElastic& mbound = bound.second;
-            ChVector3d old_vdist = mbound.nodeB->GetX0() - mbound.nodeA->GetX0();
-            ChVector3d     vdist = mbound.nodeB->GetPos() - mbound.nodeA->GetPos();
+        // loop on bonds for force computation 
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondLinearElastic& mbond = bond.second;
+            ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+            ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
             double     old_sdist = old_vdist.Length();
             double         sdist = vdist.Length();
             ChVector3d     vdir = vdist / sdist;
             ChVector3d old_vdir = old_vdist / old_sdist;
-            double         svel = Vdot(vdir, mbound.nodeB->GetPosDt() - mbound.nodeA->GetPosDt());
+            double         svel = Vdot(vdir, mbond.nodeB->GetPosDt() - mbond.nodeA->GetPosDt());
             
             double e = sdist - old_sdist;
 
-            double horizon = mbound.nodeA->GetHorizonRadius();
+            double horizon = mbond.nodeA->GetHorizonRadius();
             double omega = this->InfluenceFunction(old_sdist, horizon);
 
-            ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbound.nodeA];
-            ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbound.nodeB];
+            ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
+            ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
 
             double a = 9.0 * this->k_bulk / (8.0 * CH_PI * pow(horizon, 4.));
             double b = 15.0 * this->poisson / (2.0 * CH_PI * pow(horizon, 5.));
@@ -759,8 +759,8 @@ public:
                 t_B += viscforce;
             }
             
-            mbound.nodeB->F_peridyn += -vdir * (t_B + t_A) * mbound.nodeA->volume  * mbound.nodeB->volume;
-            mbound.nodeA->F_peridyn +=  vdir * (t_B + t_A) * mbound.nodeB->volume  * mbound.nodeA->volume;
+            mbond.nodeB->F_peridyn += -vdir * (t_B + t_A) * mbond.nodeA->volume  * mbond.nodeB->volume;
+            mbond.nodeA->F_peridyn +=  vdir * (t_B + t_A) * mbond.nodeB->volume  * mbond.nodeA->volume;
         }
 
     }
@@ -769,7 +769,7 @@ public:
 
 
 
-/// Class for visualization of ChMatterDataPerBoundLinearElastic  nodes
+/// Class for visualization of ChMatterDataPerBondLinearElastic  nodes
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
 class /*ChApiPeridynamics*/ ChVisualPeriLinearElastic : public ChGlyphs {
@@ -828,13 +828,13 @@ protected:
 
 
 
-/// Class for visualization of ChMatterPeriLinearElastic  bounds
+/// Class for visualization of ChMatterPeriLinearElastic  bonds
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriLinearElasticBounds : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriLinearElasticBonds : public ChGlyphs {
 public:
-    ChVisualPeriLinearElasticBounds(std::shared_ptr<ChMatterPeriLinearElastic> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriLinearElasticBounds() {}
+    ChVisualPeriLinearElasticBonds(std::shared_ptr<ChMatterPeriLinearElastic> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriLinearElasticBonds() {}
 
     bool draw_broken = true;
     bool draw_unbroken = false;
@@ -845,22 +845,22 @@ protected:
             return;
 
         unsigned int count = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if (abound.second.broken && draw_broken)
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if (abond.second.broken && draw_broken)
                 ++count;
-            if (!abound.second.broken && draw_unbroken)
+            if (!abond.second.broken && draw_unbroken)
                 ++count;
         }
         this->Reserve(count);
 
         unsigned int i = 0;
-        for (const auto& abound : mmatter->GetMapOfBounds()) {
-            if (abound.second.broken && draw_broken) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(1, 0, 0));
+        for (const auto& abond : mmatter->GetMapOfBonds()) {
+            if (abond.second.broken && draw_broken) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 0, 0));
                 ++i;
             }
-            if (!abound.second.broken && draw_unbroken) {
-                this->SetGlyphVector(i, abound.second.nodeA->GetPos(), abound.second.nodeB->GetPos() - abound.second.nodeA->GetPos(), ChColor(0, 0, 1));
+            if (!abond.second.broken && draw_unbroken) {
+                this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(0, 0, 1));
                 ++i;
             }
         }

@@ -41,8 +41,8 @@ public:
     std::shared_ptr<ChNodePeri> node;
 };
 
-/// Base properties per each peridynamics bound. Can be inherited if a material requires more data.
-class  ChApiPeridynamics ChMatterDataPerBound { 
+/// Base properties per each peridynamics bond. Can be inherited if a material requires more data.
+class  ChApiPeridynamics ChMatterDataPerBond { 
 public: 
     ChNodePeri* nodeA = nullptr;
     ChNodePeri* nodeB = nullptr;
@@ -99,8 +99,8 @@ public:
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT:  ***IMPORTANT***
     /// Add the forces caused by this material to the ChNodePeri::F vector of each ChNodePeri.
-    /// Child class can use the containers  this->nodes and this->bounds to compute F, assuming
-    /// bounds have been updated with latest collision detection.
+    /// Child class can use the containers  this->nodes and this->bonds to compute F, assuming
+    /// bonds have been updated with latest collision detection.
     virtual void ComputeForces() = 0;
 
     /// CONSTITUTIVE MODEL - INTERFACE TO IMPLEMENT: (optionally) 
@@ -165,7 +165,7 @@ public:
     virtual bool RemoveNode(std::shared_ptr<ChNodePeri> mnode) = 0;
 
     /// Override/inherit only if really needed. There is a default implementation
-    /// in ChMatterPeri that takes care of allocating a ChMatterDataPerBound in the map.
+    /// in ChMatterPeri that takes care of allocating a ChMatterDataPerBond in the map.
     virtual bool AddProximity(
         ChNodePeri* nodeA,   
         ChNodePeri* nodeB) = 0;  
@@ -185,15 +185,15 @@ protected:
 /// Sub-base templated class for assigning material properties (elasticity, viscosity etc) to a cluster
 /// of peridynamics nodes.
 /// It must be inherited by classes that define specific materials, and those may optionally
-/// use per-edge and per-node data structures by inheriting ChMatterDataPerNode and ChMatterDataPerBound
+/// use per-edge and per-node data structures by inheriting ChMatterDataPerNode and ChMatterDataPerBond
 /// and passing them as template parameters.
 
-template <class T_per_node = ChMatterDataPerNode, class T_per_bound = ChMatterDataPerBound>
+template <class T_per_node = ChMatterDataPerNode, class T_per_bond = ChMatterDataPerBond>
 class  ChMatterPeri : public ChMatterPeriBase {
 
   protected:
     std::unordered_map<ChNodePeri*, T_per_node > nodes;      ///< nodes
-    std::unordered_map<std::pair<ChNodePeri*,ChNodePeri*>, T_per_bound> bounds;    ///< bounds
+    std::unordered_map<std::pair<ChNodePeri*,ChNodePeri*>, T_per_bond> bonds;    ///< bonds
 
     std::shared_ptr<ChContactMaterial> matsurface;        ///< data for surface contact and impact
 
@@ -208,7 +208,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
     ChMatterPeri(const ChMatterPeri& other) {
         matsurface = other.matsurface;
         nodes = other.nodes;
-        bounds = other.bounds;
+        bonds = other.bonds;
     }
 
     virtual ~ChMatterPeri() {
@@ -218,16 +218,16 @@ class  ChMatterPeri : public ChMatterPeriBase {
     /// Get the number of nodes.
     unsigned int GetNnodes() const { return (unsigned int)nodes.size(); }
     
-    /// Get the number of bounds.
-    unsigned int GetNbounds() const { return (unsigned int)bounds.size(); }
+    /// Get the number of bonds.
+    unsigned int GetNbonds() const { return (unsigned int)bonds.size(); }
 
     /// Access the node container
     const std::unordered_map<ChNodePeri*, T_per_node>& GetMapOfNodes() {
         return nodes;
     }
-    /// Access the bounds container
-    std::unordered_map<std::pair<ChNodePeri*,ChNodePeri*>, T_per_bound>& GetMapOfBounds() {
-        return bounds;
+    /// Access the bonds container
+    std::unordered_map<std::pair<ChNodePeri*,ChNodePeri*>, T_per_bond>& GetMapOfBonds() {
+        return bonds;
     }
 
     /// Add a  node to the particle cluster
@@ -248,7 +248,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
 
     /// Add a proximity: this will be called thousand of times by the broadphase collision detection.
     /// If the two nodes are of proper type, and if bond not yet present, add a T_per_node structure 
-    /// to this->bounds and return true, otherwise return false.
+    /// to this->bonds and return true, otherwise return false.
     virtual bool AddProximity(
         ChNodePeri* nodeA,   
         ChNodePeri* nodeB    
@@ -268,19 +268,19 @@ class  ChMatterPeri : public ChMatterPeriBase {
         if (anodeA > anodeB)
             std::swap(anodeA, anodeB);
 
-        auto foundBound = this->bounds.find(std::pair<ChNodePeri*, ChNodePeri*>(anodeA, anodeB));
-        if (foundBound != this->bounds.end())
+        auto foundBond = this->bonds.find(std::pair<ChNodePeri*, ChNodePeri*>(anodeA, anodeB));
+        if (foundBond != this->bonds.end())
             return false;
 
-        // avoid adding bounds more distant than horizon (use only one of the two horizons of the two particles)
+        // avoid adding bonds more distant than horizon (use only one of the two horizons of the two particles)
         if ((anodeA->GetPos() - anodeB->GetPos()).Length() > (anodeA->GetHorizonRadius()))
             return false;
 
         if ((this->GetContainer()->GetChTime()>0.01) && anodeA->is_boundary && anodeB->is_boundary && anodeA->is_elastic && anodeB->is_elastic)
             return false;
 
-        // add bound to container using ptr of two nodes as unique key
-        this->bounds[std::pair<ChNodePeri*, ChNodePeri*>(anodeA, anodeB)].Initialize(anodeA, anodeB);
+        // add bond to container using ptr of two nodes as unique key
+        this->bonds[std::pair<ChNodePeri*, ChNodePeri*>(anodeA, anodeB)].Initialize(anodeA, anodeB);
         
         return true;
     }
@@ -290,7 +290,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
     /// Base behaviour: 
     ///  - resets the ChNodePeri::F vector of each ChNodePeri to zero.
     ///  - adds or remove collision model from the collision engine 
-    ///  - resets is_elastic optimization flag (is is_elastic, bounds are persistent and collision engine not needed)
+    ///  - resets is_elastic optimization flag (is is_elastic, bonds are persistent and collision engine not needed)
     virtual void ComputeForcesReset() override {
         
         for (auto& nodedata : nodes) {
@@ -299,7 +299,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
             auto& mnode = nodedata.second.node;
             mnode->F_peridyn = VNULL;
 
-            // Initialize flag to mark if the bounds are persistent, as in elastic media. Default: true.
+            // Initialize flag to mark if the bonds are persistent, as in elastic media. Default: true.
             // Plastic w.large deformation or fluids will flag is_elastic to false, if needed.
             mnode->is_elastic = true;
 
@@ -321,7 +321,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
             if (!mnode->is_colliding && mnode->IsRequiringCollision()) {
                 // create model
                 if (!mnode->GetCollisionModel()) {
-                    double aabb_rad = mnode->GetHorizonRadius() / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
+                    double aabb_rad = mnode->GetHorizonRadius() / 2;  // to avoid too many pairs: bonding boxes hemisizes will sum..  __.__--*--
                     double coll_rad = mnode->GetCollisionRadius();
                     std::shared_ptr<ChCollisionShape> cshape;
                     if (mnode->is_boundary)
@@ -343,7 +343,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
                 mnode->is_colliding = false; // prevents other material adding twice
             }
 
-            // Deactivate this flag, that is used only to force the generation of bounds once. 
+            // Deactivate this flag, that is used only to force the generation of bonds once. 
             // If collison model for proximity collision was needed, than it was alredy setup few lines above 
             mnode->is_requiring_bonds = false;
         }

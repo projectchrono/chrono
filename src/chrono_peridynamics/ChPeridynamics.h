@@ -89,20 +89,30 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
 
 
     /// Create a box filled with nodes. Face nodes are automatically marked as interface, i.e. are collidable.
-    /// Adds the nodes to this, and to the specified matter. This is a helper function
-    /// so that you avoid to create all nodes one by one with many calls to AddNode().
+    /// Adds the nodes to this, and to the specified matter. 
     void FillBox(
         std::shared_ptr<ChMatterPeriBase> mmatter,  ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
         const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
         const double spacing,                       ///< the spacing between two near nodes
         const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
         const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
-        const bool do_centeredcube = false,         ///< if false, array is simply cubic, if true is centered cubes (highest regularity)
         const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
         const double collision_sfactor = 0.3,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
         const double randomness = 0.0               ///< randomness of the initial distribution lattice, 0...1
     );
-
+    /// Create a multi-layer box filled with nodes, with N layers of different materials ordered along X. 
+    /// Nodes at interface are shared, as layers were perfectly glued.
+    /// Face nodes are automatically marked as interface, i.e. are collidable.
+    void FillBox(
+        std::vector<std::pair<std::shared_ptr<ChMatterPeriBase>, double>> v_mmatter,  ///< {matters,x_thickness} pairs to be used for layers. Must be added too to this, via AddMatter(). 
+        const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
+        const double spacing,                       ///< the spacing between two near nodes
+        const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
+        const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
+        const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor = 0.3,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+        const double randomness = 0.0               ///< randomness of the initial distribution lattice, 0...1
+    );
 
 
 
@@ -131,7 +141,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
 
     /// Scans all the proximity pairs and, for each pair, executes the OnReportProximity()
     /// function of the provided callback object.  
-    /// DO NOTHING - please iterate on the bounds of the materials.
+    /// DO NOTHING - please iterate on the bonds of the materials.
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) override;
 
 
