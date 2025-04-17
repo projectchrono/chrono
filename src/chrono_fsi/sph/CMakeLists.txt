@@ -56,7 +56,8 @@ set(FSISPH_PHYSICS_FILES
     physics/FsiForceWCSPH.cuh
     physics/FsiForceISPH.cuh
     physics/SphGeneral.cuh
-
+    physics/FsiParticleRelocator.cuh
+    #
     physics/FsiDataManager.cu
     physics/FsiInterface.cu
     physics/BceManager.cu
@@ -66,6 +67,7 @@ set(FSISPH_PHYSICS_FILES
     physics/FsiForceWCSPH.cu
     physics/FsiForceISPH.cu
     physics/SphGeneral.cu
+    physics/FsiParticleRelocator.cu
 )
 source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
@@ -88,8 +90,6 @@ set(FSISPH_UTILS_FILES
     utils/UtilsTypeConvert.cuh
     utils/UtilsPrintSph.cuh
     utils/UtilsPrintSph.cu
-    utils/FsiProblemRelocate.cuh
-    utils/FsiProblemRelocate.cu
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 

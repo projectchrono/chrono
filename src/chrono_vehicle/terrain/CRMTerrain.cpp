@@ -100,6 +100,9 @@ void CRMTerrain::ConstructMovingPatch(const ChVector3d& box_size,
 
     // Create the SPH particles and boundary BCE markers (no top)
     Construct(box_size, ChVector3d(box_size.x() / 2, box_size.y() / 2, 0), BoxSide::ALL & ~BoxSide::Z_POS);
+
+    // Create a particle relocator
+    CreateParticleRelocator();
 }
 
 //

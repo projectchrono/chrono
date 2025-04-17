@@ -29,6 +29,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/physics/FsiParticleRelocator.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -272,9 +273,9 @@ class CH_FSI_API ChFsiProblemSPH {
 
     // Only derived classes can use the following particle and marker relocation functions
 
+    void CreateParticleRelocator();
     void BCEShift(const ChVector3d& shift_dist);
     void SPHShift(const ChVector3d& shift_dist);
-    void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChAABB& aabb_dest);
     void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest);
     void ForceProximitySearch();
 
@@ -295,6 +296,8 @@ class CH_FSI_API ChFsiProblemSPH {
     std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
+
+    std::unique_ptr<FsiParticleRelocator> m_relocator;
 
     bool m_verbose;      ///< if true, write information to standard output
     bool m_initialized;  ///< set to 'true' once terrain is initialized

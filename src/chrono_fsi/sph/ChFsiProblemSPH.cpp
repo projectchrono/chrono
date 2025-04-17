@@ -22,12 +22,11 @@
 #include <queue>
 
 #include "chrono/assets/ChVisualShapeBox.h"
-
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
-#include "chrono_fsi/sph/utils/FsiProblemRelocate.cuh"
 #include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
 #include "chrono_thirdparty/stb/stb.h"
@@ -540,36 +539,30 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body
 
 // ----------------------------------------------------------------------------
 
-void ChFsiProblemSPH::BCEShift(const ChVector3d& shift_dist) {
-    FsiDataManager::DefaultProperties props;
+void ChFsiProblemSPH::CreateParticleRelocator() {
+    FsiParticleRelocator::DefaultProperties props;
     props.rho0 = m_sysSPH.GetDensity();
     props.mu0 = m_sysSPH.GetViscosity();
 
-    shift_BCE(ToReal3(shift_dist), props, *m_sysSPH.m_data_mgr);
+    m_relocator = chrono_types::make_unique<FsiParticleRelocator>(*m_sysSPH.m_data_mgr, props);
+}
+
+void ChFsiProblemSPH::BCEShift(const ChVector3d& shift_dist) {
+    ChAssertAlways(m_relocator);
+
+    m_relocator->Shift(MarkerType::BCE_WALL, ToReal3(shift_dist));
 }
 
 void ChFsiProblemSPH::SPHShift(const ChVector3d& shift_dist) {
-    FsiDataManager::DefaultProperties props;
-    props.rho0 = m_sysSPH.GetDensity();
-    props.mu0 = m_sysSPH.GetViscosity();
+    ChAssertAlways(m_relocator);
 
-    shift_SPH(ToReal3(shift_dist), props, *m_sysSPH.m_data_mgr);
-}
-
-void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChAABB& aabb_dest) {
-    FsiDataManager::DefaultProperties props;
-    props.rho0 = m_sysSPH.GetDensity();
-    props.mu0 = m_sysSPH.GetViscosity();
-
-    moveAABB2AABB_SPH(ToRealAABB(aabb_src), ToRealAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
+    m_relocator->Shift(MarkerType::SPH_PARTICLE, ToReal3(shift_dist));
 }
 
 void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest) {
-    FsiDataManager::DefaultProperties props;
-    props.rho0 = m_sysSPH.GetDensity();
-    props.mu0 = m_sysSPH.GetViscosity();
+    ChAssertAlways(m_relocator);
 
-    moveAABB2AABB_SPH(ToRealAABB(aabb_src), ToIntAABB(aabb_dest), Real(m_spacing), props, *m_sysSPH.m_data_mgr);
+    m_relocator->MoveAABB2AABB(MarkerType::SPH_PARTICLE, ToRealAABB(aabb_src), ToIntAABB(aabb_dest), Real(m_spacing));
 }
 
 // ----------------------------------------------------------------------------

@@ -318,44 +318,6 @@ struct FsiDataManager {
 
     // ------------------------
 
-    //// TODO RADU - move to FsiProblemRelocate.cu/cuh
-
-    struct DefaultProperties {
-        Real rho0;
-        Real mu0;
-    };
-
-    /// Shift position of all markers of specified type by the given vector.
-    void Shift(MarkerType type, const Real3& shift, const DefaultProperties& props) const;
-
-    /// Move particles of specified type from the source AABB to the destination AABB.
-    void MoveAABB2AABB(MarkerType type,
-                       const RealAABB& aabb_src,
-                       const RealAABB& aabb_dest,
-                       Real spacing,
-                       const DefaultProperties& props) const;
-
-    /// Move particles of specified type from the source AABB to the destination (grid) AABB.
-    void MoveAABB2AABB(MarkerType type,
-                       const RealAABB& aabb_src,
-                       const IntAABB& aabb_dest,
-                       Real spacing,
-                       const DefaultProperties& props) const;
-
-    struct SelectorFunction {
-        __device__ virtual bool operator()(const Real3& x) const = 0;
-    };
-    struct RelocateFunction {
-        __device__ virtual void operator()(Real3& x) const = 0;
-    };
-    void Relocate(MarkerType type, const RelocateFunction& relocate_op, const DefaultProperties& props) const;
-    void Relocate(MarkerType type,
-                  const RelocateFunction& relocate_op,
-                  const SelectorFunction& selector_op,
-                  const DefaultProperties& props) const;
-
-    // ------------------------
-
     std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
 
     std::shared_ptr<ChFsiParamsSPH> paramsH;  ///< simulation parameters (host)
