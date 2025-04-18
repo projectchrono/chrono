@@ -68,18 +68,16 @@ double czDim = 2.0;
 
 // Create additional solids
 bool create_flex_cable2 = false;
-bool create_cylinder_post = false;
-bool create_cylinder_free = false;
+bool create_cylinder_post = true;
+bool create_cylinder_free = true;
 
 // Use nodal directions
 bool use_FEA_node_directions = false;
 
 // Visibility flags
-bool show_rigid = true;
 bool show_rigid_bce = false;
-bool show_mesh = true;
-bool show_mesh_bce = true;
-bool show_boundary_bce = true;
+bool show_mesh_bce = false;
+bool show_boundary_bce = false;
 bool show_particles_sph = true;
 
 // -----------------------------------------------------------------------------
@@ -227,13 +225,16 @@ int main(int argc, char* argv[]) {
 
     fsi.SetSPHParameters(sph_params);
 
+    // Enable/disable use of node directions for FSI flexible meshes
+    fsi.EnableNodeDirections(true);
+
     // Create FSI solid bodies
     auto mesh = CreateSolidPhase(fsi);
 
     // Dimension of the fluid domain
     double fxDim = 1.0;
     double fyDim = 0.2;
-    double fzDim = 1.0;
+    double fzDim = 1.4;
 
     // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(fzDim));
@@ -311,6 +312,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
+        visFSI->EnableFlexBodyMarkers(show_mesh_bce);
         visFSI->SetSPHColorCallback(col_callback);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
@@ -321,7 +323,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Flexible Cable");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
+        visVSG->AddCamera(ChVector3d(2.2, -1.6, 1.0), ChVector3d(0.1, 0.2, 0.2));
         ////visVSG->AddCamera(ChVector3d(-0.3, -1.5, 0.0), ChVector3d(-0.3, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
@@ -464,14 +466,12 @@ std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, doub
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
-    if (show_mesh) {
-        auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
-        vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-        vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
-        vis_mesh->SetSmoothFaces(true);
-        vis_mesh->SetWireframe(false);
-        mesh->AddVisualShapeFEA(vis_mesh);
-    }
+    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
+    vis_mesh->SetSmoothFaces(true);
+    vis_mesh->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_mesh);
 
     return mesh;
 }
@@ -483,7 +483,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
     double cable1_x = -0.3;
     double post_x = +0.6;
     double cable2_x = +0.8;
-    double cyl_x = 1.2;
+    double cyl_x = 1.0;
 
     // Contact material (default properties)
     auto contact_material_info = ChContactMaterialData();
@@ -520,8 +520,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(false);
         sysMBS.AddBody(cylinder);
 
-        if (show_rigid)
-            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -537,7 +536,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
 
         utils::ChBodyGeometry geometry;
         geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length));
+        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
 
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetMass(mass);
@@ -547,8 +546,8 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(true);
         sysMBS.AddBody(cylinder);
 
-        if (show_rigid)
-            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry.CreateCollisionShapes(cylinder, 1, sysMBS.GetContactMethod());
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -556,7 +555,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
     fsi.SetBcePattern1D(BcePatternMesh1D::STAR, false);
 
     // Create the first flexible cable and add to FSI system
-    auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 2.5e8, 4, ground);
+    auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 6e8, 8, ground);
     fsi.AddFeaMesh(mesh1, false);
 
     // Create second flexible cable
