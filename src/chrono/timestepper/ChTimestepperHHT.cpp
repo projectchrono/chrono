@@ -34,7 +34,8 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
       h_min(1e-10),
       h(1e6),
       num_successful_steps(0),
-      modified_Newton(true) {
+      modified_Newton(true),
+      persistent_Newton(false) {
     SetAlpha(-0.2);  // default: some dissipation
 }
 
