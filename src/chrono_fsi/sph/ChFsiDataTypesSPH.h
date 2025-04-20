@@ -26,7 +26,7 @@
 #include <cuda_runtime.h>
 #include <cuda/std/limits>
 
-#include "chrono_fsi/ChConfigFsi.h"
+#include "chrono_fsi/sph/ChFsiConfigSPH.h"
 
 namespace chrono {
 namespace fsi {

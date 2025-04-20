@@ -19,7 +19,7 @@
 #ifndef CH_FSI_DEFINITIONS_H
 #define CH_FSI_DEFINITIONS_H
 
-#include "chrono_fsi/ChConfigFsi.h"
+#include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"

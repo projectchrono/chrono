@@ -22,8 +22,9 @@
 #include <vector>
 #include <stdexcept>
 
+#include "chrono/ChConfig.h"
+
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChConfigFsi.h"
 #include "chrono_fsi/ChFsiDefinitions.h"
 
 namespace chrono {

@@ -19,13 +19,14 @@
 #ifndef CH_FSI_SYSTEM_H
 #define CH_FSI_SYSTEM_H
 
+#include "chrono/ChConfig.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChConfigFsi.h"
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiFluidSystem.h"
 

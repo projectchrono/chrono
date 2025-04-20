@@ -23,6 +23,16 @@ endif()
 message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
+
+# Additional options for this module
+option(CH_USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
+if(CH_USE_FSI_DOUBLE)
+  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+endif()
+
+message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
+
+#-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library
 #-----------------------------------------------------------------------------
 
@@ -176,6 +186,16 @@ install(TARGETS Chrono_fsisph
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
+
+#-----------------------------------------------------------------------------
+# Generate and install configuration file
+#-----------------------------------------------------------------------------
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in
+               ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
+
+install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h"
+        DESTINATION include/chrono_fsi)
 
 #-------------------------------------------------------------------------------
 # Add the Chrono_fsisph_vsg library
