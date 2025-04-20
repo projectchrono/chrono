@@ -805,7 +805,7 @@ struct normalizeReal3 {
 };
 
 struct averageDirs {
-    __host__ __device__ Real3 operator()(const Real3& v, uint count) { return v / count; }
+    __host__ __device__ Real3 operator()(const Real3& v, uint count) { return v / Real(count); }
 };
 
 __global__ void CalcNodeDir1D_D(uint* ext_nodes,             // extended node indices (2 per segment)
@@ -1112,9 +1112,11 @@ void BceManager::CalcNodeDirections2D(thrust::device_vector<Real3>& dirs) {
     //// TODO RADU - must sort by key before reductions
 
     // Sum directions from adjacent triangles
-    thrust::device_vector<uint> out_nodes(3 * num_nodes);
-    thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(),
-                          thrust::equal_to<uint>());
+    {
+        thrust::device_vector<uint> out_nodes(3 * num_nodes);
+        thrust::reduce_by_key(ext_nodes.begin(), ext_nodes.end(), ext_dirs.begin(), out_nodes.begin(), dirs.begin(),
+                              thrust::equal_to<uint>());
+    }
 
 #if NODAL_DIR_METHOD == 1
     // Average directions

@@ -161,7 +161,7 @@ __global__ void reorderDataD(const uint* __restrict__ gridMarkerIndexD,
                              const Real3* __restrict__ tauXxYyZzD,
                              const Real3* __restrict__ tauXyXzYzD,
                              const int32_t* __restrict__ activityIdentifierOriginalD,
-                             const uint numActive) {
+                             uint numActive) {
     uint tid = blockIdx.x * blockDim.x + threadIdx.x;
     if (tid >= numActive)
         return;
@@ -333,7 +333,7 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
                                          U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                          U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD),
-                                         m_data_mgr.countersH->numExtendedParticles, error_flagD);
+                                         (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
     cudaCheckErrorFlag(error_flagD, "calcHashD");
 
     // Sort Particles based on Hash
@@ -352,14 +352,14 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     findCellStartEndD<<<numBlocks, numThreads, smemSize>>>(
         U1CAST(m_data_mgr.markersProximity_D->cellStartD), U1CAST(m_data_mgr.markersProximity_D->cellEndD),
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        m_data_mgr.countersH->numExtendedParticles);
+        (uint)m_data_mgr.countersH->numExtendedParticles);
 
     // Launch a kernel to find the location of original particles in the sorted arrays
     // This is faster than using thrust::sort_by_key()
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
     OriginalToSortedD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),
                                                  U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-                                                 m_data_mgr.countersH->numExtendedParticles);
+                                                 (uint)m_data_mgr.countersH->numExtendedParticles);
 
     // Reorder the arrays according to the sorted index of all particles
     computeGridSize((uint)m_data_mgr.countersH->numExtendedParticles, 1024, numBlocks, numThreads);
@@ -370,7 +370,7 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
         INT_32CAST(m_data_mgr.activityIdentifierSortedD), mR4CAST(m_sphMarkersD->posRadD),
         mR3CAST(m_sphMarkersD->velMasD), mR4CAST(m_sphMarkersD->rhoPresMuD), mR3CAST(m_sphMarkersD->tauXxYyZzD),
         mR3CAST(m_sphMarkersD->tauXyXzYzD), INT_32CAST(m_data_mgr.activityIdentifierOriginalD),
-        m_data_mgr.countersH->numExtendedParticles);
+        (uint)m_data_mgr.countersH->numExtendedParticles);
 
     cudaDeviceSynchronize();
     cudaCheckError();
