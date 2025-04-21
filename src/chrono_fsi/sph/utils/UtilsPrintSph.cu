@@ -517,10 +517,10 @@ void writeParticleFileCSV(const std::string& outfilename,
     bool haveHelper = (referenceArray[0].z == -3) ? true : false;
     bool haveGhost = (referenceArray[0].z == -2 || referenceArray[1].z == -2) ? true : false;
 
-    std::ofstream fileNameFluidParticles;
-    fileNameFluidParticles.open(outfilename);
-    std::stringstream ssFluidParticles;
-    ssFluidParticles << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
+    std::ofstream ofile;
+    ofile.open(outfilename);
+    std::stringstream ss;
+    ss << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
 
     for (size_t i = referenceArray[haveHelper + haveGhost].x; i < referenceArray[haveHelper + haveGhost].y; i++) {
         Real4 rP = rhoPresMuH[i];
@@ -530,12 +530,47 @@ void writeParticleFileCSV(const std::string& outfilename,
         Real3 vel = velMasH[i] + mR3(Real(1e-20));
 
         Real velMag = length(vel);
-        ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps
-                         << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", " << rP.y + eps
-                         << std::endl;
+        ss << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps << ", "
+           << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", " << rP.y + eps << std::endl;
     }
-    fileNameFluidParticles << ssFluidParticles.str();
-    fileNameFluidParticles.close();
+
+    ofile << ss.str();
+    ofile.close();
+}
+
+// -----------------------------------------------------------------------------
+
+void writeParticleFileJSON(const std::string& filename, FsiDataManager& data_mgr) {
+    writeParticleFileJSON(filename, data_mgr.sphMarkers_D->posRadD, data_mgr.referenceArray);
+}
+
+void writeParticleFileJSON(const std::string& outfilename,
+                          thrust::device_vector<Real4>& posRadD,
+                          thrust::host_vector<int4>& referenceArray) {
+    thrust::host_vector<Real4> posRadH = posRadD;
+
+    bool haveHelper = (referenceArray[0].z == -3) ? true : false;
+    bool haveGhost = (referenceArray[0].z == -2 || referenceArray[1].z == -2) ? true : false;
+
+    std::ofstream ofile;
+    ofile.open(outfilename);
+    std::stringstream ss;
+
+    ss << "[\n";
+    size_t i;
+    for (i = referenceArray[haveHelper + haveGhost].x; i < referenceArray[haveHelper + haveGhost].y - 1; i++) {
+        Real4 pos = posRadH[i];
+        ss << "[" << pos.x << ", " << pos.y << ", " << pos.z << "],\n";
+    }
+    {
+        i = referenceArray[haveHelper + haveGhost].y - 1;
+        Real4 pos = posRadH[i];
+        ss << "[" << pos.x << ", " << pos.y << ", " << pos.z << "]\n";
+    }
+    ss << "]\n";
+
+    ofile << ss.str();
+    ofile.close();
 }
 
 }  // end namespace sph

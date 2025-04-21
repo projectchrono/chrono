@@ -30,4 +30,12 @@
 //   #define CHRONO_FSI_USE_DOUBLE
 @CHRONO_FSI_USE_DOUBLE@
 
+// -----------------------------------------------------------------------------
+
+// If Splashsurf is available,
+//   #define CHRONO_HAS_SPLASHSURF
+// and set "SPLASHSURF_EXECUTABLE" to the Splashsurf executable
+@CHRONO_HAS_SPLASHSURF@
+@CHRONO_SPLASHSURF_EXECUTABLE@
+
 #endif

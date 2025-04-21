@@ -44,9 +44,6 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-// Container dimensions
-ChVector3d csize(0.8, 0.8, 1.6);
-
 // Dimensions of fluid domain
 ChVector3d fsize(0.8, 0.8, 1.2);
 
@@ -54,7 +51,7 @@ ChVector3d fsize(0.8, 0.8, 1.2);
 enum class ObjectShape { SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
 ObjectShape object_shape = ObjectShape::CYLINDER_PRIMITIVE;
 
-// Mesh specification (for object_shape = ObjectShape::MESH) 
+// Mesh specification (for object_shape = ObjectShape::MESH)
 std::string mesh_obj_filename = GetChronoDataFile("models/semicapsule.obj");
 double mesh_scale = 1;
 double mesh_bottom_offset = 0.1;
@@ -289,14 +286,6 @@ int main(int argc, char* argv[]) {
                   BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries except top
     );
 
-    // Computational domain must always contain all BCE and Rigid markers - if these leave computational domain,
-    // the simulation will crash
-    ////ChVector3d cMin(-csize.x() / 2 - num_bce_layers * initial_spacing,
-    ////                -csize.y() / 2 - num_bce_layers * initial_spacing, -0.1);
-    ////ChVector3d cMax(csize.x() / 2 + num_bce_layers * initial_spacing, csize.y() / 2 + num_bce_layers * initial_spacing,
-    ////                csize.z() + initial_height + radius);
-    ////fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
-
     // Initialize FSI problem
     fsi.Initialize();
 
@@ -328,11 +317,14 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    if (snapshots) {
-        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
-            cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
-            return 1;
-        }
+
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+        cerr << "Error creating directory " << out_dir + "/snapshots" << endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/meshes"))) {
+        cerr << "Error creating directory " << out_dir + "/meshes" << endl;
+        return 1;
     }
 
     ////fsi.SaveInitialMarkers(out_dir);
@@ -411,6 +403,12 @@ int main(int argc, char* argv[]) {
                 filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
                          << ".bmp";
                 vis->WriteImageToFile(filename.str());
+            }
+
+            if (render_frame >= 70 && render_frame < 80) {
+                std::ostringstream meshname;
+                meshname << "mesh_" << std::setw(5) << std::setfill('0') << render_frame + 1;
+                fsi.WriteReconstructedSurface(out_dir + "/meshes", meshname.str(), true);
             }
 
             render_frame++;

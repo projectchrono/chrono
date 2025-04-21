@@ -29,6 +29,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/ChFsiSystemSPH.h"
+#include "chrono_fsi/sph/ChFsiSplashsurfSPH.h"
 #include "chrono_fsi/sph/physics/FsiParticleRelocator.cuh"
 
 namespace chrono {
@@ -96,7 +97,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Enable/disable use of node direction vectors for FSI flexible meshes.
     /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
-    /// calculated from the FSI mesh position states and communicated to the SPH fluid solver which uses these to 
+    /// calculated from the FSI mesh position states and communicated to the SPH fluid solver which uses these to
     /// generate BCE markers. By default, this option is enabled in the SPH fluid solver.
     void EnableNodeDirections(bool val);
 
@@ -221,6 +222,15 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Save the set of initial SPH and BCE grid locations to files in the specified output directory.
     void SaveInitialMarkers(const std::string& out_dir) const;
 
+    /// Reconstruct surface from the current SPH particle data cloud.
+    /// This function invokes the external `splashsurf` tool to generate a Wavefront OBJ mesh reconstructed from the
+    /// current positions of the SPH pareticles. If splashsurf was not found during configuration, this function is a
+    /// no-op. The intermediate data file with SPH particle positions and the resulting mesh file are created in the
+    /// specified directory and are named [name].json and [name].obj, respectively. If quiet=true, splashsurf console
+    /// output is supressed. This is a blocking operation which can be computationally expensive for large problems.
+    /// See ChFsiSplashsurfSPH.
+    void WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet = false);
+
     PhysicsProblem GetPhysicsProblem() const { return m_sysSPH.GetPhysicsProblem(); }
     std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
     std::string GetSphIntegrationSchemeString() const { return m_sysSPH.GetSphIntegrationSchemeString(); }
@@ -281,6 +291,7 @@ class CH_FSI_API ChFsiProblemSPH {
 
     ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
     ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
+    ChFsiSplashsurfSPH m_splashsurf;   ///< surface reconstructor
     double m_spacing;                  ///< particle and marker spacing
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     GridPoints m_sph;                  ///< SPH particle grid locations

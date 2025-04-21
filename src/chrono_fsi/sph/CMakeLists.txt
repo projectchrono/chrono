@@ -33,6 +33,23 @@ endif()
 message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
 
 #-----------------------------------------------------------------------------
+
+find_package(Splashsurf QUIET)
+if(SPLASHSURF_FOUND)
+    message(STATUS "  Splashsurf executable: ${SPLASHSURF_EXECUTABLE}")
+    message(STATUS "  Splashsurf version:    ${SPLASHSURF_VERSION_STRING}")
+
+    # Prepare replacement variables
+    set(CHRONO_HAS_SPLASHSURF "#define CHRONO_HAS_SPLASHSURF")
+    set(CHRONO_SPLASHSURF_EXECUTABLE "#define SPLASHSURF_EXECUTABLE \"${SPLASHSURF_EXECUTABLE}\"")
+else()
+    message(STATUS "  Splashsurf NOT found. Surface reconstruction utility disabled.")
+
+    set(CHRONO_HAS_SPLASHSURF "#undef CHRONO_HAS_SPLASHSURF")
+    set(CHRONO_SPLASHSURF_EXECUTABLE "#undef SPLASHSURF_EXECUTABLE")
+endif()
+
+#-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library
 #-----------------------------------------------------------------------------
 
@@ -53,6 +70,12 @@ set(FSISPH_BASE_FILES
     ChFsiInterfaceSPH.cpp
     ChFsiFluidSystemSPH.cpp
 )
+if(SPLASHSURF_FOUND)
+    set(FSISPH_BASE_FILES ${FSISPH_BASE_FILES}
+        ChFsiSplashsurfSPH.h
+        ChFsiSplashsurfSPH.cpp
+    )
+endif()
 source_group("" FILES ${FSISPH_BASE_FILES})
 
 set(FSISPH_PHYSICS_FILES

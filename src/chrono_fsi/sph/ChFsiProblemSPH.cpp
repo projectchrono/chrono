@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <queue>
+#include <stdexcept>
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
@@ -44,6 +45,7 @@ namespace sph {
 
 ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     : m_sysFSI(ChFsiSystemSPH(sys, m_sysSPH)),
+      m_splashsurf(m_sysSPH),
       m_spacing(spacing),
       m_initialized(false),
       m_offset_sph(VNULL),
@@ -317,6 +319,13 @@ void ChFsiProblemSPH::Initialize() {
 
     // Initialize the underlying FSI system
     m_sysFSI.Initialize();
+
+    // Set parameters for the surface reconstructor
+    m_splashsurf.SetParticleRadius(m_spacing / 2);
+    m_splashsurf.SetSmoothingLength(1.5);
+    m_splashsurf.SetCubeSize(0.5);
+    m_splashsurf.SetSurfaceThreshold(0.6);
+
     m_initialized = true;
 }
 
@@ -565,10 +574,23 @@ void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& 
     m_relocator->MoveAABB2AABB(MarkerType::SPH_PARTICLE, ToRealAABB(aabb_src), ToIntAABB(aabb_dest), Real(m_spacing));
 }
 
-// ----------------------------------------------------------------------------
-
 void ChFsiProblemSPH::ForceProximitySearch() {
     m_sysSPH.m_force_proximity_search = true;
+}
+
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet) {
+#ifndef CHRONO_HAS_SPLASHSURF
+    std::cerr << "Warning: splashsurf not available; no mesh was generated." << std::endl;
+    return;
+#endif
+
+    std::string in_filename = dir + "/" + name + ".json";
+    std::string out_filename = dir + "/" + name + ".obj";
+
+    m_splashsurf.WriteParticleFileJSON(in_filename);
+    m_splashsurf.WriteReconstructedSurface(in_filename, out_filename, quiet);
 }
 
 // ============================================================================
