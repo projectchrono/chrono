@@ -108,6 +108,15 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
         LinSolverParameters();
     };
 
+    /// Structure with surface reconstruction parameters.
+    struct CH_FSI_API SplashsurfParameters {
+        double smoothing_length;    ///< smoothing length used for the SPH kernel (in multiplies of the particle radius)
+        double cube_size;          ///< cube edge length used for marching cubes (in multiplies of the particle radius)
+        double surface_threshold;  ///< iso-surface threshold for the density  (in multiplies of the rest density)
+    
+        SplashsurfParameters();
+    };
+
     ChFsiFluidSystemSPH();
     ~ChFsiFluidSystemSPH();
 

@@ -61,6 +61,11 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     m_sysSPH.SetInitialSpacing(spacing);
     m_sysSPH.SetKernelMultiplier(1.2);
 
+    // Set default slapshsurf parameters
+    m_splashsurf.SetSmoothingLength(1.5);
+    m_splashsurf.SetCubeSize(0.5);
+    m_splashsurf.SetSurfaceThreshold(0.6);
+
     m_sysFSI.SetVerbose(m_verbose);
 }
 
@@ -83,6 +88,12 @@ void ChFsiProblemSPH::SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialPr
 
 void ChFsiProblemSPH::SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params) {
     m_sysSPH.SetSPHParameters(sph_params);
+}
+
+void ChFsiProblemSPH::SetSplashsurfParameters(const ChFsiFluidSystemSPH::SplashsurfParameters& params) {
+    m_splashsurf.SetSmoothingLength(params.smoothing_length);
+    m_splashsurf.SetCubeSize(params.cube_size);
+    m_splashsurf.SetSurfaceThreshold(params.surface_threshold);
 }
 
 // ----------------------------------------------------------------------------
@@ -320,11 +331,8 @@ void ChFsiProblemSPH::Initialize() {
     // Initialize the underlying FSI system
     m_sysFSI.Initialize();
 
-    // Set parameters for the surface reconstructor
+    // Set SPH particle radius for the surface reconstructor
     m_splashsurf.SetParticleRadius(m_spacing / 2);
-    m_splashsurf.SetSmoothingLength(1.5);
-    m_splashsurf.SetCubeSize(0.5);
-    m_splashsurf.SetSurfaceThreshold(0.6);
 
     m_initialized = true;
 }

@@ -66,6 +66,9 @@ class CH_FSI_API ChFsiProblemSPH {
 
     /// Set SPH method parameters.
     void SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params);
+    
+    /// Set surface reconstruction parameters (`with splashsurf`).
+    void SetSplashsurfParameters(const ChFsiFluidSystemSPH::SplashsurfParameters& params);
 
     /// Add a rigid body to the FSI problem.
     /// BCE markers are created for the provided geometry (which may or may not match the body collision geometry).

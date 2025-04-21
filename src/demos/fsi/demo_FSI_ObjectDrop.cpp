@@ -218,6 +218,14 @@ int main(int argc, char* argv[]) {
 
     fsi.SetSPHParameters(sph_params);
 
+    // Set surface reconstruction parameters
+    ChFsiFluidSystemSPH::SplashsurfParameters splashsurf_params;
+    splashsurf_params.smoothing_length = 2.0;
+    splashsurf_params.cube_size = 0.3;
+    splashsurf_params.surface_threshold = 0.6;
+
+    fsi.SetSplashsurfParameters(splashsurf_params);
+
     // Create the rigid body
     double bottom_offset = 0;
     double mass = 0;

@@ -909,6 +909,9 @@ void ChFsiFluidSystemSPH::SetLinSolverParameters(const LinSolverParameters& lins
     m_paramsH->LinearSolver_Max_Iter = linsolv_params.max_num_iters;
 }
 
+ChFsiFluidSystemSPH::SplashsurfParameters::SplashsurfParameters()
+    : smoothing_length(1.5), cube_size(0.5), surface_threshold(0.6) {}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 PhysicsProblem ChFsiFluidSystemSPH::GetPhysicsProblem() const {
