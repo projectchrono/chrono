@@ -64,18 +64,14 @@ set(FSISPH_BASE_FILES
     ChFsiInterfaceSPH.h
     ChFsiFluidSystemSPH.h
     ChFsiPrintUtilsSPH.h
+    ChFsiSplashsurfSPH.h
 
     ChFsiProblemSPH.cpp
     ChFsiSystemSPH.cpp
     ChFsiInterfaceSPH.cpp
     ChFsiFluidSystemSPH.cpp
+    ChFsiSplashsurfSPH.cpp
 )
-if(SPLASHSURF_FOUND)
-    set(FSISPH_BASE_FILES ${FSISPH_BASE_FILES}
-        ChFsiSplashsurfSPH.h
-        ChFsiSplashsurfSPH.cpp
-    )
-endif()
 source_group("" FILES ${FSISPH_BASE_FILES})
 
 set(FSISPH_PHYSICS_FILES

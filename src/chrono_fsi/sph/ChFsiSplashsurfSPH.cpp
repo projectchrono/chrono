@@ -40,7 +40,7 @@ void ChFsiSplashsurfSPH::WriteReconstructedSurface(const std::string& in_filenam
 #ifndef CHRONO_HAS_SPLASHSURF
     std::cout << "Error: splashsurf not available." << std::endl;
     throw std::runtime_error("splashsurf not available");
-#endif
+#else
     ChAssertAlways(m_radius > 0);
 
     // Create Splashsurf arguments
@@ -58,15 +58,16 @@ void ChFsiSplashsurfSPH::WriteReconstructedSurface(const std::string& in_filenam
 
     // Execute system command
     std::string syscmd;
-#ifdef _WIN32
+    #ifdef _WIN32
     // /b avoids showing the black cmd window
     syscmd = "start /b " + std::string(SPLASHSURF_EXECUTABLE) + " reconstruct " + arguments;
     /*int err =*/system(syscmd.c_str());
-#else
+    #else
     // Unix like systems:
     syscmd = std::string(SPLASHSURF_EXECUTABLE) + " reconstruct " + arguments;
     syscmd += " &";  // to launch and forget
     /*int err =*/system(syscmd.c_str());
+    #endif
 #endif
 }
 
