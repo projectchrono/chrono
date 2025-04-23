@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     ChVector3d cMin(-bxDim / 2 - 3 * initSpace0 / 2.0, -byDim / 2 - 3 * initSpace0 / 2.0,
                     -1.0 * bzDim - 3 * initSpace0);
     ChVector3d cMax(bxDim / 2 + 3 * initSpace0 / 2.0, byDim / 2 + 3 * initSpace0 / 2.0, 2.0 * bzDim + 3 * initSpace0);
-    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
     sysSPH.SetOutputLevel(OutputLevel::CRM_FULL);
 
     // Create SPH particle locations using a sampler

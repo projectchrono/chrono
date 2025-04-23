@@ -81,7 +81,7 @@ void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Re
 
             forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
             EulerStep(y, h);                     // y <==  y_{n+1} = y_n + h * f(t_n, y_n)
-            ApplyBoundarySPH_Markers(y);
+            ApplyBoundaryConditions(y);
 
             break;
         }
@@ -94,18 +94,18 @@ void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Re
 
             forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
             EulerStep(y_tmp, h / 2);             // y_tmp <==  K1 = y_n + (h/2) * f(t_n, y_n)
-            ApplyBoundarySPH_Markers(y_tmp);
+            ApplyBoundaryConditions(y_tmp);
 
             forceSystem->ForceSPH(y_tmp, t + h / 2, dummy);  // f(t_n + h/2, K1)
             EulerStep(y, h);                                 // y <== y_{n+1} = y_n + h * f(t_n + h/2, K1)
-            ApplyBoundarySPH_Markers(y);
+            ApplyBoundaryConditions(y);
 
             break;
         }
 
         case IntegrationScheme::IMPLICIT_SPH: {
             forceSystem->ForceSPH(y, t, h);
-            ApplyBoundarySPH_Markers(y);
+            ApplyBoundaryConditions(y);
 
             break;
         }
@@ -369,25 +369,25 @@ __device__ void TauEulerStep(Real dT,
 // derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
 // calculate the force that is f=m dv/dt
 // derivVelRhoD[index] *= paramsD.markerMass;
-__global__ void EulerStepD(Real4* posRadD,
-                           Real3* velMasD,
-                           Real4* rhoPresMuD,
-                           Real3* tauXxYyZzD,
-                           Real3* tauXyXzYzD,
-                           const Real3* vel_XSPH_D,
-                           const Real4* derivVelRhoD,
-                           const Real3* derivTauXxYyZzD,
-                           const Real3* derivTauXyXzYzD,
-                           const uint* freeSurfaceIdD,
-                           const int32_t* activityIdentifierSortedD,
-                           const uint numActive,
-                           Real dT) {
+__global__ void EulerStep_D(Real4* posRadD,
+                            Real3* velMasD,
+                            Real4* rhoPresMuD,
+                            Real3* tauXxYyZzD,
+                            Real3* tauXyXzYzD,
+                            const Real3* vel_XSPH_D,
+                            const Real4* derivVelRhoD,
+                            const Real3* derivTauXxYyZzD,
+                            const Real3* derivTauXyXzYzD,
+                            const uint* freeSurfaceIdD,
+                            const int32_t* activityIdentifierSortedD,
+                            const uint numActive,
+                            Real dT) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
 
     // Only update active SPH particles, not extended active particles
-    if (IsBceMarker(rhoPresMuD[index].w)  || activityIdentifierSortedD[index] <= 0)
+    if (IsBceMarker(rhoPresMuD[index].w) || activityIdentifierSortedD[index] <= 0)
         return;
 
     // Euler step for position
@@ -416,7 +416,7 @@ void FluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Rea
     uint numBlocks, numThreads;
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
-    EulerStepD<<<numBlocks, numThreads>>>(
+    EulerStep_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
         mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
         mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
@@ -532,7 +532,7 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
 // -----------------------------------------------------------------------------
 
 // Kernel to apply inlet/outlet BC along x
-__global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD, const uint numActive) {
+__global__ void ApplyInletBoundaryX_D(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -567,7 +567,7 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
 }
 
 // Kernel to apply periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
+__global__ void ApplyPeriodicBoundaryX_D(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -595,7 +595,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD, 
 }
 
 // Kernel to apply periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
+__global__ void ApplyPeriodicBoundaryY_D(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -625,7 +625,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD, 
 }
 
 // Kernel to apply periodic BC along z
-__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
+__global__ void ApplyPeriodicBoundaryZ_D(Real4* posRadD, Real4* rhoPresMuD, const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -654,48 +654,42 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD, 
     }
 }
 
-// Apply periodic boundary conditions in x, y, and z directions
-void FluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
+// Apply boundary conditions in x, y, and z directions
+void FluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);
 
-    if (m_data_mgr.paramsH->x_periodic) {
-        ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
+    switch (m_data_mgr.paramsH->bc_type.x) {
+        case BCType::PERIODIC:
+            ApplyPeriodicBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-        cudaCheckError();
+            cudaCheckError();
+            break;
+        case BCType::INLET_OUTLET:
+            //// TODO - check this and modify as appropriate
+            //ApplyInletBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
+            //                                                 mR3CAST(sphMarkersD->velMasD),
+            //                                                 mR4CAST(sphMarkersD->rhoPresMuD), numActive);
+            //cudaCheckError();
+            break;
     }
-    if (m_data_mgr.paramsH->y_periodic) {
-        ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
+
+    switch (m_data_mgr.paramsH->bc_type.y) {
+        case BCType::PERIODIC:
+            ApplyPeriodicBoundaryY_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-        cudaCheckError();
+            cudaCheckError();
+            break;
     }
-    if (m_data_mgr.paramsH->z_periodic) {
-        ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
+
+    switch (m_data_mgr.paramsH->bc_type.z) {
+        case BCType::PERIODIC:
+            ApplyPeriodicBoundaryZ_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-        cudaCheckError();
+            cudaCheckError();
+            break;
     }
-}
-
-// Apply periodic boundary conditions in y, and z.
-// The inlet/outlet BC is applied in the x direction.
-// This function needs to be tested.
-void FluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
-    uint numBlocks, numThreads;
-    computeGridSize(numActive, 256, numBlocks, numThreads);
-    ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
-                                                         mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-    cudaCheckError();
-
-    // these are useful anyway for out of bound particles
-    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-    cudaCheckError();
-
-    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
-                                                            mR4CAST(sphMarkersD->rhoPresMuD), numActive);
-    cudaCheckError();
 }
 
 // -----------------------------------------------------------------------------

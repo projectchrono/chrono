@@ -160,7 +160,7 @@ void CRMTerrain::Synchronize(double time) {
     m_Ifront += m_Ishift;  // X grid coordinate of front-most SPH particles
     UpdateAABBs();         // source and destination AABBs
 
-    // Update computational domain
+    // Update computational domain (do not change BC types)
     domainAABB.min.x() += m_spacing * (m_Ishift + 1);
     domainAABB.max.x() += m_spacing * (m_Ishift + 1);
     m_sysSPH.SetComputationalDomain(domainAABB);

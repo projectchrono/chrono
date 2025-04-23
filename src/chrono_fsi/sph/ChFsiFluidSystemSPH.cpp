@@ -102,7 +102,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->boundary_method = BoundaryMethod::ADAMI;
     m_paramsH->kernel_type = KernelType::CUBIC_SPLINE;
     m_paramsH->shifting_method = ShiftingMethod::XSPH;
-    m_paramsH->periodic_sides = static_cast<int>(PeriodicSide::NONE);
+    m_paramsH->bc_type = {BCType::NONE, BCType::NONE, BCType::NONE};
 
     m_paramsH->d0 = Real(0.01);
     m_paramsH->ood0 = 1 / m_paramsH->d0;
@@ -595,11 +595,12 @@ void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
     m_paramsH->boxDimZ = box_dim.z();
 }
 
-void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides) {
+void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB,
+                                                 BoundaryConditions bc_type) {
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
-    m_paramsH->periodic_sides = periodic_sides;
+    m_paramsH->bc_type = bc_type;
 }
 
 void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB) {
@@ -1366,12 +1367,12 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
             mR3(-2 * m_paramsH->boxDimX, -2 * m_paramsH->boxDimY, -2 * m_paramsH->boxDimZ) - 10 * mR3(m_paramsH->h);
         m_paramsH->cMax =
             mR3(+2 * m_paramsH->boxDimX, +2 * m_paramsH->boxDimY, +2 * m_paramsH->boxDimZ) + 10 * mR3(m_paramsH->h);
-        m_paramsH->periodic_sides = static_cast<int>(PeriodicSide::NONE);
+        m_paramsH->bc_type = BC_NONE;
     }
 
-    m_paramsH->x_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::X)) != 0;
-    m_paramsH->y_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::Y)) != 0;
-    m_paramsH->z_periodic = (m_paramsH->periodic_sides & static_cast<int>(PeriodicSide::Z)) != 0;
+    m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
+    m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
+    m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
 
     // Set up subdomains for faster neighbor particle search
     m_paramsH->Apply_BC_U = false;

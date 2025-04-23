@@ -139,14 +139,13 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set the fluid container dimension
     void SetContainerDim(const ChVector3d& box_dim);
 
-    /// Set computational domain and periodic boundary conditions on its sides.
-    /// `periodic_sides` indicates the directions of the computational domain (axis-aligned) for which periodic boundary
-    /// conditions are enforced. This is an integer which can be one of the `PeriodicSide` values or a combination using
-    /// bit-wise or & and. Default is periodic_sides = NONE.
-    void SetComputationalDomain(const ChAABB& computational_AABB, int periodic_sides);
+    /// Set computational domain and boundary conditions on its sides.
+    /// `bc_type` indicates the types of BCs imposed in the three directions of the computational domain.
+    /// By default, no special boundary conditions are imposed in any direction (BCType::NONE).
+    void SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type);
 
     /// Set computational domain.
-    /// Note that this version leaves the setting for periodic BC sides unchanged.
+    /// Note that this version leaves the setting for BC type unchanged.
     void SetComputationalDomain(const ChAABB& computational_AABB);
 
     /// Set dimensions of the active domain AABB.

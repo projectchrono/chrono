@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     sysSPH.SetContainerDim(ChVector3<>(bxDim, byDim, bzDim));
     ChVector3<> cMin(-bxDim / 2 * 1.2, -byDim * 1.2, -bzDim / 2 * 1.2);
     ChVector3<> cMax(bxDim / 2 * 1.2, byDim * 1.2, bzDim / 2 * 1.2);
-    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::ALL);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_ALL_PERIODIC);
 
     bool use_polar_coords = true;
 

@@ -138,7 +138,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
                     -box_multiplier * m_box_size.z() * (m_num_boxes / m_boxes_per_layer + 1));
     ChVector3d cMax(+m_box_size.x() / 2, +m_box_size.y() / 2,
                     +box_multiplier * m_box_size.z() * (m_num_boxes / m_boxes_per_layer + 1));
-    m_sysSPH->SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::ALL);
+    m_sysSPH->SetComputationalDomain(ChAABB(cMin, cMax), BC_ALL_PERIODIC);
 
     chrono::utils::ChGridSampler<> sampler(sph_params.initial_spacing);
     ChVector3d boxCenter(0.0, 0.0, 0.0);

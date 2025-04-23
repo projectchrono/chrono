@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     ChVector3d cMin =
         ChVector3d(-cxDim - 3 * initial_spacing, -cyDim / 2 - initial_spacing / 2, -czDim - 3 * initial_spacing);
     ChVector3d cMax = ChVector3d(cxDim + 3 * initial_spacing, +cyDim / 2 + initial_spacing / 2, czDim);
-    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
     // Initialize FSI problem
     fsi.Initialize();

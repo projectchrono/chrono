@@ -80,8 +80,8 @@ class FluidDynamics {
     //// TODO RADU: where is this used?!?  Obsololete?
     void DensityReinitialization();
 
-    /// Synchronize the copy of the data between device (GPU) and host (CPU).
-    /// Including the parameters and number of objects. This function needs to be called once the host data are modified.
+    /// Initialize the force and colision systems.
+    /// Synchronize data between device and host (parameters and counters).
     void Initialize();
 
     /// Return the FsiForce type used in the simulation.
@@ -105,12 +105,8 @@ class FluidDynamics {
     /// Advance the state of the fluid system using an explicit Euler step.
     void EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT);
 
-    /// Apply periodic boundary to the normal SPH particles.
-    void ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
-
-    /// Modify the velocity of BCE particles.
-    /// TODO (Huzaifa) - Might need to deprecated this function.
-    void ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    /// Apply boundary conditions on the sides of the computational domain.
+    void ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 };
 
 /// @} fsisph_physics

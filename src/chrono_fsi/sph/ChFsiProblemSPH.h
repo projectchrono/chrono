@@ -161,10 +161,11 @@ class CH_FSI_API ChFsiProblemSPH {
     void SetStepsizeMBD(double step) { m_sysFSI.SetStepsizeMBD(step); }
 
     /// Explicitly set the computational domain limits.
-    /// By default, this is set so that it encompasses all SPH particles and BCE markers with no periodic sides.
-    void SetComputationalDomain(const ChAABB& aabb, int periodic_sides = PeriodicSide::NONE) {
+    /// By default, this encompasses all SPH and BCE markers with no boundary conditions imposed in any direction.
+    void SetComputationalDomain(const ChAABB& aabb,
+                                BoundaryConditions bc_type = {BCType::NONE, BCType::NONE, BCType::NONE}) {
         m_domain_aabb = aabb;
-        m_periodic_sides = periodic_sides;
+        m_bc_type = bc_type;
     }
 
     /// Complete construction of the FSI problem and initialize the FSI system.
@@ -186,8 +187,8 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Get limits of computational domain.
     const ChAABB& GetComputationalDomain() const { return m_domain_aabb; }
 
-    /// Get periodic sides of computational domain.
-    int GetPeriodicSides() const { return m_periodic_sides; }
+    /// Get the boundary condition type for the three sides of the computational domain.
+    const BoundaryConditions& GetBoundaryConditionTypes() const { return m_bc_type; }
 
     /// Get limits of SPH volume.
     const ChAABB& GetSPHBoundingBox() const { return m_sph_aabb; }
@@ -302,7 +303,7 @@ class CH_FSI_API ChFsiProblemSPH {
     ChVector3d m_offset_sph;           ///< SPH particles offset
     ChVector3d m_offset_bce;           ///< boundary BCE particles offset
     ChAABB m_domain_aabb;              ///< computational domain bounding box
-    int m_periodic_sides;              ///< periodic sides
+    BoundaryConditions m_bc_type;      ///< boundary conditions in each direction
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
     std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
     std::vector<FeaMesh> m_meshes;     ///< list of FSI FEA meshes

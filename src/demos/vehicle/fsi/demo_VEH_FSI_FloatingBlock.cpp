@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Set up the periodic boundary condition (only in Y direction)
     ChVector3d cMin(-bxDim / 2 - 5 * init_space, -byDim / 2 - init_space / 2, -5 * init_space);
     ChVector3d cMax(+bxDim / 2 + 5 * init_space, +byDim / 2 + init_space / 2, bzDim + 5 * init_space);
-    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);

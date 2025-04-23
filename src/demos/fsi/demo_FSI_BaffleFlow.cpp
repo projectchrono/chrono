@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
                 ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
-    fsi.SetComputationalDomain(aabb, PeriodicSide::NONE);
+    fsi.SetComputationalDomain(aabb, BC_NONE);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);

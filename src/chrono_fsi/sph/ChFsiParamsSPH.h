@@ -98,8 +98,6 @@ struct ChFsiParamsSPH {
     Real kdT;      ///< Implicit integration parameter
     Real gammaBB;  ///< Equation of state parameter
 
-    int periodic_sides;  ///< Periodic boundary condition sides for the defined computational domain - Takes values
-                         ///< NONE, X, Y, Z, All (can also be combined using binary OR and bitwise AND). (default: NONE)
     bool use_default_limits;  ///< true if cMin and cMax are not user-provided (default: true)
     bool use_init_pressure;   ///< true if pressure set based on height (default: false)
 
@@ -174,10 +172,10 @@ struct ChFsiParamsSPH {
     Real boxDimY;  ///< Dimension of the space domain - Y
     Real boxDimZ;  ///< Dimension of the space domain - Z
 
-    // Bools for whether a side is a periodic side or not
-    bool x_periodic;
-    bool y_periodic;
-    bool z_periodic;
+    BoundaryConditions bc_type;  ///< boundary condition types in the 3 domain directions
+    bool x_periodic;             ///< periodic boundary conditions in x direction?
+    bool y_periodic;             ///< periodic boundary conditions in y direction?
+    bool z_periodic;             ///< periodic boundary conditions in z direction?
 
     int3 minBounds;  ///< Lower limit point of the grid (in grid index)
     int3 maxBounds;  ///< Upper limit point of the grid (in grid index)

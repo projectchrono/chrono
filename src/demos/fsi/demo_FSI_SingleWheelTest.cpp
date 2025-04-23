@@ -332,7 +332,7 @@ int main(int argc, char* argv[]) {
     // Set up the periodic boundary condition (if not, set relative larger values)
     ChVector3d cMin(-10 * bxDim / 2, -byDim / 2 - initSpacing / 2, -bzDim * 10);
     ChVector3d cMax(+10 * bxDim / 2, +byDim / 2 + initSpacing / 2, +bzDim * 10);
-    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::NONE);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
 
     // Initialize the SPH particles
     auto initSpace0 = sysSPH.GetInitialSpacing();
