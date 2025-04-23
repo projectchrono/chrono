@@ -270,10 +270,10 @@ windows:vs2022:build:
   script:
   # Build gl with buildGL script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildGL.bat $CI_PROJECT_DIR\contrib\build-scripts\gl_build'
-  # Build vsg with buildVSG script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  # Build urdf with buildURDF script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
+  # Build vsg with buildVSG script (to speed to the building process I'm going to use the pre-built VSG instead)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  # Build urdf with buildURDF script (it looks like we have already using thre pre-built urdf as of April 27th, 2025, disabling the building for now)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
   - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
   - cd build
@@ -291,7 +291,7 @@ windows:vs2022:test:
   script:
   # Build vsg with buildVSG script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  - $env:PATH += ";$CI_PROJECT_DIR\contrib\build-scripts\vsg_build\bin"
+  - $env:PATH += ";C:\Packages\vsg\bin"
   - cd build
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
