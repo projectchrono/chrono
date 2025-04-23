@@ -289,8 +289,8 @@ windows:vs2022:test:
   needs: ["windows:vs2022:build"]
   extends: .windows
   script:
-  # Build vsg with buildVSG script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  # Build vsg with buildVSG script (As of April 22th, 2025, we are using the pre-built VSG)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
   - $env:PATH += ";C:\Packages\vsg\bin"
   - cd build
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
