@@ -357,6 +357,67 @@ void ChPeridynamics::FillBox(
 }
 
 
+void  ChPeridynamics::FillSphere(
+    std::shared_ptr<ChMatterPeriBase> mmatter,///< matter to be used for the sphere. Must be added too to this, via AddMatter(). 
+    const double sphere_radius,                 ///< radius of sphere to fill 
+    const double spacing,                       ///< the spacing between two near nodes (grid interval h)
+    const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
+    const ChCoordsys<> boxcoords,         ///< position and rotation of the box
+    const double horizon_sfactor,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
+    const double collision_sfactor        ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
+) {
+    double size_x = sphere_radius * 2;
+    int samples_x = (int)(size_x / spacing);
+    int samples_y = (int)(size_x / spacing);
+    int samples_z = (int)(size_x / spacing);
+
+    int totsamples = 0;
+    for (int ix = 0; ix < samples_x; ix++)
+        for (int iy = 0; iy < samples_y; iy++)
+            for (int iz = 0; iz < samples_z; iz++) {
+                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size_x,
+                    iy * spacing + 0.5 * spacing - 0.5 * size_x,
+                    iz * spacing + 0.5 * spacing - 0.5 * size_x);
+                if (pos.Length() < sphere_radius)
+                    totsamples++;
+            }
+
+    double horizon = horizon_sfactor * spacing;
+    double collrad = collision_sfactor * spacing;
+    double mtotvol = 4. / 3. * CH_PI * pow(sphere_radius, 3);
+    double mtotmass = mtotvol * initial_density;
+    double nodemass = mtotmass / (double)totsamples;
+    double nodevol = mtotvol / (double)totsamples;
+
+    for (int ix = 0; ix < samples_x; ix++)
+        for (int iy = 0; iy < samples_y; iy++)
+            for (int iz = 0; iz < samples_z; iz++) {
+                ChVector3d pos(ix * spacing + 0.5 * spacing - 0.5 * size_x,
+                    iy * spacing + 0.5 * spacing - 0.5 * size_x,
+                    iz * spacing + 0.5 * spacing - 0.5 * size_x);
+                double pos_rad = pos.Length();
+                if (pos_rad < sphere_radius) {
+                    ChVector3d mpos = boxcoords.TransformPointLocalToParent(pos);
+                    auto mnode = chrono_types::make_shared<ChNodePeri>();
+                    mnode->SetX0(mpos);
+                    mnode->SetPos(mpos);
+                    mnode->SetMass(nodemass);
+                    mnode->volume = nodevol;
+                    mnode->is_fluid = false;
+                    mnode->coll_rad = collrad;
+                    mnode->h_rad = horizon;
+                    mnode->vol_size = spacing;
+                    this->AddNode(mnode);
+                    mmatter->AddNode(mnode);
+                    if (fabs(pos_rad - sphere_radius) < 0.866025*spacing) {
+                        mnode->is_boundary = true;
+                    }
+                } 
+            }
+}
+
+
+
 
 void ChPeridynamics::ArchiveOut(ChArchiveOut& marchive) {
     // version number

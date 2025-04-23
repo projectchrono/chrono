@@ -93,7 +93,7 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     void FillBox(
         std::shared_ptr<ChMatterPeriBase> mmatter,  ///< matter to be used for this volume. Must be added too to this, via AddMatter(). 
         const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-        const double spacing,                       ///< the spacing between two near nodes
+        const double spacing,                       ///< the spacing between two near nodes (grid interval h)
         const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
         const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
         const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
@@ -106,12 +106,23 @@ class ChApiPeridynamics ChPeridynamics : public ChProximityContainer {
     void FillBox(
         std::vector<std::pair<std::shared_ptr<ChMatterPeriBase>, double>> v_mmatter,  ///< {matters,x_thickness} pairs to be used for layers. Must be added too to this, via AddMatter(). 
         const ChVector3d size,                      ///< x,y,z sizes of the box to fill (better if integer multiples of spacing)
-        const double spacing,                       ///< the spacing between two near nodes
+        const double spacing,                       ///< the spacing between two near nodes (grid interval h)
         const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
         const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
         const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
         const double collision_sfactor = 0.3,       ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
         const double randomness = 0.0               ///< randomness of the initial distribution lattice, 0...1
+    );
+    /// Create a sphere filled with nodes, with lattice xyz sampling.
+    /// Nodes at the surface of the sphere are automatically marked as interface, i.e. are collidable.
+    void FillSphere(
+        std::shared_ptr<ChMatterPeriBase>   mmatter,///< matter to be used for the sphere. Must be added too to this, via AddMatter(). 
+        const double sphere_radius,                 ///< radius of sphere to fill 
+        const double spacing,                       ///< the spacing between two near nodes (grid interval h)
+        const double initial_density,               ///< density of the material inside the box, for initialization of node's masses
+        const ChCoordsys<> boxcoords = CSYSNORM,    ///< position and rotation of the box
+        const double horizon_sfactor = 1.6,         ///< the radius of horizon of the particle is 'spacing' multiplied this value
+        const double collision_sfactor = 0.3        ///< the radius of collision shape (sphere) of the particle is 'spacing' multiplied this value
     );
 
 

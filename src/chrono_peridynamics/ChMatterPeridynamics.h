@@ -276,7 +276,7 @@ class  ChMatterPeri : public ChMatterPeriBase {
         if ((anodeA->GetPos() - anodeB->GetPos()).Length() > (anodeA->GetHorizonRadius()))
             return false;
 
-        if ((this->GetContainer()->GetChTime()>0.01) && anodeA->is_boundary && anodeB->is_boundary && (!anodeA->is_fluid) && (!anodeB->is_fluid) )
+        if (!(anodeA->is_requiring_bonds && anodeB->is_requiring_bonds) && anodeA->is_boundary && anodeB->is_boundary && (!anodeA->is_fluid) && (!anodeB->is_fluid) )
             return false;
 
         // add bond to container using ptr of two nodes as unique key
@@ -342,9 +342,6 @@ class  ChMatterPeri : public ChMatterPeriBase {
                 mnode->is_colliding = false; // prevents other material adding twice
             }
 
-            // Deactivate this flag, that is used only to force the generation of bonds once. 
-            // If collison model for proximity collision was needed, than it was alredy setup few lines above 
-//            mnode->is_requiring_bonds = false;
         }
 
         for (auto& nodedata : nodes) {

@@ -387,8 +387,6 @@ public:
     virtual void Setup() override {
         // cleanup bonds that are broken 
         for (auto& bond : this->bonds) {
-            //if ((bond.second.nodeB->GetPos() - bond.second.nodeA->GetPos()).Length() > bond.second.nodeA->GetHorizonRadius())
-            //    bonds.erase(bond.first);
             if (bond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN)
                 bonds.erase(bond.first);
         }
