@@ -161,8 +161,8 @@ int main(int argc, char* argv[]) {
     sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
     ////sph_params.num_proximity_search_steps = 1;
     terrain.SetSPHParameters(sph_params);
 

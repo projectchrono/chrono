@@ -39,8 +39,8 @@ namespace sph {
 struct ChFsiParamsSPH {
     IntegrationScheme integration_scheme;  ///< Integration scheme
     EosType eos_type;                      ///< Equation of state type (Tait or isothermal)
-    ViscosityType viscosity_type;          ///< Viscosity treatment type (physics-based laminar flow or artificial)
-    BoundaryType boundary_type;            ///< Boundary type (Adami or Holmes)
+    ViscosityMethod viscosity_method;      ///< Viscosity treatment type (physics-based laminar flow or artificial)
+    BoundaryMethod boundary_method;        ///< Boundary type (Adami or Holmes)
     KernelType kernel_type;                ///< Kernel type (Quadratic, cubic spline, quintinc spline, quintic Wendland)
     ShiftingMethod shifting_method;        ///< Shifting method (NONE, PPST, XSPH, PPST_XSPH)
 

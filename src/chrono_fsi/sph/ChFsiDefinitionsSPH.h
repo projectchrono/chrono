@@ -59,10 +59,10 @@ enum class EosType { TAIT, ISOTHERMAL };
 enum class KernelType { QUADRATIC, CUBIC_SPLINE, QUINTIC_SPLINE, WENDLAND };
 
 /// Visosity method type.
-enum class ViscosityType { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
+enum class ViscosityMethod { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
 
-/// Boundary type.
-enum class BoundaryType { ADAMI, HOLMES };
+/// Boundary method type.
+enum class BoundaryMethod { ADAMI, HOLMES };
 
 /// Rheology type.
 enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };

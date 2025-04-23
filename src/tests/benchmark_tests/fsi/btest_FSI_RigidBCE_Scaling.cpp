@@ -110,8 +110,8 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     sph_params.kernel_threshold = 0.8;
     sph_params.max_velocity = 1.0;
     sph_params.num_proximity_search_steps = 1;
-    sph_params.boundary_type = BoundaryType::ADAMI;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
 
     m_sysSPH->SetSPHParameters(sph_params);
 

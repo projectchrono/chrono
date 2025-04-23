@@ -613,8 +613,8 @@ void ChTireTestRig::CreateTerrainCRM() {
     sph_params.num_proximity_search_steps = 1;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
 
     terrain->SetElasticSPH(mat_props);
     terrain->SetSPHParameters(sph_params);

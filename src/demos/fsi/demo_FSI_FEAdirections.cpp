@@ -131,8 +131,8 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
     sph_params.num_proximity_search_steps = 1;
-    sph_params.boundary_type = BoundaryType::ADAMI;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
 
     fsi.SetSPHParameters(sph_params);
 

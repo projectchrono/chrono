@@ -1012,7 +1012,7 @@ __global__ void CfdHolmesBC(const uint* numNeighborsPerPart,
 void FsiForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     cudaResetErrorFlag(m_errflagD);
 
-    if (m_data_mgr.paramsH->boundary_type == BoundaryType::ADAMI) {
+    if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
         CrmAdamiBC<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
             mR4CAST(sortedSphMarkersD->posRadD), numActive, mR3CAST(m_data_mgr.bceAcc),
@@ -1039,7 +1039,7 @@ void FsiForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
 void FsiForceWCSPH::CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
     cudaResetErrorFlag(m_errflagD);
 
-    if (m_data_mgr.paramsH->boundary_type == BoundaryType::ADAMI) {
+    if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
         CfdAdamiBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
                                               mR4CAST(sortedSphMarkersD->posRadD), numActive,
                                               mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD),
@@ -1128,8 +1128,8 @@ __device__ inline Real4 crmDvDt(Real W_ini_inv,
     // }
     Real derivM1 = 0;
     Real vAB_rAB = dot(velMasA - velMasB, dist3);
-    switch (paramsD.viscosity_type) {
-        case ViscosityType::ARTIFICIAL_UNILATERAL: {
+    switch (paramsD.viscosity_method) {
+        case ViscosityMethod::ARTIFICIAL_UNILATERAL: {
             // Artificial Viscosity from Monaghan 1997
             // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
             if (vAB_rAB < 0) {
@@ -1139,7 +1139,7 @@ __device__ inline Real4 crmDvDt(Real W_ini_inv,
 
             break;
         }
-        case ViscosityType::ARTIFICIAL_BILATERAL: {
+        case ViscosityMethod::ARTIFICIAL_BILATERAL: {
             // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
             // Here there is viscous force added even during the seperation phase - makes the simulation more stable
             Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
@@ -1436,8 +1436,8 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
     }
 
     Real3 derivV;
-    switch (paramsD.viscosity_type) {
-        case ViscosityType::ARTIFICIAL_UNILATERAL: {
+    switch (paramsD.viscosity_method) {
+        case ViscosityMethod::ARTIFICIAL_UNILATERAL: {
             //  pressure component
             derivV = -paramsD.markerMass *
                      (rhoPresMuA.y / (rhoPresMuA.x * rhoPresMuA.x) + rhoPresMuB.y / (rhoPresMuB.x * rhoPresMuB.x)) *
@@ -1455,7 +1455,7 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
             }
             break;
         }
-        case ViscosityType::LAMINAR: {
+        case ViscosityMethod::LAMINAR: {
             // laminar physics-based viscosity, directly from the Momentum equation, see Arman's PhD thesis, eq.(2.12)
             // and Morris et al.,"Modeling Low Reynolds Number Incompressible Flows Using SPH, 1997" suitable for
             // Poiseulle flow, or oil, honey, etc

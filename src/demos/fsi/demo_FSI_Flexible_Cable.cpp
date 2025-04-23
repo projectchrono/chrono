@@ -93,8 +93,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type);
+                     std::string& boundary_method,
+                     std::string& viscosity_method);
 
 // -----------------------------------------------------------------------------
 
@@ -118,11 +118,11 @@ int main(int argc, char* argv[]) {
     double render_fps = 400;
     bool snapshots = false;
     int ps_freq = 1;
-    std::string boundary_type = "adami";
-    std::string viscosity_type =
+    std::string boundary_method = "adami";
+    std::string viscosity_method =
         (problem_type == PhysicsProblem::CFD) ? "artificial_unilateral" : "artificial_bilateral";
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_type, viscosity_type)) {
+                         boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -211,17 +211,17 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    if (boundary_type == "holmes")
-        sph_params.boundary_type = BoundaryType::HOLMES;
+    if (boundary_method == "holmes")
+        sph_params.boundary_method = BoundaryMethod::HOLMES;
     else
-        sph_params.boundary_type = BoundaryType::ADAMI;
+        sph_params.boundary_method = BoundaryMethod::ADAMI;
 
-    if (viscosity_type == "laminar")
-        sph_params.viscosity_type = ViscosityType::LAMINAR;
-    else if (viscosity_type == "artificial_bilateral")
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    if (viscosity_method == "laminar")
+        sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    else if (viscosity_method == "artificial_bilateral")
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     else
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
 
     fsi.SetSPHParameters(sph_params);
 
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + viscosity_type + "_" + boundary_type + "_ps" + std::to_string(ps_freq);
+    out_dir = out_dir + viscosity_method + "_" + boundary_method + "_ps" + std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -579,8 +579,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type) {
+                     std::string& boundary_method,
+                     std::string& viscosity_method) {
     ChCLI cli(argv[0], "Flexible cable FSI demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -595,9 +595,9 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", boundary_type);
-    cli.AddOption<std::string>("Physics", "viscosity_type",
-                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_type);
+    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", boundary_method);
+    cli.AddOption<std::string>("Physics", "viscosity_method",
+                               "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)", viscosity_method);
 
     if (!cli.Parse(argc, argv)) {
         cli.Help();
@@ -615,8 +615,8 @@ bool GetProblemSpecs(int argc,
     render_fps = cli.GetAsType<double>("render_fps");
     ps_freq = cli.GetAsType<int>("ps_freq");
 
-    boundary_type = cli.GetAsType<std::string>("boundary_type");
-    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    boundary_method = cli.GetAsType<std::string>("boundary_method");
+    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
 
     return true;
 }

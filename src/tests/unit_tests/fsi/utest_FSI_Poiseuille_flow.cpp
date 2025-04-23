@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
     sph_params.max_velocity = 0.1;
     sph_params.shifting_method = ShiftingMethod::NONE;
     sph_params.density_reinit_steps = 10000;
-    sph_params.viscosity_type = ViscosityType::LAMINAR;
+    sph_params.viscosity_method = ViscosityMethod::LAMINAR;
     sph_params.use_delta_sph = false;
     sph_params.eos_type = EosType::ISOTHERMAL;
     sph_params.consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity

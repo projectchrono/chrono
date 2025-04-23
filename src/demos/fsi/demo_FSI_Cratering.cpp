@@ -74,8 +74,8 @@ bool GetProblemSpecs(int argc,
                      double& sphere_density,
                      double& Hdrop,
                      bool& render,
-                     std::string& boundary_type,
-                     std::string& viscosity_type) {
+                     std::string& boundary_method,
+                     std::string& viscosity_method) {
     ChCLI cli(argv[0], "FSI Cratering Demo");
 
     cli.AddOption<double>("Simulation", "t_end", "End time", std::to_string(t_end));
@@ -88,8 +88,8 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Geometry", "Hdrop", "Drop height", std::to_string(Hdrop));
     cli.AddOption<bool>("Visualization", "no_vis", "Disable run-time visualization");
 
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Physics", "viscosity_type",
+    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_method",
                                "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     if (!cli.Parse(argc, argv))
@@ -105,8 +105,8 @@ bool GetProblemSpecs(int argc,
     Hdrop = cli.GetAsType<double>("Hdrop");
     render = !cli.GetAsType<bool>("no_vis");
 
-    boundary_type = cli.GetAsType<std::string>("boundary_type");
-    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    boundary_method = cli.GetAsType<std::string>("boundary_method");
+    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
 
     return true;
 }
@@ -123,12 +123,12 @@ int main(int argc, char* argv[]) {
     double Hdrop = 0.5;
     bool render = true;
     double render_fps = 400;
-    std::string boundary_type = "adami";
-    std::string viscosity_type = "artificial_unilateral";
+    std::string boundary_method = "adami";
+    std::string viscosity_method = "artificial_unilateral";
 
     // Parse command-line arguments
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, snapshots, ps_freq, sphere_density, Hdrop,
-                         render, boundary_type, viscosity_type)) {
+                         render, boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -141,17 +141,17 @@ int main(int argc, char* argv[]) {
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     // Set boundary type
-    if (boundary_type == "holmes") {
-        sysSPH.SetBoundaryType(BoundaryType::HOLMES);
+    if (boundary_method == "holmes") {
+        sysSPH.SetBoundaryType(BoundaryMethod::HOLMES);
     } else {
-        sysSPH.SetBoundaryType(BoundaryType::ADAMI);
+        sysSPH.SetBoundaryType(BoundaryMethod::ADAMI);
     }
 
     // Set viscosity type
-    if (viscosity_type == "artificial_bilateral") {
-        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_BILATERAL);
+    if (viscosity_method == "artificial_bilateral") {
+        sysSPH.SetViscosityType(ViscosityMethod::ARTIFICIAL_BILATERAL);
     } else {
-        sysSPH.SetViscosityType(ViscosityType::ARTIFICIAL_UNILATERAL);
+        sysSPH.SetViscosityType(ViscosityMethod::ARTIFICIAL_UNILATERAL);
     }
 
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Cratering_granular.json");
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::stringstream ss;
-        ss << viscosity_type << "_" << boundary_type;
+        ss << viscosity_method << "_" << boundary_method;
         ss << "_ps" << ps_freq;
         ss << "_d" << sphere_density;
         ss << "_h" << Hdrop;
