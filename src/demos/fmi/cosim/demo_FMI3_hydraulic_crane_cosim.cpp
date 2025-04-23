@@ -12,13 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo illustrating the co-simulation of 2 FMUs (FMI 2.0), a hydraulic actuator
+// Demo illustrating the co-simulation of 2 FMUs (FMI 3.0), a hydraulic actuator
 // and a simple crane multibody system.
 //
 // =============================================================================
 
 #include "chrono_fmi/ChConfigFMI.h"
-#include "chrono_fmi/fmi2/ChFmuToolsImport.h"
+#include "chrono_fmi/fmi3/ChFmuToolsImport.h"
 
 #include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -30,24 +30,21 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace chrono::fmi2;
+using namespace chrono::fmi3;
 
 // -----------------------------------------------------------------------------
 
 void CreateCraneFMU(FmuChronoUnit& crane_fmu,
                     const std::string& fmu_filename,
                     const std::string& fmu_unpack_dir,
-                    double start_time,
-                    double stop_time,
                     const std::vector<std::string>& logCategories) {
     try {
-        crane_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-        ////crane_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename); // will go in TEMP/_fmu_temp
+        crane_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
+        ////crane_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename); // will go in TEMP/_fmu_temp
     } catch (std::exception&) {
         throw;
     }
     std::cout << "Crane FMU version:  " << crane_fmu.GetVersion() << "\n";
-    std::cout << "Crane FMU platform: " << crane_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU: enable visualization
     try {
@@ -58,27 +55,22 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
 
     // Set debug logging
     if (!logCategories.empty())
-        crane_fmu.SetDebugLogging(fmi2True, logCategories);
+        crane_fmu.SetDebugLogging(fmi3True, logCategories);
     else
-        crane_fmu.SetDebugLogging(fmi2False, {});
-
-    // Initialize FMU
-    crane_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
-                              start_time,             // start time
-                              fmi2False, stop_time);  // use stop time
+        crane_fmu.SetDebugLogging(fmi3False, {});
 
     // Set fixed parameters
-    fmi2Real crane_mass = 500.0;
-    fmi2Real crane_length = 1.0;
-    fmi2Real pend_mass = 100;
-    fmi2Real pend_length = 0.3;
-    fmi2Real crane_angle = CH_PI / 6;
+    fmi3Float64 crane_mass = 500.0;
+    fmi3Float64 crane_length = 1.0;
+    fmi3Float64 pend_mass = 100;
+    fmi3Float64 pend_length = 0.3;
+    fmi3Float64 crane_angle = CH_PI / 6;
 
-    crane_fmu.SetVariable("crane_mass", crane_mass, FmuVariable::Type::Real);
-    crane_fmu.SetVariable("crane_length", crane_length, FmuVariable::Type::Real);
-    crane_fmu.SetVariable("pend_mass", pend_mass, FmuVariable::Type::Real);
-    crane_fmu.SetVariable("pend_length", pend_length, FmuVariable::Type::Real);
-    crane_fmu.SetVariable("crane_angle", crane_angle, FmuVariable::Type::Real);
+    crane_fmu.SetVariable("crane_mass", crane_mass);
+    crane_fmu.SetVariable("crane_length", crane_length);
+    crane_fmu.SetVariable("pend_mass", pend_mass);
+    crane_fmu.SetVariable("pend_length", pend_length);
+    crane_fmu.SetVariable("crane_angle", crane_angle);
 }
 
 // -----------------------------------------------------------------------------
@@ -86,17 +78,14 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
 void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
                        const std::string& fmu_filename,
                        const std::string& fmu_unpack_dir,
-                       double start_time,
-                       double stop_time,
                        const std::vector<std::string>& logCategories) {
     try {
-        actuator_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename, fmu_unpack_dir);
-        ////actuator_fmu.Load(fmi2Type::fmi2CoSimulation, fmu_filename); // will go in TEMP/_fmu_temp
+        actuator_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
+        ////actuator_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename); // will go in TEMP/_fmu_temp
     } catch (std::exception&) {
         throw;
     }
     std::cout << "Actuator FMU version:  " << actuator_fmu.GetVersion() << "\n";
-    std::cout << "Actuator FMU platform: " << actuator_fmu.GetTypesPlatform() << "\n";
 
     // Instantiate FMU
     try {
@@ -107,14 +96,9 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
 
     // Set debug logging
     if (!logCategories.empty())
-        actuator_fmu.SetDebugLogging(fmi2True, logCategories);
+        actuator_fmu.SetDebugLogging(fmi3True, logCategories);
     else
-        actuator_fmu.SetDebugLogging(fmi2False, {});
-
-    // Initialize FMU
-    actuator_fmu.SetupExperiment(fmi2False, 0.0,         // define tolerance
-                                 start_time,             // start time
-                                 fmi2False, stop_time);  // use stop time
+        actuator_fmu.SetDebugLogging(fmi3False, {});
 
     // Set fixed parameters
     //// TODO - not much exposed right now
@@ -125,12 +109,12 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
 int main(int argc, char* argv[]) {
 #ifdef FMU_EXPORT_SUPPORT
     // FMUs generated in current build
-    std::string crane_fmu_filename = CRANE_FMU_FILENAME;
-    std::string actuator_fmu_filename = ACTUATOR_FMU_FILENAME;
+    std::string crane_fmu_filename = CRANE_FMU3_FILENAME;
+    std::string actuator_fmu_filename = ACTUATOR_FMU3_FILENAME;
 #else
     // Expect fully qualified FMU filenames as program arguments
     if (argc != 3) {
-        std::cout << "Usage: ./demo_FMI2_hydraulic_crane_cosim [crane_FMU_filename] [actuator_FMU_filename]"
+        std::cout << "Usage: ./demo_FMI3_hydraulic_crane_cosim [crane_FMU_filename] [actuator_FMU_filename]"
                   << std::endl;
         return 1;
     }
@@ -143,7 +127,7 @@ int main(int argc, char* argv[]) {
     std::string actuator_unpack_dir = DEMO_FMU_MAIN_DIR + std::string("/tmp_unpack_actuator");
 
     // Create (if needed) output directory
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI_HYDRAULIC_CRANE_COSIM";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI3_HYDRAULIC_CRANE_COSIM";
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
@@ -160,22 +144,27 @@ int main(int argc, char* argv[]) {
     FmuChronoUnit crane_fmu;
     FmuChronoUnit actuator_fmu;
     try {
-        CreateCraneFMU(crane_fmu, crane_fmu_filename, crane_unpack_dir, start_time, stop_time, logCategories);
+        CreateCraneFMU(crane_fmu, crane_fmu_filename, crane_unpack_dir, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading crane FMU: " << e.what() << "\n";
         return 1;
     }
     try {
-        CreateActuatorFMU(actuator_fmu, actuator_fmu_filename, actuator_unpack_dir, start_time, stop_time,
-                          logCategories);
+        CreateActuatorFMU(actuator_fmu, actuator_fmu_filename, actuator_unpack_dir, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading actuator FMU: " << e.what() << "\n";
         return 1;
     }
 
     // Initialize FMUs
-    crane_fmu.EnterInitializationMode();
-    actuator_fmu.EnterInitializationMode();
+    crane_fmu.EnterInitializationMode(fmi3False, 0.0,       // no tolerance defined
+                                      start_time,           // start time
+                                      fmi3False, stop_time  // do not use stop time
+    );
+    actuator_fmu.EnterInitializationMode(fmi3False, 0.0,       // no tolerance defined
+                                         start_time,           // start time
+                                         fmi3False, stop_time  // do not use stop time
+    );
     crane_fmu.ExitInitializationMode();
     actuator_fmu.ExitInitializationMode();
 
@@ -200,35 +189,37 @@ int main(int argc, char* argv[]) {
         std::cout << "\r" << time << "\r";
 
         // ----------- Actuator input signal -> [actuator]
-        fmi2Real Uref = actuation->GetVal(time);
+        fmi3Float64 Uref = actuation->GetVal(time);
 
         // --------- Exchange data
-        fmi2Real F;  // Actuator force  [actuator] -> [crane]
-        fmi2Real s;  // Actuator length [crane] -> [actuator]
-        fmi2Real sd;  // Actuator length rate [crane] -> [actuator]
+        fmi3Float64 F;   // Actuator force  [actuator] -> [crane]
+        fmi3Float64 s;   // Actuator length [crane] -> [actuator]
+        fmi3Float64 sd;  // Actuator length rate [crane] -> [actuator]
 
-        actuator_fmu.GetVariable("F", F, FmuVariable::Type::Real);
-        crane_fmu.GetVariable("s", s, FmuVariable::Type::Real);
-        crane_fmu.GetVariable("sd", sd, FmuVariable::Type::Real);
+        actuator_fmu.GetVariable("F", F);
+        crane_fmu.GetVariable("s", s);
+        crane_fmu.GetVariable("sd", sd);
 
-        crane_fmu.SetVariable("F", F, FmuVariable::Type::Real);
-        actuator_fmu.SetVariable("s", s, FmuVariable::Type::Real);
-        actuator_fmu.SetVariable("sd", sd, FmuVariable::Type::Real);
-        actuator_fmu.SetVariable("Uref", Uref, FmuVariable::Type::Real);
+        crane_fmu.SetVariable("F", F);
+        actuator_fmu.SetVariable("s", s);
+        actuator_fmu.SetVariable("sd", sd);
+        actuator_fmu.SetVariable("Uref", Uref);
+
 
         // ----------- Current actuator state information
-        fmi2Real p1;
-        actuator_fmu.GetVariable("p1", p1, FmuVariable::Type::Real);
-        fmi2Real p2;
-        actuator_fmu.GetVariable("p2", p2, FmuVariable::Type::Real);
-        fmi2Real U;
-        actuator_fmu.GetVariable("U", U, FmuVariable::Type::Real);
+        fmi3Float64 p1;
+        actuator_fmu.GetVariable("p1", p1);
+        fmi3Float64 p2;
+        actuator_fmu.GetVariable("p2", p2);
+        fmi3Float64 U;
+        actuator_fmu.GetVariable("U", U);
+
 
         // ----------- Advance FMUs
-        auto status_crane = crane_fmu.DoStep(time, dt, fmi2True);
-        auto status_actuator = actuator_fmu.DoStep(time, dt, fmi2True);
+        auto status_crane = crane_fmu.DoStep(time, dt, fmi3True);
+        auto status_actuator = actuator_fmu.DoStep(time, dt, fmi3True);
 
-        if (status_crane == fmi2Discard || status_actuator == fmi2Discard)
+        if (status_crane == fmi3Status::fmi3Discard || status_actuator == fmi3Status::fmi3Discard)
             break;
 
         // Save output

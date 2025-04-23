@@ -113,8 +113,6 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
 // -----------------------------------------------------------------------------
 
-// A function added as a post-step callback can be used to prepare (post-process)
-// other output or local FMI variables (here, the cart and pendulum accelerations)
 void FmuComponent::calcAcceleration() {
     a = mu * (1 - q[0] * q[0]) * q[1] - q[0];
 }

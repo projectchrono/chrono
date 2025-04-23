@@ -1,11 +1,20 @@
-set(COMPONENT_NAME "FMU2_vdp")
+set(COMPONENT_NAME "FMU3cs_crane")
 set(COMPONENT_MAIN_DIR "${DEMO_FMU_MAIN_DIR}")
-set(COMPONENT_SOURCES vdpFMU.h vdpFMU.cpp)
+set(COMPONENT_SOURCES craneFMU.h craneFMU.cpp)
 set(COMPONENT_RESOURCES_DIR "")
-set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core)
-set(COMPONENT_DLL_DEPENDENCIES "")
+if (CH_ENABLE_MODULE_IRRLICHT)
+  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_irrlicht)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
+  else()
+    set(COMPONENT_DLL_DEPENDENCIES "")
+  endif()
+else()
+  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core)
+endif()
 
-set(FMU_ME ON)
+set(FMU_CS TRUE)
+#set(FMU_TESTING ON)
 
 #--------------------------------------------------------------
 
@@ -13,6 +22,10 @@ set(FMU_ME ON)
 list(APPEND LIBS Chrono_core)
 
 include_directories(${FMU_TOOLS_DIR})
+
+if(CH_ENABLE_MODULE_IRRLICHT)
+  list(APPEND LIBS "Chrono_irrlicht")
+endif()
 
 #==============================================================
 
@@ -28,7 +41,7 @@ set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}/fmi2
+    SOURCE_DIR ${FMU_TOOLS_DIR}/fmi3
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
@@ -56,7 +69,7 @@ endif()
 
 #--------------------------------------------------------------
 
-set(VDP_FMU2_MODEL_IDENTIFIER ${FMU_MODEL_IDENTIFIER} PARENT_SCOPE)
-set(VDP_FMU2_DIRECTORY ${FMU_DIRECTORY} PARENT_SCOPE)
-set(VDP_FMU2_FILENAME ${FMU_FILENAME} PARENT_SCOPE)
-set(VDP_FMU2_RUNTIME_OUTPUT_DIRECTORY ${FMU_RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
+set(CRANE_FMU3_MODEL_IDENTIFIER ${FMU_MODEL_IDENTIFIER} PARENT_SCOPE)
+set(CRANE_FMU3_DIRECTORY ${FMU_DIRECTORY} PARENT_SCOPE)
+set(CRANE_FMU3_FILENAME ${FMU_FILENAME} PARENT_SCOPE)
+set(CRANE_FMU3_RUNTIME_OUTPUT_DIRECTORY ${FMU_RUNTIME_OUTPUT_DIRECTORY} PARENT_SCOPE)
