@@ -193,6 +193,12 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
     sph_joint->Initialize(m_crane, ball, ChFrame<>(2.0 * crane_pos, QUNIT));
     sys.AddLink(sph_joint);
 
+    // Create a dummy TSDA (zero force) to visualize the actuator connection
+    auto dummy_tsda = chrono_types::make_shared<ChLinkTSDA>();
+    dummy_tsda->Initialize(ground, m_crane, true, m_point_ground, m_point_crane);
+    dummy_tsda->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+    sys.AddLink(dummy_tsda);
+
     // Create an external force load on crane
     auto load_container = std::make_shared<ChLoadContainer>();
     m_external_load = chrono_types::make_shared<ChLoadBodyForce>(m_crane, VNULL, false, VNULL, false);

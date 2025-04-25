@@ -413,6 +413,7 @@ int main(int argc, char* argv[]) {
         gplot.SetLabelX("time");
         gplot.SetLabelY("F");
         gplot.SetTitle("Hydro Force");
+        gplot.SetRangeY(1000, 9000);
         gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
     }
 #endif
