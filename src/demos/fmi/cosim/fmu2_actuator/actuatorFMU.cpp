@@ -149,6 +149,18 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
     CalculatePistonPressures();
     CalculateValvePosition();
 
+    // Set solver and integrator
+    auto solver = chrono_types::make_shared<ChSolverSparseQR>();
+    sys.SetSolver(solver);
+    solver->UseSparsityPatternLearner(true);
+    solver->LockSparsityPattern(true);
+    solver->SetVerbose(false);
+
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+    auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
+    integrator->SetMaxIters(50);
+    integrator->SetAbsTolerances(1e-4, 1e2);
+
     sys.DoAssembly(AssemblyAnalysis::Level::FULL);
 
     return fmi2Status::fmi2OK;
