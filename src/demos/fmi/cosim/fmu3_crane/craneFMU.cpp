@@ -238,6 +238,7 @@ fmi3Status FmuComponent::exitInitializationModeIMPL() {
         vis_sys->SetWindowSize(800, 600);
         vis_sys->SetWindowTitle("Hydraulic crane FMU (FMI 3.0)");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
+        vis_sys->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
         vis_sys->Initialize();
         vis_sys->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
         vis_sys->AddTypicalLights();
@@ -266,7 +267,7 @@ fmi3Status FmuComponent::doStepIMPL(fmi3Float64 currentCommunicationPoint,
             auto status = vis_sys->Run();
             if (!status)
                 return fmi3Status::fmi3Discard;
-            vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
+            vis_sys->BeginScene();
             vis_sys->Render();
             vis_sys->EndScene();
         }

@@ -721,7 +721,6 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
       m_current_time(0),
       m_fps(0) {
     m_windowTitle = string("Window Title");
-    m_clearColor = ChColor(0.07f, 0.1f, 0.12f);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
@@ -899,14 +898,6 @@ void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
         return;
     }
     m_windowTitle = title;
-}
-
-void ChVisualSystemVSG::SetClearColor(const ChColor& color) {
-    if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetClearColor can only be called before initialization!" << std::endl;
-        return;
-    }
-    m_clearColor = color;
 }
 
 void ChVisualSystemVSG::EnableSkyBox(bool val) {
@@ -1157,7 +1148,7 @@ void ChVisualSystemVSG::Initialize() {
         std::cout << "----------------------------------------------------" << std::endl;
     }
 
-    m_window->clearColor() = VkClearColorValue{{m_clearColor.R, m_clearColor.G, m_clearColor.B, 1}};
+    m_window->clearColor() = VkClearColorValue{{m_background_color.R, m_background_color.G, m_background_color.B, 1}};
     m_viewer->addWindow(m_window);
 
     // set up the camera

@@ -182,7 +182,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetWindowPosition(const ChVector2i& pos);
     void SetWindowPosition(int from_left, int from_top);
     void SetWindowTitle(const std::string& title);
-    void SetClearColor(const ChColor& color);
     void SetOutputScreen(int screenNum = 0);
 
     /// Enable full-screen mode (default: false).
@@ -493,7 +492,6 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     int m_windowX = 0;
     int m_windowY = 0;
     std::string m_windowTitle;
-    ChColor m_clearColor;
 
     int m_numThreads = 16;
     vsg::ref_ptr<vsg::OperationThreads> m_loadThreads;

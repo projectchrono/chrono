@@ -317,7 +317,7 @@ fmi2Status FmuComponent::doStepIMPL(fmi2Real currentCommunicationPoint,
             auto status = vis_sys->Run();
             if (!status)
                 return fmi2Discard;
-            vis_sys->BeginScene(true, true, ChColor(0.33f, 0.6f, 0.78f));
+            vis_sys->BeginScene(true, true);
             vis_sys->Render();
             vis_sys->RenderFrame(ref_frame);
             vis_sys->EndScene();

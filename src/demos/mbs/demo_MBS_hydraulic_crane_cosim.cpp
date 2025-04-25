@@ -353,10 +353,10 @@ int main(int argc, char* argv[]) {
                 vis_irr->SetWindowSize(800, 600);
                 vis_irr->SetWindowTitle("Hydraulic actuator co-simulation demo");
                 vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+                vis_irr->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
                 vis_irr->Initialize();
                 vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
                 vis_irr->AddLogo();
-                vis_irr->AddSkyBox();
                 vis_irr->AddTypicalLights();
                 vis_irr->AttachSystem(&sysMBS);
 
@@ -371,12 +371,11 @@ int main(int argc, char* argv[]) {
                 vis_vsg->AttachSystem(&sysMBS);
                 vis_vsg->AttachSystem(&sysHYD);
                 vis_vsg->SetWindowTitle("Hydraulic actuator co-simulation demo");
+                vis_vsg->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
                 vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
                 vis_vsg->AddCamera(ChVector3d(0.5, -2, 0.5), ChVector3d(0.5, 0, 0.5));
                 vis_vsg->SetWindowSize(1280, 800);
                 vis_vsg->SetWindowPosition(100, 100);
-                vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-                vis_vsg->EnableSkyBox();
                 vis_vsg->SetCameraAngleDeg(40.0);
                 vis_vsg->SetLightIntensity(1.0f);
                 vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

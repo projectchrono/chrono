@@ -121,15 +121,15 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    if (argc > 1) {
-        render = false;
-        output = false;
-    }
-
 #ifdef FMU_EXPORT_SUPPORT
     // FMUs generated in current build
     std::string crane_fmu_filename = CRANE_FMU3_FILENAME;
     std::string actuator_fmu_filename = ACTUATOR_FMU3_FILENAME;
+
+    if (argc > 1) {
+        render = false;
+        output = false;
+    }
 #else
     // Expect fully qualified FMU filenames as program arguments
     if (argc != 3) {

@@ -286,7 +286,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void BeginScene() override;
 
     /// Clean the canvas at the beginning of each rendering frame.
-    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color);
+    virtual void BeginScene(bool backBuffer, bool zBuffer);
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
