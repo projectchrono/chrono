@@ -53,6 +53,8 @@ using namespace chrono;
 void PrintInfo(const ChExternalFmu& fmu_wrapper);
 
 int main(int argc, char* argv[]) {
+    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
     // --------------------------------
     // Specify FMU and unpack directory
     // --------------------------------
@@ -78,7 +80,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // FMU unpack directory
-    std::string unpack_dir = DEMO_FMU_MAIN_DIR + std::string("/tmp_unpack_fmu/");
+    std::string unpack_dir = DEMO_FMU_MAIN_DIR + std::string("/tmp_unpack_vdp_fmu_me/");
 
     // ---------------------------------------------------
     // Construct and initialize the external FMU component
@@ -114,7 +116,7 @@ int main(int argc, char* argv[]) {
     // Prepare output
     // --------------
 
-    std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI_INTEGRATION_MODEX";
+    std::string out_dir = GetChronoOutputPath() + "./DEMO_FMI_VDP_MODEX";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
