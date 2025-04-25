@@ -45,6 +45,10 @@ class ChFmu2Wrapper : public ChFmuWrapper {
     virtual std::unordered_set<std::string> GetRealParametersList() const override;
     virtual std::unordered_set<std::string> GetIntParametersList() const override;
     virtual std::unordered_set<std::string> GetRealInputsList() const override;
+    virtual double GetRealVariable(const std::string& name) override;
+    virtual int GetIntVariable(const std::string& name) override;
+    virtual void SetRealVariable(const std::string& name, double val) override;
+    virtual void SetIntVariable(const std::string& name, int val) override;
     virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                             const std::unordered_map<std::string, double>& parameters_real,
                             const std::unordered_map<std::string, int>& parameters_int) override;
@@ -85,6 +89,10 @@ class ChFmu3Wrapper : public ChFmuWrapper {
     virtual std::unordered_set<std::string> GetRealParametersList() const override;
     virtual std::unordered_set<std::string> GetIntParametersList() const override;
     virtual std::unordered_set<std::string> GetRealInputsList() const override;
+    virtual double GetRealVariable(const std::string& name) override;
+    virtual int GetIntVariable(const std::string& name) override;
+    virtual void SetRealVariable(const std::string& name, double val) override;
+    virtual void SetIntVariable(const std::string& name, int val) override;
     virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                             const std::unordered_map<std::string, double>& parameters_real,
                             const std::unordered_map<std::string, int>& parameters_int) override;
@@ -158,6 +166,22 @@ std::unordered_set<std::string> ChExternalFmu::GetRealInputsList() const {
     return m_wrapper->GetRealInputsList();
 }
 
+double ChExternalFmu::GetRealVariable(const std::string& name) const {
+    return m_wrapper->GetRealVariable(name);
+}
+
+int ChExternalFmu::GetIntVariable(const std::string& name) const {
+    return m_wrapper->GetIntVariable(name);
+}
+
+void ChExternalFmu::SetRealVariable(const std::string& name, double val) {
+    m_wrapper->SetRealVariable(name, val);
+}
+
+void ChExternalFmu::SetIntVariable(const std::string& name, double val) {
+    m_wrapper->SetIntVariable(name, val);
+}
+
 void ChExternalFmu::SetInitialCondition(const std::string& name, double value) {
     if (m_initialized) {
         std::cerr << "SetInitialCondition cannot be called after Initialize()";
@@ -223,7 +247,24 @@ void ChExternalFmu::SetRealInputFunction(const std::string& name, std::function<
         throw std::runtime_error("SetRealInputFunction: " + err_msg);
     }
 
-    m_inputs_real.insert({name, function});
+    m_input_functions.insert({name, function});
+}
+
+void ChExternalFmu::SetRealInputChFunction(const std::string& name, std::shared_ptr<ChFunction> function) {
+    if (m_initialized) {
+        std::cerr << "SetRealInputChFunction cannot be called after Initialize()";
+        throw std::runtime_error("SetRealInputChFunction cannot be called after Initialize()");
+    }
+
+    std::string err_msg;
+    bool ok = m_wrapper->checkInput(name, err_msg);
+
+    if (!ok) {
+        std::cerr << "SetRealInputChFunction: " + err_msg << std::endl;
+        throw std::runtime_error("SetRealInputChFunction: " + err_msg);
+    }
+
+    m_input_chfunctions.insert({name, function});
 }
 
 void ChExternalFmu::Initialize() {
@@ -264,8 +305,12 @@ void ChExternalFmu::CalculateRHS(double time, const ChVectorDynamic<>& y, ChVect
 void ChExternalFmu::Update(double time, bool update_assets) {
     // Collect input values at current time
     std::unordered_map<std::string, double> inputs_real;
-    for (const auto& v : m_inputs_real) {
+    for (const auto& v : m_input_functions) {
         double value = v.second(time);
+        inputs_real.insert({v.first, value});
+    }
+    for (const auto& v : m_input_chfunctions) {
+        double value = v.second->GetVal(time);
         inputs_real.insert({v.first, value});
     }
 
@@ -314,10 +359,10 @@ ChFmu2Wrapper::ChFmu2Wrapper(const std::string& instance_name,
 
     // Set up an experiment
     m_fmu.SetupExperiment(fmi2False,  // no tolerance defined
-                           0.0,        // tolerance (dummy)
-                           0.0,        // start time
-                           fmi2False,  // do not use stop time
-                           1.0         // stop time (dummy)
+                          0.0,        // tolerance (dummy)
+                          0.0,        // start time
+                          fmi2False,  // do not use stop time
+                          1.0         // stop time (dummy)
     );
 }
 
@@ -380,6 +425,26 @@ std::unordered_set<std::string> ChFmu2Wrapper::GetRealInputsList() const {
     }
 
     return list;
+}
+
+double ChFmu2Wrapper::GetRealVariable(const std::string& name) {
+    double val;
+    m_fmu.GetVariable(name, val, FmuVariable::Type::Real);
+    return val;
+}
+
+int ChFmu2Wrapper::GetIntVariable(const std::string& name) {
+    int val;
+    m_fmu.GetVariable(name, val, FmuVariable::Type::Integer);
+    return val;
+}
+
+void ChFmu2Wrapper::SetRealVariable(const std::string& name, double val) {
+    m_fmu.SetVariable(name, val, FmuVariable::Type::Real);
+}
+
+void ChFmu2Wrapper::SetIntVariable(const std::string& name, int val) {
+    m_fmu.SetVariable(name, val, FmuVariable::Type::Integer);
 }
 
 // Initialize underlying FMU
@@ -596,15 +661,35 @@ std::unordered_set<std::string> ChFmu3Wrapper::GetRealInputsList() const {
     return list;
 }
 
+double ChFmu3Wrapper::GetRealVariable(const std::string& name) {
+    double val;
+    m_fmu.GetVariable(name, val);
+    return val;
+}
+
+int ChFmu3Wrapper::GetIntVariable(const std::string& name) {
+    int val;
+    m_fmu.GetVariable(name, val);
+    return val;
+}
+
+void ChFmu3Wrapper::SetRealVariable(const std::string& name, double val) {
+    m_fmu.SetVariable(name, val);
+}
+
+void ChFmu3Wrapper::SetIntVariable(const std::string& name, int val) {
+    m_fmu.SetVariable(name, val);
+}
+
 // Initialize underlying FMU
 void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                                const std::unordered_map<std::string, double>& parameters_real,
                                const std::unordered_map<std::string, int>& parameters_int) {
     m_fmu.EnterInitializationMode(fmi3False,  // no tolerance defined
-                                   0.0,        // tolerance (dummy)
-                                   0.0,        // start time
-                                   fmi3False,  // do not use stop time
-                                   1.0         // stop time (dummy)
+                                  0.0,        // tolerance (dummy)
+                                  0.0,        // start time
+                                  fmi3False,  // do not use stop time
+                                  1.0         // stop time (dummy)
     );
 
     // Set initial conditions

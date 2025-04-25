@@ -24,6 +24,7 @@
 #include <unordered_map>
 
 #include "chrono_fmi/ChApiFMI.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChExternalDynamicsODE.h"
 
 namespace chrono {
@@ -42,6 +43,10 @@ class ChFmuWrapper {
     virtual std::unordered_set<std::string> GetRealParametersList() const = 0;
     virtual std::unordered_set<std::string> GetIntParametersList() const = 0;
     virtual std::unordered_set<std::string> GetRealInputsList() const = 0;
+    virtual double GetRealVariable(const std::string& name) = 0;
+    virtual int GetIntVariable(const std::string& name) = 0;
+    virtual void SetRealVariable(const std::string& name, double val) = 0;
+    virtual void SetIntVariable(const std::string& name, int val) = 0;
     virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                             const std::unordered_map<std::string, double>& parameters_real,
                             const std::unordered_map<std::string, int>& parameters_int) = 0;
@@ -63,6 +68,7 @@ class ChFmuWrapper {
 class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
   public:
     ChExternalFmu();
+    virtual ~ChExternalFmu() {}
 
     /// Set verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
@@ -119,11 +125,29 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     /// variability!="constant" that has initial="exact" or causality="input" and is not a state variable.
     void SetIntParameterValue(const std::string& name, int value);
 
-    /// Set a continuous input function.
+    /// Set a continuous input (as an std::function).
     /// This function will be called automatically during the simulation loop, before interogating the FMU for the model
     /// equations, to return a value that is then used to set the FMU variable with specified name at the current time.
     /// Continuous inputs are floating point FMU variables, with causality="input" and variability="continuous".
     void SetRealInputFunction(const std::string& name, std::function<double(double)> function);
+
+    /// Set a continuous input (as a ChFunction).
+    /// This function will be called automatically during the simulation loop, before interogating the FMU for the model
+    /// equations, to return a value that is then used to set the FMU variable with specified name at the current time.
+    /// Continuous inputs are floating point FMU variables, with causality="input" and variability="continuous".
+    void SetRealInputChFunction(const std::string& name, std::shared_ptr<ChFunction> function);
+
+    /// Get the value of a real variable.
+    double GetRealVariable(const std::string& name) const;
+
+    /// Get the value of an integer variable.
+    int GetIntVariable(const std::string& name) const;
+
+    /// Set the value of a real variable.
+    void SetRealVariable(const std::string& name, double val);
+
+    /// Set the value of an integer variable.
+    void SetIntVariable(const std::string& name, double val);
 
     /// Initialize this physics item.
     /// This function initializes the underlying FMU as well as this physics item.
@@ -132,7 +156,7 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     /// Print the list of FMU variables.
     void PrintFmuVariables() const;
 
-  private:
+  protected:
     /// Set initial conditions.
     /// Must load y0 = y(0).
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
@@ -155,7 +179,8 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     std::unordered_map<std::string, double> m_initial_conditions;
     std::unordered_map<std::string, double> m_parameters_real;
     std::unordered_map<std::string, int> m_parameters_int;
-    std::unordered_map<std::string, std::function<double(double)>> m_inputs_real;
+    std::unordered_map<std::string, std::function<double(double)>> m_input_functions;
+    std::unordered_map<std::string, std::shared_ptr<ChFunction>> m_input_chfunctions;
 };
 
 /// @} chrono_fmi
