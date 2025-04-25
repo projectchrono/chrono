@@ -459,25 +459,28 @@ class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
 
         // Check if state_name corresponds to a ChVector3 or ChQuaternion object
         if (variables_vec.find(state_name) != variables_vec.end()) {
-            derivatives.push_back(state_name + ".x");
-            derivatives.push_back(state_name + ".y");
-            derivatives.push_back(state_name + ".z");
+            states.push_back(state_name + ".x");
+            states.push_back(state_name + ".y");
+            states.push_back(state_name + ".z");
         } else if (variables_quat.find(state_name) != variables_quat.end()) {
-            derivatives.push_back(state_name + ".e0");
-            derivatives.push_back(state_name + ".e1");
-            derivatives.push_back(state_name + ".e2");
-            derivatives.push_back(state_name + ".e3");
+            states.push_back(state_name + ".e0");
+            states.push_back(state_name + ".e1");
+            states.push_back(state_name + ".e2");
+            states.push_back(state_name + ".e3");
         } else if (variables_csys.find(state_name) != variables_csys.end()) {
             throw std::runtime_error("State of type ChCoordsys not allowed.");
         } else if (variables_framem.find(state_name) != variables_framem.end()) {
             throw std::runtime_error("State of type ChFrameMoving not allowed.");
         } else {
-            derivatives.push_back(state_name);
+            states.push_back(state_name);
         }
 
         // Sanity check
+        auto num_states = states.size();
         auto num_derivatives = derivatives.size();
-        if (states.size() != num_derivatives) {
+        if (num_states != num_derivatives) {
+            std::cerr << "Error: number of derivatives (" << num_derivatives << ") does not match number of states ("
+                      << num_states << ")" << std::endl;
             throw std::runtime_error(
                 "Incorrect state derivative declaration (number of derivatives does not match number of states).");
         }
