@@ -34,9 +34,20 @@ using namespace chrono::fmi3;
 
 // -----------------------------------------------------------------------------
 
+bool render = true;
+bool output = true;
+
+double t_start = 0;
+double t_end = 25;
+
+double t_step = 5e-4;
+
+// -----------------------------------------------------------------------------
+
 void CreateCraneFMU(FmuChronoUnit& crane_fmu,
                     const std::string& fmu_filename,
                     const std::string& fmu_unpack_dir,
+                    bool visible,
                     const std::vector<std::string>& logCategories) {
     try {
         crane_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
@@ -48,7 +59,7 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
 
     // Instantiate FMU: enable visualization
     try {
-        crane_fmu.Instantiate("CraneFmuComponent", false, true);
+        crane_fmu.Instantiate("CraneFmuComponent", false, visible);
     } catch (std::exception&) {
         throw;
     }
@@ -78,6 +89,7 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
 void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
                        const std::string& fmu_filename,
                        const std::string& fmu_unpack_dir,
+                       bool visible,
                        const std::vector<std::string>& logCategories) {
     try {
         actuator_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
@@ -89,7 +101,7 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
 
     // Instantiate FMU
     try {
-        actuator_fmu.Instantiate("ActuatorFmuComponent");
+        actuator_fmu.Instantiate("ActuatorFmuComponent", false, visible);
     } catch (std::exception&) {
         throw;
     }
@@ -107,6 +119,13 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    if (argc > 1) {
+        render = false;
+        output = false;
+    }
+
 #ifdef FMU_EXPORT_SUPPORT
     // FMUs generated in current build
     std::string crane_fmu_filename = CRANE_FMU3_FILENAME;
@@ -137,33 +156,30 @@ int main(int argc, char* argv[]) {
     ////std::vector<std::string> logCategories = {"logAll"};
     std::vector<std::string> logCategories;
 
-    double start_time = 0;
-    double stop_time = 20;
-
     // Create the 2 FMUs
     FmuChronoUnit crane_fmu;
     FmuChronoUnit actuator_fmu;
     try {
-        CreateCraneFMU(crane_fmu, crane_fmu_filename, crane_unpack_dir, logCategories);
+        CreateCraneFMU(crane_fmu, crane_fmu_filename, crane_unpack_dir, render, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading crane FMU: " << e.what() << "\n";
         return 1;
     }
     try {
-        CreateActuatorFMU(actuator_fmu, actuator_fmu_filename, actuator_unpack_dir, logCategories);
+        CreateActuatorFMU(actuator_fmu, actuator_fmu_filename, actuator_unpack_dir, render, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading actuator FMU: " << e.what() << "\n";
         return 1;
     }
 
     // Initialize FMUs
-    crane_fmu.EnterInitializationMode(fmi3False, 0.0,       // no tolerance defined
-                                      start_time,           // start time
-                                      fmi3False, stop_time  // do not use stop time
+    crane_fmu.EnterInitializationMode(fmi3False, 0.0,   // no tolerance defined
+                                      t_start,          // start time
+                                      fmi3False, t_end  // do not use stop time
     );
-    actuator_fmu.EnterInitializationMode(fmi3False, 0.0,       // no tolerance defined
-                                         start_time,           // start time
-                                         fmi3False, stop_time  // do not use stop time
+    actuator_fmu.EnterInitializationMode(fmi3False, 0.0,   // no tolerance defined
+                                         t_start,          // start time
+                                         fmi3False, t_end  // do not use stop time
     );
     crane_fmu.ExitInitializationMode();
     actuator_fmu.ExitInitializationMode();
@@ -182,11 +198,12 @@ int main(int argc, char* argv[]) {
     csv.SetDelimiter(" ");
 
     // Simulation loop
-    double time = 0;
-    double dt = 5e-4;
+    double time = t_start;
 
-    while (time < stop_time) {
-        std::cout << "\r" << time << "\r";
+    ChTimer timer;
+    timer.start();
+    while (time < t_end) {
+        ////std::cout << "\r" << time << "\r";
 
         // ----------- Actuator input signal -> [actuator]
         fmi3Float64 Uref = actuation->GetVal(time);
@@ -205,7 +222,6 @@ int main(int argc, char* argv[]) {
         actuator_fmu.SetVariable("sd", sd);
         actuator_fmu.SetVariable("Uref", Uref);
 
-
         // ----------- Current actuator state information
         fmi3Float64 p1;
         actuator_fmu.GetVariable("p1", p1);
@@ -214,67 +230,70 @@ int main(int argc, char* argv[]) {
         fmi3Float64 U;
         actuator_fmu.GetVariable("U", U);
 
-
         // ----------- Advance FMUs
-        auto status_crane = crane_fmu.DoStep(time, dt, fmi3True);
-        auto status_actuator = actuator_fmu.DoStep(time, dt, fmi3True);
+        auto status_crane = crane_fmu.DoStep(time, t_step, fmi3True);
+        auto status_actuator = actuator_fmu.DoStep(time, t_step, fmi3True);
 
         if (status_crane == fmi3Status::fmi3Discard || status_actuator == fmi3Status::fmi3Discard)
             break;
 
         // Save output
-        ////std::cout << time << " s,sd = (" << s << "," << sd << ")  F = " << F << std::endl;
-        csv << time << s << sd << Uref << U << p1 << p2 << F << std::endl;
+        if (output)
+            csv << time << s << sd << Uref << U << p1 << p2 << F << std::endl;
 
-        time += dt;
+        time += t_step;
     }
+    timer.stop();
+    auto RTF = timer() / t_end;
+    std::cout << "sim time: " << t_end << "  RTF: " << RTF;
 
-    std::string out_file = out_dir + "/hydraulic_crane.out";
-    csv.WriteToFile(out_file);
+    if (output) {
+        std::string out_file = out_dir + "/hydraulic_crane.out";
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("s");
-        gplot.SetTitle("Actuator length");
-        gplot << "set ylabel 's'";
-        gplot << "set y2label 'sd'";
-        gplot << "set ytics nomirror tc lt 1";
-        gplot << "set y2tics nomirror tc lt 2";
-        gplot.Plot(out_file, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
-        gplot.Plot(out_file, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("U");
-        gplot.SetTitle("Hydro Input");
-        gplot.Plot(out_file, 1, 4, "ref", " with lines lt -1 lw 2");
-        gplot.Plot(out_file, 1, 5, "U", " with lines lt 1 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("p");
-        gplot.SetTitle("Hydro Pressures");
-        gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
-        gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("F");
-        gplot.SetTitle("Hydro Force");
-        gplot.SetRangeY(1000, 9000);
-        gplot.Plot(out_file, 1, 8, "F", " with lines lt -1 lw 2");
-    }
-
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("s");
+            gplot.SetTitle("Actuator length");
+            gplot << "set ylabel 's'";
+            gplot << "set y2label 'sd'";
+            gplot << "set ytics nomirror tc lt 1";
+            gplot << "set y2tics nomirror tc lt 2";
+            gplot.Plot(out_file, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("U");
+            gplot.SetTitle("Hydro Input");
+            gplot.Plot(out_file, 1, 4, "ref", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 5, "U", " with lines lt 1 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("p");
+            gplot.SetTitle("Hydro Pressures");
+            gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("F");
+            gplot.SetTitle("Hydro Force");
+            gplot.SetRangeY(1000, 9000);
+            gplot.Plot(out_file, 1, 8, "F", " with lines lt -1 lw 2");
+        }
 #endif
+    }
 
     return 0;
 }

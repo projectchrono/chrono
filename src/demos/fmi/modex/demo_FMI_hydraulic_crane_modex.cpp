@@ -51,9 +51,13 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+bool render = true;
+bool output = true;
 
-bool save_img = false;
-double fps = 60;
+double t_start = 0;
+double t_end = 25;
+
+double t_step = 5e-4;
 
 // -----------------------------------------------------------------------------
 // External actuator FMU wrapper.
@@ -130,6 +134,8 @@ class ChExternalActuatorFmu : public ChExternalFmu {
 
         is_attached = true;
     }
+
+    virtual bool IsStiff() const override { return true; }
 
     virtual void Update(double time, bool update_assets) override {
         ChExternalFmu::Update(time, update_assets);
@@ -238,6 +244,11 @@ class ChExternalActuatorFmu : public ChExternalFmu {
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    if (argc > 1) {
+        render = false;
+        output = false;
+    }
 
     // -----------------------
     // Load model exchange FMU
@@ -368,45 +379,47 @@ int main(int argc, char* argv[]) {
 #endif
 
     std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-            vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Hydraulic actuator demo");
-            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->Initialize();
-            vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
-            vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
-            vis_irr->AddTypicalLights();
-            vis_irr->AttachSystem(&sys);
+                auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+                vis_irr->SetWindowSize(800, 600);
+                vis_irr->SetWindowTitle("Hydraulic actuator demo");
+                vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+                vis_irr->Initialize();
+                vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
+                vis_irr->AddLogo();
+                vis_irr->AddSkyBox();
+                vis_irr->AddTypicalLights();
+                vis_irr->AttachSystem(&sys);
 
-            vis = vis_irr;
+                vis = vis_irr;
 #endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
+                break;
+            }
+            default:
+            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowTitle("Hydraulic actuator demo");
-            vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->AddCamera(ChVector3d(0.3, -2, 0.5), ChVector3d(0.3, 0, 0.5));
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
-            vis_vsg->SetCameraAngleDeg(40.0);
-            vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
+                auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+                vis_vsg->AttachSystem(&sys);
+                vis_vsg->SetWindowTitle("Hydraulic actuator demo");
+                vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+                vis_vsg->AddCamera(ChVector3d(0.3, -2, 0.5), ChVector3d(0.3, 0, 0.5));
+                vis_vsg->SetWindowSize(1280, 800);
+                vis_vsg->SetWindowPosition(100, 100);
+                vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+                vis_vsg->EnableSkyBox();
+                vis_vsg->SetCameraAngleDeg(40.0);
+                vis_vsg->SetLightIntensity(1.0f);
+                vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+                vis_vsg->EnableShadows();
+                vis_vsg->Initialize();
 
-            vis = vis_vsg;
+                vis = vis_vsg;
 #endif
-            break;
+                break;
+            }
         }
     }
 
@@ -445,7 +458,7 @@ int main(int argc, char* argv[]) {
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", " ", " ", " ", " ", " ");
     utils::ChWriterCSV csv(" ");
 
-    double t = 0;
+    double t = t_start;
     double Uref = actuation->GetVal(t);
     double F = 0;
     ChVectorDynamic<> y(fmu_wrapper->GetNumStates());
@@ -454,69 +467,70 @@ int main(int argc, char* argv[]) {
     csv << t << Uref << y.format(rowFmt) << F << std::endl;
 
     // Simulation loop
-    double t_end = 20;
-    double t_step = 5e-4;
-    int render_frame = 0;
-
-    while (vis->Run()) {
-        if (t > t_end)
-            break;
-
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
-
-        if (save_img && t >= render_frame / fps) {
-            std::ostringstream filename;
-            filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".bmp";
-            vis->WriteImageToFile(filename.str());
-            render_frame++;
+    ChTimer timer;
+    timer.start();
+    while (t < t_end) {
+        if (render) {
+            if (!vis->Run())
+                break;
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
         }
 
         sys.DoStepDynamics(t_step);
 
-        Uref = actuation->GetVal(t);
-        y = fmu_wrapper->GetStates();
-        F = fmu_wrapper->GetForce();
-        csv << t << Uref << y.format(rowFmt) << F << std::endl;
+        if (output) {
+            Uref = actuation->GetVal(t);
+            y = fmu_wrapper->GetStates();
+            F = fmu_wrapper->GetForce();
+            csv << t << Uref << y.format(rowFmt) << F << std::endl;
+        }
 
         t += t_step;
     }
+    timer.stop();
+    auto RTF = timer() / t_end;
+    std::cout << "sim time: " << t_end << "  RTF: " << RTF;
 
     // -------------------
     // Postprocess results
     // -------------------
 
-    std::string out_file = out_dir + "/hydro.out";
-    csv.WriteToFile(out_file);
+    if (output) {
+        std::string out_file = out_dir + "/hydro.out";
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("U");
-        gplot.SetTitle("Hydro Input");
-        gplot.Plot(out_file, 1, 2, "ref", " with lines lt -1 lw 2");
-        gplot.Plot(out_file, 1, 3, "U", " with lines lt 1 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("p");
-        gplot.SetTitle("Hydro Pressures");
-        gplot.Plot(out_file, 1, 4, "p0", " with lines lt 1 lw 2");
-        gplot.Plot(out_file, 1, 5, "p1", " with lines lt 2 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("F");
-        gplot.SetTitle("Hydro Force");
-        gplot.SetRangeY(1000, 9000);
-        gplot.Plot(out_file, 1, 6, "F", " with lines lt -1 lw 2");
-    }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("U");
+            gplot.SetTitle("Hydro Input");
+            gplot.Plot(out_file, 1, 2, "ref", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 3, "U", " with lines lt 1 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("p");
+            gplot.SetTitle("Hydro Pressures");
+            gplot.Plot(out_file, 1, 4, "p0", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 5, "p1", " with lines lt 2 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("F");
+            gplot.SetTitle("Hydro Force");
+            gplot.SetRangeY(1000, 9000);
+            gplot.Plot(out_file, 1, 6, "F", " with lines lt -1 lw 2");
+        }
 #endif
+    }
+
+    return 0;
 }
