@@ -157,14 +157,15 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// plane. Note that the z values of the provided AABB are not used (as long as the AABB is not inverted).
     void SetBoundary(const ChAABB& aabb);
 
-    /// Add a new moving patch.
-    /// Multiple calls to this function can be made, each of them adding a new active patch area.
-    /// If no patches are defined, ray-casting is performed for every single node of the underlying SCM grid.
-    /// If at least one patch is defined, ray-casting is performed only for mesh nodes within the AABB of the
-    /// body OOBB projection onto the SCM plane.
-    void AddMovingPatch(std::shared_ptr<ChBody> body,   ///< [in] monitored body
-                        const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body
-                        const ChVector3d& OOBB_dims     ///< [in] OOBB dimensions
+    /// Add a new moving active domain associated with the specified body.
+    /// Multiple calls to this function can be made, each of them adding a new active active domain.
+    /// The union of all currently defined active domains is used to reduce the number of ray casting operations, by
+    /// ensuring that rays are generated only from SCM grid nodes inside the projection of the an actiove domains's OOBB
+    /// onto the SCM reference plane. If there are no user-provided active domains, a single default one is defined to
+    /// encompass all collision shapes in the system at any given time.
+    void AddActiveDomain(std::shared_ptr<ChBody> body,   ///< [in] monitored body
+                         const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body
+                         const ChVector3d& OOBB_dims     ///< [in] OOBB dimensions
     );
 
     /// Class to be used as a callback interface for location-dependent soil parameters.
@@ -306,8 +307,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// Return the number of nodes in the erosion domain at last step (bulldosing effects).
     int GetNumErosionNodes() const;
 
-    /// Return time for updating moving patches at last step (ms).
-    double GetTimerMovingPatches() const;
+    /// Return time for updating active domains at last step (ms).
+    double GetTimerActiveDomains() const;
     /// Return time for geometric ray intersection tests at last step (ms).
     double GetTimerRayTesting() const;
     /// Return time for ray casting at last step (ms). Includes time for ray intersectin testing.
@@ -386,19 +387,19 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     );
 
   private:
-    // SCM patch type
+    // SCM patch type.
     enum class PatchType {
         FLAT,        // flat patch
         HEIGHT_MAP,  // triangular mesh (generated from a gray-scale image height-map)
         TRI_MESH     // triangular mesh (provided through an OBJ file)
     };
 
-    // Moving patch parameters
-    struct MovingPatchInfo {
+    // Active domain parameters.
+    struct ActiveDomainInfo {
         std::shared_ptr<ChBody> m_body;   // tracked body
         ChVector3d m_center;              // OOBB center, relative to body
         ChVector3d m_hdims;               // OOBB half-dimensions
-        std::vector<ChVector2i> m_range;  // current grid nodes covered by the patch
+        std::vector<ChVector2i> m_range;  // current grid nodes covered by the domain
         ChVector3d m_ooN;                 // current inverse of SCM normal in body frame
     };
 
@@ -502,14 +503,14 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
         ChPhysicsItem::Update(time, update_assets);
     }
 
-    // Synchronize information for a moving patch
-    void UpdateMovingPatch(MovingPatchInfo& p, const ChVector3d& Z);
+    // Synchronize information for a user-provided active domain.
+    void UpdateActiveDomain(ActiveDomainInfo& ad, const ChVector3d& Z);
 
-    // Synchronize information for fixed patch
-    void UpdateFixedPatch(MovingPatchInfo& p);
+    // Synchronize information for the default active domain.
+    void UpdateDefaultActiveDomain(ActiveDomainInfo& ad);
 
     // Ray-OBB intersection test
-    bool RayOBBtest(const MovingPatchInfo& p, const ChVector3d& from, const ChVector3d& Z);
+    bool RayOBBtest(const ActiveDomainInfo& ad, const ChVector3d& from, const ChVector3d& Z);
 
     // Reset the list of forces and fill it with forces from the soil contact model.
     // This is called automatically during timestepping (only at the beginning of each step).
@@ -560,8 +561,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     ChAABB m_aabb;    ///< user-specified SCM terrain boundary
     bool m_boundary;  ///< user-specified SCM terrain boundary?
 
-    std::vector<MovingPatchInfo> m_patches;  ///< set of active moving patches
-    bool m_moving_patch;                     ///< user-specified moving patches?
+    std::vector<ActiveDomainInfo> m_active_domains;  ///< set of active domains
+    bool m_user_domains;                             ///< user-specified active domains?
 
     double m_test_offset_down;  ///< offset for ray start
     double m_test_offset_up;    ///< offset for ray end
@@ -603,7 +604,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     std::vector<int> m_external_modified_vertices;
 
     // Timers and counters
-    ChTimer m_timer_moving_patches;
+    ChTimer m_timer_active_domains;
     ChTimer m_timer_ray_testing;
     ChTimer m_timer_ray_casting;
     ChTimer m_timer_contact_patches;

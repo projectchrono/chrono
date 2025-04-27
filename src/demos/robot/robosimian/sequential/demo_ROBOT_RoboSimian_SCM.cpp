@@ -198,8 +198,8 @@ std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
     terrain->Initialize(length, width, 1.0 / 64);
 
-    // Enable moving patch feature
-    terrain->AddMovingPatch(robot->GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(3.0, 2.0, 1.0));
+    // Enable active domain feature
+    terrain->AddActiveDomain(robot->GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(3.0, 2.0, 1.0));
 
     return terrain;
 }

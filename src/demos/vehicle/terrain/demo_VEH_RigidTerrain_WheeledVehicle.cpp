@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv.SetBrakeType(BrakeType::SHAFTS);
-    hmmwv.SetTireType(TireModelType::TMEASY);
+    hmmwv.SetTireType(TireModelType::RIGID);
     hmmwv.SetTireStepSize(tire_step_size);
     hmmwv.Initialize();
 
@@ -114,8 +114,8 @@ int main(int argc, char* argv[]) {
         auto patch4_mat = chrono_types::make_shared<ChContactMaterialNSC>();
         patch4_mat->SetFriction(0.9f);
         patch4_mat->SetRestitution(0.01f);
-        auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QUNIT),
-                                       vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
+        auto patch4 = terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector3d(0, 42, 0), QuatFromAngleZ(CH_PI_2)),
+                                       vehicle::GetDataFile("terrain/height_maps/concave.bmp"), 64.0, 64.0, 0.0, 3.0);
         patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
     }
 
@@ -186,6 +186,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachTerrain(&terrain);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
+            vis_vsg->EnableSkyBox();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

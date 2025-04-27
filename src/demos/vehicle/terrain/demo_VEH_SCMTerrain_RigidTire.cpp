@@ -58,8 +58,8 @@ double mesh_resolution = 0.04;
 // Enable/disable bulldozing effects
 bool enable_bulldozing = true;
 
-// Enable/disable moving patch feature
-bool enable_moving_patch = true;
+// Enable/disable active domains feature
+bool enable_active_domains = true;
 
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
@@ -255,9 +255,9 @@ int main(int argc, char* argv[]) {
             6);  // number of concentric vertex selections subject to erosion
     }
 
-    // Optionally, enable moving patch feature (reduces number of ray casts)
-    if (enable_moving_patch) {
-        mterrain.AddMovingPatch(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
+    // Optionally, enable active domains feature (reduces number of ray casts)
+    if (enable_active_domains) {
+        mterrain.AddActiveDomain(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.

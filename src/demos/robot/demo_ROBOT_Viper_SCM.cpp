@@ -57,8 +57,8 @@ double mesh_resolution = 0.02;
 // Enable/disable bulldozing effects
 bool enable_bulldozing = true;
 
-// Enable/disable moving patch feature
-bool enable_moving_patch = true;
+// Enable/disable active domains feature
+bool enable_active_domains = true;
 
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
@@ -220,13 +220,12 @@ int main(int argc, char* argv[]) {
             6);  // number of concentric vertex selections subject to erosion
     }
 
-    // We need to add a moving patch under every wheel
-    // Or we can define a large moving patch at the pos of the rover body
-    if (enable_moving_patch) {
-        terrain.AddMovingPatch(Wheel_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(Wheel_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+    // Add an active domains for every wheel
+    if (enable_active_domains) {
+        terrain.AddActiveDomain(Wheel_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(Wheel_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(Wheel_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(Wheel_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.

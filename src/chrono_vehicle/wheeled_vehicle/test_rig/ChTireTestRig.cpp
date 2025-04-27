@@ -502,8 +502,8 @@ void ChTireTestRig::CreateTerrainSCM() {
                                E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_params_SCM.length, m_params_SCM.width, m_params_SCM.grid_spacing);
-    terrain->AddMovingPatch(m_chassis_body, ChVector3d(0, 0, 0),
-                            ChVector3d(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));
+    terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0),
+                             ChVector3d(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));
 
     m_terrain = terrain;
 }

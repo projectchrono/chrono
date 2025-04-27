@@ -251,8 +251,8 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         trimesh_shape->SetMesh(trimesh);
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 
-        // Add corresponding moving patch to SCM terrain
-        m_terrain->AddMovingPatch(body, b.m_oobb_center, b.m_oobb_dims);
+        // Add corresponding active domains to SCM terrain
+        m_terrain->AddActiveDomain(body, b.m_oobb_center, b.m_oobb_dims);
 
         m_system->AddBody(body);
     }
@@ -369,9 +369,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 
-    // Add corresponding moving patch to SCM terrain
+    // Add corresponding active domain to SCM terrain
     //// RADU TODO: this may be overkill for tracked vehicles!
-    m_terrain->AddMovingPatch(body, m_aabb[i_shape].Center(), m_aabb[i_shape].Size());
+    m_terrain->AddActiveDomain(body, m_aabb[i_shape].Center(), m_aabb[i_shape].Size());
 }
 
 // Once all proxy bodies are created, complete construction of the underlying system.
