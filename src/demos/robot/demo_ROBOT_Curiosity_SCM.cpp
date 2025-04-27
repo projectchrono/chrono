@@ -149,10 +149,10 @@ int main(int argc, char* argv[]) {
     // Create the SCM deformable terrain
     vehicle::SCMTerrain terrain(&sys);
 
-    // Displace/rotate the terrain reference plane.
+    // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
+    // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
+    terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Use a regular grid
     double length = 14;

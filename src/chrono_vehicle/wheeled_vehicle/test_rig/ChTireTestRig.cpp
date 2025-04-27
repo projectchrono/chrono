@@ -495,7 +495,7 @@ void ChTireTestRig::CreateTerrainSCM() {
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(m_system);
-    terrain->SetPlane(ChCoordsys<>(location));
+    terrain->SetReferenceFrame(ChCoordsys<>(location));
     terrain->SetSoilParameters(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,  //
                                m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction,
                                m_params_SCM.Janosi_shear,  //

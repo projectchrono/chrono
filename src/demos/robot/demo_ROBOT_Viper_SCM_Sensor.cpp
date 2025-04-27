@@ -306,11 +306,10 @@ int main(int argc, char* argv[]) {
     // Create the 'deformable terrain' object
     vehicle::SCMTerrain terrain(&sys);
 
-    // Displace/rotate the terrain reference plane.
+    // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, -0.5)));
+    // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
+    terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0, -0.5)));
 
     // Use a regular grid:
     double length = 15;

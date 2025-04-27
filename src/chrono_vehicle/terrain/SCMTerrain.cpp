@@ -103,14 +103,14 @@ void SCMTerrain::SetTexture(const std::string tex_file, float scale_x, float sca
 }
 
 // Set the SCM reference plane.
-void SCMTerrain::SetPlane(const ChCoordsys<>& plane) {
-    m_loader->m_plane = plane;
-    m_loader->m_Z = plane.rot.GetAxisZ();
+void SCMTerrain::SetReferenceFrame(const ChCoordsys<>& frame) {
+    m_loader->m_frame = frame;
+    m_loader->m_Z = frame.rot.GetAxisZ();
 }
 
-// Get the SCM reference plane.
-const ChCoordsys<>& SCMTerrain::GetPlane() const {
-    return m_loader->m_plane;
+// Get the SCM reference frame.
+const ChCoordsys<>& SCMTerrain::GetReferenceFrame() const {
+    return m_loader->m_frame;
 }
 
 // Set the visualization mesh as wireframe or as solid.
@@ -379,8 +379,8 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     }
 
     // Default SCM plane and plane normal
-    m_plane = ChCoordsys<>(VNULL, QUNIT);
-    m_Z = m_plane.rot.GetAxisZ();
+    m_frame = ChCoordsys<>(VNULL, QUNIT);
+    m_Z = m_frame.rot.GetAxisZ();
 
     // Bulldozing effects
     m_bulldozing = false;
@@ -644,12 +644,12 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
             double x = ix * m_delta - 0.5 * sizeX;
             if (m_type == PatchType::FLAT) {
                 // Set vertex location
-                vertices[iv] = m_plane * ChVector3d(x, y, 0);
+                vertices[iv] = m_frame * ChVector3d(x, y, 0);
                 // Initialize vertex normal to Z up
-                normals[iv] = m_plane.TransformDirectionLocalToParent(ChVector3d(0, 0, 1));
+                normals[iv] = m_frame.TransformDirectionLocalToParent(ChVector3d(0, 0, 1));
             } else {
                 // Set vertex location
-                vertices[iv] = m_plane * ChVector3d(x, y, m_heights(ix, iy));
+                vertices[iv] = m_frame * ChVector3d(x, y, m_heights(ix, iy));
                 // Initialize vertex normal to zero (will be set later)
                 normals[iv] = ChVector3d(0, 0, 0);
             }
@@ -722,7 +722,7 @@ SCMTerrain::NodeInfo SCMLoader::GetNodeInfo(const ChVector3d& loc) const {
     SCMTerrain::NodeInfo ni;
 
     // Express location in the SCM frame
-    ChVector3d loc_loc = m_plane.TransformPointParentToLocal(loc);
+    ChVector3d loc_loc = m_frame.TransformPointParentToLocal(loc);
 
     // Find closest grid vertex (approximation)
     int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
@@ -852,7 +852,7 @@ ChVector3d SCMLoader::GetNormal(const ChVector2d& loc) const {
 // Get the initial terrain height below the specified location.
 double SCMLoader::GetInitHeight(const ChVector3d& loc) const {
     // Express location in the SCM frame
-    ChVector3d loc_loc = m_plane.TransformPointParentToLocal(loc);
+    ChVector3d loc_loc = m_frame.TransformPointParentToLocal(loc);
 
     // Get height (relative to SCM plane) at closest grid vertex (approximation)
     int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
@@ -860,14 +860,14 @@ double SCMLoader::GetInitHeight(const ChVector3d& loc) const {
     loc_loc.z() = GetInitHeight(ChVector2i(i, j));
 
     // Express in global frame
-    ChVector3d loc_abs = m_plane.TransformPointLocalToParent(loc_loc);
+    ChVector3d loc_abs = m_frame.TransformPointLocalToParent(loc_loc);
     return ChWorldFrame::Height(loc_abs);
 }
 
 // Get the initial terrain normal at the point below the specified location.
 ChVector3d SCMLoader::GetInitNormal(const ChVector3d& loc) const {
     // Express location in the SCM frame
-    ChVector3d loc_loc = m_plane.TransformPointParentToLocal(loc);
+    ChVector3d loc_loc = m_frame.TransformPointParentToLocal(loc);
 
     // Get height (relative to SCM plane) at closest grid vertex (approximation)
     int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
@@ -875,14 +875,14 @@ ChVector3d SCMLoader::GetInitNormal(const ChVector3d& loc) const {
     auto nrm_loc = GetInitNormal(ChVector2i(i, j));
 
     // Express in global frame
-    auto nrm_abs = m_plane.TransformDirectionLocalToParent(nrm_loc);
+    auto nrm_abs = m_frame.TransformDirectionLocalToParent(nrm_loc);
     return ChWorldFrame::FromISO(nrm_abs);
 }
 
 // Get the terrain height below the specified location.
 double SCMLoader::GetHeight(const ChVector3d& loc) const {
     // Express location in the SCM frame
-    ChVector3d loc_loc = m_plane.TransformPointParentToLocal(loc);
+    ChVector3d loc_loc = m_frame.TransformPointParentToLocal(loc);
 
     // Get height (relative to SCM plane) at closest grid vertex (approximation)
     int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
@@ -890,14 +890,14 @@ double SCMLoader::GetHeight(const ChVector3d& loc) const {
     loc_loc.z() = GetHeight(ChVector2i(i, j));
 
     // Express in global frame
-    ChVector3d loc_abs = m_plane.TransformPointLocalToParent(loc_loc);
+    ChVector3d loc_abs = m_frame.TransformPointLocalToParent(loc_loc);
     return ChWorldFrame::Height(loc_abs);
 }
 
 // Get the terrain normal at the point below the specified location.
 ChVector3d SCMLoader::GetNormal(const ChVector3d& loc) const {
     // Express location in the SCM frame
-    ChVector3d loc_loc = m_plane.TransformPointParentToLocal(loc);
+    ChVector3d loc_loc = m_frame.TransformPointParentToLocal(loc);
 
     // Get height (relative to SCM plane) at closest grid vertex (approximation)
     int i = static_cast<int>(std::round(loc_loc.x() / m_delta));
@@ -905,7 +905,7 @@ ChVector3d SCMLoader::GetNormal(const ChVector3d& loc) const {
     auto nrm_loc = GetNormal(ChVector2i(i, j));
 
     // Express in global frame
-    auto nrm_abs = m_plane.TransformDirectionLocalToParent(nrm_loc);
+    auto nrm_abs = m_frame.TransformDirectionLocalToParent(nrm_loc);
     return ChWorldFrame::FromISO(nrm_abs);
 }
 
@@ -925,7 +925,7 @@ void SCMLoader::UpdateActiveDomain(ActiveDomainInfo& ad, const ChVector3d& Z) {
         // OOBB corner in absolute frame
         ChVector3d c_abs = ad.m_body->GetFrameRefToAbs().TransformPointLocalToParent(c_body);
         // OOBB corner expressed in SCM frame
-        ChVector3d c_scm = m_plane.TransformPointParentToLocal(c_abs);
+        ChVector3d c_scm = m_frame.TransformPointParentToLocal(c_abs);
 
         // Update AABB of patch projection onto SCM plane
         p_min.x() = std::min(p_min.x(), c_scm.x());
@@ -973,7 +973,7 @@ void SCMLoader::UpdateDefaultActiveDomain(ActiveDomainInfo& ad) {
         // AABB corner in absolute frame
         ChVector3d c_abs = aabb.max * ChVector3d(ix, iy, iz) + aabb.min * ChVector3d(1.0 - ix, 1.0 - iy, 1.0 - iz);
         // AABB corner in SCM frame
-        ChVector3d c_scm = m_plane.TransformPointParentToLocal(c_abs);
+        ChVector3d c_scm = m_frame.TransformPointParentToLocal(c_abs);
 
         // Update AABB of patch projection onto SCM plane
         p_min.x() = std::min(p_min.x(), c_scm.x());
@@ -1142,7 +1142,7 @@ void SCMLoader::ComputeInternalForces() {
     #pragma omp critical(SCM_ray_casting)
             z = GetHeight(ij);
 
-            ChVector3d vertex_abs = m_plane.TransformPointLocalToParent(ChVector3d(x, y, z));
+            ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Create ray at current grid location
             ChCollisionSystem::ChRayhitResult mrayhit_result;
@@ -1204,7 +1204,7 @@ void SCMLoader::ComputeInternalForces() {
                     continue;
             }
 
-            ChVector3d vertex_abs = m_plane.TransformPointLocalToParent(ChVector3d(x, y, z));
+            ChVector3d vertex_abs = m_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Create ray at current grid location
             ChCollisionSystem::ChRayhitResult mrayhit_result;
@@ -1357,7 +1357,7 @@ void SCMLoader::ComputeInternalForces() {
         const ChVector3d& hit_point_abs = h.second.abs_point;
         int patch_id = h.second.patch_id;
 
-        auto hit_point_loc = m_plane.TransformPointParentToLocal(hit_point_abs);
+        auto hit_point_loc = m_frame.TransformPointParentToLocal(hit_point_abs);
 
         if (m_soil_fun) {
             double Mohr_friction;
@@ -1383,11 +1383,11 @@ void SCMLoader::ComputeInternalForces() {
 
         // Calculate velocity at touched grid node
         ChVector3d point_local(ij.x() * m_delta, ij.y() * m_delta, nr.level);
-        ChVector3d point_abs = m_plane.TransformPointLocalToParent(point_local);
+        ChVector3d point_abs = m_frame.TransformPointLocalToParent(point_local);
         ChVector3d speed_abs = contactable->GetContactPointSpeed(point_abs);
 
         // Calculate normal and tangent directions (expressed in absolute frame)
-        ChVector3d N = m_plane.TransformDirectionLocalToParent(nr.normal);
+        ChVector3d N = m_frame.TransformDirectionLocalToParent(nr.normal);
         double Vn = Vdot(speed_abs, N);
         ChVector3d T = -(speed_abs - Vn * N);
         T.Normalize();
@@ -1715,7 +1715,7 @@ void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const N
     std::vector<ChColor>& colors = trimesh.GetCoordsColors();
 
     // Update visualization mesh vertex position
-    vertices[iv] = m_plane.TransformPointLocalToParent(ChVector3d(ij.x() * m_delta, ij.y() * m_delta, nr.level));
+    vertices[iv] = m_frame.TransformPointLocalToParent(ChVector3d(ij.x() * m_delta, ij.y() * m_delta, nr.level));
 
     // Update visualization mesh vertex color
     if (m_plot_type != SCMTerrain::PLOT_NONE) {

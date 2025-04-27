@@ -90,14 +90,14 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
     ~SCMTerrain() {}
 
-    /// Set the plane reference.
-    /// By default, the reference plane is horizontal with Z up (ISO vehicle reference frame).
-    /// To set as Y up, call SetPlane(ChCoordys(VNULL, QuatFromAngleX(-CH_PI_2)));
-    void SetPlane(const ChCoordsys<>& plane);
+    /// Set the SCM reference frame.
+    /// By default, the reference frame is aligned with the global ISO vehicle reference frame.
+    /// To set as Y up, call SetReferenceFrame(ChCoordys(VNULL, QuatFromAngleX(-CH_PI_2)));
+    void SetReferenceFrame(const ChCoordsys<>& plane);
 
-    /// Get the current reference plane.
-    /// The SCM terrain patch is in the (x,y) plane with normal along the Z axis.
-    const ChCoordsys<>& GetPlane() const;
+    /// Get the current SCM reference frame.
+    /// The SCM terrain patch is defined relative to the (x,y) plane of this frame, with normal along the Z axis.
+    const ChCoordsys<>& GetReferenceFrame() const;
 
     /// Set the properties of the SCM soil model.
     /// These parameters are described in: "Parameter Identification of a Planetary Rover Wheel-Soil Contact Model via a
@@ -545,7 +545,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     void SetModifiedNodes(const std::vector<SCMTerrain::NodeLevel>& nodes);
 
     PatchType m_type;      ///< type of SCM patch
-    ChCoordsys<> m_plane;  ///< SCM frame (deformation occurs along the z axis of this frame)
+    ChCoordsys<> m_frame;  ///< SCM frame (deformation occurs along the z axis of this frame)
     ChVector3d m_Z;        ///< SCM plane vertical direction (in absolute frame)
     double m_delta;        ///< grid spacing
     double m_area;         ///< area of a grid cell

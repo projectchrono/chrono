@@ -193,7 +193,7 @@ std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(robot->GetSystem());
-    terrain->SetPlane(ChCoordsys<>(ChVector3d(length / 2 - offset, 0, height), QUNIT));
+    terrain->SetReferenceFrame(ChCoordsys<>(ChVector3d(length / 2 - offset, 0, height), QUNIT));
     terrain->SetSoilParameters(Kphi, Kc, n, coh, phi, K, E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
     terrain->Initialize(length, width, 1.0 / 64);
