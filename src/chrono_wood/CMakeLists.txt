@@ -25,6 +25,12 @@ SET(Chrono_WOOD_SOURCES
     ChNodeFEAxyzPP.cpp
     ChMeshFileLoaderBeam.cpp
     ChElementSpringP.cpp
+	ChMeshLine.cpp	
+	ChLinkPoint2Line.cpp
+	ChLinkNodeRotFace.cpp
+	ChLinkNodeNodeRot.cpp
+	ChRepresentedVolumeElement.cpp
+	delaunator.cpp
 )
 
 SET(Chrono_WOOD_HEADERS
@@ -45,6 +51,13 @@ SET(Chrono_WOOD_HEADERS
     ChElementSpringP.h
     ChContinuumPoisson2D.h
     ChContinuumHydroThermal2D.h
+	ChMeshLine.h
+	ChMeshSurfaceGeneral.h
+	ChLinkPoint2Line.h
+	ChLinkNodeRotFace.h
+	ChLinkNodeNodeRot.h
+	ChRepresentedVolumeElement.h
+	delaunator.h
 )
 
 SOURCE_GROUP("" FILES 
