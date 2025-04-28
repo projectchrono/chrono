@@ -250,6 +250,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
         vis_sys->SetWindowSize(800, 800);
         vis_sys->SetWindowTitle("Path-follower Driver FMU (FMI 2.0)");
         vis_sys->SetCameraVertical(CameraVerticalDir::Z);
+        vis_sys->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
         vis_sys->AddGrid(spacing, spacing, grid_x, grid_y, ChCoordsys<>(grid_pos, grid_rot),
                          ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();

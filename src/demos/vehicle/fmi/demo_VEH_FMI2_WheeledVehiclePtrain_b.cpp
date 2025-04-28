@@ -199,9 +199,9 @@ int main(int argc, char* argv[]) {
 
 #ifdef FMU_EXPORT_SUPPORT
     // FMUs generated in current build
-    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehiclePtrain";
-    std::string driver_fmu_model_identfier = "FMU2_PathFollowerDriver";
-    std::string tire_fmu_model_identifier = "FMU2_ForceElementTire";
+    std::string vehicle_fmu_model_identifier = "FMU2cs_WheeledVehiclePtrain";
+    std::string driver_fmu_model_identfier = "FMU2cs_PathFollowerDriver";
+    std::string tire_fmu_model_identifier = "FMU2cs_ForceElementTire";
 
     std::string vehicle_fmu_dir = CHRONO_VEHICLE_FMU_DIR + vehicle_fmu_model_identifier + std::string("/");
     std::string driver_fmu_dir = CHRONO_VEHICLE_FMU_DIR + driver_fmu_model_identfier + std::string("/");

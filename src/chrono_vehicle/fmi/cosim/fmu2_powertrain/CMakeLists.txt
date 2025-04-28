@@ -1,16 +1,8 @@
-set(COMPONENT_NAME "FMU2_WheeledVehicle")
-set(COMPONENT_SOURCES FMU_WheeledVehicle.h FMU_WheeledVehicle.cpp)
-set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/wheeled_vehicle)
-if (CH_ENABLE_MODULE_IRRLICHT)
-  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_vehicle Chrono_irrlicht  Chrono_vehicle_irrlicht)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(COMPONENT_DLL_DEPENDENCIES "${CH_IRRLICHT_DLL}")
-  else()
-    set(COMPONENT_DLL_DEPENDENCIES "")
-  endif()
-else()
-  set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_vehicle)
-endif()
+set(COMPONENT_NAME "FMU2cs_Powertrain")
+set(COMPONENT_SOURCES FMU_Powertrain.h FMU_Powertrain.cpp)
+set(COMPONENT_CHRONO_DEPENDENCIES Chrono_core Chrono_vehicle)
+set(COMPONENT_RESOURCES_DIR ${CMAKE_SOURCE_DIR}/data/vehicle/fmi/powertrain)
+set(COMPONENT_DLL_DEPENDENCIES "")
 
 set(FMU_CS ON)
 
@@ -22,19 +14,14 @@ list(APPEND LIBS Chrono_vehicle)
 
 include_directories(${FMU_TOOLS_DIR})
 
-if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "Chrono_irrlicht")
-  list(APPEND LIBS Chrono_vehicle_irrlicht)
-endif()
-
 #==============================================================
 
 message(STATUS "...add ${COMPONENT_NAME}")
 message(STATUS "   FetchContent(fmu_tools)")
 
-set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME})
+set(FMU_MODEL_IDENTIFIER "${COMPONENT_NAME}")
 set(USE_CUSTOM_TYPESPLATFORM OFF)
-set(FMU_MAIN_DIRECTORY ${VEHICLE_FMU_COMPONENT_MAIN_DIR})
+set(FMU_MAIN_DIRECTORY ${VEHICLE_FMU_MAIN_DIR})
 set(FMU_RESOURCES_DIRECTORY ${COMPONENT_RESOURCES_DIR})
 set(FMU_DEPENDENCIES ${COMPONENT_DLL_DEPENDENCIES})
 set(FMU_MSG_PREFIX "   - ")

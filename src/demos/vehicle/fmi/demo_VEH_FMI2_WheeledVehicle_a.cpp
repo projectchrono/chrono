@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef FMU_EXPORT_SUPPORT
     // Use the FMU generated in current build
-    std::string vehicle_fmu_model_identifier = "FMU2_WheeledVehicle";
+    std::string vehicle_fmu_model_identifier = "FMU2cs_WheeledVehicle";
     std::string vehicle_fmu_dir = CHRONO_VEHICLE_FMU_DIR + vehicle_fmu_model_identifier + std::string("/");
     std::string vehicle_fmu_filename = vehicle_fmu_dir + vehicle_fmu_model_identifier + std::string(".fmu");
 #else

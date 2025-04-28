@@ -303,6 +303,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
         vis_sys->SetWindowTitle("Wheeled Vehicle FMU (FMI 2.0)");
         vis_sys->SetWindowSize(800, 800);
         vis_sys->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+        vis_sys->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
         vis_sys->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc, QuatFromAngleZ(init_yaw)),
                          ChColor(0.31f, 0.43f, 0.43f));
         vis_sys->Initialize();
