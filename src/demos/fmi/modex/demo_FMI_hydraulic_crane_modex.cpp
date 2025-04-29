@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     if (argc != 2) {
-        std::cout << "Usage: ./demo_FMI_VdP_modex [FMU_filename]" << std::endl;
+        std::cout << "Usage: ./demo_FMI_hydraulic_crane_modex [FMU_filename]" << std::endl;
         return 1;
     }
     std::string fmu_filename = argv[1];  // FMU (fully qualified filename) specified as program argument

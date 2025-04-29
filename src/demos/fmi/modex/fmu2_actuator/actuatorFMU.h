@@ -52,7 +52,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
 
     // FMU states
     chrono::ChVectorN<double, 3> q;   ///< states (U, p1, p2)
-    chrono::ChVectorN<double, 3> qd;  ///< state derivativess (Ud, p1d, p2d)
+    chrono::ChVectorN<double, 3> qd;  ///< state derivatives (Ud, p1d, p2d)
 
     // Hydraulic circuit components    
     chrono::ChHydraulicCylinder cyl;                ///< hydraulic cylinder

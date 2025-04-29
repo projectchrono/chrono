@@ -130,7 +130,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     DeclareVariableDependencies("p2", {"s", "sd", "Uref"});
     DeclareVariableDependencies("U", {"Uref"});
 
-    // Specify functions to calculate FMU outputs (at end of step)
+    // Specify functions to calculate FMU outputs (called after getDerivatives)
     AddPostStepFunction([this]() { this->calcForce(); });
 }
 
@@ -163,8 +163,6 @@ fmi2Status FmuComponent::setContinuousStatesIMPL(const fmi2Real x[], size_t nx) 
 }
 
 fmi2Status FmuComponent::getDerivativesIMPL(fmi2Real derivatives[], size_t nx) {
-    //// TODO - load derivatives with the RHS constructed at current state q
-
     // Extract state
     double U = q(0);
     Vec2 p = q.segment(1, 2);
