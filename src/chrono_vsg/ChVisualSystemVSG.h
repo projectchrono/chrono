@@ -335,6 +335,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
     vsg::ref_ptr<vsg::Switch> m_comFrameScene;
     vsg::ref_ptr<vsg::Switch> m_comSymbolScene;
+    vsg::ref_ptr<vsg::Switch> m_comLabelScene;
     vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
@@ -500,6 +501,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     bool m_use_skybox;
     std::string m_skyboxPath;
+    std::string m_labelFontPath;
+    vsg::ref_ptr<vsg::Font> m_labelFont;
+    std::vector<vsg::ref_ptr<vsg::stringValue>> m_dynamicTextLabel;
+    std::vector<vsg::ref_ptr<vsg::StandardLayout>> m_dynamicTextLayout;
+    std::vector<vsg::ref_ptr<vsg::Text>> m_dynamicText;
+    float m_labelTextSize{0.2};
 
     vsg::dvec3 m_cameraUpVector;
     bool m_yup;
@@ -580,7 +587,7 @@ class ChVisualSystemVSGPlugin {
 
     /// TODO - remove AddEventHandler?
     /// A plugin can call the VSG system's AddEventHandler in its OnAttach() function.
-    
+
     /// Add custom event handlers for this plugin.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) { m_evhandler.push_back(eh); }
 

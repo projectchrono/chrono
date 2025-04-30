@@ -723,6 +723,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_windowTitle = string("Window Title");
     m_clearColor = ChColor(0.07f, 0.1f, 0.12f);
     m_skyboxPath = string("vsg/textures/chrono_skybox.ktx2");
+    m_labelFontPath = string("vsg/fonts/OpenSans-Bold.vsgb");
     m_cameraUpVector = vsg::dvec3(0, 0, 1);
 
     m_logo_filename = GetChronoDataFile("logo_chrono_alpha.png");
@@ -739,6 +740,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     m_refFrameScene = vsg::Switch::create();
     m_comFrameScene = vsg::Switch::create();
     m_comSymbolScene = vsg::Switch::create();
+    m_comLabelScene = vsg::Switch::create();
     m_jointFrameScene = vsg::Switch::create();
     m_decoScene = vsg::Group::create();
 
@@ -755,15 +757,23 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     // vsg builder is used for particle visualization
     // for particles (spheres) we use phong shaders only
     m_vsgBuilder = vsg::Builder::create();
-    
-    // for COM symbols (quads) we want to use flat shaders without Z-buffering
-    // we setup a custom flat shader set
-    auto flatShaderSet = vsg::createFlatShadedShaderSet();
-    auto depthStencilState = vsg::DepthStencilState::create();
-    depthStencilState->depthTestEnable = VK_FALSE;
-    flatShaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
-    m_options->shaderSets["flat"] = flatShaderSet;
 
+    {
+        // for COM symbols (quads) we want to use flat shaders without Z-buffering
+        // we setup a custom flat shader set
+        auto flatShaderSet = vsg::createFlatShadedShaderSet();
+        auto depthStencilState = vsg::DepthStencilState::create();
+        depthStencilState->depthTestEnable = VK_FALSE;
+        flatShaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
+        m_options->shaderSets["flat"] = flatShaderSet;
+    }
+    {
+        // for COM labels (dynamic text) we want to use text shaders without Z-buffering
+        auto shaderSet = m_options->shaderSets["text"] = vsg::createTextShaderSet(m_options);
+        auto depthStencilState = vsg::DepthStencilState::create();
+        depthStencilState->depthTestEnable = VK_FALSE;
+        shaderSet->defaultGraphicsPipelineStates.push_back(depthStencilState);
+    }
     m_vsgBuilder->options = m_options;
 
     // default settings
@@ -851,7 +861,8 @@ void ChVisualSystemVSG::Quit() {
 
 void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_guiFontSize = theSize;
@@ -859,7 +870,8 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowWidth = size[0];
@@ -877,7 +889,8 @@ void ChVisualSystemVSG::SetWindowSize(int width, int height) {
 
 void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowX = pos[0];
@@ -886,7 +899,8 @@ void ChVisualSystemVSG::SetWindowPosition(const ChVector2i& pos) {
 
 void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowPosition can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowX = from_left;
@@ -895,7 +909,8 @@ void ChVisualSystemVSG::SetWindowPosition(int from_left, int from_top) {
 
 void ChVisualSystemVSG::SetWindowTitle(const std::string& title) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetWindowTitle can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_windowTitle = title;
@@ -980,7 +995,8 @@ ChVector3d ChVisualSystemVSG::GetCameraTarget() const {
 
 void ChVisualSystemVSG::SetCameraVertical(CameraVerticalDir upDir) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetCameraVertical can only be called before initialization!"
+                  << std::endl;
         return;
     }
     switch (upDir) {
@@ -1001,7 +1017,8 @@ void ChVisualSystemVSG::SetLightIntensity(float intensity) {
 
 void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!" << std::endl;
+        std::cerr << "Function ChVisualSystemVSG::SetLightDirection can only be called before initialization!"
+                  << std::endl;
         return;
     }
     m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
@@ -1035,6 +1052,12 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     windowTraits->fullscreen = m_use_fullscreen;
     windowTraits->screenNum = m_screen_num;
+
+    m_labelFont = vsg::read_cast<vsg::Font>(m_labelFontPath, m_options);
+    if (!m_labelFont) {
+        std::cout << "Failed to read font : " << m_labelFontPath << std::endl;
+        return 1;
+    }
 
     m_scene = vsg::Group::create();
 
@@ -1109,6 +1132,7 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_refFrameScene);
     m_scene->addChild(m_comFrameScene);
     m_scene->addChild(m_comSymbolScene);
+    m_scene->addChild(m_comLabelScene);
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_decoScene);
 
@@ -1344,6 +1368,20 @@ void ChVisualSystemVSG::Render() {
         assert(!c_pos.empty());
         ConvertCOMPositions(c_pos, m_com_symbol_positions, symbol_size);
         m_com_symbol_positions->dirty();
+
+        for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
+            m_dynamicTextLayout[iPos]->horizontal = vsg::vec3(symbol_size, 0, 0);
+            if (m_yup) {
+                m_dynamicTextLayout[iPos]->vertical = vsg::vec3(0, symbol_size, 0);
+                m_dynamicTextLayout[iPos]->position =
+                    vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - symbol_size / 2, c_pos[iPos].z());
+            } else {
+                m_dynamicTextLayout[iPos]->vertical = vsg::vec3(0, 0, symbol_size);
+                m_dynamicTextLayout[iPos]->position =
+                    vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y(), c_pos[iPos].z() - symbol_size / 2);
+            }
+            m_dynamicText[iPos]->setup(0, m_options);
+        }
     }
 
     // Dynamic data transfer CPU->GPU for line models
@@ -1649,6 +1687,7 @@ void ChVisualSystemVSG::ToggleCOMFrameVisibility() {
 void ChVisualSystemVSG::ToggleCOMSymbolVisibility() {
     m_show_com_symbols = !m_show_com_symbols;
     m_comSymbolScene->setAllChildren(m_show_com_symbols);
+    m_comLabelScene->setAllChildren(m_show_com_symbols);
 }
 
 void ChVisualSystemVSG::SetJointFrameScale(double axis_length) {
@@ -1733,6 +1772,33 @@ void ChVisualSystemVSG::BindCOMSymbols() {
     // find positions of the symbol instances, to update later on
     m_com_symbol_positions = vsg::visit<FindVec4BufferData<4>>(node).getBufferData();
     m_com_symbol_positions->properties.dataVariance = vsg::DYNAMIC_DATA;
+
+    // defition of com label texts
+    auto labelTextSize = m_com_frame_scale * m_com_symbol_ratio;
+    for (size_t iText = 0; iText < c_pos.size(); iText++) {
+        auto dynamicTextLabel = m_dynamicTextLabel[iText];
+        auto dynamicTextLayout = vsg::StandardLayout::create();
+        auto dynamicText = vsg::Text::create();
+        dynamicText->technique = vsg::GpuLayoutTechnique::create();
+        dynamicTextLayout->billboard = true;
+        dynamicTextLayout->horizontalAlignment = vsg::StandardLayout::CENTER_ALIGNMENT;
+        dynamicTextLayout->verticalAlignment = vsg::StandardLayout::TOP_ALIGNMENT;
+        dynamicTextLayout->position = vsg::vec3(0.0, 0.0, 0.0);
+        dynamicTextLayout->horizontal = vsg::vec3(m_labelTextSize, 0.0, 0.0);
+        if (m_yup) {
+            dynamicTextLayout->vertical = vsg::vec3(0.0, m_labelTextSize, 0.0);
+        } else {
+            dynamicTextLayout->vertical = vsg::vec3(0.0, 0.0, m_labelTextSize);
+        }
+        dynamicTextLayout->color = vsg::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        dynamicText->text = dynamicTextLabel;
+        dynamicText->font = m_labelFont;
+        dynamicText->layout = dynamicTextLayout;
+        dynamicText->setup(0, m_options);  // allocate enough space for max possible
+        m_dynamicTextLayout.push_back(dynamicTextLayout);
+        m_dynamicText.push_back(dynamicText);
+        m_comLabelScene->addChild(m_show_com_symbols, dynamicText);
+    }
 }
 
 void ChVisualSystemVSG::BindItem(std::shared_ptr<ChPhysicsItem> item) {
@@ -1779,6 +1845,28 @@ void ChVisualSystemVSG::BindAll() {
 
     for (auto sys : m_systems) {
         BindAssembly(sys->GetAssembly());
+    }
+
+    // body/item names may be empty, we set default names. User input will not be affected.
+    size_t iBody = 0;
+    size_t iPhsItem = 0;
+    for (auto sys : m_systems) {
+        for (auto body : sys->GetBodies()) {
+            if (body->GetName().empty()) {
+                std::string name("Body_" + std::to_string(iBody++));
+                body->SetName(name);
+            }
+            if (body->IsActive()) {
+                m_dynamicTextLabel.push_back(vsg::stringValue::create(body->GetName()));
+            }
+        }
+        for (auto item : sys->GetOtherPhysicsItems()) {
+            if (item->GetName().empty()) {
+                std::string name("PhItem_" + std::to_string(iPhsItem++));
+                item->SetName(name);
+            }
+            m_dynamicTextLabel.push_back(vsg::stringValue::create(item->GetName()));
+        }
     }
 
     BindCOMSymbols();
@@ -2216,8 +2304,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
 // -----------------------------------------------------------------------------
 
 // Utility function to populate a VSG group with visualization shapes (from the given visual model).
-void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group,
-                                         std::shared_ptr<ChVisualModel> model) {
+void ChVisualSystemVSG::PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model) {
     for (const auto& shape_instance : model->GetShapeInstances()) {
         const auto& shape = shape_instance.shape;
         const auto& X_SM = shape_instance.frame;
