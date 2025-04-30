@@ -193,7 +193,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
-        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
+        double vel_min = 0.0;
+        double vel_max = 2.5;
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(vel_min, vel_max);
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
@@ -211,6 +213,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(0, -2.0, 0.3), ChVector3d(0, 0, 0.3));
         ////visVSG->AddCamera(ChVector3d(0.2, -0.75, 0.2), ChVector3d(0.2, 0, 0.2));
+        visVSG->AddGuiColorbar("Velocity (m/s)", vel_min, vel_max);
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
