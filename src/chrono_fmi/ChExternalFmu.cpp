@@ -18,8 +18,8 @@
 
 #include "chrono_fmi/ChExternalFmu.h"
 
-#include "fmi2/FmuToolsImport.h"
-#include "fmi3/FmuToolsImport.h"
+#include "chrono_fmi/fmi2/ChFmuToolsImport.h"
+#include "chrono_fmi/fmi3/ChFmuToolsImport.h"
 
 namespace chrono {
 
@@ -40,6 +40,7 @@ class ChFmu2Wrapper : public ChFmuWrapper {
     using FmuVariable = fmu_tools::fmi2::FmuVariable;
 
     virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) override;
+    virtual void SetTime(double time) override;
     virtual unsigned int GetNumStates() const override;
     virtual std::unordered_set<std::string> GetStatesList() const override;
     virtual std::unordered_set<std::string> GetRealParametersList() const override;
@@ -47,15 +48,27 @@ class ChFmu2Wrapper : public ChFmuWrapper {
     virtual std::unordered_set<std::string> GetRealInputsList() const override;
     virtual double GetRealVariable(const std::string& name) override;
     virtual int GetIntVariable(const std::string& name) override;
+    virtual ChVector3d GetVecVariable(const std::string& name) override;
+    virtual ChQuaterniond GetQuatVariable(const std::string& name) override;
+    virtual ChCoordsysd GetCoordsysVariable(const std::string& name) override;
+    virtual ChFrame<> GetFrameVariable(const std::string& name) override;
+    virtual ChFrameMoving<> GetFrameMovingVariable(const std::string& name) override;
     virtual void SetRealVariable(const std::string& name, double val) override;
     virtual void SetIntVariable(const std::string& name, int val) override;
+    virtual void SetVecVariable(const std::string& name, const ChVector3d& val) override;
+    virtual void SetQuatVariable(const std::string& name, const ChQuaterniond& val) override;
+    virtual void SetCoordsysVariable(const std::string& name, const ChCoordsysd& val) override;
+    virtual void SetFrameVariable(const std::string& name, const ChFrame<>& val) override;
+    virtual void SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val) override;
     virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                             const std::unordered_map<std::string, double>& parameters_real,
-                            const std::unordered_map<std::string, int>& parameters_int) override;
+                            const std::unordered_map<std::string, int>& parameters_int,
+                            const std::unordered_map<std::string, std::string>& parameters_string) override;
     virtual bool checkState(const std::string& name, std::string& err_msg) const override;
     virtual bool checkInput(const std::string& name, std::string& err_msg) const override;
     virtual bool checkParamReal(const std::string& name, std::string& err_msg) const override;
     virtual bool checkParamInt(const std::string& name, std::string& err_msg) const override;
+    virtual bool checkParamString(const std::string& name, std::string& err_msg) const override;
     virtual void SetInputs(const std::unordered_map<std::string, double>& inputs_real) override;
     virtual void SetContinuousStates(const std::vector<double>& states) override;
     virtual void GetContinuousStates(std::vector<double>& states) override;
@@ -64,7 +77,7 @@ class ChFmu2Wrapper : public ChFmuWrapper {
 
     bool checkParam(const std::string& name, FmuVariable::Type type, std::string& err_msg) const;
 
-    fmu_tools::fmi2::FmuUnit m_fmu;
+    fmi2::FmuChronoUnit m_fmu;
 };
 
 // =============================================================================
@@ -84,6 +97,7 @@ class ChFmu3Wrapper : public ChFmuWrapper {
     using FmuVariable = fmu_tools::fmi3::FmuVariable;
 
     virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) override;
+    virtual void SetTime(double time) override;
     virtual unsigned int GetNumStates() const override;
     virtual std::unordered_set<std::string> GetStatesList() const override;
     virtual std::unordered_set<std::string> GetRealParametersList() const override;
@@ -91,22 +105,34 @@ class ChFmu3Wrapper : public ChFmuWrapper {
     virtual std::unordered_set<std::string> GetRealInputsList() const override;
     virtual double GetRealVariable(const std::string& name) override;
     virtual int GetIntVariable(const std::string& name) override;
+    virtual ChVector3d GetVecVariable(const std::string& name) override;
+    virtual ChQuaterniond GetQuatVariable(const std::string& name) override;
+    virtual ChCoordsysd GetCoordsysVariable(const std::string& name) override;
+    virtual ChFrame<> GetFrameVariable(const std::string& name) override;
+    virtual ChFrameMoving<> GetFrameMovingVariable(const std::string& name) override;
     virtual void SetRealVariable(const std::string& name, double val) override;
     virtual void SetIntVariable(const std::string& name, int val) override;
+    virtual void SetVecVariable(const std::string& name, const ChVector3d& val) override;
+    virtual void SetQuatVariable(const std::string& name, const ChQuaterniond& val) override;
+    virtual void SetCoordsysVariable(const std::string& name, const ChCoordsysd& val) override;
+    virtual void SetFrameVariable(const std::string& name, const ChFrame<>& val) override;
+    virtual void SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val) override;
     virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                             const std::unordered_map<std::string, double>& parameters_real,
-                            const std::unordered_map<std::string, int>& parameters_int) override;
+                            const std::unordered_map<std::string, int>& parameters_int,
+                            const std::unordered_map<std::string, std::string>& parameters_string) override;
     virtual bool checkState(const std::string& name, std::string& err_msg) const override;
     virtual bool checkInput(const std::string& name, std::string& err_msg) const override;
     virtual bool checkParamReal(const std::string& name, std::string& err_msg) const override;
     virtual bool checkParamInt(const std::string& name, std::string& err_msg) const override;
+    virtual bool checkParamString(const std::string& name, std::string& err_msg) const override;
     virtual void SetInputs(const std::unordered_map<std::string, double>& inputs_real) override;
     virtual void SetContinuousStates(const std::vector<double>& states) override;
     virtual void GetContinuousStates(std::vector<double>& states) override;
     virtual void GetContinuousDerivatives(std::vector<double>& derivs) override;
     virtual void PrintFmuVariables() const override;
 
-    fmu_tools::fmi3::FmuUnit m_fmu;
+    fmi3::FmuChronoUnit m_fmu;
 };
 
 // =============================================================================
@@ -174,12 +200,52 @@ int ChExternalFmu::GetIntVariable(const std::string& name) const {
     return m_wrapper->GetIntVariable(name);
 }
 
+ChVector3d ChExternalFmu::GetVecVariable(const std::string& name) const {
+    return m_wrapper->GetVecVariable(name);
+}
+
+ChQuaterniond ChExternalFmu::GetQuatVariable(const std::string& name) const {
+    return m_wrapper->GetQuatVariable(name);
+}
+
+ChCoordsysd ChExternalFmu::GetCoordsysVariable(const std::string& name) const {
+    return m_wrapper->GetCoordsysVariable(name);
+}
+
+ChFrame<> ChExternalFmu::GetFrameVariable(const std::string& name) const {
+    return m_wrapper->GetFrameVariable(name);
+}
+
+ChFrameMoving<> ChExternalFmu::GetFrameMovingVariable(const std::string& name) const {
+    return m_wrapper->GetFrameMovingVariable(name);
+}
+
 void ChExternalFmu::SetRealVariable(const std::string& name, double val) {
     m_wrapper->SetRealVariable(name, val);
 }
 
 void ChExternalFmu::SetIntVariable(const std::string& name, double val) {
     m_wrapper->SetIntVariable(name, val);
+}
+
+void ChExternalFmu::SetVecVariable(const std::string& name, const ChVector3d& val) {
+    m_wrapper->SetVecVariable(name, val);
+}
+
+void ChExternalFmu::SetQuatVariable(const std::string& name, const ChQuaterniond& val) {
+    m_wrapper->SetQuatVariable(name, val);
+}
+
+void ChExternalFmu::SetCoordsysVariable(const std::string& name, const ChCoordsysd& val) {
+    m_wrapper->SetCoordsysVariable(name, val);
+}
+
+void ChExternalFmu::SetFrameVariable(const std::string& name, const ChFrame<>& val) {
+    m_wrapper->SetFrameVariable(name, val);
+}
+
+void ChExternalFmu::SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val) {
+    m_wrapper->SetFrameMovingVariable(name, val);
 }
 
 void ChExternalFmu::SetInitialCondition(const std::string& name, double value) {
@@ -233,6 +299,23 @@ void ChExternalFmu::SetIntParameterValue(const std::string& name, int value) {
     m_parameters_int.insert({name, value});
 }
 
+void ChExternalFmu::SetStringParameterValue(const std::string& name, const std::string& value) {
+    if (m_initialized) {
+        std::cerr << "SetStringParameterValue cannot be called after Initialize()";
+        throw std::runtime_error("SetStringParameterValue cannot be called after Initialize()");
+    }
+
+    std::string err_msg;
+    bool ok = m_wrapper->checkParamString(name, err_msg);
+
+    if (!ok) {
+        std::cerr << "SetStringParameterValue: " + err_msg << std::endl;
+        throw std::runtime_error("SetStringParameterValue: " + err_msg);
+    }
+
+    m_parameters_string.insert({name, value});
+}
+
 void ChExternalFmu::SetRealInputFunction(const std::string& name, std::function<double(double)> function) {
     if (m_initialized) {
         std::cerr << "SetRealInputFunction cannot be called after Initialize()";
@@ -269,7 +352,7 @@ void ChExternalFmu::SetRealInputChFunction(const std::string& name, std::shared_
 
 void ChExternalFmu::Initialize() {
     // Let the wrapper initialize its underlying FMU
-    m_wrapper->Initialize(m_initial_conditions, m_parameters_real, m_parameters_int);
+    m_wrapper->Initialize(m_initial_conditions, m_parameters_real, m_parameters_int, m_parameters_string);
 
     // Initialize the base class
     ChExternalDynamicsODE::Initialize();
@@ -303,6 +386,8 @@ void ChExternalFmu::CalculateRHS(double time, const ChVectorDynamic<>& y, ChVect
 }
 
 void ChExternalFmu::Update(double time, bool update_assets) {
+    m_wrapper->SetTime(time);
+
     // Collect input values at current time
     std::unordered_map<std::string, double> inputs_real;
     for (const auto& v : m_input_functions) {
@@ -369,6 +454,10 @@ ChFmu2Wrapper::ChFmu2Wrapper(const std::string& instance_name,
 void ChFmu2Wrapper::SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) {
     if (logging)
         m_fmu.SetDebugLogging(fmi2True, log_categories);
+}
+
+void ChFmu2Wrapper::SetTime(double time) {
+    m_fmu.SetTime(time);
 }
 
 unsigned int ChFmu2Wrapper::GetNumStates() const {
@@ -439,6 +528,36 @@ int ChFmu2Wrapper::GetIntVariable(const std::string& name) {
     return val;
 }
 
+ChVector3d ChFmu2Wrapper::GetVecVariable(const std::string& name) {
+    ChVector3d val;
+    m_fmu.GetVecVariable(name, val);
+    return val;
+}
+
+ChQuaterniond ChFmu2Wrapper::GetQuatVariable(const std::string& name) {
+    ChQuaterniond val;
+    m_fmu.GetQuatVariable(name, val);
+    return val;
+}
+
+ChCoordsysd ChFmu2Wrapper::GetCoordsysVariable(const std::string& name) {
+    ChCoordsysd val;
+    m_fmu.GetCoordsysVariable(name, val);
+    return val;
+}
+
+ChFrame<> ChFmu2Wrapper::GetFrameVariable(const std::string& name) {
+    ChFrame<> val;
+    m_fmu.GetFrameVariable(name, val);
+    return val;
+}
+
+ChFrameMoving<> ChFmu2Wrapper::GetFrameMovingVariable(const std::string& name) {
+    ChFrameMoving<> val;
+    m_fmu.GetFrameMovingVariable(name, val);
+    return val;
+}
+
 void ChFmu2Wrapper::SetRealVariable(const std::string& name, double val) {
     m_fmu.SetVariable(name, val, FmuVariable::Type::Real);
 }
@@ -447,10 +566,31 @@ void ChFmu2Wrapper::SetIntVariable(const std::string& name, int val) {
     m_fmu.SetVariable(name, val, FmuVariable::Type::Integer);
 }
 
+void ChFmu2Wrapper::SetVecVariable(const std::string& name, const ChVector3d& val) {
+    m_fmu.SetVecVariable(name, val);
+}
+
+void ChFmu2Wrapper::SetQuatVariable(const std::string& name, const ChQuaterniond& val) {
+    m_fmu.SetQuatVariable(name, val);
+}
+
+void ChFmu2Wrapper::SetCoordsysVariable(const std::string& name, const ChCoordsysd& val) {
+    m_fmu.SetCoordsysVariable(name, val);
+}
+
+void ChFmu2Wrapper::SetFrameVariable(const std::string& name, const ChFrame<>& val) {
+    m_fmu.SetFrameVariable(name, val);
+}
+
+void ChFmu2Wrapper::SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val) {
+    m_fmu.SetFrameMovingVariable(name, val);
+}
+
 // Initialize underlying FMU
 void ChFmu2Wrapper::Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                                const std::unordered_map<std::string, double>& parameters_real,
-                               const std::unordered_map<std::string, int>& parameters_int) {
+                               const std::unordered_map<std::string, int>& parameters_int,
+                               const std::unordered_map<std::string, std::string>& parameters_string) {
     m_fmu.EnterInitializationMode();
 
     // Set initial conditions
@@ -462,6 +602,8 @@ void ChFmu2Wrapper::Initialize(const std::unordered_map<std::string, double>& in
         m_fmu.SetVariable(v.first, v.second, FmuVariable::Type::Real);
     for (const auto& v : parameters_int)
         m_fmu.SetVariable(v.first, v.second, FmuVariable::Type::Integer);
+    for (const auto& v : parameters_string)
+        m_fmu.SetVariable(v.first, v.second);
 
     m_fmu.ExitInitializationMode();
 }
@@ -515,6 +657,11 @@ bool ChFmu2Wrapper::checkParamReal(const std::string& name, std::string& err_msg
 // Check that the FMU variable with given name is an integral "parameter"
 bool ChFmu2Wrapper::checkParamInt(const std::string& name, std::string& err_msg) const {
     return checkParam(name, FmuVariable::Type::Integer, err_msg);
+}
+
+// Check that the FMU variable with given name is a string "parameter"
+bool ChFmu2Wrapper::checkParamString(const std::string& name, std::string& err_msg) const {
+    return checkParam(name, FmuVariable::Type::String, err_msg);
 }
 
 // Check that an FMU variable with given name is a "parameter" with specified type
@@ -605,6 +752,10 @@ void ChFmu3Wrapper::SetDebugLogging(bool logging, const std::vector<std::string>
         m_fmu.SetDebugLogging(fmi2True, log_categories);
 }
 
+void ChFmu3Wrapper::SetTime(double time) {
+    m_fmu.SetTime(time);
+}
+
 unsigned int ChFmu3Wrapper::GetNumStates() const {
     return (unsigned int)m_fmu.GetNumStates();
 }
@@ -673,6 +824,36 @@ int ChFmu3Wrapper::GetIntVariable(const std::string& name) {
     return val;
 }
 
+ChVector3d ChFmu3Wrapper::GetVecVariable(const std::string& name) {
+    ChVector3d val;
+    m_fmu.GetVecVariable(name, val);
+    return val;
+}
+
+ChQuaterniond ChFmu3Wrapper::GetQuatVariable(const std::string& name) {
+    ChQuaterniond val;
+    m_fmu.GetQuatVariable(name, val);
+    return val;
+}
+
+ChCoordsysd ChFmu3Wrapper::GetCoordsysVariable(const std::string& name) {
+    ChCoordsysd val;
+    m_fmu.GetCoordsysVariable(name, val);
+    return val;
+}
+
+ChFrame<> ChFmu3Wrapper::GetFrameVariable(const std::string& name) {
+    ChFrame<> val;
+    m_fmu.GetFrameVariable(name, val);
+    return val;
+}
+
+ChFrameMoving<> ChFmu3Wrapper::GetFrameMovingVariable(const std::string& name) {
+    ChFrameMoving<> val;
+    m_fmu.GetFrameMovingVariable(name, val);
+    return val;
+}
+
 void ChFmu3Wrapper::SetRealVariable(const std::string& name, double val) {
     m_fmu.SetVariable(name, val);
 }
@@ -681,10 +862,31 @@ void ChFmu3Wrapper::SetIntVariable(const std::string& name, int val) {
     m_fmu.SetVariable(name, val);
 }
 
+void ChFmu3Wrapper::SetVecVariable(const std::string& name, const ChVector3d& val) {
+    m_fmu.SetVecVariable(name, val);
+}
+
+void ChFmu3Wrapper::SetQuatVariable(const std::string& name, const ChQuaterniond& val) {
+    m_fmu.SetQuatVariable(name, val);
+}
+
+void ChFmu3Wrapper::SetCoordsysVariable(const std::string& name, const ChCoordsysd& val) {
+    m_fmu.SetCoordsysVariable(name, val);
+}
+
+void ChFmu3Wrapper::SetFrameVariable(const std::string& name, const ChFrame<>& val) {
+    m_fmu.SetFrameVariable(name, val);
+}
+
+void ChFmu3Wrapper::SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val) {
+    m_fmu.SetFrameMovingVariable(name, val);
+}
+
 // Initialize underlying FMU
 void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                                const std::unordered_map<std::string, double>& parameters_real,
-                               const std::unordered_map<std::string, int>& parameters_int) {
+                               const std::unordered_map<std::string, int>& parameters_int,
+                               const std::unordered_map<std::string, std::string>& parameters_string) {
     m_fmu.EnterInitializationMode(fmi3False,  // no tolerance defined
                                   0.0,        // tolerance (dummy)
                                   0.0,        // start time
@@ -700,6 +902,8 @@ void ChFmu3Wrapper::Initialize(const std::unordered_map<std::string, double>& in
     for (const auto& v : parameters_real)
         m_fmu.SetVariable(v.first, v.second);
     for (const auto& v : parameters_int)
+        m_fmu.SetVariable(v.first, v.second);
+    for (const auto& v : parameters_string)
         m_fmu.SetVariable(v.first, v.second);
 
     m_fmu.ExitInitializationMode();
@@ -750,7 +954,7 @@ bool ChFmu3Wrapper::checkInput(const std::string& name, std::string& err_msg) co
     return true;
 }
 
-// Check that an FMU variable with given name is a "parameter" with specified type
+// Check that an FMU variable with given name is a real type "parameter"
 bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
     if (!m_fmu.GetValueReference(name, vr)) {
@@ -775,7 +979,7 @@ bool ChFmu3Wrapper::checkParamReal(const std::string& name, std::string& err_msg
     return true;
 }
 
-// Check that an FMU variable with given name is a "parameter" with specified type
+// Check that an FMU variable with given name is an integer type "parameter"
 bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg) const {
     fmi3ValueReference vr;
     if (!m_fmu.GetValueReference(name, vr)) {
@@ -798,6 +1002,12 @@ bool ChFmu3Wrapper::checkParamInt(const std::string& name, std::string& err_msg)
         return false;
     }
 
+    return true;
+}
+
+// Check that the FMU variable with given name is a string type "parameter"
+bool ChFmu3Wrapper::checkParamString(const std::string& name, std::string& err_msg) const {
+    //// TODO
     return true;
 }
 
