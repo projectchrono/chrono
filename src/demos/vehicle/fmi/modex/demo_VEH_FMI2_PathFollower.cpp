@@ -71,10 +71,16 @@ ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 double step_size = 2e-3;
 double tire_step_size = 2e-3;
 
-// Visualization output
+// Simulation end time (used only if render = false)
+double t_end = 15;
+
+// Output
+bool output = true;
+
+// Visualization settings
 bool render = true;
 double render_fps = 120;
-bool img_output = false;
+bool save_img = false;
 
 // =============================================================================
 
@@ -290,7 +296,9 @@ int main(int argc, char* argv[]) {
         vis_type = ChVisualSystem::Type::IRRLICHT;
 #endif
 
-    std::shared_ptr<ChVehicleVisualSystem> vis;
+    int sentinelID = -1;
+    int targetID = -1;
+    auto vis = chrono_types::make_shared<ChVehicleVisualSystem>();
     if (render) {
         switch (vis_type) {
             case ChVisualSystem::Type::IRRLICHT: {
@@ -328,19 +336,19 @@ int main(int argc, char* argv[]) {
                 break;
             }
         }
+
+        // Add a visualization grid
+        vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)),
+                     ChColor(0.31f, 0.43f, 0.43f));
+
+        // Add visualization of controller points (sentinel & target)
+        auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+        auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
+        ballS->SetColor(ChColor(1, 0, 0));
+        ballT->SetColor(ChColor(0, 1, 0));
+        sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
+        targetID = vis->AddVisualModel(ballT, ChFrame<>());
     }
-
-    // Add a visualization grid
-    vis->AddGrid(0.5, 0.5, 2000, 400, ChCoordsys<>(init_loc + ChVector3d(0, 0, -0.05), QuatFromAngleZ(init_yaw)),
-                 ChColor(0.31f, 0.43f, 0.43f));
-
-    // Add visualization of controller points (sentinel & target)
-    auto ballS = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-    auto ballT = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-    ballS->SetColor(ChColor(1, 0, 0));
-    ballT->SetColor(ChColor(0, 1, 0));
-    int sentinelID = vis->AddVisualModel(ballS, ChFrame<>());
-    int targetID = vis->AddVisualModel(ballT, ChFrame<>());
 
     // -------------------------
     // Create output directories
@@ -351,7 +359,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (img_output) {
+    if (save_img) {
         if (!filesystem::create_directory(filesystem::path(out_dir + "/img"))) {
             std::cout << "Error creating directory " << out_dir + "/img" << std::endl;
             return 1;
@@ -375,30 +383,37 @@ int main(int argc, char* argv[]) {
     ChFunctionInterp angspeed_recorder;
 
     // Initialize simulation frame counter and simulation time
+    double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
 
     ChVector3d sentinel_loc = VNULL;
     ChVector3d target_loc = VNULL;
 
+    ChTimer timer;
+    timer.start();
+
     while (sentinel_loc.x() < last_loc.x()) {
-        double time = sys->GetChTime();
-
-        double speed = speed_filter.Add(vehicle.GetSpeed());
-        double accel = accel_filter.Filter(vehicle.GetPointAcceleration(ChVector3d(-wheel_base / 2, 0, 0)).y());
-
-        speed_recorder.AddPoint(time, speed);
-        accel_recorder.AddPoint(time, accel);
+        if (!render && time > t_end)
+            break;
 
         // Driver inputs
         DriverInputs driver_inputs = fmu_driver->GetInputs();
         sentinel_loc = fmu_driver->GetSentinelLocation();
         target_loc = fmu_driver->GetTargetLocation();
 
-        double steer = steering_gear_ratio * steer_filter.Filter(driver_inputs.m_steering);
-        steer_recorder.AddPoint(time, steer);
-        double angspeed = ang_diff.Filter(steer);
-        angspeed_recorder.AddPoint(time, angspeed);
+        if (output) {
+            double speed = speed_filter.Add(vehicle.GetSpeed());
+            double accel = accel_filter.Filter(vehicle.GetPointAcceleration(ChVector3d(-wheel_base / 2, 0, 0)).y());
+
+            speed_recorder.AddPoint(time, speed);
+            accel_recorder.AddPoint(time, accel);
+
+            double steer = steering_gear_ratio * steer_filter.Filter(driver_inputs.m_steering);
+            steer_recorder.AddPoint(time, steer);
+            double angspeed = ang_diff.Filter(steer);
+            angspeed_recorder.AddPoint(time, angspeed);
+        }
 
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
@@ -412,7 +427,7 @@ int main(int argc, char* argv[]) {
             vis->Render();
             vis->EndScene();
 
-            if (img_output) {
+            if (save_img) {
                 std::ostringstream filename;
                 filename << out_dir << "/img/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
@@ -435,40 +450,48 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         sim_frame++;
+        time += step_size;
     }
 
+    timer.stop();
+    std::cout << "Sim time: " << time << std::endl;
+    std::cout << "Run time: " << timer() << std::endl;
+    std::cout << "RTF:      " << timer() / time << std::endl;
+
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChGnuPlot gplot_speed(out_dir + "/speed.gpl");
-    gplot_speed.SetGrid();
-    gplot_speed.SetTitle("Speed");
-    gplot_speed.SetLabelX("time (s)");
-    gplot_speed.SetLabelY("speed (m/s)");
-    gplot_speed.SetAspectRatio(0.25);
-    gplot_speed.Plot(speed_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
+    if (output) {
+        postprocess::ChGnuPlot gplot_speed(out_dir + "/speed.gpl");
+        gplot_speed.SetGrid();
+        gplot_speed.SetTitle("Speed");
+        gplot_speed.SetLabelX("time (s)");
+        gplot_speed.SetLabelY("speed (m/s)");
+        gplot_speed.SetAspectRatio(0.25);
+        gplot_speed.Plot(speed_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
 
-    postprocess::ChGnuPlot gplot_acc(out_dir + "/lateral_acceleration.gpl");
-    gplot_acc.SetGrid();
-    gplot_acc.SetTitle("Lateral Acceleration");
-    gplot_acc.SetLabelX("time (s)");
-    gplot_acc.SetLabelY("lateral acceleration (m/s^2)");
-    gplot_acc.SetAspectRatio(0.25);
-    gplot_acc.Plot(accel_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
+        postprocess::ChGnuPlot gplot_acc(out_dir + "/lateral_acceleration.gpl");
+        gplot_acc.SetGrid();
+        gplot_acc.SetTitle("Lateral Acceleration");
+        gplot_acc.SetLabelX("time (s)");
+        gplot_acc.SetLabelY("lateral acceleration (m/s^2)");
+        gplot_acc.SetAspectRatio(0.25);
+        gplot_acc.Plot(accel_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
 
-    postprocess::ChGnuPlot gplot_steer(out_dir + "/steering_angle.gpl");
-    gplot_steer.SetGrid();
-    gplot_steer.SetTitle("Steering Wheel Angle");
-    gplot_steer.SetLabelX("time (s)");
-    gplot_steer.SetLabelY("steering wheel angle (degrees)");
-    gplot_steer.SetAspectRatio(0.25);
-    gplot_steer.Plot(steer_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
+        postprocess::ChGnuPlot gplot_steer(out_dir + "/steering_angle.gpl");
+        gplot_steer.SetGrid();
+        gplot_steer.SetTitle("Steering Wheel Angle");
+        gplot_steer.SetLabelX("time (s)");
+        gplot_steer.SetLabelY("steering wheel angle (degrees)");
+        gplot_steer.SetAspectRatio(0.25);
+        gplot_steer.Plot(steer_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
 
-    postprocess::ChGnuPlot gplot_angspeed(out_dir + "/steering_angular_vel.gpl");
-    gplot_angspeed.SetGrid();
-    gplot_angspeed.SetTitle("Steering Wheel Angular Speed");
-    gplot_angspeed.SetLabelX("time (s)");
-    gplot_angspeed.SetLabelY("steering wheel angle (degrees/s)");
-    gplot_angspeed.SetAspectRatio(0.25);
-    gplot_angspeed.Plot(angspeed_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
+        postprocess::ChGnuPlot gplot_angspeed(out_dir + "/steering_angular_vel.gpl");
+        gplot_angspeed.SetGrid();
+        gplot_angspeed.SetTitle("Steering Wheel Angular Speed");
+        gplot_angspeed.SetLabelX("time (s)");
+        gplot_angspeed.SetLabelY("steering wheel angle (degrees/s)");
+        gplot_angspeed.SetAspectRatio(0.25);
+        gplot_angspeed.Plot(angspeed_recorder, "", " with lines lw 2 lt -1 lc rgb'#5E7F99' ");
+    }
 #endif
 
     return 0;

@@ -44,7 +44,23 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::fmi2;
 
-// -----------------------------------------------------------------------------
+// =============================================================================
+
+// Simulation step sizes
+double step_size = 2e-3;
+
+// Simulation end time
+double t_end = 15;
+
+// Output
+bool output = true;
+
+// Visualization settings
+bool render = true;
+double render_fps = 120;
+bool save_img = false;
+
+// =============================================================================
 
 void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       const std::string& instance_name,
@@ -312,14 +328,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> logCategories = {"logAll"};
 
     double start_time = 0;
-    double stop_time = 16;
-    double step_size = 1e-3;
-
-    bool vehicle_visible = true;
-    bool driver_visible = true;
-
-    double fps = 60;
-    bool save_img = false;
+    double stop_time = t_end;
 
     // Create the 7 FMU instances
     ////std::cout << "Vehicle FMU filename:    >" << vehicle_fmu_filename << "<" << std::endl;
@@ -339,7 +348,7 @@ int main(int argc, char* argv[]) {
         CreateVehicleFMU(vehicle_fmu,                                                      //
                          vehicle_instance_name, vehicle_fmu_filename, vehicle_unpack_dir,  //
                          step_size, start_time, stop_time,                                 //
-                         logCategories, vehicle_out_dir, vehicle_visible, fps);            //
+                         logCategories, vehicle_out_dir, render, render_fps);              //
     } catch (std::exception& e) {
         std::cout << "ERROR loading vehicle FMU: " << e.what() << "\n";
         return 1;
@@ -357,7 +366,7 @@ int main(int argc, char* argv[]) {
         CreateDriverFMU(driver_fmu,                                                    //
                         driver_instance_name, driver_fmu_filename, driver_unpack_dir,  //
                         step_size, start_time, stop_time,                              //
-                        logCategories, driver_out_dir, driver_visible, fps);           //
+                        logCategories, driver_out_dir, render, render_fps);            //
     } catch (std::exception& e) {
         std::cout << "ERROR loading driver FMU: " << e.what() << "\n";
         return 1;
@@ -416,8 +425,8 @@ int main(int argc, char* argv[]) {
     ChTimer timer;
     timer.start();
 
-    while (time < stop_time) {
-        std::cout << "\r" << time << "\r";
+    while (time < t_end) {
+        ////std::cout << "\r" << time << "\r";
 
         // ----------- Set FMU control variables
         double target_speed = 12;
@@ -485,7 +494,9 @@ int main(int argc, char* argv[]) {
         }
 
         // ----------- Save output
-        csv << time << ref_frame.GetPos() << std::endl;
+        if (output) {
+            csv << time << ref_frame.GetPos() << std::endl;
+        }
 
         // ----------- Advance FMUs
         auto status_vehicle = vehicle_fmu.DoStep(time, step_size, fmi2True);
@@ -505,18 +516,21 @@ int main(int argc, char* argv[]) {
     timer.stop();
     std::cout << "Sim time: " << time << std::endl;
     std::cout << "Run time: " << timer() << std::endl;
+    std::cout << "RTF:      " << timer() / time << std::endl;
 
-    std::string out_file = out_dir + "/vehicle.out";
-    csv.WriteToFile(out_file);
+    if (output) {
+        std::string out_file = out_dir + "/vehicle.out";
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChGnuPlot gplot(out_dir + "/vehicle.gpl");
-    gplot.SetGrid();
-    gplot.SetLabelX("x");
-    gplot.SetLabelY("y");
-    gplot.SetTitle("Vehicle path");
-    gplot.Plot(out_file, 2, 3, "path", " with lines lt 1 lw 2");
+        postprocess::ChGnuPlot gplot(out_dir + "/vehicle.gpl");
+        gplot.SetGrid();
+        gplot.SetLabelX("x");
+        gplot.SetLabelY("y");
+        gplot.SetTitle("Vehicle path");
+        gplot.Plot(out_file, 2, 3, "path", " with lines lt 1 lw 2");
 #endif
+    }
 
     return 0;
 }
