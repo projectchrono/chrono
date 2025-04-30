@@ -17,7 +17,7 @@ if(FMU_EXPORT_SUPPORT)
   message(STATUS "Add Chrono::Vehicle co-simulation FMUs...")
   add_subdirectory(cosim)
   
-  ##message(STATUS "Add Chrono::Vehicle model exchange FMUs...")
-  ##add_subdirectory(modex)
+  message(STATUS "Add Chrono::Vehicle model exchange FMUs...")
+  add_subdirectory(modex)
 
 endif()
