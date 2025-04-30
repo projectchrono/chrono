@@ -20,6 +20,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/utils/ChOpenMP.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -38,6 +40,8 @@ using namespace chrono::irrlicht;
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -77,8 +81,10 @@ int num_threads_eigen = 1;
 // This can significantly impact performance of the rigid-rigid collision detection algorithm.
 bool high_res = false;
 
-// Render frequency.
-double render_fps = 50;
+// Visualization output
+bool render = true;
+double render_fps = 120;
+bool img_output = false;
 
 // SCM terrain visualization options.
 bool render_wireframe = true;  // render wireframe (flat otherwise)
@@ -101,6 +107,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetEngineType(EngineModelType::SIMPLE);
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv.SetDriveType(DrivelineTypeWV::AWD);
+    hmmwv.SetBrakeType(BrakeType::SHAFTS);
     hmmwv.SetTireType(TireModelType::RIGID);
     hmmwv.SetTireStepSize(step_size);
     hmmwv.Initialize();
@@ -231,44 +238,62 @@ int main(int argc, char* argv[]) {
 #endif
 
     std::shared_ptr<ChVehicleVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("Mixed Terrain Demo");
-            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.75);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AttachVehicle(&hmmwv.GetVehicle());
-            vis_irr->AttachDriver(&driver);
+                // Create the vehicle Irrlicht interface
+                auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+                vis_irr->SetWindowTitle("Mixed Terrain Demo");
+                vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.75);
+                vis_irr->Initialize();
+                vis_irr->AddLightDirectional();
+                vis_irr->AddSkyBox();
+                vis_irr->AddLogo();
+                vis_irr->AttachVehicle(&hmmwv.GetVehicle());
+                vis_irr->AttachDriver(&driver);
 
-            vis = vis_irr;
+                vis = vis_irr;
 #endif
-            break;
-        }
+                break;
+            }
 
-        default:
-        case ChVisualSystem::Type::VSG: {
+            default:
+            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("Mixed Terrain Demo");
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
-            vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
-            vis_vsg->AttachDriver(&driver);
-            vis_vsg->AttachTerrain(&rigid_terrain);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->EnableSkyBox();
-            vis_vsg->Initialize();
+                // Create the vehicle VSG interface
+                auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+                vis_vsg->SetWindowTitle("Mixed Terrain Demo");
+                vis_vsg->SetWindowSize(1280, 800);
+                vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 8.0, 0.75);
+                vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
+                vis_vsg->AttachDriver(&driver);
+                vis_vsg->AttachTerrain(&rigid_terrain);
+                vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+                vis_vsg->EnableShadows();
+                vis_vsg->EnableSkyBox();
+                vis_vsg->Initialize();
 
-            vis = vis_vsg;
+                vis = vis_vsg;
 #endif
-            break;
+                break;
+            }
+        }
+    }
+
+    // -------------------------
+    // Create output directories
+    // -------------------------
+
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_RIGID_SCM_PATCHES";
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (img_output) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/img"))) {
+            std::cout << "Error creating directory " << out_dir + "/img" << std::endl;
+            return 1;
         }
     }
 
@@ -278,12 +303,23 @@ int main(int argc, char* argv[]) {
 
     int render_frame = 0;
     double time = 0;
+    double stop_time = 20;
 
-    while (vis->Run()) {
-        if (time >= render_frame / render_fps) {
+    while (time < stop_time) {
+        if (render && time >= render_frame / render_fps) {
+            if (!vis->Run())
+                break;
+
             vis->BeginScene();
             vis->Render();
             vis->EndScene();
+
+            if (img_output) {
+                std::ostringstream filename;
+                filename << out_dir << "/img/img_" << std::setw(5) << std::setfill('0') << render_frame + 1 << ".bmp";
+                vis->WriteImageToFile(filename.str());
+            }
+
             render_frame++;
         }
 
