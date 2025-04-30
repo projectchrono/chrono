@@ -27,7 +27,7 @@ using namespace chrono::fmi3;
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-fmu_tools::fmi3::FmuComponentBase* fmu_tools::fmi3::fmi3InstantiateIMPL(fmu_tools::fmi3::FmuType fmiInterfaceType,
+fmu_forge::fmi3::FmuComponentBase* fmu_forge::fmi3::fmi3InstantiateIMPL(fmu_forge::fmi3::FmuType fmiInterfaceType,
                                                                         fmi3String instanceName,
                                                                         fmi3String instantiationToken,
                                                                         fmi3String resourcePath,
@@ -41,7 +41,7 @@ fmu_tools::fmi3::FmuComponentBase* fmu_tools::fmi3::fmi3InstantiateIMPL(fmu_tool
 
 // -----------------------------------------------------------------------------
 
-FmuComponent::FmuComponent(fmu_tools::fmi3::FmuType fmiInterfaceType,
+FmuComponent::FmuComponent(fmu_forge::fmi3::FmuType fmiInterfaceType,
                            fmi3String instanceName,
                            fmi3String instantiationToken,
                            fmi3String resourcePath,

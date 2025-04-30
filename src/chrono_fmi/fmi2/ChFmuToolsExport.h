@@ -12,7 +12,7 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 //
-// Chrono wrappers to fmu_tools FMU export classes for FMI standard 2.0.
+// Chrono wrappers to fmu-forge FMU export classes for FMI standard 2.0.
 //
 // =============================================================================
 
@@ -36,7 +36,7 @@
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapes.h"
 
-// fmu_tools
+// fmu-forge
 // #include "rapidxml_ext.hpp"
 #include "fmi2/FmuToolsExport.h"
 
@@ -46,7 +46,7 @@ namespace fmi2 {
 /// @addtogroup chrono_fmi2
 /// @{
 
-using FmuVariable = fmu_tools::fmi2::FmuVariable;
+using FmuVariable = fmu_forge::fmi2::FmuVariable;
 
 #define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
     _fmucomp->AddFmuVariable(                                                                        \
@@ -82,7 +82,7 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 /// Class for serializing variables to FmuComponentBase.
 class ChOutputFMU : public ChArchiveOut {
   public:
-    ChOutputFMU(fmu_tools::fmi2::FmuComponentBase& fmucomp) {
+    ChOutputFMU(fmu_forge::fmi2::FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -227,7 +227,7 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
     int tablevel;
-    fmu_tools::fmi2::FmuComponentBase* _fmucomp;
+    fmu_forge::fmi2::FmuComponentBase* _fmucomp;
     std::stack<int> nitems;
     std::deque<bool> is_array;
     std::deque<std::string> parent_names;
@@ -236,7 +236,7 @@ class ChOutputFMU : public ChArchiveOut {
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public fmu_tools::fmi2::FmuComponentBase {
+class FmuChronoComponentBase : public fmu_forge::fmi2::FmuComponentBase {
   public:
     FmuChronoComponentBase(fmi2String instanceName,
                            fmi2Type fmuType,

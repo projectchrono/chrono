@@ -13,12 +13,12 @@ set(FMU_ME TRUE)
 # Set include paths, compiler & linker flags, and libraries
 list(APPEND LIBS Chrono_core)
 
-include_directories(${FMU_TOOLS_DIR})
+include_directories(${FMU_FORGE_DIR})
 
 #==============================================================
 
 message(STATUS "...add ${COMPONENT_NAME}")
-message(STATUS "   FetchContent(fmu_tools)")
+message(STATUS "   FetchContent(fmu-forge)")
 
 set(FMU_MODEL_IDENTIFIER ${COMPONENT_NAME})
 set(USE_CUSTOM_TYPESPLATFORM OFF)
@@ -29,7 +29,7 @@ set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}/fmi3
+    SOURCE_DIR ${FMU_FORGE_DIR}/fmi3
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})

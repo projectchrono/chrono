@@ -22,7 +22,7 @@
 
 class FmuComponent : public chrono::fmi3::FmuChronoComponentBase {
   public:
-    FmuComponent(fmu_tools::fmi3::FmuType fmiInterfaceType,
+    FmuComponent(fmu_forge::fmi3::FmuType fmiInterfaceType,
                  fmi3String instanceName,
                  fmi3String instantiationToken,
                  fmi3String resourcePath,

@@ -24,7 +24,7 @@
 
 #include "fmi2/FmuToolsExport.h"
 
-class FmuComponent : public fmu_tools::fmi2::FmuComponentBase {
+class FmuComponent : public fmu_forge::fmi2::FmuComponentBase {
   public:
     FmuComponent(fmi2String instanceName,
                  fmi2Type fmuType,

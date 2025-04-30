@@ -24,9 +24,9 @@
 
 #include "fmi3/FmuToolsExport.h"
 
-class FmuComponent : public fmu_tools::fmi3::FmuComponentBase {
+class FmuComponent : public fmu_forge::fmi3::FmuComponentBase {
   public:
-    FmuComponent(fmu_tools::fmi3::FmuType fmiInterfaceType,
+    FmuComponent(fmu_forge::fmi3::FmuType fmiInterfaceType,
                  fmi3String instanceName,
                  fmi3String instantiationToken,
                  fmi3String resourcePath,

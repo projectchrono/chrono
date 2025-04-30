@@ -20,7 +20,7 @@ set(FMU_ME ON)
 list(APPEND LIBS Chrono_core)
 list(APPEND LIBS Chrono_vehicle)
 
-include_directories(${FMU_TOOLS_DIR})
+include_directories(${FMU_FORGE_DIR})
 
 if(CH_ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS Chrono_irrlicht)
@@ -29,7 +29,7 @@ endif()
 #==============================================================
 
 message(STATUS "...add ${COMPONENT_NAME}")
-message(STATUS "   FetchContent(fmu_tools)")
+message(STATUS "   FetchContent(fmu-forge)")
 
 set(FMU_MODEL_IDENTIFIER "${COMPONENT_NAME}")
 set(USE_CUSTOM_TYPESPLATFORM OFF)
@@ -40,7 +40,7 @@ set(FMU_MSG_PREFIX "   - ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${FMU_TOOLS_DIR}/fmi2
+    SOURCE_DIR ${FMU_FORGE_DIR}/fmi2
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})

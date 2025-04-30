@@ -50,8 +50,8 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
                     bool visible,
                     const std::vector<std::string>& logCategories) {
     try {
-        crane_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
-        ////crane_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename); // will go in TEMP/_fmu_temp
+        crane_fmu.Load(fmu_forge::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
+        ////crane_fmu.Load(fmu_forge::fmi3::FmuType::COSIMULATION, fmu_filename); // will go in TEMP/_fmu_temp
     } catch (std::exception&) {
         throw;
     }
@@ -92,8 +92,8 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
                        bool visible,
                        const std::vector<std::string>& logCategories) {
     try {
-        actuator_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
-        ////actuator_fmu.Load(fmu_tools::fmi3::FmuType::COSIMULATION, fmu_filename); // will go in TEMP/_fmu_temp
+        actuator_fmu.Load(fmu_forge::fmi3::FmuType::COSIMULATION, fmu_filename, fmu_unpack_dir);
+        ////actuator_fmu.Load(fmu_forge::fmi3::FmuType::COSIMULATION, fmu_filename); // will go in TEMP/_fmu_temp
     } catch (std::exception&) {
         throw;
     }

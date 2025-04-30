@@ -37,7 +37,7 @@ class ChFmu2Wrapper : public ChFmuWrapper {
     );
 
   private:
-    using FmuVariable = fmu_tools::fmi2::FmuVariable;
+    using FmuVariable = fmu_forge::fmi2::FmuVariable;
 
     virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) override;
     virtual void SetTime(double time) override;
@@ -94,7 +94,7 @@ class ChFmu3Wrapper : public ChFmuWrapper {
     );
 
   private:
-    using FmuVariable = fmu_tools::fmi3::FmuVariable;
+    using FmuVariable = fmu_forge::fmi3::FmuVariable;
 
     virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) override;
     virtual void SetTime(double time) override;
@@ -147,18 +147,18 @@ void ChExternalFmu::Load(const std::string& instance_name,  // name of the FMU i
                          const std::string& resources_dir   // location of FMU resources
 ) {
     // Peek in FMU model description file to get FMI version
-    auto fmi_version = fmu_tools::GetFmuVersion(fmu_filename);
+    auto fmi_version = fmu_forge::GetFmuVersion(fmu_filename);
 
     // Create an FMU wrapper of appropriate type
     try {
         switch (fmi_version) {
-            case fmu_tools::FmuVersion::FMI2:
+            case fmu_forge::FmuVersion::FMI2:
                 if (m_verbose)
                     std::cout << "\nLoading FMI 2.0 FMU: " << fmu_filename << "\n" << std::endl;
                 m_wrapper = chrono_types::make_unique<ChFmu2Wrapper>(instance_name, fmu_filename, unpack_dir, logging,
                                                                      resources_dir, m_verbose);
                 break;
-            case fmu_tools::FmuVersion::FMI3:
+            case fmu_forge::FmuVersion::FMI3:
                 if (m_verbose)
                     std::cout << "\nLoading FMI 3.0 FMU: " << fmu_filename << "\n" << std::endl;
                 m_wrapper = chrono_types::make_unique<ChFmu3Wrapper>(instance_name, fmu_filename, unpack_dir, logging,
@@ -729,9 +729,9 @@ ChFmu3Wrapper::ChFmu3Wrapper(const std::string& instance_name,
     // Load the FMU from the specified file
     try {
         if (unpack_dir.empty())
-            m_fmu.Load(fmu_tools::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename);
+            m_fmu.Load(fmu_forge::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename);
         else
-            m_fmu.Load(fmu_tools::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename, unpack_dir);
+            m_fmu.Load(fmu_forge::fmi3::FmuType::MODEL_EXCHANGE, fmu_filename, unpack_dir);
     } catch (std::exception&) {
         throw;
     }

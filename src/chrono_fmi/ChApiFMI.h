@@ -44,13 +44,13 @@
       @defgroup chrono_fmi2 FMI 2.0 support
       @defgroup chrono_fmi3 FMI 3.0 support
 
-      @defgroup fmu_tools
+      @defgroup fmuForge
       @brief Generic utility library for FMU export and import
       
-      For additional information see the fmu_tools [repository](https://github.com/DigitalDynamicsLab/fmu_tools/blob/main/README.md)
+      For additional information see the fmu-forge [repository](https://github.com/projectchrono/fmu-forge/blob/main/README.md)
       @{
-        @defgroup fmu_tools_fmi2 FMI 2.0 utilities
-        @defgroup fmu_tools_fmi3 FMI 3.0 utilities
+        @defgroup fmu_forge_fmi2 FMI 2.0 utilities
+        @defgroup fmu_forge_fmi3 FMI 3.0 utilities
       @}
     @}
 */

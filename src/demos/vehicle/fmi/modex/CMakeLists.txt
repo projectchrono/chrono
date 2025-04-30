@@ -38,7 +38,7 @@ foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM})
   source_group("" FILES ${PROGRAM}.cpp)
   target_sources(${PROGRAM} PRIVATE ${PROGRAM}.cpp)
-  target_include_directories(${PROGRAM} PUBLIC ${FMU_TOOLS_DIR})
+  target_include_directories(${PROGRAM} PUBLIC ${FMU_FORGE_DIR})
 
   target_compile_definitions(${PROGRAM} PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
   target_compile_definitions(${PROGRAM} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")

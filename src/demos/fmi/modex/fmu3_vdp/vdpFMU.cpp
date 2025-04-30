@@ -20,12 +20,12 @@
 
 #include "vdpFMU.h"
 
-using namespace fmu_tools::fmi3;
+using namespace fmu_forge::fmi3;
 
 // -----------------------------------------------------------------------------
 
 // Create an instance of this FMU
-FmuComponentBase* fmu_tools::fmi3::fmi3InstantiateIMPL(FmuType fmiInterfaceType,
+FmuComponentBase* fmu_forge::fmi3::fmi3InstantiateIMPL(FmuType fmiInterfaceType,
                                                        fmi3String instanceName,
                                                        fmi3String instantiationToken,
                                                        fmi3String resourcePath,

@@ -24,7 +24,7 @@ set(PROGRAMv demo_FMI_VdP_modex)
 add_executable(${PROGRAMv})
 source_group("" FILES ${PROGRAMv}.cpp)
 target_sources(${PROGRAMv} PRIVATE ${PROGRAMv}.cpp)
-target_include_directories(${PROGRAMv} PUBLIC ${FMU_TOOLS_DIR})
+target_include_directories(${PROGRAMv} PUBLIC ${FMU_FORGE_DIR})
 
 target_compile_definitions(${PROGRAMv} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
 
@@ -55,7 +55,7 @@ set(PROGRAMa demo_FMI_hydraulic_crane_modex)
 add_executable(${PROGRAMa})
 source_group("" FILES ${PROGRAMa}.cpp)
 target_sources(${PROGRAMa} PRIVATE ${PROGRAMa}.cpp)
-target_include_directories(${PROGRAMa} PUBLIC ${FMU_TOOLS_DIR})
+target_include_directories(${PROGRAMa} PUBLIC ${FMU_FORGE_DIR})
 
 target_compile_definitions(${PROGRAMa} PUBLIC DEMO_FMU_MAIN_DIR="${DEMO_FMU_MAIN_DIR}")
 
