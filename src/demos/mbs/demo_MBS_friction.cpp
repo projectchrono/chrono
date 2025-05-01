@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("VSG Rolling Friction");
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetOutputScreen(0);
             vis_vsg->EnableSkyBox();
             vis_vsg->SetOutputScreen(0);

@@ -19,11 +19,15 @@
 #ifndef CH_EXTERNAL_FMU_H
 #define CH_EXTERNAL_FMU_H
 
+#include <string>
 #include <functional>
 #include <unordered_set>
 #include <unordered_map>
 
 #include "chrono_fmi/ChApiFMI.h"
+
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChExternalDynamicsODE.h"
 
 namespace chrono {
@@ -37,18 +41,35 @@ class ChFmuWrapper {
     virtual ~ChFmuWrapper() = default;
 
     virtual void SetDebugLogging(bool logging, const std::vector<std::string>& log_categories) = 0;
+    virtual void SetTime(double time) = 0;
     virtual unsigned int GetNumStates() const = 0;
     virtual std::unordered_set<std::string> GetStatesList() const = 0;
     virtual std::unordered_set<std::string> GetRealParametersList() const = 0;
     virtual std::unordered_set<std::string> GetIntParametersList() const = 0;
     virtual std::unordered_set<std::string> GetRealInputsList() const = 0;
+    virtual double GetRealVariable(const std::string& name) = 0;
+    virtual int GetIntVariable(const std::string& name) = 0;
+    virtual ChVector3d GetVecVariable(const std::string& name) = 0;
+    virtual ChQuaterniond GetQuatVariable(const std::string& name) = 0;
+    virtual ChCoordsysd GetCoordsysVariable(const std::string& name) = 0;
+    virtual ChFrame<> GetFrameVariable(const std::string& name) = 0;
+    virtual ChFrameMoving<> GetFrameMovingVariable(const std::string& name) = 0;
+    virtual void SetRealVariable(const std::string& name, double val) = 0;
+    virtual void SetIntVariable(const std::string& name, int val) = 0;
+    virtual void SetVecVariable(const std::string& name, const ChVector3d& val) = 0;
+    virtual void SetQuatVariable(const std::string& name, const ChQuaterniond& val) = 0;
+    virtual void SetCoordsysVariable(const std::string& name, const ChCoordsysd& val) = 0;
+    virtual void SetFrameVariable(const std::string& name, const ChFrame<>& val) = 0;
+    virtual void SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val) = 0;
     virtual void Initialize(const std::unordered_map<std::string, double>& initial_conditions,
                             const std::unordered_map<std::string, double>& parameters_real,
-                            const std::unordered_map<std::string, int>& parameters_int) = 0;
+                            const std::unordered_map<std::string, int>& parameters_int,
+                            const std::unordered_map<std::string, std::string>& parameters_string) = 0;
     virtual bool checkState(const std::string& name, std::string& err_msg) const = 0;
     virtual bool checkInput(const std::string& name, std::string& err_msg) const = 0;
     virtual bool checkParamReal(const std::string& name, std::string& err_msg) const = 0;
     virtual bool checkParamInt(const std::string& name, std::string& err_msg) const = 0;
+    virtual bool checkParamString(const std::string& name, std::string& err_msg) const = 0;
     virtual void SetInputs(const std::unordered_map<std::string, double>& inputs_real) = 0;
     virtual void SetContinuousStates(const std::vector<double>& states) = 0;
     virtual void GetContinuousStates(std::vector<double>& states) = 0;
@@ -63,6 +84,7 @@ class ChFmuWrapper {
 class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
   public:
     ChExternalFmu();
+    virtual ~ChExternalFmu() {}
 
     /// Set verbose terminal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
@@ -119,11 +141,64 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     /// variability!="constant" that has initial="exact" or causality="input" and is not a state variable.
     void SetIntParameterValue(const std::string& name, int value);
 
-    /// Set a continuous input function.
+    /// Set the value of a string parameter.
+    /// This function must be called before Initialize() and only for a floating point FMU variable, with
+    /// variability!="constant" that has initial="exact" or causality="input" and is not a state variable.
+    void SetStringParameterValue(const std::string& name, const std::string& value);
+
+    /// Set a continuous input (as an std::function).
     /// This function will be called automatically during the simulation loop, before interogating the FMU for the model
     /// equations, to return a value that is then used to set the FMU variable with specified name at the current time.
     /// Continuous inputs are floating point FMU variables, with causality="input" and variability="continuous".
     void SetRealInputFunction(const std::string& name, std::function<double(double)> function);
+
+    /// Set a continuous input (as a ChFunction).
+    /// This function will be called automatically during the simulation loop, before interogating the FMU for the model
+    /// equations, to return a value that is then used to set the FMU variable with specified name at the current time.
+    /// Continuous inputs are floating point FMU variables, with causality="input" and variability="continuous".
+    void SetRealInputChFunction(const std::string& name, std::shared_ptr<ChFunction> function);
+
+    /// Get the value of a real variable.
+    double GetRealVariable(const std::string& name) const;
+
+    /// Get the value of an integer variable.
+    int GetIntVariable(const std::string& name) const;
+
+    /// Get the value of a ChVector variable.
+    ChVector3d GetVecVariable(const std::string& name) const;
+
+    /// Get the value of a ChQuaternion variable.
+    ChQuaterniond GetQuatVariable(const std::string& name) const;
+
+    /// Get the value of a ChCoordsys variable.
+    ChCoordsysd GetCoordsysVariable(const std::string& name) const;
+
+    /// Get the value of a ChFrame variable.
+    ChFrame<> GetFrameVariable(const std::string& name) const;
+
+    /// Get the value of a ChFrameMoving variable.
+    ChFrameMoving<> GetFrameMovingVariable(const std::string& name) const;
+
+    /// Set the value of a real variable.
+    void SetRealVariable(const std::string& name, double val);
+
+    /// Set the value of an integer variable.
+    void SetIntVariable(const std::string& name, double val);
+
+    /// Set the value of a ChVector variable.
+    void SetVecVariable(const std::string& name, const ChVector3d& val);
+
+    /// Set the value of a ChQuaternion variable.
+    void SetQuatVariable(const std::string& name, const ChQuaterniond& val);
+
+    /// Set the value of a ChCoordsys variable.
+    void SetCoordsysVariable(const std::string& name, const ChCoordsysd& val);
+
+    /// Set the value of a ChFrame variable.
+    void SetFrameVariable(const std::string& name, const ChFrame<>& val);
+
+    /// Set the value of a ChFrameMoving variable.
+    void SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val);
 
     /// Initialize this physics item.
     /// This function initializes the underlying FMU as well as this physics item.
@@ -132,7 +207,7 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     /// Print the list of FMU variables.
     void PrintFmuVariables() const;
 
-  private:
+  protected:
     /// Set initial conditions.
     /// Must load y0 = y(0).
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
@@ -155,7 +230,9 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     std::unordered_map<std::string, double> m_initial_conditions;
     std::unordered_map<std::string, double> m_parameters_real;
     std::unordered_map<std::string, int> m_parameters_int;
-    std::unordered_map<std::string, std::function<double(double)>> m_inputs_real;
+    std::unordered_map<std::string, std::string> m_parameters_string;
+    std::unordered_map<std::string, std::function<double(double)>> m_input_functions;
+    std::unordered_map<std::string, std::shared_ptr<ChFunction>> m_input_chfunctions;
 };
 
 /// @} chrono_fmi

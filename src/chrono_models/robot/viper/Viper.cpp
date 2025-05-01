@@ -726,5 +726,11 @@ void ViperSpeedDriver::Update(double time) {
     drive_speeds = {speed, speed, speed, speed};
 }
 
+void ViperDirectControl::SetDirectControl(std::array<double, 4> m_drive_speeds, std::array<double, 4> m_steer_angles, std::array<double, 4> m_lift_angles){
+    drive_speeds = m_drive_speeds;
+    steer_angles = m_steer_angles;
+    lift_angles = m_lift_angles;
+}
+
 }  // namespace viper
 }  // namespace chrono

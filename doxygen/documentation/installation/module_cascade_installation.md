@@ -24,7 +24,7 @@ Here are the main features:
 - To **build** this module:
 	- you must have the [OpenCASCADE](http://www.opencascade.org) libraries installed.
 
-Currently, the Chrono API is compatible with the OpenCASCADE **v.7.4.0**. Previous versions of OpenCASCADE *are not compatible*.
+Currently, the Chrono API is compatible with the OpenCASCADE **v.7.4.0**. Other versions of OpenCASCADE *are not compatible*.
 
 
 ## Building instructions
@@ -44,21 +44,25 @@ On **Windows**, to make the OpenCASCADE DLLs visible to the Chrono::Cascade demo
 - Execute the `env.bat` script in the OpenCascade directory before launching the demo (but only from the same DOS shell, via command line), or
 - Set the path and environment variables to make these DLLs visible from anywhere.
   - to the PATH variable, add the paths containing the required OpenCASCADE .dll files
-    (assuming you installed OpenCASCADE 7.4.0 in D:, otherwise put your paths), 
+    (assuming you installed OpenCASCADE 7.4.0 in C:, otherwise put your paths), 
     separating them with  ;   and no spaces between them:
-	  - `D:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\win64\vc14\bin`
-	  - `D:\OpenCASCADE-7.4.0-vc14-64\freetype-2.5.5-vc14-64\bin`
-	  - `D:\OpenCASCADE-7.4.0-vc14-64\freeimage-3.17.0-vc14-64\bin`
-	  - `D:\OpenCASCADE-7.4.0-vc14-64\ffmpeg-3.3.4-64\bin`
+	  - `C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\win64\vc14\bin`
+	  - `C:\OpenCASCADE-7.4.0-vc14-64\freetype-2.5.5-vc14-64\bin`
+	  - `C:\OpenCASCADE-7.4.0-vc14-64\freeimage-3.17.0-vc14-64\bin`
+	  - `C:\OpenCASCADE-7.4.0-vc14-64\ffmpeg-3.3.4-64\bin`
   - *optionally* you may add also these environment variables (again, modify the path if you used another installation directory for OpenCASCADE)
 	  - `CSF_LANGUAGE=us`
 	  - `MMGT_CLEAR=1`
 	  - `CSF_EXCEPTION_PROMPT=1`
-	  - `CSF_STEPDefaults=D:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\src\XSTEPResource`
+	  - `CSF_STEPDefaults=C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\src\XSTEPResource`
 
-Note that the precompiled OpenCascade 7.4.0 has a couple of bugs in the provided CMake configuration script (needed in step 3 above) where paths to some external dependencies are hard-coded. This may pose problems when building the Chrono::Cascade on Windows or when building the pythonocc-core Python library to use the Chrono::Cascade Python wrappers.  Users must fix these paths manually (search for `occ-3rdparty` in the various OpenCASCADE***.cmake scripts. 
+<span style="color:red; font-weight:bold">ATTENTION!</span><br>
+Note that the precompiled OpenCascade 7.4.0 has a couple of bugs in the provided CMake configuration script (needed in step 3 above) where paths to some external dependencies are hard-coded. This may pose problems when building the Chrono::Cascade on Windows or when building the pythonocc-core Python library to use the Chrono::Cascade Python wrappers. Users **must** redirect these paths as appropriate.
+In particular, in the C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake\OpenCASCADE***.cmake scripts, fix:
+- `occt-3rdparty` (e.g., replace all C:/occt-3rdparty/Windows-64-VC14/*** to C:/OpenCASCADE-7.4.0-vc14-64/***)
+- `tbb44_20160526oss` (e.g., replace it with `tbb_2017.0.100`)
 <br><br>
-If building OpenCascade 7.4.0 from sources, the generated CMake project configuration scripts will have the correct paths to Cascade dependencies.)
+If building OpenCascade 7.4.0 from sources, the generated CMake project configuration scripts will have the correct paths to Cascade dependencies.
 
 On **Linux**, you may need to add the path to the OpenCascade shared libraries to the `LD_LIBRARY_PATH` environment variable. For example:
 ````

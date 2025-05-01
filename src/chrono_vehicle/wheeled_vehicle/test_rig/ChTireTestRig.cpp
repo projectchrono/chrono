@@ -495,15 +495,15 @@ void ChTireTestRig::CreateTerrainSCM() {
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(m_system);
-    terrain->SetPlane(ChCoordsys<>(location));
+    terrain->SetReferenceFrame(ChCoordsys<>(location));
     terrain->SetSoilParameters(m_params_SCM.Bekker_Kphi, m_params_SCM.Bekker_Kc, m_params_SCM.Bekker_n,  //
                                m_params_SCM.Mohr_cohesion, m_params_SCM.Mohr_friction,
                                m_params_SCM.Janosi_shear,  //
                                E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_params_SCM.length, m_params_SCM.width, m_params_SCM.grid_spacing);
-    terrain->AddMovingPatch(m_chassis_body, ChVector3d(0, 0, 0),
-                            ChVector3d(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));
+    terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0),
+                             ChVector3d(2 * m_tire->GetRadius(), 1.0, 2 * m_tire->GetRadius()));
 
     m_terrain = terrain;
 }

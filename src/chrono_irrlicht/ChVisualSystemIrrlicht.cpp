@@ -541,17 +541,17 @@ void ChVisualSystemIrrlicht::ShowConvergencePlot(bool val) {
 // Clean canvas at beginning of scene.
 
 void ChVisualSystemIrrlicht::BeginScene() {
-    BeginScene(true, true, ChColor(0, 0, 0));
+    BeginScene(true, true);
 }
 
-void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
+void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer) {
     assert(!m_systems.empty());
 
     utils::ChProfileManager::Reset();
     utils::ChProfileManager::Start_Profile("Irrlicht loop");
     utils::ChProfileManager::Increment_Frame_Counter();
 
-    GetVideoDriver()->beginScene(backBuffer, zBuffer, tools::ToIrrlichtSColor(color));
+    GetVideoDriver()->beginScene(backBuffer, zBuffer, tools::ToIrrlichtSColor(m_background_color));
 
     m_gui->BeginScene();
 }

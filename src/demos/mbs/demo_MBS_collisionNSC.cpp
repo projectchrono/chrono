@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(0, 18, -20));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);

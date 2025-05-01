@@ -1019,9 +1019,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
   elseif(${COMPONENT_UPPER} MATCHES "FMI")
     
     if (CHRONO_INSTALL_TREE)
-      set(CHRONO_FMU_TOOLS_DIR "${CHRONO_PACKAGE_PREFIX_DIR}include/chrono_thirdparty/fmu_tools")
+      set(CHRONO_FMU_FORGE_DIR "${CHRONO_PACKAGE_PREFIX_DIR}include/chrono_thirdparty/fmu-forge")
     else()
-      set(CHRONO_FMU_TOOLS_DIR "@FMU_TOOLS_DIR@")
+      set(CHRONO_FMU_FORGE_DIR "@FMU_FORGE_DIR@")
     endif()
     
     list(PREPEND CHRONO_LIB_NAMES "Chrono_fmi")

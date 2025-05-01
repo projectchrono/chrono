@@ -186,7 +186,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, max_sinkage);
     m_terrain->SetMeshWireframe(false);
     m_terrain->SetCosimulationMode(true);
-    m_terrain->SetPlane(ChCoordsysd({m_dimX / 2, 0, 0}, QUNIT));
+    m_terrain->SetReferenceFrame(ChCoordsysd({m_dimX / 2, 0, 0}, QUNIT));
     m_terrain->Initialize(m_dimX, m_dimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file
@@ -251,8 +251,8 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         trimesh_shape->SetMesh(trimesh);
         body->AddVisualShape(trimesh_shape, ChFrame<>());
 
-        // Add corresponding moving patch to SCM terrain
-        m_terrain->AddMovingPatch(body, b.m_oobb_center, b.m_oobb_dims);
+        // Add corresponding active domains to SCM terrain
+        m_terrain->AddActiveDomain(body, b.m_oobb_center, b.m_oobb_dims);
 
         m_system->AddBody(body);
     }
@@ -369,9 +369,9 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
 
     m_proxies[i] = proxy;
 
-    // Add corresponding moving patch to SCM terrain
+    // Add corresponding active domain to SCM terrain
     //// RADU TODO: this may be overkill for tracked vehicles!
-    m_terrain->AddMovingPatch(body, m_aabb[i_shape].Center(), m_aabb[i_shape].Size());
+    m_terrain->AddActiveDomain(body, m_aabb[i_shape].Center(), m_aabb[i_shape].Size());
 }
 
 // Once all proxy bodies are created, complete construction of the underlying system.
@@ -386,7 +386,7 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
         vsys_vsg->SetWindowTitle("Terrain Node (SCM)");
         vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
