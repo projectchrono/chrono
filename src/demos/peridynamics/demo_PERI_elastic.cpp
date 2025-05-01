@@ -27,7 +27,9 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 
 #include "chrono_peridynamics/ChMatterPeriSprings.h"
-#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
+#include "chrono_peridynamics/ChMatterPeriBB.h"
+#include "chrono_peridynamics/ChMatterPeriBBimplicit.h"
+#include "chrono_peridynamics/ChMatterPeriLinearElastic.h"
 #include "chrono_peridynamics/ChMatterPeriLiquid.h"
 #include "chrono_peridynamics/ChPeridynamics.h"
 
@@ -81,7 +83,7 @@ int main(int argc, char* argv[]) {
     auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 7000, true,true, mat);
     mphysicalSystem.Add(msphere);
     msphere->SetPos(ChVector3d(0, -1.5, 0));
-    msphere->SetPosDt(ChVector3d(0, -20.5, 0));
+    msphere->SetPosDt(ChVector3d(0, -5.5, 0));
     
    
 
@@ -90,14 +92,15 @@ int main(int argc, char* argv[]) {
     // Create peridynamics material 
     // This is a very simple one: a linear bond-based elastic material, defined
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
-    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
-    my_perimaterial->k_bulk =  30e6;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->damping = 0.0001;    // bulk as Rayleigh beta
+    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBB>();
+    my_perimaterial->SetYoungModulus(45e6); // Young stiffness (unit N/m^2)
+    my_perimaterial->damping = 0.0001;      // damping as Rayleigh beta
+
     /*
+    // Alternatively, use the following, that supports user defined Poisson values (but 
+    // at the cost of slower performance because it is a state-based material).
     auto my_perimaterial = chrono_types::make_shared<ChMatterPeriLinearElastic>();
-    my_perimaterial->k_bulk = 300e6;    // bulk stiffness (unit N/m^2)
-    my_perimaterial->poisson = 0.25;  // Poisson coefficient 
-    my_perimaterial->r_bulk = 0;      // bulk damping (unit Ns/m^3)
+    my_perimaterial->SetYoungModulusPoisson(30e6, 0.25);    // Young stiffness (unit N/m^2) and Poisson coeff.
     */
 
     // IMPORTANT!
@@ -114,32 +117,32 @@ int main(int argc, char* argv[]) {
         4.0 / 15.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
-        1.6,                                          // set the horizon radius (as multiples of step) 
+        1.7,                                          // set the horizon radius (as multiples of step) 
         0.4);                                         // set the collision radius (as multiples of step) for interface particles
 
     // Just for testing, fix some nodes
-    /*
+    
     for (const auto& node : my_peridynamics->GetNodes()) {
-        if (node->GetPos().z() < -2.70 || node->GetPos().z() > 2.50 || node->GetPos().x() < -2.70 || node->GetPos().x() > 2.50)
+        if (node->GetPos().x() < -1.3)
             node->SetFixed(true);
     }
-    */
+    
 
     // Attach visualization to peridynamics. The realtime visualization will show 
     // nodes and bonds with dots, lines etc. Suggestion: use the Blender importer add-on 
     // for rendering properties in falsecolor and other advanced features.
     
-    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterial);
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBB>(my_perimaterial);
     my_peridynamics->AddVisualShape(mglyphs_nodes);
     mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
     
-    /*
-    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBulkElasticBonds>(my_perimaterial);
-    mglyphs_bonds->draw_unbroken = false;
-    mglyphs_bonds->draw_broken = true;
+    
+    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBBBonds>(my_perimaterial);
+    mglyphs_bonds->draw_unbroken = true;
+    mglyphs_bonds->draw_broken = false;
     my_peridynamics->AddVisualShape(mglyphs_bonds);
-    */
+    
 
     // -----Blender postprocess, optional
 

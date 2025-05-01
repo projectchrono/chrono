@@ -34,7 +34,9 @@
 #include "chrono/fea/ChElementHexaCorot_8.h"
 
 #include "chrono_peridynamics/ChMatterPeriSprings.h"
-#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
+#include "chrono_peridynamics/ChMatterPeriBB.h"
+#include "chrono_peridynamics/ChMatterPeriBBimplicit.h"
+#include "chrono_peridynamics/ChMatterPeriLinearElastic.h"
 //#include "chrono_peridynamics/ChMatterPeriLiquid.h"
 #include "chrono_peridynamics/ChPeridynamics.h"
 
@@ -236,7 +238,7 @@ int test_cantilever_push(int argc, char* argv[], bool do_fea, bool do_peri) {
         ChVector3d hexpos(0, 0, 0);
         ChMatrix33<> hexrot(QuatFromAngleY(0));
 
-        auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+        auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBB>();
         my_perimaterial->k_bulk = 5e6 * (2. / 3.);  // bulk stiffness (unit N/m^2)  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterial->damping = 0;               // rayleigh beta damping 
         //    my_perimaterial->max_stretch_fracture = 0.5; //  beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -262,7 +264,7 @@ int test_cantilever_push(int argc, char* argv[], bool do_fea, bool do_peri) {
 
         // Attach visualization to peridynamics. 
 
-        auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterial);
+        auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBB>(my_perimaterial);
         my_peridynamics->AddVisualShape(mglyphs_nodes);
         mglyphs_nodes->SetGlyphsSize(0.01);
         mglyphs_nodes->AttachVelocity(0, 20, "Vel");
@@ -516,7 +518,7 @@ int test_cantilever_torsion(int argc, char* argv[], bool do_fea, bool do_peri) {
         ChVector3d hexpos(0, 0, 0);
         ChMatrix33<> hexrot(QuatFromAngleY(0));
 
-        auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterial->k_bulk = 5e6 * (2. / 3.);  // bulk stiffness (unit N/m^2)  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterial->damping = 0;               // Rayleigh beta damping 
         //    my_perimaterial->max_stretch_fracture = 0.5; //  beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -542,7 +544,7 @@ int test_cantilever_torsion(int argc, char* argv[], bool do_fea, bool do_peri) {
 
         // Attach visualization to peridynamics. 
 
-        auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterial);
+        auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterial);
         my_peridynamics->AddVisualShape(mglyphs_nodes);
         mglyphs_nodes->SetGlyphsSize(0.01);
         mglyphs_nodes->AttachVelocity(0, 20, "Vel");
@@ -694,13 +696,13 @@ int test_cantilever_crack(int argc, char* argv[], bool do_collisiononly, bool do
         ChVector3d hexpos(0, 0, 0);
         ChMatrix33<> hexrot(QuatFromAngleY(0));
 
-        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterialA->k_bulk = 6e6 * (2. / 3.);  // bulk stiffness (unit N/m^2)  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialA->damping = 0.0002;               // Rayleigh beta damping 
         //    my_perimaterial->max_stretch_fracture = 0.02; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         //    my_perimaterial->max_stretch_break = 0.2; //  beyond this, bull break happens (bonds removed, collision surface generated)
 
-        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterialB->k_bulk = 6e6 * (2. / 3.);  // bulk stiffness (unit N/m^2)  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialB->damping = 0.0002;               // Rayleigh beta damping 
         //my_perimaterialB->max_stretch = 0.02; //  beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -734,25 +736,25 @@ int test_cantilever_crack(int argc, char* argv[], bool do_collisiononly, bool do
 
         // Attach visualization to peridynamics. 
         
-        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterialA);
+        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterialA);
         mglyphs_nodesA->SetColor(ChColor(0, 1, 0.5));
         mglyphs_nodesA->SetGlyphsSize(0.02);
         mglyphs_nodesA->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesA);
         
-        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterialB);
+        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterialB);
         mglyphs_nodesB->SetColor(ChColor(0, 0, 1));
         mglyphs_nodesB->SetGlyphsSize(0.022);
         mglyphs_nodesB->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesB);
         
-        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterialA);
+        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterialA);
         mglyphs_bondsA->draw_active = true;
         mglyphs_bondsA->draw_broken = false;
         mglyphs_bondsA->draw_fractured = true;
         my_peridynamics->AddVisualShape(mglyphs_bondsA);
         
-        auto mglyphs_bondsB = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterialB);
+        auto mglyphs_bondsB = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterialB);
         mglyphs_bondsB->draw_active = true;
         mglyphs_bondsB->draw_broken = false;
         mglyphs_bondsB->draw_fractured = true;
@@ -867,7 +869,7 @@ int test_cantilever_crack(int argc, char* argv[], bool do_collisiononly, bool do
             if ((ibo.second.nodeA->GetPos().x() < cut && ibo.second.nodeB->GetPos().x() > cut) ||
                 (ibo.second.nodeB->GetPos().x() < cut && ibo.second.nodeA->GetPos().x() > cut)) {
                     ibo.second.force_density_val = 0;
-                    ibo.second.state = ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED;
+                    ibo.second.state = ChMatterDataPerBondBBimplicit::bond_state::FRACTURED;
                     ibo.second.constraint.SetBoxedMinMax(0, 1e30); // enable complementarity, reaction>0.
                     
                     if (false) { // CASE with simple collisions
@@ -875,7 +877,7 @@ int test_cantilever_crack(int argc, char* argv[], bool do_collisiononly, bool do
                         ibo.second.nodeB->is_boundary = true;
                         ibo.second.nodeA->coll_rad = size_x / CANT_PERI_X;
                         ibo.second.nodeB->coll_rad = size_x / CANT_PERI_X;
-                        ibo.second.state = ChMatterDataPerBondBulkImplicit::bond_state::BROKEN;
+                        ibo.second.state = ChMatterDataPerBondBBimplicit::bond_state::BROKEN;
                     }
             }
         }
@@ -942,21 +944,21 @@ int test_cantilever_fracture(int argc, char* argv[], bool do_peri) {
         sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
 
-        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterialA->k_bulk = 50e3 * (2. / 3.);   // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialA->damping = 0.0002;               // Rayleigh beta damping 
         //my_perimaterialA->max_stretch = 0.01; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         my_perimaterialA->max_stretch_fracture = 0.01; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         my_perimaterialA->max_stretch_break = 0.2; //  beyond this, bull break happens (bonds removed, collision surface generated)
 
-        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterialB->k_bulk = 4e1 * (2. / 3.);   // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialB->damping = 0.0002;           // Rayleigh beta damping 
         //my_perimaterialB->max_stretch = 0.6;          //  beyond this, fracture happens (bonds still in place, but become unilateral)
         my_perimaterialB->max_stretch_fracture = 0.6; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         my_perimaterialB->max_stretch_break = 0.9; //  beyond this, bull break happens (bonds removed, collision surface generated)
 
-        auto my_perimaterialC = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterialC = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterialC->k_bulk = 16e3 * (2. / 3.);  // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialC->damping = 0.0002;               // Rayleigh beta damping 
         //my_perimaterialC->max_stretch = 0.05; //  beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -1001,45 +1003,45 @@ int test_cantilever_fracture(int argc, char* argv[], bool do_peri) {
 
         // Attach visualization to peridynamics. 
 
-        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterialA);
+        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterialA);
         mglyphs_nodesA->SetColor(ChColor(0, 1, 0.5));
         mglyphs_nodesA->SetGlyphsSize(0.1);
         //mglyphs_nodesA->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesA);
 
-        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterialB);
+        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterialB);
         mglyphs_nodesB->SetColor(ChColor(0, 0, 1));
         mglyphs_nodesB->SetGlyphsSize(0.1);
         //mglyphs_nodesB->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesB);
 
-        auto mglyphs_nodesC = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterialC);
+        auto mglyphs_nodesC = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterialC);
         mglyphs_nodesC->SetColor(ChColor(0.5, 0.6, 0.6));
         mglyphs_nodesC->SetGlyphsSize(0.1);
         //mglyphs_nodesC->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesC);
 
 
-        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterialA);
+        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterialA);
         mglyphs_bondsA->draw_active = false;
         mglyphs_bondsA->draw_broken = false;
         mglyphs_bondsA->draw_fractured = true;
         my_peridynamics->AddVisualShape(mglyphs_bondsA);
 
-        auto mglyphs_bondsB = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterialB);
+        auto mglyphs_bondsB = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterialB);
         mglyphs_bondsB->draw_active = false;
         mglyphs_bondsB->draw_broken = false;
         mglyphs_bondsB->draw_fractured = true;
         my_peridynamics->AddVisualShape(mglyphs_bondsB);
 
-        auto mglyphs_bondsC = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterialC);
+        auto mglyphs_bondsC = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterialC);
         mglyphs_bondsC->draw_active = false;
         mglyphs_bondsC->draw_broken = false;
         mglyphs_bondsC->draw_fractured = true;
         my_peridynamics->AddVisualShape(mglyphs_bondsC);
         
         /*
-        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBulkElasticBonds>(my_perimaterialA);
+        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBBBonds>(my_perimaterialA);
         //mglyphs_bondsA->draw_active = false;
         //mglyphs_bondsA->draw_unbroken = true;
         mglyphs_bondsA->draw_broken = true;
@@ -1182,21 +1184,21 @@ int test_cantilever_fracture_explicit(int argc, char* argv[], bool do_peri) {
         sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
 
-        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBB>();
         my_perimaterialA->k_bulk = 50e3 * (2. / 3.);   // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialA->damping = 0.0002;               // Rayleigh beta damping 
         my_perimaterialA->max_stretch = 0.01; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         //my_perimaterialA->max_stretch_fracture = 0.01; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         //my_perimaterialA->max_stretch_break = 0.2; //  beyond this, bull break happens (bonds removed, collision surface generated)
 
-        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+        auto my_perimaterialB = chrono_types::make_shared<ChMatterPeriBB>();
         my_perimaterialB->k_bulk = 4e1 * (2. / 3.);   // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialB->damping = 0.0002;           // Rayleigh beta damping 
         my_perimaterialB->max_stretch = 0.6;          //  beyond this, fracture happens (bonds still in place, but become unilateral)
         //my_perimaterialB->max_stretch_fracture = 0.6; //  beyond this, fracture happens (bonds still in place, but become unilateral)
         //my_perimaterialB->max_stretch_break = 0.9; //  beyond this, bull break happens (bonds removed, collision surface generated)
 
-        auto my_perimaterialC = chrono_types::make_shared<ChMatterPeriBulkElastic>();
+        auto my_perimaterialC = chrono_types::make_shared<ChMatterPeriBB>();
         my_perimaterialC->k_bulk = 16e3 * (2. / 3.);  // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialC->damping = 0.0002;               // Rayleigh beta damping 
         my_perimaterialC->max_stretch = 0.05; //  beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -1241,26 +1243,26 @@ int test_cantilever_fracture_explicit(int argc, char* argv[], bool do_peri) {
 
         // Attach visualization to peridynamics. 
 
-        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialA);
+        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBB>(my_perimaterialA);
         mglyphs_nodesA->SetColor(ChColor(0, 1, 0.5));
         mglyphs_nodesA->SetGlyphsSize(0.1);
         //mglyphs_nodesA->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesA);
 
-        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialB);
+        auto mglyphs_nodesB = chrono_types::make_shared<ChVisualPeriBB>(my_perimaterialB);
         mglyphs_nodesB->SetColor(ChColor(0, 0, 1));
         mglyphs_nodesB->SetGlyphsSize(0.1);
         //mglyphs_nodesB->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesB);
 
-        auto mglyphs_nodesC = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterialC);
+        auto mglyphs_nodesC = chrono_types::make_shared<ChVisualPeriBB>(my_perimaterialC);
         mglyphs_nodesC->SetColor(ChColor(0.5, 0.6, 0.6));
         mglyphs_nodesC->SetGlyphsSize(0.1);
         //mglyphs_nodesC->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesC);
 
         
-        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBulkElasticBonds>(my_perimaterialA);
+        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBBBonds>(my_perimaterialA);
         mglyphs_bondsA->draw_unbroken = true;
         mglyphs_bondsA->draw_broken = true;
         my_peridynamics->AddVisualShape(mglyphs_bondsA);
@@ -1444,7 +1446,7 @@ int test_peristaltic(int argc, char* argv[], bool do_peri) {
         contact_material->SetFriction(0.4f);
 
 
-        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+        auto my_perimaterialA = chrono_types::make_shared<ChMatterPeriBBimplicit>();
         my_perimaterialA->k_bulk = 0.05e3 * (2. / 3.);   // bulk stiffness (unit [g]/([mm][ms]) = 1e-6*[N]/[mm^2])  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
         my_perimaterialA->damping = 0.0002;               // Rayleigh beta damping 
         //my_perimaterialA->max_stretch = 0.01; //  beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -1475,13 +1477,13 @@ int test_peristaltic(int argc, char* argv[], bool do_peri) {
 
         // Attach visualization to peridynamics. 
 
-        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterialA);
+        auto mglyphs_nodesA = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterialA);
         mglyphs_nodesA->SetColor(ChColor(0, 1, 0.5));
         mglyphs_nodesA->SetGlyphsSize(1);
         //mglyphs_nodesA->draw_noncolliding = false;
         my_peridynamics->AddVisualShape(mglyphs_nodesA);
         /*
-        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterialA);
+        auto mglyphs_bondsA = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterialA);
         mglyphs_bondsA->draw_active = true;
         mglyphs_bondsA->draw_broken = false;
         mglyphs_bondsA->draw_fractured = true;

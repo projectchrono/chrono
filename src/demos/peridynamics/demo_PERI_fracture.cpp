@@ -27,7 +27,9 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 
 #include "chrono_peridynamics/ChMatterPeriSprings.h"
-#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
+#include "chrono_peridynamics/ChMatterPeriBB.h"
+#include "chrono_peridynamics/ChMatterPeriBBimplicit.h"
+#include "chrono_peridynamics/ChMatterPeriLinearElastic.h"
 #include "chrono_peridynamics/ChMatterPeriLiquid.h"
 #include "chrono_peridynamics/ChPeridynamics.h"
 
@@ -83,7 +85,7 @@ int main(int argc, char* argv[]) {
     auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.7, 23000, true,true, mat);
     mphysicalSystem.Add(msphere);
     msphere->SetPos(ChVector3d(0, -1.5, 0));
-    msphere->SetPosDt(ChVector3d(0, -20.5, 0));
+    msphere->SetPosDt(ChVector3d(0, -40.5, 0));
 
    
 
@@ -92,10 +94,10 @@ int main(int argc, char* argv[]) {
     // Create peridynamics material 
     // This is a very simple one: a linear bond-based elastic material, defined
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
-    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkElastic>();
-    my_perimaterial->k_bulk = 2e9;            // bulk stiffness (unit N/m^2)
-    my_perimaterial->damping = 0.00001;          // bulk damping as Rayleigh beta
-    my_perimaterial->max_stretch = 0.005;     // beyond this, fracture happens
+    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBB>();
+    my_perimaterial->SetYoungModulus(3e9);       // stiffness (unit N/m^2)
+    my_perimaterial->damping = 0.00001;          // damping as Rayleigh beta
+    my_perimaterial->max_stretch = 0.005;        // beyond this, fracture happens
 
 
     // IMPORTANT!
@@ -109,7 +111,7 @@ int main(int argc, char* argv[]) {
     my_peridynamics->FillBox(
         my_perimaterial,
         ChVector3d(3, 1.5, 3),                        // size of box
-        4.0 / 50.0,                                   // resolution step
+        3.0 / 25.0,                                   // resolution step
         1000,                                         // initial density
         ChCoordsys<>(ChVector3d(0, -3.4, 0), QUNIT),  // position & rotation of box
         1.6,                                          // set the horizon radius (as multiples of step) 
@@ -127,13 +129,13 @@ int main(int argc, char* argv[]) {
     // nodes and bonds with dots, lines etc. Suggestion: use the Blender importer add-on 
     // for rendering properties in falsecolor and other advanced features.
 
-    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkElastic>(my_perimaterial);
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBB>(my_perimaterial);
     my_peridynamics->AddVisualShape(mglyphs_nodes);
     mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
 
     /*
-    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBulkElasticBonds>(mymattersprings);
+    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBBBonds>(mymattersprings);
     mglyphs_bonds->draw_unbroken = false;
     mglyphs_bonds->draw_broken = true;
     my_peridynamics->AddVisualShape(mglyphs_bonds);
@@ -195,7 +197,7 @@ int main(int argc, char* argv[]) {
         
         mphysicalSystem.DoStepDynamics(timestep);
         
-        if (mphysicalSystem.GetNumSteps() % 20 == 0)
+        if (mphysicalSystem.GetNumSteps() % 40 == 0)
             blender_exporter.ExportData();
     }
 

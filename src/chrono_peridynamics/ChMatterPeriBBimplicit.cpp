@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
+#include "chrono_peridynamics/ChMatterPeriBBimplicit.h"
 #include "chrono_peridynamics/ChPeridynamics.h"
 
 namespace chrono {
@@ -24,7 +24,7 @@ using namespace fea;
 using namespace peridynamics;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChMatterPeriBB)
+CH_FACTORY_REGISTER(ChMatterPeriBBimplicit)
 
 
 

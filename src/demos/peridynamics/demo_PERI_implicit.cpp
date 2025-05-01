@@ -24,7 +24,9 @@
 #include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_peridynamics/ChMatterPeriSprings.h"
-#include "chrono_peridynamics/ChMatterPeriBulkElastic.h"
+#include "chrono_peridynamics/ChMatterPeriBB.h"
+#include "chrono_peridynamics/ChMatterPeriBBimplicit.h"
+#include "chrono_peridynamics/ChMatterPeriLinearElastic.h"
 #include "chrono_peridynamics/ChMatterPeriLiquid.h"
 #include "chrono_peridynamics/ChPeridynamics.h"
 
@@ -88,7 +90,7 @@ int main(int argc, char* argv[]) {
     // This is a very simple one: a linear bond-based elastic material, defined
     // via the bulk elasticity modulus. The Poisson ratio is fixed to 1/4. 
     
-    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBulkImplicit>();
+    auto my_perimaterial = chrono_types::make_shared<ChMatterPeriBBimplicit>();
     my_perimaterial->k_bulk = 300e6;       // bulk stiffness (unit N/m^2)
     my_perimaterial->damping = 0.001;          // bulk damping as Rayleigh beta 
     my_perimaterial->max_stretch_fracture = 0.1; // 0.001 beyond this, fracture happens (bonds still in place, but become unilateral)
@@ -123,12 +125,12 @@ int main(int argc, char* argv[]) {
     // nodes and bonds with dots, lines etc. Suggestion: use the Blender importer add-on 
     // for rendering properties in falsecolor and other advanced features.
     
-    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBulkImplicit>(my_perimaterial);
+    auto mglyphs_nodes = chrono_types::make_shared<ChVisualPeriBBimplicit>(my_perimaterial);
     my_peridynamics->AddVisualShape(mglyphs_nodes);
     mglyphs_nodes->SetGlyphsSize(0.04);
     mglyphs_nodes->AttachVelocity(0, 20, "Vel"); // postprocessing tools can exploit this. Also suggest a min-max for falsecolor rendering.
     
-    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBulkImplicitBonds>(my_perimaterial);
+    auto mglyphs_bonds = chrono_types::make_shared<ChVisualPeriBBimplicitBonds>(my_perimaterial);
     mglyphs_bonds->draw_active = false;
     mglyphs_bonds->draw_broken = true;
     mglyphs_bonds->draw_fractured = true;
@@ -157,7 +159,7 @@ int main(int argc, char* argv[]) {
     auto vsys = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vsys->AttachSystem(&mphysicalSystem);
     vsys->SetWindowSize(1024, 768);
-    vsys->SetWindowTitle("Peridynamics test");
+    vsys->SetWindowTitle("Peridynamics test w. ChMatterPeriBBimplicit");
     vsys->Initialize();
     vsys->AddLogo();
     vsys->AddSkyBox();

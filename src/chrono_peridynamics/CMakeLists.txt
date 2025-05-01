@@ -20,7 +20,9 @@ SET(ChronoEngine_PERIDYNAMICS_SOURCES
     ChNodePeri.cpp
     ChMatterPeridynamics.cpp
     ChMatterPeriSprings.cpp
-    ChMatterPeriBulkElastic.cpp
+    ChMatterPeriBB.cpp
+	ChMatterPeriBBimplicit.cpp
+	ChMatterPeriLinearElastic.cpp
     ChMatterPeriLiquid.cpp
     ChPeridynamics.cpp
 )
@@ -30,7 +32,9 @@ SET(ChronoEngine_PERIDYNAMICS_HEADERS
     ChNodePeri.h
     ChMatterPeridynamics.h
     ChMatterPeriSprings.h
-    ChMatterPeriBulkElastic.h
+    ChMatterPeriBB.h
+	ChMatterPeriBBimplicit.h
+	ChMatterPeriLinearElastic.h
     ChMatterPeriLiquid.h
     ChPeridynamics.h
 )

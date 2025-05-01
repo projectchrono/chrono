@@ -16,7 +16,7 @@ endif()
 # Add demos that require Irrlicht and  postprocess and MKL
 if(ENABLE_MODULE_IRRLICHT  AND ENABLE_MODULE_POSTPROCESS AND ENABLE_MODULE_PARDISO_MKL)
 set(PERI_DEMOS ${PERI_DEMOS}
-    demo_PERI_benchmark
+    # demo_PERI_benchmark
 )
 endif()
 

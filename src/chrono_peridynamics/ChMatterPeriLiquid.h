@@ -65,8 +65,9 @@ public:
 };
 
 
-/// Simple SPH material, with viscosity and compressibility.
+/// Simple SPH-like material, with viscosity and compressibility.
 /// This material can interact with collisioon shapes and other peridynamic materials.
+/// ***NOT READY*** TO BE IMPROVED / REWRITTEN 
 
 class ChApiPeridynamics ChMatterPeriLiquid : public ChMatterPeri<ChMatterDataLiquid, ChMatterDataPerBond> {
 public:
