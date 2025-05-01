@@ -18,7 +18,13 @@
 
 namespace chrono {
 
-ChVisualSystem ::ChVisualSystem() : m_initialized(false), m_verbose(false), m_rtf(0), m_write_images(false), m_image_dir(".") {}
+ChVisualSystem ::ChVisualSystem()
+    : m_initialized(false),
+      m_background_color(ChColor(0.07f, 0.1f, 0.12f)),
+      m_verbose(false),
+      m_rtf(0),
+      m_write_images(false),
+      m_image_dir(".") {}
 
 ChVisualSystem ::~ChVisualSystem() {
     for (auto s : m_systems)
@@ -31,6 +37,10 @@ void ChVisualSystem::AttachSystem(ChSystem* sys) {
         m_systems.push_back(sys);
         sys->visual_system = this;
     }
+}
+
+void ChVisualSystem::SetBackgroundColor(const ChColor& color) {
+    m_background_color = color;
 }
 
 void ChVisualSystem::UpdateCamera(int id, const ChVector3d& pos, ChVector3d target) {

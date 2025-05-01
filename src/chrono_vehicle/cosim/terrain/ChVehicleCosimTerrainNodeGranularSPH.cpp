@@ -488,7 +488,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
         m_vsys->SetVerbose(false);
         m_vsys->SetWindowSize(1280, 720);
         m_vsys->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        m_vsys->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        m_vsys->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
         m_vsys->SetImageOutputDirectory(m_node_out_dir + "/images");
         m_vsys->SetImageOutput(m_writeRT);
         m_vsys->Initialize();

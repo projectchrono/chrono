@@ -58,8 +58,8 @@ double mesh_resolution = 0.04;
 // Enable/disable bulldozing effects
 bool enable_bulldozing = true;
 
-// Enable/disable moving patch feature
-bool enable_moving_patch = true;
+// Enable/disable active domains feature
+bool enable_active_domains = true;
 
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
@@ -191,17 +191,15 @@ int main(int argc, char* argv[]) {
     motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
     sys.Add(motor);
 
-    //
     // THE DEFORMABLE TERRAIN
-    //
 
     // Create the 'deformable terrain' object
     vehicle::SCMTerrain mterrain(&sys);
 
-    // Displace/rotate the terrain reference plane.
+    // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2)));
+    // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
+    mterrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Initialize the geometry of the soil
 
@@ -255,9 +253,9 @@ int main(int argc, char* argv[]) {
             6);  // number of concentric vertex selections subject to erosion
     }
 
-    // Optionally, enable moving patch feature (reduces number of ray casts)
-    if (enable_moving_patch) {
-        mterrain.AddMovingPatch(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
+    // Optionally, enable active domains feature (reduces number of ray casts)
+    if (enable_active_domains) {
+        mterrain.AddActiveDomain(wheel, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * tire_rad, 2 * tire_rad));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -309,7 +307,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(3.0, 2.0, 0.0), ChVector3d(0, tire_rad, 0));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
@@ -334,9 +332,8 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+    // SIMULATION LOOP
+
     /*
         // Change the timestepper to HHT:
         sys.SetTimestepperType(ChTimestepper::Type::HHT);

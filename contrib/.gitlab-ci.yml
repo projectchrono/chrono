@@ -69,17 +69,13 @@ linux:doxygen:deploy:
   tags:
     - linux
   image:
-      name: uwsbel/packages:test
+      name: uwsbel/packages:cuda12.8.1
   before_script:
     # Defining configuration variables
     - export DEBIAN_FRONTEND=noninteractive
     - export LIB_DIR="lib"
     - export IOMP5_DIR=""
-    - apt-get update; apt-get -y install unzip wget python3 python3-pip libomp-dev
-      git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
-      freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
-      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-535
-      curl software-properties-common
+    - source /opt/intel/oneapi/setvars.sh
     - ldconfig
     # ROS
     - add-apt-repository universe
@@ -254,6 +250,8 @@ linux:ubuntu22.04:deploy-python3.10:
 #------------------#
 
 .windows:
+  variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/chrono
   tags:
   - windows11
   before_script:
@@ -272,12 +270,12 @@ windows:vs2022:build:
   script:
   # Build gl with buildGL script
   - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildGL.bat $CI_PROJECT_DIR\contrib\build-scripts\gl_build'
-  # Build vsg with buildVSG script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  # Build urdf with buildURDF script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
+  # Build vsg with buildVSG script (to speed to the building process I'm going to use the pre-built VSG instead)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  # Build urdf with buildURDF script (it looks like we have already using thre pre-built urdf as of April 27th, 2025, disabling the building for now)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.2" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
@@ -291,6 +289,9 @@ windows:vs2022:test:
   needs: ["windows:vs2022:build"]
   extends: .windows
   script:
+  # Build vsg with buildVSG script (As of April 22th, 2025, we are using the pre-built VSG)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  - $env:PATH += ";C:\Packages\vsg\bin"
   - cd build
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]

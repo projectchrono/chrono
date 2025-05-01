@@ -497,7 +497,7 @@ int main(int argc, char* argv[]) {
     vis->SetCameraVertical(CameraVerticalDir::Z);
     vis->AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
     vis->SetCameraAngleDeg(40.0);
-    vis->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
     vis->EnableSkyBox();
     vis->SetLightIntensity(1.0f);
     vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);

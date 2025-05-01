@@ -84,8 +84,8 @@ def main():
                               3e4    # Damping (Pa s/m), proportional to negative vertical speed (optional)
     )
 
-    # Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(hmmwv.GetChassisBody(), chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(5, 3, 1))
+    # Optionally, enable active domains feature (single domain around vehicle chassis)
+    terrain.AddActiveDomain(hmmwv.GetChassisBody(), chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(5, 3, 1))
 
     # Set plot type for SCM (false color plotting)
     terrain.SetPlotType(veh.SCMTerrain.PLOT_SINKAGE, 0, 0.1);

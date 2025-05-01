@@ -12,6 +12,7 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_RigidTerrain_WheeledVehicle
         demo_VEH_RigidTerrain_MovingPatch
+        demo_VEH_RigidSCMTerrain_MixedPatches
         demo_VEH_SCMTerrain_WheeledVehicle
         demo_VEH_SCMTerrain_RigidTire
         demo_VEH_SCMTerrain_TrackedVehicle

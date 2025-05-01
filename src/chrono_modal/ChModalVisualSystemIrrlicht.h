@@ -109,7 +109,7 @@ class ChModalVisualSystemIrrlicht : public irrlicht::ChVisualSystemIrrlicht {
     /// Initialize the visualization system.
     virtual void Initialize() override;
 
-    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color) override;
+    virtual void BeginScene(bool backBuffer, bool zBuffer) override;
 
     using irrlicht::ChVisualSystemIrrlicht::BeginScene;
 
@@ -253,8 +253,8 @@ void ChModalVisualSystemIrrlicht<ScalarType>::Initialize() {
 }
 
 template <typename ScalarType>
-inline void ChModalVisualSystemIrrlicht<ScalarType>::BeginScene(bool backBuffer, bool zBuffer, ChColor color) {
-    ChVisualSystemIrrlicht::BeginScene(backBuffer, zBuffer, color);
+inline void ChModalVisualSystemIrrlicht<ScalarType>::BeginScene(bool backBuffer, bool zBuffer) {
+    ChVisualSystemIrrlicht::BeginScene(backBuffer, zBuffer);
 
     // check if the timer is running, if not, start it
 

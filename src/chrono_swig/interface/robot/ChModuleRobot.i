@@ -176,6 +176,7 @@ using namespace chrono::industrial;
 %shared_ptr(chrono::viper::ViperDriver)
 %shared_ptr(chrono::viper::ViperDCMotorControl)
 %shared_ptr(chrono::viper::ViperSpeedDriver)
+%shared_ptr(chrono::viper::ViperDirectControl)
 
 %shared_ptr(chrono::curiosity::CuriosityPart)
 %shared_ptr(chrono::curiosity::CuriosityChassis)

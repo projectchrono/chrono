@@ -126,9 +126,9 @@ sys.Add(motor)
 # ------------------------
 
 # Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-# a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
+# a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
 terrain = veh.SCMTerrain(sys)
-terrain.SetPlane(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.QuatFromAngleX(-math.pi/2)))
+terrain.SetReferenceFrame(chrono.ChCoordsysd(chrono.ChVector3d(0,0.2,0), chrono.QuatFromAngleX(-math.pi/2)))
 terrain.Initialize(2.0, 6.0, 0.04)
 
 my_params = MySoilParams()

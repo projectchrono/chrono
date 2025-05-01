@@ -85,6 +85,9 @@ class ChApi ChVisualSystem {
                          ChColor col = ChColor(0.1f, 0.1f, 0.1f)  ///< grid line color
     ) {}
 
+    /// Set window background color.
+    void SetBackgroundColor(const ChColor& color);
+
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector3d& pos) {}
 
@@ -223,10 +226,11 @@ class ChApi ChVisualSystem {
     /// Called by an associated ChSystem.
     virtual void OnClear(ChSystem* sys) {}
 
-    bool m_verbose;      ///< terminal output
-    bool m_initialized;  ///< visual system initialized
-    ChTimer m_timer;     ///< timer for evaluating RTF
-    double m_rtf;        ///< overall real time factor
+    bool m_verbose;              ///< terminal output
+    bool m_initialized;          ///< visual system initialized
+    ChColor m_background_color;  ///< window background color
+    ChTimer m_timer;             ///< timer for evaluating RTF
+    double m_rtf;                ///< overall real time factor
 
     std::vector<ChSystem*> m_systems;  ///< associated Chrono system(s)
 
