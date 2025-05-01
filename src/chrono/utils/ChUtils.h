@@ -44,6 +44,7 @@ namespace chrono {
         if (!(exp)) {                                                                                          \
             char msg[300];                                                                                     \
             std::sprintf(msg, "Expression '%s' returned false - file %s, line %d.", #exp, __FILE__, __LINE__); \
+            std::cerr << msg << std::endl;                                                                     \
             throw std::runtime_error(msg);                                                                     \
         }                                                                                                      \
     }

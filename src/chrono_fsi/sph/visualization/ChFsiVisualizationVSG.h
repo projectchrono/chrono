@@ -48,7 +48,12 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     virtual void OnAttach() override;
     virtual void OnInitialize() override;
+    virtual void OnBindAssets() override;
     virtual void OnRender() override;
+
+    /// Set the visibility of active boxes with specified tag to the provided value.
+    /// A tag value of -1 indicates that the visibility flag should be applied to all boxes.
+    void SetActiveBoxVisibility(bool vis, int tag);
 
     /// Set default color for fluid SPH particles (default: [0.10, 0.40, 0.65]).
     void SetColorFluidMarkers(const ChColor& col) { m_sph_color = col; }
@@ -131,6 +136,9 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
   private:
     enum ParticleCloudTag { SPH = 0, BCE_WALL = 1, BCE_RIGID = 2, BCE_FLEX = 3 };
 
+    void BindComputationalDomain();
+    void BindActiveBox(const std::shared_ptr<ChBody>& obj, int tag);
+
     ChFsiSystemSPH* m_sysFSI;       ///< associated FSI system
     ChFsiFluidSystemSPH* m_sysSPH;  ///< associated SPH system
     ChSystem* m_sysMBS;             ///< internal Chrono system (holds proxies)
@@ -139,16 +147,18 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     bool m_bndry_bce_markers;  ///< render boundary BCE markers?
     bool m_rigid_bce_markers;  ///< render rigid-body BCE markers?
     bool m_flex_bce_markers;   ///< render flex-body markers?
+    bool m_active_boxes;       ///< render active boxes?
 
     std::shared_ptr<ChParticleCloud> m_sph_cloud;        ///< particle cloud proxy for SPH particles
     std::shared_ptr<ChParticleCloud> m_bndry_bce_cloud;  ///< particle cloud proxy for boundary BCE markers
     std::shared_ptr<ChParticleCloud> m_rigid_bce_cloud;  ///< particle cloud proxy for BCE markers on rigid bodies
     std::shared_ptr<ChParticleCloud> m_flex_bce_cloud;   ///< particle cloud proxy for BCE markers on flex bodies
 
-    ChColor m_sph_color;        ///< color for SPH particles
-    ChColor m_bndry_bce_color;  ///< color for boundary BCE markers
-    ChColor m_rigid_bce_color;  ///< color for BCE markers on rigid bodies
-    ChColor m_flex_bce_color;   ///< color for BCE markers on flex bodies
+    ChColor m_sph_color;         ///< color for SPH particles
+    ChColor m_bndry_bce_color;   ///< color for boundary BCE markers
+    ChColor m_rigid_bce_color;   ///< color for BCE markers on rigid bodies
+    ChColor m_flex_bce_color;    ///< color for BCE markers on flex bodies
+    ChColor m_active_box_color;  ///< color for active boxes
 
     std::shared_ptr<ParticleColorCallback> m_color_fun;         ///< color functor for SPH particles
     std::shared_ptr<MarkerVisibilityCallback> m_vis_sph_fun;    ///< visibility functor for SPH particles
@@ -160,6 +170,10 @@ class CH_FSI_API ChFsiVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     std::vector<Real3> m_acc;   ///< SPH and BCE positions
     std::vector<Real3> m_frc;   ///< SPH and BCE positions
     std::vector<Real3> m_prop;  ///< SPH properties (density, pressure, viscosity)
+
+    bool m_use_active_boxes;                     ///< active domains enabled?
+    ChVector3d m_active_box_hsize;               ///< half-dimensions of active boxes
+    vsg::ref_ptr<vsg::Switch> m_activeBoxScene;  ///< VSG scene containing FSI body active boxes
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files

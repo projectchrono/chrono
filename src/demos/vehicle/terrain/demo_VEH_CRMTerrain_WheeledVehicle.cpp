@@ -110,11 +110,14 @@ int main(int argc, char* argv[]) {
     double poisson_ratio = 0.3;
 
     // CRM (moving) active box dimension
-    double active_box_hdim = 0.4;
+    double active_box_dim = 0.8;
     double settling_time = 0;
 
     // Set SPH spacing
     double spacing = (patch_type == PatchType::MARKER_DATA) ? 0.02 : 0.04;
+
+    // SPH integration sacheme
+    IntegrationScheme integration_scheme = IntegrationScheme::RK2;
 
     // --------------
     // Create vehicle
@@ -183,15 +186,15 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solver parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = integration_scheme;
     sph_params.initial_spacing = spacing;
     sph_params.d0_multiplier = 1;
     sph_params.kernel_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
     terrain.SetSPHParameters(sph_params);
 
     // Set output level from SPH simulation
@@ -199,7 +202,7 @@ int main(int argc, char* argv[]) {
 
     // Add vehicle wheels as FSI solids
     CreateFSIWheels(vehicle, terrain);
-    terrain.SetActiveDomain(ChVector3d(active_box_hdim));
+    terrain.SetActiveDomain(ChVector3d(active_box_dim));
     terrain.SetActiveDomainDelay(settling_time);
 
     // Construct the terrain and associated path

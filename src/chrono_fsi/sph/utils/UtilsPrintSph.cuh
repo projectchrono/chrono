@@ -40,6 +40,7 @@ namespace sph {
 void saveParticleDataCFD(const std::string& dir, OutputLevel level, FsiDataManager& data_mgr);
 void saveParticleDataCFD(const std::string& dir,
                          OutputLevel level,
+                         bool implicit_scheme,
                          const thrust::device_vector<Real4>& posRadD,
                          const thrust::device_vector<Real3>& velMasD,
                          const thrust::device_vector<Real4>& derivVelRhoD,
@@ -88,6 +89,13 @@ void writeParticleFileCSV(const std::string& filename,
                           thrust::device_vector<Real4>& posRadD,
                           thrust::device_vector<Real3>& velMasD,
                           thrust::device_vector<Real4>& rhoPresMuD,
+                          thrust::host_vector<int4>& referenceArray);
+
+/// Save current particle data to a JSON file for use with Splashsurf.
+/// Write particle positions.
+void writeParticleFileJSON(const std::string& filename, FsiDataManager& data_mgr);
+void writeParticleFileJSON(const std::string& filename,
+                          thrust::device_vector<Real4>& posRadD,
                           thrust::host_vector<int4>& referenceArray);
 
 /// @} fsisph_utils

@@ -32,27 +32,37 @@ enum class PhysicsProblem {
     CRM   ///< continuous granular problem
 };
 
-/// SPH method.
-enum class SPHMethod {
-    WCSPH,  ///< Weakly Compressible SPH (explicit)
-    I2SPH   ///< Implicit SPH
+//// TODO RADU: - fix the inconsistency related to solid force calculation between WCSPH and ISPH.
+////            - once that is done, we can move integration_scheme out of the ChFsiParamsSPH structure.
+
+/// Integration scheme.
+/// All explicit integratioon schemes use a Weakly-Compressible SPH (WCSPH) formulation in which the density is
+/// integrated and an equation of state is used to calculate the corresponding pressure. For the implicit SPH scheme,
+/// the pressure is instead updated.
+enum class IntegrationScheme {
+    EULER,        ///< Explicit Euler
+    RK2,          ///< Runge-Kutta 2
+    VERLET,       ///< Velocity Verlet
+    SYMPLECTIC,   ///< Symplectic Euler
+    IMPLICIT_SPH  ///< Implicit SPH
 };
 
-/// Shifting Methods
+/// Shifting Methods.
 enum class ShiftingMethod { NONE, PPST, XSPH, PPST_XSPH, DIFFUSION, DIFFUSION_XSPH };
 
 /// Equation of State type.
-/// see https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations
+/// See https://pysph.readthedocs.io/en/latest/reference/equations.html#basic-wcsph-equations.
+/// An equation of state is used only with an explicit WCSPH formulation.
 enum class EosType { TAIT, ISOTHERMAL };
 
 /// SPH kernel type.
 enum class KernelType { QUADRATIC, CUBIC_SPLINE, QUINTIC_SPLINE, WENDLAND };
 
 /// Visosity method type.
-enum class ViscosityType { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
+enum class ViscosityMethod { LAMINAR, ARTIFICIAL_UNILATERAL, ARTIFICIAL_BILATERAL };
 
-/// Boundary type.
-enum class BoundaryType { ADAMI, HOLMES };
+/// Boundary method type.
+enum class BoundaryMethod { ADAMI, HOLMES };
 
 /// Rheology type.
 enum class Rheology { INERTIA_RHEOLOGY, NONLOCAL_FLUIDITY };
@@ -76,6 +86,26 @@ enum Enum {
     ALL = 0xFFFF  ///< All directions (X, Y, Z) are periodic
 };
 }
+
+/// Boundary conditions along directions of the computational domain.
+enum class BCType {
+    NONE,         ///< no boundary conditions enforced
+    PERIODIC,     ///< periodic boundary conditions
+    INLET_OUTLET  ///< inlet-outlet boundary conditions
+};
+
+/// Boundary condition types in all three directions of the computational domain.
+struct BoundaryConditions {
+    BCType x;
+    BCType y;
+    BCType z;
+};
+
+constexpr BoundaryConditions BC_NONE = {BCType::NONE, BCType::NONE, BCType::NONE};
+constexpr BoundaryConditions BC_X_PERIODIC = {BCType::PERIODIC, BCType::NONE, BCType::NONE};
+constexpr BoundaryConditions BC_Y_PERIODIC = {BCType::NONE, BCType::PERIODIC, BCType::NONE};
+constexpr BoundaryConditions BC_Z_PERIODIC = {BCType::NONE, BCType::NONE, BCType::PERIODIC};
+constexpr BoundaryConditions BC_ALL_PERIODIC = {BCType::PERIODIC, BCType::PERIODIC, BCType::PERIODIC};
 
 /// Enumeration for box sides.
 /// These flags are used to identify sides of a box container and can be combined using unary boolean operations.

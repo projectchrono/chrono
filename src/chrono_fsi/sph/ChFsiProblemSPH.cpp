@@ -20,13 +20,15 @@
 #include <iostream>
 #include <sstream>
 #include <queue>
+#include <stdexcept>
 
 #include "chrono/assets/ChVisualShapeBox.h"
-
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
+#include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
 
 #include "chrono_thirdparty/stb/stb.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -43,10 +45,12 @@ namespace sph {
 
 ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     : m_sysFSI(ChFsiSystemSPH(sys, m_sysSPH)),
+      m_splashsurf(m_sysSPH),
       m_spacing(spacing),
       m_initialized(false),
       m_offset_sph(VNULL),
       m_offset_bce(VNULL),
+      m_bc_type({BCType::NONE, BCType::NONE, BCType::NONE}),
       m_verbose(false) {
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
@@ -56,6 +60,11 @@ ChFsiProblemSPH::ChFsiProblemSPH(ChSystem& sys, double spacing)
     // Set parameters for underlying SPH system
     m_sysSPH.SetInitialSpacing(spacing);
     m_sysSPH.SetKernelMultiplier(1.2);
+
+    // Set default slapshsurf parameters
+    m_splashsurf.SetSmoothingLength(1.5);
+    m_splashsurf.SetCubeSize(0.5);
+    m_splashsurf.SetSurfaceThreshold(0.6);
 
     m_sysFSI.SetVerbose(m_verbose);
 }
@@ -79,6 +88,12 @@ void ChFsiProblemSPH::SetElasticSPH(const ChFsiFluidSystemSPH::ElasticMaterialPr
 
 void ChFsiProblemSPH::SetSPHParameters(const ChFsiFluidSystemSPH::SPHParameters& sph_params) {
     m_sysSPH.SetSPHParameters(sph_params);
+}
+
+void ChFsiProblemSPH::SetSplashsurfParameters(const ChFsiFluidSystemSPH::SplashsurfParameters& params) {
+    m_splashsurf.SetSmoothingLength(params.smoothing_length);
+    m_splashsurf.SetCubeSize(params.cube_size);
+    m_splashsurf.SetSurfaceThreshold(params.surface_threshold);
 }
 
 // ----------------------------------------------------------------------------
@@ -276,7 +291,7 @@ void ChFsiProblemSPH::Initialize() {
     // Create the body BCE markers and update AABB
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& b : m_bodies) {
-        auto body_index = m_sysFSI.AddFsiBody(b.body);
+        auto body_index = m_sysFSI.AddFsiBody(b.body, nullptr);
         m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
         m_fsi_bodies[b.body] = body_index;
         for (const auto& p : b.bce) {
@@ -305,16 +320,20 @@ void ChFsiProblemSPH::Initialize() {
     // Set computational domain
     if (!m_domain_aabb.IsInverted()) {
         // Use provided computational domain
-        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, m_periodic_sides);
+        m_sysSPH.SetComputationalDomain(m_domain_aabb, m_bc_type);
     } else {
-        // Set computational domain based on actual AABB of all markers
+        // Calculate computational domain based on actual AABB of all markers
         int bce_layers = m_sysSPH.GetNumBCELayers();
         m_domain_aabb = ChAABB(aabb.min - bce_layers * m_spacing, aabb.max + bce_layers * m_spacing);
-        m_sysSPH.SetComputationalBoundaries(m_domain_aabb.min, m_domain_aabb.max, static_cast<int>(PeriodicSide::NONE));
+        m_sysSPH.SetComputationalDomain(m_domain_aabb, BC_NONE);
     }
 
     // Initialize the underlying FSI system
     m_sysFSI.Initialize();
+
+    // Set SPH particle radius for the surface reconstructor
+    m_splashsurf.SetParticleRadius(m_spacing / 2);
+
     m_initialized = true;
 }
 
@@ -535,6 +554,53 @@ const ChVector3d& ChFsiProblemSPH::GetFsiBodyTorque(std::shared_ptr<ChBody> body
     return m_sysFSI.GetFsiBodyTorque(index);
 }
 
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::CreateParticleRelocator() {
+    FsiParticleRelocator::DefaultProperties props;
+    props.rho0 = m_sysSPH.GetDensity();
+    props.mu0 = m_sysSPH.GetViscosity();
+
+    m_relocator = chrono_types::make_unique<FsiParticleRelocator>(*m_sysSPH.m_data_mgr, props);
+}
+
+void ChFsiProblemSPH::BCEShift(const ChVector3d& shift_dist) {
+    ChAssertAlways(m_relocator);
+
+    m_relocator->Shift(MarkerType::BCE_WALL, ToReal3(shift_dist));
+}
+
+void ChFsiProblemSPH::SPHShift(const ChVector3d& shift_dist) {
+    ChAssertAlways(m_relocator);
+
+    m_relocator->Shift(MarkerType::SPH_PARTICLE, ToReal3(shift_dist));
+}
+
+void ChFsiProblemSPH::SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest) {
+    ChAssertAlways(m_relocator);
+
+    m_relocator->MoveAABB2AABB(MarkerType::SPH_PARTICLE, ToRealAABB(aabb_src), ToIntAABB(aabb_dest), Real(m_spacing));
+}
+
+void ChFsiProblemSPH::ForceProximitySearch() {
+    m_sysSPH.m_force_proximity_search = true;
+}
+
+// ----------------------------------------------------------------------------
+
+void ChFsiProblemSPH::WriteReconstructedSurface(const std::string& dir, const std::string& name, bool quiet) {
+#ifndef CHRONO_HAS_SPLASHSURF
+    std::cerr << "Warning: splashsurf not available; no mesh was generated." << std::endl;
+    return;
+#endif
+
+    std::string in_filename = dir + "/" + name + ".json";
+    std::string out_filename = dir + "/" + name + ".obj";
+
+    m_splashsurf.WriteParticleFileJSON(in_filename);
+    m_splashsurf.WriteReconstructedSurface(in_filename, out_filename, quiet);
+}
+
 // ============================================================================
 
 void ChFsiProblemCartesian::Construct(const std::string& sph_file, const std::string& bce_file, const ChVector3d& pos) {
@@ -584,7 +650,7 @@ void ChFsiProblemCartesian::Construct(const ChVector3d& box_size, const ChVector
     std::vector<ChVector3i> sph;
     sph.reserve(num_sph);
 
-    // Generate SPH and bottom BCE points
+    // Generate SPH points
     for (int Ix = 0; Ix < Nx; Ix++) {
         for (int Iy = 0; Iy < Ny; Iy++) {
             for (int Iz = 0; Iz < Nz; Iz++) {

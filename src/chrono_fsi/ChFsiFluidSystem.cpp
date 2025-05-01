@@ -37,7 +37,8 @@ using std::endl;
 namespace chrono {
 namespace fsi {
 
-ChFsiFluidSystem::ChFsiFluidSystem() : m_is_initialized(false), m_verbose(true), m_step(-1), m_time(0), m_RTF(0) {}
+ChFsiFluidSystem::ChFsiFluidSystem()
+    : m_is_initialized(false), m_verbose(false), m_step(-1), m_time(0), m_frame(0), m_RTF(0) {}
 
 ChFsiFluidSystem::~ChFsiFluidSystem() {}
 
@@ -49,32 +50,23 @@ void ChFsiFluidSystem::SetStepSize(double step) {
     m_step = step;
 }
 
-void ChFsiFluidSystem::Initialize(unsigned int num_fsi_bodies,
-                                  unsigned int num_fsi_nodes1D,
-                                  unsigned int num_fsi_elements1D,
-                                  unsigned int num_fsi_nodes2D,
-                                  unsigned int num_fsi_elements2D,
-                                  const std::vector<FsiBodyState>& body_states,
-                                  const std::vector<FsiMeshState>& mesh1D_states,
-                                  const std::vector<FsiMeshState>& mesh2D_states,
-                                  bool use_node_directions) {
-    // Mark system as initialized
-    m_is_initialized = true;
-}
-
 void ChFsiFluidSystem::Initialize() {
-    // Mark system as initialized
-    m_is_initialized = true;
+    Initialize(std::vector<FsiBody>(), std::vector<FsiMesh1D>(), std::vector<FsiMesh2D>(),             //
+               std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>(),  //
+               false);
 }
 
 void ChFsiFluidSystem::DoStepDynamics(double step) {
     m_timer_step.reset();
     m_timer_step.start();
 
-    OnDoStepDynamics(step);
+    OnDoStepDynamics(m_time, step);
 
     m_timer_step.stop();
     m_RTF = m_timer_step() / step;
+
+    m_frame++;
+    m_time += step;
 }
 
 }  // end namespace fsi

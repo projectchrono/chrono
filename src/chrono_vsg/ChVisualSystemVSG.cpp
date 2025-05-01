@@ -1112,6 +1112,10 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_decoScene);
 
+    // Let any plugins perform pre-bind operations
+    for (auto& plugin : m_plugins)
+        plugin->OnBindAssets();
+
     BindAll();
     CreateContacts();
 

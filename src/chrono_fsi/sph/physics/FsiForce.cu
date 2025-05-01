@@ -26,24 +26,19 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-FsiForce::FsiForce(FsiDataManager& data_mgr,
-                       BceManager& bce_mgr,
-                       bool verbose)
-    : m_data_mgr(data_mgr),
-      m_bce_mgr(bce_mgr),
-      m_verbose(verbose),
-      m_sortedSphMarkers_D(nullptr) {
-    fsiCollisionSystem = chrono_types::make_shared<CollisionSystem>(data_mgr);
+FsiForce::FsiForce(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
+    : m_data_mgr(data_mgr), m_bce_mgr(bce_mgr), m_verbose(verbose) {
+    cudaMallocErrorFlag(m_errflagD);
+}
+
+FsiForce::~FsiForce() {
+    cudaFreeErrorFlag(m_errflagD);
 }
 
 void FsiForce::Initialize() {
     cudaMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     cudaMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
-
-    fsiCollisionSystem->Initialize();
 }
-
-FsiForce::~FsiForce() {}
 
 // Use invasive to avoid one extra copy.
 // However, keep in mind that sorted is changed.

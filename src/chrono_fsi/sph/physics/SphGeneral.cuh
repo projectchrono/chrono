@@ -525,23 +525,6 @@ __global__ void UpdateDensity(Real3* vis_vel,
                               uint* cellEnd,
                               volatile bool* error_flag);
 
-__global__ void neighborSearchNum(const Real4* sortedPosRad,
-                                  const Real4* sortedRhoPreMu,
-                                  const uint* cellStart,
-                                  const uint* cellEnd,
-                                  const uint numActive,
-                                  uint* numNeighborsPerPart,
-                                  volatile bool* error_flag);
-
-__global__ void neighborSearchID(const Real4* sortedPosRad,
-                                 const Real4* sortedRhoPreMu,
-                                 const uint* cellStart,
-                                 const uint* cellEnd,
-                                 const uint numActive,
-                                 const uint* numNeighborsPerPart,
-                                 uint* neighborList,
-                                 volatile bool* error_flag);
-
 /// @} fsisph_physics
 
 }  // namespace sph

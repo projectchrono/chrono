@@ -33,6 +33,33 @@ enum class ChAxis {
     Z   ///< z direction of a reference frame
 };
 
+/// Axis-aligned bounding box in integer gridd coordinates.
+struct ChApi ChIntAABB {
+    /// Default is an inverted bounding box.
+    ChIntAABB();
+
+    /// Construct an AABB with provided corners.
+    ChIntAABB(const ChVector3i& aabb_min, const ChVector3i& aabb_max);
+
+    /// Get AABB dimensions.
+    ChVector3i Size() const;
+
+    /// Return true for an inverted bounding box.
+    bool IsInverted() const;
+
+    /// Return the union of this AABB and the specified AABB.
+    ChIntAABB operator+(const ChIntAABB& aabb);
+
+    /// Include the specified AABB in this AABB.
+    ChIntAABB& operator+=(const ChIntAABB& aabb);
+
+    /// Include the specified point in this AABB.
+    ChIntAABB& operator+=(const ChVector3i p);
+
+    ChVector3i min;  ///< low AABB corner
+    ChVector3i max;  ///< high AABB corner
+};
+
 /// Axis-aligned bounding box.
 struct ChApi ChAABB {
     /// Default is an inverted bounding box.
@@ -40,6 +67,9 @@ struct ChApi ChAABB {
 
     /// Construct an AABB with provided corners.
     ChAABB(const ChVector3d& aabb_min, const ChVector3d& aabb_max);
+
+    /// Construct an AABB from the given integer AABB and grid spacing.
+    ChAABB(const ChIntAABB& aabb, double spacing);
 
     /// Get AABB center.
     ChVector3d Center() const;

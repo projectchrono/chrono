@@ -273,6 +273,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Indicate whether or not the default (base) GUI is visible.
     bool IsBaseGuiVisible() const { return m_show_base_gui; }
 
+    /// Change logo image.
+    void SetLogo(const std::string& filename) { m_logo_filename = filename; }
+
     /// Disable showing the Chrono logo (default: true).
     void HideLogo() { m_show_logo = false; }
 
@@ -289,6 +292,12 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Add a user-defined VSG event handler.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh);
+
+    /// Get a reference to the underlying VSG scene.
+    vsg::ref_ptr<vsg::Group> GetVSGScene() const { return m_scene; }
+
+    /// Get a reference to the underlying shape builder.
+    vsg::ref_ptr<ShapeBuilder> GetVSGShapeBuilder() const { return m_shapeBuilder; }
 
   protected:
     /// Perform necessary setup operations at the beginning of a time step.
@@ -597,6 +606,12 @@ class ChVisualSystemVSGPlugin {
     /// Allow this plugin to perform any pre-initialization operations.
     /// This function is called before the initialization of the associated VSG visual system.
     virtual void OnInitialize() {}
+
+    /// Allow this plugin to perform any pre-binding operations.
+    /// This function is called during initialization of the associated VSG visual system, after the scene was created
+    /// and before binding assets for the associated VSG visual system. A plugin can create and populate its own
+    /// children in the VSG scene.
+    virtual void OnBindAssets() {}
 
     /// Allow this plugin to perform any pre-rendering operations.
     /// This function is called before updating and rendering the associated VSG visual system.

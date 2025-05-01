@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
     sph_params.shifting_ppst_push = 3.0;
@@ -132,8 +132,8 @@ int main(int argc, char* argv[]) {
     sph_params.artificial_viscosity = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_type = BoundaryType::HOLMES;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::HOLMES;
 
     fsi.SetSPHParameters(sph_params);
 
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;

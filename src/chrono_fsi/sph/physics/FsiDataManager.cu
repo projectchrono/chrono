@@ -17,16 +17,24 @@
 //
 // =============================================================================
 
+////#define DEBUG_LOG
+
 #include <algorithm>
 
+#include <thrust/execution_policy.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/constant_iterator.h>
+#include <thrust/count.h>
 #include <thrust/copy.h>
 #include <thrust/fill.h>
 #include <thrust/gather.h>
 #include <thrust/for_each.h>
-#include <thrust/iterator/counting_iterator.h>
 #include <thrust/functional.h>
-#include <thrust/execution_policy.h>
 #include <thrust/transform.h>
+#include <thrust/partition.h>
+#include <thrust/zip_function.h>
+
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
 #include "chrono_fsi/sph/math/CustomMath.cuh"
@@ -37,9 +45,10 @@ namespace sph {
 
 //---------------------------------------------------------------------------------------
 
-zipIterSphD SphMarkerDataD::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin(),
-                                                        tauXxYyZzD.begin(), tauXyXzYzD.begin()));
+zipIterSphD SphMarkerDataD::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin() + offset, velMasD.begin() + offset,
+                                                        rhoPresMuD.begin() + offset, tauXxYyZzD.begin() + offset,
+                                                        tauXyXzYzD.begin() + offset));
 }
 
 void SphMarkerDataD::resize(size_t s) {
@@ -50,9 +59,10 @@ void SphMarkerDataD::resize(size_t s) {
     tauXyXzYzD.resize(s);
 }
 
-zipIterSphH SphMarkerDataH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin(),
-                                                        tauXxYyZzH.begin(), tauXyXzYzH.begin()));
+zipIterSphH SphMarkerDataH::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin() + offset, velMasH.begin() + offset,
+                                                        rhoPresMuH.begin() + offset, tauXxYyZzH.begin() + offset,
+                                                        tauXyXzYzH.begin() + offset));
 }
 
 void SphMarkerDataH::resize(size_t s) {
@@ -65,9 +75,10 @@ void SphMarkerDataH::resize(size_t s) {
 
 //---------------------------------------------------------------------------------------
 
-zipIterRigidH FsiBodyStateH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
-                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
+zipIterRigidH FsiBodyStateH::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset,
+                                                        lin_acc.begin() + offset, rot.begin() + offset,
+                                                        ang_vel.begin() + offset, ang_acc.begin() + offset));
 }
 
 void FsiBodyStateH::Resize(size_t s) {
@@ -79,9 +90,10 @@ void FsiBodyStateH::Resize(size_t s) {
     ang_acc.resize(s);
 }
 
-zipIterRigidD FsiBodyStateD::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin(), lin_vel.begin(), lin_acc.begin(),  //
-                                                        rot.begin(), ang_vel.begin(), ang_acc.begin()));
+zipIterRigidD FsiBodyStateD::iterator(int offset) {
+    return thrust::make_zip_iterator(thrust::make_tuple(pos.begin() + offset, lin_vel.begin() + offset,
+                                                        lin_acc.begin() + offset, rot.begin() + offset,
+                                                        ang_vel.begin() + offset, ang_acc.begin() + offset));
 }
 
 void FsiBodyStateD::Resize(size_t s) {
@@ -233,18 +245,19 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
     countersH->numFsiNodes1D = num_fsi_nodes1D;
     countersH->numFsiNodes2D = num_fsi_nodes2D;
 
-    countersH->numGhostMarkers = 0;     // Number of ghost particles
-    countersH->numHelperMarkers = 0;    // Number of helper particles
-    countersH->numFluidMarkers = 0;     // Number of fluid SPH particles
-    countersH->numBoundaryMarkers = 0;  // Number of boundary BCE markers
-    countersH->numRigidMarkers = 0;     // Number of rigid BCE markers
-    countersH->numFlexMarkers1D = 0;    // Number of flexible 1-D segment BCE markers
-    countersH->numFlexMarkers2D = 0;    // Number of flexible 2-D face BCE markers
-    countersH->numBceMarkers = 0;       // Total number of BCE markers
-    countersH->numAllMarkers = 0;       // Total number of SPH + BCE particles
-    countersH->startRigidMarkers = 0;   // Start index of the rigid BCE markers
-    countersH->startFlexMarkers1D = 0;  // Start index of the 1-D flexible BCE markers
-    countersH->startFlexMarkers2D = 0;  // Start index of the 2-D flexible BCE markers
+    countersH->numGhostMarkers = 0;       // Number of ghost particles
+    countersH->numHelperMarkers = 0;      // Number of helper particles
+    countersH->numFluidMarkers = 0;       // Number of fluid SPH particles
+    countersH->numBoundaryMarkers = 0;    // Number of boundary BCE markers
+    countersH->numRigidMarkers = 0;       // Number of rigid BCE markers
+    countersH->numFlexMarkers1D = 0;      // Number of flexible 1-D segment BCE markers
+    countersH->numFlexMarkers2D = 0;      // Number of flexible 2-D face BCE markers
+    countersH->numBceMarkers = 0;         // Total number of BCE markers
+    countersH->numAllMarkers = 0;         // Total number of SPH + BCE particles
+    countersH->startBoundaryMarkers = 0;  // Start index of the boundary BCE markers
+    countersH->startRigidMarkers = 0;     // Start index of the rigid BCE markers
+    countersH->startFlexMarkers1D = 0;    // Start index of the 1-D flexible BCE markers
+    countersH->startFlexMarkers2D = 0;    // Start index of the 2-D flexible BCE markers
 
     size_t rSize = referenceArray.size();
 
@@ -286,7 +299,8 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
                                countersH->numFlexMarkers1D + countersH->numFlexMarkers2D;
     countersH->numAllMarkers = countersH->numFluidMarkers + countersH->numBceMarkers;
 
-    countersH->startRigidMarkers = countersH->numFluidMarkers + countersH->numBoundaryMarkers;
+    countersH->startBoundaryMarkers = countersH->numFluidMarkers;
+    countersH->startRigidMarkers = countersH->startBoundaryMarkers + countersH->numBoundaryMarkers;
     countersH->startFlexMarkers1D = countersH->startRigidMarkers + countersH->numRigidMarkers;
     countersH->startFlexMarkers2D = countersH->startFlexMarkers1D + countersH->numFlexMarkers1D;
 }
@@ -350,32 +364,18 @@ void FsiDataManager::ConstructReferenceArray() {
     numComponentMarkers.clear();
 }
 
-void FsiDataManager::CopyDeviceDataToHalfStep() {
-    thrust::copy(sortedSphMarkers2_D->posRadD.begin(), sortedSphMarkers2_D->posRadD.end(),
-                 sortedSphMarkers1_D->posRadD.begin());
-    thrust::copy(sortedSphMarkers2_D->velMasD.begin(), sortedSphMarkers2_D->velMasD.end(),
-                 sortedSphMarkers1_D->velMasD.begin());
-    thrust::copy(sortedSphMarkers2_D->rhoPresMuD.begin(), sortedSphMarkers2_D->rhoPresMuD.end(),
-                 sortedSphMarkers1_D->rhoPresMuD.begin());
-
-    if (paramsH->elastic_SPH) {
-        thrust::copy(sortedSphMarkers2_D->tauXxYyZzD.begin(), sortedSphMarkers2_D->tauXxYyZzD.end(),
-                     sortedSphMarkers1_D->tauXxYyZzD.begin());
-        thrust::copy(sortedSphMarkers2_D->tauXyXzYzD.begin(), sortedSphMarkers2_D->tauXyXzYzD.end(),
-                     sortedSphMarkers1_D->tauXyXzYzD.begin());
-    }
-}
-
 void FsiDataManager::ResetData() {
     auto zero4 = mR4(0);
     auto zero3 = mR3(0);
 
     thrust::fill(derivVelRhoD.begin(), derivVelRhoD.end(), zero4);
     thrust::fill(derivVelRhoOriginalD.begin(), derivVelRhoOriginalD.end(), zero4);
-    thrust::fill(sr_tau_I_mu_i.begin(), sr_tau_I_mu_i.end(), zero4);
     thrust::fill(freeSurfaceIdD.begin(), freeSurfaceIdD.end(), 0);
 
     thrust::fill(vel_XSPH_D.begin(), vel_XSPH_D.end(), zero3);
+
+    if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
+        thrust::fill(sr_tau_I_mu_i.begin(), sr_tau_I_mu_i.end(), zero4);
 
     //// TODO: ISPH only
     thrust::fill(bceAcc.begin(), bceAcc.end(), zero3);
@@ -462,41 +462,7 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         vel_XSPH_D.shrink_to_fit();
 
         // Update max particles to match new capacity
-        m_max_extended_particles = markersProximity_D->gridMarkerHashD.capacity();
-    }
-}
-// Resize data based on the active particles
-// Custom functor for exclusive scan that treats -1 (zombie particles) the same as 0 (sleep particles)
-struct ActivityScanOp {
-    __host__ __device__ int operator()(const int& a, const int& b) const {
-        // Treat -1 the same as 0 (only add positive values)
-        int b_value = (b <= 0) ? 0 : b;
-        return a + b_value;
-    }
-};
-void FsiDataManager::ResizeData(bool first_step) {
-    // Exclusive scan for extended activity identifier using custom functor to handle -1 values
-    thrust::exclusive_scan(thrust::device, extendedActivityIdentifierOriginalD.begin(),
-                           extendedActivityIdentifierOriginalD.end(), prefixSumExtendedActivityIdD.begin(),
-                           0,  // Initial value
-                           ActivityScanOp());
-
-    // copy the last element of prefixSumD to host and since we used exclusive scan, need to add the last flag
-    uint lastPrefixVal = prefixSumExtendedActivityIdD[countersH->numAllMarkers - 1];
-    int32_t lastFlagInt32;
-    cudaMemcpy(&lastFlagInt32,
-               thrust::raw_pointer_cast(&extendedActivityIdentifierOriginalD[countersH->numAllMarkers - 1]),
-               sizeof(int32_t), cudaMemcpyDeviceToHost);
-    uint lastFlag = (lastFlagInt32 > 0) ? 1 : 0;  // Only count positive values
-
-    uint numExtended = lastPrefixVal + lastFlag;
-
-    countersH->numExtendedParticles = numExtended;
-
-    // Resize arrays based on number of active particles
-    // Also don't overallocate memory in the case of no active domains
-    if (numExtended < countersH->numAllMarkers || first_step) {
-        ResizeArrays(numExtended);
+        m_max_extended_particles = (uint)markersProximity_D->gridMarkerHashD.capacity();
     }
 }
 
@@ -522,7 +488,7 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
 
     derivVelRhoOriginalD.resize(countersH->numAllMarkers);  // unsorted
 
-    if (paramsH->sph_method == SPHMethod::I2SPH) {
+    if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
         Real tiny = Real(1e-20);
         vis_vel_SPH_D.resize(countersH->numAllMarkers, mR3(tiny));
         sr_tau_I_mu_i.resize(countersH->numAllMarkers, mR4(tiny));           // sorted
@@ -880,9 +846,11 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
     total_bytes += derivTauXyXzYzD.capacity() * sizeof(Real3);
     total_bytes += vel_XSPH_D.capacity() * sizeof(Real3);
     total_bytes += vis_vel_SPH_D.capacity() * sizeof(Real3);
-    total_bytes += sr_tau_I_mu_i.capacity() * sizeof(Real4);
-    total_bytes += sr_tau_I_mu_i_Original.capacity() * sizeof(Real4);
     total_bytes += bceAcc.capacity() * sizeof(Real3);
+    if (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) {
+        total_bytes += sr_tau_I_mu_i.capacity() * sizeof(Real4);
+        total_bytes += sr_tau_I_mu_i_Original.capacity() * sizeof(Real4);
+    }
 
     // Activity and neighbor data
     total_bytes += activityIdentifierOriginalD.capacity() * sizeof(int32_t);
