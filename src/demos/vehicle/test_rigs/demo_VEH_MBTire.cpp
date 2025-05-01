@@ -185,7 +185,7 @@ int main() {
 
             double delta = 0.125;
 
-            terrain_scm->SetPlane(ChCoordsys<>(ChVector3d(0, 0, -1.2 * tire_radius), QUNIT));
+            terrain_scm->SetReferenceFrame(ChCoordsys<>(ChVector3d(0, 0, -1.2 * tire_radius), QUNIT));
             terrain_scm->SetSoilParameters(2e6,   // Bekker Kphi
                                            0,     // Bekker Kc
                                            1.1,   // Bekker n exponent
@@ -198,8 +198,8 @@ int main() {
             terrain_scm->SetMeshWireframe(false);
             terrain_scm->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
             terrain_scm->Initialize(sizeX, sizeY, delta);
-            terrain_scm->AddMovingPatch(spindle, ChVector3d(0, 0, 0),
-                                        ChVector3d(2 * tire->GetRadius(), 1.0, 2 * tire->GetRadius()));
+            terrain_scm->AddActiveDomain(spindle, ChVector3d(0, 0, 0),
+                                         ChVector3d(2 * tire->GetRadius(), 1.0, 2 * tire->GetRadius()));
 
             terrain = terrain_scm;
 
