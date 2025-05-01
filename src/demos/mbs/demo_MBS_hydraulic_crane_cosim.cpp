@@ -55,12 +55,20 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+bool render = true;
+bool output = true;
+
+double t_start = 0;
+double t_end = 25;
+
+double t_step = 5e-4;
+double t_step_cosim = 1 * t_step;
 
 // -----------------------------------------------------------------------------
 
 class Crane {
   public:
-    Crane(ChSystem& sys) : m_sys(sys) {
+    Crane(ChSystem& sys) : m_sys(sys), m_output(true) {
         m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
         m_point_crane = ChVector3d(0, 0, 0);
 
@@ -117,6 +125,12 @@ class Crane {
         sph_joint->Initialize(m_crane, ball, ChFrame<>(2.0 * crane_pos, QUNIT));
         sys.AddLink(sph_joint);
 
+        // Create a dummy TSDA (zero force) to visualize the actuator
+        auto dummy_tsda = chrono_types::make_shared<ChLinkTSDA>();
+        dummy_tsda->Initialize(ground, m_crane, true, m_point_ground, m_point_crane);
+        dummy_tsda->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        sys.AddLink(dummy_tsda);
+
         // Create an external force load on crane
         auto load_container = std::make_shared<ChLoadContainer>();
         m_external_load = chrono_types::make_shared<ChLoadBodyForce>(m_crane, VNULL, false, VNULL, false);
@@ -167,13 +181,24 @@ class Crane {
         m_external_load->SetApplicationPoint(P2, false);
     }
 
+    void SetStep(double step) { m_step = step; }
+    void SetOutput(bool out) { m_output = out; }
+
     void Advance(double step) {
-        m_sys.DoStepDynamics(step);
+        double t = 0;
+        while (t < step) {
+            double h = std::min(m_step, step - t);
+            m_sys.DoStepDynamics(h);
+            t += h;
+        }
+
         double time = m_sys.GetChTime();
 
         double s, sd;
         GetActuatorLength(s, sd);
-        m_csv << time << s << sd << std::endl;
+
+        if (m_output)
+            m_csv << time << s << sd << std::endl;
     }
 
     void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
@@ -185,12 +210,14 @@ class Crane {
     ChVector3d m_point_ground;
     ChVector3d m_point_crane;
     double m_F0;
+    double m_step;
+    bool m_output;
     utils::ChWriterCSV m_csv;
 };
 
 class Actuator {
   public:
-    Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
+    Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys), m_output(true) {
         m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
         // Construct the hydraulic actuator
@@ -228,8 +255,17 @@ class Actuator {
     void SetActuatorLength(double s, double sd) { m_actuator->SetActuatorLength(s, sd); }
     double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
 
+    void SetStep(double step) { m_step = step; }
+    void SetOutput(bool out) { m_output = out; }
+
     void Advance(double step) {
-        m_sys.DoStepDynamics(step);
+        double t = 0;
+        while (t < step) {
+            double h = std::min(m_step, step - t);
+            m_sys.DoStepDynamics(h);
+            t += h;
+        }
+
         double time = m_sys.GetChTime();
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
@@ -238,7 +274,8 @@ class Actuator {
         auto p = m_actuator->GetCylinderPressures();
         auto F = m_actuator->GetActuatorForce();
 
-        m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
+        if (m_output)
+            m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
     }
 
     void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
@@ -247,13 +284,20 @@ class Actuator {
     ChSystem& m_sys;
     std::shared_ptr<ChHydraulicActuator2> m_actuator;
     std::shared_ptr<ChFunctionSetpoint> m_actuation;
+    double m_step;
+    bool m_output;
     utils::ChWriterCSV m_csv;
 };
 
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+
+    if (argc > 1) {
+        render = false;
+        output = false;
+    }
 
     // Create (if needed) output directory
     std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE_COSIM";
@@ -270,12 +314,16 @@ int main(int argc, char* argv[]) {
 
     // Construct the crane multibody system
     Crane crane(sysMBS);
+    crane.SetStep(t_step);
+    crane.SetOutput(output);
     double s0, sd0;
     crane.GetActuatorLength(s0, sd0);
     double F0 = crane.GetInitialLoad();
 
     // Construct the hydraulic actuator system
     Actuator actuator(sysHYD, s0, F0);
+    actuator.SetStep(t_step);
+    actuator.SetOutput(output);
 
     // Hydraulic actuation
     auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
@@ -297,61 +345,63 @@ int main(int argc, char* argv[]) {
 #endif
 
     std::shared_ptr<ChVisualSystem> vis;
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
+    if (render) {
+        switch (vis_type) {
+            case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-            vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Hydraulic actuator co-simulation demo");
-            vis_irr->SetCameraVertical(CameraVerticalDir::Z);
-            vis_irr->Initialize();
-            vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
-            vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
-            vis_irr->AddTypicalLights();
-            vis_irr->AttachSystem(&sysMBS);
+                auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+                vis_irr->SetWindowSize(800, 600);
+                vis_irr->SetWindowTitle("Hydraulic actuator co-simulation demo");
+                vis_irr->SetCameraVertical(CameraVerticalDir::Z);
+                vis_irr->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
+                vis_irr->Initialize();
+                vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
+                vis_irr->AddLogo();
+                vis_irr->AddTypicalLights();
+                vis_irr->AttachSystem(&sysMBS);
 
-            vis = vis_irr;
+                vis = vis_irr;
 #endif
-            break;
-        }
-        default:
-        case ChVisualSystem::Type::VSG: {
+                break;
+            }
+            default:
+            case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(&sysMBS);
-            vis_vsg->AttachSystem(&sysHYD);
-            vis_vsg->SetWindowTitle("Hydraulic actuator co-simulation demo");
-            vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->AddCamera(ChVector3d(0.5, -2, 0.5), ChVector3d(0.5, 0, 0.5));
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
-            vis_vsg->SetCameraAngleDeg(40.0);
-            vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->Initialize();
+                auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+                vis_vsg->AttachSystem(&sysMBS);
+                vis_vsg->AttachSystem(&sysHYD);
+                vis_vsg->SetWindowTitle("Hydraulic actuator co-simulation demo");
+                vis_vsg->SetBackgroundColor(ChColor(0.37f, 0.50f, 0.60f));
+                vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
+                vis_vsg->AddCamera(ChVector3d(0.5, -2, 0.5), ChVector3d(0.5, 0, 0.5));
+                vis_vsg->SetWindowSize(1280, 800);
+                vis_vsg->SetWindowPosition(100, 100);
+                vis_vsg->SetCameraAngleDeg(40.0);
+                vis_vsg->SetLightIntensity(1.0f);
+                vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+                vis_vsg->EnableShadows();
+                vis_vsg->Initialize();
 
-            vis = vis_vsg;
+                vis = vis_vsg;
 #endif
-            break;
+                break;
+            }
         }
     }
 
     // Simulation loop
-    double t_end = 100;
-    double t_step = 5e-4;
-    double t = 0;
+    double t = t_start;
 
-    while (vis->Run()) {
-        if (t > t_end)
-            break;
-
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+    ChTimer timer;
+    timer.start();
+    while (t < t_end) {
+        if (render) {
+            if (!vis->Run())
+                break;
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+        }
 
         // Apply actuation
         double Uref = actuation->GetVal(t);
@@ -365,55 +415,63 @@ int main(int argc, char* argv[]) {
         actuator.SetActuatorLength(s, sd);
 
         // Advance dynamics of both systems
-        crane.Advance(t_step);
-        actuator.Advance(t_step);
-        t += t_step;
+        crane.Advance(t_step_cosim);
+        actuator.Advance(t_step_cosim);
+        t += t_step_cosim;
     }
+    timer.stop();
+    auto RTF = timer() / t_end;
+    std::cout << "sim time: " << t_end << "  RTF: " << RTF;
 
-    std::string out_file_crane = out_dir + "/crane.out";
-    std::string out_file_actuator = out_dir + "/actuator.out";
-    crane.WriteOutput(out_file_crane);
-    actuator.WriteOutput(out_file_actuator);
+    if (output) {
+        std::string out_file_crane = out_dir + "/crane.out";
+        std::string out_file_actuator = out_dir + "/actuator.out";
+        crane.WriteOutput(out_file_crane);
+        actuator.WriteOutput(out_file_actuator);
 
 #ifdef CHRONO_POSTPROCESS
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("s");
-        gplot.SetTitle("Actuator length");
-        gplot << "set ylabel 's'";
-        gplot << "set y2label 'sd'";
-        gplot << "set ytics nomirror tc lt 1";
-        gplot << "set y2tics nomirror tc lt 2";
-        gplot.Plot(out_file_crane, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
-        gplot.Plot(out_file_crane, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("U");
-        gplot.SetTitle("Hydro Input");
-        gplot.Plot(out_file_actuator, 1, 2, "ref", " with lines lt -1 lw 2");
-        gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt 1 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("p");
-        gplot.SetTitle("Hydro Pressures");
-        gplot.Plot(out_file_actuator, 1, 4, "p0", " with lines lt 1 lw 2");
-        gplot.Plot(out_file_actuator, 1, 5, "p1", " with lines lt 2 lw 2");
-    }
-    {
-        postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
-        gplot.SetGrid();
-        gplot.SetLabelX("time");
-        gplot.SetLabelY("F");
-        gplot.SetTitle("Hydro Force");
-        gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
-    }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("s");
+            gplot.SetTitle("Actuator length");
+            gplot << "set ylabel 's'";
+            gplot << "set y2label 'sd'";
+            gplot << "set ytics nomirror tc lt 1";
+            gplot << "set y2tics nomirror tc lt 2";
+            gplot.Plot(out_file_crane, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
+            gplot.Plot(out_file_crane, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("U");
+            gplot.SetTitle("Hydro Input");
+            gplot.Plot(out_file_actuator, 1, 2, "ref", " with lines lt -1 lw 2");
+            gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt 1 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("p");
+            gplot.SetTitle("Hydro Pressures");
+            gplot.Plot(out_file_actuator, 1, 4, "p0", " with lines lt 1 lw 2");
+            gplot.Plot(out_file_actuator, 1, 5, "p1", " with lines lt 2 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("F");
+            gplot.SetTitle("Hydro Force");
+            gplot.SetRangeY(1000, 9000);
+            gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
+        }
 #endif
+    }
+
+    return 0;
 }

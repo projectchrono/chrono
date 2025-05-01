@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-        vis->BeginScene(true, true, ChColor(0.55f, 0.63f, 0.75f));
+        vis->BeginScene();
         vis->Render();
         if (draw_coll_shapes)
             drawer->Draw(mode, use_zbuffer);

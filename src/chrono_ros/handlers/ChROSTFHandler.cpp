@@ -48,8 +48,8 @@ void ChROSTFHandler::AddTransform(std::shared_ptr<chrono::ChBody> parent,
         return;
     }
 
-    ChBodyTransform parent_tf = std::make_pair(parent, !parent_frame_id.empty() ? parent_frame_id : parent->GetName());
-    ChBodyTransform child_tf = std::make_pair(child, !child_frame_id.empty() ? child_frame_id : child->GetName());
+    ChBodyTransform parent_tf = std::make_pair(parent, parent_frame_id.empty() ? parent->GetName() : parent_frame_id);
+    ChBodyTransform child_tf = std::make_pair(child, child_frame_id.empty() ? child->GetName() : child_frame_id);
     m_transforms.push_back(std::make_pair(parent_tf, child_tf));
 }
 
@@ -130,18 +130,24 @@ void ChROSTFHandler::Tick(double time) {
 
     for (auto const& [parent_tf, child_tf] : m_transforms) {
         chrono::ChFrame<> child_to_parent;
-        std::string parent_frame_id, child_frame_id;
+
+        std::string parent_id;
+        std::string child_id;
+
+        const auto& [parent_body, parent_frame_id] = std::get<ChBodyTransform>(parent_tf);
+        parent_id = parent_frame_id;
+
         if (std::holds_alternative<ChBodyTransform>(child_tf)) {
-            auto [parent_body, parent_frame_id] = std::get<ChBodyTransform>(parent_tf);
-            auto [child_body, child_frame_id] = std::get<ChBodyTransform>(child_tf);
+            const auto& [child_body, child_frame_id] = std::get<ChBodyTransform>(child_tf);
+            child_id = child_frame_id;
             child_to_parent = parent_body->GetFrameRefToAbs().GetInverse() * child_body->GetFrameRefToAbs();
         } else {
-            auto [parent_body, parent_frame_id] = std::get<ChBodyTransform>(parent_tf);
-            auto [child_to_parent, child_frame_id] = std::get<ChFrameTransform>(child_tf);
+            const auto& [child_frame, child_frame_id] = std::get<ChFrameTransform>(child_tf);
+            child_id = child_frame_id;
+            child_to_parent = child_frame;
         }
 
-        auto tf_msg = CreateTransformStamped(child_to_parent, parent_frame_id, child_frame_id, time);
-        transforms.push_back(tf_msg);
+        transforms.emplace_back(CreateTransformStamped(child_to_parent, parent_id, child_id, time));
     }
 
     m_tf_broadcaster->sendTransform(transforms);

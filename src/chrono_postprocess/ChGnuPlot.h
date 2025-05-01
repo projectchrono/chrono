@@ -354,6 +354,9 @@ class ChGnuPlot {
         commandfile += "\n";
     }
 
+    /// Set aspect ratio.
+    void SetAspectRatio(double val) { commandfile += " set size ratio " + std::to_string(val) + "\n"; }
+
     /// Set axes to equal size (i.e., square box) or restore default.
     void SetAxesEqual(bool axequal) { 
         if (axequal) {

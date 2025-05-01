@@ -7,13 +7,13 @@ option(CH_ENABLE_MODULE_FMI "Enable the Chrono::FMI module" OFF)
 # Return now if this module is not enabled
 if(NOT CH_ENABLE_MODULE_FMI)
     mark_as_advanced(FORCE FMU_EXPORT_SUPPORT)
-    mark_as_advanced(FORCE FMU_TOOLS_DIR)
+    mark_as_advanced(FORCE FMU_FORGE_DIR)
     mark_as_advanced(FORCE FMU_TESTING)
     mark_as_advanced(FORCE FMU_GUID_NAMESPACE)
 	return()
 else()
     mark_as_advanced(CLEAR FMU_EXPORT_SUPPORT)
-    mark_as_advanced(CLEAR FMU_TOOLS_DIR)
+    mark_as_advanced(CLEAR FMU_FORGE_DIR)
     mark_as_advanced(CLEAR FMU_TESTING)
     mark_as_advanced(CLEAR FMU_GUID_NAMESPACE)
 endif()
@@ -39,11 +39,11 @@ if(MSVC)
 endif()
 
 # -------------------------------------------------
-# Allow user to point to a different location of fmu_tools.
-# FMU_TOOLS_DIR must point to the *top-level* directory of the fmu_tools distribution.
+# Allow user to point to a different location of fmu-forge.
+# FMU_FORGE_DIR must point to the *top-level* directory of the fmu-forge distribution.
 # Default: Chrono submodule in src/chrono_thirdparty/
 
-set(FMU_TOOLS_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu_tools" CACHE PATH "Path to top-level fmu_tools directory")
+set(FMU_FORGE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/fmu-forge" CACHE PATH "Path to top-level fmu-forge directory")
 
 # -------------------------------------------------
 # Enable testing of generated FMUs
@@ -97,7 +97,7 @@ set(FMI3_PLATFORM "${FMI3_PLATFORM}" PARENT_SCOPE)
 
 message(STATUS "FMI2 platform:        ${FMI2_PLATFORM}")
 message(STATUS "FMI3 platform:        ${FMI3_PLATFORM}")
-message(STATUS "fmu_tools directory:  ${FMU_TOOLS_DIR}")
+message(STATUS "fmu-forge directory:  ${FMU_FORGE_DIR}")
 message(STATUS "FMU export:           ${FMU_EXPORT_SUPPORT}")
 
 if(FMU_EXPORT_SUPPORT)
@@ -145,7 +145,7 @@ add_library(Chrono_fmi
             ${Chrono_FMI_HEADERS}
             ${Chrono_FMI_SOURCES})
 
-target_include_directories(Chrono_fmi PRIVATE "${FMU_TOOLS_DIR}")
+target_include_directories(Chrono_fmi PRIVATE "${FMU_FORGE_DIR}")
 
 if (CH_STATIC)
   set_target_properties(Chrono_fmi PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -175,7 +175,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_fmi
         FILES_MATCHING PATTERN "*.h")
 
-install(DIRECTORY ${FMU_TOOLS_DIR}
+install(DIRECTORY ${FMU_FORGE_DIR}
         DESTINATION include/chrono_thirdparty
         PATTERN ".git" EXCLUDE)
 

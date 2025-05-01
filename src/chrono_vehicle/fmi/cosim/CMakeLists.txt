@@ -1,0 +1,7 @@
+# Chrono::Vehicle co-simulation FMUs
+
+add_subdirectory(fmu2_wheeled_vehicle_ptrain)
+add_subdirectory(fmu2_wheeled_vehicle)
+add_subdirectory(fmu2_powertrain)
+add_subdirectory(fmu2_force_element_tire)
+add_subdirectory(fmu2_path_follower_driver)
