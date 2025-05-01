@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
         visVSG->SetLogo(GetChronoDataFile("logo_chrono_alpha.png"));
-        visVSG->SetClearColor(ChColor(0.1f, 0.15f, 0.2f));
+        visVSG->SetBackgroundColor(ChColor(0.1f, 0.15f, 0.2f));
         visVSG->SetChaseCameraPosition(ChVector3d(0, -7 * byDim, 3 + bzDim / 2), ChVector3d(0, 0, bzDim / 2));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI_4);
