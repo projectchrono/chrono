@@ -30,9 +30,9 @@ class ChPeridynamics;
 
 
 
-/// Helper class: the per-bond auxialiary data for ChMatterPeriBulkElastic
+/// Helper class: the per-bond auxialiary data for ChMatterPeriBB
 
-class  ChApiPeridynamics ChMatterDataPerBondBulk : public ChMatterDataPerBond { 
+class  ChApiPeridynamics ChMatterDataPerBondBB : public ChMatterDataPerBond { 
 public: 
     bool broken = false;
     double F_density = 0;  // force density per volume squared in this bond
@@ -45,8 +45,16 @@ public:
 /// elasticity models. Having a fixed Poisson ration can be a limitation, but the positive
 /// note is that this material is very computationally-efficient.
 
-class ChApiPeridynamics ChMatterPeriBulkElastic : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBulk> {
+class ChApiPeridynamics ChMatterPeriBB : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBB> {
 public:
+
+    /// Set the material Young modulus. The unique bulk modulus will be automatically computed,
+    /// since in this material Poisson is always =1/4
+    void SetYoungModulus(double mE) {
+        // bulk stiffness  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
+        this->k_bulk = (mE * (2. / 3.));  
+    }
+
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100; 
 
@@ -56,7 +64,7 @@ public:
     /// maximum stretch - after this, bonds will break. Default no break.
     double max_stretch = 1e30;
 
-    ChMatterPeriBulkElastic() {};
+    ChMatterPeriBB() {};
 
     /// When doing quadrature, particle volumes that overlap with the horizon should be scaled
     /// proportionally to how much of their volume is really inside the horizon sphere. A simple
@@ -81,7 +89,7 @@ public:
         }
         // loop on bonds for sum of connected volumes to nodes   //***TODO*** should be faster in SetupInitial - but see notes below
         for (auto& bond : this->bonds) {
-            ChMatterDataPerBondBulk& mbond = bond.second;
+            ChMatterDataPerBondBB& mbond = bond.second;
             if (!mbond.broken) {
                 mbond.nodeA->vol_accumulator += mbond.nodeB->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
                 mbond.nodeB->vol_accumulator += mbond.nodeA->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
@@ -90,7 +98,7 @@ public:
      
         // loop on bonds
         for (auto& bond : this->bonds) {
-            ChMatterDataPerBondBulk& mbond = bond.second;
+            ChMatterDataPerBondBB& mbond = bond.second;
             if (!mbond.broken) {
                 ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
                 ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
@@ -149,7 +157,7 @@ public:
         }
         // loop on bonds for sum of connected volumes to nodes   // note! could be necessary to update in runtime if bonds are deleted/fractured/..
         for (auto& bond : this->bonds) {
-            ChMatterDataPerBondBulk& mbond = bond.second;
+            ChMatterDataPerBondBB& mbond = bond.second;
             if (!mbond.broken) {
                 mbond.nodeA->vol_accumulator += mbond.nodeB->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
                 mbond.nodeB->vol_accumulator += mbond.nodeA->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
@@ -162,13 +170,13 @@ public:
 
 
 
-/// Class for visualization of ChMatterPeriBulkElastic  nodes
+/// Class for visualization of ChMatterPeriBB  nodes
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriBulkElastic : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriBB : public ChGlyphs {
 public:
-    ChVisualPeriBulkElastic(std::shared_ptr<ChMatterPeriBulkElastic> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriBulkElastic() {}
+    ChVisualPeriBB(std::shared_ptr<ChMatterPeriBB> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriBB() {}
 
     // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
     void AttachVelocity(double min = 0, double max = 1, std::string mname = "Velocity") {
@@ -208,18 +216,18 @@ protected:
 
     }
 
-    std::shared_ptr<ChMatterPeriBulkElastic> mmatter;
+    std::shared_ptr<ChMatterPeriBB> mmatter;
 };
 
 
 
-/// Class for visualization of ChMatterPeriBulkElastic  bonds
+/// Class for visualization of ChMatterPeriBB  bonds
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriBulkElasticBonds : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriBBBonds : public ChGlyphs {
 public:
-    ChVisualPeriBulkElasticBonds(std::shared_ptr<ChMatterPeriBulkElastic> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriBulkElasticBonds() {}
+    ChVisualPeriBBBonds(std::shared_ptr<ChMatterPeriBB> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriBBBonds() {}
 
     bool draw_broken = true;
     bool draw_unbroken = false;
@@ -251,7 +259,7 @@ protected:
         }
     }
 
-    std::shared_ptr<ChMatterPeriBulkElastic> mmatter;
+    std::shared_ptr<ChMatterPeriBB> mmatter;
 };
 
 
@@ -261,9 +269,9 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Helper class: the per-bond auxialiary data for ChMatterPeriBulkElasticImplicit
+/// Helper class: the per-bond auxialiary data for ChMatterPeriBBimplicit
 
-class  ChApiPeridynamics ChMatterDataPerBondBulkImplicit : public ChMatterDataPerBond {
+class  ChApiPeridynamics ChMatterDataPerBondBBimplicit : public ChMatterDataPerBond {
 public:
     enum class bond_state {
         ACTIVE,     ///< Regular bond, push-pull
@@ -285,7 +293,7 @@ public:
     };
 };
 
-/// An implicit form of the ChMatterPeriBulkImplicit material, where instead of tangent 
+/// An implicit form of the ChMatterPeriBBimplicit material, where instead of tangent 
 /// stiffness matrices we use a compliant-constraint formulation. Moreover, this adds the ability of 
 /// having two stages for breaking: an intermediate fractured state where bonds are still in place but unilateral,
 /// and a fully broken state where bonds are removed. 
@@ -295,8 +303,16 @@ public:
 /// elasticity models. Having a fixed Poisson ration can be a limitation, but the positive
 /// note is that this material is computationally-efficient.
 
-class ChApiPeridynamics ChMatterPeriBulkImplicit : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBulkImplicit> {
+class ChApiPeridynamics ChMatterPeriBBimplicit : public ChMatterPeri<ChMatterDataPerNode, ChMatterDataPerBondBBimplicit> {
 public:
+
+    /// Set the material Young modulus. The unique bulk modulus will be automatically computed,
+    /// since in this material Poisson is always =1/4
+    void SetYoungModulus(double mE) {
+        // bulk stiffness  K=E/(3(1-2mu)) , with mu=1/4 -> K=E*(2/3)
+        this->k_bulk = (mE * (2. / 3.));  
+    }
+
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100;
 
@@ -309,7 +325,7 @@ public:
     /// maximum stretch for full breaking - after this, bonds will break. Default no break.
     double max_stretch_break = 1e30;
 
-    ChMatterPeriBulkImplicit() {};
+    ChMatterPeriBBimplicit() {};
 
     /// When doing quadrature, particle volumes that overlap with the horizon should be scaled
     /// proportionally to how much of their volume is really inside the horizon sphere. A simple
@@ -335,8 +351,8 @@ public:
         }
         // loop on bonds for sum of connected volumes to nodes   //***TODO*** maybe faster in SetupInitial
         for (auto& bond : this->bonds) {
-            ChMatterDataPerBondBulkImplicit& mbond = bond.second;
-            if (mbond.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) {
+            ChMatterDataPerBondBBimplicit& mbond = bond.second;
+            if (mbond.state == ChMatterDataPerBondBBimplicit::bond_state::ACTIVE) {
                 mbond.nodeA->vol_accumulator += mbond.nodeB->volume;
                 mbond.nodeB->vol_accumulator += mbond.nodeA->volume;
             }
@@ -344,8 +360,8 @@ public:
 
         // loop on bonds
         for (auto& bond : this->bonds) {
-            ChMatterDataPerBondBulkImplicit& mbond = bond.second;
-            if (mbond.state != ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) {
+            ChMatterDataPerBondBBimplicit& mbond = bond.second;
+            if (mbond.state != ChMatterDataPerBondBBimplicit::bond_state::BROKEN) {
                 ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
                 ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
                 double     old_sdist = old_vdist.Length();
@@ -387,13 +403,13 @@ public:
 
                 if (stretch > max_stretch_fracture) {
                     mbond.force_density_val = 0;
-                    mbond.state = ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED;
+                    mbond.state = ChMatterDataPerBondBBimplicit::bond_state::FRACTURED;
                     mbond.constraint.SetBoxedMinMax(0, 1e30); // enable complementarity, reaction>0.
                 }
 
                 if (stretch > max_stretch_break) {
                     mbond.force_density_val = 0;
-                    mbond.state = ChMatterDataPerBondBulkImplicit::bond_state::BROKEN;
+                    mbond.state = ChMatterDataPerBondBBimplicit::bond_state::BROKEN;
                     // the following will propagate the fracture geometry so that broken parts can collide
                     mbond.nodeA->is_boundary = true;
                     mbond.nodeB->is_boundary = true;
@@ -406,7 +422,7 @@ public:
     virtual void Setup() override {
         // cleanup bonds that are broken 
         for (auto& bond : this->bonds) {
-            if (bond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN)
+            if (bond.second.state == ChMatterDataPerBondBBimplicit::bond_state::BROKEN)
                 bonds.erase(bond.first);
         }
     }
@@ -512,13 +528,13 @@ public:
 
 
 
-/// Class for visualization of ChMatterPeriBulkImplicit  nodes
+/// Class for visualization of ChMatterPeriBBimplicit  nodes
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriBulkImplicit : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriBBimplicit : public ChGlyphs {
 public:
-    ChVisualPeriBulkImplicit(std::shared_ptr<ChMatterPeriBulkImplicit> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriBulkImplicit() {}
+    ChVisualPeriBBimplicit(std::shared_ptr<ChMatterPeriBBimplicit> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriBBimplicit() {}
 
     // Attach velocity property. (ex for postprocessing in falsecolor or with vectors with the Blender add-on)
     void AttachVelocity(double min = 0, double max = 1, std::string mname = "Velocity") {
@@ -570,18 +586,18 @@ protected:
 
     }
 
-    std::shared_ptr<ChMatterPeriBulkImplicit> mmatter;
+    std::shared_ptr<ChMatterPeriBBimplicit> mmatter;
 };
 
 
 
-/// Class for visualization of ChMatterPeriBulkImplicit  bonds
+/// Class for visualization of ChMatterPeriBBimplicit  bonds
 /// This can be attached to ChPeridynamics with my_peridynamics->AddVisualShape(my_visual);
 
-class /*ChApiPeridynamics*/ ChVisualPeriBulkImplicitBonds : public ChGlyphs {
+class /*ChApiPeridynamics*/ ChVisualPeriBBimplicitBonds : public ChGlyphs {
 public:
-    ChVisualPeriBulkImplicitBonds(std::shared_ptr<ChMatterPeriBulkImplicit> amatter) : mmatter(amatter) { is_mutable = true; };
-    virtual ~ChVisualPeriBulkImplicitBonds() {}
+    ChVisualPeriBBimplicitBonds(std::shared_ptr<ChMatterPeriBBimplicit> amatter) : mmatter(amatter) { is_mutable = true; };
+    virtual ~ChVisualPeriBBimplicitBonds() {}
 
     bool draw_broken = true;
     bool draw_active = false;
@@ -594,26 +610,26 @@ protected:
 
         unsigned int count = 0;
         for (const auto& abond : mmatter->GetMapOfBonds()) {
-            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) && draw_active)
+            if ((abond.second.state == ChMatterDataPerBondBBimplicit::bond_state::ACTIVE) && draw_active)
                 ++count;
-            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) && draw_broken)
+            if ((abond.second.state == ChMatterDataPerBondBBimplicit::bond_state::BROKEN) && draw_broken)
                 ++count;
-            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED) && draw_fractured)
+            if ((abond.second.state == ChMatterDataPerBondBBimplicit::bond_state::FRACTURED) && draw_fractured)
                 ++count;
         }
         this->Reserve(count);
 
         unsigned int i = 0;
         for (const auto& abond : mmatter->GetMapOfBonds()) {
-            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::ACTIVE) && draw_active) {
+            if ((abond.second.state == ChMatterDataPerBondBBimplicit::bond_state::ACTIVE) && draw_active) {
                 this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(0.15, 0.84, 1));
                 ++i;
             }
-            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::BROKEN) && draw_broken) {
+            if ((abond.second.state == ChMatterDataPerBondBBimplicit::bond_state::BROKEN) && draw_broken) {
                 this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 0, 0));
                 ++i;
             }
-            if ((abond.second.state == ChMatterDataPerBondBulkImplicit::bond_state::FRACTURED) && draw_fractured) {
+            if ((abond.second.state == ChMatterDataPerBondBBimplicit::bond_state::FRACTURED) && draw_fractured) {
                 this->SetGlyphVector(i, abond.second.nodeA->GetPos(), abond.second.nodeB->GetPos() - abond.second.nodeA->GetPos(), ChColor(1, 0.5, 0));
                 ++i;
             }
@@ -621,7 +637,7 @@ protected:
         }
     }
 
-    std::shared_ptr<ChMatterPeriBulkImplicit> mmatter;
+    std::shared_ptr<ChMatterPeriBBimplicit> mmatter;
 };
 
 
