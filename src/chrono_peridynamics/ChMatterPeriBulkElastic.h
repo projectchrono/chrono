@@ -75,20 +75,19 @@ public:
     // summation of all the effects of neighbouring nodes.
     virtual void ComputeForces() {
 
-        // see [Ganzenmueller et al. "Improvements to the Prototype Micro - Brittle Linear Elasticity Model of Peridynamics"]
-        // loop on nodes for resetting volume accumulator   //***TODO*** maybe faster in SetupInitial
+        // loop on nodes for resetting volume accumulator   //***TODO*** should be faster in SetupInitial - but see notes below
         for (auto& node : this->nodes) {
             node.first->vol_accumulator = node.first->volume;
         }
-        // loop on bonds for sum of connected volumes to nodes   //***TODO*** maybe faster in SetupInitial
+        // loop on bonds for sum of connected volumes to nodes   //***TODO*** should be faster in SetupInitial - but see notes below
         for (auto& bond : this->bonds) {
             ChMatterDataPerBondBulk& mbond = bond.second;
             if (!mbond.broken) {
-                mbond.nodeA->vol_accumulator += mbond.nodeB->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
-                mbond.nodeB->vol_accumulator += mbond.nodeA->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
+                mbond.nodeA->vol_accumulator += mbond.nodeB->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
+                mbond.nodeB->vol_accumulator += mbond.nodeA->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
             }
         }
-
+     
         // loop on bonds
         for (auto& bond : this->bonds) {
             ChMatterDataPerBondBulk& mbond = bond.second;
@@ -108,7 +107,7 @@ public:
                 // double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 // double force_density_val =  (18.0 * k_bulk / pih4) * stretch; // original in Silling
 
-                // Modified PMB in Ganzenmueller et.al.
+                // Modified PMB, see [Ganzenmueller et al. "Improvements to the Prototype Micro - Brittle Linear Elasticity Model of Peridynamics"]
                 double c_gmuller = 0.5 * ((18.0 * k_bulk / mbond.nodeA->vol_accumulator) + (18.0 * k_bulk / mbond.nodeB->vol_accumulator));
                 double force_density_val = (c_gmuller / old_sdist) * stretch;  
                 
@@ -116,7 +115,7 @@ public:
                     force_density_val += this->damping * (c_gmuller / (old_sdist * old_sdist) ) * svel;
 
                 mbond.F_density = force_density_val;
-                double wVV_ji = mbond.nodeA->volume * mbond.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller 
+                double wVV_ji = mbond.nodeA->volume * mbond.nodeB->volume;// *VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller?
 
                 mbond.nodeB->F_peridyn += -vdir * force_density_val * wVV_ji;
                 mbond.nodeA->F_peridyn += vdir * force_density_val * wVV_ji;
@@ -130,13 +129,33 @@ public:
                 }
             }
             else {
-                //if ((mbond.nodeB->GetPos() - mbond.nodeA->GetPos()).Length() > mbond.nodeA->GetHorizonRadius())
-                //    bonds.erase(bond.first);
-                if (mbond.broken)
-                    bonds.erase(bond.first);
+                bonds.erase(bond.first);
             }
 
         }
+    }
+
+    void SetupInitial() override {
+        // Not here, still in Computeforces() at each step because it could be necessary to update in runtime node->vol_accumulator if bonds are deleted/fractured/..
+        // TODO: still can be put here, and in ComputeForces just subtract from accumulator as 
+        //    mbond.nodeA->vol_accumulator -= mbond.nodeB->volume; 
+        //    mbond.nodeB->vol_accumulator -= mbond.nodeA->volume;
+        // when the bond is erased in  bonds.erase(bond.first);  ? To be tested!
+        /*
+        // see [Ganzenmueller et al. "Improvements to the Prototype Micro - Brittle Linear Elasticity Model of Peridynamics"]
+        // loop on nodes for resetting volume accumulator   // note! could be necessary to update in runtime if bonds are deleted/fractured/..
+        for (auto& node : this->nodes) {
+            node.first->vol_accumulator = node.first->volume;
+        }
+        // loop on bonds for sum of connected volumes to nodes   // note! could be necessary to update in runtime if bonds are deleted/fractured/..
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondBulk& mbond = bond.second;
+            if (!mbond.broken) {
+                mbond.nodeA->vol_accumulator += mbond.nodeB->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
+                mbond.nodeB->vol_accumulator += mbond.nodeA->volume; //*VolumeCorrection(old_sdist, horizon, vol_size); // vol corr. not relevant in Ganzenmueller? 
+            }
+        }
+        */
     }
 };
 
