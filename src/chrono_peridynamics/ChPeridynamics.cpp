@@ -132,6 +132,7 @@ void ChPeridynamics::SetupInitialBonds(ChSystem* sys, std::shared_ptr<ChPeridyna
     sys->ComputeCollisions();
     for (auto& node : peri->GetNodes())
         node->is_requiring_bonds = false;
+    peri->SetupInitial();
 }
 
 void ChPeridynamics::Setup() {
