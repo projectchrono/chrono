@@ -3,7 +3,7 @@
 # These example programs require run-time visualization.
 #=============================================================================
 
-if(NOT CH_ENABLE_MODULE_VEHICLE_FMI AND NOT CH_ENABLE_MODULE_IRRLICHT)
+if(NOT CH_ENABLE_MODULE_VEHICLE_FMI)
   return()
 endif()
 
