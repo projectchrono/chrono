@@ -112,28 +112,4 @@ public:
     cbtScalar    get_zthickness() const {return zthickness;}
 };
 
-
-////////////////////***TEST***
-
-
-#include "cbtSphereShape.h"
-
-/// Class for point-like nodes. 
-/// These are like null radii spheres, but node-node collision is never processed at all.
-
-class cbtPointShape : public cbtSphereShape {
-public:
-    cbtPointShape(cbtScalar mrad) 
-        : cbtSphereShape(mrad) 
-    { m_shapeType = POINT_SHAPE_PROXYTYPE; };
-
-    virtual const char*	getName()const 
-	{
-		return "PointShape";
-	}
-};
-
-
-
-
 #endif 

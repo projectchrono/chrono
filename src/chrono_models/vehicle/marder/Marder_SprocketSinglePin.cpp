@@ -71,6 +71,7 @@ void Marder_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
+        trimesh_shape->SetTexture(GetChronoDataFile("textures/metal.jpg"), 20, 20);
         trimesh_shape->SetMutable(false);
         m_gear->AddVisualShape(trimesh_shape);
     } else {

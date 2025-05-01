@@ -97,4 +97,42 @@ bool ChAABB::IsInverted() const {
     return min > max;
 }
 
+ChAABB& ChAABB::operator+=(const ChAABB& aabb) {
+    min = Vmin(min, aabb.min);
+    max = Vmax(max, aabb.max);
+    return *this;
+}
+
+ChAABB ChAABB::operator+(const ChAABB& aabb) {
+    ChAABB result = *this;
+    result += aabb;
+    return result;
+}
+
+ChAABB& ChAABB::operator+=(const ChVector3d p) {
+    min = Vmin(min, p);
+    max = Vmax(max, p);
+    return *this;
+}
+
+ChAABB ChAABB::Transform(const ChFrame<>& frame) const {
+    // Do not perform any operations on this box if it is inverted
+    if (IsInverted())
+        return ChAABB();
+
+    // Calculate the AABB transformed by the given frame
+    // Use algorithm by Jim Arvo (Graphics Gems, 1990)
+    ChAABB aabb(frame.GetPos(), frame.GetPos());
+    const auto& R = frame.GetRotMat();
+    for (int irow = 0; irow < 3; irow++) {
+        for (int icol = 0; icol < 3; icol++) {
+            double a = R(irow, icol) * min[icol];
+            double b = R(irow, icol) * max[icol];
+            aabb.min[irow] += a < b ? a : b;
+            aabb.max[irow] += a < b ? b : a;
+        }
+    }
+    return aabb;
+}
+
 }  // end namespace chrono

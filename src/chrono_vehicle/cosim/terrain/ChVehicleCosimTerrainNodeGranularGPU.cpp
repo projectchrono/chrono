@@ -34,9 +34,6 @@
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
 #endif
-#ifdef CHRONO_OPENGL
-    #include "chrono_opengl/ChVisualSystemOpenGL.h"
-#endif
 
 using std::cout;
 using std::cerr;
@@ -226,8 +223,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     if (m_verbose)
         cout << "[Terrain node] GRANULAR_GPU " << endl;
 
-#ifndef CHRONO_OPENGL
-    // Disable rendering if Chrono::OpenGL not available (performance considerations).
+#ifndef CHRONO_VSG
+    // Disable rendering if Chrono::VSG not available (performance considerations).
     m_renderRT = false;
 #endif
 
@@ -557,7 +554,7 @@ double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity(double& dep
     double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
-    double Vs = m_num_particles * (4.0 / 3) * CH_PI * std::pow(m_radius_g, 3);
+    double Vs = m_num_particles * CH_4_3 * CH_PI * std::pow(m_radius_g, 3);
 
     // Packing density = Vs/Vt
     return Vs / Vt;
@@ -595,7 +592,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int
     //// RADU TODO
     //// Chrono::GPU is currently limited to a single material for an interacting object?!?
     //// For now, use the first one only
-    auto mat_props = m_geometry[i_shape].m_materials[0];
+    auto mat_props = m_geometry[i_shape].materials[0];
 
     auto material_terrain = std::static_pointer_cast<ChContactMaterialSMC>(m_material_terrain);
     auto material = std::static_pointer_cast<ChContactMaterialSMC>(mat_props.CreateMaterial(m_method));
@@ -635,13 +632,13 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
+    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes (only if obstacles are present)
     auto num_obstacles = m_obstacles.size();
     if (num_obstacles > 0) {
-        for (auto& mesh : m_geometry[i_shape].m_coll_meshes)
-            mesh.m_radius = m_radius_g;
+        for (auto& mesh : m_geometry[i_shape].coll_meshes)
+            mesh.radius = m_radius_g;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
@@ -654,8 +651,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
 
     // Set mesh for granular system
     //// RADU TODO: what about other collision primitives?!?
-    for (auto& mesh : m_geometry[i_shape].m_coll_meshes) {
-        auto imesh = m_systemGPU->AddMesh(mesh.m_trimesh, (float)m_load_mass[i]);
+    for (auto& mesh : m_geometry[i_shape].coll_meshes) {
+        auto imesh = m_systemGPU->AddMesh(mesh.trimesh, (float)m_load_mass[i]);
         if (imesh != i + num_obstacles) {
             throw std::runtime_error("Error adding GPU mesh for object " + std::to_string(i));
         }
@@ -680,8 +677,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnInitialize(unsigned int num_objects
         vsys_vsg->SetWindowTitle("Terrain Node (GranularGPU)");
         vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
         vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
-        vsys_vsg->SetUseSkyBox(false);
-        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        vsys_vsg->EnableSkyBox(false);
+        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
@@ -690,18 +687,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnInitialize(unsigned int num_objects
         vsys_vsg->Initialize();
 
         m_vsys = vsys_vsg;
-#elif defined(CHRONO_OPENGL)
-        auto vsys_gl = chrono_types::make_shared<opengl::ChVisualSystemOpenGL>();
-        vsys_gl->AttachSystem(m_system);
-        vsys_gl->SetWindowTitle("Terrain Node (GranularGPU)");
-        vsys_gl->SetWindowSize(1280, 720);
-        vsys_gl->SetRenderMode(opengl::WIREFRAME);
-        vsys_gl->Initialize();
-        vsys_gl->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
-        vsys_gl->SetCameraProperties(0.05f);
-        vsys_gl->SetCameraVertical(CameraVerticalDir::Z);
-
-        m_vsys = vsys_gl;
 #endif
     }
 }
@@ -743,7 +728,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
 }
 
 void ChVehicleCosimTerrainNodeGranularGPU::OnRender() {
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
     if (!m_vsys)
         return;
     if (!m_vsys->Run())
@@ -808,8 +793,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
 }
 
 void ChVehicleCosimTerrainNodeGranularGPU::OutputVisualizationData(int frame) {
-    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
-    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CHPF);
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "csv", frame, 5);
+    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
     m_systemGPU->WriteParticleFile(filename);
     if (m_obstacles.size() > 0) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);

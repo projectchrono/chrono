@@ -5,8 +5,8 @@
 INCLUDE_DIRECTORIES(${CH_GPU_INCLUDES})
 
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_gpu
+    Chrono_core
+    Chrono_gpu
 )
 
 # ------------------------------------------------------------------------------
@@ -37,26 +37,25 @@ endif()
 # Add all executables
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Test programs for Gpu module...")
+MESSAGE(STATUS "Add unit test programs for GPU module")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
-    set(FILES ${PROGRAM}.cpp unit_testing.h)
-    ADD_EXECUTABLE(${PROGRAM}  ${FILES})
-    SOURCE_GROUP(""  FILES ${FILES})
+    set(FILES ${PROGRAM}.cpp ut_gpu_utils.h)
+    ADD_EXECUTABLE(${PROGRAM} ${FILES})
+    SOURCE_GROUP("" FILES ${FILES})
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-         FOLDER demos
-         COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_GPU_CXX_FLAGS}"
-         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
     SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
     ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
     
     set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
     

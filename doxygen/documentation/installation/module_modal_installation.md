@@ -3,35 +3,9 @@ Install the MODAL module {#module_modal_installation}
 
 [TOC]
 
-This module allows Chrono to perform modal analysis and related functionalities.
-For example you can use finite elements to model a beam and you can use this module to compute the natural frequencies of the structure. 
-The module uses the iterative methods in the SPECTRA library in order to compute the lower modes 
-in case the structure has too many DOFs: in fact the default methods offered by the EIGEN linear 
-algebra library (default in Chrono) are not able to work with large sparse matrices and limited n of required modes.
+Chrono::Modal enables **modal analysis** and **modal reduction** on large Chrono systems thanks to iterative shift-and-invert eigenvalue solvers leveraging sparse matrices.
 
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
-
-
-## Features
-
-The new **modal module** provides functionalities to do modal analysis and modal reduction. In detail, the @ref chrono::modal::ChModalAssembly `modal::ChModalAssembly` class offers three main functionalities:
-
-- **undamped modal analysis** of all the system being created within the sub assembly will be obtained. The modes and frequencies can be also displayed interactively if using the [Irrlicht visualization system](@ref irrlicht_visualization). 
-	- Structures can contain both elastic parts (ex. [Chrono finite elements](@ref manual_fea)) and [constraints](@ref links) (joints, revolute pairs, etc.)
-	- Rigid modes (for free-free structures) are supported
-	- A custom genaralized, sparse, constrained eigenvalue solver of Krylov-Schur type allows the computation of only the `n` lower modes. This allows handling large FEA systems. 
-	
-- **damped (complex) modal analysis** of the subsystem: this is like the previous case, but _damping matrix_ is used too, hence:
-	- Obtain complex eigenvalues/eigenvectors. 
-	- Return also the damping factor, damped and undamped frequencies.
-	- Damping factors for the modes are output too, indicating stability or instability. 
-
-- **modal reduction** of the subassembly. Example of a scenario where this is useful: you have a tower modeled with thousands of finite elements, but you are just interested in the small oscillations of its tip, because you will mount a windmill on its tip. If you simulate thousands of finite elements just for this purpose, you waste CPU time, hence a modal reduction of the tower will discard all the DOFs of the finite elements and represent the overall behaviour of the tower using just few modal shapes (ex. fore aft bending, lateral bending, etc.), with extreme CPU performance at the cost of a small reduction of fidelity.
-	- Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::DoModalReduction(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
-	- Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
-	- Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
-	- *NOTE: at the moment only linear dynamics is supported for the subassembly, in the sense that the subassembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this*
+An extended description of the module can be found in the [Chrono::Modal](@ref manual_modal) user manual.
 
 
 ## Requirements
@@ -44,17 +18,14 @@ The new **modal module** provides functionalities to do modal analysis and modal
 
 ## Building instructions
 
-1. Download the [Spectra](https://spectralib.org/) library from its GIThub page. This can be done directly by pressing *Code/Download Zip* in the GIThub page, 
-   or by using a client like Sourcetree to pull from the GIThub repository. 
-   **NOTE! we need the development version of the Spectra libray, because the 1.0 version in the master branch does not include the Krylov-Schur solver yet. Therefore, use this link: [https://github.com/yixuan/spectra/tree/develop](https://github.com/yixuan/spectra/tree/develop)**
+1. Download the [Spectra](https://spectralib.org/) library from its GitHub page. You can either download the source code as a zip file, or else clone the git repository.
+   **NOTE** we need the development version of the Spectra libray, as the only one that includes the Krylov-Schur solver Therefore, use this link: [https://github.com/yixuan/spectra/tree/develop](https://github.com/yixuan/spectra/tree/develop)
    
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
-   the CMake window, you must add the following steps:
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
   
-3. Set the `ENABLE_MODULE_MODAL` as 'ON', then press 'Configure' (to refresh the variable list)
+3. Set `CH_ENABLE_MODULE_MODAL` to 'ON'.
 
-4. Set the `SPECTRA_INCLUDE_DIR` to the path where you downloaded your Spectra library (in detail, its include/ directory).
-   For example, it could be `C:/engines/spectra/include`
+4. Set the `SpectraINCLUDE_DIR` to the path to the include directory in the Spectra install.  For example, it could be `C:/Packages/spectra/include`.
  
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

@@ -68,7 +68,7 @@ unsigned int rl_image_width = 80;
 unsigned int rl_image_height = 45;
 
 // Camera's horizontal field of view
-float fov = CH_PI / 3.;
+float fov = CH_PI_3;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     double ch_time = 0;
 
     if (contact_vis) {
-        app.SetSymbolscale(1e-4);
+        app.SetSymbolScale(1e-4);
         app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
     }
 

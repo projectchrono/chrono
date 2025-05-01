@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <stdexcept>
+
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -29,11 +31,21 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
 ChPart::ChPart(const std::string& name)
-    : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0) {}
+    : m_name(name), m_initialized(false), m_output(false), m_parent(nullptr), m_mass(0), m_inertia(0), m_obj_tag(-1) {}
 
 // -----------------------------------------------------------------------------
+
+uint16_t ChPart::GetVehicleTag() const {
+    if (m_parent)
+      return m_parent->GetVehicleTag();
+
+    // If no parent and an override is not provided, assume single "vehicle"
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+
 void ChPart::Create(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -168,8 +180,8 @@ rapidjson::Value VisualModel2Val(std::shared_ptr<ChVisualModel> model, rapidjson
     rapidjson::Value jsonArray(rapidjson::kArrayType);
 
     for (const auto& item : model->GetShapeInstances()) {
-        const auto& shape = item.first;   // visual shape
-        const auto& frame = item.second;  // shape position in model
+        const auto& shape = item.shape;   // visual shape
+        const auto& frame = item.frame;  // shape position in model
 
         rapidjson::Value obj(rapidjson::kObjectType);
         if (auto trimesh = std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape)) {

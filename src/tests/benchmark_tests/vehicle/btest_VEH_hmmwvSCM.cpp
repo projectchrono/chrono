@@ -143,13 +143,13 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                                  3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
+    m_terrain->AddActiveDomain(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
                               ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
-    m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
+    m_terrain->AddActiveDomain(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
                               ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
-    m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
+    m_terrain->AddActiveDomain(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
                               ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
-    m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
+    m_terrain->AddActiveDomain(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
                               ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
 
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
@@ -174,7 +174,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                                       (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 1.0));
             m_hmmwv->GetSystem()->Add(sphere);
 
-            m_terrain->AddMovingPatch(sphere, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));
+            m_terrain->AddActiveDomain(sphere, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));
         }
     }
 }

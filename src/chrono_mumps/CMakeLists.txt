@@ -4,9 +4,9 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_MUMPS "Enable the Chrono MUMPS module" OFF)
+option(CH_ENABLE_MODULE_MUMPS "Enable the Chrono MUMPS module" OFF)
 
-if(NOT ENABLE_MODULE_MUMPS)
+if(NOT CH_ENABLE_MODULE_MUMPS)
     return()
 endif()
 
@@ -14,182 +14,99 @@ message(STATUS "\n==== Chrono Engine Mumps module ====\n")
 
 # ------------------------------------------------------------------------------
 # Find MUMPS (required)
-# ------------------------------------------------------------------------------
 
-# Arithmetic configuration
-set(MUMPS_ARITHMETIC "double" CACHE STRING "MUMPS arithmetic")
-set_property(CACHE MUMPS_ARITHMETIC PROPERTY STRINGS float double complex complex-double)
-
-if(MUMPS_ARITHMETIC MATCHES "float")
-	set(MUMPS_ARITH_PREFIX "s")
-	message("ChronoMumps: No float library implemented yet")
-elseif(MUMPS_ARITHMETIC MATCHES "double")
-	set(MUMPS_ARITH_PREFIX "d")
-elseif(MUMPS_ARITHMETIC MATCHES "complex")
-	set(MUMPS_ARITH_PREFIX "c")
-	message("ChronoMumps:No complex-float library implemented yet")
-elseif(MUMPS_ARITHMETIC MATCHES "complex-double")
-	set(MUMPS_ARITH_PREFIX "z")
-	message("ChronoMumps:No complex-double library implemented yet")
+message(STATUS "Enabling Fortran language")
+check_language(Fortran)
+if(NOT CMAKE_Fortran_COMPILER)
+  message("  MUMPS requires a Fortran compiler, but none could be found. Chrono::Mumps module disabled.")
+  set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
+  return()
 endif()
 
-option(MUMPS_IS_SHARED_LIB "Link Mumps as shared library (only lib<arithmetic>mumps will be needed then)" ON)
+enable_language(Fortran)
+message(STATUS "  Fortran compiler: ${CMAKE_Fortran_COMPILER}")
 
-unset(MUMPS_FOUND)
-message(STATUS "Searching for MUMPS...")
+message(STATUS "Searching for MUMPS")
+find_package(MUMPS QUIET REQUIRED CONFIG)
 
-find_package(Mumps REQUIRED)
-
-message(STATUS "  MUMPS_INCLUDE_DIRS:      ${MUMPS_INCLUDE_DIRS}")
-message(STATUS "  MUMPS_LIBRARIES:         ${MUMPS_LIBRARIES}")
-message(STATUS "  MUMPS_CXX_COMPILE_FLAGS: ${MUMPS_CXX_COMPILE_FLAGS}")
-message(STATUS "  MUMPS_CXX_LINK_FLAGS:    ${MUMPS_CXX_LINK_FLAGS}")
-
-# ------------------------------------------------------------------------------
-# Find BLAS
-# ------------------------------------------------------------------------------
-
-#BLAS configuration
-set(BLAS_VENDOR "Intel10_64lp" CACHE STRING "BLAS library vendor")
-set_property(CACHE BLAS_VENDOR PROPERTY STRINGS  All Goto OpenBLAS ATLAS PhiPACK CXML DXML SunPerf SCSL SGIMATH IBMESSL
-												Intel10_32 #(intel mkl v10 32 bit)
-												Intel10_64lp #(intel mkl v10 64 bit lp thread model  lp64 model)
-												Intel10_64lp_seq #(intel mkl v10 64 bit sequential code  lp64 model)
-												Intel #( older versions of mkl 32 and 64 bit) 
-												ACML ACML_MP ACML_GPU Apple NAS)
-
-# Automatic inclusion of MKL folders
-if(CMAKE_SIZEOF_VOID_P MATCHES 4)
-	SET(MKL_SUBFOLDERARCH "ia32")
-elseif (CMAKE_SIZEOF_VOID_P MATCHES 8)
-	SET(MKL_SUBFOLDERARCH "intel64")
-endif()
-
-if(WIN32)
-	set(PROGRAM_FILE_ENVVAR "PROGRAMFILES(x86)")
-	file(TO_CMAKE_PATH "$ENV{${PROGRAM_FILE_ENVVAR}}" PRG_FOLD)
-	list(APPEND INTEL_LIBRARIES_DIRS "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/mkl/lib/${MKL_SUBFOLDERARCH}") # default for ParallelStudioXE2016 and later
-	list(APPEND INTEL_LIBRARIES_DIRS "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/compiler/lib/${MKL_SUBFOLDERARCH}") # default for ParallelStudioXE2016 and later
-	
-	list(APPEND INTEL_LIBRARIES_DIRS "${PRG_FOLD}/Intel/Composer XE/mkl/lib/${MKL_SUBFOLDERARCH}") # default until ParallelStudioXE2015
-	list(APPEND INTEL_LIBRARIES_DIRS "${PRG_FOLD}/Intel/Composer XE/compiler/lib/${MKL_SUBFOLDERARCH}") # default until ParallelStudioXE2015
-elseif(UNIX AND NOT APPLE)
-	list(APPEND INTEL_LIBRARIES_DIRS "/opt/intel/compilers_and_libraries/linux/mkl/lib/${MKL_SUBFOLDERARCH}") # default for ParallelStudioXE2016 and later (root permissions)
-	list(APPEND INTEL_LIBRARIES_DIRS "/opt/intel/compilers_and_libraries/linux/compiler/lib/${MKL_SUBFOLDERARCH}") # default for ParallelStudioXE2016 and later (root permissions)
-	
-	list(APPEND INTEL_LIBRARIES_DIRS "$ENV{HOME}/intel/compilers_and_libraries/linux/mkl/lib/${MKL_SUBFOLDERARCH}") # default for ParallelStudioXE2016 and later (no root permissions)
-	list(APPEND INTEL_LIBRARIES_DIRS "$ENV{HOME}/intel/compilers_and_libraries/linux/compiler/lib/${MKL_SUBFOLDERARCH}") # default for ParallelStudioXE2016 and later (no root permissions)
-endif()
-
-set(CMAKE_LIBRARY_PATH_BKP ${CMAKE_LIBRARY_PATH} )
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${INTEL_LIBRARIES_DIRS})
-
-unset(BLAS_FOUND)
-unset(BLAS_LIBRARIES)
-message(STATUS "Searching for BLAS...")
-
-find_package(BLAS)
-
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH_BKP}) # restore original CMAKE_LIBRARY_PATH
-
-if (NOT BLAS_FOUND)
-	message("  BLAS not found. Disabling the Chrono::Mumps module.")
-	set(BLAS_LIBRARIES "" CACHE PATH "Locate BLAS library directory")
-	set(ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
-	return()
+if(${MUMPS_FOUND})
+  message(STATUS "  MUMPS found.")
 else()
-    message(STATUS "  BLAS_LIBRARIES: ${BLAS_LIBRARIES}")	
+  message("  MUMPS not found. Chrono::Mumps module disabled.")
+  set(CH_ENABLE_MODULE_MUMPS OFF CACHE BOOL "Enable the Chrono MUMPS module" FORCE)
+  return()
 endif()
-
-string(FIND BLAS_VENDOR "Intel" USING_INTEL)
-if(USING_INTEL) # for Block Low-Rank usage
-	add_definitions("-DBLR_MT")
-endif(USING_INTEL)
-
-if(NOT APPLE)
-	LINK_DIRECTORIES(${INTEL_LIBRARIES_DIRS})
-endif()
-
-# ------------------------------------------------------------------------------
-# Includes, flags, and libraries
-# ------------------------------------------------------------------------------
-
-include_directories(${MUMPS_INCLUDE_DIRS})
-
-set(CH_MUMPS_COMPILE_FLAGS "${MUMPS_CXX_COMPILE_FLAGS}")
-set(CH_MUMPS_LINK_FLAGS "${MUMPS_CXX_LINK_FLAGS}")
-if(NOT USING_INTEL EQUAL -1)
-    SET(CH_MUMPS_LINK_FLAGS "${CH_MUMPS_LINK_FLAGS} ${IOMP5_LINKERFLAG}")
-endif()
-
-set(CH_MUMPS_INCLUDES "${MUMPS_INCLUDE_DIRS}")
-
-list(APPEND CH_MUMPS_LIBRARIES ${MUMPS_LIBRARIES})
-list(APPEND CH_MUMPS_LIBRARIES ${BLAS_LIBRARIES})
-if(MUMPS_FORTRAN_LIB)
-    list(APPEND CH_MUMPS_LIBRARIES ${MUMPS_FORTRAN_LIB})
-endif()
-
-set(CH_MUMPS_LIBRARIES ${CH_MUMPS_LIBRARIES} PARENT_SCOPE)
-set(CH_MUMPS_INCLUDES ${CH_MUMPS_INCLUDES} PARENT_SCOPE)						
-set(CH_MUMPS_COMPILE_FLAGS ${CH_MUMPS_COMPILE_FLAGS} PARENT_SCOPE)
-set(CH_MUMPS_LINK_FLAGS ${CH_MUMPS_LINK_FLAGS} PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mumps module
-# ------------------------------------------------------------------------------
 
-set(ChronoEngine_MUMPS_HEADERS
+set(Chrono_MUMPS_HEADERS
   ChApiMumps.h
   ChSolverMumps.h
   ChMumpsEngine.h
 )
 
-set(ChronoEngine_MUMPS_SOURCES
+set(Chrono_MUMPS_SOURCES
   ChSolverMumps.cpp
   ChMumpsEngine.cpp
 )
 
-source_group("" FILES ${ChronoEngine_MUMPS_HEADERS} ${ChronoEngine_MUMPS_SOURCES})
+source_group("" FILES ${Chrono_MUMPS_HEADERS} ${Chrono_MUMPS_SOURCES})
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_mumps library
-# ------------------------------------------------------------------------------
+# Add the Chrono_mumps library
 
 add_definitions("-D_OPENMP_NOFORCE_MANIFEST")
 
-add_library(ChronoEngine_mumps ${ChronoEngine_MUMPS_SOURCES} ${ChronoEngine_MUMPS_HEADERS})
+add_library(Chrono_mumps 
+            ${Chrono_MUMPS_SOURCES}
+            ${Chrono_MUMPS_HEADERS})
+add_library(Chrono::mumps ALIAS Chrono_mumps)
 
-set_target_properties(ChronoEngine_mumps PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_MUMPS_COMPILE_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB} ${CH_MUMPS_LINK_FLAGS}")
-
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_API_COMPILE_MUMPS")
-target_compile_definitions(ChronoEngine_mumps PRIVATE "CH_IGNORE_DEPRECATED")
-target_link_libraries(ChronoEngine_mumps ChronoEngine ${CH_MUMPS_LIBRARIES})		  
-target_include_directories(ChronoEngine_mumps PUBLIC ${CH_MUMPS_INCLUDES})
-                            
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-  add_custom_command(
-    TARGET ChronoEngine_mumps POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${MUMPS_SHARED_LIBRARIES}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    MAIN_DEPENDENCY ChronoEngine_mumps
-      install(FILES "${MUMPS_SHARED_LIBRARIES}" DESTINATION bin)
-  )
-
-  # Make variable visible from outside this directory
-  set(MUMPS_SHARED_LIBRARIES ${MUMPS_SHARED_LIBRARIES} PARENT_SCOPE)
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(Chrono_mumps PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_mumps PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-install(TARGETS ChronoEngine_mumps
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+if (CH_STATIC)
+  set_target_properties(Chrono_mumps PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
-install(FILES ${ChronoEngine_MUMPS_HEADERS} 
+if(MSVC)
+  set_target_properties(Chrono_mumps PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+target_compile_definitions(Chrono_mumps PRIVATE "CH_API_COMPILE_MUMPS")
+target_compile_definitions(Chrono_mumps PRIVATE "CH_IGNORE_DEPRECATED")
+
+target_link_libraries(Chrono_mumps
+                      Chrono_core
+                      MUMPS::MUMPS)
+
+install(TARGETS Chrono_mumps
+  EXPORT ChronoTargets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include/chrono_mumps)
+
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
+install(FILES ${Chrono_MUMPS_HEADERS} 
         DESTINATION include/chrono_mumps)
+
+# On Windows, extract DLLs from targets and install (always look for Release DLLs)
+# TODO (RADU)  This does not actually work for MUMPS because MUMPS::MUMPS is an "umbrella" target. Need to look at the actual MUMPS targets it contains.
+#              OK for now because we usually build MUMPS as static libraries.
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  get_target_property(MUMPS_TYPE MUMPS::MUMPS TYPE)
+  if (NOT MUMPS_TYPE STREQUAL STATIC_LIBRARY)
+    get_target_property(MUMPS_DLL MUMPS::MUMPS IMPORTED_LOCATION_RELEASE)
+    if(EXISTS "${MUMPS_DLL}")
+       install(FILES "${MUMPS_DLL}" DESTINATION bin)
+    endif()
+  endif()
+endif()

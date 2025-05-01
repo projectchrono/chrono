@@ -25,33 +25,33 @@ namespace gpu {
 __host__ float ChSystemGpu_impl::computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
                                                          std::vector<float, cudallocator<float>>& arrY,
                                                          std::vector<float, cudallocator<float>>& arrZ,
-                                                         size_t nSpheres) {
+                                                         unsigned int num_spheres) {
     const unsigned int threadsPerBlock = 1024;
-    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
     elementalArray3Squared<float><<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, arrX.data(),
-                                                                arrY.data(), arrZ.data(), nSpheres);
+                                                                arrY.data(), arrZ.data(), num_spheres);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Use CUB to reduce. And put the reduced result at the last element of sphere_stats_buffer array.
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                           sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+                           sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                           sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+                           sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer + nSpheres);
+    return *(sphere_data->sphere_stats_buffer + num_spheres);
 }
 
 __host__ double ChSystemGpu_impl::GetMaxParticleZ(bool getMax) {
-    size_t nSpheres = sphere_local_pos_Z.size();
-    if (nSpheres == 0)
+    unsigned int num_spheres = (unsigned int)sphere_local_pos_Z.size();
+    if (num_spheres == 0)
         CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
 
     const unsigned int threadsPerBlock = 1024;
-    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalZLocalToGlobal<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, sphere_data, nSpheres,
+    unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalZLocalToGlobal<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, sphere_data, num_spheres,
                                                           gran_params);
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -59,66 +59,66 @@ __host__ double ChSystemGpu_impl::GetMaxParticleZ(bool getMax) {
     size_t temp_storage_bytes = 0;
     if (getMax) {
         cub::DeviceReduce::Max(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
         cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
     } else {
         cub::DeviceReduce::Min(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
         void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
         cub::DeviceReduce::Min(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
-                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+                               sphere_data->sphere_stats_buffer + num_spheres, num_spheres);
     }
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer + nSpheres);
+    return *(sphere_data->sphere_stats_buffer + num_spheres);
 }
 
 __host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveZ(float ZValue) {
-    size_t nSpheres = sphere_local_pos_Z.size();
-    if (nSpheres == 0)
+    unsigned int num_spheres = (unsigned int)sphere_local_pos_Z.size();
+    if (num_spheres == 0)
         CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
 
     const unsigned int threadsPerBlock = 1024;
-    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+    unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalZAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, num_spheres,
                                                        gran_params, ZValue);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Use CUB to find the max or min Z.
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer_int + nSpheres);
+    return *(sphere_data->sphere_stats_buffer_int + num_spheres);
 }
 
 __host__ unsigned int ChSystemGpu_impl::GetNumParticleAboveX(float XValue) {
-    size_t nSpheres = sphere_local_pos_X.size();
-    if (nSpheres == 0)
+    unsigned int num_spheres = (unsigned int)sphere_local_pos_X.size();
+    if (num_spheres == 0)
         CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
 
     const unsigned int threadsPerBlock = 1024;
-    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
-    elementalXAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, nSpheres,
+    unsigned int nBlocks = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalXAboveValue<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer_int, sphere_data, num_spheres,
                                                        gran_params, XValue);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Use CUB to find the max or min X.
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
     void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
     cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer_int,
-                           sphere_data->sphere_stats_buffer_int + nSpheres, nSpheres);
+                           sphere_data->sphere_stats_buffer_int + num_spheres, num_spheres);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    return *(sphere_data->sphere_stats_buffer_int + nSpheres);
+    return *(sphere_data->sphere_stats_buffer_int + num_spheres);
 }
 
 // Reset broadphase data structures
@@ -332,6 +332,18 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     nSpheres = (unsigned int)user_sphere_positions.size();
     INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
+
+    //{
+    //    size_t item_size = sizeof(decltype(sphere_owner_SDs)::value_type);
+    //    size_t old_size = sphere_owner_SDs.size();
+    //    sphere_owner_SDs.resize(nSpheres);
+    //    sphere_owner_SDs.resize(nSpheres, NULL_CHGPU_ID);
+    //    size_t new_size = sphere_owner_SDs.size();
+    //    size_t byte_delta = item_size * (new_size - old_size);
+    //    gran_approx_bytes_used += byte_delta;
+    //    INFO_PRINTF("Resizing vector %s, old size %zu, new size %zu, byte delta %s\n", "sphere_owner_SDs", old_size, new_size,
+    //                pretty_format_bytes(byte_delta).c_str());
+    //}
 
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);
 

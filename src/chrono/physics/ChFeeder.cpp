@@ -157,9 +157,9 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
     }
 }
 
-void ChFeeder::Update(double mytime, bool update_assets) {
+void ChFeeder::Update(double time, bool update_assets) {
     // inherit parent class function
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 }
 
 void ChFeeder::ArchiveOut(ChArchiveOut& archive_out) {

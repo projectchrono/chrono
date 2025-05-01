@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     // compute aux data:
     double beta = (CH_2PI / (double)nstations);  // angle width of station
     double gamma = 2 * (CH_PI_2 - beta / 2);
-    double B = R * tan(beta / 2);
+    double B = R * std::tan(beta / 2);
     ChVector3d crank_center = ChVector3d(B, R, 0) + geneva_center;
 
     // Create the rotating Genevawheel:

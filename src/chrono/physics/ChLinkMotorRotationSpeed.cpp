@@ -46,16 +46,16 @@ ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed(const ChLinkMotorRotationSpee
 
 ChLinkMotorRotationSpeed::~ChLinkMotorRotationSpeed() {}
 
-void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
+void ChLinkMotorRotationSpeed::Update(double time, bool update_assets) {
     // Inherit parent class:
-    ChLinkMotorRotation::Update(mytime, update_assets);
+    ChLinkMotorRotation::Update(time, update_assets);
 
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:
 
     if (this->m_body1 && this->m_body2) {
-        ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
-        ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
+        ChFrame<> aframe1 = m_frame1 >> (*this->m_body1);
+        ChFrame<> aframe2 = m_frame2 >> (*this->m_body2);
 
         double aux_rotation;
 
@@ -132,15 +132,15 @@ void ChLinkMotorRotationSpeed::LoadKRMMatrices(double Kfactor, double Rfactor, d
         ChMatrix33<> R_B2_W = m_body2->GetRotMat();
         // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
         // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
-        ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
-        ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
+        ChFrame<> F1_W = m_frame1 >> (*this->m_body1);
+        ChFrame<> F2_W = m_frame2 >> (*this->m_body2);
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
         // ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
 
-        ChVector3d r_F1_B1 = this->frame1.GetPos();
-        ChVector3d r_F2_B2 = this->frame2.GetPos();
+        ChVector3d r_F1_B1 = m_frame1.GetPos();
+        ChVector3d r_F2_B2 = m_frame2.GetPos();
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 

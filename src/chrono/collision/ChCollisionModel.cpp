@@ -32,11 +32,8 @@ ChCollisionModel::ChCollisionModel() : contactable(nullptr), family_group(1), fa
 
 ChCollisionModel::ChCollisionModel(const ChCollisionModel& other) : contactable(nullptr), impl(nullptr) {
     // Create new shape instances (sharing the collision shapes)
-    for (const auto& si : other.m_shape_instances) {
-        const auto& shape = si.first;
-        const auto& frame = si.second;
-        m_shape_instances.push_back({shape, frame});
-    }
+    for (const auto& si : other.m_shape_instances)
+        m_shape_instances.push_back({si.shape, si.frame});
     model_envelope = other.model_envelope;
     model_safe_margin = other.model_safe_margin;
     family_group = other.family_group;
@@ -48,8 +45,8 @@ ChCollisionModel::~ChCollisionModel() {
     impl = nullptr;
 }
 
-void ChCollisionModel::SetContactable(ChContactable* contactable) {
-    this->contactable = contactable;
+void ChCollisionModel::SetContactable(ChContactable* new_contactable) {
+    contactable = new_contactable;
 }
 
 void ChCollisionModel::Clear() {
@@ -68,13 +65,21 @@ ChPhysicsItem* ChCollisionModel::GetPhysicsItem() {
     return contactable->GetPhysicsItem();
 }
 
-ChAABB ChCollisionModel::GetBoundingBox() const {
+ChAABB ChCollisionModel::GetBoundingBox(bool local) const {
+    if (local) {
+        ChAABB aabb;
+        for (const auto& si : m_shape_instances) {
+            auto shape_aabb = si.shape->GetBoundingBox();
+            aabb += shape_aabb.Transform(si.frame);
+        }
+        return aabb;
+    }
+
     // Return an updated bounding box only if this collision model was processed by the current collision system
     // (through BindAll or BindItem)
-
-    if (impl)
+    if (impl) {
         return impl->GetBoundingBox();
-
+    }
     return ChAABB();
 }
 
@@ -160,12 +165,8 @@ void ChCollisionModel::AddShape(std::shared_ptr<ChCollisionShape> shape, const C
 }
 
 void ChCollisionModel::AddShapes(std::shared_ptr<ChCollisionModel> model, const ChFrame<>& frame) {
-    for (const auto& s : model->m_shape_instances) {
-        const auto& shape = s.first;
-        const auto& shape_frame = s.second;
-
-        AddShape(shape, frame * shape_frame);
-    }
+    for (const auto& si : model->m_shape_instances)
+        AddShape(si.shape, frame * si.frame);
 }
 
 void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
@@ -182,9 +183,9 @@ void ChCollisionModel::AddCylinder(std::shared_ptr<ChContactMaterial> material,
 
 void ChCollisionModel::SetAllShapesMaterial(std::shared_ptr<ChContactMaterial> mat) {
     assert(m_shape_instances.size() == 0 ||
-           m_shape_instances[0].first->m_material->GetContactMethod() == mat->GetContactMethod());
-    for (auto& shape : m_shape_instances)
-        shape.first->m_material = mat;
+           m_shape_instances[0].shape->m_material->GetContactMethod() == mat->GetContactMethod());
+    for (auto& si : m_shape_instances)
+        si.shape->m_material = mat;
 }
 
 void ChCollisionModel::ArchiveOut(ChArchiveOut& archive_out) {
@@ -211,6 +212,20 @@ void ChCollisionModel::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(family_mask);
     archive_in >> CHNVP(m_shape_instances);
     archive_in >> CHNVP(contactable);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChCollisionShapeInstance::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChCollisionShapeInstance>();
+    archive_out << CHNVP(shape);
+    archive_out << CHNVP(frame);
+}
+
+void ChCollisionShapeInstance::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeInstance>();
+    archive_in >> CHNVP(shape);
+    archive_in >> CHNVP(frame);
 }
 
 // -----------------------------------------------------------------------------

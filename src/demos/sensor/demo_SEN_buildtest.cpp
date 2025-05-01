@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({1, 1, 1});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(0.9f);
-        top_mirror->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+        top_mirror->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
     }
 
     auto bottom_mirror = chrono_types::make_shared<ChBodyEasyBox>(10, 10, .1,       // x,y,z size
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({1, 1, 1});
         vis_mat->SetRoughness(0);
         vis_mat->SetMetallic(0.9f);
-        bottom_mirror->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+        bottom_mirror->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
     }
 
     // add a mesh
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        texbox->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+        texbox->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
     }
 
     auto texsphere = chrono_types::make_shared<ChBodyEasySphere>(.6,                // size
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        texsphere->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+        texsphere->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
     }
 
     auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,         //
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
         vis_mat->SetSpecularColor({.2f, .2f, .2f});
         vis_mat->SetKdTexture(GetChronoDataFile("textures/redwhite.png"));
         vis_mat->SetNormalMapTexture(GetChronoDataFile("sensor/textures/FaceNormal.jpg"));
-        texcyl->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+        texcyl->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
     }
 
     for (int i = 0; i < num_bodies; i++) {
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-            box->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+            box->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
         }
 
         if (!imu_parent) {
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-            cyl->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+            cyl->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
         }
 
         auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom::Get() / 2.0 + 0.1,  // radius
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
             vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
             vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
-            sphere->GetVisualModel()->GetShapeInstances()[0].first->AddMaterial(vis_mat);
+            sphere->GetVisualModel()->GetShapeInstances()[0].shape->AddMaterial(vis_mat);
         }
 
         auto mesh_body = chrono_types::make_shared<ChBodyAuxRef>();
@@ -342,18 +342,18 @@ int main(int argc, char* argv[]) {
 
     cam->PushFilter(chrono_types::make_shared<ChFilterImageResize>(1280, 720, "resize filter"));
 
-    // // filter the sensor to grayscale
+    // filter the sensor to grayscale
     cam->PushFilter(chrono_types::make_shared<ChFilterGrayscale>());
-    //
-    // // we want to visualize this sensor after grayscale, so add the visualize filter to the filter list.
+
+    // we want to visualize this sensor after grayscale, so add the visualize filter to the filter list.
     if (display_data)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Whitted, Final Visualization"));
-    //
-    // // we want to save the grayscale buffer to png
+
+    // we want to save the grayscale buffer to png
     if (save_data)
         cam->PushFilter(chrono_types::make_shared<ChFilterSave>(gray_data_path));
-    //
-    // // we also want to have access to this grayscale buffer on the host.
+
+    // we also want to have access to this grayscale buffer on the host.
     cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager
@@ -366,7 +366,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_PI / 3.0f,                               // horizontal field of view
+        2.f * (float)CH_PI_3,                               // horizontal field of view
         (float)CH_PI / 8.0f, -(float)CH_PI / 8.0f, 100.0f        // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_PI / 3.0f,                               // horizontal field of view
+        2.f * (float)CH_PI_3,                               // horizontal field of view
         (float)CH_PI / 8.0f,                                     // max vert angle
         -(float)CH_PI / 8.0f,                                    // min vert angle
         100.0f,                                                  // max range
@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-3, 0, 2}, QuatFromAngleX(0)),  // offset pose
             1280,                                                    // image width
             720,                                                     // image height
-            (float)CH_PI / 3);
+            (float)CH_PI_3);
         cams.push_back(cam1);
 
         std::stringstream nm;

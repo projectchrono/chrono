@@ -42,11 +42,11 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
   protected:
     ChTrackShoeSegmented(const std::string& name);
 
-    /// Initialize this track shoe subsystem.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
-                            ) override;
+    /// Construct this track shoe subsystem.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
+                           ) override;
 
     /// Activate or deactivate the RSDA elements used to model track bending stiffness.
     virtual void EnableTrackBendingStiffness(bool val) = 0;
@@ -57,7 +57,7 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
     /// Remove visualization assets for the track shoe subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    ChVehicleGeometry m_geometry;             ///< collection of visualization and collision shapes
+    utils::ChBodyGeometry m_geometry;         ///< collection of visualization and collision shapes
     ChContactMaterialData m_shoe_sprk_minfo;  ///< data for contact material for shoe shape contacting sprocket
 
   private:

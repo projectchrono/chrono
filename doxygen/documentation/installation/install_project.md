@@ -1,180 +1,182 @@
-Building a project that uses Chrono             {#tutorial_install_project}
+Building a project that uses Chrono {#tutorial_install_project}
 ==========================
 
-
-When you develop a C++ project and you want to use the Chrono API,
-you need to:
-- **include** the necessary .h headers at compile time;
-- **link** the necessary .lib libraries at link time;
-- **dynamically link** the necessary .dll libraries at run time.  
-
-as shown below: <br>
+An external C++ project that uses Chrono requires:
+- acces to the Chrono headers (at compile time)
+- access to the Chrono libraries (at link time)
+- access to shared libraries, `.dll` on Windows and `.so` on Linux (at run time)  
 
 <img src="http://www.projectchrono.org/assets/manual/Pic_build.png" class="img-responsive">
 
 <br>
-This process can be made almost automatic if you use CMake for building your program, see below.
+This process is automated through the Chrono CMake configuration script generated during Chrono configuration and available in either the Chrono build tree (named here **<chrono_build>**) or a Chrono installation (named here **<chrono_install>**).<br>
+The `chrono-config.cmake` script (<chrono_build>/cmake/chrono-config.cmake or <chrono_install>/cmake/chrono-config.cmake) allows finding the Chrono components and all necessary information about a given Chrono build or a Chrono installation, respectively, needed to link to and use Chrono libraries.
 
-<div class="ce-info">
-The CMake path is not the only option. For example, you could add Chrono libraries
-to your C++ project by manually inserting libraries in the IDE settings. However,
-the method described here is the one that we suggest in most cases since it is platform-independent as it draws on the CMake
-build tool.
-</div>
+`chono-config.cmake` is used in a call to `find_package` in the project's CMakeLists.txt CMake configuration script:
+\code{.c}
+find_package(Chrono
+             [COMPONENTS required_components...]
+             [OPTIONAL_COMPONENTS optional_components>
+             CONFIG)
+\endcode
+to find a Chono build or install which provides the `required_components` modules and, optionally, also the `optional_components` modules. Note that `OPTIONAL_COMPONENTS` can be missing if there are no optional components needed.
 
+In the call to find_package(), the following Chrono components can be requested (case insensitive): 
+Cascade, CSharp, FMI, FSI, GPU, Irrlicht, VSG, Matlab, Modal, Multicore, PardisoMKL, Parsers, Postprocess, Sensor, Synchrono, Vehicle, VehicleCosim.<br>
+__Notes__: 
+- The core Chrono module is included automatically as a required component.
+- A particular component is available only if the targeted Chrono package was built with the corresponding module enabled.
 
+`chrono-config.cmake` performs a recursive processing of all requested components to also enable any other Chrono modules that were built in as dependencies to one of the requested modules (or their dependencies).
 
-1) Check prerequisites:
--------------------------------------------------------------------
+Furthermore, `chrono-config.cmake` defaults to using the same configuration and build settings (e.g., C++ compiler, CUDA SDK, MPI), as well as the same settings for any 3rd-party dependencies (e.g., the VSG run-time visualization libraries) as those used during the configuration and build of the Chrono package. However, the caller has the option to redirect any and all of these.
 
--   [CMake](http://www.cmake.org) must be already installed on
-    your computer.
-	
--   Chrono must be **already installed** and **built** 
-    on your computer, as [explained here](@ref tutorial_install_chrono).
+On return from `find_package`, the following variables will be set:
+- Chrono_FOUND
+       set to true if Chrono and all required components were found
+- CHRONO_TARGETS
+       list of exported Chrono targets
+- CHRONO_STATIC
+       set to ON if Chrono static libraries were built, OFF if shared libraries
+- CHRONO_MSVC_RUNTIME_LIBRARY
+       MSVC run-time library used in building Chrono
+- CHRONO_DLL_NAMES
+       (Windows) list of Chrono DLLs (without path)
+- CHRONO_CSHARP_SOURCES
+       list of all SWIG-generated C# scripts corresponding to the requested components
+       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono are wrapped)
+- CHRONO_DATA_DIR
+       path to the Chrono data directory
+- CHRONO_VEHICLE_DATA_DIR
+       path to the Chrono::Vehicle data directory
+- CHRONO_FSI_DATA_DIR
+       path to the Chrono::FSI data directory
+- SYNCHRONO_DATA_DIR
+       path to the Chrono::Synchrono data directory
 
-	
-2) Create the project directory
--------------------------------------------------------------------
+In addition, for each requested component 'COMPONENT', a variable `CHRONO_<COMPONENT_UPPER>_FOUND` is set to `TRUE` or `FALSE` (where 'COMPONENT_UPPER' is the component name in upper case). These variable are meaningful only for Chrono modules requested as "optional" in the call to `find_package`, as a missing required component automatically sets `Chrono_FOUND` to `FALSE`.
+<br>
 
--   Copy the `template_project` directory to some place and rename it as you like.
-    For example copy from `C:\workspace\chrono\template_project` to `C:\workspace\my_project`
+---------------------------------------------------------------------
+## Configuring and building an external project
 
-This will be the directory where you put your source code.
+The Chrono distribution includes template projects for different types of Chrono-based external projects. These template projects, available in the top-level directory of the Chrono source tree (or of a Chrono install tree) are:
+- [template_project](https://github.com/projectchrono/chrono/tree/main/template_project) - a simple C++ project that build a simple pendulum mechanism visualized with Irrlicht
+- [template_project_csharp](https://github.com/projectchrono/chrono/tree/main/template_project_csharp) - a simple C# project that builds a bouncing ball visualized with Irrlicht
+- [template_project_fmi](https://github.com/projectchrono/chrono/tree/main/template_project_fmi2) - a simple C++ project that builds an FMU (see the [special instructions](@ref module_fmi_installation) for building Chrono with support for FMU generation)
+- [template_project_ros](https://github.com/projectchrono/chrono/tree/main/template_project_ros) - a simple C++ project that ilustrates the use of Chrono::ROS from an external project
+- [template_project_vehicle_cosim](https://github.com/projectchrono/chrono/tree/main/template_project_vehicle_cosim) - a simple MPI project that builds a Chrono::Vehicle co-simulation of a single wheel on rigid terrain
 
+#### 1. Check prerequisites
 
-3) Edit the CMake script
-------------------------------------------------------------
+At a minimum, the following packages are necessary:
+- A C++ compiler and [CMake](http://www.cmake.org) must be available.
+- A Chrono build or install must be **available** (see [Chrono installation instructions](@ref tutorial_install_chrono)).
 
-- In the template directory there is already a CMakeLists.txt script. It will be used by CMake.
-  Before customizing it for your own purposes it is highly recommended to first try to build the predefined example so to make sure to have all the other dependencies in place.
+__Note__: Using additional Chrono modules may require the CUDA SDK, an MPI compiler, or 3rd-party libraries such as Irrlicht, VSG, OptiX, OpenGL, Thrust, Blaze, etc.
 
-- Only two elements should be customized:
-  - request the `COMPONENTS` and `OPTIONAL_COMPONENTS` required by your project in the call to `find_package`:  
-    ~~~{.c}
+#### 2. Create the project directory
+
+- Copy the directory for the desired "template" project from the Chrono source (or installation) to a different location and rename it if desired. In what follows, we use **template_project** as an example and **<my_project>** as the name of the external project sources.
+- The directory <my_project> will contain all source code for the new project.
+
+#### 3. Edit the CMakeLists.txt script
+
+- Use the sample **CMakeLists.txt** in the template project directory as a starting point.
+  Before customizing it for your own purposes we suggest to first try to build the predefined example to make sure all necessary Chrono modules and dependencies are in place.
+
+- The following elements of CMakeLists.txt should be customized:
+  - specify the name of the project in the call to `project()`.
+
+  - request the required (`COMPONENTS`) and optional (`OPTIONAL_COMPONENTS`) Chrono modules needed by you project in the call to `find_package(Chrono...)`. In our case:
+    \code{.c}
     find_package(Chrono
-                COMPONENTS <list of required components>
-                OPTIONAL_COMPONENTS <list of optional components>
-                CONFIG)
-    ~~~
-    For example,
-    ~~~{.c}
-    find_package(Chrono
-                COMPONENTS Irrlicht
-                OPTIONAL_COMPONENTS Postprocess
-                CONFIG)
-    ~~~
-    Please mind that the `OPTIONAL_COMPONENTS` argument can be omitted if none.  
-    The list of available module is shown during compilation of the Chrono solution. Surely the most common is the visual interface "Irrlicht".
-  - the list of source files and the name of the target in the call to `add_executable`:  
-    ~~~{.c}
-    add_executable(myRobot robot_grip.cpp  robot_motors.cpp)
-    ~~~
+                 COMPONENTS Irrlicht
+                 OPTIONAL_COMPONENTS Postprocess
+                 CONFIG)
+    \endcode
+    to request the Chrono::Irrlicht module and, if available, the Chrono::Postprocess module.<br>
 
-It is highly recommended to:
-- ask only for those `COMPONENTS` that are truly required;
-- do not modify any other line, especially for beginner users;
-- start your project by using the source file present in the `template_project` folder, not from a blank page;
-    
+  - set the list of source files and the name of the target in the call to `add_executable`:  
+    \code{.c}
+    set(MY_FILES my_example.cpp)
+    add_executable(my_demo ${MY_FILES})
+    \endcode
 
-4) Start CMake 
---------------------------------------------------
+#### 4. Configure the project with CMake 
 
--   Start the CMake GUI
+- Start `cmake-gui`
 
--   Use **Browse source...** by setting the source directory that you
-    created, e.g. `C:/workspace/my_project`
+- Use **Browse source...** to set the location of the source directory (in our case <my_project>)
 	
--   Use **Browse build...** by setting a new *empty* directory for the
-    output project, e.g. `C:/workspace/my_project_build`
+- Use **Browse build...** to set the location where binaries will be generated. While not required, it is good practice to use a build directory different from the source directory. Here, we assume that binaries will be generated in **<my_project_build>**.
 
-	
-5) Configure
-------------------------------------------------
+- Press the **Configure** button
 
-- Press the **Configure** button in CMake
-
-- When prompted to pick a generator, select the same 
-  compiler that you used to compile Chrono;
-
-- Important: set the `Chrono_DIR` variable. This is the **cmake** directory that 
-  you find in the directory where you built Chrono. In our example it is `C:/workspace/chrono_build/cmake`
+- Set the `Chrono_DIR` variable. This is the path to the directory that contains the `chrono-config.cmake` script and can therefore be <chrono_build>/cmake or <chrono_install>/cmake.
 
 - Press the **Configure** button again
 
-<img src="http://www.projectchrono.org/assets/manual/Install_my_project_cmake.png" class="img-responsive">
+- Upon successful configuration of the project, `chrono-config.cmake` provides a list of the requested Chrono components (required or optional) and details on the Chrono configuration.
 
+- Press the **Generate** button in CMake. Build files (depending on the generator selected) will be created in the project build directory <my_project_build>.
 
-6) Generate the project
------------------------------------------------------------
+#### 5. Compile the project
 
-- Press the **Generate** button in CMake. A project will be created in
-  the build directory. In our example you will find it in `C:/workspace/my_project_build`
+If you used a Visual Studio generator in CMake
+- **Open** the Visual Studio solution file generated by CMake (<my_project_build>\my_project.sln in our example)
+- Select the desired build mode (e.g., **Release**, using the drop-down list in the Visual Studio toolbar
+- **Build** the project (use the Visual Studio menu "Build>Build solution..." or the shortcut Ctrl-Shft-B) 
 
+On Linux, assuming you use the Makefile generator, invoke the make command in the build directory:
+\code{.c}
+$ cd <my_project_build>
+$ make
+\endcode
 
-7) Compile the project
-----------------------------------------------------------
+__Note__: the project should be compiled with the same build configuration as Chrono (e.g., Release or Debug). When using a multi-configuration generator, different builds can exist at the same time in a Chrono build tree.
 
-If you used a Visual Studio generator in CMake, 
+#### 6. Run your program
 
--   **Open the solution** in Visual Studio editor (in our example double
-    click on `C:\workspace\my_project_build\my_project.sln`)
-
--   Change from Debug to **Release** mode, using the drop-down list in the 
-    toolbar of VisualStudio
-	
--   Use the menu **Build** > **Build solution...** to compile and link.
-
-If you used a Unix makefile generator in CMake (ex. in Linux), you can
-open a shell, cd into the build directory and call **make**: 
-~~~{.c}
-cd /home/john/my_project_build
-make
-~~~ 
-
-
-8) Run your program
--------------------------------------------------------
-
-By default all binaries (ex. myexe.exe) of your project will go into
-your build directory, in our example `C:\workspace\my_project_build\Release` 
-(or `C:\workspace\my_project_build\Debug` if you decided to compile in Debug mode).
-
-Double click on the .exe file and you should see the demo running in an interactive 3D view
+Run the executable `my_demo` in <my_project_build> (or a configuration-specific subdirectory, if using a multi-configuration generator such as Visual Studio) to start the simulation of the simple pendulum example.
 <img src="http://projectchrono.org/assets/manual/Install_my_project_2.jpg" class="img-responsive">
+<br>
+---------------------------------------------------------------------
 
-Important information for Windows users
-----------------------
+### Important information for Windows users
 
-If you are a Windows users, your project executables need to know where to find the Chrono shared libraries (i.e. those with .dll extension), otherwise they will crash as soon as you try to run them.
+By default, all Chrono modules are built as shared libraries (**DLLs** on Windows). Furthermore, most 3rd-party dependencies are also available as shared libraries. The OS must be able to find all necessary DLLs at run-time.
 
-To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono DLLs (as well as other DLL dependencies such as the Irrlicht shared library, as appropriate) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`). However, additional third-party libraries might require to change the `PATH` variable or copy the DLLs in the same folder as the executable.
+To simplify things, `chrono-config.cmake` provides a function that copies the necessary Chrono DLLs from their location (in the Chrono build tree or in a Chrono installation) to the project's build directory (<my_project_build> in our example).
+This is done by introducing a new build target (`COPY_DLLS`) to the Visual Studio solution which is executed **POST_BUILD**.
+To enable the inclusion of this convenience target, the project's CMakeLists.txt script should call `add_DLL_copy_command()` at the end. Note that this function is a no-op on platforms other than Windows.
 
+### Important information if using Chrono::CSharp
 
-<div class="ce-warning">
-The COPY_DLLS target must be re-run (i.e. rebuilt) any time the Chrono library had changed.
-</div>
+A few of the Chrono modules are SWIG-wrapped for use in C# programs. These can be stand-alone C# programs (see the [C# demos](https://github.com/projectchrono/chrono/tree/main/src/demos/csharp) in the Chrono distribution) or else used in the companion [ChronoUnity](https://github.com/projectchrono/chrono-unity) package.
 
-<div class="ce-warning">
-Your project has to be compiled with the same build configuration as Chrono. For example, if Chrono was built in Release mode, your project must also be built in Release.
-</div>
+When configuring your C# project, besides enabling the CSharp language you may want to also enable C++:
+```cpp
+   project(my_csharp_project CSharp CXX)
+```
 
-<img src="http://www.projectchrono.org/assets/manual/Install_project_COPYDLLS.png" class="img-responsive">
+This is to allow certain Chrono features which require C++:
+- Chrono::Multicore which requires OpenMP for C++
+- Chrono::Vehicle co-simulation which requires MPI for C++
+- Chrono::VSG which calls FindThreads
 
-<div class="ce-info">
-Linux users do not have to worry about copying shared libraries because the .so libraries always go into a directory that is globally visible.
-</div>
+If C++ is not enabled, `chono-config.cmake` will disable these features and any Chrono modules depending on them.
 
-Important information if using Chrono::Sensor
------------------------------
-**NOTE** if linking to Chrono::Sensor install from an external project, make sure to set the directory of the install location where the shader code (compiled ptx code or shaders/*.cu files) is located. This should be set at the top of any external code that will use chrono::sensor from an install location.
-  ```cpp
-    //function to set the shader location (include ChOptixUtils.h)
-    chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
+### Important information if using Chrono::Sensor
 
-    //if USE_CUDA_NVRTC is enabled, use
-    chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
+If linking to the Chrono::Sensor module from an external project, make sure to set the directory of the install location where the shader code (compiled ptx code or shaders cu files) is located. This should be set at the top of any external code that will use Chrono::Sensor from an install location.
+```cpp
+  //function to set the shader location (include ChOptixUtils.h)
+  chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
 
-    //if USE_CUDA_NVRTC is disabled, use
-    chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
-  ```
+  //if USE_CUDA_NVRTC is enabled, use
+  chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
+
+  //if USE_CUDA_NVRTC is disabled, use
+  chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
+```

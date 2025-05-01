@@ -32,8 +32,6 @@
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
-
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
@@ -51,7 +49,7 @@ class settings_container;
 /// Base class for Chrono::Multicore systems.
 class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
   public:
-    ChSystemMulticore();
+    ChSystemMulticore(const std::string& name = "");
     ChSystemMulticore(const ChSystemMulticore& other);
     virtual ~ChSystemMulticore();
 
@@ -86,7 +84,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
     virtual unsigned int GetNumBodies() const override {
-        return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
+        return data_manager->num_rigid_bodies + data_manager->num_particles;
     }
 
     /// Get the number of shafts.
@@ -211,7 +209,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 /// Multicore system using non-smooth contact (complementarity-based) method.
 class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
   public:
-    ChSystemMulticoreNSC();
+    ChSystemMulticoreNSC(const std::string& name = "");
     ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
@@ -242,7 +240,7 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 /// Multicore system using smooth contact (penalty-based) method.
 class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
   public:
-    ChSystemMulticoreSMC();
+    ChSystemMulticoreSMC(const std::string& name = "");
     ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).

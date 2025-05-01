@@ -58,13 +58,13 @@ ChAABB ChTriangle::GetBoundingBox() const {
 
 ChVector3d ChTriangle::Baricenter() const {
     ChVector3d mb;
-    mb.x() = (p1.x() + p2.x() + p3.x()) / 3.;
-    mb.y() = (p1.y() + p2.y() + p3.y()) / 3.;
-    mb.z() = (p1.z() + p2.z() + p3.z()) / 3.;
+    mb.x() = (p1.x() + p2.x() + p3.x()) * CH_1_3;
+    mb.y() = (p1.y() + p2.y() + p3.y()) * CH_1_3;
+    mb.z() = (p1.z() + p2.z() + p3.z()) * CH_1_3;
     return mb;
 }
 
-bool ChTriangle::Normal(ChVector3d& N) const {
+bool ChTriangle::CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3, ChVector3d& N) {
     ChVector3d u;
     u = Vsub(p2, p1);
     ChVector3d v;
@@ -83,10 +83,20 @@ bool ChTriangle::Normal(ChVector3d& N) const {
     return true;
 }
 
+ChVector3d ChTriangle::CalcNormal(const ChVector3d& p1, const ChVector3d& p2, const ChVector3d& p3) {
+    ChVector3d normal;
+    CalcNormal(p1, p2, p3, normal);
+    return normal;
+}
+
+bool ChTriangle::Normal(ChVector3d& N) const {
+    return CalcNormal(p1, p2, p3, N);
+}
+
 ChVector3d ChTriangle::GetNormal() const {
-    ChVector3d mn;
-    Normal(mn);
-    return mn;
+    ChVector3d normal;
+    CalcNormal(p1, p2, p3, normal);
+    return normal;
 }
 
 bool ChTriangle::IsDegenerated() const {

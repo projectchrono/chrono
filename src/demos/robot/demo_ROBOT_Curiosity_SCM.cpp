@@ -62,8 +62,8 @@ double mesh_resolution = 0.02;
 // Enable/disable bulldozing effects
 bool enable_bulldozing = true;
 
-// Enable/disable moving patch feature
-bool enable_moving_patch = true;
+// Enable/disable active domainfeature
+bool enable_active_domains = true;
 
 // Specify rover chassis type (Scarecrow or FullRover)
 CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
@@ -149,10 +149,10 @@ int main(int argc, char* argv[]) {
     // Create the SCM deformable terrain
     vehicle::SCMTerrain terrain(&sys);
 
-    // Displace/rotate the terrain reference plane.
+    // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
+    // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
+    terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Use a regular grid
     double length = 14;
@@ -177,15 +177,15 @@ int main(int argc, char* argv[]) {
                                     5,   // number of erosion refinements per timestep
                                     6);  // number of concentric vertex selections subject to erosion
 
-    // Enable moving patches (for SCM efficiency)
-    if (enable_moving_patch) {
-        // add moving patch for each rover wheel
+    // Enable active domains (for SCM efficiency)
+    if (enable_active_domains) {
+        // add active domain for each rover wheel
         for (const auto& wheel : rover.GetWheels())
-            terrain.AddMovingPatch(wheel->GetBody(), VNULL, ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+            terrain.AddActiveDomain(wheel->GetBody(), VNULL, ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
 
-        // add moving patch for each obstacles
+        // add active domain for each obstacles
         for (int i = 0; i < 6; i++)
-            terrain.AddMovingPatch(rock[i], VNULL, ChVector3d(2.0, 2.0, 2.0));
+            terrain.AddActiveDomain(rock[i], VNULL, ChVector3d(2.0, 2.0, 2.0));
     }
 
     // Set some visualization parameters
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(800, 600);
+            vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
             vis_vsg->AddCamera(ChVector3d(-1.0, 1.0, 3.0), ChVector3d(-5.0, 0.0, 0.0));
             vis_vsg->AddGuiColorbar("Pressure yield [kPa]", 0.0, 20.0);

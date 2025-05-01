@@ -15,8 +15,8 @@
 #   PyChrono, the postprocess module is always available in the AnaConda installation)
 # - write a Chrono app that uses instructions like my_blender_exporter.AddAll(); 
 #   my_blender_exporter.ExportScript(); and my_blender_exporter.ExportData(); (the latter
-#   in the while() simulation loop). See demo_POST_blender1.cpp for an example.
-# - run the chrono app,  this will generate files on disk: a single
+#   in the while() simulation loop). See demo_POST_blender.cpp for an example.
+# - run the chrono app, this will generate files on disk: a single
 #   xxx.assets.py file and many state00001.py, state00002.py, ..., in an output/ dir.
 # - Open Blender, use menu "File/Import/Chrono import" to load the xxx.assets.py file.
 #

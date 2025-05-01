@@ -1,19 +1,8 @@
 # ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-INCLUDE_DIRECTORIES(${CH_GPU_INCLUDES})
-
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_gpu
-)
-
-# ------------------------------------------------------------------------------
 # List of all executables
 # ------------------------------------------------------------------------------
 
-SET(DEMOS
+set(DEMOS
     demo_GPU_ballCosim
     demo_GPU_movingBoundary
     demo_GPU_fixedTerrain
@@ -22,24 +11,30 @@ SET(DEMOS
 )
 
 # ------------------------------------------------------------------------------
+
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_gpu")
+
+#if(CH_ENABLE_MODULE_VSG)
+#    list(APPEND LIBS "Chrono_gpu_vsg")
+#endif()
+
+# ------------------------------------------------------------------------------
 # Add all executables
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Demo programs for Gpu module...")
+message(STATUS "Add demo programs for GPU module")
 
-FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+foreach(PROGRAM ${DEMOS})
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-                          FOLDER demos
-                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_GPU_CXX_FLAGS}"
-                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+    if(MSVC)
+    set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+  endif()
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH(PROGRAM)
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach(PROGRAM)

@@ -3,10 +3,7 @@ Install the MUMPS module {#module_mumps_installation}
 
 [TOC]
 
-This is an optional module that enables Chrono to use the MUMPS linear solver.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
+Chrono::Mumps is an optional module that enables Chrono to use the MUMPS linear solver.
 
 Chrono usually relies on its [built-in solvers](@ref solvers), whose good perfomance are guaranteed by leveraging the internal data structure. 
 In fact, for a wide range of applications, these suffice.<br>
@@ -24,29 +21,35 @@ This is the interface that the user should plug into the Chrono environment.
 The demo_MUMPS_MumpsEngine.cpp shows its usage, but the average usare should not be interested in it.
 
 Look at the [API section](group__mumps__module.html) of this module for a more in-depth discussion.
+
 	
-## Remarks
+## Building and installing prerequisistes
 
+The Chrono::Mumps module requires the [MUMPS](http://mumps.enseeiht.fr) library. 
+Mumps does not provide a CMake-based installation system. To address this issue, we provide (with the Chrono source code) a set of utility scripts which download the Mumps sources, build all necessary libraries, and install them in a user-specified location.
 
-## Requirements
-[MUMPS library]: http://mumps.enseeiht.fr/
+These scripts (`buildMUMPS.bat`, `buildMUMPS.sh`, and buildMUMPS_Mac.sh, for Windows, Linux, and MacOS, respectively) are available in the `contrib/build-scripts/mumps` directory of the [Chrono repository](https://github.com/projectchrono/chrono/tree/main/contrib/build-scripts/mumps). 
 
-- To **build** applications based on this unit:
-	+ the [MUMPS library] must be installed on your machine
+1. Copy the appropriate script and place in an arbitrary temporary directory.
+2. Edit the script copy to:
+   - Force a download of the source codes.
+   - Specify the install directory (set the variable `MUMPS_INSTALL_DIR`).
+   - Decide whether to build shared or static libraries and whether to also build debug libraries.
+3. Run the script (`.\buildMUMPS.bat` or `sh buildMUMPS.sh`, as appropriate) from the location of the script copy. This will create a temporary directory where all source repositories will be cloned and a set of directories where the individual VSG dependencies are built.
+4. The install directory will contain (under `MUMPS_INSTALL_DIR/cmake/`) all CMake project configuration scripts required to configure Chrono with the Chrono::Mumps module enabled.
 
 ## Building instructions
 
-1. Install the MUMPS library
-   + Linux: TODO<br>
-   + Windows: since building the MUMPS DLLs is not straightforward, we provide for an archive ([Mumps-5.1.1.zip](http://assets.projectchrono.org/downloads/Mumps-5.1.1.zip)) which includes precompiled libraries as well as all necessary header files.  Simply unpack in a folder on disk and then provide that location during CMake configuration (see below).<br>
-   + MacOS: TODO<br>
-	
+1. Install the MUMPS library (see above)
 
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must set `ENABLE_MODULE_MUMPS` as 'on'.<br>
-   Set the CMake variable `MUMPS_ROOT` to point to the installation directory for MUMPS.
-   It is expected that this directory contains the following sub-directories: 'include' (MUMPS headers), 'lib' (lib file), and 'bin' (shared library).
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
 
-3. Press 'Generate'
+3. Set `CH_ENABLE_MODULE_MUMPS` to 'on'.
+
+4. Set the CMake variable `MUMPS_DIR` to point to the directory containing the MUMPS CMake project configration script
+   (for example, `C:/Packages/mumps/cmake`).
+
+5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
 
 

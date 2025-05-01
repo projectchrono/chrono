@@ -12,6 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 using namespace chrono;
@@ -75,7 +77,7 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
     y.resize(size);
 
     residual = 10e30;
-    g_diff = 1.0 / pow(size, 2.0);
+    g_diff = 1.0 / std::pow(size, 2.0);
     t = L = 1.0;
     theta = 1;
     theta_new = theta;
@@ -158,8 +160,8 @@ uint ChSolverMulticoreAPGD::Solve(ChSchurProduct& SchurProduct,
             obj1 = (gamma_new, 0.5 * N_gamma_new - r);
             temp = gamma_new - y;
         }
-        theta_new = (-pow(theta, 2.0) + theta * Sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
-        beta_new = theta * (1.0 - theta) / (pow(theta, 2.0) + theta_new);
+        theta_new = (-std::pow(theta, 2.0) + theta * Sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
+        beta_new = theta * (1.0 - theta) / (std::pow(theta, 2.0) + theta_new);
 
         temp = gamma_new - gamma;
         y = beta_new * temp + gamma_new;

@@ -80,14 +80,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// Enable/disable tire pressure (default: true).
     void EnableTirePressure(bool val);
 
-    /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
-    void SetNumThreads(int num_threads);
-
-    /// Set integrator and solver types.
-    /// For the MKL solver, use slv_type = ChSolver::Type::CUSTOM.
-    void SetIntegratorType(ChTimestepper::Type int_type,  ///< integrator type (default: HHT)
-                           ChSolver::Type slv_type        ///< solver type (default:: MKL)
-    );
+    /// Get a reference to the underlying Chrono system.
+    /// This can be used to change simulation settings (solver, integrator, number of threads, etc.).
+    ChSystem& GetSystem() { return *m_system; }
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
@@ -103,6 +98,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     virtual void OutputData(int frame) override final;
 
   protected:
+    /// Construct a base class tire co-simulation node.
+    /// By default, the underlying Chrono system is set yo use the Barzilai-Borwein solver and the Euler implicit
+    /// linearized integrator. All OpenMP thread numbers are set to 1.
     ChVehicleCosimTireNode(int index, const std::string& tire_json = "");
 
     /// Specify the type of communication interface (BODY or MESH) required by this the tire node.
@@ -161,24 +159,20 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     virtual void OnOutputData(int frame) {}
 
   protected:
-    ChSystemSMC* m_system;                           ///< containing system
-    ChTimestepper::Type m_int_type;                  ///< integrator type
-    ChSolver::Type m_slv_type;                       ///< solver type
-    std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
+    ChSystemSMC* m_system;  ///< containing system
 
     bool m_tire_pressure;  ///< tire pressure enabled?
     int m_index;           ///< index of the tire
 
-    std::shared_ptr<ChBody> m_spindle;  ///< spindle body
-    std::shared_ptr<ChWheel> m_wheel;   ///< wheel subsystem (to which a tire is attached)
-    std::shared_ptr<ChTire> m_tire;     ///< tire subsystem
+    std::shared_ptr<ChSpindle> m_spindle;  ///< spindle
+    std::shared_ptr<ChWheel> m_wheel;      ///< wheel subsystem (to which a tire is attached)
+    std::shared_ptr<ChTire> m_tire;        ///< tire subsystem
 
     // Communication data (loaded by derived classes)
-    ChVehicleGeometry m_geometry;  ///< tire geometry and contact material
+    utils::ChBodyGeometry m_geometry;  ///< tire geometry and contact material
 
   private:
     virtual ChSystem* GetSystemPostprocess() const override { return m_system; }
-    void InitializeSystem();
     void SynchronizeBody(int step_number, double time);
     void SynchronizeMesh(int step_number, double time);
 };

@@ -9,13 +9,15 @@
 #-----------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.18)
+# Features achievable with later versions of CMake:
+# - install(IMPORTED_RUNTIME_ARTIFACTS) CMake 3.21
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
+    message(FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 #-----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 
 set(CHRONO_VERSION_MAJOR 9)
 set(CHRONO_VERSION_MINOR 0)
-set(CHRONO_VERSION_PATCH 0)
+set(CHRONO_VERSION_PATCH 1)
 
 project(Chrono VERSION ${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH})
 
@@ -51,7 +53,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${CHRONO_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
 
 # Version as a hexadecimal integer of the form 0x00MMmmPP
-set(CH_VERSION 0x00090000)
+set(CH_VERSION 0x00090001)
 
 #-----------------------------------------------------------------------------
 # Detect operating system and processor for host and target
@@ -191,21 +193,21 @@ string(REGEX REPLACE "(\r?\n)+$" "" DATE "${DATE}")
 
 #set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
 set(CPACK_GENERATOR "ZIP")
-#set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};ChronoEngine;ALL;/")
-#set(CPACK_NSIS_DISPLAY_NAME "ChronoEngine")
+#set(CPACK_INSTALL_CMAKE_PROJECTS "${PROJECT_BINARY_DIR};Chrono;ALL;/")
+#set(CPACK_NSIS_DISPLAY_NAME "Chrono")
 #set(CPACK_PACKAGE_DESCRIPTION_FILE "/home/andy/vtk/CMake/Copyright.txt")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ChronoEngine is a multibody-dynamics package")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Chrono is a multibody-dynamics package")
 #set(CPACK_PACKAGE_EXECUTABLES "ccmake;CMake")
-set(CPACK_PACKAGE_FILE_NAME "ChronoEngine-${CPACK_SYSTEM_NAME}-${CPACK_BUILD_TYPE}-${DATE}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "ChronoEngine")
-set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "ChronoEngine")
-set(CPACK_PACKAGE_NAME "ChronoEngine")
+set(CPACK_PACKAGE_FILE_NAME "Chrono-${CPACK_SYSTEM_NAME}-${CPACK_BUILD_TYPE}-${DATE}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Chrono")
+set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "Chrono")
+set(CPACK_PACKAGE_NAME "Chrono")
 set(CPACK_PACKAGE_VENDOR "UWSBEL")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
 #set(CPACK_RESOURCE_FILE_WELCOME "/home/andy/vtk/CMake/Templates/CPack.GenericWelcome.txt")
 set(CPACK_SOURCE_GENERATOR "TGZ")
-#set(CPACK_SOURCE_PACKAGE_FILE_NAME "ChronoEngine")
+#set(CPACK_SOURCE_PACKAGE_FILE_NAME "Chrono")
 set(CPACK_SOURCE_STRIP_FILES "")
 #set(CPACK_STRIP_FILES "bin/ccmake;bin/cmake;bin/cpack;bin/ctest")
 #set(CPACK_TOPLEVEL_TAG "Linux-x64")
@@ -217,14 +219,10 @@ set(CPACK_SOURCE_STRIP_FILES "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_INSTALL_DATA "data")
     set(CH_INSTALL_DEMO "bin")
-    set(CH_INSTALL_SAMPLE_PROJ "template_project")
-    set(CH_INSTALL_SAMPLE_PROJ_COSIM "template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "bin")
 else()
     set(CH_INSTALL_DATA "share/chrono/data")
     set(CH_INSTALL_DEMO "share/chrono/bin")
-    set(CH_INSTALL_SAMPLE_PROJ "share/chrono/template_project")
-    set(CH_INSTALL_SAMPLE_PROJ_COSIM "share/chrono/template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "share/chrono/python")
 endif()
 
@@ -236,11 +234,13 @@ endif()
 
 get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(MULTI_CONFIG)
+    set(CH_BUILD_DATA ${CMAKE_BINARY_DIR}/bin/data)
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/bin/data/)
     message(STATUS "Using a multi-config generator (${CMAKE_GENERATOR})")
     message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/bin/data/")
     message(STATUS "Binaries will be created in ${CMAKE_BINARY_DIR}/bin/<CONFIGURATION>/")
 else()
+    set(CH_BUILD_DATA ${CMAKE_BINARY_DIR}/data)
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
     message(STATUS "Using a single configuration generator (${CMAKE_GENERATOR})")
     message(STATUS "Data directory copied to: ${CMAKE_BINARY_DIR}/data/")
@@ -248,8 +248,12 @@ else()
 endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ})
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_vehicle_cosim/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ_COSIM})
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION "template_project")
+else()
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION "share/chrono/template_project")
+endif()
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

@@ -18,26 +18,26 @@ namespace cascade {
 ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
                                      double density,
                                      std::shared_ptr<ChCascadeTriangulate> vis_params,
-                                     bool collide,
+                                     bool create_collision,
                                      std::shared_ptr<ChContactMaterial> mat) {
-    Init(shape, density, vis_params, collide, mat);
+    Init(shape, density, vis_params, create_collision, mat);
 }
 
 ChCascadeBodyEasy::ChCascadeBodyEasy(TopoDS_Shape& shape,
                                      double density,
-                                     bool visualize,
-                                     bool collide,
+                                     bool create_visualization,
+                                     bool create_collision,
                                      std::shared_ptr<ChContactMaterial> mat) {
-    if (visualize)
-        Init(shape, density, chrono_types::make_shared<ChCascadeTriangulate>(), collide, mat);
+    if (create_visualization)
+        Init(shape, density, chrono_types::make_shared<ChCascadeTriangulate>(), create_collision, mat);
     else
-        Init(shape, density, nullptr, collide, mat);
+        Init(shape, density, nullptr, create_collision, mat);
 }
 
 void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
                              double density,
                              std::shared_ptr<ChCascadeTriangulate> vis_params,
-                             bool collide,
+                             bool create_collision,
                              std::shared_ptr<ChContactMaterial> mat) {
     chrono::ChFrame<>* user_ref_to_abs = 0;  // as parameter?
     chrono::ChFrame<> frame_ref_to_abs;
@@ -82,7 +82,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
         this->AddVisualShape(trimesh_shape);
 
         // Add a collision shape if needed
-        if (collide) {
+        if (create_collision) {
             assert(mat);
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
             AddCollisionShape(ct_shape);
@@ -96,9 +96,9 @@ ChCascadeBodyEasyProfile::ChCascadeBodyEasyProfile(std::vector<std::shared_ptr<:
                                                    double thickness,
                                                    double density,
                                                    std::shared_ptr<ChCascadeTriangulate> vis_params,
-                                                   bool collide,
+                                                   bool create_collision,
                                                    std::shared_ptr<ChContactMaterial> mat) {
-    AddProfile(wires, holes, thickness, density, vis_params, collide, mat);
+    AddProfile(wires, holes, thickness, density, vis_params, create_collision, mat);
 }
 
 void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::ChLinePath>> wires,
@@ -106,7 +106,7 @@ void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::
                                           double thickness,
                                           double density,
                                           std::shared_ptr<ChCascadeTriangulate> vis_params,
-                                          bool collide,
+                                          bool create_collision,
                                           std::shared_ptr<ChContactMaterial> mat) {
     ChCascadeExtrusionFace face;
     face.wires = wires;
@@ -114,7 +114,7 @@ void ChCascadeBodyEasyProfile::AddProfile(std::vector<std::shared_ptr<::chrono::
     face.thickness = thickness;
     face.density = density;
     face.visualization = vis_params;
-    face.collide = collide;
+    face.collide = create_collision;
     face.material = mat;
     faces.push_back(face);
     UpdateCollisionAndVisualizationShapes();

@@ -22,7 +22,7 @@ solver = chrono.ChSolverSparseQR()
 
 print("Copyright (c) 2017 projectchrono.org\nChrono version: ")
 
-# Create a Chrono::Engine physical system
+# Create a Chrono physical system
 sys = chrono.ChSystemSMC()
 
 
@@ -45,14 +45,14 @@ sys.Add(mesh)
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-visualizebeamA = chrono.ChVisualShapeFEA(mesh)
+visualizebeamA = chrono.ChVisualShapeFEA()
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
 visualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
 visualizebeamA.SetSmoothFaces(True)
 visualizebeamA.SetWireframe(False)
 mesh.AddVisualShapeFEA(visualizebeamA)
 
-visualizebeamB = chrono.ChVisualShapeFEA(mesh)
+visualizebeamB = chrono.ChVisualShapeFEA()
 visualizebeamB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS) # NODE_CSYS
 visualizebeamB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
 visualizebeamB.SetSymbolsThickness(0.006)

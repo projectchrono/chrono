@@ -50,8 +50,7 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system
     ChSystemSMC sys;
 
-    // Create two meshes (the second just for containing the 'dumb' massless nodes,
-    // so that they can be plot with a different color)
+    // Create two meshes
     auto my_mesh = chrono_types::make_shared<ChMesh>();
     auto my_mesh_dumb = chrono_types::make_shared<ChMesh>();
 
@@ -178,17 +177,17 @@ int main(int argc, char* argv[]) {
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-    auto mvisualizeA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeA = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeA->SetWireframe(true);
     my_mesh->AddVisualShapeFEA(mvisualizeA);
 
-    auto mvisualizeB = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizeB = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeB->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizeB->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeB->SetSymbolsThickness(0.015);
     my_mesh->AddVisualShapeFEA(mvisualizeB);
 
-    auto mvisualizeC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh_dumb);
+    auto mvisualizeC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizeC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizeC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
     mvisualizeC->SetDefaultSymbolsColor(ChColor(1, 1, 0));

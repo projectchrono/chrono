@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverPJacobi.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -47,7 +48,7 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
             gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
-                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                 mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                 mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                 mconstraints[ic - 0]->SetSchurComplement(average_g_i);
@@ -61,7 +62,8 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
 
     for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
+                                                          mvariables[iv]->Force());  // q = [M]'*fb
 
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of constraints, if a warm start is desired.
@@ -78,6 +80,9 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
     std::vector<double> delta_gammas;
     delta_gammas.resize(mconstraints.size());
 
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
+
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // The iteration on all constraints
         //
@@ -89,7 +94,8 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
             // skip computations if constraint not active.
             if (mconstraints[ic]->IsActive()) {
                 // compute residual  c_i = [Cq_i]*q + b_i + cfm_i*l_i
-                double mresidual = mconstraints[ic]->ComputeJacobianTimesState() + mconstraints[ic]->GetRightHandSide() +
+                double mresidual = mconstraints[ic]->ComputeJacobianTimesState() +
+                                   mconstraints[ic]->GetRightHandSide() +
                                    mconstraints[ic]->GetComplianceTerm() * mconstraints[ic]->GetLagrangeMultiplier();
 
                 // true constraint violation may be different from 'mresidual' (ex:clamped if unilateral)

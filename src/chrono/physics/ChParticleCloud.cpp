@@ -326,6 +326,12 @@ bool ChParticleCloud::UseDynamicColors() const {
     return m_color_fun != nullptr;
 }
 
+bool ChParticleCloud::IsVisible(unsigned int n) const {
+    if (m_vis_fun)
+        return m_vis_fun->get(n, *this);
+    return true;
+}
+
 // STATE BOOKKEEPING FUNCTIONS
 
 void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x state vector
@@ -634,12 +640,8 @@ ChVector3d ChParticleCloud::GetInertiaXY() const {
     return iner;
 }
 
-void ChParticleCloud::Update(bool update_assets) {
-    ChParticleCloud::Update(GetChTime(), update_assets);
-}
-
-void ChParticleCloud::Update(double mytime, bool update_assets) {
-    ChTime = mytime;
+void ChParticleCloud::Update(double time, bool update_assets) {
+    ChPhysicsItem::Update(time, update_assets);
 
     // TrySleeping();			// See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.

@@ -39,11 +39,11 @@ class CH_VEHICLE_API ChBrakeShafts : public ChBrake {
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "BrakeShafts"; }
 
-    /// Initialize the brake by associating it to an existing suspension subsystem.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
-                            std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
-                            VehicleSide side                           ///< brake mounted on left/right side
-                            ) override;
+    /// Construct the brake by associating it to an existing suspension subsystem.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+                           std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+                           VehicleSide side                           ///< brake mounted on left/right side
+                           ) override;
 
     /// Update the brake subsystem for the given braking driver input.
     /// The input value is in the range [0,1].<br>

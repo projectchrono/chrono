@@ -354,7 +354,7 @@ class ChSystemGpu_impl {
     float computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
                                   std::vector<float, cudallocator<float>>& arrY,
                                   std::vector<float, cudallocator<float>>& arrZ,
-                                  size_t nSpheres);
+                                  unsigned int num_spheres);
 
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
@@ -484,7 +484,7 @@ class ChSystemGpu_impl {
     /// Write particle positions, vels and ang vels to a file stream (based on a format)
     void WriteRawParticles(std::ofstream& ptFile) const;
     void WriteCsvParticles(std::ofstream& ptFile) const;
-    void WriteChPFParticles(std::ofstream& ptFile) const;
+
 #ifdef USE_HDF5
     void WriteH5Particles(H5::H5File& ptFile) const;
 #endif

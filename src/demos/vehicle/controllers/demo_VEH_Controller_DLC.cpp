@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             CreateSceneObjects(vis_vsg, dlc, sentinelID, targetID);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -566,7 +566,7 @@ ISO3888_Wrapper::ISO3888_Wrapper(double xmin,
     m_rightCones.push_back(m_lineR[5]);
 
     // Prepare path spline definition
-    ChVector3d offset(m_lengthB / 3, 0, 0);
+    ChVector3d offset(m_lengthB * CH_1_3, 0, 0);
     for (size_t i = 0; i < m_lineC.size(); i++) {
         m_inCV.push_back(m_lineC[i] - offset);
         m_outCV.push_back(m_lineC[i] + offset);

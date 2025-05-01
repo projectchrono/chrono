@@ -1,13 +1,9 @@
-if(NOT ENABLE_MODULE_SENSOR)
+if(NOT CH_ENABLE_MODULE_SENSOR)
     return()
 endif()
 
+set(LIBRARIES Chrono_core Chrono_sensor ${SENSOR_LIBRARIES})
 
-SET(LIBRARIES ChronoEngine ChronoEngine_sensor ${SENSOR_LIBRARIES})
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_SENSOR_INCLUDES} )
-
-
-# message(STATUS "\n\nbenchmark include directories: ${CH_IRRLICHT_INCLUDES}\n\n")
 # ------------------------------------------------------------------------------
 
 set(TESTS
@@ -25,20 +21,18 @@ set(TESTS
 
 # ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "benchmark test programs for SENSOR module...")
+MESSAGE(STATUS "Add benchmark test programs for SENSOR module")
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-    )
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} benchmark_main)
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH(PROGRAM)

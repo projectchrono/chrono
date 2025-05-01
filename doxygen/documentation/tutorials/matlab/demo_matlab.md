@@ -3,7 +3,7 @@ Matlab engine example (demo_MTLB_matlab.cpp)  {#tutorial_demo_matlab}
 
 Entry level demo about how to use Matlab(TM) and the
 [MATLAB module](group__matlab__module.html)
-to plot Chrono::Engine data, 
+to plot Chrono data, 
 to perform computations, etc. 
 
 This example requires that you own a copy of Matlab(TM),

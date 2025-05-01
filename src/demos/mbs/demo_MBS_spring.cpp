@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     sys.AddLink(spring_2);
 
     // Attach a visualization asset.
-    spring_2->AddVisualShape(chrono_types::make_shared<ChVisualShapeSpring>(0.1, 80, 15));
+    spring_2->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
 
     // Create the run-time visualization system
     // ----------------------------------------
@@ -183,15 +183,14 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
             vis_vsg->SetWindowTitle("Chrono VSG Springs");
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetBackgroundColor(ChColor(18.0f / 255, 26.0f / 255, 32.0f / 255));
             vis_vsg->AddCamera(ChVector3d(0, 0, 12));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

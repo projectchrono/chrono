@@ -48,6 +48,7 @@ ChSprocket::~ChSprocket() {
 void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
+    m_obj_tag = VehicleObjTag::Generate(GetVehicleTag(), VehiclePartTag::SPROCKET);
 
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
     ChVector3d loc = chassis->GetBody()->GetFrameRefToAbs().TransformPointLocalToParent(location);
@@ -58,7 +59,8 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     // Create and initialize the gear body (same orientation as the chassis).
     m_gear = chrono_types::make_shared<ChBody>();
     m_gear->SetName(m_name + "_gear");
-    m_gear->SetTag(TrackedVehicleBodyTag::SPROCKET_BODY);
+    m_gear->SetTag(m_obj_tag);
+    m_gear->SetTag(m_obj_tag);
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
     m_gear->SetMass(GetGearMass());
@@ -72,6 +74,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     ChFrame<> rev_frame(loc, chassisRot * y2z);
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetName(m_name + "_revolute");
+    m_revolute->SetTag(m_obj_tag);
     m_revolute->Initialize(chassis->GetBody(), m_gear, rev_frame);
     chassis->GetSystem()->AddLink(m_revolute);
 
@@ -79,6 +82,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     // gear rotates about the Y axis.
     m_axle = chrono_types::make_shared<ChShaft>();
     m_axle->SetName(m_name + "_axle");
+    m_axle->SetTag(m_obj_tag);
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->AddShaft(m_axle);
 

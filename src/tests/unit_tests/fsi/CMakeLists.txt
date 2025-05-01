@@ -1,45 +1,45 @@
-# ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-INCLUDE_DIRECTORIES(${CH_FSI_INCLUDES})
-
-SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_fsi
-)
-
-# ------------------------------------------------------------------------------
-# List of all executables
-# ------------------------------------------------------------------------------
-
-SET(TESTS
+set(TESTS
     utest_FSI_Poiseuille_flow
 )
+#--------------------------------------------------------------
+
+list(APPEND LIBS Chrono_core)
+list(APPEND LIBS "Chrono_fsisph")
+
+if(CH_ENABLE_MODULE_VSG)
+    list(APPEND LIBS "Chrono_fsisph_vsg")
+endif()
+
+# A hack to set the working directory in which to execute the CTest runs.
+# This is needed for tests that need to access the Chrono data directory
+# (since we use a relative path to it).
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/Release")
+else()
+  set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
+endif()
 
 # ------------------------------------------------------------------------------
-# Add all executables
-# ------------------------------------------------------------------------------
 
-MESSAGE(STATUS "Test programs for FSI module...")
+message(STATUS "Add unit test programs for FSI module")
 
-FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+foreach(PROGRAM ${TESTS})
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-         FOLDER demos
-         COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_FSI_CXX_FLAGS}"
-         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+    set_target_properties(${PROGRAM} PROPERTIES FOLDER tests)
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${LIBS})
 
-    #TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
-    #ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
-    #ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    target_link_libraries(${PROGRAM} gtest_main)
+    add_test(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
+    set_tests_properties(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH(PROGRAM)
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach()

@@ -16,6 +16,8 @@
 #define CHASSEMBLY_H
 
 #include <cmath>
+#include <vector>
+
 #include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
@@ -104,15 +106,15 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveAllOtherPhysicsItems();
 
     /// Get the list of bodies.
-    const std::vector<std::shared_ptr<ChBody>>& GetBodies() const { return bodylist; }
+    virtual const std::vector<std::shared_ptr<ChBody>>& GetBodies() const { return bodylist; }
     /// Get the list of shafts.
-    const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return shaftlist; }
+    virtual const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return shaftlist; }
     /// Get the list of links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return linklist; }
+    virtual const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return linklist; }
     /// Get the list of meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return meshlist; }
+    virtual const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
-    const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const { return otherphysicslist; }
+    virtual const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const { return otherphysicslist; }
 
     /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const std::string& name) const;
@@ -212,13 +214,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
-    virtual void Update(bool update_assets = true) override;
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
+    virtual void Update(double time, bool update_assets) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     virtual void ForceToRest() override;

@@ -30,10 +30,10 @@ ChLinkLockClearance::ChLinkLockClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    limit_X->SetActive(true);
-    limit_X->SetMax(clearance);
-    limit_X->SetSpringCoefficientMax(c_restitution);
-    limit_X->SetMin(-1000.0);
+    LimitX().SetActive(true);
+    LimitX().SetMax(clearance);
+    LimitX().SetSpringCoefficientMax(c_restitution);
+    LimitX().SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(false, false, false, false, true, true, false);
@@ -48,6 +48,9 @@ ChLinkLockClearance::ChLinkLockClearance(const ChLinkLockClearance& other) : ChL
 
     contact_F_abs = other.contact_F_abs;
     contact_V_abs = other.contact_V_abs;
+
+    if (other.limit_X)
+        limit_X.reset(other.limit_X->Clone());
 }
 
 double ChLinkLockClearance::GetEccentricity() const {
@@ -105,9 +108,9 @@ double ChLinkLockClearance::GetContactSpeedTangential() const {
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_V_abs).y();
 }
 
-void ChLinkLockClearance::UpdateForces(double mytime) {
+void ChLinkLockClearance::UpdateForces(double time) {
     // May avoid inheriting parent class force computation, since not needed
-    ////LinkLock::UpdateForces(mytime);
+    ////LinkLock::UpdateForces(time);
 
     ChVector3d m_friction_F_abs = VNULL;
     double m_norm_force = -react_force.x();
@@ -145,9 +148,9 @@ void ChLinkLockClearance::SetRestitution(double mset) {
     limit_X->SetSpringCoefficientMax(c_restitution);
 }
 
-void ChLinkLockClearance::UpdateTime(double mytime) {
+void ChLinkLockClearance::UpdateTime(double time) {
     // First, inherit to parent class
-    ChLinkLockLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(time);
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
@@ -182,7 +185,7 @@ void ChLinkLockClearance::UpdateTime(double mytime) {
     ChVector3d tang_speed = GetRelCoordsysDt().pos;
     tang_speed.x() = 0;  // only z-y coords in relative tang speed vector
     double Rcurvature = Vlength(absdist);
-    deltaC_dtdt.pos.x() = -pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
+    deltaC_dtdt.pos.x() = -std::pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
 
     deltaC.rot = QUNIT;  // no relative rotations imposed!
     deltaC_dt.rot = QNULL;

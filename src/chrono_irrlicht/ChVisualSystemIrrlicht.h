@@ -70,11 +70,11 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Enable/disable full-screen mode (default false).
     /// Must be called before Initialize().
-    void SetFullscreen(bool val);
+    void EnableFullscreen(bool val);
 
     /// Enable/disable shadows (default false).
     /// Must be called before Initialize().
-    void SetShadows(bool val);
+    void EnableShadows(bool val);
 
     /// Set the device driver type (default irr::video::EDT_DIRECT3D9).
     /// Must be called before Initialize().
@@ -112,7 +112,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Add a logo in a 3D scene.
     /// Has no effect, unles called after Initialize().
-    void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chronoengine_alpha.png"));
+    void AddLogo(const std::string& logo_filename = GetChronoDataFile("logo_chrono_alpha.png"));
 
     /// Add a camera in an Irrlicht 3D scene.
     /// The camera rotation/pan is controlled by mouse left and right buttons, the zoom is controlled by mouse wheel or
@@ -222,23 +222,6 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Has no effect, unless called after the visual system is initialized and attached.
     void EnableAbsCoordsysDrawing(bool val);
 
-    /// Enable modal analysis visualization (default: false).
-    /// If true, visualize an oscillatory motion of the n-th mode (only if some ChModalAssembly is found).
-    /// Otherwise, visualize the dynamic evolution of the associated system.
-    virtual void EnableModalAnalysis(bool val) override;
-
-    /// Set the mode to be shown (only if some ChModalAssembly is found).
-    virtual void SetModalModeNumber(int val) override;
-
-    /// Set the amplitude of the shown mode (only if some ChModalAssembly is found).
-    virtual void SetModalAmplitude(double val) override;
-
-    /// Set the speed of the shown mode (only if some ChModalAssembly is found).
-    virtual void SetModalSpeed(double val) override;
-
-    /// Set the maximum number of modes selectable (only if some ChModalAssembly is found).
-    virtual void SetModalModesMax(int maxModes) override;
-
     /// Show the realtime profiler in the 3D view.
     void ShowProfiler(bool val);
 
@@ -247,6 +230,9 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
 
     /// Show the info panel in the 3D view.
     void ShowInfoPanel(bool val);
+
+    /// Show the convergence plot (available only for iterative solvers).
+    void ShowConvergencePlot(bool val);
 
     /// Set the active tab on the info panel.
     /// Has no effect, unless called after the visual system is initialized and attached.
@@ -259,7 +245,10 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::gui::IGUIEnvironment* GetGUIEnvironment() { return m_device->getGUIEnvironment(); }
 
     /// Get the window ID.
-    void* GetWindowId() const { return m_device_params.WindowId; };
+    void* GetWindowId() const { return m_device_params.WindowId; }
+
+    /// Return the Irrlicht ChIrrGUI object.
+    ChIrrGUI* GetGUI() { return m_gui.get(); }
 
     /// Process all visual assets in the associated ChSystem.
     /// This function is called by default by Initialize(), but can also be called later if further modifications to
@@ -297,7 +286,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     virtual void BeginScene() override;
 
     /// Clean the canvas at the beginning of each rendering frame.
-    virtual void BeginScene(bool backBuffer, bool zBuffer, ChColor color);
+    virtual void BeginScene(bool backBuffer, bool zBuffer);
 
     /// Draw all 3D shapes and GUI elements at the current frame.
     /// This function is typically called inside a loop such as
@@ -343,7 +332,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     /// Get list of cameras defined for the scene
     std::vector<std::shared_ptr<RTSCamera>> GetCameras() const { return m_cameras; }
 
-  private:
+  protected:
     /// Irrlicht scene node for a visual model not associated with a physics item.
     class ChIrrNodeVisual : public irr::scene::ISceneNode {
       public:
@@ -404,7 +393,6 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     std::unique_ptr<ChIrrGUI> m_gui;                   ///< associated Irrlicht GUI and event receiver
     std::unique_ptr<EffectHandler> m_effect_handler;   ///< effect handler for shadow maps
     bool m_use_effects;                                ///< flag to enable/disable effects
-    bool m_modal;                                      ///< visualize modal analysis
     bool m_utility_flag = false;                       ///< utility flag that may be accessed from outside
     irr::u32 m_quality;                                ///< JPEG quality level (for saved snapshots)
 

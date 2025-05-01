@@ -28,6 +28,8 @@
 // matrix, the geometric stiffness matrix, and the gravity load
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 
@@ -45,7 +47,7 @@ using namespace chrono::modal;
 using namespace chrono::fea;
 
 void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     sys.Clear();
@@ -68,7 +70,7 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
     double Izz = 1 / 12.0 * h * b * b * b;
     double Iyz = 0;
 
-    double rho = 7800 * 2.2046226218 / pow(39.37007874, 3);
+    double rho = 7800 * 2.2046226218 / std::pow(39.37007874, 3);
     double mass_per_unit_length = rho * Area;
     double Jyy = rho * Iyy;
     double Jzz = rho * Izz;
@@ -141,7 +143,7 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
             ChQuaternion qrot;
             qrot.SetFromAngleZ(-loc_angle);
             mbeam_nodes.at(i_node) = chrono_types::make_shared<ChNodeFEAxyzrot>(
-                ChFrame<>({radius * sin(loc_angle), -radius * (1.0 - cos(loc_angle)), 0}, qrot));
+                ChFrame<>({radius * std::sin(loc_angle), -radius * (1.0 - std::cos(loc_angle)), 0}, qrot));
 
             if (i_node == 0 || i_node == mn_ele)
                 mesh_boundary->AddNode(mbeam_nodes.at(i_node));
@@ -219,17 +221,19 @@ void RunCurvedBeam(bool do_modal_reduction, bool use_herting, ChVector3d& res) {
 #endif
 
     sys.Setup();
-    sys.Update();
+    sys.Update(false);
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
-        ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
+        auto eigen_solver = chrono_types::make_shared<ChUnsymGenEigenvalueSolverKrylovSchur>();
 
-        auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
+        // The success of eigen solve is sensitive to the frequency shift (1e-4). If the eigen solver fails, try to
+        // tune the shift value.
+        ChModalSolverUndamped<ChUnsymGenEigenvalueSolverKrylovSchur> modal_solver(12, 1e-4, true, false, eigen_solver);
         auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
+            modal_assembly_list.at(i_part)->DoModalReduction(modal_solver, damping_beam);
         }
     }
 

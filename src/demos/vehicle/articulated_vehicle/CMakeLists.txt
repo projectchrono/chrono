@@ -3,7 +3,7 @@
 # This example program requires Irrlicht run-time visualization.
 #=============================================================================
 
-IF(NOT ENABLE_MODULE_IRRLICHT)
+IF(NOT CH_ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
@@ -43,29 +43,28 @@ SET(PROGRAM
 # Additional include directories
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
-INCLUDE_DIRECTORIES(${CH_IRRLICHT_INCLUDES})
 
 #--------------------------------------------------------------
 # Create the executable
 
-MESSAGE(STATUS "...add ${PROGRAM}")
+# MESSAGE(STATUS "...add ${PROGRAM}")
 
 ADD_EXECUTABLE(${PROGRAM} ${PROGRAM}.cpp ${MODEL_FILES})
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
 SOURCE_GROUP("" FILES ${PROGRAM}.cpp ${MODEL_FILES})
 
-SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}")
-    if(APPLE)
-      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
-    endif()
+if(APPLE)
+   set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+endif()
+
+if(MSVC)
+  set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
 SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 TARGET_LINK_LIBRARIES(${PROGRAM}
-                      ChronoEngine
-                      ChronoEngine_irrlicht
-                      ChronoEngine_vehicle
-                      ChronoEngine_vehicle_irrlicht
+                      Chrono_vehicle
+                      Chrono_vehicle_irrlicht
                       ChronoModels_vehicle)
 
 INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})

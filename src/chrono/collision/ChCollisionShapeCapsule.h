@@ -45,6 +45,9 @@ class ChApi ChCollisionShapeCapsule : public ChCollisionShape {
     /// Get the capsule total length.
     double GetLength() const { return gcapsule.GetLength(); }
 
+    /// Get the shape bounding box.
+    virtual ChAABB GetBoundingBox() const override { return gcapsule.GetBoundingBox(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

@@ -7,7 +7,6 @@ Depending on the complexity of the system and rendering requirements, we differe
 + **Run-Time**: for fast and real-time rendering of the scene, often including user interfaces and additional information about the ongoing simulation:
   * @subpage irrlicht_visualization "Irrlicht Module"
   * @subpage vsg_visualization "VSG Module"
-  * @subpage opengl_visualization "OpenGL Module"
 + **Offline/Postprocess**: for higher-quality renderings not fitting run-time restrictions:
   * @subpage blender_visualization "Blender Module"
   * @subpage povray_visualization "POVRay Module"

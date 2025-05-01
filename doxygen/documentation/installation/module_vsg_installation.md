@@ -3,10 +3,7 @@ Install the VSG module {#module_vsg_installation}
 
 [TOC]
 
-This is a run-time visualization system for interactive 3D viewing of Chrono simulations.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
-
+Chrono::VSG is a run-time visualization system for interactive 3D viewing of Chrono simulations.
 
 ## Features
 
@@ -19,12 +16,6 @@ Here are the main features:
 	- mouse right button for camera x z motion
 	- mouse wheel rotation for camera forward/backward
 	- press arrows to have x z camera motion, press page up & down for y vertical motion
-
-
-## Dependencies
-
-- This module you requires the Vulkan SDK and the VSG libraries.
-
 
 ## Building and installing prerequisistes
 
@@ -94,7 +85,7 @@ Once the necessary dependencies are installed, perform the following steps to co
 
 1. Repeat the instructions for the [full Chrono installation](@ref tutorial_install_chrono)
    
-2. During CMake configuration, set `ENABLE_MODULE_VSG` to 'on', then press 'Configure'
+2. Set `CH_ENABLE_MODULE_VSG` to 'on'.
 
 3. When prompted, provide the paths to the various VSG project configuration scripts (`vsg_DIR`, `vsgImGui_DIR`, and `vsgXchange_DIR`). For example, assuming you used the provided [build scripts](#vsg_scripts), these should be `<VSG_INSTALL_DIR>/lib/cmake/vsg`, `<VSG_INSTALL_DIR>/lib/cmake/vsgImGui`, and `<VSG_INSTALL_DIR>/lib/cmake/vsgXchange`, respectively.
 

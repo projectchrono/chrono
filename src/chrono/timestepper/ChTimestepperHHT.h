@@ -15,6 +15,8 @@
 #ifndef CHTIMESTEPPER_HHT_H
 #define CHTIMESTEPPER_HHT_H
 
+#include <array>
+
 #include "chrono/timestepper/ChTimestepper.h"
 
 namespace chrono {
@@ -90,8 +92,8 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   private:
-    void Prepare(ChIntegrableIIorder* integrable);
-    void Increment(ChIntegrableIIorder* integrable);
+    void Prepare(ChIntegrableIIorder* integrable2);
+    void Increment(ChIntegrableIIorder* integrable2);
     bool CheckConvergence(int it);
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 

@@ -128,7 +128,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
     obj_mat->SetFriction(0.3f);
 
     for (int bi = 0; bi < 400; bi++) {
-        // Create a bunch of ChronoENGINE rigid bodies which will fall..
+        // Create a bunch of Chrono rigid bodies which will fall..
         auto mrigidBody = chrono_types::make_shared<ChBodyEasySphere>(0.81,      // radius
                                                                       1000,      // density
                                                                       true,      // visualization?

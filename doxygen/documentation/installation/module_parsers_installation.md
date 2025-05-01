@@ -3,9 +3,7 @@ Install the PARSERS module {#module_parsers_installation}
 
 [TOC]
 
-This module provides various import utilities.
-
-Read [the introduction to modules](modularity.html) for a technical background on the modularity of the Chrono project.
+Chrono::Parsers provides various import utilities.
 
 
 ## Features
@@ -48,7 +46,7 @@ Once the necessary dependencies are installed, perform the following steps to co
 
 1. Repeat the instructions for the [full Chrono installation](@ref tutorial_install_chrono)
    
-2. During CMake configuration, set `ENABLE_MODULE_PARSERS` to 'on', then press 'Configure'
+2. During CMake configuration, set `CH_ENABLE_MODULE_PARSERS` to 'on', then press 'Configure'
 
 3. When prompted, provide the paths to the various URDF project configuration scripts (`urdfdom_DIR`, `urdfdom_headers_DIR`, and `console_bridge_DIR`). Assuming the dependencies were installed as described above, all these CMake variables should be set to `<URDF_INSATALL_DIR>/CMake` on Windows, while on Linux they should be `<URDF_INSTALL_DIR>/lib/urdfdom/cmake`, `<URDF_INSTALL_DIR>/lib/urdfdom_headers/cmake`, and `<URDF_INSTALL_DIR>/lib/console_bridge/cmake`, respectively.
 

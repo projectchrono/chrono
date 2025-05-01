@@ -9,8 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// A very simple example that can be used as template project for
-// a Chrono::Engine simulator with 3D view.
+// A very simple example that can be used as template project for a Chrono
+// simulation with 3D run-time visualization.
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         vis.Render();
         vis.EndScene();
 
-        // Perform the integration stpe
+        // Perform the integration step
         sys.DoStepDynamics(step_size);
 
         // Spin in place to maintain soft real-time

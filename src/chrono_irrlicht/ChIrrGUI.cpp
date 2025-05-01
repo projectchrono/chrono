@@ -105,20 +105,6 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_ESCAPE:
                 m_gui->GetDevice()->closeDevice();
                 return true;
-            case irr::KEY_F12:
-#ifdef CHRONO_POSTPROCESS
-                if (m_gui->blender_save == false) {
-                    std::cout << "Start saving Blender postprocessing scripts...\n";
-                    m_gui->SetBlenderSave(true);
-                } else {
-                    m_gui->SetBlenderSave(false);
-                    std::cout << "Stop saving Blender postprocessing scripts.\n";
-                }
-#else
-                std::cout << "Saving Blender3D files not supported\n.";
-                std::cout << "Rebuild the solution with ENABLE_MODULE_POSTPROCESSING in CMake." << std::endl;
-#endif
-                return true;
             default:
                 break;
         }
@@ -134,31 +120,10 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                     case 9921: {
                         double val = atof(
                             irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                        m_gui->SetSymbolscale(val);
-                    } break;
-                    case 9927: {
-                        double val = atof(
-                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                        m_gui->SetModalAmplitude(val);
-
-                    } break;
-                    case 9928: {
-                        double val = atof(
-                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
-                        m_gui->SetModalSpeed(val);
-
+                        m_gui->SetSymbolScale(val);
                     } break;
                 }
                 break;
-
-            case irr::gui::EGET_SCROLL_BAR_CHANGED:
-                switch (id) {
-                    case 9926:
-                        m_gui->modal_mode_n = ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-                        break;
-                }
-                break;
-
             default:
                 break;
         }
@@ -200,22 +165,8 @@ ChIrrGUI::ChIrrGUI()
       show_explorer(false),
       show_infos(false),
       show_profiler(false),
-      modal_show(false),
-      modal_mode_n(0),
-      modal_amplitude(0.1),
-      modal_speed(1),
-      modal_phi(0),
-      modal_current_mode_n(0),
-      modal_current_freq(0),
-      modal_current_dampingfactor(0),
       symbolscale(1),
-      camera_auto_rotate_speed(0) {
-#ifdef CHRONO_POSTPROCESS
-    blender_save = false;
-    blender_each = 1;
-    blender_num = 0;
-#endif
-}
+      camera_auto_rotate_speed(0) {}
 
 ChIrrGUI::~ChIrrGUI() {
     delete m_receiver;
@@ -251,7 +202,6 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     // Create GUI gadgets
     g_tabbed = guienv->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 550), 0, true, true);
     auto g_tab1 = g_tabbed->addTab(L"Dynamic");
-    auto g_tab2 = g_tabbed->addTab(L"Modal");
     auto g_tab3 = g_tabbed->addTab(L"Help");
 
     g_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, g_tab1);
@@ -297,7 +247,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
         guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), g_tab1, 9914, L"Draw AABB");
 
     g_plot_cogs =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9915, L"Draw COGs");
+        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9915, L"Draw COMs");
 
     g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), g_tab1, 9920,
                                             L"Draw link frames");
@@ -313,24 +263,7 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
 
     guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 330, 200, 330 + 15), false, false, g_tab1);
     g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 345, 200, 345 + 15), true, g_tab1, 9921);
-    SetSymbolscale(symbolscale);
-
-    // -- g_tab2
-
-    guienv->addStaticText(L"Amplitude", irr::core::rect<irr::s32>(10, 10, 80, 10 + 15), false, false, g_tab2);
-    g_modal_amplitude = guienv->addEditBox(L"", irr::core::rect<irr::s32>(80, 10, 120, 10 + 15), true, g_tab2, 9927);
-    SetModalAmplitude(modal_amplitude);
-    guienv->addStaticText(L"Speed", irr::core::rect<irr::s32>(10, 25, 80, 25 + 15), false, false, g_tab2);
-    g_modal_speed = guienv->addEditBox(L"", irr::core::rect<irr::s32>(80, 25, 120, 25 + 15), true, g_tab2, 9928);
-    SetModalSpeed(modal_speed);
-
-    guienv->addStaticText(L"Mode", irr::core::rect<irr::s32>(10, 50, 100, 50 + 15), false, false, g_tab2);
-    g_modal_mode_n =
-        GetGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 65, 120, 65 + 15), g_tab2, 9926);
-    g_modal_mode_n->setMax(25);
-    g_modal_mode_n->setSmallStep(1);
-    g_modal_mode_n_info =
-        GetGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(130, 65, 340, 65 + 45), false, false, g_tab2);
+    SetSymbolScale(symbolscale);
 
     // -- g_tab3
 
@@ -364,36 +297,19 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     child->setExpanded(true);
 }
 
+irr::gui::IGUITab* ChIrrGUI::AddTab(const wchar_t* caption) {
+    return g_tabbed->addTab(caption);
+}
+
 void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {
     m_user_receivers.push_back(receiver);
 }
 
-void ChIrrGUI::SetSymbolscale(double val) {
+void ChIrrGUI::SetSymbolScale(double val) {
     symbolscale = std::max(10e-12, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", symbolscale);
     g_symbolscale->setText(irr::core::stringw(message).c_str());
-}
-
-void ChIrrGUI::SetModalAmplitude(double val) {
-    modal_amplitude = std::max(0.0, val);
-    char message[50];
-    snprintf(message, sizeof(message), "%g", modal_amplitude);
-    g_modal_amplitude->setText(irr::core::stringw(message).c_str());
-}
-
-void ChIrrGUI::SetModalSpeed(double val) {
-    modal_speed = std::max(0.0, val);
-    char message[50];
-    snprintf(message, sizeof(message), "%g", modal_speed);
-    g_modal_speed->setText(irr::core::stringw(message).c_str());
-}
-
-void ChIrrGUI::SetModalModesMax(int maxModes) {
-    int newMaxModes = std::max(maxModes, 1);
-    g_modal_mode_n->setMax(newMaxModes);
-    modal_mode_n = std::min(modal_mode_n, newMaxModes);
-    modal_phi = 0.0;
 }
 
 // -----------------------------------------------------------------------------
@@ -401,7 +317,7 @@ void ChIrrGUI::SetModalModesMax(int maxModes) {
 void ChIrrGUI::WriteSystemMatrices() {
     // For safety
     m_system->Setup();
-    m_system->Update();
+    m_system->Update(m_system->GetChTime(), false);
 
     try {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
@@ -552,22 +468,6 @@ void ChIrrGUI::Render() {
         recurse_update_tree_node(&root, g_treeview->getRoot());
     }
 
-    g_modal_mode_n->setEnabled(modal_show);
-    g_modal_mode_n_info->setEnabled(modal_show);
-    g_modal_amplitude->setEnabled(modal_show);
-    g_modal_speed->setEnabled(modal_show);
-    if (modal_show) {
-        char message[50];
-        if (modal_current_dampingfactor)
-            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz\nz = %.2g", modal_mode_n, modal_current_freq,
-                     modal_current_dampingfactor);
-        else
-            snprintf(message, sizeof(message), "n = %i\nf = %.3g Hz", modal_mode_n, modal_current_freq);
-        g_modal_mode_n_info->setText(irr::core::stringw(message).c_str());
-
-        g_modal_mode_n->setPos(modal_mode_n);
-    }
-
     GetGUIEnvironment()->drawAll();
 }
 
@@ -599,54 +499,7 @@ void ChIrrGUI::BeginScene() {
 void ChIrrGUI::EndScene() {
     if (show_profiler)
         tools::drawProfiler(m_vis);
-
-#ifdef CHRONO_POSTPROCESS
-    if (blender_save && blender_exporter) {
-        if (blender_num % blender_each == 0) {
-            blender_exporter->ExportData();
-        }
-        blender_num++;
-    }
-#endif
 }
-
-#ifdef CHRONO_POSTPROCESS
-
-/// If set to true, each frame of the animation will be saved on the disk
-/// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
-void ChIrrGUI::SetBlenderSave(bool val) {
-    blender_save = val;
-
-    if (!blender_save) {
-        return;
-    }
-
-    if (blender_save && !blender_exporter) {
-        blender_exporter = std::unique_ptr<postprocess::ChBlender>(new postprocess::ChBlender(m_system));
-
-        // Set the path where it will save all .pov, .ini, .asset and .dat files,
-        // a directory will be created if not existing
-        blender_exporter->SetBasePath("blender_project");
-
-        // Add all items (already in scene) to the Blender exporter
-        blender_exporter->AddAll();
-
-        if (m_vis->GetCameraVertical() == CameraVerticalDir::Z)
-            blender_exporter->SetBlenderUp_is_ChronoZ();
-        if (m_vis->GetCameraVertical() == CameraVerticalDir::Y)
-            blender_exporter->SetBlenderUp_is_ChronoY();
-
-        // Static default camera in Blender matches the one in Irrlicht at the moment of starting saving
-        // blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()),
-        // ChVectorIrr(GetActiveCamera()->getTarget()),
-        //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_RAD_TO_DEG);
-
-        blender_exporter->ExportScript();
-
-        blender_num = 0;
-    }
-}
-#endif
 
 }  // end namespace irrlicht
 }  // end namespace chrono

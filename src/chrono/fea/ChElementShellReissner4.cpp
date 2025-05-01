@@ -14,11 +14,12 @@
 // Four node shell with geom.exact kinematics
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChRotUtils.h"
-#include <cmath>
 
 #define CHUSE_ANS
 ////#define CHUSE_EAS
@@ -659,9 +660,10 @@ void ChElementShellReissner4::ComputeMassMatrix() {
 
         // Approximate (!) inertia of a quarter of tile, note *(1/4) because only the quarter tile,
         // in local system of Gauss point
-        double Ixx = (pow(this->GetLengthY(), 2) + pow(tot_thickness, 2)) * (1. / 12.) * (1. / 4.) * nodemass;
-        double Iyy = (pow(this->GetLengthX(), 2) + pow(tot_thickness, 2)) * (1. / 12.) * (1. / 4.) * nodemass;
-        double Izz = (pow(this->GetLengthX(), 2) + pow(this->GetLengthY(), 2)) * (1. / 12.) * (1. / 4.) * nodemass;
+        double Ixx = (std::pow(this->GetLengthY(), 2) + std::pow(tot_thickness, 2)) * (1. / 12.) * (1. / 4.) * nodemass;
+        double Iyy = (std::pow(this->GetLengthX(), 2) + std::pow(tot_thickness, 2)) * (1. / 12.) * (1. / 4.) * nodemass;
+        double Izz =
+            (std::pow(this->GetLengthX(), 2) + std::pow(this->GetLengthY(), 2)) * (1. / 12.) * (1. / 4.) * nodemass;
         ChMatrix33<> box_inertia(ChVector3d(Ixx, Iyy, Izz));
         // ..and rotate inertia in local system of node: (local because ystem-level rotational coords of nodes are
         // ang.vel in loc sys)

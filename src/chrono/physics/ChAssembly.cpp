@@ -637,34 +637,31 @@ void ChAssembly::Setup() {
     }
 }
 
-// Update assembly's own properties first (ChTime and assets, if any).
-// Then update all contents of this assembly.
-void ChAssembly::Update(double mytime, bool update_assets) {
-    ChPhysicsItem::Update(mytime, update_assets);
-    Update(update_assets);
-}
+// Update assembly's own properties first (time and assets, if any)
+// Then update all contents of this assembly:
+// - Update all physical items (bodies, links, meshes, etc), including their auxiliary variables
+// - Update all forces (automatic, as children of bodies)
+// - Update all markers (automatic, as children of bodies)
+void ChAssembly::Update(double time, bool update_assets) {
+    ChPhysicsItem::Update(time, update_assets);
 
-// Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.
-// Updates all forces (automatic, as children of bodies)
-// Updates all markers (automatic, as children of bodies).
-void ChAssembly::Update(bool update_assets) {
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
     for (auto& body : bodylist) {
-        body->Update(ChTime, update_assets);
+        body->Update(time, update_assets);
     }
     for (auto& shaft : shaftlist) {
-        shaft->Update(ChTime, update_assets);
+        shaft->Update(time, update_assets);
     }
     for (auto& mesh : meshlist) {
-        mesh->Update(ChTime, update_assets);
+        mesh->Update(time, update_assets);
     }
     for (auto& otherphysics : otherphysicslist) {
-        otherphysics->Update(ChTime, update_assets);
+        otherphysics->Update(time, update_assets);
     }
     // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
     // thus the update of linklist must be at the end.
     for (auto& link : linklist) {
-        link->Update(ChTime, update_assets);
+        link->Update(time, update_assets);
     }
 }
 
@@ -691,8 +688,8 @@ void ChAssembly::IntStateGather(const unsigned int off_x,
                                 const unsigned int off_v,
                                 ChStateDelta& v,
                                 double& T) {
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    int displ_x = off_x - this->offset_x;
+    int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -730,8 +727,8 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
     //    - in particular, bodies and meshes must be processed *before* links, so that links can use
     //      up-to-date body and node information
 
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    int displ_x = off_x - this->offset_x;
+    int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -770,7 +767,7 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
 }
 
 void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    unsigned int displ_a = off_a - this->offset_w;
+    int displ_a = off_a - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -795,7 +792,7 @@ void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDel
 
 // From state derivative (acceleration) to system, sometimes might be needed
 void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    unsigned int displ_a = off_a - this->offset_w;
+    int displ_a = off_a - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -820,7 +817,7 @@ void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChS
 
 // From system to reaction forces (last computed) - some timestepper might need this
 void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - this->offset_L;
+    int displ_L = off_L - this->offset_L;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -845,7 +842,7 @@ void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
 
 // From reaction forces to system, ex. store last computed reactions in ChLinkBase objects for plotting etc.
 void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - this->offset_L;
+    int displ_L = off_L - this->offset_L;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -874,8 +871,8 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,
                                    const ChState& x,
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) {
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    int displ_x = off_x - this->offset_x;
+    int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -907,8 +904,8 @@ void ChAssembly::IntStateGetIncrement(const unsigned int off_x,
                                       const ChState& x,
                                       const unsigned int off_v,
                                       ChStateDelta& Dv) {
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    int displ_x = off_x - this->offset_x;
+    int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -939,7 +936,7 @@ void ChAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R res
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c)          ///< a scaling factor
 {
-    unsigned int displ_v = off - this->offset_w;
+    int displ_v = off - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -967,7 +964,7 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
                                     const ChVectorDynamic<>& w,  ///< the w vector
                                     const double c               ///< a scaling factor
 ) {
-    unsigned int displ_v = off - this->offset_w;
+    int displ_v = off - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -991,7 +988,7 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
 }
 
 void ChAssembly::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
-    unsigned int displ_v = off - this->offset_w;
+    int displ_v = off - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -1019,7 +1016,7 @@ void ChAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in
                                      const ChVectorDynamic<>& L,  ///< the L vector
                                      const double c               ///< a scaling factor
 ) {
-    unsigned int displ_L = off_L - this->offset_L;
+    int displ_L = off_L - this->offset_L;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -1048,7 +1045,7 @@ void ChAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
                                      bool do_clamp,             ///< apply clamping to c*C?
                                      double recovery_clamp      ///< value for min/max clamping of c*C
 ) {
-    unsigned int displ_L = off_L - this->offset_L;
+    int displ_L = off_L - this->offset_L;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -1075,7 +1072,7 @@ void ChAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in 
                                       ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
                                       const double c             ///< a scaling factor
 ) {
-    unsigned int displ_L = off_L - this->offset_L;
+    int displ_L = off_L - this->offset_L;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -1104,8 +1101,8 @@ void ChAssembly::IntToDescriptor(const unsigned int off_v,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
-    unsigned int displ_L = off_L - this->offset_L;
-    unsigned int displ_v = off_v - this->offset_w;
+    int displ_L = off_L - this->offset_L;
+    int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())
@@ -1136,8 +1133,8 @@ void ChAssembly::IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - this->offset_L;
-    unsigned int displ_v = off_v - this->offset_w;
+    int displ_L = off_L - this->offset_L;
+    int displ_v = off_v - this->offset_w;
 
     for (auto& body : bodylist) {
         if (body->IsActive())

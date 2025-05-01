@@ -24,8 +24,6 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDriveline("") {
     Document d;
     ReadFileJSON(filename, d);
@@ -48,6 +46,8 @@ void SimpleDriveline::Create(const rapidjson::Document& d) {
     m_front_torque_frac = d["Front Torque Fraction"].GetDouble();
     m_front_diff_bias = d["Front Differential Max Bias"].GetDouble();
     m_rear_diff_bias = d["Rear Differential Max Bias"].GetDouble();
+    m_front_conicalgear_ratio = d["Front Conical Gear Ratio"].GetDouble();
+    m_rear_conicalgear_ratio = d["Rear Conical Gear Ratio"].GetDouble();
 }
 
 }  // end namespace vehicle

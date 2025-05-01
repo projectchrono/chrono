@@ -33,7 +33,11 @@
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
-#include "chrono_gpu/utils/ChGpuVisualization.h"
+
+#include "chrono_gpu/visualization/ChGpuVisualization.h"
+#ifdef CHRONO_OPENGL
+    #include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -78,12 +82,19 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ball_body->AddVisualShape(sph);
     sys_ball.AddBody(ball_body);
 
-    ChGpuVisualization gpu_vis(&gpu_sys);
+#if !defined(CHRONO_OPENGL)
+    render = false;
+#endif
+
+    std::shared_ptr<ChGpuVisualization> visGPU;
     if (render) {
-        gpu_vis.SetTitle("Chrono::Gpu ball cosim demo");
-        gpu_vis.AddCamera(ChVector3d(0, -200, 100), ChVector3d(0, 0, 0));
-        gpu_vis.SetCameraMoveScale(1.0f);
-        gpu_vis.Initialize();
+#ifdef CHRONO_OPENGL
+        visGPU = chrono_types::make_shared<ChGpuVisualizationGL>(&gpu_sys);
+        visGPU->SetTitle("Chrono::Gpu ball cosim demo");
+        visGPU->AddCamera(ChVector3d(0, -200, 100), ChVector3d(0, 0, 0));
+        visGPU->SetCameraMoveScale(1.0f);
+        visGPU->Initialize();
+#endif
     }
 
     std::string out_dir = GetChronoOutputPath() + "GPU/";
@@ -94,15 +105,16 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     float iteration_step = params.step_size;
     std::cout << "Output at    " << out_fps << " FPS" << std::endl;
     std::cout << "Rendering at " << render_fps << " FPS" << std::endl;
-    unsigned int out_steps = (unsigned int)(1 / (out_fps * iteration_step));
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * iteration_step));
-    unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
 
-    int currframe = 0;
-    unsigned int curr_step = 0;
+    int sim_frame = 0;
+    int render_frame = 0;
+    int out_frame = 0;
+
+    // Add force accumulator to the ball body
+    auto accumulator_index = ball_body->AddAccumulator();
 
     clock_t start = std::clock();
-    for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
+    for (double t = 0; t < (double)params.time_end; t += iteration_step) {
         gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPosDt(),
                                 ball_body->GetAngVelParent());
 
@@ -110,27 +122,32 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
         ChVector3d ball_torque;
         gpu_sys.CollectMeshContactForces(0, ball_force, ball_torque);
 
-        ball_body->EmptyAccumulators();
-        ball_body->AccumulateForce(ball_force, ball_body->GetPos(), false);
-        ball_body->AccumulateTorque(ball_torque, false);
+        ball_body->EmptyAccumulator(accumulator_index);
+        ball_body->AccumulateForce(accumulator_index, ball_force, ball_body->GetPos(), false);
+        ball_body->AccumulateTorque(accumulator_index, ball_torque, false);
 
-        if (curr_step % out_steps == 0) {
-            std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
+        if (t >= out_frame / out_fps) {
+            std::cout << "Output frame " << sim_frame + 1 << std::endl;
             char filename[100];
             char mesh_filename[100];
-            sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
-            sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), sim_frame);
+            sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), sim_frame);
             gpu_sys.WriteParticleFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(mesh_filename));
+
+            out_frame++;
         }
 
-        if (render && curr_step % render_steps == 0) {
-            if (!gpu_vis.Render())
+        if (render && t >= render_frame / render_fps) {
+            if (!visGPU->Render())
                 break;
+            render_frame++;
         }
 
         gpu_sys.AdvanceSimulation(iteration_step);
         sys_ball.DoStepDynamics(iteration_step);
+
+        sim_frame++;
     }
 
     clock_t end = std::clock();
@@ -278,19 +295,22 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.Initialize();
 
-    unsigned int out_steps = (unsigned int)(1 / (out_fps * iteration_step));
-    unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
-    int currframe = 0;
-    unsigned int curr_step = 0;
-    for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        if (curr_step % out_steps == 0) {
-            std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
+    int sim_frame = 0;
+    int out_frame = 0;
+
+    for (double t = 0; t < (double)params.time_end; t += iteration_step) {
+        if (t >= out_frame / out_fps) {
+            std::cout << "Output frame " << sim_frame + 1 << std::endl;
             char filename[100];
-            sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), sim_frame);
             gpu_sys.WriteParticleFile(std::string(filename));
+
+            out_frame++;
         }
 
         gpu_sys.AdvanceSimulation(iteration_step);
+
+        sim_frame++;
     }
 
     // This is settling phase, so output a checkpoint file

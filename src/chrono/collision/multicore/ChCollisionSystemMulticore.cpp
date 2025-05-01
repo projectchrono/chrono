@@ -22,6 +22,8 @@
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/utils/ChProfiler.h"
 
+#include "chrono/multicore_math/thrust.h"
+
 #include "chrono/collision/multicore/ChCollisionSystemMulticore.h"
 #include "chrono/collision/multicore/ChRayTest.h"
 
@@ -251,7 +253,7 @@ void ChCollisionSystemMulticore::PreProcess() {
     collide.resize(m_num_bodies);
 
     cd_data->state_data.num_rigid_bodies = m_num_bodies;
-    cd_data->state_data.num_fluid_bodies = 0;
+    cd_data->state_data.num_particles = 0;
 
 #pragma omp parallel for
     for (int i = 0; i < m_num_bodies; i++) {

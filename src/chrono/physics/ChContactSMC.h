@@ -120,7 +120,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
-                    kn = (2.0 / 3) * Sn;
+                    kn = CH_2_3 * Sn;
                     kt = St;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                     gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * eff_mass);
@@ -140,7 +140,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
-                    kn = (2.0 / 3) * Sn;
+                    kn = CH_2_3 * Sn;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                 } else {
                     double tmp = std::sqrt(delta);
@@ -163,7 +163,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                             forceN -= mat.adhesion_eff;
                             break;
                         case ChSystemSMC::AdhesionForceModel::DMT:
-                            forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                            forceN -= mat.adhesionMultDMT_eff * std::sqrt(eff_radius);
                             break;
                     }
                     ChVector3d force = forceN * normal_dir;
@@ -207,7 +207,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                 forceN -= mat.adhesion_eff;
                 break;
             case ChSystemSMC::AdhesionForceModel::DMT:
-                forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                forceN -= mat.adhesionMultDMT_eff * std::sqrt(eff_radius);
                 break;
         }
 

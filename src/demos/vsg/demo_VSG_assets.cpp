@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChParticleCloud.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -294,7 +296,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowSize(ChVector2i(1200, 800));
     vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
-    vis->SetUseSkyBox(true);
+    vis->EnableSkyBox();
     vis->AddCamera(ChVector3d(-8, 8, -16));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
@@ -366,7 +368,7 @@ int main(int argc, char* argv[]) {
                         ChFrame<>(ChVector3d(-6, 1, -5 - 0.4), QUNIT));
     vis->AddVisualModel(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                         ChFrame<>(ChVector3d(-6, 1, -5 + 0.4), QUNIT));
-    vis->SetShadows(true);
+    vis->EnableShadows();
     vis->Initialize();
 
     // Create output directory
@@ -381,11 +383,13 @@ int main(int argc, char* argv[]) {
     unsigned int frame_number = 0;
     while (vis->Run()) {
         double time = sys.GetChTime();
-        if (frame_number == 42) {
-            vis->WriteImageToFile(out_dir + "/assets.png");  // does not work with frame == 0!
+        if (frame_number > 2) {
+            std::string imgName("/assets-");
+            imgName.append(std::to_string(frame_number) + ".png");
+            vis->WriteImageToFile(out_dir + imgName);  // does not work with frame == 0!
         }
 
-        vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector3d(0, 3.5 + 0.5 * sin(CH_PI * time / 10), 3), Zup));
+        vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector3d(0, 3.5 + 0.5 * std::sin(CH_PI * time / 10), 3), Zup));
         vis->UpdateVisualModel(teapotId2, ChFrame<>(ChVector3d(-5, 3.5, 3), Zup * QuatFromAngleY(time / 20)));
         vis->UpdateVisualModel(boxId, ChFrame<>(ChVector3d(0, 0.01 * time, 0), QUNIT));
         vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * QuatFromAngleY(0.2 * time) * QuatFromAngleZ(0.1 * time)));
@@ -403,7 +407,8 @@ int main(int argc, char* argv[]) {
         sys.DoStepDynamics(step_size);
 
         rt.Spin(step_size);
-
+        if (frame_number == 100)
+            break;
         frame_number++;
     }
 

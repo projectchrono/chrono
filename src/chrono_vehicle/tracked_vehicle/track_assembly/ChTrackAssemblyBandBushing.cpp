@@ -28,7 +28,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackAssemblyBandBushing::ChTrackAssemblyBandBushing(const std::string& name, VehicleSide side)
     : ChTrackAssemblyBand(name, side) {}
 
@@ -48,7 +47,7 @@ ChTrackAssemblyBandBushing::ChTrackAssemblyBandBushing(const std::string& name, 
 // TODO: NEEDS fixes for clock-wise wrapping (idler in front of sprocket)
 //
 // -----------------------------------------------------------------------------
-bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
+bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChChassis> chassis) {
     // Number of track shoes
     int num_shoes = static_cast<int>(m_shoes.size());
 
@@ -62,7 +61,7 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
 
     // Calculate assembly points
     std::vector<ChVector2d> shoe_points;
-    bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
+    bool ccw = FindAssemblyPoints(chassis->GetBody(), num_shoes, connection_lengths, shoe_points);
 
     // Now create all of the track shoes at the located points
     auto num_shoe_elements = connection_lengths.size();

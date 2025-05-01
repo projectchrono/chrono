@@ -27,13 +27,13 @@ ChShaftsMotorLoad::ChShaftsMotorLoad(const ChShaftsMotorLoad& other) : ChShaftsM
     motor_function = other.motor_function;
 }
 
-void ChShaftsMotorLoad::Update(double mytime, bool update_assets) {
+void ChShaftsMotorLoad::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChShaftsMotor::Update(mytime, update_assets);
+    ChShaftsMotor::Update(time, update_assets);
 
     // update class data
 
-    motor_function->Update(mytime);  // call callbacks if any
+    motor_function->Update(time);  // call callbacks if any
 }
 
 void ChShaftsMotorLoad::IntLoadResidual_F(const unsigned int off,  // offset in R residual

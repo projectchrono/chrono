@@ -48,7 +48,7 @@ class ChApi ChLinkDistance : public ChLink {
         ChVector3d pos2,                     ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
         bool auto_distance = true,  ///< if true, initializes the imposed distance as the distance between pos1 and pos2
         double mdistance = 0,       ///< imposed distance (no need to define, if auto_distance=true.)
-        Mode mode = Mode::BILATERAL  ///< set distance constraining mode
+        Mode new_mode = Mode::BILATERAL  ///< set distance constraining mode
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
@@ -92,7 +92,7 @@ class ChApi ChLinkDistance : public ChLink {
     /// Set link mode.
     /// The joint can act as bilateral or unilateral; in this latter case, it can either limit the maximum or minimum
     /// distance; if in unilateral mode, a VI solver is required!
-    void SetMode(Mode mode);
+    void SetMode(Mode new_mode);
 
     /// Get link mode.
     Mode GetMode() const { return this->mode; }
@@ -118,7 +118,7 @@ class ChApi ChLinkDistance : public ChLink {
 
     // Solver and integrator interface functions
 
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double mtime, bool update_assets) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

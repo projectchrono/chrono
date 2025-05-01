@@ -41,7 +41,7 @@ void ChSolverAPGD::SchurBvectorCompute(ChSystemDescriptor& sysd) {
     for (unsigned int iv = 0; iv < sysd.GetVariables().size(); iv++)
         if (sysd.GetVariables()[iv]->IsActive())
             sysd.GetVariables()[iv]->ComputeMassInverseTimesVector(sysd.GetVariables()[iv]->State(),
-                                                     sysd.GetVariables()[iv]->Force());  // q = [M]'*fb
+                                                                   sysd.GetVariables()[iv]->Force());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     r.setZero();
@@ -70,7 +70,6 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
 }
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
-    bool verbose = false;
     const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     const std::vector<ChVariables*>& mvariables = sysd.GetVariables();
     if (verbose)
@@ -151,6 +150,9 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     //// RADU
     //// Check correctness (e.g. sign of 'r' in comments vs. code)
 
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
+
     // (7) for k := 0 to N_max
     for (m_iterations = 0; m_iterations < m_max_iterations; m_iterations++) {
         // (8) g = N * y_k - r
@@ -187,7 +189,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         }  // (14) endwhile
 
         // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2
-        thetaNew = (-theta * theta + theta * sqrt(theta * theta + 4.0)) / 2.0;
+        thetaNew = (-theta * theta + theta * std::sqrt(theta * theta + 4.0)) / 2.0;
 
         // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
         Beta = theta * (1.0 - theta) / (theta * theta + thetaNew);

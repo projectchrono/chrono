@@ -37,7 +37,7 @@ The following is a short list of main attributes of Chrono.
 ### Collision detection features
 
 -   Supports compounds of spheres, cubes, convex geometries, triangle meshes, etc.
--   Additional collision support provided by the Bullet collision detection engine, which is wrapped inside Chrono::Engine.
+-   Additional collision support provided by the Bullet collision detection engine, which is wrapped inside Chrono.
 -   Broad phase collision detection: sweep-and-prune SAT.
 -   Narrow phase collision detection: AABB and/or OBB binary volume trees.
 -   Detail phase with custom primitive-to-primitive fallbacks.

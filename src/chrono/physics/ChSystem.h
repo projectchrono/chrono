@@ -56,7 +56,7 @@ class ChModalAssembly;
 /// - system-wise parameters (time, gravitational acceleration, etc.)
 /// - counters and timers;
 /// as well as other secondary features.
-/// 
+///
 /// This class is in charge of managing dynamic, kinematic and static simulations.
 ///
 /// Consult the @ref simulation_system manual page for additional details.
@@ -64,7 +64,7 @@ class ChModalAssembly;
 class ChApi ChSystem : public ChIntegrableIIorder {
   public:
     /// Create a physical system.
-    ChSystem();
+    ChSystem(const std::string& name = "");
 
     /// Copy constructor.
     ChSystem(const ChSystem& other);
@@ -75,6 +75,12 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// "Virtual" copy constructor.
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
+
+    /// Set the system name.
+    void SetName(const std::string& name) { m_name = name; }
+
+    /// Get the system name.
+    const std::string& GetName() const { return m_name; }
 
     /// Set the method for time integration (time stepper type).
     ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
@@ -180,12 +186,12 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // ---- KINEMATICS
 
     /// Advance the kinematics simulation for a single step of given length.
-    bool DoStepKinematics(double step_size);
+    AssemblyAnalysis::ExitFlag DoStepKinematics(double step_size);
 
     /// Advance the kinematics simulation to the specified frame end time.
     /// A system assembly analysis (inverse kinematics) is performed at step_size intervals. The last step may be
     /// adjusted to exactly reach the frame end time.
-    bool DoFrameKinematics(double frame_time, double step_size);
+    AssemblyAnalysis::ExitFlag DoFrameKinematics(double frame_time, double step_size);
 
     // ---- STATICS
 
@@ -227,20 +233,26 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // ---- SYSTEM ASSEMBLY
 
-    /// Perform a system assembly analysis.
-    /// Assembly is performed by satisfying constraints at position, velocity, and acceleration levels.
-    /// Position level assembly requires a non-linear problem solve. Assembly at velocity level is
-    /// performed by taking a small integration step. Consistent accelerations are obtained through
-    /// finite differencing.
-    /// Action can be one of AssemblyLevel enum values (POSITION, VELOCITY, ACCELERATION, or FULL).
+    /// Assemble the system.
+    /// The assembling is performed by satisfying constraints at position, velocity, and acceleration levels.
+    /// Position-level assembling requires Newton-Raphson iterations.
+    /// Velocity-level assembling is performed by taking a small integration step.
+    /// Acceleration-level assembling is obtained through finite differentation.
+    /// Argument 'action' can be one of AssemblyLevel enum values (POSITION, VELOCITY, ACCELERATION, or FULL).
     /// These values can also be combined using bit operations.
-    /// Returns true if no errors and false if an error occurred (impossible assembly?)
-    bool DoAssembly(int action, int max_num_iterations = 6);
+    /// Returns true if the assembling converged, false otherwise (impossible assembly?)
+    /// The maximum number of iterations and the tolerance refer to the Newton-Raphson iteration for position-level.
+    /// Iterations and tolerance for the inner linear solver must be set on the solver itself.
+    AssemblyAnalysis::ExitFlag DoAssembly(int action,
+                                          int max_num_iterationsNR = 6,
+                                          double abstol_residualNR = 1e-10,
+                                          double reltol_updateNR = 1e-6,
+                                          double abstol_updateNR = 1e-6);
 
     /// Remove redundant constraints through QR decomposition of the constraints Jacobian matrix.
     /// This function can be used to improve the stability and performance of the system by removing redundant
     /// constraints. The function returns the number of redundant constraints that were deactivated/removed. Please
-    /// consider that the some constraints might falsely appear as redundant in a specific configuration, while they
+    /// consider that some constraints might falsely appear as redundant in a specific configuration, while they
     /// might be not in general.
     unsigned int RemoveRedundantConstraints(
         bool remove_links = false,  ///< false: redundant links are just deactivated; true: redundant links get removed
@@ -425,10 +437,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
-    /// Perform the collision detection.
+    /// Perform the collision detection, returning the number of contacts.
     /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
-    double ComputeCollisions();
+    unsigned int ComputeCollisions();
 
     /// Class to be used as a callback interface for user defined actions performed
     /// at each collision detection step.  For example, additional contact points can
@@ -586,12 +598,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// already set as starting point for offsetting all the contained sub objects.
     virtual void Setup();
 
-    /// Updates all the auxiliary data and children of
-    /// bodies, forces, links, given their current state.
-    void Update(double mytime, bool update_assets = true);
+    /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
+    void Update(double time, bool update_assets);
 
     /// Updates all the auxiliary data and children of bodies, forces, links, given their current state.
-    void Update(bool update_assets = true);
+    void Update(bool update_assets);
 
     /// In normal usage, no system update is necessary at the beginning of a new dynamics step (since an update is
     /// performed at the end of a step). However, this is not the case if external changes to the system are made. Most
@@ -630,8 +641,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void VariablesFbLoadForces(double factor = 1);
     void VariablesQbLoadSpeed();
     void VariablesFbIncrementMq();
-    void VariablesQbSetSpeed(double step = 0);
-    void VariablesQbIncrementPosition(double step);
+    void VariablesQbSetSpeed(double step_size = 0);
+    void VariablesQbIncrementPosition(double step_size);
     void ConstraintsBiReset();
     void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false);
     void ConstraintsBiLoad_Ct(double factor = 1);
@@ -788,8 +799,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
     virtual bool AdvanceDynamics();
 
-    ChAssembly assembly;  ///< underlying mechanical assembly
-
+    std::string m_name;                                       ///< system name
+    ChAssembly assembly;                                    ///< underlying mechanical assembly
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector3d G_acc;  ///< gravitational acceleration

@@ -1,34 +1,25 @@
-#--------------------------------------------------------------
-# Additional include paths
 
-INCLUDE_DIRECTORIES(${CH_MATLABINC})
-
-#--------------------------------------------------------------
-# List all matlab demos
-
-SET(DEMOS
+set(DEMOS
   demo_MTLB_matlab
   demo_MTLB_functions_plot
 )
 
-MESSAGE(STATUS "Demo programs for MATLAB module...")
-
 #--------------------------------------------------------------
-# Add executables for demos
 
-FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+message(STATUS "Add demo programs for MATLAB module")
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+foreach(PROGRAM ${DEMOS})
+    # MESSAGE(STATUS "...add ${PROGRAM}")
+
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES "${PROGRAM}.cpp")
     
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${CH_MATLABLIB} ChronoEngine ChronoEngine_matlab)
-    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_matlab)
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${CH_MATLABLIB} Chrono_core Chrono_matlab)
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH(PROGRAM)
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+endforeach(PROGRAM)

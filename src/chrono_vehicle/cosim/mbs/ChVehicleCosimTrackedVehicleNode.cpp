@@ -24,8 +24,6 @@
 #include <set>
 #include <vector>
 
-#include "chrono/ChConfig.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
@@ -128,8 +126,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2d& terrain_s
         vsys_vsg->SetChaseCamera(ChVector3d(0, 0, 1.5), 6.0, 0.5);
         vsys_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
         vsys_vsg->SetChaseCameraPosition(m_cam_pos);
-        vsys_vsg->SetUseSkyBox(false);
-        vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
+        vsys_vsg->SetBackgroundColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
         vsys_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
@@ -160,7 +157,7 @@ void ChVehicleCosimTrackedVehicleNode::InitializeMBS(const ChVector2d& terrain_s
 
 // -----------------------------------------------------------------------------
 
-ChVehicleGeometry ChVehicleCosimTrackedVehicleNode::GetTrackShoeContactGeometry() const {
+utils::ChBodyGeometry ChVehicleCosimTrackedVehicleNode::GetTrackShoeContactGeometry() const {
     return m_vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 }
 
@@ -263,10 +260,6 @@ void ChVehicleCosimTrackedVehicleNode::OnOutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
                << del << m_system->GetTimerUpdate() << del;
-        if (m_int_type == ChTimestepper::Type::HHT) {
-            m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
-                   << m_integrator->GetNumSolveCalls() << del;
-        }
         m_outf << endl;
     }
 

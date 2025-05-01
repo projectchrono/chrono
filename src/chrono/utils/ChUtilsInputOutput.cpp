@@ -94,8 +94,8 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         // Loop over each shape and write its data on a separate line.
         // If we encounter an unsupported type, return false.
         for (const auto& s : body->GetCollisionModel()->GetShapeInstances()) {
-            const auto& shape = s.first;
-            const auto& frame = s.second;
+            const auto& shape = s.shape;
+            const auto& frame = s.frame;
 
             // Write relative position and rotation
             csv << frame.GetPos() << frame.GetRot() << tab;
@@ -126,13 +126,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                 }
                 case ChCollisionShape::Type::BOX: {
                     auto box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
-                    const auto& hdims = box->GetHalflengths();
+                    const auto& hdims = box->GetLengths();
                     dims = {hdims.x(), hdims.y(), hdims.z()};
                     break;
                 }
                 case ChCollisionShape::Type::ELLIPSOID: {
                     auto ellipsoid = std::static_pointer_cast<ChCollisionShapeEllipsoid>(shape);
-                    const auto& r = ellipsoid->GetSemiaxes();
+                    const auto& r = ellipsoid->GetAxes();
                     dims = {r.x(), r.y(), r.z()};
                     break;
                 }
@@ -140,33 +140,33 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                     auto cylinder = std::static_pointer_cast<ChCollisionShapeCylinder>(shape);
                     auto height = cylinder->GetHeight();
                     auto radius = cylinder->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::CYLSHELL: {
                     auto cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
                     auto height = cylshell->GetHeight();
                     auto radius = cylshell->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::CONE: {
                     auto cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
                     auto height = cone->GetHeight();
                     auto radius = cone->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::CAPSULE: {
                     auto capsule = std::static_pointer_cast<ChCollisionShapeCapsule>(shape);
                     auto height = capsule->GetHeight();
                     auto radius = capsule->GetRadius();
-                    dims = {radius, radius, height / 2};
+                    dims = {radius, radius, height};
                     break;
                 }
                 case ChCollisionShape::Type::ROUNDEDBOX: {
                     auto box = std::static_pointer_cast<ChCollisionShapeRoundedBox>(shape);
-                    const auto& hdims = box->GetHalflengths();
+                    const auto& hdims = box->GetLengths();
                     auto sradius = box->GetSRadius();
                     dims = {hdims.x(), hdims.y(), hdims.z(), sradius};
                     break;
@@ -176,7 +176,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                     auto height = cylinder->GetHeight();
                     auto radius = cylinder->GetRadius();
                     auto sradius = cylinder->GetSRadius();
-                    dims = {radius, radius, height / 2, sradius};
+                    dims = {radius, radius, height, sradius};
                     break;
                 }
                 default:
@@ -306,7 +306,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 case ChCollisionShape::Type::ELLIPSOID: {
                     ChVector3d size;
                     iss >> size.x() >> size.y() >> size.z();
-                    AddEllipsoidGeometry(body.get(), mat, size * 2, spos, srot);
+                    AddEllipsoidGeometry(body.get(), mat, size, spos, srot);
                 } break;
                 case ChCollisionShape::Type::BOX: {
                     ChVector3d size;
@@ -332,7 +332,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     ChVector3d size;
                     double srad;
                     iss >> size.x() >> size.y() >> size.z() >> srad;
-                    AddRoundedBoxGeometry(body.get(), mat, size * 2, srad, spos, srot);
+                    AddRoundedBoxGeometry(body.get(), mat, size, srad, spos, srot);
                 } break;
                 case ChCollisionShape::Type::ROUNDEDCYL: {
                     double radius, height, srad;
@@ -450,8 +450,8 @@ void WriteVisualizationAssets(ChSystem* system,
 
         // Loop over visual shapes -- write information for supported types.
         for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
-            auto& shape = shape_instance.first;
-            auto X_GS = body->GetFrameRefToAbs() * shape_instance.second;
+            auto& shape = shape_instance.shape;
+            auto X_GS = body->GetFrameRefToAbs() * shape_instance.frame;
             auto& pos = X_GS.GetPos();
             auto& rot = X_GS.GetRot();
 
@@ -568,7 +568,7 @@ void WriteVisualizationAssets(ChSystem* system,
         if (!link->GetVisualModel())
             continue;
         for (auto& shape_instance : link->GetVisualModel()->GetShapeInstances()) {
-            auto& shape = shape_instance.first;
+            auto& shape = shape_instance.shape;
             if (std::dynamic_pointer_cast<ChVisualShapeSegment>(shape)) {
                 csv << SEGMENT << link->GetPoint1Abs() << link->GetPoint2Abs() << std::endl;
                 la_count++;

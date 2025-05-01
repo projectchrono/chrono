@@ -187,9 +187,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, 1, -1));
-    vis->AddLight(ChVector3d(30, 80, +30), 80, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector3d(30, 80, -30), 80, ChColor(0.7f, 0.7f, 0.7f));
-    vis->EnableShadows();
+    vis->AddTypicalLights();
 
     ////vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
@@ -201,7 +199,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-        vis->BeginScene(true, true, ChColor(0.55f, 0.63f, 0.75f));
+        vis->BeginScene();
         vis->Render();
         if (draw_coll_shapes)
             drawer->Draw(mode, use_zbuffer);

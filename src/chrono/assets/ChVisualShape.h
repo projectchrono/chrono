@@ -16,6 +16,8 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrame.h"
 
+#include "chrono/geometry/ChGeometry.h"
+
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChVisualMaterial.h"
 
@@ -24,7 +26,7 @@ namespace chrono {
 /// @addtogroup chrono_assets
 /// @{
 
-class ChPhysicsItem;
+class ChObj;
 
 /// Base class for a visualization asset for rendering (run-time or post processing).
 /// Encapsulates basic information about the shape position, materials, and visibility.
@@ -90,6 +92,10 @@ class ChApi ChVisualShape {
     /// Get the number of visualization materials.
     unsigned int GetNumMaterials() const { return (unsigned int)material_list.size(); }
 
+    /// Get the shape bounding box.
+    /// The default implementation returns an inverted AABB.
+    virtual ChAABB GetBoundingBox() const { return ChAABB(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
@@ -99,9 +105,9 @@ class ChApi ChVisualShape {
   protected:
     ChVisualShape();
 
-    /// Update this visual shape with information for the owning physical object.
+    /// Update this visual shape with information for the owning object.
     /// Since a visual shape can be shared in multiple instances, this function may be called with different updaters.
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {}
+    virtual void Update(ChObj* updater, const ChFrame<>& frame) {}
 
     bool visible;     ///< shape visibility flag
     bool is_mutable;  ///< flag indicating whether the shape is rigid or deformable

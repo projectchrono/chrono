@@ -3,20 +3,15 @@ Install the MATLAB module {#module_matlab_installation}
 
 [TOC]
 
-This is a simple module that allows exchanging matrices and variables 
-from/to the Matlab environment with simple C++ function calls in Chrono.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
-
+Chrono::Matlab is a simple module that allows exchanging matrices and variables from/to the Matlab environment with simple C++ function calls in Chrono.
 
 ## Features
 
 The **Matlab module** is used to provide an easy way to call Matlab 
-functions from your Chrono::Engine -based application. Basically, you can 
+functions from your Chrono -based application. Basically, you can 
 
 - call Matlab commands from your C++ program,
-- send/retrieve data to/from Matlab (the Chrono::Engine C++ matrices are converted to Matlab, and viceversa)
+- send/retrieve data to/from Matlab (the Chrono C++ matrices are converted to Matlab, and viceversa)
 - use the Matlab powerful visualization tools, to show simulation data in 2D/3D plots, etc.
 
 
@@ -34,14 +29,12 @@ functions from your Chrono::Engine -based application. Basically, you can
 
 ## Building instructions
 
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
-   the CMake window, you must add the following steps:
+1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
   
-2. Set the `ENABLE_MODULE_MATLAB` as 'on', then press 'Configure' (to refresh the variable list)
+2. Set `CH_ENABLE_MODULE_MATLAB` to 'on'.
 
-3. Set the `CH_MATLAB_SDK` to the path where you have your Matlab '/extern' subdirectory. 
-   This changes depending on where you installed Matlab. 
-   For example, it could be `C:/Program Files/MATLAB/R2015b/extern`
+3. Set `Matlab_ROOT_DIR` to the Matlab installation root directory.
+   This changes depending on where you installed Matlab. For example, it could be `C:/Program Files/MATLAB/R2019a`
  
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

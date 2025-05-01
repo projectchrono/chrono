@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21) # fmu_tools requires a more recent version of CMake
+cmake_minimum_required(VERSION 3.21) # fmu-forge requires a more recent version of CMake
 cmake_policy(SET CMP0091 NEW)
 
 project(template_project_fmu)
@@ -27,28 +27,11 @@ if(APPLE)
     set(CMAKE_MACOSX_BUNDLE ON)
 endif()
 
-set(CMAKE_CXX_STANDARD ${CHRONO_CXX_STANDARD})
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
-  endif()
-endif()
-
-if(MSVC)
-    add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-    add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
-    add_definitions("-DNOMINMAX")                  # do not use MSVC's min/max macros
-    add_compile_options(/wd4275)                   # disable warnings triggered by Irrlicht
-    add_compile_options(/wd4251)                   # class needs to have dll-interface
-endif()
-
-
 # ===============
-# Fetch fmu_tools
+# Fetch fmu-forge
 # ===============
 
-message(STATUS "\nFetch fmu_tools...")
+message(STATUS "\nFetch fmu-forge...")
 include(FetchContent)
 
 set(FMU_MODEL_IDENTIFIER "FmuComponentChrono" CACHE STRING "Set the FMU model identifier (name).")
@@ -60,17 +43,18 @@ set(FMU_MSG_PREFIX "   ")
 
 FetchContent_Declare(
     ${FMU_MODEL_IDENTIFIER}
-    SOURCE_DIR ${CHRONO_FMU_TOOLS_DIR}/fmi2
+    SOURCE_DIR ${CHRONO_FMU_FORGE_DIR}/fmi2
 )
 
 FetchContent_MakeAvailable(${FMU_MODEL_IDENTIFIER})
 
+string(TOUPPER ${FMU_MODEL_IDENTIFIER} FMU_MODEL_IDENTIFIER_UPPERCASE)
 MARK_AS_ADVANCED(FETCHCONTENT_BASE_DIR)
 MARK_AS_ADVANCED(FETCHCONTENT_FULLY_DISCONNECTED)
 MARK_AS_ADVANCED(FETCHCONTENT_QUIET)
-MARK_AS_ADVANCED(FETCHCONTENT_SOURCE_DIR_${FMU_MODEL_IDENTIFIER})
+MARK_AS_ADVANCED(FETCHCONTENT_SOURCE_DIR_${FMU_MODEL_IDENTIFIER_UPPERCASE})
 MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED)
-MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER})
+MARK_AS_ADVANCED(FETCHCONTENT_UPDATES_DISCONNECTED_${FMU_MODEL_IDENTIFIER_UPPERCASE})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
@@ -81,14 +65,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FMU_RUNTIME_OUTPUT_DIRECTORY})
 
 message(STATUS "\nConfigure FMU...")
 
-# Append FMU sources toi automatically generated target
+# Append FMU sources to automatically generated target
 target_sources(${FMU_MODEL_IDENTIFIER} PRIVATE FmuComponentChrono.h FmuComponentChrono.cpp)
-target_include_directories(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_INCLUDE_DIRS})
 target_compile_definitions(${FMU_MODEL_IDENTIFIER} PUBLIC "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
-target_compile_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_CXX_FLAGS})
-target_link_options(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_LINKER_FLAGS})
-target_link_libraries(${FMU_MODEL_IDENTIFIER} ${CHRONO_LIBRARIES})
+target_link_libraries(${FMU_MODEL_IDENTIFIER} PUBLIC ${CHRONO_TARGETS})
 
+if(MSVC)
+  set_target_properties(${FMU_MODEL_IDENTIFIER} PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
+endif()
 
 # Enable testing
 if(TESTING_ENABLED)
@@ -107,14 +91,18 @@ source_group("" FILES ${DEMO_SOURCES})
 
 add_executable(${DEMO} ${DEMO_SOURCES})
 
-target_include_directories(${DEMO} PRIVATE "${CMAKE_SOURCES_DIR}")
+target_include_directories(${DEMO} PRIVATE ${CHRONO_FMU_FORGE_DIR})
 target_compile_definitions(${DEMO} PUBLIC FMU_UNPACK_DIRECTORY="${FMU_DIRECTORY}/tmp_unpack")
 target_compile_definitions(${DEMO} PUBLIC FMU_DIRECTORY="${FMU_DIRECTORY}")
 target_compile_definitions(${DEMO} PUBLIC FMU_FILENAME="${FMU_FILENAME}")
-target_compile_definitions(${DEMO} PUBLIC FMU_OS_SUFFIX="${FMI_PLATFORM}")
+target_compile_definitions(${DEMO} PUBLIC FMI2_PLATFORM="${FMI2_PLATFORM}")
 target_compile_definitions(${DEMO} PUBLIC SHARED_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
-target_include_directories(${DEMO} PUBLIC ${CHRONO_INCLUDE_DIRS})
+target_link_libraries(${DEMO} PUBLIC ${CHRONO_TARGETS})
 
+
+if(MSVC)
+  set_target_properties(${DEMO} PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
+endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "6.0")
     target_link_options(${DEMO} PRIVATE "LINKER:-as-needed")

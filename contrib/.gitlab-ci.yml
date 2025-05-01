@@ -69,24 +69,13 @@ linux:doxygen:deploy:
   tags:
     - linux
   image:
-      name: uwsbel/packages:ubuntu
+      name: uwsbel/packages:cuda12.8.1
   before_script:
     # Defining configuration variables
     - export DEBIAN_FRONTEND=noninteractive
     - export LIB_DIR="lib"
     - export IOMP5_DIR=""
-    - apt-get update; apt-get -y install unzip wget python3 python3-pip libomp-dev
-      git cmake ninja-build doxygen libvulkan-dev pkg-config libirrlicht-dev 
-      freeglut3-dev mpich libasio-dev libboost-dev libglfw3-dev libglm-dev 
-      libglew-dev libtinyxml2-dev swig python3-dev libhdf5-dev libnvidia-gl-535
-      curl software-properties-common
-    - wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | 
-      gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-    - echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] 
-      https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
-    - apt update
-    - apt -y install intel-basekit libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev
-      libxcb-shape0-dev libxcb-xkb-dev xorg-dev
+    - source /opt/intel/oneapi/setvars.sh
     - ldconfig
     # ROS
     - add-apt-repository universe
@@ -107,8 +96,8 @@ linux:doxygen:deploy:
     - git submodule update
     - mkdir -p build
     # VSG
-    - chmod +x $CI_PROJECT_DIR/contrib/build-scripts/vsg/buildVSG.sh
-    - sh $CI_PROJECT_DIR/contrib/build-scripts/vsg/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
+    - chmod +x $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh
+    - sh $CI_PROJECT_DIR/contrib/build-scripts/linux/buildVSG.sh $CI_PROJECT_DIR/contrib/build-scripts/vsg_build
 
 linux:ubuntu22.04-gcc:build:
   extends: .ubuntu
@@ -152,7 +141,7 @@ linux:ubuntu22.04-clang:build:
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci -DCUDA_HOST_COMPILER=/usr/bin/gcc
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -261,6 +250,8 @@ linux:ubuntu22.04:deploy-python3.10:
 #------------------#
 
 .windows:
+  variables:
+    GIT_CLONE_PATH: $CI_BUILDS_DIR/chrono
   tags:
   - windows11
   before_script:
@@ -277,12 +268,14 @@ windows:vs2022:build:
   stage: build
   extends: .windows
   script:
-  # Build vsg with buildVSG script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\vsg\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
-  # Build vsg with buildURDF script
-  - '& $CI_PROJECT_DIR\contrib\build-scripts\urdf\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
+  # Build gl with buildGL script
+  - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildGL.bat $CI_PROJECT_DIR\contrib\build-scripts\gl_build'
+  # Build vsg with buildVSG script (to speed to the building process I'm going to use the pre-built VSG instead)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  # Build urdf with buildURDF script (it looks like we have already using thre pre-built urdf as of April 27th, 2025, disabling the building for now)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -DCMAKE_CXX_FLAGS="/MP4" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
@@ -296,8 +289,11 @@ windows:vs2022:test:
   needs: ["windows:vs2022:build"]
   extends: .windows
   script:
+  # Build vsg with buildVSG script (As of April 22th, 2025, we are using the pre-built VSG)
+  # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
+  - $env:PATH += ";C:\Packages\vsg\bin"
   - cd build
-  - ctest --output-on-failure -E "utest_PARSERS"
+  - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
 
 .windows-deploy-base:

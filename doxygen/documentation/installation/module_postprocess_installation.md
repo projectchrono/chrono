@@ -3,13 +3,10 @@ Install the POSTPROCESS module {#module_postprocess_installation}
 
 [TOC]
 
-This is an optional unit that can be used to export scripts for 
+Chrono::Postprocess is an optional unit that can be used to export scripts for 
 postprocessing simulation data. For example, it can generate files that can be
 load in Blender for high quality photorealistic rendering, or in the POVray rendering tool. 
 It is also used to output files for GNUplot.
-
-Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono project.
 
 
 ## Features
@@ -68,13 +65,13 @@ because the architecture of this system is not limited to POVray.
 
 ## Building instructions
 
-This unit corresponds to an additional shared library, called ChronoEngine_postprocess, that can be linked to your application if you want to use it.
+This unit corresponds to an additional shared library, called Chrono_postprocess, that can be linked to your application if you want to use it.
 The file extension will be .dll for Win and .so on Linux.
 
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
    
-2. Set the `ENABLE_MODULE_POSTPROCESS` as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set the `CH_ENABLE_MODULE_POSTPROCESS` as 'on', then press 'Configure' (to refresh the variable list) 
  
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

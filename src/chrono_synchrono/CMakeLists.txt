@@ -4,111 +4,40 @@
 # Cannot be used stand-alone (it is loaded by parent CMake configuration file)
 #=============================================================================
 
-option(ENABLE_MODULE_SYNCHRONO "Enable the SynChrono module" OFF)
+option(CH_ENABLE_MODULE_SYNCHRONO "Enable the SynChrono module" OFF)
 
-IF(NOT ENABLE_MODULE_SYNCHRONO)
+IF(NOT CH_ENABLE_MODULE_SYNCHRONO)
   return()
 ENDIF()
 
 message(STATUS "\n==== SynChrono module ====\n")
 
 # Return now if MPI is not available
-if(NOT MPI_FOUND)
+if(NOT MPI_CXX_FOUND)
 	message("Chrono::SynChrono requires MPI, but MPI not found. Disabling Chrono::SynChrono")
-	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+	set(CH_ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
 	return()
 endif()
 
 # Return now if Chrono::Vehicle is not enabled
-if(NOT ENABLE_MODULE_VEHICLE)
+if(NOT CH_ENABLE_MODULE_VEHICLE)
     message("Chrono::SynChrono depends on Chrono::Vehicle which is disabled. Disabling Chrono::SynChrono")
-    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    set(CH_ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
     return()
 endif()
 
 # Return now if the Chrono vehicle models are not enabled
-if(NOT ENABLE_MODULE_VEHICLE_MODELS)
+if(NOT CH_ENABLE_MODULE_VEHICLE_MODELS)
     message("Chrono::SynChrono depends on the vehicle models library which is disabled. Disabling Chrono::SynChrono")
-    set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
+    set(CH_ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
     return()
 endif()
 
-set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
-set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_LIB}")
-set(SYN_LIBRARIES "")
-set(SYN_LIB_NAMES "ChronoEngine")
 
-#-----------------------------------------------------------------------------
-# Initialize exported variables
-#-----------------------------------------------------------------------------
-
-set(SYN_INCLUDES
-    ${MPI_C_HEADER_DIR}
-    ${MPI_CXX_HEADER_DIR}
-)
-
-set(SYN_LIBRARIES
-    ${SYN_LIBRARIES}
-    ${MPI_LIBRARIES}
-)
-
-#-----------------------------------------------------------------------------
-# Find DDS (Optional)
-#-----------------------------------------------------------------------------
-option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
-
-set(FASTDDS_FOUND FALSE)
-
-if (USE_FAST_DDS)
-	set(fastrtps_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
-
-	if (fastrtps_INSTALL_DIR STREQUAL "")
-	  set(FASTDDS_FOUND FALSE)
-	else()
-	  find_package(fastrtps REQUIRED PATHS "${fastrtps_INSTALL_DIR}/cmake" "${fastrtps}/share/fastrtps/cmake")
-	  
-	  message(STATUS "FastCDR found?        ${fastcdr_FOUND}")
-	  message(STATUS "FastCDR include dir:  ${fastcdr_INCLUDE_DIR}")
-      message(STATUS "FastCDR lib dir:      ${fastcdr_LIB_DIR}")
-	  
-	  message(STATUS "FastRTPS found?       ${fastrtps_FOUND}")
-	  message(STATUS "FastRTPS include dir: ${fastrtps_INCLUDE_DIR}")
-      message(STATUS "FastRTPS lib dir:     ${fastrtps_LIB_DIR}")
-	  
-	  message(STATUS "FooNathan found?      ${foonathan_memory_FOUND}")
-
-	  if (fastcdr_FOUND AND fastrtps_FOUND AND foonathan_memory_FOUND)
-	    list(APPEND SYN_LIBRARIES fastrtps fastcdr)
-	    set(SYN_INCLUDES ${SYN_INCLUDES} ${fastrtps_INCLUDE_DIR} ${fastcdr_INCLUDE_DIR})
-		set(FASTDDS_FOUND TRUE)
-        set(fastrtps_DIR "${fastrtps_DIR}" PARENT_SCOPE)
-	  else()
-	    set(FASTDDS_FOUND FALSE)
-      endif()
-	endif()
-endif()
 
 # ----------------------------------------------------------------------------
-# Generate and install configuration file
+# Create base library
 # ----------------------------------------------------------------------------
-
-# Prepare replacement variables
-if(FASTDDS_FOUND)
-	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
-else()
-	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
-endif()
-
-# Generate the configuration header file using substitution variables.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
-			   ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h"
-		DESTINATION include/chrono_synchrono)
-
-# ------------
-# Common Files
-# ------------
 
 set(SYN_BASE_FILES
 	SynApi.h
@@ -157,27 +86,7 @@ set(SYN_COMMUNICATION_FILES
     communication/mpi/SynMPICommunicator.h
     communication/mpi/SynMPICommunicator.cpp
 )
-if(FASTDDS_FOUND)
-	list(APPEND SYN_COMMUNICATION_FILES
-		communication/dds/SynDDSCommunicator.h
-		communication/dds/SynDDSCommunicator.cpp
-		
-		communication/dds/SynDDSPublisher.h
-		communication/dds/SynDDSPublisher.cpp
-		communication/dds/SynDDSSubscriber.h
-		communication/dds/SynDDSSubscriber.cpp
-		communication/dds/SynDDSTopic.h
-		communication/dds/SynDDSTopic.cpp
-		communication/dds/SynDDSListener.h
-		communication/dds/SynDDSListener.cpp
 
-		communication/dds/idl/SynDDSMessage.h
-		communication/dds/idl/SynDDSMessage.cxx
-		communication/dds/idl/SynDDSMessagePubSubTypes.h
-		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
-	)
-endif()
-source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
 
 set(SYN_FLATBUFFER_FILES
 	flatbuffer/SynFlatBuffersManager.h
@@ -226,76 +135,175 @@ set(SYN_UTILS_FILES
 )
 source_group("utils" FILES ${SYN_UTILS_FILES})
 
-#-----------------------------------------------------------------------------
-# Create the ChronoEngine_synchrono library
-#-----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Set dependencies on other Chrono modules
+# ------------------------------------------------------------------------------
 
-if (ENABLE_MODULE_SENSOR)
-  list(APPEND SYN_LIB_NAMES ChronoEngine_sensor)
+set(DEPENDENCIES_SYNCHRONO "")
+if(CH_ENABLE_MODULE_VEHICLE)
+  list (APPEND DEPENDENCIES_SYNCHRONO "VEHICLE")
 endif()
-  
-if (ENABLE_MODULE_IRRLICHT)
-  list(APPEND SYN_LIB_NAMES ChronoEngine_irrlicht)
-  list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle_irrlicht)
-
-  set(SYN_INCLUDES  ${SYN_INCLUDES} ${CH_IRRLICHT_INCLUDES})
-  set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+if(CH_ENABLE_MODULE_SENSOR)
+  list (APPEND DEPENDENCIES_SYNCHRONO "SENSOR")
+endif()
+if(CH_ENABLE_MODULE_SENSOR)
+  list (APPEND DEPENDENCIES_SYNCHRONO "IRRLICHT")
 endif()
 
-# Chrono::Vehicle is required
-list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle)
-list(APPEND SYN_LIB_NAMES ChronoModels_vehicle)
+set(DEPENDENCIES_SYNCHRONO ${DEPENDENCIES_SYNCHRONO} PARENT_SCOPE)
 
-list(APPEND SYN_LIB_NAMES ChronoModels_robot)
+#-----------------------------------------------------------------------------
+# Add the Chrono_synchrono library
+#-----------------------------------------------------------------------------
 
-# Set some variables to be visible outside this directory
-set(FASTDDS_FOUND "${FASTDDS_FOUND}" PARENT_SCOPE)
-set(SYN_INCLUDES  "${SYN_INCLUDES}"  PARENT_SCOPE)
-set(SYN_LIBRARIES "${SYN_LIBRARIES}" PARENT_SCOPE)
-set(SYN_CXX_FLAGS "${SYN_CXX_FLAGS}" PARENT_SCOPE)
-
-include_directories("${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
-include_directories(${SYN_INCLUDES})
-
-add_library(ChronoEngine_synchrono
-	${SYN_BASE_FILES}
-	${SYN_CONTROLLER_FILES}
+add_library(Chrono_synchrono
+    ${SYN_BASE_FILES}
+    ${SYN_CONTROLLER_FILES}
     ${SYN_AGENT_FILES}
     ${SYN_COMMUNICATION_FILES}
     ${SYN_FLATBUFFER_FILES}
     ${SYN_UTILS_FILES}
 )
+add_library(Chrono::synchrono ALIAS Chrono_synchrono)
 
-# windows builds should disable warning 4661 and 4005
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4661 /wd4005")
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(Chrono_synchrono PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_synchrono PROPERTIES LINK_FLAGS "/LTCG")
 endif()
 
-set_target_properties(ChronoEngine_synchrono PROPERTIES
-                      COMPILE_FLAGS "${SYN_CXX_FLAGS}"
-                      LINK_FLAGS "${SYN_LINKER_FLAGS}")
+if (CH_STATIC)
+  set_target_properties(Chrono_synchrono PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
-target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
+if(MSVC)
+  set_target_properties(Chrono_synchrono PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
 
-target_include_directories(ChronoEngine_synchrono PUBLIC "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
-target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
+# Windows builds should disable warning 4661 and 4005
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_compile_options(Chrono_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4661>)
+    target_compile_options(Chrono_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4005>)
+endif()
 
-target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES})
+target_compile_definitions(Chrono_synchrono PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SYN_API_COMPILE>)
 
-install(TARGETS ChronoEngine_synchrono
+target_include_directories(Chrono_synchrono PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include>
+  $<INSTALL_INTERFACE:include/chrono_thirdparty/flatbuffers/include>
+)
+
+# Add dependencies
+if (CH_ENABLE_MODULE_SENSOR)
+  target_link_libraries(Chrono_synchrono PUBLIC Chrono_sensor) # needs PUBLIC
+  find_package(OptiX REQUIRED)
+  target_link_libraries(Chrono_synchrono INTERFACE OptiX::OptiX) # needs INTERFACE
+endif()
+  
+if (CH_ENABLE_MODULE_IRRLICHT)
+  target_link_libraries(Chrono_synchrono PRIVATE Chrono_irrlicht)
+  target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle_irrlicht) # needs PUBLIC because of IrrKlang
+endif()
+
+target_link_libraries(Chrono_synchrono PRIVATE Chrono_core)
+target_link_libraries(Chrono_synchrono PUBLIC Chrono_vehicle) # needs PUBLIC
+target_link_libraries(Chrono_synchrono PRIVATE ChronoModels_vehicle)
+target_link_libraries(Chrono_synchrono PRIVATE ChronoModels_robot)
+target_link_libraries(Chrono_synchrono PUBLIC MPI::MPI_CXX) # needs PUBLIC
+
+#-----------------------------------------------------------------------------
+# Find DDS (Optional)
+#-----------------------------------------------------------------------------
+
+message(STATUS "Synchrono configured with MPI backend")
+
+option(CH_USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
+
+set(FASTDDS_FOUND FALSE)
+
+if (CH_USE_FAST_DDS)
+	set(FastDDS_ROOT "" CACHE PATH "Path to FastDDS install directory")
+
+	if (FastDDS_ROOT STREQUAL "")
+	  set(FASTDDS_FOUND FALSE)
+	else()
+	  message(STATUS "Find FastRTPS")
+	  find_package(fastrtps REQUIRED PATHS "${FastDDS_ROOT}/cmake" "${fastrtps}/share/fastrtps/cmake")
+	  
+	  message(STATUS "  FastCDR found?        ${fastcdr_FOUND}")
+	  message(STATUS "  FastCDR include dir:  ${fastcdr_INCLUDE_DIR}")
+      message(STATUS "  FastCDR lib dir:      ${fastcdr_LIB_DIR}")
+	  message(STATUS "  FastRTPS found?       ${fastrtps_FOUND}")
+	  message(STATUS "  FastRTPS include dir: ${fastrtps_INCLUDE_DIR}")
+      message(STATUS "  FastRTPS lib dir:     ${fastrtps_LIB_DIR}")
+	  message(STATUS "  FooNathan found?      ${foonathan_memory_FOUND}")
+
+	  if (fastcdr_FOUND AND fastrtps_FOUND AND foonathan_memory_FOUND)
+		target_link_libraries(Chrono_synchrono PUBLIC fastrtps fastcdr)
+	    ##set(SYN_INCLUDES ${SYN_INCLUDES} ${fastrtps_INCLUDE_DIR} ${fastcdr_INCLUDE_DIR})
+		set(FASTDDS_FOUND TRUE)
+        set(fastrtps_DIR "${fastrtps_DIR}" PARENT_SCOPE)
+	  else()
+	    set(FASTDDS_FOUND FALSE)
+      endif()
+	endif()
+
+	list(APPEND SYN_COMMUNICATION_FILES
+		communication/dds/SynDDSCommunicator.h
+		communication/dds/SynDDSCommunicator.cpp
+		
+		communication/dds/SynDDSPublisher.h
+		communication/dds/SynDDSPublisher.cpp
+		communication/dds/SynDDSSubscriber.h
+		communication/dds/SynDDSSubscriber.cpp
+		communication/dds/SynDDSTopic.h
+		communication/dds/SynDDSTopic.cpp
+		communication/dds/SynDDSListener.h
+		communication/dds/SynDDSListener.cpp
+
+		communication/dds/idl/SynDDSMessage.h
+		communication/dds/idl/SynDDSMessage.cxx
+		communication/dds/idl/SynDDSMessagePubSubTypes.h
+		communication/dds/idl/SynDDSMessagePubSubTypes.cxx
+	)
+	source_group("communication" FILES ${SYN_COMMUNICATION_FILES})
+	target_sources(Chrono_synchrono PRIVATE ${SYN_COMMUNICATION_FILES})
+	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
+
+    message(STATUS "Synchrono configured with FastDDS backend")
+
+else()
+	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
+	message(STATUS "Synchrono configured without FastDDS backend")
+endif()
+
+# Set some variables to be visible outside this directory
+set(FASTDDS_FOUND "${FASTDDS_FOUND}" PARENT_SCOPE)
+
+
+install(TARGETS Chrono_synchrono
+        EXPORT ChronoTargets
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        ARCHIVE DESTINATION lib
+		INCLUDES DESTINATION include/chrono_synchrono)
 
 #-------------------------------------------------------------------------------
-# Install SynChrono headers
+# Install files
 #-------------------------------------------------------------------------------
+
+# Generate the configuration header file using substitution variables.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/SynConfig.h.in
+			   ${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h)
+
+# Old way (install headers preserving directory structure)
+install(FILES "${PROJECT_BINARY_DIR}/chrono_synchrono/SynConfig.h"
+		DESTINATION include/chrono_synchrono)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_synchrono
         FILES_MATCHING PATTERN "*.h" PATTERN "fbs" EXCLUDE)
 
-# Install required chrono_thirdparty headers
+# Install 3rd party headers       
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include
         DESTINATION include/chrono_thirdparty/flatbuffers
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

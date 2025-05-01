@@ -62,15 +62,15 @@ class CH_VEHICLE_API ChTranslationalIdler : public ChIdler {
     /// Get the tensioner force element.
     std::shared_ptr<ChLinkTSDA> GetTensioner() const { return m_tensioner; }
 
-    /// Initialize this idler subsystem.
+    /// Construct this idler subsystem.
     /// The idler subsystem is initialized by attaching it to the specified chassis at the specified location (with
     /// respect to and expressed in the reference frame of the chassis). It is assumed that the idler subsystem
     /// reference frame is always aligned with the chassis reference frame. A derived idler subsystem template class
     /// must extend this default implementation and specify contact geometry for the idler wheel.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
-                            ) override;
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.

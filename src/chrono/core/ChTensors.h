@@ -97,7 +97,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
 
     /// Compute the deviatoric part of the tensor, storing it in mdeviatoric.
     void GetDeviatoricPart(ChVoightTensor<Real>& mdeviatoric) const {
-        Real mM = GetVolumetricPart() / 3.0;
+        Real mM = GetVolumetricPart() * CH_1_3;
         mdeviatoric = *this;
         mdeviatoric.XX() -= mM;
         mdeviatoric.YY() -= mM;
@@ -122,11 +122,11 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     Real GetInvariant_J1() const { return 0; }
 
     /// Compute the J2 invariant of the deviatoric part.
-    Real GetInvariant_J2() const { return std::max(0.0, std::pow(GetInvariant_I1(), 2) / 3.0 - GetInvariant_I2()); }
+    Real GetInvariant_J2() const { return std::max(0.0, std::pow(GetInvariant_I1(), 2) * CH_1_3 - GetInvariant_I2()); }
 
     /// Compute the J3 invariant of the deviatoric part.
     Real GetInvariant_J3() const {
-        return std::pow(GetInvariant_I1(), 3) * (2. / 27.) - GetInvariant_I1() * GetInvariant_I2() * (1. / 3.) +
+        return std::pow(GetInvariant_I1(), 3) * (2. / 27.) - GetInvariant_I1() * GetInvariant_I2() * CH_1_3 +
                GetInvariant_I3();
     }
 
@@ -144,12 +144,12 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
         double I1 = GetInvariant_I1();
         double I2 = GetInvariant_I2();
         double I3 = GetInvariant_I3();
-        double phi = (1. / 3.) * std::acos((2. * I1 * I1 * I1 - 9. * I1 * I2 + 27. * I3) /
+        double phi = CH_1_3 * std::acos((2. * I1 * I1 * I1 - 9. * I1 * I2 + 27. * I3) /
                                            (2. * std::pow((I1 * I1 - 3 * I2), (3. / 2.))));
-        double k = (2. / 3.) * (std::sqrt(I1 * I1 - 3. * I2));
-        e1 = (I1 / 3.) + k * std::cos(phi);
-        e2 = (I1 / 3.) + k * std::cos(phi + (2. / 3.) * chrono::CH_PI);
-        e3 = (I1 / 3.) + k * std::cos(phi + (4. / 3.) * chrono::CH_PI);
+        double k = CH_2_3 * (std::sqrt(I1 * I1 - 3. * I2));
+        e1 = (I1 * CH_1_3) + k * std::cos(phi);
+        e2 = (I1 * CH_1_3) + k * std::cos(phi + CH_2_3 * chrono::CH_PI);
+        e3 = (I1 * CH_1_3) + k * std::cos(phi + CH_4_3 * chrono::CH_PI);
     }
 
     /// Compute the eigenvectors and the eigenvalues.
@@ -183,13 +183,13 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     }
 
     /// Compute the mean hydrostatic value (aka volumetric, normal).
-    double GetEquivalentMeanHydrostatic() const { return (this->GetInvariant_I1() / 3.); }
+    double GetEquivalentMeanHydrostatic() const { return (this->GetInvariant_I1() * CH_1_3); }
 
     /// Compute the octahedral normal invariant (aka hydrostatic, volumetric).
     double GetEquivalentOctahedralNormal() const { return GetEquivalentMeanHydrostatic(); }
 
     /// Compute the octahedral deviatoric invariant (aka shear).
-    double GetEquivalentOctahedralDeviatoric() const { return std::sqrt((2. / 3.) * GetInvariant_J2()); }
+    double GetEquivalentOctahedralDeviatoric() const { return std::sqrt(CH_2_3 * GetInvariant_J2()); }
 };
 
 /// Class for stress tensors, in compact Voight notation that is with 6 components in a column.

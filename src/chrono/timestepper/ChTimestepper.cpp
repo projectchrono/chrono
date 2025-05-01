@@ -66,6 +66,37 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
     archive >> CHNVP(verbose);
 }
 
+std::string ChTimestepper::GetTypeAsString(Type type) {
+    switch (type) {
+        case Type::EULER_IMPLICIT_LINEARIZED:
+            return "EULER_IMPLICIT_LINEARIZED";
+        case Type::EULER_IMPLICIT_PROJECTED:
+            return "EULER_IMPLICIT_PROJECTED";
+        case Type::EULER_IMPLICIT:
+            return "EULER_IMPLICIT";
+        case Type::TRAPEZOIDAL:
+            return "TRAPEZOIDAL";
+        case Type::TRAPEZOIDAL_LINEARIZED:
+            return "TRAPEZOIDAL_LINEARIZED";
+        case Type::HHT:
+            return "HHT";
+        case Type::HEUN:
+            return "HEUN";
+        case Type::RUNGEKUTTA45:
+            return "RUNGEKUTTA45";
+        case Type::EULER_EXPLICIT:
+            return "EULER_EXPLICIT";
+        case Type::LEAPFROG:
+            return "LEAPFROG";
+        case Type::NEWMARK:
+            return "NEWMARK";
+        case Type::CUSTOM:
+            return "CUSTOM";
+    }
+
+    return "UNKNOWN";
+}
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
@@ -266,7 +297,7 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     y_new = Y + Dydt3 * dt;  // integrable.StateIncrement(y_new, Y, Dydt3*dt);
     GetIntegrable()->StateSolve(Dydt4, L, y_new, T + dt, dt, true, true, lumping_parameters);
 
-    Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * (1. / 6.) * dt;  // integrable.StateIncrement(...);
+    Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * CH_1_6 * dt;  // integrable.StateIncrement(...);
     dYdt = Dydt4;                                                          // to check
     T += dt;
 
@@ -559,7 +590,7 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     mintegrable->LoadResidual_Mv(R, V, 1.0);  // R += M*(v_old)
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp,
                                   Qc_clamping);  // Qc = C/dt  (sign will be flipped later in StateSolveCorrection)
-    mintegrable->LoadConstraint_Ct(Qc, 1.0);     // // Qc += Ct  (sign will be flipped later in StateSolveCorrection)
+    mintegrable->LoadConstraint_Ct(Qc, 1.0);     // Qc += Ct  (sign will be flipped later in StateSolveCorrection)
 
     mintegrable->StateSolveCorrection(  //
         V, L, R, Qc,                    //

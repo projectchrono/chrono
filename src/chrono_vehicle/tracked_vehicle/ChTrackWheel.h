@@ -74,10 +74,10 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     /// reference frame is always aligned with the chassis reference frame.
     /// A derived track wheel subsystem template class must extend this default
     /// implementation and specify contact geometry for the track wheel.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
-                            std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
-                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track               ///< [in] containing track assembly
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                    std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
+                    const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                    ChTrackAssembly* track               ///< [in] containing track assembly
     );
 
     /// Log current constraint violations.
@@ -88,6 +88,19 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
   protected:
     /// Construct a road-wheel subsystem with given name.
     ChTrackWheel(const std::string& name);
+
+    /// Construct the concrete track wheel subsystem.
+    /// The track wheel subsystem is initialized by attaching it to the specified
+    /// carrier body at the specified location (with respect to and expressed in the
+    /// reference frame of the chassis). It is assumed that the track wheel subsystem
+    /// reference frame is always aligned with the chassis reference frame.
+    /// A derived track wheel subsystem template class must extend this default
+    /// implementation and specify contact geometry for the track wheel.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                           std::shared_ptr<ChBody> carrier,     ///< [in] carrier body
+                           const ChVector3d& location,          ///< [in] location relative to the chassis frame
+                           ChTrackAssembly* track               ///< [in] containing track assembly
+                           ) = 0;
 
     virtual void InitializeInertiaProperties() override;
     virtual void UpdateInertiaProperties() override;

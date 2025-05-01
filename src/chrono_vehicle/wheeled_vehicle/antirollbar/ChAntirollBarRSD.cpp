@@ -50,14 +50,9 @@ ChAntirollBarRSD::~ChAntirollBarRSD() {
 }
 
 // -----------------------------------------------------------------------------
-void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
-                                  std::shared_ptr<ChSuspension> suspension,
-                                  const ChVector3d& location) {
-    ChAntirollBar::Initialize(chassis, suspension, location);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChAntirollBarRSD::Construct(std::shared_ptr<ChChassis> chassis,
+                                 std::shared_ptr<ChSuspension> suspension,
+                                 const ChVector3d& location) {
     auto chassisBody = chassis->GetBody();
     auto sys = chassisBody->GetSystem();
 
@@ -194,14 +189,14 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
                                            const ChVector3d& pt_3,
                                            double radius,
                                            const ChColor& color) {
-    ChVehicleGeometry::AddVisualizationCylinder(arm, pt_1, pt_2, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, pt_1, pt_2, radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm, pt_2, pt_3, radius);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm, pt_2, pt_3, radius);
 
-    ChVehicleGeometry::AddVisualizationCylinder(arm,                                  //
-                                                pt_1 + ChVector3d(0, 0, 3 * radius),  //
-                                                pt_1 - ChVector3d(0, 0, 3 * radius),  //
-                                                radius / 2);
+    utils::ChBodyGeometry::AddVisualizationCylinder(arm,                                  //
+                                                    pt_1 + ChVector3d(0, 0, 3 * radius),  //
+                                                    pt_1 - ChVector3d(0, 0, 3 * radius),  //
+                                                    radius / 2);
 }
 
 // -----------------------------------------------------------------------------

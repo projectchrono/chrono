@@ -16,6 +16,8 @@
 ////    Serialization/deserialization of unique_ptr members is currently commented
 ////    out until support for unique_ptr is implemented in ChArchive.
 
+#include <cmath>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkLock.h"
 
@@ -37,27 +39,43 @@ ChLinkLock::ChLinkLock()
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
     mask = other.mask;
 
-    force_D.reset(other.force_D->Clone());
-    force_R.reset(other.force_R->Clone());
-    force_X.reset(other.force_X->Clone());
-    force_Y.reset(other.force_Y->Clone());
-    force_Z.reset(other.force_Z->Clone());
-    force_Rx.reset(other.force_Rx->Clone());
-    force_Ry.reset(other.force_Ry->Clone());
-    force_Rz.reset(other.force_Rz->Clone());
+    if (other.force_D)
+        force_D.reset(other.force_D->Clone());
+    if (other.force_R)
+        force_R.reset(other.force_R->Clone());
+    if (other.force_X)
+        force_X.reset(other.force_X->Clone());
+    if (other.force_Y)
+        force_Y.reset(other.force_Y->Clone());
+    if (other.force_Z)
+        force_Z.reset(other.force_Z->Clone());
+    if (other.force_Rx)
+        force_Rx.reset(other.force_Rx->Clone());
+    if (other.force_Ry)
+        force_Ry.reset(other.force_Ry->Clone());
+    if (other.force_Rz)
+        force_Rz.reset(other.force_Rz->Clone());
 
     d_restlength = other.d_restlength;
 
     type = other.type;
 
-    limit_X.reset(other.limit_X->Clone());
-    limit_Y.reset(other.limit_Y->Clone());
-    limit_Z.reset(other.limit_Z->Clone());
-    limit_Rx.reset(other.limit_Rx->Clone());
-    limit_Ry.reset(other.limit_Ry->Clone());
-    limit_Rz.reset(other.limit_Rz->Clone());
-    limit_Rp.reset(other.limit_Rp->Clone());
-    limit_D.reset(other.limit_D->Clone());
+    if (other.limit_X)
+        limit_X.reset(other.limit_X->Clone());
+    if (other.limit_Y)
+        limit_Y.reset(other.limit_Y->Clone());
+    if (other.limit_Z)
+        limit_Z.reset(other.limit_Z->Clone());
+    if (other.limit_Rx)
+        limit_Rx.reset(other.limit_Rx->Clone());
+    if (other.limit_Ry)
+        limit_Ry.reset(other.limit_Ry->Clone());
+    if (other.limit_Rz)
+        limit_Rz.reset(other.limit_Rz->Clone());
+    if (other.limit_Rp)
+        limit_Rp.reset(other.limit_Rp->Clone());
+    if (other.limit_D)
+        limit_D.reset(other.limit_D->Clone());
 
     Ct_temp = other.Ct_temp;
 
@@ -230,7 +248,7 @@ void ChLinkLock::SetBroken(bool mbro) {
 
 void ChLinkLock::SetupMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMarkers::SetupMarkers(mark1, mark2);
-    assert(this->m_body1 && this->m_body2);
+    assert(m_body1 && m_body2);
 
     mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
@@ -250,7 +268,7 @@ void ChLinkLock::BuildLink() {
     C_dt.resize(m_num_constr);
     C_dtdt.resize(m_num_constr);
     react.resize(m_num_constr);
-    Qc.resize(m_num_constr);
+    Q_c.resize(m_num_constr);
     Ct.resize(m_num_constr);
     Cq1.resize(m_num_constr, BODY_QDOF);
     Cq2.resize(m_num_constr, BODY_QDOF);
@@ -345,6 +363,10 @@ void ChLinkLock::ChangeType(Type new_link_type) {
 // -----------------------------------------------------------------------------
 // UPDATING PROCEDURES
 
+void ChLinkLock::UpdateTime(double time) {
+    ChTime = time;
+}
+
 // Complete update.
 void ChLinkLock::Update(double time, bool update_assets) {
     UpdateTime(time);
@@ -354,10 +376,10 @@ void ChLinkLock::Update(double time, bool update_assets) {
     UpdateForces(time);
 
     // Update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 }
 
-// Updates Cq1_temp, Cq2_temp, Qc_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
+// Updates Cq1_temp, Cq2_temp, Q_c_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
 void ChLinkLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
@@ -382,8 +404,8 @@ void ChLinkLock::UpdateState() {
 
     Ct_temp.rot = q_AD;
 
-    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Qc_temp VECTOR.
-    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
+    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Q_c_temp VECTOR.
+    // [Cq_temp]= [[CqxT] [CqxR]]     {Q_c_temp} ={[Qcx]}
     //            [[ 0  ] [CqrR]]                {[Qcr]}
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
@@ -434,13 +456,13 @@ void ChLinkLock::UpdateState() {
     Qcx = Vadd(Qcx, vtemp2);
     Qcx = Vadd(Qcx, q_4);  // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
 
-    Qc_temp.segment(0, 3) = Qcx.eigen();  // * Qc_temp, for all translational coords
-    Qc_temp.segment(3, 4) = q_8.eigen();  // * Qc_temp, for all rotational coords (Qcr = q_8)
+    Q_c_temp.segment(0, 3) = Qcx.eigen();  // * Q_c_temp, for all translational coords
+    Q_c_temp.segment(3, 4) = q_8.eigen();  // * Q_c_temp, for all rotational coords (Qcr = q_8)
 
     // *** NOTE! The final Qc must change sign, to be used in
     // lagrangian equation:    [Cq]*q_dtdt = Qc
     // because until now we have computed it as [Cq]*q_dtdt + "Qc" = 0
-    Qc_temp *= -1;
+    Q_c_temp *= -1;
 
     // ---------------------
     // Updates Cq1, Cq2, Qc,
@@ -452,7 +474,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
-        Qc(index) = Qc_temp(0);
+        Q_c(index) = Q_c_temp(0);
 
         C(index) = relM.pos.x();
         C_dt(index) = relM_dt.pos.x();
@@ -467,7 +489,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
-        Qc(index) = Qc_temp(1);
+        Q_c(index) = Q_c_temp(1);
 
         C(index) = relM.pos.y();
         C_dt(index) = relM_dt.pos.y();
@@ -482,7 +504,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
-        Qc(index) = Qc_temp(2);
+        Q_c(index) = Q_c_temp(2);
 
         C(index) = relM.pos.z();
         C_dt(index) = relM_dt.pos.z();
@@ -497,7 +519,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
-        Qc(index) = Qc_temp(3);
+        Q_c(index) = Q_c_temp(3);
 
         C(index) = relM.rot.e0();
         C_dt(index) = relM_dt.rot.e0();
@@ -512,7 +534,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
-        Qc(index) = Qc_temp(4);
+        Q_c(index) = Q_c_temp(4);
 
         C(index) = relM.rot.e1();
         C_dt(index) = relM_dt.rot.e1();
@@ -527,7 +549,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
 
-        Qc(index) = Qc_temp(5);
+        Q_c(index) = Q_c_temp(5);
 
         C(index) = relM.rot.e2();
         C_dt(index) = relM_dt.rot.e2();
@@ -542,7 +564,7 @@ void ChLinkLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
 
-        Qc(index) = Qc_temp(6);
+        Q_c(index) = Q_c_temp(6);
 
         C(index) = relM.rot.e3();
         C_dt(index) = relM_dt.rot.e3();
@@ -581,8 +603,8 @@ void ChLinkLock::UpdateCqw() {
 }
 
 // Override UpdateForces to include possible contributions from joint limits.
-void ChLinkLock::UpdateForces(double mytime) {
-    ChLinkMarkers::UpdateForces(mytime);
+void ChLinkLock::UpdateForces(double time) {
+    ChLinkMarkers::UpdateForces(time);
 
     ChVector3d m_force = VNULL;
     ChVector3d m_torque = VNULL;
@@ -1037,7 +1059,7 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     if (!do_clamp)
         recovery_clamp = 1e24;
 
-    unsigned int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1071,31 +1093,37 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += std::max(c * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
+            Qc(off_L + local_offset) +=
+                std::max(c * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
     }
@@ -1131,7 +1159,7 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
         }
     }
 
-    unsigned int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1219,7 +1247,7 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
         }
     }
 
-    unsigned int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1284,7 +1312,7 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
 }
 
 void ChLinkLock::InjectConstraints(ChSystemDescriptor& descriptor) {
-    if (!this->IsActive())
+    if (!IsActive())
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
@@ -1491,21 +1519,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Rx->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Rx->constr_lower.SetRightHandSide(limit_Rx->constr_lower.GetRightHandSide() +
-                                               factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
+                                                        factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
             } else {
                 limit_Rx->constr_lower.SetRightHandSide(
                     limit_Rx->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
+                    std::max(factor * (-std::sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
             }
         }
         if (limit_Rx->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Rx->constr_upper.SetRightHandSide(limit_Rx->constr_upper.GetRightHandSide() +
-                                               factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
+                                                        factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
             } else {
                 limit_Rx->constr_upper.SetRightHandSide(
                     limit_Rx->constr_upper.GetRightHandSide() +
-                    std::max(factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
+                    std::max(factor * (std::sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
             }
         }
     }
@@ -1513,21 +1541,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Ry->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Ry->constr_lower.SetRightHandSide(limit_Ry->constr_lower.GetRightHandSide() +
-                                               factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
+                                                        factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
             } else {
                 limit_Ry->constr_lower.SetRightHandSide(
                     limit_Ry->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
+                    std::max(factor * (-std::sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
             }
         }
         if (limit_Ry->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Ry->constr_upper.SetRightHandSide(limit_Ry->constr_upper.GetRightHandSide() +
-                                               factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
+                                                        factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
             } else {
                 limit_Ry->constr_upper.SetRightHandSide(
                     limit_Ry->constr_upper.GetRightHandSide() +
-                    std::max(factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
+                    std::max(factor * (std::sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
             }
         }
     }
@@ -1535,21 +1563,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Rz->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Rz->constr_lower.SetRightHandSide(limit_Rz->constr_lower.GetRightHandSide() +
-                                               factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
+                                                        factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
             } else {
                 limit_Rz->constr_lower.SetRightHandSide(
                     limit_Rz->constr_lower.GetRightHandSide() +
-                    std::max(factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
+                    std::max(factor * (-std::sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
             }
         }
         if (limit_Rz->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Rz->constr_upper.SetRightHandSide(limit_Rz->constr_upper.GetRightHandSide() +
-                                               factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
+                                                        factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
             } else {
                 limit_Rz->constr_upper.SetRightHandSide(
                     limit_Rz->constr_upper.GetRightHandSide() +
-                    std::max(factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
+                    std::max(factor * (std::sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
             }
         }
     }
@@ -1569,7 +1597,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * Qc(cnt));
+            mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * Q_c(cnt));
             cnt++;
         }
     }
@@ -2185,7 +2213,7 @@ void ChLinkLockLock::UpdateTime(double time) {
     }
 }
 
-// Updates Cq1_temp, Cq2_temp, Qc_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
+// Updates Cq1_temp, Cq2_temp, Q_c_temp, etc., i.e. all LOCK-FORMULATION temp.matrices
 void ChLinkLockLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
@@ -2234,8 +2262,8 @@ void ChLinkLockLock::UpdateState() {
     // deltaC^*(q_AD) + deltaC_dt^*q_pq
     Ct_temp.rot = Qcross(Qconjugate(deltaC.rot), q_AD) + Qcross(Qconjugate(deltaC_dt.rot), relM.rot);
 
-    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Qc_temp VECTOR.
-    // [Cq_temp]= [[CqxT] [CqxR]]     {Qc_temp} ={[Qcx]}
+    //------------ COMPLETE JACOBIANS Cq1_temp AND Cq2_temp AND Q_c_temp VECTOR.
+    // [Cq_temp]= [[CqxT] [CqxR]]     {Q_c_temp} ={[Qcx]}
     //            [[ 0  ] [CqrR]]                {[Qcr]}
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
@@ -2295,14 +2323,14 @@ void ChLinkLockLock::UpdateState() {
     Qcr = Qadd(Qcr, Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot));  // = deltaC'*q_8 + 2*deltaC_dt'*q_dt,po +
                                                                      // deltaC_dtdt'*q,po
 
-    Qc_temp.segment(0, 3) = Qcx.eigen();  // * Qc_temp, for all translational coords
-    Qc_temp.segment(3, 4) = Qcr.eigen();  // * Qc_temp, for all rotational coords
+    Q_c_temp.segment(0, 3) = Qcx.eigen();  // * Q_c_temp, for all translational coords
+    Q_c_temp.segment(3, 4) = Qcr.eigen();  // * Q_c_temp, for all rotational coords
 
     // *** NOTE! The definitive  Qc must change sign, to be used in
     // lagrangian equation:    [Cq]*q_dtdt = Qc
     // because until now we have computed it as [Cq]*q_dtdt + "Qc" = 0,
     // but the most used form is the previous, so let's change sign!!
-    Qc_temp *= -1;
+    Q_c_temp *= -1;
 
     // ---------------------
     // Updates Cq1, Cq2, Qc,
@@ -2314,7 +2342,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(0, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(0, 0);
 
-        Qc(index) = Qc_temp(0);
+        Q_c(index) = Q_c_temp(0);
 
         C(index) = relC.pos.x();
         C_dt(index) = relC_dt.pos.x();
@@ -2329,7 +2357,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(1, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(1, 0);
 
-        Qc(index) = Qc_temp(1);
+        Q_c(index) = Q_c_temp(1);
 
         C(index) = relC.pos.y();
         C_dt(index) = relC_dt.pos.y();
@@ -2344,7 +2372,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 7>(index, 0) = Cq1_temp.block<1, 7>(2, 0);
         Cq2.block<1, 7>(index, 0) = Cq2_temp.block<1, 7>(2, 0);
 
-        Qc(index) = Qc_temp(2);
+        Q_c(index) = Q_c_temp(2);
 
         C(index) = relC.pos.z();
         C_dt(index) = relC_dt.pos.z();
@@ -2359,7 +2387,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(3, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(3, 3);
 
-        Qc(index) = Qc_temp(3);
+        Q_c(index) = Q_c_temp(3);
 
         C(index) = relC.rot.e0();
         C_dt(index) = relC_dt.rot.e0();
@@ -2374,7 +2402,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(4, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(4, 3);
 
-        Qc(index) = Qc_temp(4);
+        Q_c(index) = Q_c_temp(4);
 
         C(index) = relC.rot.e1();
         C_dt(index) = relC_dt.rot.e1();
@@ -2389,7 +2417,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(5, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(5, 3);
 
-        Qc(index) = Qc_temp(5);
+        Q_c(index) = Q_c_temp(5);
 
         C(index) = relC.rot.e2();
         C_dt(index) = relC_dt.rot.e2();
@@ -2404,7 +2432,7 @@ void ChLinkLockLock::UpdateState() {
         Cq1.block<1, 4>(index, 3) = Cq1_temp.block<1, 4>(6, 3);
         Cq2.block<1, 4>(index, 3) = Cq2_temp.block<1, 4>(6, 3);
 
-        Qc(index) = Qc_temp(6);
+        Q_c(index) = Q_c_temp(6);
 
         C(index) = relC.rot.e3();
         C_dt(index) = relC_dt.rot.e3();

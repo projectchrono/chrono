@@ -71,14 +71,6 @@ int main(int argc, char* argv[]) {
     ground->SetFixed(true);
     ground->EnableCollision(false);
 
-    {
-        auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
-        ground->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(0, 0, +1.0)));
-
-        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
-        ground->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -1.0)));
-    }
-
     // Create a pendulum modeled using ChBody
     // --------------------------------------
 
@@ -92,20 +84,27 @@ int main(int argc, char* argv[]) {
     // Attach a visualization asset. Note that the cylinder is defined with
     // respect to the centroidal reference frame (which is the body reference
     // frame for a ChBody).
-    auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
-    cyl_1->SetColor(ChColor(0.6f, 0, 0));
-    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(), QuatFromAngleY(CH_PI_2)));
+    {
+        auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
+        cyl_1->SetColor(ChColor(0.6f, 0, 0));
+        pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(), QuatFromAngleY(CH_PI_2)));
+    }
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of
     // mass.
     pend_1->SetPos(ChVector3d(1, 0, 1));
 
-    // Create a revolute joint to connect pendulum to ground. We specify the link
-    // coordinate frame in the absolute frame.
+    // Create a revolute joint to connect pendulum to ground. 
+    // Specify the link coordinate frame in the absolute frame.
+    // Attach link visualization.
     auto rev_1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev_1->Initialize(ground, pend_1, ChFrame<>(ChVector3d(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(rev_1);
+    rev_1->Initialize(ground, pend_1, ChFrame<>(ChVector3d(0, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
+    {
+        auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.42);
+        rev_1->AddVisualShape(cyl_1);
+    }
 
     // Create a pendulum modeled using ChBodyAuxRef
     // --------------------------------------------
@@ -120,9 +119,11 @@ int main(int argc, char* argv[]) {
 
     // Attach a visualization asset. Note that now the cylinder is defined with
     // respect to the body reference frame.
-    auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
-    cyl_2->SetColor(ChColor(0, 0, 0.6f));
-    pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleY(CH_PI_2)));
+    {
+        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
+        cyl_2->SetColor(ChColor(0, 0, 0.6f));
+        pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleY(CH_PI_2)));
+    }
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
@@ -148,11 +149,16 @@ int main(int argc, char* argv[]) {
     //
     // This also applies to SetRot().
 
-    // Create a revolute joint to connect pendulum to ground. We specify the link
-    // coordinate frame in the absolute frame.
+    // Create a revolute joint to connect pendulum to ground. 
+    // Specify the link coordinate frame in the absolute frame.
+    // Attach link visualization.
     auto rev_2 = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev_2->Initialize(ground, pend_2, ChFrame<>(ChVector3d(0, 0, -1), ChQuaternion<>(1, 0, 0, 0)));
     sys.AddLink(rev_2);
+    rev_2->Initialize(ground, pend_2, ChFrame<>(ChVector3d(0, 0, -1), ChQuaternion<>(1, 0, 0, 0)));
+    {
+        auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.42);
+        rev_2->AddVisualShape(cyl_2);
+    }
 
     // Create the Irrlicht application
     // -------------------------------
@@ -192,14 +198,14 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("ChBodyAuxRef demo");
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
-            vis_vsg->SetWindowSize(ChVector2i(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
-            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->EnableSkyBox();
             vis_vsg->AddCamera(ChVector3d(0, 3, 6));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->SetShadows(true);
+            vis_vsg->EnableShadows();
             vis_vsg->Initialize();
 
             vis = vis_vsg;

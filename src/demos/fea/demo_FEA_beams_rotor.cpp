@@ -26,17 +26,18 @@
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 
+#include "FEAvisualization.h"
+
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 using namespace chrono::postprocess;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
     // CREATE THE MODEL
     //
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // BODY: the base & tower:
@@ -175,8 +176,8 @@ int main(int argc, char* argv[]) {
         nodes = builder.GetLastBeamNodes();
     }
     if (use_timoshenko) {
-        double Izz = (1.0 / 12.0) * beam_wz * pow(beam_wy, 3);
-        double Iyy = (1.0 / 12.0) * beam_wy * pow(beam_wz, 3);
+        double Izz = (1.0 / 12.0) * beam_wz * std::pow(beam_wy, 3);
+        double Iyy = (1.0 / 12.0) * beam_wy * std::pow(beam_wz, 3);
         DampingCoefficients mcoeffs;
         mcoeffs.bt = mcoeffs.bx = mcoeffs.by = mcoeffs.bz = 0.001;
         auto msection = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGeneric>(
@@ -216,14 +217,14 @@ int main(int argc, char* argv[]) {
     // VISUALIZATION ASSETS:
     //
 
-    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     mvisualizebeamA->SetColorscaleMinMax(-0.001, 600);
     mvisualizebeamA->SetSmoothFaces(true);
     mvisualizebeamA->SetWireframe(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamA);
 
-    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    auto mvisualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     mvisualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizebeamC->SetSymbolsThickness(0.2);
@@ -231,19 +232,10 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(1024, 768);
-    vis->SetWindowTitle("Rotor with simplified blade: steady state statics & dynamics");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
-    vis->AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->AddCamera(ChVector3d(1.0, 0.3, 10.0), ChVector3d(0.0, 0.0, 0.0));
-    vis->EnableShadows();
+    // Create the run-time visualization system
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys,
+                                         "Rotor with simplified blade: steady state statics & dynamics",
+                                         ChVector3d(1.0, 0.3, 10.0));
 
     // --TEST--
 
@@ -420,8 +412,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
-                        ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.01);
 

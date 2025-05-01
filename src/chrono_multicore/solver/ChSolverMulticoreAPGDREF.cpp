@@ -12,6 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 using namespace chrono;
@@ -19,9 +21,8 @@ using namespace chrono;
 real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct,
                                     ChProjectConstraints& Project,
                                     DynamicVector<real>& gamma,
-                                    const DynamicVector<real>& r,
-                                    DynamicVector<real>& tmp) {
-    real gdiff = 1.0 / pow(data_manager->num_constraints, 2.0);
+                                    const DynamicVector<real>& r) {
+    real gdiff = 1.0 / std::pow(data_manager->num_constraints, 2.0);
     SchurProduct(gamma, tmp);
     tmp = tmp - r;
     tmp = gamma - gdiff * (tmp);
@@ -141,16 +142,16 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
         }
 
         // (15) theta_(k+1) = (-theta_k^2 + theta_k * Sqrt(theta_k^2 + 4)) / 2;
-        thetaNew = (-pow(theta, 2.0) + theta * Sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
+        thetaNew = (-std::pow(theta, 2.0) + theta * Sqrt(std::pow(theta, 2.0) + 4.0)) / 2.0;
 
         // (16) Beta_(k+1) = theta_k * (1 - theta_k) / (theta_k^2 + theta_(k+1))
-        Beta = theta * (1.0 - theta) / (pow(theta, 2) + thetaNew);
+        Beta = theta * (1.0 - theta) / (std::pow(theta, 2) + thetaNew);
 
         // (17) y_(k+1) = gamma_(k+1) + Beta_(k+1) * (gamma_(k+1) - gamma_k)
         yNew = gammaNew + Beta * (gammaNew - gamma);
 
         // (18) r = r(gamma_(k+1))
-        real res = Res4(SchurProduct, Project, gammaNew, r, tmp);
+        real res = Res4(SchurProduct, Project, gammaNew, r);
 
         // (19) if r < epsilon_min
         if (res < residual) {

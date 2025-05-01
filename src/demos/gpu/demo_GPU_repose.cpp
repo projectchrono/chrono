@@ -22,7 +22,11 @@
 
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
-#include "chrono_gpu/utils/ChGpuVisualization.h"
+
+#include "chrono_gpu/visualization/ChGpuVisualization.h"
+#ifdef CHRONO_OPENGL
+    #include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -31,6 +35,7 @@ using namespace chrono::gpu;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
+double render_fps = 100;
 
 int main(int argc, char* argv[]) {
     std::string inputJson = GetChronoDataFile("gpu/repose.json");
@@ -152,43 +157,50 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.Initialize();
 
-    ChGpuVisualization gpu_vis(&gpu_sys);
+#if !defined(CHRONO_OPENGL)
+    render = false;
+#endif
+
+    std::shared_ptr<ChGpuVisualization> visGPU;
     if (render) {
-        gpu_vis.SetTitle("Chrono::Gpu repose demo");
-        gpu_vis.AddCamera(ChVector3d(0, -30, -10), ChVector3d(0, 0, -20));
-        gpu_vis.SetCameraMoveScale(1.0f);
-        gpu_vis.Initialize();
+#ifdef CHRONO_OPENGL
+        visGPU = chrono_types::make_shared<ChGpuVisualizationGL>(&gpu_sys);
+        visGPU->SetTitle("Chrono::Gpu repose demo");
+        visGPU->AddCamera(ChVector3d(0, -30, -10), ChVector3d(0, 0, -20));
+        visGPU->SetCameraMoveScale(1.0f);
+        visGPU->Initialize();
+#endif
     }
 
-    int fps = 1000;
-    float frame_step = 1.f / fps;
-    float curr_time = 0.f;
-    int currframe = 0;
-    unsigned int total_frames = (unsigned int)((float)params.time_end * fps);
+    float step = 1e-3f;
+    float time = 0.f;
+    int sim_frame = 0;
+    int render_frame = 0;
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), sim_frame);
     gpu_sys.WriteParticleFile(std::string(filename));
 
     char mesh_filename[100];
-    sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe);
+    sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), sim_frame);
     gpu_sys.WriteMeshes(std::string(mesh_filename));
 
-    currframe++;
+    sim_frame++;
 
-    std::cout << "frame step is " << frame_step << std::endl;
-    while (curr_time < params.time_end) {
-        ////std::cout << "Time = " << curr_time << std::endl;
-        gpu_sys.AdvanceSimulation(frame_step);
+    while (time < params.time_end) {
+        gpu_sys.AdvanceSimulation(step);
 
-        if (render && !gpu_vis.Render())
-            break;
+        if (render && time >= render_frame / render_fps) {
+            if (!visGPU->Render())
+                break;
+            render_frame++;
+        }
 
-        printf("Output frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
+        printf("Output frame %u\n", sim_frame);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), sim_frame);
         gpu_sys.WriteParticleFile(std::string(filename));
-        sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe);
+        sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), sim_frame);
         gpu_sys.WriteMeshes(std::string(mesh_filename));
 
         float KE = gpu_sys.GetParticlesKineticEnergy();
@@ -196,8 +208,8 @@ int main(int argc, char* argv[]) {
         unsigned int NumStillIn = gpu_sys.GetNumParticleAboveZ(funnel_bottom);
         std::cout << "Numer of particles still in funnel: " << NumStillIn << std::endl;
 
-        curr_time += frame_step;
-        currframe++;
+        time += step;
+        sim_frame++;
     }
 
     return 0;

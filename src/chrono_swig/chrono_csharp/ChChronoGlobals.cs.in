@@ -1,6 +1,6 @@
 public static class ChronoGlobals
 {
     public const string CHRONO_VERSION = "@CHRONO_VERSION@";
-    public const string CHRONO_DATA_DIR = "@CH_DATA_DIR@";
-    public const string CHRONO_VEHICLE_DATA_DIR = "@CH_DATA_DIR@vehicle/";
+    public const string CHRONO_DATA_DIR = "@CH_CS_DATA@";
+    public const string CHRONO_VEHICLE_DATA_DIR = "@CH_CS_VEHICLE_DATA@";
 }

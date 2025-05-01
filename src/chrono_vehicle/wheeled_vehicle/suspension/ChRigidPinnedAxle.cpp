@@ -38,7 +38,6 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChRigidPinnedAxle::ChRigidPinnedAxle(const std::string& name) : ChSuspension(name) {}
 
 ChRigidPinnedAxle::~ChRigidPinnedAxle() {
@@ -54,18 +53,12 @@ ChRigidPinnedAxle::~ChRigidPinnedAxle() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
-                                   std::shared_ptr<ChSubchassis> subchassis,
-                                   std::shared_ptr<ChSteering> steering,
-                                   const ChVector3d& location,
-                                   double left_ang_vel,
-                                   double right_ang_vel) {
-    ChSuspension::Initialize(chassis, subchassis, steering, location, left_ang_vel, right_ang_vel);
-
-    m_parent = chassis;
-    m_rel_loc = location;
-
+void ChRigidPinnedAxle::Construct(std::shared_ptr<ChChassis> chassis,
+                                  std::shared_ptr<ChSubchassis> subchassis,
+                                  std::shared_ptr<ChSteering> steering,
+                                  const ChVector3d& location,
+                                  double left_ang_vel,
+                                  double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
@@ -84,6 +77,7 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChVector3d axleCOM = suspension_to_abs.TransformPointLocalToParent(getAxleTubeCOM());
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetName(m_name + "_axleTube");
+    m_axleTube->SetTag(m_obj_tag);
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -94,6 +88,7 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axlePin = chrono_types::make_shared<ChLinkLockRevolute>();
     m_axlePin->SetName(m_name + "_axlePin");
+    m_axlePin->SetTag(m_obj_tag);
     m_axlePin->Initialize(m_axleTube, chassis->GetBody(),
                           ChFrame<>(m_axlePinLoc, chassisRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axlePin);
@@ -113,19 +108,17 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrameRefToAbs().GetRot();
 
-    // Create and initialize spindle body (same orientation as the chassis)
-    m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
+    // Initialize spindle body (same orientation as the chassis)
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize joints
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetName(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetTag(m_obj_tag);
     m_revolute[side]->Initialize(m_axleTube, m_spindle[side],
                                  ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -134,6 +127,7 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetName(m_name + "_axle" + suffix);
+    m_axle[side]->SetTag(m_obj_tag);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
@@ -210,17 +204,17 @@ void ChRigidPinnedAxle::AddVisualizationAssets(VisualizationType vis) {
     ChVector3d pP = m_axleTube->TransformPointParentToLocal(m_axlePinLoc);
 
     // Add visualization assets for the axle tube body
-    ChVehicleGeometry::AddVisualizationCylinder(m_axleTube, pSL, pSR, getAxleTubeRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_axleTube, pSL, pSR, getAxleTubeRadius());
 
     static const double threshold2 = 1e-6;
     if (pP.Length2() > threshold2) {
-        ChVehicleGeometry::AddVisualizationCylinder(m_axleTube, pP, VNULL, getAxleTubeRadius() / 2);
+        utils::ChBodyGeometry::AddVisualizationCylinder(m_axleTube, pP, VNULL, getAxleTubeRadius() / 2);
     }
 
-    ChVehicleGeometry::AddVisualizationCylinder(m_axleTube,                                        //
-                                                pP - ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),  //
-                                                ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),       //
-                                                getAxleTubeRadius());
+    utils::ChBodyGeometry::AddVisualizationCylinder(m_axleTube,                                        //
+                                                    pP - ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),  //
+                                                    ChVector3d(1.5 * getAxleTubeRadius(), 0, 0),       //
+                                                    getAxleTubeRadius());
 }
 
 void ChRigidPinnedAxle::RemoveVisualizationAssets() {

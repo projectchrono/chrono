@@ -29,6 +29,8 @@
 // =============================================================================
 
 #include <iomanip>
+#include <cmath>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
@@ -37,6 +39,7 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono_modal/ChModalAssembly.h"
+#include "chrono_modal/ChModalSolverUndamped.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #ifdef CHRONO_PARDISO_MKL
@@ -54,12 +57,15 @@ ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
 
 // -----------------------------------------------------------------------------
 
-void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType reduction_type, ChMatrixDynamic<>& res, bool verbose) {
+void RunSlewingBeam(bool do_modal_reduction,
+                    ChModalAssembly::ReductionType reduction_type,
+                    ChMatrixDynamic<>& res,
+                    bool verbose) {
     double time_step = 0.002;
     double time_step_prt = 0.5;
     double time_length = 50;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     sys.SetNumThreads(std::min(4, ChOMP::GetNumProcs()), 0, 1);
@@ -223,19 +229,19 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
     }
 
     sys.Setup();
-    sys.Update();
+    sys.Update(true);
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
-        ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
+        auto eigen_solver = chrono_types::make_shared<ChUnsymGenEigenvalueSolverKrylovSchur>();
 
         // The success of eigen solve is sensitive to the frequency shift (1e-4). If the eigen solver fails, try to
         // tune the shift value.
-        auto modes_settings = ChModalSolveUndamped(12, 1e-4, 500, 1e-10, false, eigen_solver);
+        ChModalSolverUndamped<ChUnsymGenEigenvalueSolverKrylovSchur> modal_solver(12, 1e-4, true, false, eigen_solver);
         auto damping_beam = ChModalDampingRayleigh(damping_alpha, damping_beta);
 
         for (int i_part = 0; i_part < n_parts; i_part++) {
-            modal_assembly_list.at(i_part)->DoModalReduction(modes_settings, damping_beam);
+            modal_assembly_list.at(i_part)->DoModalReduction(modal_solver, damping_beam);
         }
     }
 
@@ -264,12 +270,17 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
 
     double step_timer = 0;
 
+    if (verbose){
+        std::cout << "|       Time       | Rot.Speed[rad/s] |    Rel.Def.X     |    Rel.Def.Y     |    Rel.Def.Z     |\n" <<
+                     "|------------------|------------------|------------------|------------------|------------------|" << std::endl;
+    }
+
     while (frame < Nframes) {
         double tao = sys.GetChTime() / T;
 
         double rot_angle = 0;
         if (tao < 1.0)
-            rot_angle = omega * T * (tao * tao / 2.0 + (cos(CH_2PI * tao) - 1.0) / pow(CH_2PI, 2.0));
+            rot_angle = omega * T * (tao * tao / 2.0 + (std::cos(CH_2PI * tao) - 1.0) / std::pow(CH_2PI, 2.0));
         else
             rot_angle = omega * T * (tao - 0.5);
 
@@ -309,10 +320,11 @@ void RunSlewingBeam(bool do_modal_reduction, ChModalAssembly::ReductionType redu
         }
 
         if (verbose && (frame % itv_frame == 0)) {
-            std::cout << "t: " << sys.GetChTime() << "\t";
-            std::cout << "Rot. Speed (rad/s): " << res(frame, 1) << "\t";
-            std::cout << "Rel. Def.:\t" << relative_defl.GetPos().x() - beam_L << "\t" << relative_defl.GetPos().y()
-                      << "\t" << relative_defl.GetPos().z() << "\n";
+            std::cout << "| " << std::setw(16) << sys.GetChTime() << " | ";
+            std::cout << std::setw(16) << res(frame, 1) << " | ";
+            std::cout << std::setw(16) << relative_defl.GetPos().x() - beam_L << " | " << std::setw(16)
+                      << relative_defl.GetPos().y() << " | " << std::setw(16) << relative_defl.GetPos().z() << " | "
+                      << std::endl;
         }
         frame++;
     }

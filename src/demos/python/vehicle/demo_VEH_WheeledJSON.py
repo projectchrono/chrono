@@ -47,8 +47,15 @@ def main() :
     # Create the terrain
     terrain = veh.RigidTerrain(vehicle.GetSystem(), rigidterrain_file)
     terrain.Initialize()
+    
+    # Create the interactive driver
+    driver = veh.ChInteractiveDriver(vehicle)
+    driver.SetSteeringDelta(0.02)
+    driver.SetThrottleDelta(0.02)
+    driver.SetBrakingDelta(0.02)
+    driver.Initialize()
 
-    # Create Irrilicht visualization
+    # Create Irrlicht visualization
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     vis.SetWindowTitle('HMMWV JSON specification')
     vis.SetWindowSize(1280, 1024)
@@ -58,13 +65,7 @@ def main() :
     vis.AddLightDirectional()
     vis.AddSkyBox()
     vis.AttachVehicle(vehicle)
-
-    # Create the interactive driver
-    driver = veh.ChInteractiveDriverIRR(vis)
-    driver.SetSteeringDelta(0.02)
-    driver.SetThrottleDelta(0.02)
-    driver.SetBrakingDelta(0.02)
-    driver.Initialize()
+    vis.AttachDriver(driver)
 
     # Initialize output
     try:

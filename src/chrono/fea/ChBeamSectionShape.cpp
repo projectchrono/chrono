@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/utils/ChConstants.h"
 #include "chrono/fea/ChBeamSectionShape.h"
 
@@ -61,8 +63,8 @@ void ChBeamSectionShapeCircular::UpdateProfile() {
     normals.resize(resolution + 1);
     for (size_t is = 0; is < points.size(); ++is) {
         double sangle = CH_2PI * ((double)is / (double)resolution);
-        points[is] = ChVector3d(0, cos(sangle) * radius, sin(sangle) * radius);
-        normals[is] = ChVector3d(0, cos(sangle), sin(sangle));
+        points[is] = ChVector3d(0, std::cos(sangle) * radius, std::sin(sangle) * radius);
+        normals[is] = ChVector3d(0, std::cos(sangle), std::sin(sangle));
     }
 }
 
@@ -128,18 +130,18 @@ void ChBeamSectionShapePolyline::UpdateProfile() {
         for (int ip = 1; ip < ml_points[il].size() - 1; ++ip) {
             dy = ml_points[il][ip + 1].y() - ml_points[il][ip - 1].y();
             dz = ml_points[il][ip + 1].z() - ml_points[il][ip - 1].z();
-            len = sqrt(dy * dy + dz * dz);
+            len = std::sqrt(dy * dy + dz * dz);
             ml_normals[il][ip].y() = -dz / len;
             ml_normals[il][ip].z() = dy / len;
         }
         dy = ml_points[il][1].y() - ml_points[il][0].y();
         dz = ml_points[il][1].z() - ml_points[il][0].z();
-        len = sqrt(dy * dy + dz * dz);
+        len = std::sqrt(dy * dy + dz * dz);
         ml_normals[il][0].y() = -dz / len;
         ml_normals[il][0].z() = dy / len;
         dy = ml_points[il][ml_points[il].size() - 1].y() - ml_points[il][ml_points[il].size() - 2].y();
         dz = ml_points[il][ml_points[il].size() - 1].z() - ml_points[il][ml_points[il].size() - 2].z();
-        len = sqrt(dy * dy + dz * dz);
+        len = std::sqrt(dy * dy + dz * dz);
         ml_normals[il][ml_points[il].size() - 1].y() = -dz / len;
         ml_normals[il][ml_points[il].size() - 1].z() = dy / len;
     }

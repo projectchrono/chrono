@@ -22,6 +22,14 @@
 
 namespace chrono {
 
+namespace fmi2 {
+class FmuChronoComponentBase;
+}
+
+namespace fmi3 {
+class FmuChronoComponentBase;
+}
+
 /// Representation of a 3D transform.
 /// A 'frame' coordinate system has a translation and a rotation respect to a 'parent' coordinate system, usually the
 /// absolute (world) coordinates. Differently from a simple ChCoordsys object, the ChFrame also stores the 3x3 rotation
@@ -169,14 +177,14 @@ class ChFrame {
 
     /// Impose both translation and rotation as a single ChCoordsys.
     /// Note: the quaternion part must be already normalized.
-    void SetCoordsys(const ChCoordsys<Real>& C) {
+    virtual void SetCoordsys(const ChCoordsys<Real>& C) {
         m_csys = C;
         m_rmat.SetFromQuaternion(C.rot);
     }
 
     /// Impose both translation and rotation.
     /// Note: the quaternion part must be already normalized.
-    void SetCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q) {
+    virtual void SetCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q) {
         m_csys.pos = v;
         m_csys.rot = q;
         m_rmat.SetFromQuaternion(q);
@@ -184,20 +192,20 @@ class ChFrame {
 
     /// Impose the rotation as a quaternion.
     /// Note: the quaternion must be already normalized.
-    void SetRot(const ChQuaternion<Real>& q) {
+    virtual void SetRot(const ChQuaternion<Real>& q) {
         m_csys.rot = q;
         m_rmat.SetFromQuaternion(q);
     }
 
     /// Impose the rotation as a 3x3 matrix.
     /// Note: the rotation matrix must be already orthogonal.
-    void SetRot(const ChMatrix33<Real>& R) {
+    virtual void SetRot(const ChMatrix33<Real>& R) {
         m_csys.rot = R.GetQuaternion();
         m_rmat = R;
     }
 
     /// Impose the translation vector.
-    void SetPos(const ChVector3<Real>& pos) { m_csys.pos = pos; }
+    virtual void SetPos(const ChVector3<Real>& pos) { m_csys.pos = pos; }
 
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
@@ -326,7 +334,8 @@ class ChFrame {
     ChCoordsys<Real> m_csys;  ///< position and rotation, as vector + quaternion
     ChMatrix33<Real> m_rmat;  ///< 3x3 orthogonal rotation matrix
 
-    friend class FmuChronoComponentBase;
+    friend class chrono::fmi2::FmuChronoComponentBase;
+    friend class chrono::fmi3::FmuChronoComponentBase;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

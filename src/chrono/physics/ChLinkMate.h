@@ -64,13 +64,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMate, this returns the absolute coordinate system of the second body.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return frame2 >> *GetBody2(); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return m_frame2 >> *GetBody2(); }
 
     /// Get the link frame 1, relative to body 1.
-    virtual ChFramed GetFrame1Rel() const override { return frame1; }
+    virtual ChFramed GetFrame1Rel() const override { return m_frame1; }
 
     /// Get the link frame 2, relative to body 2.
-    virtual ChFramed GetFrame2Rel() const override { return frame2; }
+    virtual ChFramed GetFrame2Rel() const override { return m_frame2; }
 
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
@@ -127,6 +127,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
     virtual unsigned int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
+    /// Return link mask.
+    ChLinkMask& GetLinkMask() { return mask; }
+
     // LINK VIOLATIONS
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
@@ -143,8 +146,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     void SetupLinkMask();
     void ChangedLinkMask();
 
-    ChFrame<> frame1;
-    ChFrame<> frame2;
+    ChFrame<> m_frame1;
+    ChFrame<> m_frame2;
 
     bool c_x;
     bool c_y;
@@ -171,7 +174,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Update link state, constraint Jacobian, and frames.
     /// This is called automatically by the solver at each time step.
     /// Derived classes must call this parent method and then take care of updating their own assets.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -242,6 +245,8 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
     /// Get the requested distance between the two planes, in normal direction.
     double GetDistance() const { return m_distance; }
 
+    using ChLinkMateGeneric::Initialize;
+
     /// Initialize the link by providing a point and a normal direction on each plane, each expressed in body or abs
     /// reference. Normals can be either aligned or opposed depending on the SetFlipped() method.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
@@ -265,7 +270,7 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
 
     /// Update link state. This is called automatically by the solver at each time step.
     /// Update constraint jacobian and frames.
-    virtual void Update(double time, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMatePlanar, 0)
@@ -326,11 +331,11 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateRevolute* Clone() const override { return new ChLinkMateRevolute(*this); }
 
-    using ChLinkMateGeneric::Initialize;
-
     /// Tell if the two axes must be opposed (flipped=true) or must have the same verse (flipped=false)
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for revolute mate, given the two bodies to be connected, two points, two directions
     /// (each expressed in body or abs. coordinates). These two directions are the Z axes of slave frame F1 and master
@@ -378,11 +383,11 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMatePrismatic* Clone() const override { return new ChLinkMatePrismatic(*this); }
 
-    using ChLinkMateGeneric::Initialize;
-
     /// Tell if the two axes must be opposed (flipped=true) or must have the same verse (flipped=false)
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions.
     /// These two directions are the X axes of secondary frame F1 and principal frame F2.
@@ -485,7 +490,7 @@ class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
 
     /// Update link state, constraint Jacobian, and frames.
     /// Called automatically by the solver at each time step.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double mtime, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMateDistanceZ, 0)
@@ -507,6 +512,8 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     /// Tell if the two axes must be opposed (flipped=true) or must have the same verse (flipped=false)
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
+
+    using ChLinkMateGeneric::Initialize;
 
     /// Specialized initialization for parallel mate, given the two bodies to be connected, two points and two
     /// directions (each expressed in body or abs. coordinates).
@@ -546,6 +553,8 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateOrthogonal* Clone() const override { return new ChLinkMateOrthogonal(*this); }
 
+    using ChLinkMateGeneric::Initialize;
+
     /// Specialized initialization for orthogonal mate, given the two bodies to be connected, two points and two
     /// directions (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
@@ -569,7 +578,7 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
 
     /// Update link state. This is called automatically by the solver at each time step.
     /// Update constraint jacobian and frames.
-    virtual void Update(double mtime, bool update_assets = true) override;
+    virtual void Update(double mtime, bool update_assets) override;
 };
 
 CH_CLASS_VERSION(ChLinkMateOrthogonal, 0)
@@ -612,7 +621,7 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     virtual ChLinkMateRackPinion* Clone() const override { return new ChLinkMateRackPinion(*this); }
 
     // Updates aux frames positions
-    virtual void UpdateTime(double mytime) override;
+    virtual void Update(double time, bool update_assets) override;
 
     // data get/set
 

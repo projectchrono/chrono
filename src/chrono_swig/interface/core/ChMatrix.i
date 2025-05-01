@@ -112,7 +112,7 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
 %}
 
 
-%typemap(in) (double *mat, int ros, int col) %{
+%typemap(in) (double* mat, int rows, int cols) %{
     if (PyList_Check($input)) {
         $2 = PyList_Size($input);
         $3 = PyList_Size(PyList_GetItem($input, 0));
@@ -133,7 +133,7 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
     }
 %}
 
-%typemap(freearg) (double *mat, int ros, int col) %{
+%typemap(freearg) (double* mat, int rows, int cols) %{
     delete($1);
 %}
 
@@ -274,7 +274,6 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
         }
 
         void GetMatrixData(double* p, int len) {
-            int r = $self->rows();
             int c = $self->cols();
             //double matr[len];
             //double* matr = $self->data();
@@ -285,11 +284,11 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
             }
         }
 
-        void SetMatr(double *mat, int rows, int col) {
-            ($self)->resize(rows, col);
+        void SetMatr(double* mat, int rows, int cols) {
+            ($self)->resize(rows, cols);
             for (int i = 0; i < rows; i++){
-                for (int j = 0; j < col; j++){
-                    (*$self)(i, j) = mat[i*col + j];
+                for (int j = 0; j < cols; j++){
+                    (*$self)(i, j) = mat[i*cols + j];
                 }
             }
         }
@@ -331,7 +330,6 @@ namespace chrono {
         }
 
         void GetMatrixData(double* p, int len) {
-            int r = $self->rows();
             int c = $self->cols();
             for (int i = 0; i < len; i++){
                 int ri = floor (i/c);
@@ -340,10 +338,10 @@ namespace chrono {
             }
         }
 
-        void SetMatr(double *mat, int rows, int col) {
+        void SetMatr(double* mat, int rows, int cols) {
             for (int i = 0; i < 6; i++){
                 for (int j = 0; j < 6; j++){
-                    (*$self)(i, j) = mat[i*col + j];
+                    (*$self)(i, j) = mat[i*cols + j];
                 }
             }
         }

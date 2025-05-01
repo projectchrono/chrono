@@ -40,9 +40,7 @@ ChBody::ChBody()
       allow_sleeping(true),
       candidate_sleeping(false),
       Xforce(VNULL),
-      Xtorque(VNULL),
-      Force_acc(VNULL),
-      Torque_acc(VNULL) {
+      Xtorque(VNULL) {
     marklist.clear();
     forcelist.clear();
 
@@ -73,8 +71,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 
     RemoveAllForces();   // also copy-duplicate the forces? Let the user handle this..
     RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
-
-    ChTime = other.ChTime;
 
     // Copy the collision model if any
     if (other.collision_model) {
@@ -370,29 +366,52 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
     mQInertia = Gl.transpose() * GetInertia() * Gl;
 }
 
-//////
+// -----------------------------------------------------------------------------
 
-void ChBody::EmptyAccumulators() {
-    Force_acc = VNULL;
-    Torque_acc = VNULL;
+unsigned int ChBody::AddAccumulator() {
+    auto idx = accumulators.size();
+    accumulators.push_back(WrenchAccumulator());
+    return (unsigned int)idx;
 }
 
-void ChBody::AccumulateForce(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+void ChBody::EmptyAccumulator(unsigned int idx) {
+    accumulators[idx].force = VNULL;
+    accumulators[idx].torque = VNULL;
+}
+
+void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
     ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
                             : AppliedForceParentToWrenchParent(force, appl_point);
-    Force_acc += w_abs.force;
-    Torque_acc += TransformDirectionParentToLocal(w_abs.torque);
+    accumulators[idx].force += w_abs.force;
+    accumulators[idx].torque += TransformDirectionParentToLocal(w_abs.torque);
 }
 
-void ChBody::AccumulateTorque(const ChVector3d& torque, bool local) {
-    if (local) {
-        Torque_acc += torque;
-    } else {
-        Torque_acc += TransformDirectionParentToLocal(torque);
+void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
+    if (local)
+        accumulators[idx].torque += torque;
+    else
+        accumulators[idx].torque += TransformDirectionParentToLocal(torque);
+}
+
+const ChVector3d& ChBody::GetAccumulatedForce(unsigned int idx) const {
+    return accumulators[idx].force;
+}
+
+const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
+    return accumulators[idx].torque;
+}
+
+//// TODO - get rid of this as soon as ChModalAssembly is dealt with (fixed or removed)
+const ChWrenchd ChBody::GetAccumulatorWrench() const {
+    ChWrenchd wrench;
+    for (const auto& a : accumulators) {
+        wrench.force += a.force;
+        wrench.torque += a.torque;
     }
+    return wrench;
 }
 
-//////
+// -----------------------------------------------------------------------------
 
 void ChBody::ComputeGyro() {
     ChVector3d Wvel = GetAngVelLocal();
@@ -515,73 +534,59 @@ std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
     return (force != std::end(forcelist)) ? *force : nullptr;
 }
 
-// These are the members used to UPDATE the body coordinates during the animation.
-// Also the coordinates of forces and markers linked to the body will be updated.
+// -----------------------------------------------------------------------------
 
-void ChBody::UpdateMarkers(double mytime) {
+void ChBody::UpdateMarkers(double time, bool update_assets) {
     for (auto& marker : marklist) {
-        marker->Update(mytime);
+        marker->Update(time, update_assets);
     }
 }
 
-void ChBody::UpdateForces(double mytime) {
-    // Initialize body force (in abs. coords) and torque (in local coords)
-    // with current values from the accumulators.
-    Xforce = Force_acc;
-    Xtorque = Torque_acc;
+void ChBody::UpdateForces(double time, bool update_assets) {
+    // Initialize body forces with gravitational forces (if included in a system)
+    Xforce = system ? system->GetGravitationalAcceleration() * GetMass() : VNULL;
+    Xtorque = VNULL;
 
-    // Accumulate other applied forces
-    ChVector3d mforce;
-    ChVector3d mtorque;
-
-    for (auto& force : forcelist) {
-        // update positions, f=f(t,q)
-        force->Update(mytime);
-
-        force->GetBodyForceTorque(mforce, mtorque);
-        Xforce += mforce;
-        Xtorque += mtorque;
+    // Add forces and torques from body accumulators (if any)
+    for (const auto& a : accumulators) {
+        Xforce += a.force;
+        Xtorque += a.torque;
     }
 
-    // Add gravitational forces
-    if (system) {
-        Xforce += system->GetGravitationalAcceleration() * GetMass();
+    // Accumulate applied generalized forces (if any)
+    for (auto& f : forcelist) {
+        f->Update(time, update_assets);
+
+        ChVector3d force;
+        ChVector3d torque;
+        f->GetBodyForceTorque(force, torque);
+
+        Xforce += force;
+        Xtorque += torque;
     }
 }
 
-void ChBody::UpdateTime(double mytime) {
-    ChTime = mytime;
+void ChBody::Update(double time, bool update_assets) {
+    // Update time and assets
+    ChObj::Update(time, update_assets);
+
+    // Test if body can be set asleep and if so, put it to sleeping
+    ////TrySleeping();
+
+    // Apply limits (if in speed clamping mode) to speeds
+    ClampSpeed();
+
+    // Set the gyroscopic momentum
+    ComputeGyro();
+
+    // Updated associated markers at current body state
+    UpdateMarkers(time, update_assets);
+
+    // Update applied forces at current body state
+    UpdateForces(time, update_assets);
 }
 
-// UpdateALL updates the state and time
-// of the object AND the dependant (linked)
-// markers and forces.
-
-void ChBody::Update(bool update_assets) {
-    // TrySleeping();         // See if the body can fall asleep; if so, put it to sleeping
-    ClampSpeed();   // Apply limits (if in speed clamping mode) to speeds.
-    ComputeGyro();  // Set the gyroscopic momentum.
-
-    // Also update the children "markers" and
-    // "forces" depending on the body current state.
-    UpdateMarkers(ChTime);
-
-    UpdateForces(ChTime);
-
-    // This will update assets
-    ChPhysicsItem::Update(ChTime, update_assets);
-}
-
-// As before, but keeps the current state.
-// Mostly used for world reference body.
-void ChBody::Update(double mytime, bool update_assets) {
-    // For the body:
-    UpdateTime(mytime);
-
-    Update(update_assets);
-}
-
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 void ChBody::SetFixed(bool state) {
     variables.SetDisabled(state);
@@ -981,8 +986,6 @@ void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(gyro);
     archive_out << CHNVP(Xforce);
     archive_out << CHNVP(Xtorque);
-    // archive_out << CHNVP(Force_acc); // not useful in serialization
-    // archive_out << CHNVP(Torque_acc);// not useful in serialization
     archive_out << CHNVP(variables);
     archive_out << CHNVP(max_speed);
     archive_out << CHNVP(max_wvel);

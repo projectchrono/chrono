@@ -70,10 +70,6 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of loading CAD models.
 
--   @subpage tutorial_table_of_content_chrono_opengl
-
-    Examples of run-time visualization with the OpenGL module.
-
 -   @subpage tutorial_table_of_content_chrono_sensor
 
     Examples of modeling and simulating sensor for robots and autonomous vehicles in Chrono.

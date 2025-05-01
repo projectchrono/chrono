@@ -31,38 +31,29 @@
     @defgroup fsi FSI module
     @brief Fluid-Solid Interation modeling and simulation
 
-    This module provides support for modeling multi-phase systems for
-    fluid-soild interaction problems and granular-solid interaction problems.
-    When compiling this library, remember to define CH_API_COMPILE_FSI
-    (so that the symbols with 'CH_FSI_API' in front of them will be
-    marked as exported). Otherwise, just do not define it if you
-    link the library to your code, and the symbols will be imported.
+    This module provides support for modeling multi-phase systems for fluid-solid interaction problems.
+    Currently, this module consists of the following libraries:
+    - Chrono_fsi implements a generic interface between a Chrono mutibody system and an arbitraru FSI-capable fluid solver.
+    - Chrono_fsisph implements a concrete, SPH-based version of the FSI interface.
+    and granular-solid interaction problems.
+    - Chrono_fsisph_vsg implements a customized Chrono::VSG run-time visualization system for SPH FSI problems.
+    - Chrono_fsisph_opengl implements a customized Chrono::OpenGL run-time visualization system for SPH FSI problems.
 
     For additional information, see:
     - the [Installation guide](@ref module_fsi_installation)
     - the [Tutorials](@ref tutorial_table_of_content_chrono_fsi)
 
     @{
-        @defgroup fsi_physics Physics objects
-        @brief Physics objects for the Chrono::FSI module. Including the
-        fluid dynamics system, force system, interface with Chrono core
-        module, simulation parameters, and data structures.
-
-        @defgroup fsi_collision Collision objects
-        @brief Collision objects handles the neighbor particle searching
-        in Chrono::FSI module.
-
-        @defgroup fsi_solver Linear solvers
-        @brief Class for solving a linear linear system via iterative methods.
-        Only works when I2SPH or IISPH is set to solve the fluid dynamics.
-
-        @defgroup fsi_utils Modeling utilities
-        @brief Handles utilities including creating BCE particles, setting
-        parameters via a JSON file, and output data into files with specified format
-
-        @defgroup fsi_math Math utilities
-        @brief Math utilities for the Chrono::FSI module. These functions
-        can be invoked either on the CPU (host) or on the GPU (device)
+        @defgroup fsi_base Generic FSI interface
+        @brief Base classes for a generic FSI Chrono interface
+        @defgroup fsisph SPH-based FSI module
+        @brief SPH-based fluid solver and FSI interface
+        @{
+          @defgroup fsisph_physics Physics objects
+          @defgroup fsisph_math Math support
+          @defgroup fsisph_utils Utilities
+          @defgroup fsisph_visualization Visualization
+        @}
     @}
 */
 
@@ -72,7 +63,12 @@ namespace chrono {
 /// @{
 
 /// Namespace with classes for the FSI module.
-namespace fsi {}
+namespace fsi {
+
+/// Namespace with internal classes for the SPH-based FSI submodule.
+namespace sph {}
+
+}  // namespace fsi
 
 /// @}
 }  // namespace chrono

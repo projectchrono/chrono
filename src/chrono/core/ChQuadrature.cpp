@@ -47,7 +47,7 @@ void ChQuadratureTables::glege_roots(ChMatrixDynamic<>& lcoef, int N, int ntable
     int i;
     double x, x1;
     for (i = 1; i <= N; i++) {
-        x = cos(CH_PI * (i - .25) / (N + .5));
+        x = std::cos(CH_PI * (i - .25) / (N + .5));
         int iters = 0;
         do {
             ++iters;
@@ -99,8 +99,8 @@ ChQuadratureTables::ChQuadratureTables(int order_from, int order_to) {
 ChQuadratureTablesTriangle::ChQuadratureTablesTriangle() {
     // initialize table with precomputed weights and coordinates
     {  // i=0: 1pt  deg 1
-        std::vector<double> xa = {1. / 3.};
-        std::vector<double> ya = {1. / 3.};
+        std::vector<double> xa = {CH_1_3};
+        std::vector<double> ya = {CH_1_3};
         std::vector<double> wt = {1};
         this->LrootsU.push_back(xa);
         this->LrootsV.push_back(ya);

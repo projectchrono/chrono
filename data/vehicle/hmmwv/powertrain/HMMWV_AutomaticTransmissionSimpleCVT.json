@@ -1,0 +1,13 @@
+{
+  "Name": "HMMWV Simple CVT Transmission",
+  "Type": "Transmission",
+  "Template": "AutomaticTransmissionSimpleCVT",
+
+  "Gear Box": {
+    "Efficiency": 0.8,
+    "Minimum Gear Ratio": 0.1708,
+    "Maximum Gear Ratio": 1.5361,
+    "Driveshaft Speed Begin": 23.8,
+    "Driveshaft Speed End": 238.0
+  }
+}

@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/assets/ChVisualSystem.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -36,22 +37,27 @@
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono_fsi/sph/ChFsiSystemSPH.h"
 
-#ifdef CHRONO_OPENGL
-    #include "chrono_fsi/visualization/ChFsiVisualizationGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::fsi;
+using namespace chrono::fsi::sph;
+
+using std::cout;
+using std::cerr;
+using std::endl;
+
+// -----------------------------------------------------------------
 
 // Set the output directory
-const std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Toroidal_Tire/";
-std::string MESH_CONNECTIVITY = out_dir + "Flex_MESH.vtk";
+std::string out_dir = GetChronoOutputPath() + "FSI_Flexible_Toroidal_Tire";
 
 // Dimension of the domain
 double smalldis = 1.0e-9;
@@ -81,108 +87,133 @@ double m_alpha = 0.15;
 ChVector3d wheel_IniPos(-bxDim / 2 + 1.5 * wheel_radius, 0.0, 1.5 * wheel_radius + bzDim);
 ChVector3d wheel_IniVel(0.0, 0.0, 0.0);
 
-// Simulation time and stepsize
+// Simulation time
 double t_end = 10.0;
 
 // Output frequency
 bool output = true;
-double out_fps = 20;
+double output_fps = 20;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Verbose terminal output
+bool verbose = true;
+
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 100;
 
-// linear actuator and angular actuator
-auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
-auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+// -----------------------------------------------------------------
 
-std::vector<std::vector<int>> NodeNeighborElement_mesh;
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI);
 
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI);
+// -----------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    // Create oputput directories
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cerr << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
-        std::cerr << "Error creating directory " << out_dir + "/particles" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
-        std::cerr << "Error creating directory " << out_dir + "/fsi" << std::endl;
-        return 1;
-    }
-    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
-        std::cerr << "Error creating directory " << out_dir + "/vtk" << std::endl;
-        return 1;
-    }
-
-    // Create a physics system and an FSI system
+    // Create an MBS system and an FSI system
     ChSystemSMC sysMBS;
-    ChSystemFsi sysFSI(&sysMBS);
+    ChFsiFluidSystemSPH sysSPH;
+    ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
 
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Toroidal_Tire_Granular.json");
     if (argc == 1) {
-        std::cout << "Use the default JSON file" << std::endl;
+        if (verbose)
+            cout << "Use the default JSON file" << endl;
     } else if (argc == 2) {
-        std::cout << "Use the specified JSON file" << std::endl;
+        if (verbose)
+            cout << "Use the specified JSON file" << endl;
         std::string my_inputJson = std::string(argv[1]);
         inputJson = my_inputJson;
     } else {
-        std::cout << "usage: ./demo_FSI_Flexible_Toroidal_Tire_Granular <json_file>" << std::endl;
+        cerr << "usage: ./demo_FSI_Flexible_Toroidal_Tire_Granular <json_file>" << endl;
         return 1;
     }
-    sysFSI.ReadParametersFromFile(inputJson);
+    sysSPH.ReadParametersFromFile(inputJson);
 
-    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
+    sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
-    auto initSpace0 = sysFSI.GetInitialSpacing();
+    auto initSpace0 = sysSPH.GetInitialSpacing();
     ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
     ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 10 * bzDim);
-    sysFSI.SetBoundaries(cMin, cMax);
+    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
 
     // Set SPH discretization type, consistent or inconsistent
-    sysFSI.SetDiscreType(false, false);
-
-    // Set wall boundary condition
-    sysFSI.SetWallBC(BceVersion::ADAMI);
-
-    // Set rigid body boundary condition
-    sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
+    sysSPH.SetConsistentDerivativeDiscretization(false, false);
 
     // Set cohsion of the granular material
-    sysFSI.SetCohesionForce(2000.0);
+    sysSPH.SetCohesionForce(2000.0);
+
+    sysSPH.SetShiftingMethod(ShiftingMethod::PPST_XSPH);
+    sysSPH.SetShiftingPPSTParameters(3.0, 0.0);
+    sysSPH.SetShiftingXSPHParameters(0.25);
 
     // Create SPH particles of fluid region
     chrono::utils::ChGridSampler<> sampler(initSpace0);
-    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
-    ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2);
+    ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2 - initSpace0);
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        sysFSI.AddSPHParticle(points[i]);
+        sysSPH.AddSPHParticle(points[i]);
     }
 
     // Create solids
-    Create_MB_FE(sysMBS, sysFSI);
-    sysFSI.Initialize();
-    auto my_mesh = sysFSI.GetFsiMesh();
+    auto mesh = CreateSolidPhase(sysFSI);
 
-#ifdef CHRONO_OPENGL
-    // Create a run-tme visualizer
-    ChFsiVisualizationGL fsi_vis(&sysFSI);
-    if (render) {
-        fsi_vis.SetTitle("Chrono::FSI Flexible Toroidal Tire Demo");
-        fsi_vis.AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
-        fsi_vis.SetCameraMoveScale(1.0f);
-        fsi_vis.EnableBoundaryMarkers(false);
-        fsi_vis.Initialize();
+    // Initialize FSI system
+    sysFSI.Initialize();
+
+    // Create oputput directories
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
     }
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        cerr << "Error creating directory " << out_dir << endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/particles"))) {
+        cerr << "Error creating directory " << out_dir + "/particles" << endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/fsi"))) {
+        cerr << "Error creating directory " << out_dir + "/fsi" << endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(out_dir + "/vtk"))) {
+        cerr << "Error creating directory " << out_dir + "/vtk" << endl;
+        return 1;
+    }
+
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
+
+#ifdef CHRONO_VSG
+    if (render) {
+        // FSI plugin
+        auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
+        visFSI->EnableFluidMarkers(true);
+        visFSI->EnableBoundaryMarkers(false);
+        visFSI->EnableRigidBodyMarkers(true);
+
+        // VSG visual system (attach visFSI as plugin)
+        auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+        visVSG->AttachPlugin(visFSI);
+        visVSG->AttachSystem(&sysMBS);
+        visVSG->SetWindowTitle("Flexible Toroidal Tire");
+        visVSG->SetWindowSize(1280, 800);
+        visVSG->SetWindowPosition(100, 100);
+        visVSG->AddCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
+        visVSG->SetLightIntensity(0.9f);
+        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        visVSG->Initialize();
+        vis = visVSG;
+    }
+#else
+    render = false;
 #endif
 
     // Set MBS solver
@@ -200,43 +231,63 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Simulation loop
-    double dT = sysFSI.GetStepSize();
-
-    unsigned int output_steps = (unsigned int)round(1 / (out_fps * dT));
-    unsigned int render_steps = (unsigned int)round(1 / (render_fps * dT));
-
+    double dT = sysFSI.GetStepSizeCFD();
     double time = 0.0;
-    int current_step = 0;
+    int sim_frame = 0;
+    int out_frame = 0;
+    int render_frame = 0;
+
+    double timer_CFD = 0;
+    double timer_MBD = 0;
+    double timer_FSI = 0;
+    double timer_step = 0;
 
     ChTimer timer;
     timer.start();
     while (time < t_end) {
-        std::cout << current_step << " time: " << time << std::endl;
+        if (verbose)
+            cout << sim_frame << " time: " << time << endl;
 
-        if (output && current_step % output_steps == 0) {
-            std::cout << "-------- Output" << std::endl;
-            sysFSI.PrintParticleToFile(out_dir + "/particles");
-            sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
+        if (output && time >= out_frame / output_fps) {
+            if (verbose)
+                cout << "-------- Output" << endl;
+            sysSPH.SaveParticleData(out_dir + "/particles");
+            sysSPH.SaveSolidData(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/flex_body." + std::to_string(counter++) + ".vtk";
-            fea::ChMeshExporter::WriteFrame(my_mesh, MESH_CONNECTIVITY, filename);
+            fea::ChMeshExporter::WriteFrame(mesh, out_dir + "/Flex_MESH.vtk", filename);
+            out_frame++;
         }
 
-#ifdef CHRONO_OPENGL
+#ifdef CHRONO_VSG
         // Render SPH particles
-        if (render && current_step % render_steps == 0) {
-            if (!fsi_vis.Render())
+        if (render && time >= render_frame / render_fps) {
+            if (!vis->Run())
                 break;
+            vis->Render();
+            render_frame++;
         }
 #endif
 
-        sysFSI.DoStepDynamics_FSI();
+        sysFSI.DoStepDynamics(dT);
+
+        timer_CFD += sysFSI.GetTimerCFD();
+        timer_MBD += sysFSI.GetTimerMBD();
+        timer_FSI += sysFSI.GetTimerFSI();
+        timer_step += sysFSI.GetTimerStep();
+        if (verbose && sim_frame == 2000) {
+            cout << "Cummulative timers at time: " << time << endl;
+            cout << "   timer CFD:  " << timer_CFD << endl;
+            cout << "   timer MBD:  " << timer_MBD << endl;
+            cout << "   timer FSI:  " << timer_FSI << endl;
+            cout << "   timer step: " << timer_step << endl;
+        }
 
         time += dT;
-        current_step++;
+        sim_frame++;
     }
     timer.stop();
-    std::cout << "\nSimulation time: " << timer() << " seconds\n" << std::endl;
+    cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
 
     return 0;
 }
@@ -244,9 +295,12 @@ int main(int argc, char* argv[]) {
 //--------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
-void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
+    ChFsiFluidSystemSPH& sysSPH = sysFSI.GetFluidSystemSPH();
+    ChSystem& sysMBS = sysFSI.GetMultibodySystem();
+
     sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
@@ -266,13 +320,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ground->EnableCollision(true);
 
     // Fluid representation of walls
-    sysFSI.AddBoxContainerBCE(ground,                                         //
+    sysSPH.AddBoxContainerBCE(ground,                                         //
                               ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                               ChVector3d(bxDim, byDim, bzDim),                //
                               ChVector3i(2, 0, -1));
 
-    // ******************************* Rigid bodies ***********************************
-    // set the abs orientation, position and velocity
+    // Create a wheel rigid body
     auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
     ChQuaternion<> Body_rot = QUNIT;
     ChVector3d Body_pos = wheel_IniPos;
@@ -306,46 +359,46 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     axle->SetFixed(false);
     sysMBS.AddBody(axle);
 
-    // Connect the chassis to the ground through a translational joint and create a linear actuator.
+    // Connect the chassis to the ground through a translational joint and create a linear actuator
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
-    // double velocity = wheel_AngVel * wheel_radius * (1.0 - wheel_slip);
-    // auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, velocity);
+    ////double velocity = wheel_AngVel * wheel_radius * (1.0 - wheel_slip);
+    ////auto actuator_fun = chrono_types::make_shared<ChFunctionRamp>(0.0, velocity);
 
-    // actuator->Initialize(ground, chassis, false, ChCoordsys<>(chassis->GetPos(), QUNIT),
-    //     ChCoordsys<>(chassis->GetPos() + ChVector3d(1, 0, 0), QUNIT));
-    // actuator->SetName("actuator");
-    // actuator->SetDistanceOffset(1);
-    // actuator->SetActuatorFunction(actuator_fun);
-    // sysMBS.AddLink(actuator);
+    ////auto actuator = chrono_types::make_shared<ChLinkLockLinActuator>();
+    ////actuator->Initialize(ground, chassis, false, ChFrame<>(chassis->GetPos(), QUNIT),
+    ////                     ChFrame<>(chassis->GetPos() + ChVector3d(1, 0, 0), QUNIT));
+    ////actuator->SetName("actuator");
+    ////actuator->SetDistanceOffset(1);
+    ////actuator->SetActuatorFunction(actuator_fun);
+    ////sysMBS.AddLink(actuator);
 
-    // Connect the axle to the chassis through a vertical translational joint.
+    // Connect the axle to the chassis through a vertical translational joint
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic2->Initialize(chassis, axle, ChFrame<>(chassis->GetPos(), QUNIT));
     prismatic2->SetName("prismatic_axle_chassis");
     sysMBS.AddLink(prismatic2);
 
-    // Connect the wheel to the axle through a engine joint.
+    // Connect the wheel to the axle through a motor link
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetName("engine_wheel_axle");
     motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 
-    // ******************************* Flexible bodies ***********************************
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = chrono_types::make_shared<fea::ChMesh>();
-    std::vector<std::vector<int>> _2D_elementsNodes_mesh;
+    // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
     // Add the tire
     {
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(2000, 1.0e7, 0.3);
 
-        // Create the mesh nodes.
+        // Create the mesh nodes
         // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
-        // and are then transformed to the global frame.
+        // and are then transformed to the global frame
         for (unsigned int i = 0; i < m_div_circumference; i++) {
             double phi = (CH_2PI * i) / m_div_circumference;
             for (unsigned int j = 0; j <= m_div_width; j++) {
@@ -363,7 +416,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
                 auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
                 node->SetMass(0.0);
-                my_mesh->AddNode(node);
+                mesh->AddNode(node);
 
                 // Fix the edge node on the wheel
                 if (j == 0 || j == m_div_width) {
@@ -373,12 +426,6 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 }
             }
         }
-
-        unsigned int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNumElements();
-        unsigned int TotalNumNodes = my_mesh->GetNumNodes();
-
-        _2D_elementsNodes_mesh.resize(TotalNumElements);
-        NodeNeighborElement_mesh.resize(TotalNumNodes);
 
         // Element thickness
         double dz = m_thickness;
@@ -399,21 +446,12 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                     inode3 = j + 1 + (i + 1) * (m_div_width + 1);
                 }
 
-                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode0));
-                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode1));
-                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode2));
-                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(inode3));
+                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode0));
+                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode1));
+                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode2));
+                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(inode3));
 
-                _2D_elementsNodes_mesh[num_elem].push_back(inode0);
-                _2D_elementsNodes_mesh[num_elem].push_back(inode1);
-                _2D_elementsNodes_mesh[num_elem].push_back(inode2);
-                _2D_elementsNodes_mesh[num_elem].push_back(inode3);
-                NodeNeighborElement_mesh[inode0].push_back(num_elem);
-                NodeNeighborElement_mesh[inode1].push_back(num_elem);
-                NodeNeighborElement_mesh[inode2].push_back(num_elem);
-                NodeNeighborElement_mesh[inode3].push_back(num_elem);
-
-                // Create the element and set its nodes.
+                // Create the element and set its nodes
                 auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                 element->SetNodes(node0, node1, node2, node3);
 
@@ -426,34 +464,30 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 // Set element dimensions
                 element->SetDimensions(dx, dy);
 
-                // Add a single layers with a fiber angle of 0 degrees.
+                // Add a single layers with a fiber angle of 0 degrees
                 element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
                 // Set other element properties
                 element->SetAlphaDamp(m_alpha);
 
                 // Add element to mesh
-                my_mesh->AddElement(element);
+                mesh->AddElement(element);
 
                 ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
                                             element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
-                std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y()
-                          << " " << center.z() << std::endl;
+                cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
+                     << center.z() << endl;
 
                 num_elem++;
             }
         }
     }
 
-    // Add the mesh to the system
-    sysMBS.Add(my_mesh);
+    // Add the mesh to the MBS system
+    sysMBS.Add(mesh);
 
-    // fluid representation of flexible bodies
-    bool multilayer = true;
-    bool removeMiddleLayer = true;
-    sysFSI.AddFEAmeshBCE(my_mesh, NodeNeighborElement_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh,
-                         false, true, multilayer, removeMiddleLayer, 0, 0);
+    // Add the mesh to the FSI system (only these meshes interact with the fluid)
+    sysFSI.AddFsiMesh(mesh);
 
-    sysFSI.AddFsiMesh(my_mesh, std::vector<std::vector<int>>(), _2D_elementsNodes_mesh);
-    fea::ChMeshExporter::WriteMesh(my_mesh, MESH_CONNECTIVITY);
+    return mesh;
 }

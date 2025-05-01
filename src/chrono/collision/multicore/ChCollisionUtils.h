@@ -23,9 +23,7 @@
 
 #include <cassert>
 
-#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
-#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/multicore/ChConvexShape.h"
 
 namespace chrono {
@@ -408,7 +406,7 @@ inline real3 GetCenter_Sphere() {
     return real3(0);
 }
 inline real3 GetCenter_Triangle(const real3* t) {
-    return (t[0] + t[1] + t[2]) * 1.0 / 3.0;
+    return (t[0] + t[1] + t[2]) * CH_1_3;
 }
 inline real3 GetCenter_Box() {
     return real3(0);

@@ -217,7 +217,7 @@ void ChCascadeMeshTools::fillObjFileFromCascade(std::ofstream& objfile,
     int vertface = 0;
     int vertshift = 1;
 
-    objfile << "# Wavefront .obj file created from Chrono::Engine" << std::endl << std::endl;
+    objfile << "# Wavefront .obj file created from Chrono" << std::endl << std::endl;
 
     // Loop on faces..
     for (ex.Init(shape, TopAbs_FACE); ex.More(); ex.Next()) {

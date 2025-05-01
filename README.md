@@ -1,13 +1,3 @@
-ATTENTION
-=========
-
-The structure of the Chrono git repository was changed as follows:
-
-- The main development branch is now called `main` (previously `develop`)
-- The `master` branch, now obsolete, was deleted
-- Releases are located in branches named `release/*.*` and have tags of the form `*.*.*`
-
-
 Project CHRONO
 ==============
 
@@ -21,10 +11,11 @@ Distributed under a permissive BSD license, Chrono is an open-source multi-physi
 -	granular dynamics using either a non-smooth contact formulation resulting in differential  variational inequality (DVI) problems or a smooth contact formulation resulting in DAEs
 -	fluid-solid interaction problems whose dynamics is governed by coupled DAEs and PDEs
 -	first-order dynamic systems governed by ordinary differential equations (ODE)
+-	sensors (camera, LiDAR, GPS, IMU, SPAD) to support simulation in robotics and autonomous agents via a ROS2 interface
 
-Chrono provides a mature and stable code base that continues to be augmented with new features and modules.  The core functionality of Chrono provides support for the modeling, simulation, and visualization of rigid and flexible multibody systems with additional capabilities offered through optional modules. These modules provide support for additional classes of problems (e.g., granular dynamics and fluid-solid interaction), modeling and simulation of specialized systems (such as ground vehicles), co-simulation, run-time visualization, post-processing, interfaces to external linear solvers, or specialized parallel computing algorithms (multi-core, GPU, and distributed) for large-scale simulations.
+Chrono provides a mature and stable code base that continues to be augmented with new features and modules.  The core functionality of Chrono provides support for the modeling, simulation, and visualization of rigid and flexible multibody systems with additional capabilities offered through optional modules. These modules provide support for additional classes of problems (e.g., granular dynamics and fluid-solid interaction), modeling and simulation of specialized systems (such as ground vehicles and robots), co-simulation, run-time visualization, post-processing, interfaces to external linear solvers, or specialized parallel computing algorithms (multi-core, GPU, and distributed) for large-scale simulations.
 
-Used in many different scientific and engineering problems by researchers from academia, industry, and government, Chrono has mature and sophisticated support for multibody dynamics, finite element analysis, granular dynamics, fluid-solid interaction, ground vehicle simulation and vehicle-terrain interaction.  
+Used in many different scientific and engineering problems by researchers from academia, industry, and federal government, Chrono has mature support for multibody dynamics, finite element analysis, granular dynamics, fluid-solid interaction, ground vehicle simulation, robotics, embodied AI, and terramechanics.  
 
 Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The build system is based on CMake. Chrono is platform-independent and is actively tested on Linux, Windows, and MacOS using a variety of compilers.
 
@@ -36,7 +27,7 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
 
 - C++ API reference
   - [Main development branch](http://api.projectchrono.org/)
-  - [Release 9.0.0](http://api.projectchrono.org/9.0.0/)
+  - [Release 9.0.1](http://api.projectchrono.org/9.0.0/)
   - [Release 8.0.0](http://api.projectchrono.org/8.0.0/)
 - Python interface
   - [PyChrono](https://api.projectchrono.org/pychrono_introduction.html)
@@ -47,3 +38,10 @@ Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The
 ### Support
 
 - [Google Groups user forum](https://groups.google.com/g/projectchrono)
+
+### Note on Chrono repository structure
+
+The structure of the Chrono git repository was changed as follows:
+- The main development branch is now called `main` (previously `develop`)
+- The `master` branch, now obsolete, was deleted
+- Releases are located in branches named `release/*.*` and have tags of the form `*.*.*`

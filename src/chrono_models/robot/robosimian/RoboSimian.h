@@ -35,6 +35,7 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/physics/ChLinkMotorRotation.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -56,13 +57,6 @@ enum LimbID {
     RR = 1,  ///< rear right
     RL = 2,  ///< rear left
     FL = 3   ///< front left
-};
-
-/// Visualization type for a RoboSimian part.
-enum class VisualizationType {
-    NONE,       ///< no visualization
-    COLLISION,  ///< render primitive collision shapes
-    MESH        ///< render meshes
 };
 
 /// RoboSimian collision families.

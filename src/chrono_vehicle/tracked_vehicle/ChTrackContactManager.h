@@ -122,7 +122,7 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     std::list<ContactInfo> m_idler_R_contacts;     ///< list of contacts on right idler wheel
 
     friend class ChTrackedVehicleVisualSystemIrrlicht;
-    friend class ChTrackTestRigVisualSystemIrrlicht;
+    friend class ChTrackTestRigVisualSystemIRR;
 };
 
 // -----------------------------------------------------------------------------
@@ -208,7 +208,7 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
 
   private:
     virtual void Setup() override;
-    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
     void ApplyForces();
 
     ChTrackCollisionManager* m_collision_manager;

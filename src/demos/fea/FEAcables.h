@@ -26,9 +26,6 @@
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
-
-using namespace irr;
 
 // ----------------------------------------------------------------------------
 // Model1: A beam composed of a single ANCF cable element, with one end fixed

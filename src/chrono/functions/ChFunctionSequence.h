@@ -64,14 +64,12 @@ CH_CLASS_VERSION(ChFseqNode, 0)
 ///   `y = sequence_of_functions(f1(y), f2(y), f3(y))`
 /// All other function types can be inserted into this.
 class ChApi ChFunctionSequence : public ChFunction {
-  private:
-    std::list<ChFseqNode> m_functions;  ///< the list of sub functions
-    double m_start;                     ///< start time for sequence
-
   public:
-    ChFunctionSequence() : m_start(0) {}
+    ChFunctionSequence();
+
     ChFunctionSequence(const ChFunctionSequence& other);
-    ~ChFunctionSequence() {}
+
+    virtual ~ChFunctionSequence() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunctionSequence* Clone() const override { return new ChFunctionSequence(*this); }
@@ -140,11 +138,22 @@ class ChApi ChFunctionSequence : public ChFunction {
 
     virtual double GetWeight(double x) const override;
 
+    /// Clamp end return value of sequence to last node value.
+    void SetClamped(bool clamped) { m_clamped = clamped; }
+
+    /// Get if sequence end return value is clamped.
+    bool IsClamped() const { return m_clamped; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    std::list<ChFseqNode> m_functions;  ///< the list of sub functions
+    double m_start;                     ///< start time for sequence
+    bool m_clamped;                     ///< trigger end value clamp
 };
 
 /// @} chrono_functions

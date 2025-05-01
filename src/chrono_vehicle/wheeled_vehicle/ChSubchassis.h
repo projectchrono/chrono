@@ -44,13 +44,21 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
     /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is
     /// always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
-                            const ChVector3d& location           ///< [in] location relative to the chassis frame
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                    const ChVector3d& location           ///< [in] location relative to the chassis frame
     );
 
   protected:
     /// Construct a subchassis subsystem with given name.
     ChSubchassis(const std::string& name);
+
+    /// Construct the concrete subchassis subsystem.
+    /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
+    /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is
+    /// always aligned with the chassis reference frame.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
+                           const ChVector3d& location           ///< [in] location relative to the chassis frame
+                           ) = 0;
 
     ChVector3d m_rel_loc;               ///< location relative to chassis
     std::shared_ptr<ChBody> m_beam[2];  ///< handles to beam bodies

@@ -41,8 +41,9 @@ namespace chrono {
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
-ChSystem::ChSystem()
-    : G_acc(ChVector3d(0, -9.8, 0)),
+ChSystem::ChSystem(const std::string& name)
+    : m_name(name),
+      G_acc(ChVector3d(0, -9.8, 0)),
       is_initialized(false),
       is_updated(false),
       m_num_coords_pos(0),
@@ -58,6 +59,7 @@ ChSystem::ChSystem()
       stepcount(0),
       setupcount(0),
       solvecount(0),
+      output_dir("."),
       write_matrix(false),
       ncontacts(0),
       composition_strategy(new ChContactMaterialCompositionStrategy),
@@ -78,7 +80,9 @@ ChSystem::ChSystem()
 }
 
 ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr), visual_system(nullptr) {
-    // Required by ChAssembly
+    if (!other.GetName().empty())
+        SetName(other.GetName() + "_copy");
+
     assembly = other.assembly;
     assembly.system = this;
 
@@ -618,6 +622,9 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
+    if (!is_initialized)
+        assembly.SetupInitial();
+
     CH_PROFILE("Setup");
 
     timer_setup.start();
@@ -691,9 +698,8 @@ void ChSystem::Setup() {
 // - updates all forces  (automatic, as children of bodies)
 // - updates all markers (automatic, as children of bodies).
 
-void ChSystem::Update(double mytime, bool update_assets) {
-    ch_time = mytime;
-    assembly.ChTime = mytime;
+void ChSystem::Update(double time, bool update_assets) {
+    ch_time = time;
     Update(update_assets);
 }
 
@@ -705,7 +711,7 @@ void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
 
     // Update underlying assembly (recursively update sub objects bodies, links, etc)
-    assembly.Update(update_assets);
+    assembly.Update(ch_time, update_assets);
 
     // Update all contacts, if any
     contact_container->Update(ch_time, update_assets);
@@ -731,8 +737,8 @@ void ChSystem::IntToDescriptor(const unsigned int off_v,
     assembly.IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    unsigned int displ_v = off_v - assembly.offset_w;
+    int displ_L = off_L - assembly.offset_L;
+    int displ_v = off_v - assembly.offset_w;
     contact_container->IntToDescriptor(displ_v + contact_container->GetOffset_w(), v, R,
                                        displ_L + contact_container->GetOffset_L(), L, Qc);
 }
@@ -745,8 +751,8 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
     assembly.IntFromDescriptor(off_v, v, off_L, L);
 
     // Use also on contact container:
-    unsigned int displ_L = off_L - assembly.offset_L;
-    unsigned int displ_v = off_v - assembly.offset_w;
+    int displ_L = off_L - assembly.offset_L;
+    int displ_v = off_v - assembly.offset_w;
     contact_container->IntFromDescriptor(displ_v + contact_container->GetOffset_w(), v,
                                          displ_L + contact_container->GetOffset_L(), L);
 }
@@ -793,20 +799,20 @@ void ChSystem::VariablesQbLoadSpeed() {
     contact_container->VariablesQbLoadSpeed();
 }
 
-void ChSystem::VariablesQbSetSpeed(double step) {
+void ChSystem::VariablesQbSetSpeed(double step_size) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.VariablesQbSetSpeed(step);
+    assembly.VariablesQbSetSpeed(step_size);
 
     // Use also on contact container:
-    contact_container->VariablesQbSetSpeed(step);
+    contact_container->VariablesQbSetSpeed(step_size);
 }
 
-void ChSystem::VariablesQbIncrementPosition(double dt_step) {
+void ChSystem::VariablesQbIncrementPosition(double step_size) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.VariablesQbIncrementPosition(dt_step);
+    assembly.VariablesQbIncrementPosition(step_size);
 
     // Use also on contact container:
-    contact_container->VariablesQbIncrementPosition(dt_step);
+    contact_container->VariablesQbIncrementPosition(step_size);
 }
 
 void ChSystem::InjectConstraints(ChSystemDescriptor& sys_descriptor) {
@@ -1229,10 +1235,8 @@ unsigned int ChSystem::GetNumContacts() {
     return contact_container->GetNumContacts();
 }
 
-double ChSystem::ComputeCollisions() {
+unsigned int ChSystem::ComputeCollisions() {
     CH_PROFILE("ComputeCollisions");
-
-    double mretC = 0.0;
 
     timer_collision.start();
 
@@ -1274,7 +1278,7 @@ double ChSystem::ComputeCollisions() {
 
     timer_collision.stop();
 
-    return mretC;
+    return ncontacts;
 }
 
 // -----------------------------------------------------------------------------
@@ -1412,7 +1416,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
-    Update();
+    Update(false);
     DescriptorPrepareInject(*descriptor);
 
     ChSparseMatrix Cq;
@@ -1524,7 +1528,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_t
     // IMPORTANT: by modifying the mask of ChLinkMate, the underlying ChConstraints get deleted and offsets get
     // scrambled. Therefore, repopulate ChSystemDescriptor with updated scenario
     Setup();
-    Update();
+    Update(false);
     DescriptorPrepareInject(*descriptor);
 
     if (verbose) {
@@ -1668,10 +1672,14 @@ bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
 }
 
 // -----------------------------------------------------------------------------
-// System asembly
+// System assembly
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoAssembly(int action, int max_num_iterations) {
+AssemblyAnalysis::ExitFlag ChSystem::DoAssembly(int action,
+                                                int max_num_iterationsNR,
+                                                double abstol_residualNR,
+                                                double reltol_updateNR,
+                                                double abstol_updateNR) {
     Initialize();
 
     applied_forces_current = false;
@@ -1680,66 +1688,52 @@ bool ChSystem::DoAssembly(int action, int max_num_iterations) {
     setupcount = 0;
 
     Setup();
-    Update();
-
-    // Overwrite solver parameters (only if iterative)
-    int new_max_iters = 300;
-    double new_tolerance = 1e-10;
-    int old_max_iters = 0;
-    double old_tolerance = 0.0;
-    if (solver->IsIterative()) {
-        old_max_iters = solver->AsIterative()->GetMaxIterations();
-        old_tolerance = solver->AsIterative()->GetTolerance();
-        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
-        solver->AsIterative()->SetTolerance(new_tolerance);
-    }
+    Update(true);
 
     // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
 
-    ChAssemblyAnalysis manalysis(*this);
-    manalysis.SetMaxAssemblyIters(max_num_iterations);
+    ChAssemblyAnalysis assembling(*this);
+    assembling.SetMaxAssemblyIters(max_num_iterationsNR);
 
     // Perform analysis
     step = 1e-6;
-    manalysis.AssemblyAnalysis(action, step);
-
-    // Restore solver parameters
-    if (solver->IsIterative()) {
-        solver->AsIterative()->SetMaxIterations(old_max_iters);
-        solver->AsIterative()->SetTolerance(old_tolerance);
-    }
+    assembling.SetAbsToleranceResidual(abstol_residualNR);
+    assembling.SetRelToleranceUpdate(reltol_updateNR);
+    assembling.SetAbsToleranceUpdate(abstol_updateNR);
+    AssemblyAnalysis::ExitFlag exit_flag = assembling.AssemblyAnalysis(action, step);
 
     // Update any attached visualization system
     if (visual_system)
         visual_system->OnUpdate(this);
 
-    return true;
+    return exit_flag;
 }
 
 // -----------------------------------------------------------------------------
 // Inverse kinematics analysis
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoStepKinematics(double step_size) {
+AssemblyAnalysis::ExitFlag ChSystem::DoStepKinematics(double step_size) {
     Initialize();
 
     applied_forces_current = false;
     step = step_size;
     ch_time += step_size;
 
-    Update();
-    bool success = DoAssembly(AssemblyLevel::FULL);
+    Update(true);
+    AssemblyAnalysis::ExitFlag exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
 
-    return success;
+    return exit_flag;
 }
 
-bool ChSystem::DoFrameKinematics(double frame_time, double step_size) {
+AssemblyAnalysis::ExitFlag ChSystem::DoFrameKinematics(double frame_time, double step_size) {
     Initialize();
 
     applied_forces_current = false;
     step = step_size;
-    bool success = true;
+
+    AssemblyAnalysis::ExitFlag exit_flag = AssemblyAnalysis::ExitFlag::SUCCESS;
 
     while (ch_time < frame_time) {
         double left_time = frame_time - ch_time;
@@ -1750,15 +1744,16 @@ bool ChSystem::DoFrameKinematics(double frame_time, double step_size) {
         if (left_time < (1.3 * step))
             step = left_time;
 
-        if (!DoAssembly(AssemblyLevel::FULL)) {
-            success = false;
+        exit_flag = DoAssembly(AssemblyAnalysis::Level::FULL);
+
+        if (exit_flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED) {
             break;
         }
 
         ch_time += step;
     }
 
-    return success;
+    return exit_flag;
 }
 
 // -----------------------------------------------------------------------------
@@ -1774,7 +1769,7 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     DescriptorPrepareInject(*descriptor);
     analysis.SetIntegrable(this);
@@ -1796,7 +1791,7 @@ bool ChSystem::DoStaticLinear() {
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1856,7 +1851,7 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;
@@ -1900,7 +1895,7 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     setupcount = 0;
 
     Setup();
-    Update();
+    Update(true);
 
     // Overwrite solver parameters (only if iterative)
     int new_max_iters = 300;

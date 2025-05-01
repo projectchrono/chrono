@@ -59,7 +59,7 @@ class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
 class CH_SENSOR_API ChNVDBVolume : public ChBody {
   public:
     /// Creates a NanoVDB volume which is used as a bounding volume for rendering volumetric data. 
-    /// When building Chrono::Sensor, enable USE_NVDB to link NanoVDB library to Chrono::Sensor.
+    /// When building Chrono::Sensor, enable CH_USE_NVDB to link NanoVDB library to Chrono::Sensor.
     /// Currently this can only be used to render Chrono::FSI SPH simulations.
     /// Use this in conjunction with ChScene::SetFSIParticles() and ChScene::SetFSINumFSIParticles() to render Chrono::FSI SPH simulations.
     ChNVDBVolume(double Xsize,

@@ -41,11 +41,11 @@ HMMWV_Wheel::HMMWV_Wheel(const std::string& name) : ChWheel(name) {
     m_vis_mesh_file = "hmmwv/hmmwv_rim.obj";
 }
 
-void HMMWV_Wheel::Initialize(std::shared_ptr<ChChassis> chassis,
-                             std::shared_ptr<ChBody> spindle,
-                             VehicleSide side,
-                             double offset) {
-    ChWheel::Initialize(chassis, spindle, side, offset);
+void HMMWV_Wheel::Construct(std::shared_ptr<ChChassis> chassis,
+                            std::shared_ptr<ChSpindle> spindle,
+                            VehicleSide side,
+                            double offset) {
+    ChWheel::Construct(chassis, spindle, side, offset);
 
     ChContactMaterialData mat_info;
     auto material = mat_info.CreateMaterial(spindle->GetSystem()->GetContactMethod());

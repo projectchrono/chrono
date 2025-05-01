@@ -30,7 +30,7 @@ set(TESTS_MKL
     utest_FEA_constraints
 )
 
-MESSAGE(STATUS "Unit test programs for FEA module...")
+MESSAGE(STATUS "Add unit test programs for FEA module")
 
 # A hack to set the working directory in which to execute the CTest
 # runs.  This is needed for tests that need to access the Chrono data
@@ -41,30 +41,26 @@ else()
   set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-set(LIBRARIES ChronoEngine)
+set(LIBRARIES Chrono_core)
 
-if(ENABLE_MODULE_PARDISO_MKL)
-    include_directories(${CH_MKL_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
+if(CH_ENABLE_MODULE_PARDISO_MKL)
+    list(APPEND LIBRARIES "Chrono_pardisomkl")
     set(TESTS ${TESTS} ${TESTS_MKL})
 endif()
 
 FOREACH(PROGRAM ${TESTS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+    # MESSAGE(STATUS "...add ${PROGRAM}")
 
     ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
     SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}")
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES FOLDER tests)
     SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
+
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})

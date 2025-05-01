@@ -31,16 +31,16 @@ ChLinkMotorRotationTorque::ChLinkMotorRotationTorque(const ChLinkMotorRotationTo
 
 ChLinkMotorRotationTorque::~ChLinkMotorRotationTorque() {}
 
-void ChLinkMotorRotationTorque::Update(double mytime, bool update_assets) {
-    ChLinkMotorRotation::Update(mytime, update_assets);
+void ChLinkMotorRotationTorque::Update(double time, bool update_assets) {
+    ChLinkMotorRotation::Update(time, update_assets);
 }
 
 void ChLinkMotorRotationTorque::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // compute instant torque
     double mT = m_func->GetVal(this->GetChTime());
 
-    ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
-    ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
+    ChFrame<> aframe1 = m_frame1 >> (*this->m_body1);
+    ChFrame<> aframe2 = m_frame2 >> (*this->m_body2);
     ChVector3d m_abs_torque = aframe2.GetRotMat() * ChVector3d(0, 0, mT);
 
     if (m_body2->Variables().IsActive()) {
@@ -58,8 +58,8 @@ void ChLinkMotorRotationTorque::ConstraintsFbLoadForces(double factor) {
     // compute instant torque
     double mT = m_func->GetVal(this->GetChTime());
 
-    ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
-    ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
+    ChFrame<> aframe1 = m_frame1 >> (*this->m_body1);
+    ChFrame<> aframe2 = m_frame2 >> (*this->m_body2);
     ChVector3d m_abs_torque = aframe2.GetRotMat() * ChVector3d(0, 0, mT);
 
     m_body2->Variables().Force().segment(3, 3) -=

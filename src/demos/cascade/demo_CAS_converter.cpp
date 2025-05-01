@@ -150,7 +150,7 @@ void LoadStepModel(ChVisualSystemIrrlicht* application, const char* filename) {
             scene::SMesh* mmesh = new scene::SMesh();
             video::SColor clr(255, 100, 120, 125);
 
-            irr::scene::ChCascadeIrrMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
+            ChCascadeIrrMeshTools::fillIrrlichtMeshFromCascade(mmesh, mshape, 0.5);
             // ..also show in Irrlicht view
             scene::SAnimatedMesh* Amesh = new scene::SAnimatedMesh();
             Amesh->addMesh(mmesh);
@@ -179,7 +179,7 @@ void DecomposeModel(ChVisualSystemIrrlicht* application) {
 
     decompositionNode = application->GetSceneManager()->addEmptySceneNode();
 
-    // Convert the Irrlicht mesh into a Chrono::Engine mesh.
+    // Convert the Irrlicht mesh into a Chrono mesh.
     ChTriangleMeshSoup chmesh;
     // modelNode->getMesh();
     fillChTrimeshFromIrlichtMesh(&chmesh, modelNode->getMesh());  // modelMesh->getMesh(0));
@@ -476,7 +476,7 @@ class MyEventReceiver : public IEventReceiver {
 //
 
 int main(int argc, char* argv[]) {
-    // 1- Create a ChronoENGINE physical system: all bodies and constraints
+    // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC sys;
 

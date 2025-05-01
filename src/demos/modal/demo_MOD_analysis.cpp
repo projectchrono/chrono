@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// Show how to use the ChModalAssembly to do a basic modal analysis (eigenvalues
-// and eigenvector of the ChModalAssembly, which can also contain constraints.
+// Show how to use the ChAssembly to do a basic modal analysis (eigenvalues
+// and eigenvector of the ChAssembly, which can also contain constraints.
 //
 // =============================================================================
 
@@ -26,8 +26,10 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 
-#include "chrono_modal/ChModalAssembly.h"
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+// #include "chrono_irrlicht/ChModalVisualSystemIrrlicht.h"
+#include "chrono_modal/ChModalVisualSystemIrrlicht.h"
+#include "chrono_modal/ChModalSolverUndamped.h"
+#include "chrono_modal/ChModalSolverDamped.h"
 
 #include "chrono/solver/ChDirectSolverLScomplex.h"
 #ifdef CHRONO_PARDISO_MKL
@@ -35,6 +37,9 @@
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
+
+#include <iomanip>
+#include <cmath>
 
 using namespace chrono;
 using namespace chrono::modal;
@@ -44,7 +49,7 @@ using namespace chrono::irrlicht;
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "MODAL_ANALYSIS";
 
-int ID_current_example = 1;
+int current_example_id = 1;
 
 double beam_Young = 100.e6;
 double beam_density = 1000;
@@ -52,22 +57,15 @@ double beam_wz = 0.3;
 double beam_wy = 0.05;
 double beam_L = 6;
 
-unsigned int num_modes = 14;
+int num_modes = 14;
 bool USE_GRAVITY = true;
 
-void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool base_fixed) {
+void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
 
     // CREATE THE ASSEMBLY.
-    //
-    // The ChModalAssembly is the most important item when doing modal analysis.
-    // You must add finite elements, bodies and constraints into this assembly in order
-    // to compute the modal frequencies etc.; objects not added into this won't be counted.
-    auto assembly = chrono_types::make_shared<ChModalAssembly>();
-    assembly->SetModalAutomaticGravity(USE_GRAVITY);
-    sys.Add(assembly);
 
     // Now populate the assembly to analyze.
     // In this demo, make a cantilever constrained to a body (a large box
@@ -78,11 +76,11 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
     my_body_A->SetFixed(base_fixed);
     my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
-    assembly->Add(my_body_A);
+    sys.Add(my_body_A);
 
     // Create a FEM mesh, that is a container for groups of elements and their referenced nodes.
     auto mesh = chrono_types::make_shared<ChMesh>();
-    assembly->Add(mesh);
+    sys.Add(mesh);
 
     mesh->SetAutomaticGravity(USE_GRAVITY);
 
@@ -104,7 +102,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     builder.BuildBeam(mesh,                      // the mesh where to put the created nodes and elements
                       section,                   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-                      6,                         // the number of ChElementBeamEuler to create
+                      20,                         // the number of ChElementBeamEuler to create
                       ChVector3d(0, 0, 0),       // the 'A' point in space (beginning of beam)
                       ChVector3d(beam_L, 0, 0),  // the 'B' point in space (end of beam)
                       ChVector3d(0, 1, 0)        // the 'Y' up direction of the section for the beam
@@ -114,18 +112,18 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
     my_root->Initialize(builder.GetLastBeamNodes().front(), my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
-    assembly->Add(my_root);
+    sys.Add(my_root);
 
     // VISUALIZATION ASSETS:
 
-    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizebeamC->SetSymbolsThickness(0.2);
@@ -133,98 +131,21 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     visualizebeamC->SetZbufferHide(false);
     mesh->AddVisualShapeFEA(visualizebeamC);
 
-    // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
-
-    // Here we perform the modal analysis on the ChModalAssembly.
-    // - We compute only the first n modes. This helps dealing with very large
-    //   systems with many DOFs.
-    // - If the assembly is free floating (ex like an helicopter or an airplane,
-    //   i.e. there is no part that is fixed to ground) it will give six modes with 0 frequency,
-    //   the so called rigid body modes.
-    // - After computing the modes, you can access the eigenmodes, eigenvalues (also scaled as frequencies)
-    //   from the ChModalAssembly member data, ex. via assembly->GetUndampedFrequencies
-    // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true);
-    //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
-    //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted
-    //   mode.
-    assembly->ComputeModes(num_modes);
-
-    // Just for logging the frequencies:
-    std::cout << " The undamped modal frequencies of the modal assembly (not the whole system) in full state are: "
-              << std::endl;
-    for (int i = 0; i < assembly->GetUndampedFrequencies().rows(); ++i) {
-        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->GetUndampedFrequencies()(i)
-                  << "  damping ratio:" << assembly->GetDampingRatios()(i)
-                  << "    Re=" << assembly->GetEigenValues()(i).real()
-                  << "  Im=" << assembly->GetEigenValues()(i).imag() << std::endl;
-    }
-
-    // Here we perform the complex-modal analysis (damped modes) on the ChModalAssembly.
+    // Here we perform the complex-modal analysis (damped modes) on the ChAssembly.
     // Short way:
     ////assembly->ComputeModesDamped(num_modes);
     // Or, if you need more control on the eigenvalue solver, do this:
     ////assembly->ComputeModesDamped(ChModalSolveDamped( ...parameters...));
-
-    // Set linear solver
-#ifdef CHRONO_PARDISO_MKL
-    ChSolverComplexPardisoMKL factorization;
-    factorization.GetMklEngine().pardisoParameterArray()[12] = 1;  // custom setting for Pardiso
-#else
-    ChSolverSparseComplexQR factorization;
-#endif
-
-    assembly->ComputeModesDamped(ChModalSolveDamped(
-        num_modes,                                              // n. of requested eigenmodes
-        1e-5,                                                   // base frequency, or vector of frequency spans
-        500,                                                    // the max. number of iterations
-        1e-10,                                                  // the tolerance
-        true,                                                   // verbose
-        ChQuadraticEigenvalueSolverKrylovSchur(&factorization)  // the eigenpair solver algorithm
-        ));
-
-    // Just for logging the frequencies:
-    std::cout << " The damped modal results of the modal assembly (not the whole system) in full state are: "
-              << std::endl;
-    for (int i = 0; i < assembly->GetUndampedFrequencies().rows(); ++i) {
-        std::cout << "Damped mode n." << i << "  frequency [Hz]: " << assembly->GetUndampedFrequencies()(i)
-                  << "  damping ratio:" << assembly->GetDampingRatios()(i)
-                  << "    Re=" << assembly->GetEigenValues()(i).real()
-                  << "  Im=" << assembly->GetEigenValues()(i).imag() << std::endl;
-    }
-
-    // This is needed if you want to see things in Irrlicht
-    vis.BindAll();
-
-    int current_example = ID_current_example;
-    while ((ID_current_example == current_example) && vis.Run()) {
-        vis.BeginScene();
-        vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
-                        ChColor(0.5f, 0.5f, 0.5f), true);
-        vis.EndScene();
-    }
 }
 
-void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1fixed, bool body2fixed) {
+void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
     // Clear previous demo, if any:
     sys.Clear();
     sys.SetChTime(0);
 
-    // CREATE THE ASSEMBLY.
-    // The ChModalAssembly is the most important item when doing modal analysis.
-    // You must add finite elements, bodies and constraints into this assembly in order
-    // to compute the modal frequencies etc.; objects not added into this won't be counted.
-    auto assembly = chrono_types::make_shared<ChModalAssembly>();
-    assembly->SetModalAutomaticGravity(USE_GRAVITY);
-    sys.Add(assembly);
-
-    // Now populate the assembly to analyze.
-    // In this demo, make a L-shaped beam constrained to two bodies at the end
-
     // Create a FEM mesh, that is a container for groups of elements and their referenced nodes.
     auto mesh = chrono_types::make_shared<ChMesh>();
-    assembly->Add(mesh);
+    sys.Add(mesh);
 
     mesh->SetAutomaticGravity(USE_GRAVITY);
 
@@ -266,90 +187,41 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
     my_body_A->SetFixed(body1fixed);
     my_body_A->SetPos(ChVector3d(-0.25, 0, 0));
-    assembly->Add(my_body_A);
+    sys.Add(my_body_A);
 
     // BODY: 2nd end
 
     auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
     my_body_B->SetFixed(body2fixed);
     my_body_B->SetPos(ChVector3d(beam_L, beam_L * 0.5 + 0.25, 0));
-    assembly->Add(my_body_B);
+    sys.Add(my_body_B);
 
     // CONSTRAINT: connect beam end to body
     auto my_root1 = chrono_types::make_shared<ChLinkMateGeneric>();
     my_root1->Initialize(start_node, my_body_A, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
-    assembly->Add(my_root1);
+    sys.Add(my_root1);
 
     // CONSTRAINT: connect beam end to body
     auto my_root2 = chrono_types::make_shared<ChLinkMateGeneric>();
     my_root2->Initialize(end_node, my_body_B, ChFrame<>(ChVector3d(beam_L, beam_L * 0.5, 0), QUNIT));
-    assembly->Add(my_root2);
+    sys.Add(my_root2);
 
     // VISUALIZATION ASSETS:
 
-    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
     visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
 
-    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>(mesh);
+    auto visualizebeamC = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamC->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
     visualizebeamC->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizebeamC->SetSymbolsThickness(0.2);
     visualizebeamC->SetSymbolsScale(0.1);
     visualizebeamC->SetZbufferHide(false);
     mesh->AddVisualShapeFEA(visualizebeamC);
-
-    // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
-
-    // Here we perform the modal analysis on the ChModalAssembly.
-    // - We compute only the first n modes. This helps dealing with very large
-    //   systems with many DOFs.
-    // - If the assembly is free floating (ex like an helicopter or an airplane,
-    //   i.e. there is no part that is fixed to ground) it will give six modes with 0 frequency,
-    //   the so called rigid body modes.
-    // - After computing the modes, you can access the eigenmodes, eigenvalues (also scaled as frequencies)
-    //   from the ChModalAssembly member data, ex. via assembly->GetUndampedFrequencies
-    // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true);
-    //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
-    //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted
-    //   mode.
-    assembly->ComputeModes(num_modes);
-
-    // If you need to enter more detailed settings for the eigenvalue solver, do this :
-    /*
-    assembly->ComputeModes(ChModalSolveUndamped(
-        num_modes,      // n. lowest nodes to search, or modes clusters {{freq1,nnodes2},{freq2,nnodes2},{...,...}}
-        1e-5,           // base freq.
-        500,            // max iterations
-        1e-10,          // tolerance
-        false,          // verbose
-        ChGeneralizedEigenvalueSolverKrylovSchur()) // solver type
-    );
-    */
-
-    // Just for logging the frequencies:
-    std::cout << " The modal frequencies of the modal assembly (not the whole system) in full state are: " << std::endl;
-    for (int i = 0; i < assembly->GetUndampedFrequencies().rows(); ++i)
-        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->GetUndampedFrequencies()(i) << std::endl;
-
-    // This is needed if you want to see things in Irrlicht 3D view.
-    vis.BindAll();
-
-    // Set the limitation of visualization on the mode orders.
-    vis.SetModalModesMax(num_modes - 1);
-
-    int current_example = ID_current_example;
-    while ((ID_current_example == current_example) && vis.Run()) {
-        vis.BeginScene();
-        vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
-                        ChColor(0.5f, 0.5f, 0.5f), true);
-        vis.EndScene();
-    }
 }
 
 // Custom event manager
@@ -362,19 +234,19 @@ class MyEventReceiver : public irr::IEventReceiver {
         if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
             switch (event.KeyInput.Key) {
                 case irr::KEY_KEY_1:
-                    ID_current_example = 1;
+                    current_example_id = 1;
                     return true;
                 case irr::KEY_KEY_2:
-                    ID_current_example = 2;
+                    current_example_id = 2;
                     return true;
                 case irr::KEY_KEY_3:
-                    ID_current_example = 3;
+                    current_example_id = 3;
                     return true;
                 case irr::KEY_KEY_4:
-                    ID_current_example = 4;
+                    current_example_id = 4;
                     return true;
                 case irr::KEY_KEY_5:
-                    ID_current_example = 5;
+                    current_example_id = 5;
                     return true;
                 default:
                     break;
@@ -395,19 +267,34 @@ int main(int argc, char* argv[]) {
 
     // CREATE THE MODEL
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemNSC sys;
 
     // no gravity used here
     sys.SetGravitationalAcceleration(VNULL);
 
+    // Set linear solver
+#ifdef CHRONO_PARDISO_MKL
+    auto factorization = chrono_types::make_shared<ChSolverComplexPardisoMKL>();
+    factorization->GetMklEngine().pardisoParameterArray()[12] = 1;  // custom setting for Pardiso
+#else
+    auto factorization = chrono_types::make_shared<ChSolverSparseComplexQR>();
+#endif
+
+    auto eig_solver = chrono_types::make_shared<ChUnsymGenEigenvalueSolverKrylovSchur>(factorization);
+    ChModalSolverDamped modal_solver(num_modes, 1e-5, true, false, eig_solver);
+
+    ChMatrixDynamic<std::complex<double>> eigvects;
+    ChVectorDynamic<std::complex<double>> eigvals;
+    ChVectorDynamic<> freq;
+    ChVectorDynamic<> damping_ratios;
+
     // VISUALIZATION
 
-    // Create the Irrlicht visualization system
-    ChVisualSystemIrrlicht vis;
+    MyEventReceiver receiver;
+
+    ChModalVisualSystemIrrlicht<std::complex<double>> vis;
     vis.AttachSystem(&sys);
-    vis.SetWindowSize(1024, 768);
-    vis.SetWindowTitle("Modal analysis");
     vis.Initialize();
     vis.AddLogo();
     vis.AddSkyBox();
@@ -415,13 +302,7 @@ int main(int argc, char* argv[]) {
     vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
     vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
     vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
-
-    // This is for GUI tweaking of system parameters..
-    MyEventReceiver receiver;
-    // note how to add a custom event receiver to the default interface:
     vis.AddUserEventReceiver(&receiver);
-
-    // Some help on the screen
     vis.GetGUIEnvironment()->addStaticText(
         L"Press 1: fixed cantilever\n"
         L"Press 2: free-free cantilever\n"
@@ -430,46 +311,64 @@ int main(int argc, char* argv[]) {
         L"Press 5: L-beam, fixed-fixed",
         irr::core::rect<irr::s32>(400, 80, 850, 200), false, true, 0);
 
-    // Note, in order to have this modal visualization  working, a ChModalAssembly must have been added to the ChSystem,
-    // where some modes must have been already computed.
-    vis.EnableModalAnalysis(true);
-    vis.SetModalSpeed(15);
-    vis.SetModalAmplitude(0.8);
-    vis.SetModalModeNumber(0);
-
-    // Optional: open the GUI for changing the N of the mode shape via a slider in the Irrlicht view
     vis.ShowInfoPanel(true);
-    vis.SetInfoTab(1);
+
+    vis.AttachAssembly(sys.GetAssembly(), eigvects, freq);
+
+    int previous_current_example_id = -1;
 
     // Run the sub-demos
     while (true) {
-        switch (ID_current_example) {
-            case 1:
-                MakeAndRunDemoCantilever(sys, vis,
-                                         true);  // root fixed
-                break;
-            case 2:
-                MakeAndRunDemoCantilever(sys, vis,
-                                         false);  // root free, for free-free mode
-                break;
-            case 3:
-                MakeAndRunDemoLbeam(sys, vis,
-                                    true,    // end 1 fixed
-                                    false);  // end 2 free
-                break;
-            case 4:
-                MakeAndRunDemoLbeam(sys, vis,
-                                    false,   // end 1 free
-                                    false);  // end 2 free
-                break;
-            case 5:
-                MakeAndRunDemoLbeam(sys, vis,
-                                    true,   // end 1 fixed
-                                    true);  // end 2 fixed
-                break;
-            default:
-                break;
+        if (previous_current_example_id != current_example_id) {
+            switch (current_example_id) {
+                case 1:
+                    // fixed-free
+                    MakeAndRunDemoCantilever(sys, true);
+                    break;
+                case 2:
+                    // free-free
+                    MakeAndRunDemoCantilever(sys, false);
+                    break;
+                case 3:
+                    // fixed-free L-beam
+                    MakeAndRunDemoLbeam(sys, true, false);
+                    break;
+                case 4:
+                    // free-free L-beam
+                    MakeAndRunDemoLbeam(sys, false, false);
+                    break;
+                case 5:
+                    // fixed-fixed L-beam
+                    MakeAndRunDemoLbeam(sys, true, true);
+                    break;
+                default:
+                    break;
+            }
+
+            previous_current_example_id = current_example_id;
+
+            sys.Update(true);
+            vis.BindAll();
+
+            modal_solver.Solve(sys.GetAssembly(), eigvects, eigvals, freq, damping_ratios);
+            vis.ResetInitialState();
+            vis.UpdateModes(eigvects, freq);
+
+            // Just for logging the frequencies:
+            std::cout << "Assembly eigen solutions: " << std::endl;
+            for (int i = 0; i < freq.size(); ++i) {
+                std::cout << "Mode " << std::setw(int(std::log10(num_modes) + 1)) << i << " | Freq: " << std::setw(4)
+                          << freq(i) << " Hz"
+                          << " | Damping Ratio:" << damping_ratios(i) << " | Eigval: {" << eigvals(i).real() << "; "
+                          << eigvals(i).imag() << "i}" << std::endl;
+            }
         }
+
+        vis.BeginScene();
+        vis.Render();
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
+                        ChColor(0.5f, 0.5f, 0.5f), true);
+        vis.EndScene();
 
         if (!vis.Run())
             break;

@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban, Rainer Gericke
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsTorqueConverter.h"
 #include "chrono/physics/ChSystem.h"
@@ -75,9 +77,9 @@ double ChShaftsTorqueConverter::GetSpeedRatio() const {
     return wrel2 / wrel1;
 }
 
-void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
+void ChShaftsTorqueConverter::Update(double time, bool update_assets) {
     // Inherit time changes of parent class
-    ChPhysicsItem::Update(mytime, update_assets);
+    ChPhysicsItem::Update(time, update_assets);
 
     // update class data
 
@@ -119,7 +121,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     double mT = T->GetVal(mR);
 
     // compute input torque (with minus sign because applied TO input thaft)
-    torque_in = -pow((shaft1->GetPosDt() / mK), 2);
+    torque_in = -std::pow((shaft1->GetPosDt() / mK), 2);
 
     if (state_warning_reverseflow)
         torque_in = -torque_in;

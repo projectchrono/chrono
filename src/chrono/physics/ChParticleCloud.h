@@ -159,7 +159,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
   public:
     ChParticleCloud();
     ChParticleCloud(const ChParticleCloud& other);
-    ~ChParticleCloud();
+    
+    virtual ~ChParticleCloud();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
@@ -180,16 +181,16 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     void SetLimitSpeed(bool state) { limit_speed = state; }
 
     /// Get the number of particles.
-    size_t GetNumParticles() const override { return particles.size(); }
+    virtual size_t GetNumParticles() const override { return particles.size(); }
 
     /// Get all particles in the cluster.
     std::vector<ChParticle*> GetParticles() const { return particles; }
 
     /// Get particle position.
-    const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
+    virtual const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
 
     /// Get particle linear velocity.
-    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDt(); }
+    virtual const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDt(); }
 
     /// Access the N-th particle.
     ChParticleBase& Particle(unsigned int n) override {
@@ -238,7 +239,24 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
     /// Get the visualization color for the specified particle.
     /// Return the color given by a ColorCallback, if one was provided. Otherwise return a default color.
-    ChColor GetVisualColor(unsigned int n) const;
+    virtual ChColor GetVisualColor(unsigned int n) const;
+
+    /// Class to be used as a callback interface for dynamic visibility of particles in a cloud.
+    class ChApi VisibilityCallback {
+      public:
+        virtual ~VisibilityCallback() {}
+
+        /// Return a boolean indicating whether or not the given particle is visible or not.
+        virtual bool get(unsigned int n, const ChParticleCloud& cloud) const = 0;
+    };
+
+    /// Set callback to dynamically set particle visibility (default: none).
+    /// If enabled, a visualization system could use this for conditionally rendering particles in a cloud.
+    void RegisterVisibilityCallback(std::shared_ptr<VisibilityCallback> callback) { m_vis_fun = callback; }
+
+    /// Return a boolean indicating whether or not the specified particle is visible.
+    /// Return the result given by a VisibilityCallback, if one was provided. Otherwise return true.
+    bool IsVisible(unsigned int n) const;
 
     // STATE FUNCTIONS
 
@@ -361,14 +379,9 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     void SetSleepMinAngVel(float m_t) { sleep_minwvel = m_t; }
     float GetSleepMinAngVel() const { return sleep_minwvel; }
 
-    // UPDATE FUNCTIONS
-
     /// Update all auxiliary data of the particles
-    virtual void Update(double mytime, bool update_assets = true) override;
-    /// Update all auxiliary data of the particles
-    virtual void Update(bool update_assets = true) override;
+    virtual void Update(double time, bool update_assets) override;
 
-    // SERIALIZATION
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
@@ -376,7 +389,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     std::vector<ChParticle*> particles;  ///< the particles
     ChSharedMassBody particle_mass;      ///< shared mass of particles
 
-    std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
+    std::shared_ptr<ColorCallback> m_color_fun;     ///< callback for dynamic coloring
+    std::shared_ptr<VisibilityCallback> m_vis_fun;  ///< callback for particle visibility
 
     std::shared_ptr<ChCollisionModel> particle_collision_model;  ///< sample collision model
 
@@ -420,12 +434,30 @@ class ChApi HeightColorCallback : public ChParticleCloud::ColorCallback {
 
 class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
   public:
-    VelocityColorCallback(double vmin, double vmax) : m_monochrome(false), m_vmin(vmin), m_vmax(vmax) {}
-    VelocityColorCallback(const ChColor& base_color, double vmin, double vmax)
-        : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax) {}
+    enum class Component { X, Y, Z, NORM };
+
+    VelocityColorCallback(double vmin, double vmax, Component component = Component::NORM)
+        : m_monochrome(false), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
+    VelocityColorCallback(const ChColor& base_color, double vmin, double vmax, Component component = Component::NORM)
+        : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
 
     virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override {
-        double vel = cloud.GetParticleVel(n).Length();  // particle velocity
+        double vel = 0;
+        switch (m_component) {
+            case Component::NORM:
+                vel = cloud.GetParticleVel(n).Length();
+                break;
+            case Component::X:
+                vel = std::abs(cloud.GetParticleVel(n).x());
+                break;
+            case Component::Y:
+                vel = std::abs(cloud.GetParticleVel(n).y());
+                break;
+            case Component::Z:
+                vel = std::abs(cloud.GetParticleVel(n).z());
+                break;
+        }
+
         if (m_monochrome) {
             float factor = (float)((vel - m_vmin) / (m_vmax - m_vmin));  // color scaling factor (0,1)
             return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
@@ -434,11 +466,11 @@ class ChApi VelocityColorCallback : public ChParticleCloud::ColorCallback {
     }
 
   private:
+    Component m_component;
     bool m_monochrome;
     ChColor m_base_color;
     double m_vmin;
     double m_vmax;
-    ChVector3d m_up;
 };
 
 CH_CLASS_VERSION(ChParticleCloud, 0)

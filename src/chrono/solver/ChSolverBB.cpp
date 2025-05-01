@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverBB.h"
+#include "chrono/utils/ChConstants.h"
 
 namespace chrono {
 
@@ -80,7 +81,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
             gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
-                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                 mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                 mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                 mconstraints[ic - 0]->SetSchurComplement(average_g_i);
@@ -109,7 +110,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     // Put (M^-1)*k    in  q  sparse vector of each variable..
     for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(),
+                                                          mvariables[iv]->Force());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     mb.setZero();
@@ -149,6 +151,9 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
     mg_p = mg;
 
+    // initial norm of the gradient
+    double mg_p_init_norm = std::max(1e-10, mg_p.norm());
+
     //
     // THE LOOP
     //
@@ -156,6 +161,9 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     double mf_p = 0;
     double mf = 1e29;
     std::vector<double> f_hist;
+
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // Dg = Di*g;
@@ -299,7 +307,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
         // METRICS - convergence, plots, etc
 
         double maxdeltalambda = ms.lpNorm<Eigen::Infinity>();
-        double maxd = lastgoodres;
+        double maxd = lastgoodres/mg_p_init_norm;
 
         // For recording into correction/residuals/violation history, if debugging
         if (this->record_violation_history)
@@ -311,15 +319,11 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
 
         m_iterations++;
 
-        // Terminate the loop if violation in constraints has been successfully limited.
-        // ***TO DO*** a reliable termination criterion..
-        /*
-        if (maxd < m_tolerance)
-        {
-            std::cout <<"BB premature proj.gradient break at i=" << iter << std::endl;
+        if (maxd < m_tolerance) {
+            if (verbose)
+                std::cout << "Converged at iter: " << iter << " with residual: " << maxd << std::endl;
             break;
         }
-        */
     }
 
     // Fallback to best found solution (might be useful because of nonmonotonicity)

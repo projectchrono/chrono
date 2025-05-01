@@ -25,7 +25,14 @@
 namespace chrono {
 namespace vehicle {
 
-ChWheeledVehicleVisualSystemVSG::ChWheeledVehicleVisualSystemVSG() : ChVehicleVisualSystemVSG(), m_wvehicle(nullptr) {}
+ChWheeledVehicleVisualSystemVSG::ChWheeledVehicleVisualSystemVSG()
+    : ChVehicleVisualSystemVSG(),
+      m_wvehicle(nullptr),
+      m_chassis_visible(true),
+      m_suspension_visible(true),
+      m_steering_visible(true),
+      m_wheel_visible(true),
+      m_tire_visible(true) {}
 
 void ChWheeledVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
     ChVehicleVisualSystemVSG::AttachVehicle(vehicle);
@@ -58,6 +65,63 @@ void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
 
             ImGui::TableNextRow();
         }
+        ImGui::EndTable();
+    }
+
+    if (ImGui::BeginTable("Subsystems", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
+                          ImVec2(0.0f, 0.0f))) {
+        uint16_t vtag = m_vehicle->GetVehicleTag();
+
+        ImGui::TableNextColumn();
+        static bool chassis_visible = true;
+        if (ImGui::Checkbox("Chassis", &chassis_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::CHASSIS);
+            m_chassis_visible = !m_chassis_visible;
+            SetBodyObjVisibility(m_chassis_visible, tag);
+            SetLinkObjVisibility(m_chassis_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool suspension_visible = true;
+        if (ImGui::Checkbox("Suspension", &suspension_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::SUSPENSION);
+            m_suspension_visible = !m_suspension_visible;
+            SetBodyObjVisibility(m_suspension_visible, tag);
+            SetLinkObjVisibility(m_suspension_visible, tag);
+            SetSpringVisibility(m_suspension_visible, tag);
+            SetSegmentVisibility(m_suspension_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool steering_visible = true;
+        if (ImGui::Checkbox("Steering", &steering_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::STEERING);
+            m_steering_visible = !m_steering_visible;
+            SetBodyObjVisibility(m_steering_visible, tag);
+            SetLinkObjVisibility(m_steering_visible, tag);
+            SetSpringVisibility(m_steering_visible, tag);
+            SetSegmentVisibility(m_steering_visible, tag);
+        }
+
+        ImGui::TableNextColumn();
+        static bool wheel_visible = true;
+        if (ImGui::Checkbox("Wheel", &wheel_visible)) {
+            int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::WHEEL);
+            m_wheel_visible = !m_wheel_visible;
+            SetBodyObjVisibility(m_wheel_visible, tag);
+            SetLinkObjVisibility(m_wheel_visible, tag);
+        }
+
+        ////ImGui::TableNextColumn();
+        ////static bool tire_visible = true;
+        ////if (ImGui::Checkbox("Tire", &tire_visible)) {
+        ////    int tag = VehicleObjTag::Generate(vtag, VehiclePartTag::TIRE);
+        ////    m_tire_visible = !m_tire_visible;
+        ////    SetBodyObjVisibility(m_tire_visible, tag);
+        ////    SetLinkObjVisibility(m_tire_visible, tag);
+        ////    SetFeaMeshVisibility(m_tire_visible, tag);
+        ////}
+
         ImGui::EndTable();
     }
 }

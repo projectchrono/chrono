@@ -72,7 +72,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         wheel_body->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_PI_2)));
     }
 
-    wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
+    wheel_body->GetCollisionModel()->SetFamily(VehicleCollisionFamily::TIRE_FAMILY);
 }
 
 void ChRigidTire::Synchronize(double time, const ChTerrain& terrain) {
@@ -114,18 +114,35 @@ void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-    m_cyl_shape = ChVehicleGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
-                                                              ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
-                                                              ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
-                                                              GetRadius());
-    m_cyl_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
+    if (vis == VisualizationType::COLLISION) {
+        if (m_use_contact_mesh) {
+            auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+            trimesh_shape->SetMesh(m_trimesh);
+            m_vis_shape = trimesh_shape;
+            m_wheel->GetSpindle()->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, GetOffset(), 0), QUNIT));
+        } else {
+            m_vis_shape =
+                utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
+                                                                ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
+                                                                ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
+                                                                GetRadius());
+        }
+
+        return;
+    }
+
+    m_vis_shape = utils::ChBodyGeometry::AddVisualizationCylinder(m_wheel->GetSpindle(),                           //
+                                                                  ChVector3d(0, GetOffset() + GetWidth() / 2, 0),  //
+                                                                  ChVector3d(0, GetOffset() - GetWidth() / 2, 0),  //
+                                                                  GetRadius());
+    m_vis_shape->SetTexture(GetChronoDataFile("textures/greenwhite.png"));
 }
 
 void ChRigidTire::RemoveVisualizationAssets() {
     // Make sure we only remove the assets added by ChRigidTire::AddVisualizationAssets.
     // This is important for the ChTire object because a wheel may add its own assets to the same body (the
     // spindle/wheel).
-    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_cyl_shape);
+    ChPart::RemoveVisualizationAsset(m_wheel->GetSpindle(), m_vis_shape);
 }
 
 // -----------------------------------------------------------------------------

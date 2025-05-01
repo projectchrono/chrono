@@ -54,9 +54,13 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
       m_realtime_force(false),
       m_RTF(0),
       m_initialized(false) {
+    // Assign vehicle tag
+    SetVehicleTag();
+
+    // Create and set containing Chrono system
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
-
+    m_system->SetName(name + "_system");
     m_system->SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
 
     // Set default solver for vehicle simulations
@@ -78,7 +82,14 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_inertia(0),
       m_realtime_force(false),
       m_RTF(0),
-      m_initialized(false) {}
+      m_initialized(false) {
+    // Set name of underlying system
+    if (system->GetName().empty())
+        system->SetName(name + "_system");
+
+    // Assign vehicle tag
+    SetVehicleTag();
+}
 
 ChVehicle::~ChVehicle() {
     delete m_output_db;
@@ -92,6 +103,12 @@ ChVehicle::~ChVehicle() {
         // Delete underlying Chrono system (this removes references to all contained physics items)
         delete m_system;
     }
+}
+
+void ChVehicle::SetVehicleTag() {
+    static int vehicle_count = 0;
+    m_tag = vehicle_count;
+    vehicle_count++;
 }
 
 // -----------------------------------------------------------------------------

@@ -20,13 +20,15 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+#include "chrono_vsg/ChVisualSystemVSG.h"
 
 using namespace chrono;
+using namespace chrono::vsg3d;
 
 // --------------------------------------------------------------------------
 
@@ -90,8 +92,8 @@ int main(int argc, char** argv) {
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     double density = 1000;
-    double mass = density * (4.0 / 3.0) * CH_PI * pow(radius, 3);
-    double inertia = (2.0 / 5.0) * mass * pow(radius, 2);
+    double mass = density * CH_4_3 * CH_PI * std::pow(radius, 3);
+    double inertia = (2.0 / 5.0) * mass * std::pow(radius, 2);
     double initial_angspeed = 10;
     double initial_linspeed = initial_angspeed * radius;
 
@@ -141,19 +143,26 @@ int main(int argc, char** argv) {
     }
 
     // Create the visualization window
-    opengl::ChVisualSystemOpenGL vis;
-    vis.AttachSystem(&sys);
-    vis.SetWindowTitle("Friction test");
-    vis.SetWindowSize(1280, 720);
-    vis.SetRenderMode(opengl::WIREFRAME);
-    vis.Initialize();
-    vis.AddCamera(ChVector3d(10, 10, 20), ChVector3d(0, 0, 0));
-    vis.SetCameraVertical(CameraVerticalDir::Y);
+    auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
+    vis->AttachSystem(&sys);
+    vis->SetWindowTitle("Friction test");
+    vis->SetCameraVertical(CameraVerticalDir::Y);
+    vis->AddCamera(ChVector3d(10, 10, 20), ChVector3d(0, 0, 0));
+    vis->SetWindowSize(1280, 720);
+    vis->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
+    vis->EnableSkyBox();
+    vis->SetCameraAngleDeg(40.0);
+    vis->SetLightIntensity(1.0f);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+    vis->EnableShadows();
+    vis->Initialize();
 
     // Simulate sys
-    while (vis.Run()) {
+    ChRealtimeStepTimer rt_timer;
+    while (vis->Run()) {
+        vis->Render();
         sys.DoStepDynamics(time_step);
-        vis.Render();
+        rt_timer.Spin(time_step);
         ////std::cout << "num contacts: " << sys.GetNumContacts() << "\n\n";
     }
 

@@ -48,7 +48,7 @@ double ChFunctionOperator::GetVal(double x) const {
             res = m_first_fun->GetVal(x) / m_second_fun->GetVal(x);
             break;
         case ChFunctionOperator::POW:
-            res = pow(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
+            res = std::pow(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
         case ChFunctionOperator::MAX:
             res = std::max(m_first_fun->GetVal(x), m_second_fun->GetVal(x));

@@ -12,7 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/core/ChSparsityPatternLearner.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono/solver/ChSolverADMM.h"
 
@@ -89,8 +92,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                      << std::endl;
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -176,7 +178,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
-                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                     mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 0]->SetSchurComplement(average_g_i);
@@ -189,8 +191,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
-                                                                // considered, no stiffness matrices anyway
+                S(d_i, 0) = std::sqrt(
+                    mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
+                                                              // considered, no stiffness matrices anyway
                 ++d_i;
             }
         // Now we should scale Cq, E, b as
@@ -264,8 +267,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                  << std::endl;
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
     m_timer_factorize.start();
 
@@ -285,6 +287,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     res_story.r_rho=zeros(1,1);
     res_story.r_violation=zeros(1,1);
     */
+
+    std::fill(violation_history.begin(), violation_history.end(), 0.0);
+    std::fill(dlambda_history.begin(), dlambda_history.end(), 0.0);
 
     for (int iter = 0; iter < m_max_iterations; iter++) {
         // diagnostic
@@ -375,7 +380,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_UNSCALED) {
-                rhofactor = sqrt(r_prim_pre / r_dual_pre);
+                rhofactor = std::sqrt(r_prim_pre / r_dual_pre);
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
@@ -386,13 +391,13 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                     r_dual_pre /
                     (y.lpNorm<Eigen::Infinity>() +
                      1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
-                rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
+                rhofactor = std::sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_RANGE) {
                 double r_prim_scaled = r_prim / this->tol_prim;
                 double r_dual_scaled = r_dual / this->tol_dual;
-                rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
+                rhofactor = std::sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
 
             // safeguards against extreme shrinking
@@ -439,8 +444,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
                 m_timer_refactorize.stop();
                 if (verbose)
-                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds()
-                              << "s" << std::endl;
+                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds() << "s"
+                              << std::endl;
             }
 
         }  // end step adjust
@@ -498,8 +503,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                      << std::endl;
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -587,7 +591,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
-                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
+                    double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) * CH_1_3;
                     mconstraints[ic - 2]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 1]->SetSchurComplement(average_g_i);
                     mconstraints[ic - 0]->SetSchurComplement(average_g_i);
@@ -600,8 +604,9 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
-                                                                // considered, no stiffness matrices anyway
+                S(d_i, 0) = std::sqrt(
+                    mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
+                                                              // considered, no stiffness matrices anyway
                 ++d_i;
             }
         // Now we should scale Cq, E, b as
@@ -675,8 +680,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s"
-                  << std::endl;
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSeconds() << "s" << std::endl;
 
     m_timer_factorize.start();
 
@@ -781,7 +785,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         if (iter > 1) {
             double c_k_p = (1 / rho) * (y - y_old).norm() + rho * (l - l_old).norm();
             if (c_k_p < eta * c_k) {
-                double nalpha_p = (1.0 + sqrt(1.0 + 4 * pow(nalpha, 2))) / (2.0);
+                double nalpha_p = (1.0 + std::sqrt(1.0 + 4 * std::pow(nalpha, 2))) / (2.0);
                 l = l + ((nalpha - 1.0) / (nalpha_p)) * (l - l_old);
                 v = v + ((nalpha - 1.0) / (nalpha_p)) * (v - v_old);  // trick to avoid recomputing it at the end
                 y = y + ((nalpha - 1.0) / (nalpha_p)) * (y - y_old);
@@ -804,7 +808,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_UNSCALED) {
-                rhofactor = sqrt(r_prim_pre / r_dual_pre);
+                rhofactor = std::sqrt(r_prim_pre / r_dual_pre);
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
@@ -815,13 +819,13 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                     r_dual_pre /
                     (y.lpNorm<Eigen::Infinity>() +
                      1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
-                rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
+                rhofactor = std::sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_RANGE) {
                 double r_prim_scaled = r_prim / this->tol_prim;
                 double r_dual_scaled = r_dual / this->tol_dual;
-                rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
+                rhofactor = std::sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
 
             // safeguards against extreme shrinking
@@ -868,8 +872,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
                 m_timer_refactorize.stop();
                 if (verbose)
-                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds()
-                              << "s" << std::endl;
+                    std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSeconds() << "s"
+                              << std::endl;
             }
 
         }  // end step adjust

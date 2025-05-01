@@ -34,6 +34,7 @@ namespace vehicle {
 ChTrackTestRigDriver::ChTrackTestRigDriver() : m_throttle(0), m_delay(0), m_log_filename("") {}
 
 void ChTrackTestRigDriver::Initialize(size_t num_posts, const std::vector<double>& locations) {
+    m_nposts = num_posts;
     m_displ.resize(num_posts, 0.0);
     m_displSpeed.resize(num_posts, 0.0);
     m_locations = locations;

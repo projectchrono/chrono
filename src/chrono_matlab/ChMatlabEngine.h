@@ -18,7 +18,6 @@
 #include "chrono_matlab/ChApiMatlab.h"
 #include "chrono/core/ChFrame.h"
 
-// Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
 namespace matlabengine {
 #include "engine.h"
 };
@@ -28,36 +27,14 @@ namespace chrono {
 /// @addtogroup matlab_module
 /// @{
 
-/// Class for accessing the Matlab engine with a C++ wrapper.
-/// When a ChMatlabEngine object is instanced, a Matlab engine
-/// is started (assuming Matlab is properly installed and its
-/// dll are available on the system) and following funcitons can
-/// be used to copy variables from/to Chrono, and
-/// to execute commands in Matlab. Useful also to exploit the
-/// powerful plotting features of Matlab.
-/// Note! to compile programs that include this header, your
-/// makefile must be properly configured to set the Matlab SDK
-/// directory, so that matlab headers and libs can be compiled/linked
-/// Also, if you run an executable that used this header on a
-/// system that has no Matlab installed, a 'missing dll' error
-/// will pop up as soon as you try to start the program.
-
+/// Class for accessing the Matlab engine.
+/// A ChMatlabEngine allows variables to be copied from/to Chrono and Matlab command executed.
 class ChApiMatlab ChMatlabEngine {
-  private:
-    //
-    // DATA
-    //
-    matlabengine::Engine* ep;
-    bool m_persist = false;
-
   public:
-    //
-    // FUNCTIONS
-    //
-
     ChMatlabEngine();
 
     virtual ~ChMatlabEngine();
+
     /// Return pointer to internal Matlab engine (avoid using it directly,
     /// if you can use other functions of this class that 'wrap' it.)
     matlabengine::Engine* GetEngine();
@@ -88,20 +65,15 @@ class ChApiMatlab ChMatlabEngine {
     /// Useful to skip initial time to reload engine (NB: thus, it must be closed manually).
     void KeepEngineOpen(bool open);
 
-    //
-    // SERIALIZATION
-    //
+    /// Method to allow serialization of transient data from archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
-    virtual void ArchiveOut(ChArchiveOut& archive_out) {
-        // version number
-        archive_out.VersionWrite<ChMatlabEngine>();
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) {
-        // version number
-        /*int version =*/archive_in.VersionRead<ChMatlabEngine>();
-    }
+  private:
+    matlabengine::Engine* m_engine;
+    bool m_persist;
 };
 
 /// @} matlab_module

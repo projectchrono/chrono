@@ -36,14 +36,14 @@ namespace vehicle {
 /// @{
 
 /// Interactive driver for the a vehicle.
-/// This class implements the functionality required by the base ChDriver class using keyboard or joystick inputs.
+/// This class implements support for keyboard or joystick control of a vehicle, but is independent of a particular
+/// implementation of a keyboard/joystick event handler.
 class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
   public:
     /// Functioning modes for a ChInteractiveDriver.
     enum class InputMode {
         LOCK,      ///< driver inputs locked at current values
         KEYBOARD,  ///< driver inputs from keyboard
-        DATAFILE,  ///< driver inputs from data file
         JOYSTICK   ///< driver inputs from joystick
     };
 
@@ -55,26 +55,22 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     /// Check if joystick is supported.
     virtual bool HasJoystick() const { return false; }
 
-    /// Update the state of this driver system at the specified time.
-    virtual void Synchronize(double time) override;
-
-    /// Advance the state of this driver system by the specified time step.
-    virtual void Advance(double step) override;
-
     /// Set the current functioning mode.
     void SetInputMode(InputMode mode);
 
+    InputMode GetInputMode() const { return m_mode; }
+
     /// Set the increment in throttle input for each recorded keypress (default 1/50).
-    void SetThrottleDelta(double delta);
+    void SetThrottleDelta(double delta) { m_throttle_delta = delta; }
 
     /// Set the increment in steering input for each recorded keypress (default 1/50).
-    void SetSteeringDelta(double delta);
+    void SetSteeringDelta(double delta) { m_steering_delta = delta; }
 
     /// Set the increment in braking input for each recorded keypress (default 1/50).
-    void SetBrakingDelta(double delta);
+    void SetBrakingDelta(double delta) { m_braking_delta = delta; }
 
     /// Set the increment in clutch input for each recorded keypress (default 1/50).
-    void SetClutchDelta(double delta);
+    void SetClutchDelta(double delta) { m_clutch_delta = delta; }
 
     /// Set the step size for integration of the internal driver dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
@@ -83,8 +79,35 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     /// Default values are 4.0.
     void SetGains(double steering_gain = 1, double throttle_gain = 1, double braking_gain = 1, double clutch_gain = 1);
 
-    /// Set the input file for the underlying data driver.
-    void SetInputDataFile(const std::string& filename);
+    /// Increase Throttle
+    void IncreaseThrottle();
+
+    /// Decrease Throttle
+    void DecreaseThrottle();
+
+    /// Steering Left
+    void SteeringLeft();
+
+    /// Steering Right
+    void SteeringRight();
+
+    /// Increase Clutch
+    void IncreaseClutch();
+
+    /// Decrease Clutch
+    void DecreaseClutch();
+
+    /// Center Steering
+    void SteeringCenter();
+
+    /// Release Pedals
+    void ReleasePedals();
+
+    /// Update the state of this driver system at the specified time.
+    virtual void Synchronize(double time) override {}
+
+    /// Advance the state of this driver system by the specified time step.
+    virtual void Advance(double step) override;
 
   protected:
     InputMode m_mode;  ///< current mode of the driver
@@ -106,10 +129,6 @@ class CH_VEHICLE_API ChInteractiveDriver : public ChDriver {
     double m_throttle_gain;  ///< gain for throttle internal dynamics
     double m_braking_gain;   ///< gain for braking internal dynamics
     double m_clutch_gain;    ///< gain for clutch internal dynamics
-
-    // Variables for mode=DATAFILE
-    double m_time_shift;                          ///< time at which mode was switched to DATAFILE
-    std::shared_ptr<ChDataDriver> m_data_driver;  ///< embedded data driver (for playback)
 };
 
 /// @} vehicle_driver

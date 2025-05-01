@@ -19,15 +19,14 @@
 #include <algorithm>
 #include <climits>
 
-#include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector3.h"
+#include "chrono/utils/ChUtils.h"
+#include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
-
-#include "chrono_thirdparty/chpf/particle_writer.hpp"
 
 #ifdef USE_HDF5
     #include "H5Cpp.h"
@@ -126,12 +125,12 @@ void ChSystemGpu_impl::CreateWallBCs() {
     size_t plane_BC_Z_top = CreateBCPlane(plane_center_top_Z, plane_normal_top_Z, false, 5);
 
     // verify that we have the right IDs for these walls
-    assert(plane_BC_X_bot == BD_WALL_ID_X_BOT);
-    assert(plane_BC_X_top == BD_WALL_ID_X_TOP);
-    assert(plane_BC_Y_bot == BD_WALL_ID_Y_BOT);
-    assert(plane_BC_Y_top == BD_WALL_ID_Y_TOP);
-    assert(plane_BC_Z_bot == BD_WALL_ID_Z_BOT);
-    assert(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
+    ChAssertAlways(plane_BC_X_bot == BD_WALL_ID_X_BOT);
+    ChAssertAlways(plane_BC_X_top == BD_WALL_ID_X_TOP);
+    ChAssertAlways(plane_BC_Y_bot == BD_WALL_ID_Y_BOT);
+    ChAssertAlways(plane_BC_Y_top == BD_WALL_ID_Y_TOP);
+    ChAssertAlways(plane_BC_Z_bot == BD_WALL_ID_Z_BOT);
+    ChAssertAlways(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
 }
 
 ChSystemGpu_impl::~ChSystemGpu_impl() {
@@ -339,38 +338,6 @@ void ChSystemGpu_impl::WriteCsvParticles(std::ofstream& ptFile) const {
     }
 
     ptFile << outstrstream.str();
-}
-
-void ChSystemGpu_impl::WriteChPFParticles(std::ofstream& ptFile) const {
-    ParticleFormatWriter pw;
-
-    std::vector<float> v_x_UU(sphere_local_pos_X.size());
-    std::vector<float> v_y_UU(sphere_local_pos_Y.size());
-    std::vector<float> v_z_UU(sphere_local_pos_Z.size());
-    std::vector<float> sphere_radius(gran_params->nSpheres);
-
-    for (unsigned int n = 0; n < nSpheres; n++) {
-        unsigned int ownerSD = sphere_owner_SDs.at(n);
-        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-        float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
-        float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
-        float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
-
-        x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
-        y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
-        z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
-
-        x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
-        y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
-        z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
-
-        v_x_UU[n] = x_UU;
-        v_y_UU[n] = y_UU;
-        v_z_UU[n] = z_UU;
-        sphere_radius[n] = gran_params->sphereRadius_SU * LENGTH_SU2UU;
-    }
-
-    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, v_x_UU, v_y_UU, v_z_UU, sphere_radius);
 }
 
 #ifdef USE_HDF5
@@ -1290,7 +1257,7 @@ float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
 
 /// Set particle position
 void ChSystemGpu_impl::SetParticlePosition(int nSphere, double3 position) {
-    // // convert user unit to simulation unit
+    // convert user unit to simulation unit
     int64_t global_pos_X = (int64_t)((double)position.x / (double)LENGTH_SU2UU);
     int64_t global_pos_Y = (int64_t)((double)position.y / (double)LENGTH_SU2UU);
     int64_t global_pos_Z = (int64_t)((double)position.z / (double)LENGTH_SU2UU);
@@ -1334,16 +1301,16 @@ void ChSystemGpu_impl::SetParticlePosition(int nSphere, double3 position) {
 }
 
 float ChSystemGpu_impl::ComputeTotalKE() {
-    size_t nSpheres = pos_X_dt.size();
-    if (nSpheres == 0)
+    unsigned int num_spheres = (unsigned int)pos_X_dt.size();
+    if (num_spheres == 0)
         return 0.f;
 
     // Compute sum(v^2) and sum(w^2)
-    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, nSpheres);
+    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, num_spheres);
     v2_UU *= VEL_SU2UU * VEL_SU2UU;
-    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
+    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, num_spheres);
     w2_UU /= TIME_SU2UU * TIME_SU2UU;
-    float m = (4. / 3.) * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    float m = CH_4_3 * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
 
     // Then, KE = 0.5 * m * sum(v^2) + 0.2 * m * r^2 * sum(w^2)
     return 0.5 * m * v2_UU + 0.2 * m * sphere_radius_UU * sphere_radius_UU * w2_UU;
@@ -1487,7 +1454,7 @@ void ChSystemGpu_impl::combineMaterialSurface() {
 // Convert unit parameters from UU to SU
 void ChSystemGpu_impl::switchToSimUnits() {
     // Compute sphere mass, highest system stiffness, and gravity magnitude
-    double massSphere = (4. / 3.) * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double massSphere = CH_4_3 * CH_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
     double K_star = get_max_K();
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
@@ -1503,7 +1470,7 @@ void ChSystemGpu_impl::switchToSimUnits() {
     // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
     // new hertz way
     this->LENGTH_SU2UU =
-        std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
+        std::cbrt(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star)) /
         psi_L;
     this->LENGTH_SU2UU = std::min((double)(sphere_radius_UU * psi_R), this->LENGTH_SU2UU);
 

@@ -544,8 +544,8 @@ void ChOptixEngine::ConstructScene() {
     for (auto body : m_system->GetBodies()) {
         if (body->GetVisualModel()) {
             for (auto& shape_instance : body->GetVisualModel()->GetShapeInstances()) {
-                const auto& shape = shape_instance.first;
-                const auto& shape_frame = shape_instance.second;
+                const auto& shape = shape_instance.shape;
+                const auto& shape_frame = shape_instance.frame;
                 // check if the asset is a ChVisualShape
 
                 // if (std::shared_ptr<ChVisualShape> visual_asset = std::dynamic_pointer_cast<ChVisualShape>(asset)) {
@@ -597,12 +597,12 @@ void ChOptixEngine::ConstructScene() {
         }
     }
 
-    // // Assumption made here that other physics items don't have a transform -> not always true!!!
+    // Assumption made here that other physics items don't have a transform -> not always true!!!
     for (auto item : m_system->GetOtherPhysicsItems()) {
         if (item->GetVisualModel()) {
             for (auto& shape_instance : item->GetVisualModel()->GetShapeInstances()) {
-                const auto& shape = shape_instance.first;
-                const auto& shape_frame = shape_instance.second;
+                const auto& shape = shape_instance.shape;
+                const auto& shape_frame = shape_instance.frame;
 
                 auto dummy_body = chrono_types::make_shared<ChBody>();
 

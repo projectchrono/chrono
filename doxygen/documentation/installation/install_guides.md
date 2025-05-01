@@ -5,7 +5,7 @@ Installation Guides {#install_guides}
 
 -   [Core Chrono module](@ref tutorial_install_chrono)
 
-Additional Chrono functionalities are provided through optional _modules_, conditionally enabled during CMake configuration. Modules often rely on third-party libraries that might require additional installation steps, as described in each module installation page.
+Additional Chrono functionality is provided through optional modules, enabled during CMake configuration. 
 
 -   [CASCADE module](@ref module_cascade_installation)
 
@@ -27,8 +27,6 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 
 -   [MUMPS module](@ref module_mumps_installation)
 
--   [OPENGL module](@ref module_opengl_installation)
-
 -   [Pardiso MKL module](@ref module_mkl_installation)
 
 -   [PARSERS module](@ref module_parsers_installation)
@@ -36,6 +34,8 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 -   [POSTPROCESS module](@ref module_postprocess_installation)
 
 -   [PYTHON module](@ref module_python_installation)
+
+-   [ROS module](@ref module_ros_installation)
 
 -   [SENSOR module](@ref module_sensor_installation)	
 
@@ -45,21 +45,28 @@ Additional Chrono functionalities are provided through optional _modules_, condi
 
 -   [VSG module](@ref module_vsg_installation)
 
+#### Providing 3rd-party dependencies
 
-For some of these dependencies, we provide utility scripts that will download, configure, build, and install versions that are known to work with the current Chrono distribution. In each case, we provide both batch scripts (for Windows users) and bash scripts (for Linux/Mac users). Currently, utility scripts for the following sets of dependencies are available (under the `contrib/build-scripts` subdirectory of the Chrono source tree):
+The core Chrono module (and hence all of Chrono) required the Eigen3 linear algebra (headers-only) library.
 
-- VSG libraries required for the Chrono::VSG module
-- URDF libraries required by the URDF parser in the Chrono::Parsers module
-- GL utility libraries required for the Chrono::OpenGL and (optionally) Chrono::Sensor modules
-- OpenCRG library required for the optional OpenCRG support in the Chrono::Vehicle module
+Chrono optional modules often rely on third-party libraries that might require additional installation steps, as described in each module installation page.
 
-The directory `contrib/build-scripts` also includes sample scripts (`buildChrono.bat` and `buildChrono.sh`) for configuring Chrono with CMake which can be used as examples of satisfying the dependencies for the various optional Chrono modules (assuming these dependencies were installed with the utility scripts described above).
+For some of these dependencies, we provide utility scripts that will download, configure, build, and install versions that are known to work with the current Chrono distribution. In each case, we provide both batch scripts (for Windows users) and bash scripts (for Linux/Mac users). Currently, utility scripts for the following dependencies are available (under the `contrib/build-scripts` subdirectory of the Chrono source tree, organized by OS):
+
+- Eigen3, required for the core Chrono module
+- Blaze, required for the Chrono::Multicore module
+- Spectra, required for the Chrono::Modal module 
+- VSG libraries, required for the Chrono::VSG module
+- URDF libraries, required for the URDF parser in the Chrono::Parsers module
+- GL utility libraries, required (optionally) for the Chrono::Sensor module
+- MUMPS library, required for the optional direct sparse linear solver Chrono::Mumps module.
+- OpenCRG library, required for the optional OpenCRG support in the Chrono::Vehicle module
+
+The subdirectories in `contrib/build-scripts` also include sample scripts (`buildChrono.bat`, `buildChrono.sh`, and `buildChronoMac.sh`) for configuring Chrono with CMake which can be used as examples of satisfying the dependencies for the various optional Chrono modules (assuming these dependencies were installed with the utility scripts described above).
 
 ### Building a project that uses Chrono
 
-User projects should start from the template offered in the repository under: [_chrono/template_project_](https://github.com/projectchrono/chrono/tree/main/template_project).
-
-Full instructions can be found in: [Linking to Chrono](@ref tutorial_install_project)
+- [Configure and build an external Chrono project](@ref tutorial_install_project)
 
 ### Building Chrono for WebAssembly
 
@@ -76,3 +83,7 @@ Full instructions can be found in: [Linking to Chrono](@ref tutorial_install_pro
 An add-in to simulate Solidworks models using the Chrono library
 
 - @subpage chrono_solidworks_installation
+
+### Building a Docker Image with Chrono
+
+- @subpage docker_installation

@@ -29,7 +29,7 @@ ChCone::ChCone(const ChCone& source) {
 // -----------------------------------------------------------------------------
 
 double ChCone::GetVolume(double radius, double height) {
-    return CH_PI * radius * radius * height / 3.0;
+    return CH_PI_3 * radius * radius * height;
 }
 
 double ChCone::GetVolume() const {

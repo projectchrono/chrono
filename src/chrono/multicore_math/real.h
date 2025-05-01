@@ -21,7 +21,6 @@
 #include "chrono/core/ChApiCE.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/multicore_math/ChCudaDefines.h"
 
 #include <cmath>
 #include <cfloat>
@@ -39,20 +38,20 @@ namespace chrono {
 /// @addtogroup chrono_mc_math
 /// @{
 
-// CUDA_HOST_DEVICE static inline real DegToRad(real t) {
+//  static inline real DegToRad(real t) {
 //    return t * C_DegToRad;
 //}
-// CUDA_HOST_DEVICE static inline real RadToDeg(real t) {
+//  static inline real RadToDeg(real t) {
 //    return t * C_RadToDeg;
 //}
 
-// CUDA_HOST_DEVICE static inline real Sign(const real x) {
+//  static inline real Sign(const real x) {
 //  return x < real(0.0) ? -1.0f : 1.0f;
 //}
 
 /// Returns a -1 if the value is negative, a +1 if the value is positive. Otherwise returns zero.
 template <typename T>
-CUDA_HOST_DEVICE static inline T Sign(const T& x) {
+static inline T Sign(const T& x) {
     if (x < 0) {
         return T(-1);
     } else if (x > 0) {
@@ -63,18 +62,18 @@ CUDA_HOST_DEVICE static inline T Sign(const T& x) {
 }
 
 template <typename T>
-CUDA_HOST_DEVICE static inline T Sqr(const T x) {
+static inline T Sqr(const T x) {
     return x * x;
 }
 
 template <typename T>
-CUDA_HOST_DEVICE static inline T Cube(const T x) {
+static inline T Cube(const T x) {
     return x * x * x;
 }
 
 /// Checks if the value is zero to within a certain epsilon
 /// in this case ZERO_EPSILON is defined based on what the base type of real is
-CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
+static inline bool IsZero(const real x) {
     return Abs(x) < C_REAL_EPSILON;
 }
 
@@ -98,7 +97,7 @@ CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
 /// Check if two values are equal using a small delta/epsilon value.
 /// Essentially a fuzzy comparison operator
 template <typename T>
-CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
+static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
     ab = Abs(_a - _b);
     if (Abs(ab) < C_REAL_EPSILON)
@@ -113,19 +112,19 @@ CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
     }
 }
 
-CUDA_HOST_DEVICE inline real Lerp(const real& start, const real& end, const real& t) {
+inline real Lerp(const real& start, const real& end, const real& t) {
     return start + (end - start) * t;
 }
 
 template <typename T>
-CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
+inline void Swap(T& a, T& b) {
     T temp = a;
     a = b;
     b = temp;
 }
 
 template <typename T>
-CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
+void Sort(T& a, T& b, T& c) {
     if (a > b)
         Swap(a, b);
     if (b > c)
@@ -135,14 +134,14 @@ CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
 }
 
 template <typename T>
-CUDA_HOST_DEVICE void SwapIfGreater(T& a, T& b) {
+void SwapIfGreater(T& a, T& b) {
     if (a > b) {
         Swap(a, b);
     }
 }
 
 /// Clamps a given value a between user specified minimum and maximum values.
-CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
+inline real Clamp(real x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
@@ -150,7 +149,7 @@ CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
 }
 
 /// Clamps a given value a between user specified minimum and maximum values.
-CUDA_HOST_DEVICE inline void ClampValue(real& x, real low, real high) {
+inline void ClampValue(real& x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
@@ -160,11 +159,11 @@ CUDA_HOST_DEVICE inline void ClampValue(real& x, real low, real high) {
         x = high;
 }
 
-CUDA_HOST_DEVICE inline real ClampMin(real x, real low) {
+inline real ClampMin(real x, real low) {
     return Max(low, x);
 }
 
-CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
+inline real ClampMax(real x, real high) {
     return Min(x, high);
 }
 
@@ -175,20 +174,20 @@ CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
         *this = *this op scale;              \
         return *this;                        \
     }
-#define OPERATOR_EQUALSALT_PROTO(op, tin, tout) tout& operator op##=(tout& a, const tin& scale);
+#define OPERATOR_EQUALSALT_PROTO(op, tin, tout) tout& operator op##=(tout & a, const tin & scale);
 
-#define OPERATOR_EQUALSALT(op, tin, tout)             \
-    tout& operator op##=(tout& a, const tin& scale) { \
-        a = a op scale;                               \
-        return a;                                     \
+#define OPERATOR_EQUALSALT(op, tin, tout)               \
+    tout& operator op##=(tout & a, const tin & scale) { \
+        a = a op scale;                                 \
+        return a;                                       \
     }
 
-#define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout& a, const tin& scale);
+#define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout & a, const tin & scale);
 
-#define OPERATOR_EQUALS_IMPL(op, tin, tout)           \
-    tout& operator op##=(tout& a, const tin& scale) { \
-        a = a op scale;                               \
-        return a;                                     \
+#define OPERATOR_EQUALS_IMPL(op, tin, tout)             \
+    tout& operator op##=(tout & a, const tin & scale) { \
+        a = a op scale;                                 \
+        return a;                                       \
     }
 
 /// @} chrono_mc_math

@@ -63,11 +63,9 @@ using namespace chrono::vsg3d;
 #endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 using namespace chrono::curiosity;
 using namespace chrono::sensor;
 
-using namespace irr;
 
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
@@ -78,8 +76,8 @@ double mesh_resolution = 0.01;
 // Enable/disable bulldozing effects
 bool enable_bulldozing = false;
 
-// Enable/disable moving patch feature
-bool enable_moving_patch = true;
+// Enable/disable active domains feature
+bool enable_active_domains = true;
 
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
@@ -336,11 +334,11 @@ int main(int argc, char* argv[]) {
     // Create the 'deformable terrain' object
     vehicle::SCMTerrain terrain(&sys);
 
-    // Displace/rotate the terrain reference plane.
+    // Displace/rotate the terrain reference frame.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
-    // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
+    // a Y-up global frame, we rotate the terrain frame by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
+    terrain.SetReferenceFrame(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Use a regular grid:
     double length = 14;
@@ -375,31 +373,31 @@ int main(int argc, char* argv[]) {
             6);  // number of concentric vertex selections subject to erosion
     }
 
-    // We need to add a moving patch under every wheel
-    // Or we can define a large moving patch at the pos of the rover body
-    if (enable_moving_patch) {
+    // Add active domains for each wheel
+    // (optionally, we can define a large active domain associated with the rover body)
+    if (enable_active_domains) {
         // add moving patch for the SCM terrain
         // the bodies were retrieved from the rover instance
-        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_LF)->GetBody(), ChVector3d(0, 0, 0),
-                               ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_RF)->GetBody(), ChVector3d(0, 0, 0),
-                               ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_LM)->GetBody(), ChVector3d(0, 0, 0),
-                               ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_RM)->GetBody(), ChVector3d(0, 0, 0),
-                               ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_LB)->GetBody(), ChVector3d(0, 0, 0),
-                               ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_RB)->GetBody(), ChVector3d(0, 0, 0),
-                               ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LF)->GetBody(), ChVector3d(0, 0, 0),
+                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RF)->GetBody(), ChVector3d(0, 0, 0),
+                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LM)->GetBody(), ChVector3d(0, 0, 0),
+                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RM)->GetBody(), ChVector3d(0, 0, 0),
+                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LB)->GetBody(), ChVector3d(0, 0, 0),
+                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RB)->GetBody(), ChVector3d(0, 0, 0),
+                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add moving patch for all obstacles
-        terrain.AddMovingPatch(rock_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rock_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rock_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rock_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rock_5, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rock_6, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_1, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_2, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_3, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_4, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_5, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rock_6, ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.

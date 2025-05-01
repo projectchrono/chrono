@@ -1,0 +1,53 @@
+name: chrono
+services:
+  dev:
+    image: "${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}:dev"
+    hostname: '${COMPOSE_PROJECT_NAME}'
+    container_name: '${COMPOSE_PROJECT_NAME}-dev'
+    build:
+      context: "./"
+      network: "host"
+      dockerfile: "./dev.dockerfile"
+      args:
+        PROJECT: "${COMPOSE_PROJECT_NAME}"
+        IMAGE_BASE: "ubuntu"
+        IMAGE_TAG: "22.04"
+        USER_GROUPS: "dialout video"
+        PIP_REQUIREMENTS: "black"
+        APT_DEPENDENCIES: "vim cmake-curses-gui"
+        USER_SHELL_ADD_ONS: "alias python=python3"
+
+        CUDA_VERSION: "12-2"
+        ROS_DISTRO: "humble"
+        OPTIX_SCRIPT: "data/NVIDIA-OptiX-SDK-7.7.0-linux64-x86_64.sh"
+    volumes:
+      - '../../:/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
+      - '/tmp/.X11-unix:/tmp/.X11-unix'
+    environment:
+      DISPLAY: '${DISPLAY:-vnc:0.0}'
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    working_dir: '/home/${COMPOSE_PROJECT_NAME}/${COMPOSE_PROJECT_NAME}-dev'
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+  vnc:
+    image: "camera/${COMPOSE_PROJECT_NAME}:vnc"
+    hostname: "${COMPOSE_PROJECT_NAME}-vnc"
+    container_name: "${COMPOSE_PROJECT_NAME}-vnc"
+    build:
+      context: "./"
+      dockerfile: "./vnc.dockerfile"
+      network: "host"
+      args:
+        VNC_PASSWORD: "${COMPOSE_PROJECT_NAME}"
+    ports:
+      - "127.0.0.1:8080-8099:8080"
+      - "127.0.0.1:5900-5999:5900"
+networks:
+  default:
+    name: "${COMPOSE_PROJECT_NAME}"

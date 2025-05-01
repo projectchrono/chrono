@@ -4,108 +4,153 @@
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
-option(ENABLE_MODULE_PARDISO_MKL "Enable the Chrono PardisoMKL module" OFF)
+option(CH_ENABLE_MODULE_PARDISO_MKL "Enable the Chrono PardisoMKL module" OFF)
 
-if(NOT ENABLE_MODULE_PARDISO_MKL)
-    mark_as_advanced(FORCE MKL_ROOT)
-    mark_as_advanced(FORCE MATH_LIBRARY)
-    mark_as_advanced(FORCE IOMP5_LIBRARY)
+if(NOT CH_ENABLE_MODULE_PARDISO_MKL)
     return()
 endif()
 
 message(STATUS "\n==== Chrono PardisoMKL module ====\n")
-
-mark_as_advanced(CLEAR MKL_ROOT)
-mark_as_advanced(CLEAR MATH_LIBRARY)
-mark_as_advanced(CLEAR IOMP5_LIBRARY)
 
 # ------------------------------------------------------------------------------
 # Dependencies for MKL module
 # ------------------------------------------------------------------------------
 
 message(STATUS "Find MKL libraries")
+#-------------
+# Main options
+#-------------
+# MKL_ROOT: oneMKL root directory (May be required for non-standard install locations. Optional otherwise.)
+#    Default: use location from MKLROOT environment variable or <Full path to this file>/../../../ if MKLROOT is not defined
+# MKL_ARCH
+#    Values:  ia32 [ia32 support is deprecated]
+#             intel64
+#    Default: intel64
+# MKL_LINK
+#    Values:  static, dynamic, sdl
+#    Default: dynamic
+#       Exceptions:- SYCL doesn't support sdl
+# MKL_THREADING
+#    Values:  sequential,
+#             intel_thread (Intel OpenMP),
+#             gnu_thread (GNU OpenMP),
+#             pgi_thread (PGI OpenMP) [PGI support is deprecated],
+#             tbb_thread
+#    Default: intel_thread
+#       Exceptions:- SYCL defaults to oneTBB, PGI compiler on Windows defaults to pgi_thread
+# MKL_INTERFACE (for MKL_ARCH=intel64 only)
+#    Values:  lp64, ilp64
+#       GNU or INTEL interface will be selected based on Compiler.
+#    Default: ilp64
+# MKL_MPI
+#    Values:  intelmpi, mpich, openmpi, msmpi, mshpc
+#    Default: intelmpi
+#-----------------------------------
+# Special options (OFF by default)
+#-----------------------------------
+# ENABLE_BLAS95:      Enables BLAS Fortran95 API in MKL::MKL
+# ENABLE_LAPACK95:    Enables LAPACK Fortran95 API in MKL::MKL
+# ENABLE_BLACS:       Enables cluster BLAS library in MKL::MKL
+# ENABLE_CDFT:        Enables cluster DFT library in MKL::MKL
+# ENABLE_SCALAPACK:   Enables cluster LAPACK library in MKL::MKL
+# ENABLE_OMP_OFFLOAD: Enables OpenMP Offload functionality in MKL::MKL
 
-#set(MKL_USE_STATIC_LIBS ON)
-#set(MKL_FIND_DEBUG ON)
-find_package(MKL)
+set(MKL_ARCH "intel64" CACHE STRING "MKL architecture")
+set_property(CACHE MKL_ARCH PROPERTY STRINGS intel64 ia32)
 
-message(STATUS "   MKL include dirs:   ${MKL_INCLUDE_DIRS}")
-message(STATUS "   MKL libraries:      ${MKL_LIBRARIES}")
-message(STATUS "   IOMP5 library:      ${IOMP5_LIBRARY}")
-message(STATUS "   MATH library:       ${MATH_LIBRARY}")
-message(STATUS "   MKL library dirs:   ${MKL_LIBRARY_DIRS}")
+set(MKL_LINK "dynamic" CACHE STRING "MKL linking mode")
+set_property(CACHE MKL_LINK PROPERTY STRINGS static dynamic sdl)
 
-if(NOT MKL_LIBRARIES)
-  set(MKL_ROOT "" CACHE PATH "Location of MKL installation")
+set(MKL_THREADING "intel_thread" CACHE STRING "MKL threading lib")
+set_property(CACHE MKL_THREADING PROPERTY STRINGS intel_thread sequential gnu_thread pgi_thread tbb_thread)
+
+set(MKL_INTERFACE "lp64" CACHE STRING "MKL interface")
+set_property(CACHE MKL_INTERFACE PROPERTY STRINGS ilp64 lp64)
+
+set(MKL_MPI "intelmpi" CACHE STRING "MKL MPI library")
+set_property(CACHE MKL_MPI PROPERTY STRINGS intelmpi mpich openmpi msmpi mshpc)
+
+
+mark_as_advanced(FORCE MKL_ARCH)
+mark_as_advanced(FORCE MKL_LINK)
+mark_as_advanced(FORCE MKL_THREADING)
+mark_as_advanced(FORCE MKL_INTERFACE)
+mark_as_advanced(FORCE MKL_MPI)
+
+if(NOT TARGET MKL::MKL)
+  find_package(MKL CONFIG REQUIRED)
+else()
+  message(STATUS "MKL::MKL target already exists. Skip search for MKL")
 endif()
 
-# Make required libraries visible from outside current directory
-set(CH_MKL_LIBRARIES ${MKL_LIBRARIES} ${IOMP5_LIBRARY})
-set(CH_MKL_LIBRARIES "${CH_MKL_LIBRARIES}" PARENT_SCOPE)
+if(NOT MKL_FOUND)
+  set(MKL_ROOT "C:/Program Files (x86)/Intel/oneAPI/mkl/latest" CACHE PATH "Location of MKL installation (e.g. \"C:/Program Files (x86)/Intel/oneAPI/mkl/latest\"")
+  mark_as_advanced(CLEAR MKL_ROOT)
+else()
+  set(MKL_ROOT "${MKL_DIR}/../../../")
+  set(MKL_ROOT "${MKL_ROOT}" PARENT_SCOPE)
+  mark_as_advanced(FORCE MKL_ROOT)
+endif()
 
-# ------------------------------------------------------------------------------
-# Set up linking line for Intel OpenMP library
-# ------------------------------------------------------------------------------
-
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-  if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CH_MKL_LINK_FLAGS	"-Wl,--as-needed")
-  endif()
-endif ()
-
-set(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
-
-# ------------------------------------------------------------------------------
-# Collect all additional include directories necessary for the MKL module
-# ------------------------------------------------------------------------------
-
-set(CH_MKL_INCLUDES ${MKL_INCLUDE_DIRS})
-
-include_directories(${CH_MKL_INCLUDES})
-set(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mkl module
 # ------------------------------------------------------------------------------
 
-set(ChronoEngine_PardisoMKL_HEADERS
+set(Chrono_PardisoMKL_HEADERS
   ChApiPardisoMKL.h
   ChSolverPardisoMKL.h
 )
 
-set(ChronoEngine_PardisoMKL_SOURCES
+set(Chrono_PardisoMKL_SOURCES
   ChSolverPardisoMKL.cpp
 )
 
-source_group("" FILES ${ChronoEngine_PardisoMKL_HEADERS} ${ChronoEngine_PardisoMKL_SOURCES})
+source_group("" FILES ${Chrono_PardisoMKL_HEADERS} ${Chrono_PardisoMKL_SOURCES})
 
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_pardisomkl library
+# Add the Chrono_pardisomkl library
 # ------------------------------------------------------------------------------
 
-add_library(ChronoEngine_pardisomkl
-            ${ChronoEngine_PardisoMKL_SOURCES}
-            ${ChronoEngine_PardisoMKL_HEADERS})
+add_library(Chrono_pardisomkl
+            ${Chrono_PardisoMKL_SOURCES}
+            ${Chrono_PardisoMKL_HEADERS})
+add_library(Chrono::pardisomkl ALIAS Chrono_pardisomkl)
 
-set_target_properties(ChronoEngine_pardisomkl PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_LIB} ${CH_MKL_LINK_FLAGS}")
+if(CH_WHOLE_PROG_OPT)
+  set_target_properties(Chrono_pardisomkl PROPERTIES COMPILE_FLAGS "/GL")
+  set_target_properties(Chrono_pardisomkl PROPERTIES LINK_FLAGS "/LTCG")
+endif()
 
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_API_COMPILE_PARDISOMKL")
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "MKL_LP64")
-target_compile_definitions(ChronoEngine_pardisomkl PRIVATE "CH_IGNORE_DEPRECATED")
+if (CH_STATIC)
+  set_target_properties(Chrono_pardisomkl PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
 
-target_link_libraries(ChronoEngine_pardisomkl
-                      ChronoEngine
-                      ${MKL_LIBRARIES}
-                      ${IOMP5_LIBRARY}
+if(MSVC)
+  set_target_properties(Chrono_pardisomkl PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+endif()
+
+target_link_libraries(Chrono_pardisomkl
+                      Chrono_core
+                      MKL::MKL
                       )
 
-install(TARGETS ChronoEngine_pardisomkl
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+target_compile_definitions(Chrono_pardisomkl PRIVATE "CH_API_COMPILE_PARDISOMKL")
+target_compile_definitions(Chrono_pardisomkl PRIVATE "EIGEN_USE_MKL_ALL")
+target_compile_definitions(Chrono_pardisomkl PRIVATE "MKL_LP64") # who needs this? Eigen?
 
-install(FILES ${ChronoEngine_PardisoMKL_HEADERS}
+
+install(TARGETS Chrono_pardisomkl
+  EXPORT ChronoTargets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include/chrono_pardisomkl)
+
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
+
+# Old way
+install(FILES ${Chrono_PardisoMKL_HEADERS}
         DESTINATION include/chrono_pardisomkl)

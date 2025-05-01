@@ -9,9 +9,9 @@ High level overview of Chrono's features and capabilities.
 
 <h3><a href="install_guides.html">Installation Guides</a></h3>
 
-Instructions for **configuring and installing Chrono** and its optional modules.
+Instructions for configuring, building, and installing Chrono and its optional modules.
 
-Instructions on **how to set up a project** that uses Chrono.
+Instructions for setting up an external project that uses Chrono.
 
 ---
 
@@ -36,6 +36,10 @@ Instructions on **how to set up a project** that uses Chrono.
 - [Chrono::Parsers](@ref manual_parsers)
   
   tools to import external models and to interact with other languages
+
+- [Chrono::Modal](@ref manual_modal)
+  
+  Modal reduction and eigenvalue analysis of the Chrono systems and assemblies
 
 - [PyChrono](@ref pychrono_introduction)
 

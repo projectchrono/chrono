@@ -12,12 +12,12 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 //
-// Chrono wrappers to fmu_tools FMU export classes for FMI standard 2.0.
+// Chrono wrappers to fmu-forge FMU export classes for FMI standard 2.0.
 //
 // =============================================================================
 
-#ifndef CH_FMU_TOOLS_EXPORT_H
-#define CH_FMU_TOOLS_EXPORT_H
+#ifndef CH_FMU2_TOOLS_EXPORT_H
+#define CH_FMU2_TOOLS_EXPORT_H
 
 #include <stack>
 #include <fstream>
@@ -27,19 +27,26 @@
 #include <unordered_map>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChFrameMoving.h"
-#include <memory>
+#include "chrono/physics/ChAssembly.h"
 
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapes.h"
 
-// fmu_tools
+// fmu-forge
 // #include "rapidxml_ext.hpp"
 #include "fmi2/FmuToolsExport.h"
 
 namespace chrono {
+namespace fmi2 {
+
+/// @addtogroup chrono_fmi2
+/// @{
+
+using FmuVariable = fmu_forge::fmi2::FmuVariable;
 
 #define ADD_BVAL_AS_FMU_GETSET(returnType, codeGet, codeSet)                                         \
     _fmucomp->AddFmuVariable(                                                                        \
@@ -75,7 +82,7 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 /// Class for serializing variables to FmuComponentBase.
 class ChOutputFMU : public ChArchiveOut {
   public:
-    ChOutputFMU(FmuComponentBase& fmucomp) {
+    ChOutputFMU(fmu_forge::fmi2::FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -220,7 +227,7 @@ class ChOutputFMU : public ChArchiveOut {
     }
 
     int tablevel;
-    FmuComponentBase* _fmucomp;
+    fmu_forge::fmi2::FmuComponentBase* _fmucomp;
     std::stack<int> nitems;
     std::deque<bool> is_array;
     std::deque<std::string> parent_names;
@@ -229,7 +236,7 @@ class ChOutputFMU : public ChArchiveOut {
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public FmuComponentBase {
+class FmuChronoComponentBase : public fmu_forge::fmi2::FmuComponentBase {
   public:
     FmuChronoComponentBase(fmi2String instanceName,
                            fmi2Type fmuType,
@@ -452,25 +459,28 @@ class FmuChronoComponentBase : public FmuComponentBase {
 
         // Check if state_name corresponds to a ChVector3 or ChQuaternion object
         if (variables_vec.find(state_name) != variables_vec.end()) {
-            derivatives.push_back(state_name + ".x");
-            derivatives.push_back(state_name + ".y");
-            derivatives.push_back(state_name + ".z");
+            states.push_back(state_name + ".x");
+            states.push_back(state_name + ".y");
+            states.push_back(state_name + ".z");
         } else if (variables_quat.find(state_name) != variables_quat.end()) {
-            derivatives.push_back(state_name + ".e0");
-            derivatives.push_back(state_name + ".e1");
-            derivatives.push_back(state_name + ".e2");
-            derivatives.push_back(state_name + ".e3");
+            states.push_back(state_name + ".e0");
+            states.push_back(state_name + ".e1");
+            states.push_back(state_name + ".e2");
+            states.push_back(state_name + ".e3");
         } else if (variables_csys.find(state_name) != variables_csys.end()) {
             throw std::runtime_error("State of type ChCoordsys not allowed.");
         } else if (variables_framem.find(state_name) != variables_framem.end()) {
             throw std::runtime_error("State of type ChFrameMoving not allowed.");
         } else {
-            derivatives.push_back(state_name);
+            states.push_back(state_name);
         }
 
         // Sanity check
+        auto num_states = states.size();
         auto num_derivatives = derivatives.size();
-        if (states.size() != num_derivatives) {
+        if (num_states != num_derivatives) {
+            std::cerr << "Error: number of derivatives (" << num_derivatives << ") does not match number of states ("
+                      << num_states << ")" << std::endl;
             throw std::runtime_error(
                 "Incorrect state derivative declaration (number of derivatives does not match number of states).");
         }
@@ -611,7 +621,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// add variables to the FMU component by leveraging the serialization mechanism
-    chrono::ChOutputFMU variables_serializer;
+    ChOutputFMU variables_serializer;
 
     /// list of supported shapes for visualization, required to provide a memory position to getters of shape type
     static const std::unordered_set<std::string> supported_shape_types;
@@ -639,10 +649,10 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
     for (auto& shape_inst : pi.GetVisualModel()->GetShapeInstances()) {
         // variables referring to visualizers will start with VISUALIZER[<counter>]
         // and will be split in .shape and .frame
-        // the frame is NOT the one of the ShapeInstance (which is from shape to body)
+        // the frame is NOT the one of the ChVisualShapeInstance (which is from shape to body)
         // but is a local frame that transforms from shape to world directly
         std::string shape_name = "VISUALIZER[" + std::to_string(visualizers_counter) + "].shape";
-        variables_serializer << CHNVP(shape_inst.first, shape_name.c_str());
+        variables_serializer << CHNVP(shape_inst.shape, shape_name.c_str());
         std::string frame_basename = "VISUALIZER[" + std::to_string(visualizers_counter) + "].frame";
 
         auto update_frame = [](VisTuple& tup) {
@@ -652,7 +662,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
             }
         };
 
-        VisTuple current_tuple = std::make_tuple(ChFrame<>(), &pi, &shape_inst.second, false);
+        VisTuple current_tuple = std::make_tuple(ChFrame<>(), &pi, &shape_inst.frame, false);
         update_frame(current_tuple);
 
         visualizer_frames[visualizers_counter] = current_tuple;
@@ -735,7 +745,7 @@ void FmuChronoComponentBase::AddFmuVisualShapes(const ChPhysicsItem& pi, std::st
 
         // Set shape type
 
-        std::shared_ptr<ChVisualShape> shape = shape_inst.first;
+        std::shared_ptr<ChVisualShape> shape = shape_inst.shape;
         auto shape_type = supported_shape_types.find("ChVisualShapeUNKNOWN");
         if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape)) {
             shape_type = supported_shape_types.find("ChVisualShapeModelFile");
@@ -831,8 +841,9 @@ const std::unordered_set<std::string> FmuChronoComponentBase::supported_shape_ty
     "ChVisualShapePath",      "ChVisualShapeLine",
     "ChVisualShapeUNKNOWN"};
 
-// -----------------------------------------------------------------------------
+/// @} chrono_fmi2
 
+}  // end namespace fmi2
 }  // end namespace chrono
 
 #endif
