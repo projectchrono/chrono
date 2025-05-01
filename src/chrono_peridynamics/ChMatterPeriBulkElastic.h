@@ -654,19 +654,28 @@ public:
 /// parameters, as in a 3D linear elastic Hookean material, that is:
 ///  - K, the bulk modulus.  
 ///  - mu, the Poisson ratio.
-/// This comes at a cost of slower performance compared to the ChMatterPeriBulkElastic 
+/// This comes at a cost of slower performance compared to the ChMatterPeriBB 
 /// bond-based elasticity model, that has Poisson fixed to 1/4. 
 
 class ChApiPeridynamics ChMatterPeriLinearElastic : public ChMatterPeri<ChMatterDataPerNodeLinearElastic, ChMatterDataPerBondLinearElastic> {
 public:
+    void SetYoungModulusShearModulus(double mE, double mG) {
+        this->k_bulk = (mE * mG / (3. * (3. * mG - mE)));
+        this->G = mG;
+    }
+    void SetYoungModulusPoisson(double mE, double mu) {
+        this->k_bulk = (mE / (3. * (1. - 2.* mu)));
+        this->G      = (mE / (2. * (1. +  mu)));
+    }
+
     /// bulk modulus, unit  Pa, i.e. N/m^2
     double k_bulk = 100;
 
-    /// poisson coefficient (ex. -0.5 incompressible)
-    double poisson = 0.25;
+    /// shear modulus 
+    double G = 100;
 
-    /// bulk damping, unit  Pa*s/m, i.e. Ns/m^3
-    double r_bulk = 10;
+    /// bulk damping, unit  Pa*s/m, i.e. Ns/m^3 ***NOT USED***
+    double r_bulk = 0;
 
     /// maximum stretch - after this, bonds will break. Default no break.
     double max_stretch = 1e30;
@@ -711,14 +720,31 @@ public:
 
     // Implement the function that adds the peridynamics force to each node, as a 
     // summation of all the effects of neighbouring nodes.
-    // Formulas based on "Peridynamics-Based Fracture Animation for Elastoplastic
-    // Solids", W.Chen, F.Zhu, J.Zhao, S.Li, G.Wang, CG Forum 2017
+    // Formulas based on Silling work
     virtual void ComputeForces() {
         
         // loop on nodes for resetting dilation 
         for (auto& node : this->nodes) {
             ChMatterDataPerNodeLinearElastic& mnodedata = node.second;
+            mnodedata.m = 0;
             mnodedata.theta = 0;
+        }
+        // loop on bonds for weighted mass 
+        for (auto& bond : this->bonds) {
+            ChMatterDataPerBondLinearElastic& mbond = bond.second;
+            if (!mbond.broken) {
+                ChVector3d old_vdist = mbond.nodeB->GetX0() - mbond.nodeA->GetX0();
+                double     old_sdist = old_vdist.Length();
+
+                double horizon = mbond.nodeA->GetHorizonRadius();
+                double omega = this->InfluenceFunction(old_sdist, horizon);
+
+                ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
+                ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
+
+                mnodedataA.m += omega * (old_sdist * old_sdist) * mbond.nodeB->volume;
+                mnodedataB.m += omega * (old_sdist * old_sdist) * mbond.nodeA->volume;
+            }
         }
 
         // loop on bonds for dilation 
@@ -729,7 +755,6 @@ public:
                 ChVector3d     vdist = mbond.nodeB->GetPos() - mbond.nodeA->GetPos();
                 double     old_sdist = old_vdist.Length();
                 double         sdist = vdist.Length();
-                ChVector3d     vdir  = vdist/sdist;
 
                 double horizon = mbond.nodeA->GetHorizonRadius();
                 double omega = this->InfluenceFunction(old_sdist, horizon);
@@ -737,10 +762,8 @@ public:
                 ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
                 ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
 
-                double s = (sdist/old_sdist) -1.0; // stretch
-                double form = s * omega * 9.0 / (4.0 * CH_PI * horizon * horizon * horizon * horizon) * Vdot(vdir,old_vdist);
-                mnodedataA.theta += form * mbond.nodeB->volume;
-                mnodedataB.theta += form * mbond.nodeA->volume;
+                mnodedataA.theta += (3. / mnodedataA.m) * omega * old_sdist * (sdist - old_sdist) * mbond.nodeB->volume;
+                mnodedataB.theta += (3. / mnodedataB.m) * omega * old_sdist * (sdist - old_sdist) * mbond.nodeA->volume;
             }
             else {
                 if (mbond.broken)
@@ -767,28 +790,28 @@ public:
             ChMatterDataPerNodeLinearElastic& mnodedataA = this->nodes[mbond.nodeA];
             ChMatterDataPerNodeLinearElastic& mnodedataB = this->nodes[mbond.nodeB];
 
-            double a = 9.0 * this->k_bulk / (8.0 * CH_PI * pow(horizon, 4.));
-            double b = 15.0 * this->poisson / (2.0 * CH_PI * pow(horizon, 5.));
-            //double a_d = 9.0 / (4.0 * CH_PI * pow(horizon, 4.)) * 0.5*(this->k_bulk - (5./3.)*this->poisson);
+            // Silling:
+            double e_i_A = mnodedataA.theta * old_sdist / 3.0; // isotropic
+            double e_i_B = mnodedataB.theta * old_sdist / 3.0; // isotropic
+            double e_d_A = e - e_i_A; // deviatoric
+            double e_d_B = e - e_i_B; // deviatoric
+            double t_A = 3. * this->k_bulk * mnodedataA.theta * omega * old_sdist / mnodedataA.m + 15. * this->G / mnodedataA.m * omega * e_d_A;
+            double t_B = 3. * this->k_bulk * mnodedataB.theta * omega * old_sdist / mnodedataB.m + 15. * this->G / mnodedataB.m * omega * e_d_B;
 
-            double A_dil_A = 4.0 * omega * a * Vdot(vdir, old_vdir) * mnodedataA.theta;
-            double A_dil_B = 4.0 * omega * a * Vdot(vdir, old_vdir) * mnodedataB.theta;
+            //***TODO***  optimize and simplify computations - many are redundant
 
-            double A_dev_A = 4.0 * omega * b *  (e - (horizon / 4.0) * Vdot(vdir, old_vdir) * mnodedataA.theta);
-            double A_dev_B = 4.0 * omega * b *  (e - (horizon / 4.0) * Vdot(vdir, old_vdir) * mnodedataB.theta);
-           
-            double t_A = (A_dil_A + A_dev_A);
-            double t_B = (A_dil_B + A_dev_B);
-
+            //***TODO***  implement damping
+            /*
             if (this->r_bulk > 0) {
                 double pih4 = chrono::CH_PI * horizon * horizon * horizon * horizon;
                 double viscforce = 0.5 * (18.0 * r_bulk / pih4) * svel;
                 t_A += viscforce;
                 t_B += viscforce;
             }
-            
-            mbond.nodeB->F_peridyn += -vdir * (t_B + t_A) * mbond.nodeA->volume  * mbond.nodeB->volume;
-            mbond.nodeA->F_peridyn +=  vdir * (t_B + t_A) * mbond.nodeB->volume  * mbond.nodeA->volume;
+            */
+
+            mbond.nodeB->F_peridyn += -vdir * 0.5*( t_B + t_A) * mbond.nodeA->volume  * mbond.nodeB->volume;
+            mbond.nodeA->F_peridyn +=  vdir * 0.5*( t_B + t_A) * mbond.nodeB->volume  * mbond.nodeA->volume;
         }
 
     }
