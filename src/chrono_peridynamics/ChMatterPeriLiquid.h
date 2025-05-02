@@ -197,7 +197,7 @@ protected:
     ChPropertyVector* acc_property = 0;
     ChPropertyScalar* density_property = 0;
 
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+    virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
         if (!mmatter)
             return;
         this->Reserve(mmatter->GetNnodes());

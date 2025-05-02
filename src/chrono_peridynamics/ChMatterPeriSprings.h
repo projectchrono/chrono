@@ -142,7 +142,7 @@ protected:
     ChPropertyVector* vel_property = 0;
     ChPropertyVector* acc_property = 0;
 
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+    virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
         if (!mmatter)
             return;
         this->Reserve(mmatter->GetNnodes());
@@ -172,7 +172,7 @@ public:
     bool draw_unbroken = false;
 
 protected:
-    virtual void Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
+    virtual void Update(ChObj* updater, const ChFrame<>& frame) override {
         if (!mmatter)
             return;
 

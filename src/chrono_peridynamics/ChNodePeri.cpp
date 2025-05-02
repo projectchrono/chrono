@@ -55,14 +55,14 @@ ChNodePeri::~ChNodePeri() {
 void ChNodePeri::SetHorizonRadius(double mr) {
     h_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).first))
+    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).shape))
         mshape->SetSphereRadius(coll_rad, std::max(0.0, aabb_rad - coll_rad));
 }
 
 void ChNodePeri::SetCollisionRadius(double mr) {
     coll_rad = mr;
     double aabb_rad = h_rad / 2;  // to avoid too many pairs: bounding boxes hemisizes will sum..  __.__--*--
-    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).first))
+    if (auto mshape = std::dynamic_pointer_cast<ChCollisionModelBullet>(GetCollisionModel()->GetShapeInstance(0).shape))
         mshape->SetSphereRadius(coll_rad, std::max(0.0, aabb_rad - coll_rad));
 }
 
