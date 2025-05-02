@@ -15,8 +15,8 @@
 #   PyChrono, the postprocess module is always available in the AnaConda installation)
 # - write a Chrono app that uses instructions like my_blender_exporter.AddAll(); 
 #   my_blender_exporter.ExportScript(); and my_blender_exporter.ExportData(); (the latter
-#   in the while() simulation loop). See demo_POST_blender.cpp for an example.
-# - run the chrono app, this will generate files on disk: a single
+#   in the while() simulation loop). See demo_POST_blender1.cpp for an example.
+# - run the chrono app,  this will generate files on disk: a single
 #   xxx.assets.py file and many state00001.py, state00002.py, ..., in an output/ dir.
 # - Open Blender, use menu "File/Import/Chrono import" to load the xxx.assets.py file.
 #
@@ -42,12 +42,12 @@
 
 bl_info = {
     "name": "Chrono import",
-    "blender": (4, 0, 1),
+    "blender": (4, 3, 2),
     "category": "Import-Export",
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 5),
+    "version": (0, 0, 9),
     "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
     "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
@@ -71,6 +71,8 @@ from bpy.props import (IntProperty,
                        EnumProperty,
                        PointerProperty,
                        CollectionProperty)
+from datetime import datetime
+from bpy.app.handlers import persistent
 
 #
 # Globals, to keep things simple with callbacks
@@ -95,6 +97,7 @@ chrono_view_link_csys_size = 0.25
 chrono_view_materials = True
 chrono_view_contacts = False
 chrono_gui_doupdate = True
+chrono_skip_shared_tags = False
 
 #
 # utility functions to be used in assets.py  or   output/statexxxyy.py files
@@ -671,7 +674,10 @@ def make_chrono_csys(mpos,mrot, mparent, symbol_scale=0.1):
 
 def make_chrono_object_assetlist(mname,mpos,mrot, masset_list):
 
-    chobject = bpy.data.objects.new(mname, empty_mesh)  
+    if chrono_skip_shared_tags and (mname in chrono_frame_objects.objects): 
+        return
+    
+    chobject = bpy.data.objects.new(mname, None)  
     chobject.rotation_mode = 'QUATERNION'
     chobject.rotation_quaternion = mrot
     chobject.location = mpos
@@ -1315,7 +1321,13 @@ def update_camera_coordinates(mname,mpos,mrot):
     cameraasset.rotation_quaternion = mrot
     cameraasset.location = mpos
 
- 
+# utility to rotate cube texture UVs 90° to match other chrono postprocessors
+def rotate_cube_UVs(mcube):
+    for loop in mcube.data.loops :  
+        mswapU = mcube.data.uv_layers.active.data[loop.index].uv[0]
+        mcube.data.uv_layers.active.data[loop.index].uv[0] = 1-mcube.data.uv_layers.active.data[loop.index].uv[1]
+        mcube.data.uv_layers.active.data[loop.index].uv[1] = ((mswapU-0.5)*1.333) +0.5
+
 
 #
 # On file selected: 
@@ -1324,8 +1336,9 @@ def update_camera_coordinates(mname,mpos,mrot):
 # LOAD OBJECTS
 #
 
+@persistent
 def callback_post(self):
-    #print("dbg0")
+    #print("dbg_callback_post")
     scene = bpy.context.scene
     cFrame = scene.frame_current
     sFrame = scene.frame_start
@@ -1349,6 +1362,7 @@ def callback_post(self):
     global chrono_view_materials
     global chrono_view_contacts
     global chrono_gui_doupdate
+    global chrono_skip_shared_tags
     
     chrono_assets = bpy.data.collections.get('chrono_assets')
     chrono_frame_assets = bpy.data.collections.get('chrono_frame_assets')
@@ -1455,6 +1469,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
     global chrono_view_materials
     global chrono_view_contacts
     global chrono_gui_doupdate
+    global chrono_skip_shared_tags
     
     # (this is needed to avoid crashes when pressing F12 for rendering)
     bpy.context.scene.render.use_lock_interface = True
@@ -1556,6 +1571,7 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         empty_mesh = bpy.data.meshes.new('empty_mesh')
         empty_mesh.from_pydata([], [], []) 
         empty_mesh_object = bpy.data.objects.new('empty_mesh_object', empty_mesh)
+        chrono_assets.objects.link(empty_mesh_object)
 
     # create template for all chrono coordinate systems
     chrono_csys = bpy.data.objects.get('chrono_csys')
@@ -1584,11 +1600,12 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
             bpy.ops.object.join()
         chrono_csys = bpy.context.object
         with bpy.context.temp_override(selected_editable_objects=[chrono_csys]):
-            bpy.ops.object.shade_smooth(use_auto_smooth=True,auto_smooth_angle=1.1)
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         chrono_csys.visible_shadow = False
         chrono_csys.name ='chrono_csys'
         chrono_csys.select_set(False)
         bpy.context.scene.collection.objects.unlink(chrono_csys)
+        chrono_assets.objects.link(chrono_csys)
     
     # create template for primitives (for glyphs etc)
     chrono_cube = bpy.data.objects.get('chrono_cube')
@@ -1597,6 +1614,8 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cube = bpy.context.object
         chrono_cube.name = 'chrono_cube'
         bpy.context.scene.collection.objects.unlink(chrono_cube)
+        rotate_cube_UVs(chrono_cube)
+        chrono_assets.objects.link(chrono_cube)
 
     chrono_cylinder = bpy.data.objects.get('chrono_cylinder')
     if not chrono_cylinder:
@@ -1604,11 +1623,12 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cylinder = bpy.context.object
         chrono_cylinder.name = 'chrono_cylinder'
         chrono_cylinder.data.transform(mathutils.Matrix.Translation((0,0,0.5)))
-        chrono_cylinder.data.use_auto_smooth = 1
-        chrono_cylinder.data.auto_smooth_angle = 0.8
+        with bpy.context.temp_override(selected_editable_objects=[chrono_cylinder]):
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         for f in chrono_cylinder.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_cylinder)
+        chrono_assets.objects.link(chrono_cylinder)
 
     chrono_cone = bpy.data.objects.get('chrono_cone')
     if not chrono_cone:
@@ -1616,22 +1636,24 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
         chrono_cone = bpy.context.object
         chrono_cone.name = 'chrono_cone'
         chrono_cone.data.transform(mathutils.Matrix.Translation((0,0,0.5)))
-        chrono_cone.data.use_auto_smooth = 1
-        chrono_cone.data.auto_smooth_angle = 0.8
+        with bpy.context.temp_override(selected_editable_objects=[chrono_cone]):
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         for f in chrono_cone.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_cone)
+        chrono_assets.objects.link(chrono_cone)
         
     chrono_sphere = bpy.data.objects.get('chrono_sphere')
     if not chrono_sphere:
         bpy.ops.mesh.primitive_uv_sphere_add(segments=10, ring_count=10, radius=0.5, calc_uvs=True)
         chrono_sphere = bpy.context.object
         chrono_sphere.name = 'chrono_sphere'
-        chrono_sphere.data.use_auto_smooth = 1
-        chrono_sphere.data.auto_smooth_angle = 0.8
+        with bpy.context.temp_override(selected_editable_objects=[chrono_sphere]):
+            bpy.ops.object.shade_auto_smooth(angle=0.8)
         for f in chrono_sphere.data.polygons:
             f.use_smooth = True
         bpy.context.scene.collection.objects.unlink(chrono_sphere)
+        chrono_assets.objects.link(chrono_sphere)
 
     
     chrono_filename = filepath
@@ -1663,10 +1685,10 @@ def read_chrono_simulation(context, filepath, setting_materials, setting_merge):
     chrono_gui_doupdate = True
     
     #clear the post frame handler
-    bpy.app.handlers.frame_change_post.clear()
+    #bpy.app.handlers.frame_change_post.clear()
 
     #run the function on each frame
-    bpy.app.handlers.frame_change_post.append(callback_post)
+    #bpy.app.handlers.frame_change_post.append(callback_post)
 
 
     # TEST: Update to a frame where particles are updated
@@ -2037,7 +2059,7 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from bpy.types import Operator
 
-
+        
 class ImportChrono(Operator, ImportHelper):
     """Import a Chrono simulation from files saved by Chrono postprocessing module"""
     bl_idname = "import_chrono.data"  # important since its how bpy.ops.import_chrono.data is constructed
@@ -2064,6 +2086,16 @@ class ImportChrono(Operator, ImportHelper):
         description="If true, does not delete last imported Chrono simulation. Useful for merging results from parallel simulations, or cosimulations.",
         default=False,
     )
+    setting_automerge: BoolProperty(
+        name="Automatic merge",
+        description="If true, you load the 0th .asset.py file from a parallel simulation in a set of directories <yy>_0,<yy>_1,<yy>_2 etc, and all others are load and merged.",
+        default=False,
+    )
+    setting_skip_shared_tags: BoolProperty(
+        name="Skip shared names",
+        description="If true, if n objects that have the same name, only the 1st will be created. Avoid overlapping shared duplicated. Useful when doing multidomain with SetUseTagsAsBlenderNames(true)",
+        default=False,
+    )
     #    setting_from: IntProperty(
     #        name="from",
     #        description="Initial frame",
@@ -2078,7 +2110,44 @@ class ImportChrono(Operator, ImportHelper):
     #    )
     
     def execute(self, context):
-        return read_chrono_simulation(context, self.filepath, self.setting_materials, self.setting_merge)
+        global chrono_skip_shared_tags
+        
+        chrono_skip_shared_tags = self.setting_skip_shared_tags
+        
+        # load the chrono simulation:
+        read_chrono_simulation(context, self.filepath, self.setting_materials, self.setting_merge)
+        
+        # in case of automatic merge of multiple simulations, as in MPI multidomain, each in a directory:
+        myfiledir = os.path.dirname(os.path.abspath(self.filepath))
+        if self.setting_automerge and myfiledir.endswith("_0"):
+            myfiledirbase = myfiledir[:-2]
+            myfilename = os.path.basename(self.filepath)
+            #creation_time0 = os.path.getctime(os.path.abspath(self.filepath)) # fails on win, funneled filesys
+            creation_time0 = datetime
+            with open(self.filepath, 'r') as file: 
+                first_line = file.readline().strip() 
+                if first_line.startswith('# '): 
+                    date_str = first_line[2:] 
+                    creation_time0 = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            domainnumber = 1
+            while True:
+                domainfilename = os.path.join(myfiledirbase + '_'+'{:d}'.format(domainnumber), myfilename)
+                if os.path.exists(domainfilename):
+                    creation_time1 = datetime
+                    with open(domainfilename, 'r') as file: 
+                        first_line = file.readline().strip() 
+                        if first_line.startswith('# '): 
+                            date_str = first_line[2:] 
+                            creation_time1 = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+                    if abs((creation_time1 - creation_time0).total_seconds()) > 2:
+                        break   # do not load further domains if created in a previous moment, 2 seconds tolerance
+                    print ("Loading auto-merging: " + domainfilename)
+                    read_chrono_simulation(context, domainfilename, self.setting_materials, True)
+                    domainnumber = domainnumber+1
+                else:
+                    break
+        return {'FINISHED'}
+            
 
 
 # Only needed if you want to add into a dynamic menu.
@@ -2199,14 +2268,6 @@ def unregister():
     bpy.app.handlers.frame_change_post.remove(callback_post)
 
     # sidebar UI:
-  
-# Note on debug.
-# If you want to run this script in debug mode using MS Visual Studio (using the plugin "Blender Development" by Jacques 
-# Lucke, or similar ), then when you run this script from the remode VS debugging session, it won't run the 
-# "if __name__ == "__main__": " section below, and the add-in won't be registered. A workaround is to uncomment
-# the following line "register()" at least temporarily until you complete the debugging sessions.
-
-#register()
 
 # The following is executed all times one runs this chrono_import.py script in Blender
 # scripting editor: it effectively register the add-on "by hand".
