@@ -42,12 +42,12 @@
 
 bl_info = {
     "name": "Chrono import",
-    "blender": (4, 3, 2),
+    "blender": (4, 4, 3),
     "category": "Import-Export",
     "location": "File > Import-Export",
     "description": "Import ProjectChrono simulations",
     "author": "Alessandro Tasora",
-    "version": (0, 0, 9),
+    "version": (0, 1, 0),
     "wiki_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
     "doc_url": "https://api.projectchrono.org/development/introduction_chrono_blender.html",
 }
@@ -109,7 +109,7 @@ def create_chrono_path( nameID,
                         line_width,
                         my_list_materials, my_collection):
     
-    gpencil_data = bpy.data.grease_pencils.new(nameID)
+    gpencil_data = bpy.data.grease_pencils_v3.new(nameID)
     gpencil = bpy.data.objects.new(nameID, gpencil_data)
     my_collection.objects.link(gpencil)
 
@@ -117,13 +117,14 @@ def create_chrono_path( nameID,
     gp_layer.use_lights = False # for Cycles
     gp_frame = gp_layer.frames.new(bpy.context.scene.frame_current)
 
-    gp_stroke = gp_frame.strokes.new()
-    gp_stroke.line_width = line_width
+    if len(list_points) > 0:
+        gp_frame.drawing.add_strokes([len(list_points)])
+        gp_stroke = gp_frame.drawing.strokes[0]
+        #gp_stroke.add_points(len(list_points))
 
-    gp_stroke.points.add(len(list_points))
-
-    for item, value in enumerate(list_points):
-        gp_stroke.points[item].co = value
+        for item, value in enumerate(list_points):
+            gp_stroke.points[item].position = value
+            gp_stroke.points[item].radius = line_width
         
     mat = bpy.data.materials.new(name="chrono_path_mat")
     bpy.data.materials.create_gpencil_data(mat)
