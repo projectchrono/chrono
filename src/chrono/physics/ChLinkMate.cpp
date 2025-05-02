@@ -1286,7 +1286,7 @@ void ChLinkMateRackPinion::Update(double time, bool update_assets) {
     ChVector3d abs_Dx;
     ChVector3d abs_Dy;
     ChVector3d abs_Dz;
-    abs_Dpin.GetDirectionAxesAsX(
+    abs_Dpin.GetDirectionAxes(
         abs_Dz, abs_Dx, abs_Dy,
         abs_rack.GetRotMat().GetAxisX());  // with z as pinion shaft and x as suggested rack X dir
 
