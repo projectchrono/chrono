@@ -946,7 +946,6 @@ std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {
     return method;
 }
 
-
 //--------------------------------------------------------------------------------------------------------------------------------
 
 // Convert host data from the provided SOA to the data manager's AOS and copy to device.
@@ -1296,8 +1295,8 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
     for (const auto& m : fsi_meshes2D) {
         AddFsiMesh2D(num_fsi_meshes2D, m, use_node_directions);
         num_fsi_meshes2D++;
-        num_fsi_nodes1D += m.GetNumNodes();
-        num_fsi_elements1D += m.GetNumElements();
+        num_fsi_nodes2D += m.GetNumNodes();
+        num_fsi_elements2D += m.GetNumElements();
     }
 
     // ----------------
