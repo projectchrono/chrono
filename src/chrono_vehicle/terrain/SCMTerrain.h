@@ -61,7 +61,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
         PLOT_SINKAGE_PLASTIC,
         PLOT_STEP_PLASTIC_FLOW,
         PLOT_PRESSURE,
-        PLOT_PRESSURE_YELD,
+        PLOT_PRESSURE_YIELD,
         PLOT_SHEAR,
         PLOT_K_JANOSI,
         PLOT_IS_TOUCHED,
@@ -158,13 +158,14 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     void SetBoundary(const ChAABB& aabb);
 
     /// Add a new moving active domain associated with the specified body.
+    /// Note: the OOBB is placed relative to the body *reference frame*.
     /// Multiple calls to this function can be made, each of them adding a new active active domain.
     /// The union of all currently defined active domains is used to reduce the number of ray casting operations, by
     /// ensuring that rays are generated only from SCM grid nodes inside the projection of the an actiove domains's OOBB
     /// onto the SCM reference plane. If there are no user-provided active domains, a single default one is defined to
     /// encompass all collision shapes in the system at any given time.
     void AddActiveDomain(std::shared_ptr<ChBody> body,   ///< [in] monitored body
-                         const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body
+                         const ChVector3d& OOBB_center,  ///< [in] OOBB center, relative to body reference frame
                          const ChVector3d& OOBB_dims     ///< [in] OOBB dimensions
     );
 

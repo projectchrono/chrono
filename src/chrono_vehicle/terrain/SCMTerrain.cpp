@@ -710,6 +710,8 @@ void SCMLoader::SetupInitial() {
     if (!m_user_domains) {
         SCMLoader::ActiveDomainInfo ad;
         ad.m_body = nullptr;
+        ad.m_center = {0, 0, 0};
+        ad.m_hdims = {0.1, 0.1, 0.1};
         m_active_domains.push_back(ad);
     }
 }
@@ -964,6 +966,9 @@ void SCMLoader::UpdateDefaultActiveDomain(ActiveDomainInfo& ad) {
     // Get current bounding box (AABB) of all collision shapes
     auto aabb = GetSystem()->GetCollisionSystem()->GetBoundingBox();
 
+    ad.m_center = aabb.Center();
+    ad.m_hdims = aabb.Size() / 2;
+
     // Loop over all corners of the AABB
     for (int j = 0; j < 8; j++) {
         int ix = j % 2;
@@ -1001,7 +1006,7 @@ void SCMLoader::UpdateDefaultActiveDomain(ActiveDomainInfo& ad) {
 // Ray-OBB intersection test
 bool SCMLoader::RayOBBtest(const ActiveDomainInfo& p, const ChVector3d& from, const ChVector3d& Z) {
     // Express ray origin in OBB frame
-    ChVector3d orig = p.m_body->TransformPointParentToLocal(from) - p.m_center;
+    ChVector3d orig = p.m_body->GetFrameRefToAbs().TransformPointParentToLocal(from) - p.m_center;
 
     // Perform ray-AABB test (slab tests)
     double t1 = (-p.m_hdims.x() - orig.x()) * p.m_ooN.x();
@@ -1745,7 +1750,7 @@ void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const N
             case SCMTerrain::PLOT_PRESSURE:
                 mcolor = ChColor::ComputeFalseColor(nr.sigma, m_plot_v_min, m_plot_v_max);
                 break;
-            case SCMTerrain::PLOT_PRESSURE_YELD:
+            case SCMTerrain::PLOT_PRESSURE_YIELD:
                 mcolor = ChColor::ComputeFalseColor(nr.sigma_yield, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_SHEAR:
