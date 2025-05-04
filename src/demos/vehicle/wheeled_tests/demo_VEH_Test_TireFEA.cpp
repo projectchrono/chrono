@@ -199,6 +199,14 @@ int main(int argc, char* argv[]) {
     joint->Initialize(floor, spindle, ChFramed());
     sys.AddLink(joint);
 
+#ifndef CHRONO_FSI
+    if (terrain_type == TerrainType::CRM) {
+        cout << "CRM terrain not available (Chrono::FSI not enabled)." << endl;
+        cout << "Revert to rigid terrain." << endl;
+        terrain_type = TerrainType::RIGID;
+    }
+#endif
+
     std::shared_ptr<ChTerrain> terrain;
     switch (terrain_type) {
         case TerrainType::RIGID: {
@@ -237,6 +245,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         case TerrainType::CRM: {
+#ifdef CHRONO_FSI
             double spacing = 0.04;
             auto terrain_crm = chrono_types::make_shared<CRMTerrain>(sys, spacing);
             terrain_crm->SetGravitationalAcceleration(gacc);
@@ -288,6 +297,7 @@ int main(int argc, char* argv[]) {
             terrain_crm->Initialize();
 
             terrain = terrain_crm;
+#endif
             break;
         }
     }
@@ -318,6 +328,7 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(&sys);
 
+    #ifdef CHRONO_FSI
             if (terrain_type == TerrainType::CRM) {
                 auto sysFSI = std::static_pointer_cast<CRMTerrain>(terrain)->GetSystemFSI();
                 auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
@@ -327,6 +338,7 @@ int main(int argc, char* argv[]) {
 
                 vis_vsg->AttachPlugin(visFSI);
             }
+    #endif
 
             vis_vsg->SetWindowTitle("FEA tire");
             vis_vsg->AddCamera(ChVector3d(0, -1.5, 0), VNULL);
@@ -378,10 +390,9 @@ int main(int argc, char* argv[]) {
             auto n = std::static_pointer_cast<fea::ChNodeFEAxyz>(node);
             auto f = n->GetForce();
             if (f.Length() > 1e-6)
-                std::cout << "..." << f << std::endl; 
+                std::cout << "..." << f << std::endl;
         }
         std::cout << "===" << std::endl;
-
 
         time += step_size;
 
