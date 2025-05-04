@@ -22,7 +22,7 @@
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
 #endif
@@ -95,7 +95,7 @@
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
-%include "../../../chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+%include "../../../chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/driver/ChInteractiveDriver.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 %include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"

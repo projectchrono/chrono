@@ -19,7 +19,7 @@
 
 #include "chrono_vsg/ChGuiComponentVSG.h"
 
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 

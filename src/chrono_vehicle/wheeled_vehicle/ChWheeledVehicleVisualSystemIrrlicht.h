@@ -20,7 +20,7 @@
 #ifndef CH_WHEELED_VEHICLE_VISUAL_SYSTEM_IRRLICHT_H
 #define CH_WHEELED_VEHICLE_VISUAL_SYSTEM_IRRLICHT_H
 
-#include "chrono_vehicle/ChVehicleVisualSystemIrrlicht.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {

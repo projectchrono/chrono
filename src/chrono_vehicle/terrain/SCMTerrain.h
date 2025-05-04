@@ -332,6 +332,8 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
 
   private:
     std::shared_ptr<SCMLoader> m_loader;  ///< underlying load container for contact force generation
+
+    friend class ChScmVisualizationVSG;
 };
 
 /// Parameters for soil-contactable interaction.
@@ -621,6 +623,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     int m_num_erosion_nodes;
 
     friend class SCMTerrain;
+    friend class ChScmVisualizationVSG;
 };
 
 /// @} vehicle_terrain

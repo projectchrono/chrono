@@ -797,8 +797,8 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_FILES
-        ChVehicleVisualSystemIrrlicht.h
-        ChVehicleVisualSystemIrrlicht.cpp
+        visualization/ChVehicleVisualSystemIrrlicht.h
+        visualization/ChVehicleVisualSystemIrrlicht.cpp
     )
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
@@ -826,8 +826,10 @@ source_group("tracked_vehicle" FILES ${CVIRR_TV_FILES})
 
 if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_FILES
-        ChVehicleVisualSystemVSG.h
-        ChVehicleVisualSystemVSG.cpp
+        visualization/ChVehicleVisualSystemVSG.h
+        visualization/ChVehicleVisualSystemVSG.cpp
+        visualization/ChScmVisualizationVSG.h
+        visualization/ChScmVisualizationVSG.cpp
     )
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
