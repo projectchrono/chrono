@@ -12,7 +12,7 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 //
-// Chrono wrappers to fmu_tools FMU export classes for FMI standard 3.0.
+// Chrono wrappers to fmu-forge FMU export classes for FMI standard 3.0.
 //
 // =============================================================================
 
@@ -36,7 +36,7 @@
 #include "chrono/assets/ChVisualModel.h"
 #include "chrono/assets/ChVisualShapes.h"
 
-// fmu_tools
+// fmu-forge
 // #include "rapidxml_ext.hpp"
 #include "fmi3/FmuToolsExport.h"
 
@@ -46,14 +46,14 @@ namespace fmi3 {
 /// @addtogroup chrono_fmi3
 /// @{
 
-using FmuVariable = fmu_tools::fmi3::FmuVariable;
+using FmuVariable = fmu_forge::fmi3::FmuVariable;
 
 // -----------------------------------------------------------------------------
 
 /// Extension of FmuComponentBase class for Chrono FMUs.
-class FmuChronoComponentBase : public fmu_tools::fmi3::FmuComponentBase {
+class FmuChronoComponentBase : public fmu_forge::fmi3::FmuComponentBase {
   public:
-    FmuChronoComponentBase(fmu_tools::fmi3::FmuType fmiInterfaceType,
+    FmuChronoComponentBase(fmu_forge::fmi3::FmuType fmiInterfaceType,
                            fmi3String instanceName,
                            fmi3String instantiationToken,
                            fmi3String resourcePath,

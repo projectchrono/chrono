@@ -184,9 +184,8 @@ int main(int argc, char* argv[]) {
     terrain->SetPlotType(SCMTerrain::PLOT_SINKAGE, 0, 0.1);
     terrain->GetMesh()->SetWireframe(true);
 
-    // The physics do not change when you add a moving patch, you just make it much easier for the SCM
-    // implementation to do its job by restricting where it has to look for contacts
-    terrain->AddMovingPatch(m113.GetVehicle().GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(10, 10, 1));
+    // Enable an active domain associated with the entire vehicle
+    terrain->AddActiveDomain(m113.GetVehicle().GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(10, 10, 1));
 
     if (flat_patch) {
         terrain->Initialize(size_x, size_y, 1 / dpu);

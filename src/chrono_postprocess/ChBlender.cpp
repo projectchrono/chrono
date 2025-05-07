@@ -446,7 +446,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << collection << ".objects.link(new_object)\n"
                    << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n"
+                   << "    bpy.ops.object.shade_auto_smooth(angle=0.8)\n"
                    << std::endl;
             // radius and height will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
@@ -460,7 +460,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << collection << ".objects.link(new_object)\n"
                    << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n"
+                   << "    bpy.ops.object.shade_auto_smooth(angle=0.8)\n"
                    << std::endl;
             // radius etc will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});

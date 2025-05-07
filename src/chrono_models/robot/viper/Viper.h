@@ -427,6 +427,25 @@ class CH_MODELS_API ViperSpeedDriver : public ViperDriver {
     double m_speed;
 };
 
+/// Viper Direct Control Driver.
+/// This driver allows direct control of the drive speeds, steer angles, and lift angles for all wheels individually.
+class CH_MODELS_API ViperDirectControl : public ViperDriver {
+  public:
+    ViperDirectControl() {}
+
+    ~ViperDirectControl() {}
+
+    /// Set Direct control of drive speeds, steer angles, and lift angles
+    void SetDirectControl(
+      std::array<double, 4> m_drive_speeds, 
+      std::array<double, 4> m_steer_angles,
+      std::array<double, 4> m_lift_angles
+    );
+  private:
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
+    virtual void Update(double time){}
+};
+
 /// @} robot_models_viper
 
 }  // namespace viper

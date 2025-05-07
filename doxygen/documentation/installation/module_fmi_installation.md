@@ -17,7 +17,7 @@ If the `Chrono::Vehicle` module is also enabled, several FMUs encapsulating vehi
 
 ## Requirements
 
-There are no explicit dependencies to build Chrono FMI support. The `Chrono::FMI` module makes use of a generic FMU export/import tool ([fmu_tools](https://github.com/DigitalDynamicsLab/fmu_tools.git)), also developed and maintained by the ProjectChrono team, but that library is used as a git sub-module and as such need not be separately downloaded and installed.
+There are no explicit dependencies to build Chrono FMI support. The `Chrono::FMI` module makes use of a generic FMU export/import tool ([fmu-forge](https://github.com/projectchrono/fmu-forge)), also developed and maintained by the ProjectChrono team, but that library is used as a git sub-module and as such need not be separately downloaded and installed.
 
 <div class="ce-warning">
 The self-encapsulation requirements of an FMU are easiest satisfied by linking static libraries. Because of this, the `Chrono::FMI` module can be enabled **only** if Chrono is configured to create static libraries. Furthermore, when building Chrono with FMI support on Windows, make sure to compile Chrono with a multi-threaded statically-linked runtime library (`/MT` or '/MTd', for Release and Debug modes, respectively). Both of these conditions can be set during CMake configuration, see the building instructions below.
@@ -43,7 +43,7 @@ The `Chrono::FMI` module has **not** been tested on MacOS.
 
 ## How to use it
 
-- Consult the [documentation](https://github.com/DigitalDynamicsLab/fmu_tools/blob/main/README.md) of `fmu_tools` for the generic functionality for exporting and importing FMUs.
+- Consult the [documentation](https://github.com/projectchrono/fmu-forge/blob/main/README.md) of `fmu-forge` for the generic functionality for exporting and importing FMUs.
 
 - Look at the documentation of the Chrono extensions for exporting (`chrono::FmuChronoComponentBase`) and importing (`chrono::FmuChronoUnit`) FMUs that encapsulate Chrono models.
 
