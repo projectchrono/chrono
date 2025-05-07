@@ -15,7 +15,7 @@
 #ifndef CHELEMENTSPRINGP_H
 #define CHELEMENTSPRINGP_H
 
-#include "chrono_wood/ChNodeFEAxyzPP.h"
+#include "ChNodeFEAxyzPP.h"
 
 #include <cmath>
 
@@ -28,13 +28,8 @@
 #include "chrono/core/ChTensors.h"
 #include "chrono/core/ChMatrix.h"
 
-#include "chrono_wood/ChWoodApi.h"
-
-using namespace chrono::fea;
-using namespace chrono;
-
 namespace chrono {
-namespace wood {
+namespace fea {
 
 /// @addtogroup fea_elements
 /// @{
@@ -42,7 +37,7 @@ namespace wood {
 /// Simple finite element with two nodes and a spring/damper between the two nodes.
 /// This element is mass-less, so if used in dynamic analysis, the two nodes must
 /// be set with non-zero point mass.
-class ChWoodApi ChElementSpringP : public ChElementGeneric, 
+class ChApi ChElementSpringP : public ChElementGeneric, 
                                public ChElementCorotational, 
                                public ChLoadableUVW {
   public:
@@ -74,6 +69,9 @@ class ChWoodApi ChElementSpringP : public ChElementGeneric,
     /// Computes the local STIFFNESS MATRIX of the element:
     /// K = Volume * [B]' * [D] * [B]
     virtual void ComputeStiffnessMatrix();
+
+    /// Update diffusivity constants in material constitutive matrix
+    virtual void UpdateMaterialConstitutiveMatrix();
 
     /// compute large rotation of element for corotational approach
     virtual void UpdateRotation() override {};
@@ -177,6 +175,12 @@ class ChWoodApi ChElementSpringP : public ChElementGeneric,
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override { return this->Material->GetDensity(); }
+    
+    ///???
+    ChVectorDynamic<> GetElementStateVariable() { return ElementState; }
+
+    /// ???
+    void SetElementStateVariable(ChVectorDynamic<> ElState) { ElementState = ElState; }
 
   private:
     /// Initial setup: set up the element's parameters and matrices
@@ -186,8 +190,10 @@ class ChWoodApi ChElementSpringP : public ChElementGeneric,
     std::shared_ptr<ChContinuumPoisson2D> Material;
     ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
     ChMatrixDynamic<> StiffnessMatrix;  // local stiffness matrix
-    //ChMatrixNM<double, 4, 4> mM;        // for speeding up corotational approach
+    ChMatrixDynamic<> UpdatedConstitutiveMatrix;  // local stiffness matrix
+    //ChMatrixNM<double, 4, 4> mM;      // for speeding up corotational approach
     double Volume;
+    ChVectorDynamic<> ElementState;     // Vector to store element state variables  
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -195,7 +201,7 @@ class ChWoodApi ChElementSpringP : public ChElementGeneric,
 
 /// @} fea_elements
 
-}  // end namespace wood
+}  // end namespace fea
 }  // end namespace chrono
 
 #endif

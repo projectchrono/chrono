@@ -12,11 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono_wood/ChElementSpringP.h"
-
+#include "ChElementSpringP.h"
 
 namespace chrono {
-namespace wood {
+namespace fea {
 
 ChElementSpringP::ChElementSpringP() : Volume(0) {
     nodes.resize(2);
@@ -39,6 +38,8 @@ void ChElementSpringP::SetNodes(std::shared_ptr<ChNodeFEAxyzPP> nodeA,
 void ChElementSpringP::Update() {
     // parent class update:
     ChElementGeneric::Update();
+    // update stiffness matrix
+    ComputeStiffnessMatrix();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
 }
@@ -64,34 +65,42 @@ void ChElementSpringP::ComputeStiffnessMatrix() {
 
     double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
 
-    ChMatrixDynamic<> temp;
-    temp = this->GetMaterial()->GetConstitutiveMatrix();
-    //std::cout << "Elasticity Tensor being printed!" << std::endl;
-    //std::cout << temp(0,0) << " " << temp(0,1) << " " << temp(0,2) << " " << temp(0,3) << " " << temp(0,4) << " " << temp(0,5) << std::endl;
-    //std::cout << temp(1,0) << " " << temp(1,1) << " " << temp(1,2) << " " << temp(1,3) << " " << temp(1,4) << " " << temp(1,5) << std::endl;
-    //std::cout << temp(2,0) << " " << temp(2,1) << " " << temp(2,2) << " " << temp(2,3) << " " << temp(2,4) << " " << temp(2,5) << std::endl;
-    //std::cout << temp(3,0) << " " << temp(3,1) << " " << temp(3,2) << " " << temp(3,3) << " " << temp(3,4) << " " << temp(3,5) << std::endl;
-    //std::cout << temp(4,0) << " " << temp(4,1) << " " << temp(4,2) << " " << temp(4,3) << " " << temp(4,4) << " " << temp(4,5) << std::endl;
-    //std::cout << temp(5,0) << " " << temp(5,1) << " " << temp(5,2) << " " << temp(5,3) << " " << temp(5,4) << " " << temp(5,5) << std::endl;
+    UpdateMaterialConstitutiveMatrix();
     
-    StiffnessMatrix = (1/L) * MatrB.transpose() * Material->GetConstitutiveMatrix() * MatrB;
-
-    //std::cout << "Stiffness Matrix is being computed!" << std::endl;
-    //temp = StiffnessMatrix;
-    //std::cout << temp(0,0) << " " << temp(0,1) << " " << temp(0,2) << " " << temp(0,3) << " " << temp(0,4) << " " << temp(0,5) << std::endl;
-    //std::cout << temp(1,0) << " " << temp(1,1) << " " << temp(1,2) << " " << temp(1,3) << " " << temp(1,4) << " " << temp(1,5) << std::endl;
-    //std::cout << temp(2,0) << " " << temp(2,1) << " " << temp(2,2) << " " << temp(2,3) << " " << temp(2,4) << " " << temp(2,5) << std::endl;
-    //std::cout << temp(3,0) << " " << temp(3,1) << " " << temp(3,2) << " " << temp(3,3) << " " << temp(3,4) << " " << temp(3,5) << std::endl;
-    //std::cout << temp(4,0) << " " << temp(4,1) << " " << temp(4,2) << " " << temp(4,3) << " " << temp(4,4) << " " << temp(4,5) << std::endl;
-    //std::cout << temp(5,0) << " " << temp(5,1) << " " << temp(5,2) << " " << temp(5,3) << " " << temp(5,4) << " " << temp(5,5) << std::endl;
+    StiffnessMatrix = (1/L) * MatrB.transpose() * UpdatedConstitutiveMatrix * MatrB;
+    //StiffnessMatrix = (1/L) * MatrB.transpose() * Material->GetConstitutiveMatrix() * MatrB;
 }
 
 void ChElementSpringP::SetupInitial(ChSystem* system) {
+    ElementState.resize(4); // 4 is the number of element internal variables 
     ComputeStiffnessMatrix();
+}
+
+void ChElementSpringP::UpdateMaterialConstitutiveMatrix() {
+    ChMatrixDynamic<> temp;
+    temp = this->GetMaterial()->GetConstitutiveMatrix();
+    //std::cout << "Elasticity Tensor being printed!" << std::endl;
+    //std::cout << temp(0,0) << " " << temp(0,1) << " " << temp(0,2) << std::endl;
+    //std::cout << temp(1,0) << " " << temp(1,1) << " " << temp(1,2) << std::endl;
+    //std::cout << temp(2,0) << " " << temp(2,1) << " " << temp(2,2) << std::endl;
+  
+    double h1 = nodes[0]->GetFieldVal().y();
+    double h2 = nodes[1]->GetFieldVal().y();
+    UpdatedConstitutiveMatrix = temp;
+    UpdatedConstitutiveMatrix(1,1) += 0.5*abs(h1-h2);
+
+    //std::cout << "Updated Elasticity Tensor being printed!" << std::endl;
+    //temp = UpdatedConstitutiveMatrix;
+    //std::cout << temp(0,0) << " " << temp(0,1) << " " << temp(0,2) << std::endl;
+    //std::cout << temp(1,0) << " " << temp(1,1) << " " << temp(1,2) << std::endl;
+    //std::cout << temp(2,0) << " " << temp(2,1) << " " << temp(2,2) << std::endl;
 }
 
 void ChElementSpringP::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 6) && (H.cols() == 6));
+
+    //std::cout << "Global stiffness Matrix is being computed!" << std::endl;
+    //ComputeStiffnessMatrix();
 
     // For K  matrix (jacobian d/dT of  c dT/dt + div [C] grad T = f )
     H = Kfactor * StiffnessMatrix;
@@ -131,7 +140,7 @@ void ChElementSpringP::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // ChMatrixCorotation::ComputeCK(FiK_local, this->A, 4, Fi);  ***corotation NOT NEEDED
     Fi = FiK_local;
 }
-
+ 
 ChVectorN<double, 1> ChElementSpringP::GetPgradient() {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
     ChVectorDynamic<> displ(6);
@@ -184,16 +193,16 @@ void ChElementSpringP::ComputeNF(const double U,
 }
 
 void ChElementSpringP::ComputeNF(const double U,
-                                   const double V,
-                                   const double W,
-                                   ChVectorDynamic<>& Qi,
-                                   double& detJ,
-                                   const ChVectorDynamic<>& F,
-                                   ChVectorDynamic<>* state_x,
-                                   ChVectorDynamic<>* state_w) {
+                                const double V,
+                                const double W,
+                                ChVectorDynamic<>& Qi,
+                                double& detJ,
+                                const ChVectorDynamic<>& F,
+                                ChVectorDynamic<>* state_x,
+                                ChVectorDynamic<>* state_w) {
     this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
     //detJ /= 4.0;  // because volume
 }
 
-}  // end namespace wood
+}  // end namespace fea
 }  // end namespace chrono
