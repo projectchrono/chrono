@@ -1047,7 +1047,7 @@ void ChVisualSystemVSG::Initialize() {
     m_labelFont = vsg::read_cast<vsg::Font>(m_labelFontPath, m_options);
     if (!m_labelFont) {
         std::cout << "Failed to read font : " << m_labelFontPath << std::endl;
-        return 1;
+        return;
     }
 
     m_scene = vsg::Group::create();
