@@ -37,6 +37,9 @@ ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {}
 void ChTrackShoeBandBushing::Construct(std::shared_ptr<ChChassis> chassis,
                                        const ChVector3d& location,
                                        const ChQuaternion<>& rotation) {
+    // Invoke base class (construct m_shoe body)
+    ChTrackShoeBand::Construct(chassis, location, rotation);
+
     // Cache values calculated from template parameters.
     m_seg_length = GetWebLength() / GetNumWebSegments();
     m_seg_mass = GetWebMass() / GetNumWebSegments();
