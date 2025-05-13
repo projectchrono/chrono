@@ -105,6 +105,9 @@ class FluidDynamics {
     /// Advance the state of the fluid system using an explicit Euler step.
     void EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT);
 
+    /// Advance the state of the fluid system using an mid-point step.
+    void MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT);
+
     /// Apply boundary conditions on the sides of the computational domain.
     void ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 };

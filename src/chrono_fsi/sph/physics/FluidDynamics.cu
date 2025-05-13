@@ -74,6 +74,10 @@ void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
     }
 }
 
+//// TODO - revisit application of particle shifting (explicit schemes)
+////        currently, a new v_XSPH is calculated at every force evaluation and used in the subsequent position update
+////        should this be done only once per step?
+
 void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
     switch (scheme) {
         case IntegrationScheme::EULER: {
@@ -99,6 +103,22 @@ void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Re
             forceSystem->ForceSPH(y_tmp, t + h / 2, dummy);  // f(t_n + h/2, K1)
             EulerStep(y, h);                                 // y <== y_{n+1} = y_n + h * f(t_n + h/2, K1)
             ApplyBoundaryConditions(y);
+
+            break;
+        }
+
+        case IntegrationScheme::SYMPLECTIC: {
+            Real dummy = 0;  // force calculation for WCSPH does not need the step size
+
+            auto& y_tmp = m_data_mgr.sortedSphMarkers1_D;
+            CopySortedMarkers(y, y_tmp);  // y_tmp <- y_n
+
+            forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
+            EulerStep(y_tmp, h / 2);             // y_tmp <== y_{n+1/2} = y_n + (h/2) * f(t_n, y_n)
+            ApplyBoundaryConditions(y_tmp);
+
+            forceSystem->ForceSPH(y_tmp, t + h / 2, dummy);  // f_{n+1/2} = f(t_n + h/2, y_{n+1/2})
+            MidpointStep(y, h);                              // y_{n+1} = y_n + h * f_{n+1/2}
 
             break;
         }
@@ -266,11 +286,16 @@ __device__ void PositionEulerStep(Real dT, const Real3& vel, Real4& pos) {
     pos = mR4(p, pos.w);
 }
 
+__device__ void PositionMidpointStep(Real dT, const Real3& vel, const Real3& acc, Real4& pos) {
+    Real3 p = mR3(pos);
+    p += dT * vel + 0.5 * dT * dT * acc;
+}
+
 __device__ void VelocityEulerStep(Real dT, const Real3& acc, Real3& vel) {
     vel += dT * acc;
 }
 
-__device__ void DensityEulerStep(Real dT, const Real& deriv, Real4& rho_p, EosType eos) {
+__device__ void DensityEulerStep(Real dT, const Real& deriv, EosType eos, Real4& rho_p) {
     rho_p.x += dT * deriv;
     rho_p.y = Eos(rho_p.x, eos);
 }
@@ -361,14 +386,14 @@ __device__ void TauEulerStep(Real dT,
 }
 
 // Kernel to update the fluid properities of a particle, using an explicit Euler step.
-// It updates the particle position and velocity. For a CFD problem, it also advances the density and calculates
-// pressure from the Equation of State. For a CRM problem, it updates the stress tensor and the pressure (density is
-// kept constant).
+// First, update the particle position and velocity. Next,
+// - For a CFD problem, advance the density and calculate pressure from the Equation of State;
+// - For a CRM problem, update the stress tensor and the pressure (density is kept constant).
 //
-// Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
+// Important note: the derivVelRhoD calculated by ChForceExplicitSPH is the negative of actual time
 // derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
-// calculate the force that is f=m dv/dt
-// derivVelRhoD[index] *= paramsD.markerMass;
+// - calculate the force, that is f=m dv/dt
+// - derivVelRhoD[index] *= paramsD.markerMass;
 __global__ void EulerStep_D(Real4* posRadD,
                             Real3* velMasD,
                             Real4* rhoPresMuD,
@@ -402,7 +427,55 @@ __global__ void EulerStep_D(Real4* posRadD,
                      tauXyXzYzD[index], rhoPresMuD[index]);
     } else {
         // Euler step for density and pressure update from EOS
-        DensityEulerStep(dT, derivVelRhoD[index].w, rhoPresMuD[index], paramsD.eos_type);
+        DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
+    }
+}
+
+// Kernel to update the fluid properities of a particle, using an mid-point step.
+// Note: the derivatives (provided in input vectors) are assumed to have been calculated at the mid-point!
+// The mid-point updates for position and velocitie are:
+//    v_{n+1} = v_n + h * F_{n+1/2}
+//    r_{n+1} = r_n + h * (v_{n+1} + v_n) / 2
+// These are implemented in reverse order (because the velocity update would overwrite v_n) as:
+//    r_{n+1} = r_n + h * v_n + 0.5 * h^2 * F_{n+1/2}
+//    v_{n+1} = v_n + h * F_{n+1/2}
+// After the position and velocity updates, the mid-point update for density (CFD) or stress (CRM) are equivalent to the
+// velocity update above (i.e., an Euler step).
+__global__ void MidpointStep_D(Real4* posRadD,
+                               Real3* velMasD,
+                               Real4* rhoPresMuD,
+                               Real3* tauXxYyZzD,
+                               Real3* tauXyXzYzD,
+                               const Real3* vel_XSPH_D,
+                               const Real4* derivVelRhoD,
+                               const Real3* derivTauXxYyZzD,
+                               const Real3* derivTauXyXzYzD,
+                               const uint* freeSurfaceIdD,
+                               const int32_t* activityIdentifierSortedD,
+                               const uint numActive,
+                               Real dT) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numActive)
+        return;
+
+    // Only update active SPH particles, not extended active particles
+    if (IsBceMarker(rhoPresMuD[index].w) || activityIdentifierSortedD[index] <= 0)
+        return;
+
+    // Advance position
+    //// TODO: what about XSPH?
+    PositionMidpointStep(dT, velMasD[index] + vel_XSPH_D[index], mR3(derivVelRhoD[index]), posRadD[index]);
+    
+    // Advance velocity
+    VelocityEulerStep(dT, mR3(derivVelRhoD[index]), velMasD[index]);
+
+    if (paramsD.elastic_SPH) {
+        // Euler step for tau and pressure update
+        TauEulerStep(dT, derivTauXxYyZzD[index], derivTauXyXzYzD[index], freeSurfaceIdD[index], tauXxYyZzD[index],
+                     tauXyXzYzD[index], rhoPresMuD[index]);
+    } else {
+        // Euler step for density and pressure update from EOS
+        DensityEulerStep(dT, derivVelRhoD[index].w, paramsD.eos_type, rhoPresMuD[index]);
     }
 }
 
@@ -429,6 +502,27 @@ void FluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Rea
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
             cudaThrowError("A particle density is NaN");
     }
+}
+
+void FluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT) {
+    uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
+    uint numBlocks, numThreads;
+    computeGridSize(numActive, 256, numBlocks, numThreads);
+
+    MidpointStep_D<<<numBlocks, numThreads>>>(
+        mR4CAST(sortedMarkers->posRadD), mR3CAST(sortedMarkers->velMasD), mR4CAST(sortedMarkers->rhoPresMuD),
+        mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
+        mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
+        U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT);
+    cudaCheckError();
+
+    if (m_check_errors) {
+        if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
+            cudaThrowError("A particle position is NaN");
+        if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
+            cudaThrowError("A particle density is NaN");
+    }
+
 }
 
 // -----------------------------------------------------------------------------

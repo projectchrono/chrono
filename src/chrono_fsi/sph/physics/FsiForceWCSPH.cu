@@ -542,14 +542,6 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
     return mR4(2 * Part1 * Part2, Part3.x * (2 * Part1), Part3.y * (2 * Part1), Part3.z * (2 * Part1));
 }
 
-// Luning: why is there an upper case EOS?
-//__global__ void EOS(Real4* sortedRhoPreMu, volatile bool* isErrorD) {
-//    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-//    if (index >= numObjectsD.numAllMarkers)
-//        return;
-//    sortedRhoPreMu[index].y = Eos(sortedRhoPreMu[index].x);
-//}
-
 // =============================================================================
 
 FsiForceWCSPH::FsiForceWCSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
@@ -1829,8 +1821,6 @@ void FsiForceWCSPH::CalculateShifting(std::shared_ptr<SphMarkerDataD> sortedSphM
 
     computeGridSize(numActive, 1024, numBlocks, numThreads);
 
-    // thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.end(),
-    //              mR3(0));  // no this can not be zero ... i computed vel_xsph_d in collid wrapper
     thrust::fill(m_data_mgr.vel_XSPH_D.begin(), m_data_mgr.vel_XSPH_D.begin() + numActive, mR3(0));
 
     switch (m_data_mgr.paramsH->shifting_method) {
