@@ -77,7 +77,7 @@ __device__ void BCE_Vel_Acc(int i_idx,
 
         Real4 q4 = qD[rigidIndex];
         Real3 a1, a2, a3;
-        RotationMatirixFromQuaternion(a1, a2, a3, q4);
+        RotationMatrixFromQuaternion(a1, a2, a3, q4);
         Real3 rigidSPH_MeshPos_LRF__ = rigid_BCEcoords_D[Original_idx - updatePortion.y];
 
         // Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);

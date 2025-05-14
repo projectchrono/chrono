@@ -287,7 +287,7 @@ __device__ inline Real3 Distance(Real3 a, Real3 b) {
 //--------------------------------------------------------------------------------------------------------------------------------
 // first comp of q is rotation, last 3 components are axis of rot
 
-__device__ inline void RotationMatirixFromQuaternion(Real3& AD1, Real3& AD2, Real3& AD3, const Real4& q) {
+__device__ inline void RotationMatrixFromQuaternion(Real3& AD1, Real3& AD2, Real3& AD3, const Real4& q) {
     AD1 = 2 * mR3(0.5f - q.z * q.z - q.w * q.w, q.y * q.z - q.x * q.w, q.y * q.w + q.x * q.z);
     AD2 = 2 * mR3(q.y * q.z + q.x * q.w, 0.5f - q.y * q.y - q.w * q.w, q.z * q.w - q.x * q.y);
     AD3 = 2 * mR3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);

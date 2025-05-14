@@ -36,7 +36,10 @@ namespace fsi {
 namespace sph {
 
 BceManager::BceManager(FsiDataManager& data_mgr, bool use_node_directions, bool verbose, bool check_errors)
-    : m_data_mgr(data_mgr), m_use_node_directions(use_node_directions), m_verbose(verbose), m_check_errors(check_errors) {
+    : m_data_mgr(data_mgr),
+      m_use_node_directions(use_node_directions),
+      m_verbose(verbose),
+      m_check_errors(check_errors) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
     m_rigidBodyBlockSize = 512;
@@ -103,7 +106,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
     uint rigidMarkerIndex = index + countersD.startRigidMarkers;
     Real4 q4 = qD[rigidIndex];
     Real3 a1, a2, a3;
-    RotationMatirixFromQuaternion(a1, a2, a3, q4);
+    RotationMatrixFromQuaternion(a1, a2, a3, q4);
     Real3 dist3 = mR3(posRadD[rigidMarkerIndex]) - posRigidD[rigidIndex];
     Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
 
@@ -164,59 +167,56 @@ void BceManager::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
 // CalcFlex2DBceAcceleration
 // -----------------------------------------------------------------------------
 
-__global__ void CalcRigidBceAccelerationD(Real3* bceAcc,
-                                          Real4* q_fsiBodies_D,
-                                          Real3* accRigid_fsiBodies_D,
-                                          Real3* omegaVelLRF_fsiBodies_D,
-                                          Real3* omegaAccLRF_fsiBodies_D,
-                                          Real3* rigid_BCEcoords_D,
-                                          const uint* rigid_BCEsolids_D,
+__global__ void CalcRigidBceAccelerationD(Real3* accelerations,        // BCE marker accelerations (output)
+                                          const Real3* BCE_pos_local,  // BCE body-local coordinates
+                                          const uint* body_IDs,        // rigid body ID for each BCE marker
+                                          const Real4* body_rot,       // body orientation (relative to global frame)
+                                          const Real3* body_angvel,    // body ang. vels. (relative to global frame)
+                                          const Real3* body_linacc,    // body lin. acels. (relative to global frame)
+                                          const Real3* body_angacc,    // body ang. acels. (relative to global frame)
                                           const uint* mapOriginalToSorted) {
-    uint bceIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if (bceIndex >= countersD.numRigidMarkers)
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= countersD.numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = bceIndex + countersD.startRigidMarkers;
-    uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
-    // printf("rigidMarkerIndex: %d, sortedIndex: %d\n", rigidMarkerIndex, sortedIndex);
+    uint marker_index = index + countersD.startRigidMarkers;
+    uint sorted_index = mapOriginalToSorted[marker_index];
 
-    int rigidBodyIndex = rigid_BCEsolids_D[bceIndex];
+    int body_ID = body_IDs[index];
+    Real3 local = BCE_pos_local[index];
 
-    // linear acceleration (CM)
-    Real3 acc3 = accRigid_fsiBodies_D[rigidBodyIndex];
+    Real3 u, v, w;
+    RotationMatrixFromQuaternion(u, v, w, body_rot[body_ID]);
 
-    Real4 q4 = q_fsiBodies_D[rigidBodyIndex];
-    Real3 a1, a2, a3;
-    RotationMatirixFromQuaternion(a1, a2, a3, q4);
-    Real3 wVel3 = omegaVelLRF_fsiBodies_D[rigidBodyIndex];
-    Real3 rigidSPH_MeshPos_LRF = rigid_BCEcoords_D[bceIndex];
-    Real3 wVelCrossS = cross(wVel3, rigidSPH_MeshPos_LRF);
-    Real3 wVelCrossWVelCrossS = cross(wVel3, wVelCrossS);
+    // linear acceleration
+    Real3 acc = body_linacc[body_ID];
 
-    // centrigugal acceleration
-    acc3 += mR3(dot(a1, wVelCrossWVelCrossS), dot(a2, wVelCrossWVelCrossS), dot(a3, wVelCrossWVelCrossS));
+    // centrifugal acceleration
+    Real3 omega = body_angvel[body_ID];
+    Real3 omega_cross = cross(omega, local);
+    Real3 omega_cross_cross = cross(omega, omega_cross);
 
-    Real3 wAcc3 = omegaAccLRF_fsiBodies_D[rigidBodyIndex];
-    Real3 wAccCrossS = cross(wAcc3, rigidSPH_MeshPos_LRF);
+    acc += mR3(dot(u, omega_cross_cross), dot(v, omega_cross_cross), dot(w, omega_cross_cross));
 
     // tangential acceleration
-    acc3 += mR3(dot(a1, wAccCrossS), dot(a2, wAccCrossS), dot(a3, wAccCrossS));
+    Real3 alpha_cross = cross(body_angacc[body_ID], local);
+    acc += mR3(dot(u, alpha_cross), dot(v, alpha_cross), dot(w, alpha_cross));
 
-    bceAcc[sortedIndex] = acc3;
+    accelerations[sorted_index] = acc;
 }
 
 __global__ void CalcFlex1DBceAcceleration_D(
-    Real3* bceAcc,              // [num BCEs on all solids]  marker accelerations (output)
-    Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
-    uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
-    uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
-    Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
+    Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
+    const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
+    const uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
+    const uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
+    const Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
     const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers1D)
         return;
 
-    uint sortedIndex = mapOriginalToSorted[index + countersD.startFlexMarkers1D];
+    uint sorted_index = mapOriginalToSorted[index + countersD.startFlexMarkers1D];
 
     uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -230,21 +230,21 @@ __global__ void CalcFlex1DBceAcceleration_D(
     Real lambda0 = flex1D_BCEcoords_D[index].x;  // segment coordinate
     Real lambda1 = 1 - lambda0;                  // segment coordinate
 
-    bceAcc[sortedIndex] = A0 * lambda0 + A1 * lambda1;
+    accelerations[sorted_index] = A0 * lambda0 + A1 * lambda1;
 }
 
 __global__ void CalcFlex2DBceAcceleration_D(
-    Real3* bceAcc,              // [num BCEs on all solids]  marker accelerations (output)
-    Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
-    uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
-    uint3* flex2D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and face
-    Real3* flex2D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 2-D faces
+    Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
+    const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 2D nodes
+    const uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
+    const uint3* flex2D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and face
+    const Real3* flex2D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 2-D faces
     const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numFlexMarkers2D)
         return;
 
-    uint sortedIndex = mapOriginalToSorted[index + countersD.startFlexMarkers2D];
+    uint sorted_index = mapOriginalToSorted[index + countersD.startFlexMarkers2D];
 
     uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -260,28 +260,26 @@ __global__ void CalcFlex2DBceAcceleration_D(
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
     Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
 
-    bceAcc[sortedIndex] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
+    accelerations[sorted_index] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
 }
 
 void BceManager::CalcRigidBceAcceleration() {
-    // thread per particle
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, numBlocks, numThreads);
 
-    CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(
-        mR3CAST(m_data_mgr.bceAcc), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
-        mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),
-        mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc), mR3CAST(m_data_mgr.rigid_BCEcoords_D),
-        U1CAST(m_data_mgr.rigid_BCEsolids_D), U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
+    CalcRigidBceAccelerationD<<<numBlocks, numThreads>>>(                                          //
+        mR3CAST(m_data_mgr.bceAcc),                                                                //
+        mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),               //
+        mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),      //
+        mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),  //
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                 //
+    );
 
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 
 void BceManager::CalcFlex1DBceAcceleration() {
-    if (m_data_mgr.countersH->numFsiElements1D == 0)
-        return;
-
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
 
@@ -299,9 +297,6 @@ void BceManager::CalcFlex1DBceAcceleration() {
 }
 
 void BceManager::CalcFlex2DBceAcceleration() {
-    if (m_data_mgr.countersH->numFsiElements2D == 0)
-        return;
-
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
 
@@ -323,41 +318,14 @@ void BceManager::CalcFlex2DBceAcceleration() {
 // -----------------------------------------------------------------------------
 
 void BceManager::updateBCEAcc() {
-    size_t size_ref = m_data_mgr.referenceArray.size();
-    int numBceMarkers = m_data_mgr.referenceArray[size_ref - 1].y - m_data_mgr.referenceArray[0].y;
-    auto N_solid = m_data_mgr.countersH->numRigidMarkers + m_data_mgr.countersH->numFlexMarkers1D +
-                   m_data_mgr.countersH->numFlexMarkers2D;
-    auto N_all = N_solid + m_data_mgr.countersH->numBoundaryMarkers;
-    if (N_all != numBceMarkers) {
-        throw std::runtime_error(
-            "Error! Number of rigid, flexible and boundary markers are "
-            "saved incorrectly. Thrown from updateBCEAcc!\n");
-    }
-
-    // Update portion set to boundary, rigid, and flexible BCE particles
-    int4 updatePortion = mI4(m_data_mgr.referenceArray[0].y, m_data_mgr.referenceArray[1].y,
-                             m_data_mgr.referenceArray[2].y, m_data_mgr.referenceArray[3].y);
-
-    // Only update boundary BCE particles if no rigid/flexible particles
-    if (size_ref == 2) {
-        updatePortion.z = m_data_mgr.referenceArray[1].y;
-        updatePortion.w = m_data_mgr.referenceArray[1].y;
-    }
-
-    // Update boundary and rigid/flexible BCE particles
-    if (size_ref == 3)
-        updatePortion.w = m_data_mgr.referenceArray[2].y;
-
-    // Calculate accelerations of solid BCE marker
-    if (m_data_mgr.countersH->numRigidMarkers > 0) {
+    if (m_data_mgr.countersH->numRigidMarkers > 0)
         CalcRigidBceAcceleration();
-    }
-    if (m_data_mgr.countersH->numFlexMarkers1D > 0) {
+
+    if (m_data_mgr.countersH->numFlexMarkers1D > 0)
         CalcFlex1DBceAcceleration();
-    }
-    if (m_data_mgr.countersH->numFlexMarkers2D > 0) {
+
+    if (m_data_mgr.countersH->numFlexMarkers2D > 0)
         CalcFlex2DBceAcceleration();
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -366,14 +334,14 @@ void BceManager::updateBCEAcc() {
 // Flex2D_Forces
 // -----------------------------------------------------------------------------
 
-__global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
-                                  Real3* __restrict__ rigid_FSI_TorquesD,
+__global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
+                                  Real3* __restrict__ body_torques,
                                   const uint* __restrict__ rigidBodyBlockValidThreads,
                                   const uint* __restrict__ rigidBodyAccumulatedPaddedThreads,
-                                  const Real4* __restrict__ derivVelRhoD,
-                                  const Real4* __restrict__ posRadD,
-                                  const uint* __restrict__ rigid_BCEsolids_D,
-                                  const Real3* __restrict__ posRigidD,
+                                  const Real4* __restrict__ derivatives,
+                                  const Real4* __restrict__ positions,
+                                  const uint* __restrict__ body_IDs,
+                                  const Real3* __restrict__ body_pos,
                                   const uint* __restrict__ mapOriginalToSorted,
                                   const uint numRigidMarkers,
                                   const Real markerMass,
@@ -386,34 +354,33 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
     Real3* sharedTorques = (Real3*)&sharedForces[blockSize];  // Size: blockSize
 
     uint threadIdx_x = threadIdx.x;
-    uint globalIndex = blockIdx.x * blockDim.x + threadIdx_x;
+    uint global_index = blockIdx.x * blockDim.x + threadIdx_x;
 
     // Valid threads in current block
     uint validThreads = rigidBodyBlockValidThreads[blockIdx.x];
     // Valid threads in previous block
     uint paddedThreads = rigidBodyAccumulatedPaddedThreads[blockIdx.x];
 
-    uint globalIndex_with_padding = globalIndex - paddedThreads;
+    uint global_index_padded = global_index - paddedThreads;
 
-    if (globalIndex_with_padding >= numRigidMarkers)
+    if (global_index_padded >= numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = globalIndex_with_padding + startRigidMarkers;
+    uint marker_index = global_index_padded + startRigidMarkers;
+    uint sorted_index = mapOriginalToSorted[marker_index];
 
-    uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
-
-    // Get RigidIndex for the current marker
-    uint RigidIndex = rigid_BCEsolids_D[globalIndex_with_padding];
+    // Get body ID for the current marker
+    uint body_ID = body_IDs[global_index_padded];
 
     Real3 Force = make_Real3(0.0f, 0.0f, 0.0f);
     Real3 Torque = make_Real3(0.0f, 0.0f, 0.0f);
     if (threadIdx_x < validThreads) {
         if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-            Force = mR3(derivVelRhoD[sortedIndex]);
+            Force = mR3(derivatives[sorted_index]);
         else
-          Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
+            Force = mR3(derivatives[sorted_index]) * markerMass;
 
-        Real3 dist3 = mR3(posRadD[sortedIndex]) - posRigidD[RigidIndex];
+        Real3 dist3 = mR3(positions[sorted_index]) - body_pos[body_ID];
         Torque = cross(dist3, Force);
     }
 
@@ -438,13 +405,13 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ rigid_FSI_ForcesD,
 
     if (threadIdx_x == 0) {
         // Atomic addition to global arrays
-        atomicAdd(&rigid_FSI_ForcesD[RigidIndex].x, sharedForces[0].x);
-        atomicAdd(&rigid_FSI_ForcesD[RigidIndex].y, sharedForces[0].y);
-        atomicAdd(&rigid_FSI_ForcesD[RigidIndex].z, sharedForces[0].z);
+        atomicAdd(&body_forces[body_ID].x, sharedForces[0].x);
+        atomicAdd(&body_forces[body_ID].y, sharedForces[0].y);
+        atomicAdd(&body_forces[body_ID].z, sharedForces[0].z);
 
-        atomicAdd(&rigid_FSI_TorquesD[RigidIndex].x, sharedTorques[0].x);
-        atomicAdd(&rigid_FSI_TorquesD[RigidIndex].y, sharedTorques[0].y);
-        atomicAdd(&rigid_FSI_TorquesD[RigidIndex].z, sharedTorques[0].z);
+        atomicAdd(&body_torques[body_ID].x, sharedTorques[0].x);
+        atomicAdd(&body_torques[body_ID].y, sharedTorques[0].y);
+        atomicAdd(&body_torques[body_ID].z, sharedTorques[0].z);
     }
 }
 
@@ -632,8 +599,7 @@ void BceManager::Flex1D_Forces() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
         (uint)m_data_mgr.countersH->numFlexMarkers1D,                //
         (uint)m_data_mgr.countersH->startFlexMarkers1D,              //
-        m_data_mgr.paramsH->markerMass
-    );
+        m_data_mgr.paramsH->markerMass);
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -660,8 +626,7 @@ void BceManager::Flex2D_Forces() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
         (uint)m_data_mgr.countersH->numFlexMarkers2D,                //
         (uint)m_data_mgr.countersH->startFlexMarkers2D,              //
-        m_data_mgr.paramsH->markerMass
-    );
+        m_data_mgr.paramsH->markerMass);
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -672,79 +637,69 @@ void BceManager::Flex2D_Forces() {
 // UpdateBodyMarkerStateInitial
 // -----------------------------------------------------------------------------
 
-__global__ void UpdateBodyMarkerState_D(Real4* posRadD,
-                                        Real3* velMasD,
-                                        Real3* rigid_BCEcoords_D,
-                                        uint* rigid_BCEsolids_D,
-                                        Real3* posRigidD,
-                                        Real3* velRigidD,
-                                        Real3* omegaLRF_D,
-                                        Real4* qD,
+__global__ void UpdateBodyMarkerState_D(Real4* positions,            // global marker positions (sorted)
+                                        Real3* velocities,           // global marker velocities (sorted)
+                                        const Real3* BCE_pos_local,  // BCE body-local coordinates
+                                        const uint* body_IDs,        // rigid body ID for each BCE marker
+                                        const Real3* body_pos,       // body positions (relative to global frame)
+                                        const Real4* body_rot,       // body orientation (relative to global frame)
+                                        const Real3* body_linvel,    // body lin. vels. (relative to global frame)
+                                        const Real3* body_angvel,    // body ang. vels. (relative to global frame)
                                         const uint* mapOriginalToSorted) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
-    uint sortedIndex = mapOriginalToSorted[rigidMarkerIndex];
-    // if (rigidMarkerIndex == 1158564) {
-    //     printf("rigidMarkerIndex: %d, sortedIndex: %d\n", rigidMarkerIndex, sortedIndex);
-    // }
-    int rigidBodyIndex = rigid_BCEsolids_D[index];
+    uint marker_index = index + countersD.startRigidMarkers;
+    uint sorted_index = mapOriginalToSorted[marker_index];
 
-    Real4 q4 = qD[rigidBodyIndex];
-    Real3 a1, a2, a3;
-    RotationMatirixFromQuaternion(a1, a2, a3, q4);
+    int body_ID = body_IDs[index];
+    Real3 local = BCE_pos_local[index];
 
-    Real3 rigidSPH_MeshPos_LRF = rigid_BCEcoords_D[index];
+    Real3 u, v, w;
+    RotationMatrixFromQuaternion(u, v, w, body_rot[body_ID]);
 
-    // position
-    Real h = posRadD[sortedIndex].w;
-    Real3 p_Rigid = posRigidD[rigidBodyIndex];
-    Real3 pos =
-        p_Rigid + mR3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
-    posRadD[sortedIndex] = mR4(pos, h);
+    // BCE marker position
+    Real h = positions[sorted_index].w;
+    Real3 pos = body_pos[body_ID] + mR3(dot(u, local), dot(v, local), dot(w, local));
+    positions[sorted_index] = mR4(pos, h);
 
-    // velocity
-    Real3 v_Rigid = velRigidD[rigidBodyIndex];
-    Real3 omega3 = omegaLRF_D[rigidBodyIndex];
-    Real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-    velMasD[sortedIndex] = v_Rigid + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
+    // BCE marker velocity
+    Real3 omega_cross = cross(body_angvel[body_ID], local);
+    velocities[sorted_index] =
+        body_linvel[body_ID] + mR3(dot(u, omega_cross), dot(v, omega_cross), dot(w, omega_cross));
 }
 
-__global__ void UpdateBodyMarkerStateUnsorted_D(Real4* posRadD,
-                                                Real3* velMasD,
-                                                Real3* rigid_BCEcoords_D,
-                                                uint* rigid_BCEsolids_D,
-                                                Real3* posRigidD,
-                                                Real3* velRigidD,
-                                                Real3* omegaLRF_D,
-                                                Real4* qD) {
+__global__ void UpdateBodyMarkerStateUnsorted_D(
+    Real4* positions,            // global marker positions (original)
+    Real3* velocities,           // global marker velocities (original)
+    const Real3* BCE_pos_local,  // BCE body-local coordinates
+    const uint* body_IDs,        // rigid body ID for each BCE marker
+    const Real3* body_pos,       // body positions (relative to global frame)
+    const Real4* body_rot,       // body orientation (relative to global frame)
+    const Real3* body_linvel,    // body lin. vels. (relative to global frame)
+    const Real3* body_angvel) {  // body ang. vels. (relative to global frame)
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numRigidMarkers)
         return;
 
-    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
-    int rigidBodyIndex = rigid_BCEsolids_D[index];
+    uint marker_index = index + countersD.startRigidMarkers;
 
-    Real4 q4 = qD[rigidBodyIndex];
-    Real3 a1, a2, a3;
-    RotationMatirixFromQuaternion(a1, a2, a3, q4);
+    int body_ID = body_IDs[index];
+    Real3 local = BCE_pos_local[index];
 
-    Real3 rigidSPH_MeshPos_LRF = rigid_BCEcoords_D[index];
+    Real3 u, v, w;
+    RotationMatrixFromQuaternion(u, v, w, body_rot[body_ID]);
 
-    // position
-    Real h = posRadD[rigidMarkerIndex].w;
-    Real3 p_Rigid = posRigidD[rigidBodyIndex];
-    Real3 pos =
-        p_Rigid + mR3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
-    posRadD[rigidMarkerIndex] = mR4(pos, h);
+    // BCE marker position
+    Real h = positions[marker_index].w;
+    Real3 pos = body_pos[body_ID] + mR3(dot(u, local), dot(v, local), dot(w, local));
+    positions[marker_index] = mR4(pos, h);
 
-    // velocity
-    Real3 v_Rigid = velRigidD[rigidBodyIndex];
-    Real3 omega3 = omegaLRF_D[rigidBodyIndex];
-    Real3 omegaCrossS = cross(omega3, rigidSPH_MeshPos_LRF);
-    velMasD[rigidMarkerIndex] = v_Rigid + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
+    // BCE marker velocity
+    Real3 omega_cross = cross(body_angvel[body_ID], local);
+    velocities[marker_index] =
+        body_linvel[body_ID] + mR3(dot(u, omega_cross), dot(v, omega_cross), dot(w, omega_cross));
 }
 
 void BceManager::UpdateBodyMarkerState() {
@@ -757,8 +712,8 @@ void BceManager::UpdateBodyMarkerState() {
     UpdateBodyMarkerState_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
-        mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
+        mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
     cudaDeviceSynchronize();
@@ -775,8 +730,8 @@ void BceManager::UpdateBodyMarkerStateInitial() {
     UpdateBodyMarkerStateUnsorted_D<<<nBlocks, nThreads>>>(
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),
-        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel),
-        mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel), mR4CAST(m_data_mgr.fsiBodyState_D->rot));
+        mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
+        mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel));
 
     cudaDeviceSynchronize();
     cudaCheckError();
@@ -874,7 +829,7 @@ void BceManager::CalcNodeDirections1D(thrust::device_vector<Real3>& dirs) {
     // Normalize nodal directions
     thrust::transform(dirs.begin(), dirs.end(), dirs.begin(), normalizeReal3());
 #endif
-    
+
     ////thrust::copy(dirs.begin(), dirs.end(), std::ostream_iterator<Real3>(std::cout, " | "));
     ////std::cout << std::endl;
 }
