@@ -35,7 +35,8 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
       h(1e6),
       num_successful_steps(0),
       modified_Newton(true),
-      persistent_Newton(false) {
+      persistent_Newton(false),
+      persistent_matrix_computed(false) {
     SetAlpha(-0.2);  // default: some dissipation
 }
 
@@ -51,6 +52,9 @@ void ChTimestepperHHT::SetAlpha(double val) {
 
 // Performs a step of HHT (generalized alpha) implicit for II order systems
 void ChTimestepperHHT::Advance(const double dt) {
+    if (persistent_Newton && modified_Newton)
+        throw std::runtime_error("HHT: cannot use both persistent Newton and modified Newton.");
+
     // Downcast
     ChIntegrableIIorder* integrable2 = (ChIntegrableIIorder*)this->integrable;
 
@@ -98,14 +102,17 @@ void ChTimestepperHHT::Advance(const double dt) {
         h = std::min(h, dt);
     }
 
-    // Monitor flags controlling whther or not the Newton matrix must be updated.
+    // Monitor flags controlling whether or not the Newton matrix must be updated.
     // If using modified Newton, a matrix update occurs:
     //   - at the beginning of a step
     //   - on a stepsize decrease
     //   - if the Newton iteration does not converge with an out-of-date matrix
+    // If using persistent Newton, a matrix update occurs:
+    //   - only at the beginning of the very first step
     // Otherwise, the matrix is updated at each iteration.
     matrix_is_current = false;
-    call_setup = true;
+    call_setup = !(persistent_Newton && persistent_matrix_computed);
+    if (!persistent_matrix_computed) persistent_matrix_computed = true;
 
     // Loop until reaching final time
     while (true) {
@@ -118,7 +125,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         unsigned int it;
 
         for (it = 0; it < maxiters; it++) {
-            if (verbose && modified_Newton && call_setup)
+            if (verbose && (modified_Newton || persistent_Newton) && call_setup)
                 std::cout << " HHT call Setup." << std::endl;
 
             // Solve linear system and increment state
@@ -131,8 +138,8 @@ void ChTimestepperHHT::Advance(const double dt) {
                 numsetups++;
             }
 
-            // If using modified Newton, do not call Setup again
-            call_setup = !modified_Newton;
+            // If using modified Newton or persistent Newton, do not call Setup again
+            call_setup = !(modified_Newton || persistent_Newton);
 
             // Check convergence
             converged = CheckConvergence(it);
@@ -219,8 +226,8 @@ void ChTimestepperHHT::Advance(const double dt) {
                 throw std::runtime_error("HHT: Reached minimum allowable step size.");
             }
 
-            // force a matrix re-evaluation (due to change in stepsize)
-            call_setup = true;
+            // force a matrix re-evaluation (due to change in stepsize) unless persistent matrix is used
+            call_setup = !persistent_Newton;
         }
 
         if (T >= tfinal) {

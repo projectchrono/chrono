@@ -117,7 +117,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     ChVectorDynamic<> Lnew;  ///< current estimate of Lagrange multipliers
     ChVectorDynamic<> R;     ///< residual of nonlinear system (dynamics portion)
     ChVectorDynamic<> Rold;  ///< residual terms depending on previous state
-    ChVectorDynamic<> Qc;    ///< residual of nonlinear system (constranints portion)
+    ChVectorDynamic<> Qc;    ///< residual of nonlinear system (constraints portion)
 
     std::array<double, 3> Da_nrm_hist;  ///< last 3 update norms
     std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
@@ -134,6 +134,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
 
     bool modified_Newton;    ///< use modified Newton?
     bool persistent_Newton;  ///< use persistent Newton?
+    bool persistent_matrix_computed; ///< persistent Newton matrix computed?
     bool matrix_is_current;  ///< is the Newton matrix up-to-date?
     bool call_setup;         ///< should the solver's Setup function be called?
 
