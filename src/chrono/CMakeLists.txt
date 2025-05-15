@@ -566,6 +566,7 @@ set(Chrono_assets_SOURCES
     assets/ChTexture.cpp
     assets/ChCamera.cpp
     assets/ChColor.cpp
+    assets/ChColormap.cpp
     assets/ChGlyphs.cpp
     assets/ChVisualSystem.cpp
     assets/ChVisualModel.cpp
@@ -592,6 +593,7 @@ set(Chrono_assets_HEADERS
     assets/ChTexture.h
     assets/ChCamera.h
     assets/ChColor.h
+    assets/ChColormap.h
     assets/ChGlyphs.h
     assets/ChVisualSystem.h
     assets/ChVisualModel.h
