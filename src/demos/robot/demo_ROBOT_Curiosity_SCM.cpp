@@ -233,7 +233,6 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowTitle("Curiosity Obstacle Crossing on SCM");
             vis_vsg->AddCamera(ChVector3d(-1.0, 1.0, 3.0), ChVector3d(-5.0, 0.0, 0.0));
-            vis_vsg->AddGuiColorbar("Pressure yield [kPa]", 0.0, 20.0);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

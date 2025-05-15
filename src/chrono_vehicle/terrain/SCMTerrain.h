@@ -24,14 +24,15 @@
 #include <ostream>
 #include <unordered_map>
 
+#include "chrono/core/ChTimer.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChColormap.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsNodeXYZ.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/core/ChTimer.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -135,9 +136,19 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     ///  Return the current test height level.
     double GetTestHeight() const;
 
-    /// Set the color plot type for the soil mesh.
-    /// When a scalar plot is used, also define the range in the pseudo-color colormap.
+    /// Set the color plot type for the SCM mesh.
+    /// Specify the minimum and maximum values for false coloring.
     void SetPlotType(DataPlotType plot_type, double min_val, double max_val);
+
+    /// Set the colormap type for false coloring of the SCM mesh.
+    /// The default colormap is JET (a divergent blue-red map).
+    void SetColormap(ChColormap::Type type);
+
+    /// Get the type of the colormap currently in use.
+    ChColormap::Type GetColormapType() const;
+
+    /// Get the colormap object in current use.
+    const ChColormap& GetColormap() const;
 
     /// Set visualization color.
     void SetColor(const ChColor& color);
@@ -571,6 +582,8 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     double m_test_offset_up;    ///< offset for ray end
 
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;  ///< mesh visualization asset
+    std::unique_ptr<ChColormap> m_colormap;                      ///< colormap for mesh false coloring
+    ChColormap::Type m_colormap_type;                            ///< colormap type
 
     bool m_cosim_mode;  ///< co-simulation mode
 

@@ -187,11 +187,28 @@ double SCMTerrain::GetTestHeight() const {
     return m_loader->m_test_offset_up;
 }
 
-// Set the color plot type.
+// Set the color plot type
 void SCMTerrain::SetPlotType(DataPlotType plot_type, double min_val, double max_val) {
     m_loader->m_plot_type = plot_type;
     m_loader->m_plot_v_min = min_val;
     m_loader->m_plot_v_max = max_val;
+}
+
+// Set the colormap type
+void SCMTerrain::SetColormap(ChColormap::Type type) {
+    m_loader->m_colormap_type = type;
+    if (m_loader->m_colormap) {
+        m_loader->m_colormap->Load(type);
+    }
+}
+
+// Get the current colormap
+const ChColormap& SCMTerrain::GetColormap() const {
+    return *m_loader->m_colormap;
+}
+
+ChColormap::Type SCMTerrain::GetColormapType() const {
+    return m_loader->m_colormap_type;
 }
 
 // Enable SCM terrain patch boundaries
@@ -203,7 +220,7 @@ void SCMTerrain::SetBoundary(const ChAABB& aabb) {
     m_loader->m_boundary = true;
 }
 
-// Add a user-provided active domains.
+// Add a user-provided active domains
 void SCMTerrain::AddActiveDomain(std::shared_ptr<ChBody> body,
                                  const ChVector3d& OOBB_center,
                                  const ChVector3d& OOBB_dims) {
@@ -399,6 +416,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_elastic_K = 50000000;
     m_damping_R = 0;
 
+    m_colormap_type = ChColormap::Type::JET;
     m_plot_type = SCMTerrain::PLOT_NONE;
     m_plot_v_min = 0;
     m_plot_v_max = 0.2;
@@ -608,6 +626,9 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
 }
 
 void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
+    // Create the colormap
+    m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
+
     int nvx = 2 * m_nx + 1;                     // number of grid vertices in X direction
     int nvy = 2 * m_ny + 1;                     // number of grid vertices in Y direction
     int n_verts = nvx * nvy;                    // total number of vertices for initial visualization trimesh
@@ -1724,57 +1745,57 @@ void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const N
 
     // Update visualization mesh vertex color
     if (m_plot_type != SCMTerrain::PLOT_NONE) {
-        ChColor mcolor;
+        ChColor color;
         switch (m_plot_type) {
             case SCMTerrain::PLOT_LEVEL:
-                mcolor = ChColor::ComputeFalseColor(nr.level, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.level, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_LEVEL_INITIAL:
-                mcolor = ChColor::ComputeFalseColor(nr.level_initial, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.level_initial, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_SINKAGE:
-                mcolor = ChColor::ComputeFalseColor(nr.sinkage, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.sinkage, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_SINKAGE_ELASTIC:
-                mcolor = ChColor::ComputeFalseColor(nr.sinkage_elastic, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.sinkage_elastic, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_SINKAGE_PLASTIC:
-                mcolor = ChColor::ComputeFalseColor(nr.sinkage_plastic, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.sinkage_plastic, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_STEP_PLASTIC_FLOW:
-                mcolor = ChColor::ComputeFalseColor(nr.step_plastic_flow, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.step_plastic_flow, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_K_JANOSI:
-                mcolor = ChColor::ComputeFalseColor(nr.kshear, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.kshear, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_PRESSURE:
-                mcolor = ChColor::ComputeFalseColor(nr.sigma, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.sigma, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_PRESSURE_YIELD:
-                mcolor = ChColor::ComputeFalseColor(nr.sigma_yield, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.sigma_yield, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_SHEAR:
-                mcolor = ChColor::ComputeFalseColor(nr.tau, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.tau, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_MASSREMAINDER:
-                mcolor = ChColor::ComputeFalseColor(nr.massremainder, m_plot_v_min, m_plot_v_max);
+                color = m_colormap->Get(nr.massremainder, m_plot_v_min, m_plot_v_max);
                 break;
             case SCMTerrain::PLOT_ISLAND_ID:
                 if (nr.erosion)
-                    mcolor = ChColor(0, 0, 0);
+                    color = ChColor(0, 0, 0);
                 if (nr.sigma > 0)
-                    mcolor = ChColor(1, 0, 0);
+                    color = ChColor(1, 0, 0);
                 break;
             case SCMTerrain::PLOT_IS_TOUCHED:
                 if (nr.sigma > 0)
-                    mcolor = ChColor(1, 0, 0);
+                    color = ChColor(1, 0, 0);
                 else
-                    mcolor = ChColor(0, 0, 1);
+                    color = ChColor(0, 0, 1);
                 break;
             case SCMTerrain::PLOT_NONE:
                 break;
         }
-        colors[iv] = mcolor;
+        colors[iv] = color;
     }
 }
 

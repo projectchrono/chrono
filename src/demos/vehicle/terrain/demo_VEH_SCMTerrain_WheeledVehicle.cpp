@@ -303,8 +303,9 @@ int main(int argc, char* argv[]) {
         terrain.GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
 
     if (render_sinkage) {
-        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
-        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
+        terrain.SetColormap(ChColormap::Type::FAST);
+        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.08);
+        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 150000);
     }
 
     // -------------------------------------------
