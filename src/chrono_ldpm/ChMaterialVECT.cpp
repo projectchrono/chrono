@@ -312,7 +312,7 @@ double ChMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, ChVec
 	cosw2 = cos(omega) * cos(omega);
 
 	if (cosw2 < 10e-16) {   // epsT == 0
-		//omega = M_PI * 0.5;
+		//omega = CH_PI * 0.5;
 		sigma0 = sigmat;
 	}
 	else {
@@ -325,8 +325,8 @@ double ChMaterialVECT::FractureBC(ChVectorDynamic<>& mstrain, double& len, ChVec
 	//double lt = 2 * E0 * Gt / sigmat / sigmat;
 	double Ht = 2 * E0 / (lt / len - 1);	
 	double Hs = rs* E0;
-	//double H0 = Ht * pow(2 * omega / M_PI, nt);
-	double H0 = Hs/alpha + ( Ht- Hs/alpha )* pow(2 * omega / M_PI, nt);
+	//double H0 = Ht * pow(2 * omega / CH_PI, nt);
+	double H0 = Hs/alpha + ( Ht- Hs/alpha )* pow(2 * omega / CH_PI, nt);
 
 	double eps_max = pow(statev(6) * statev(6) + alpha * statev(7) * statev(7), 0.5);
 	double sigma_bt = sigma0 * exp(-H0 * std::max((eps_max - eps0), 0.0) / sigma0);
