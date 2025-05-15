@@ -449,8 +449,12 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
 
 class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
   public:
-    ChColorbarGuiComponentVSG(const std::string& title, ChColormap::Type type, double min_val, double max_val)
-        : m_title(title), m_type(type), m_min_val(min_val), m_max_val(max_val) {}
+    ChColorbarGuiComponentVSG(const std::string& title,
+                              const ChVector2d& range,
+                              ChColormap::Type type,
+                              bool bimodal,
+                              float width = 400)
+        : m_title(title), m_type(type), m_range(range), m_bimodal(bimodal), m_width(width) {}
 
     virtual void Initialize() override { m_texture = m_vsys->GetColormapTexture(m_type); }
 
@@ -458,7 +462,7 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin(m_title.c_str());
 
-        Colorbar(m_texture, m_min_val, m_max_val, cb.deviceID);
+        Colorbar(m_texture, m_range, m_bimodal, m_width, cb.deviceID);
 
         ImGui::End();
     }
@@ -466,9 +470,10 @@ class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
   private:
     std::string m_title;
     ChColormap::Type m_type;
+    bool m_bimodal;
     vsg::ref_ptr<vsgImGui::Texture> m_texture;
-    double m_min_val;
-    double m_max_val;
+    float m_width;
+    ChVector2d m_range;
 };
 
 // -----------------------------------------------------------------------------
@@ -771,10 +776,11 @@ size_t ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc)
 }
 
 size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title,
+                                         const ChVector2d& range,
                                          ChColormap::Type type,
-                                         double min_val,
-                                         double max_val) {
-    auto gc = chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, type, min_val, max_val);
+                                         bool bimodal,
+                                         float width) {
+    auto gc = chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, range, type, bimodal, width);
     gc->m_vsys = this;
     m_gui.push_back(gc);
     return m_gui.size() - 1;

@@ -263,15 +263,13 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
-        auto col_callback =
-            chrono_types::make_shared<ParticleHeightColorCallback>(ChColor(0.3f, 0.6f, 0.0f), -0.3, 0.3);
-        ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 1.0);
+        auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(-0.3, 0.3);
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::COPPER);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
@@ -284,7 +282,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(2, 1, 0.5), ChVector3d(0, 0, 0));
         visVSG->SetLightIntensity(0.9f);
-        visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+        visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();
         vis = visVSG;

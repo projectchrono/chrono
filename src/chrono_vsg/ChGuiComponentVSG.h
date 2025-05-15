@@ -19,6 +19,8 @@
 #include <vsgImGui/imgui.h>
 #include <vsgImGui/Texture.h>
 
+#include "chrono/core/ChVector2.h"
+
 #include "chrono_vsg/ChApiVSG.h"
 
 namespace chrono {
@@ -55,7 +57,11 @@ class CH_VSG_API ChGuiComponentVSG {
     static void DrawGauge(float val, float v_min, float v_max);
 
     /// Utility function to draw a colorbar (colormap legend).
-    static void Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture, double min_val, double max_val, uint32_t deviceID);
+    static void Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
+                         const ChVector2d& range,
+                         bool bimodal,
+                         float width,
+                         uint32_t deviceID);
 
   protected:
     bool m_visible;

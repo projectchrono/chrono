@@ -52,7 +52,7 @@ class SCMStatsVSG : public vsg3d::ChGuiComponentVSG {
                 ImGui::TextUnformatted(m_vsysSCM->m_plot_label.c_str());
                 ImGui::TableNextColumn();
                 Colorbar(m_vsysSCM->m_vsys->GetColormapTexture(m_vsysSCM->m_scm->GetColormapType()),
-                         m_vsysSCM->m_plot_min, m_vsysSCM->m_plot_max, cb.deviceID);
+                         {m_vsysSCM->m_plot_min, m_vsysSCM->m_plot_max}, false, 300.0f, cb.deviceID);
             }
 
             ImGui::EndTable();

@@ -182,6 +182,7 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_rigid_bce_color(ChColor(0.10f, 1.0f, 0.30f)),
       m_flex_bce_color(ChColor(1.0f, 1.0f, 0.4f)),
       m_active_box_color(ChColor(1.0f, 1.0f, 0.0f)),
+      m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir(".") {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
@@ -206,6 +207,24 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
 
 ChFsiVisualizationVSG::~ChFsiVisualizationVSG() {
     delete m_sysMBS;
+}
+
+ChColormap::Type ChFsiVisualizationVSG::GetColormapType() const {
+    return m_colormap_type;
+}
+
+const ChColormap& ChFsiVisualizationVSG::GetColormap() const {
+    return *m_colormap;
+}
+
+void ChFsiVisualizationVSG::SetSPHColorCallback(std::shared_ptr<ParticleColorCallback> functor, ChColormap::Type type) {
+    m_color_fun = functor;
+    m_color_fun->m_vsys = this;
+
+    m_colormap_type = type;
+    if (m_colormap) {
+        m_colormap->Load(type);
+    }
 }
 
 void ChFsiVisualizationVSG::OnAttach() {
@@ -288,9 +307,18 @@ void ChFsiVisualizationVSG::OnInitialize() {
     m_use_active_boxes = m_sysSPH->GetParams().use_active_domain;
     m_active_box_hsize = ToChVector(m_sysSPH->GetParams().bodyActiveDomain);
 
+    // Create colormap
+    m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
+
     // Create custom GUI for the FSI plugin
     auto fsi_states = chrono_types::make_shared<FSIStatsVSG>(this);
     m_vsys->AddGuiComponent(fsi_states);
+
+    // Add colorbar GUI
+    if (m_color_fun) {
+        m_vsys->AddGuiColorbar(m_color_fun->GetTile(), m_color_fun->GetDataRange(), m_colormap_type,
+                               m_color_fun->IsBimodal(), 400.0f);
+    }
 
     m_vsys->SetImageOutput(m_write_images);
     m_vsys->SetImageOutputDirectory(m_image_dir);
@@ -458,33 +486,34 @@ void ChFsiVisualizationVSG::OnRender() {
 // ---------------------------------------------------------------------------
 
 ParticleHeightColorCallback::ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up)
-    : m_monochrome(false), m_hmin(hmin), m_hmax(hmax), m_up(ToReal3(up)) {}
+    : m_hmin(hmin), m_hmax(hmax), m_up(ToReal3(up)) {}
 
-ParticleHeightColorCallback::ParticleHeightColorCallback(const ChColor& base_color,
-                                                         double hmin,
-                                                         double hmax,
-                                                         const ChVector3d& up)
-    : m_monochrome(true), m_base_color(base_color), m_hmin(hmin), m_hmax(hmax), m_up(ToReal3(up)) {}
+std::string ParticleHeightColorCallback::GetTile() const {
+    return "Height (m)";
+}
 
-ChColor ParticleHeightColorCallback::get(unsigned int n) const {
+ChVector2d ParticleHeightColorCallback::GetDataRange() const {
+    return ChVector2d(m_hmin, m_hmax);
+}
+
+ChColor ParticleHeightColorCallback::GetColor(unsigned int n) const {
     double h = dot(pos[n], m_up);  // particle height
-    if (m_monochrome) {
-        float factor = (float)((h - m_hmin) / (m_hmax - m_hmin));  // color scaling factor (0,1)
-        return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-    } else
-        return ChColor::ComputeFalseColor(h, m_hmin, m_hmax);
+    return m_vsys->GetColormap().Get(h, m_hmin, m_hmax);
 }
 
 ParticleVelocityColorCallback::ParticleVelocityColorCallback(double vmin, double vmax, Component component)
-    : m_monochrome(false), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
+    : m_vmin(vmin), m_vmax(vmax), m_component(component) {}
 
-ParticleVelocityColorCallback::ParticleVelocityColorCallback(const ChColor& base_color,
-                                                             double vmin,
-                                                             double vmax,
-                                                             Component component)
-    : m_monochrome(true), m_base_color(base_color), m_vmin(vmin), m_vmax(vmax), m_component(component) {}
 
-ChColor ParticleVelocityColorCallback::get(unsigned int n) const {
+std::string ParticleVelocityColorCallback::GetTile() const {
+    return "Velocity (m/s)";
+}
+
+ChVector2d ParticleVelocityColorCallback::GetDataRange() const {
+    return ChVector2d(m_vmin, m_vmax);
+}
+
+ChColor ParticleVelocityColorCallback::GetColor(unsigned int n) const {
     double v = 0;
     switch (m_component) {
         case Component::NORM:
@@ -501,64 +530,51 @@ ChColor ParticleVelocityColorCallback::get(unsigned int n) const {
             break;
     }
 
-    if (m_monochrome) {
-        float factor = (float)((v - m_vmin) / (m_vmax - m_vmin));  // color scaling factor (0,1)
-        return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-    } else
-        return ChColor::ComputeFalseColor(v, m_vmin, m_vmax);
+    return m_vsys->GetColormap().Get(v, m_vmin, m_vmax);
 }
 
-ParticleDensityColorCallback::ParticleDensityColorCallback(double dmin, double dmax)
-    : m_monochrome(false), m_dmin(dmin), m_dmax(dmax) {}
+ParticleDensityColorCallback::ParticleDensityColorCallback(double dmin, double dmax) : m_dmin(dmin), m_dmax(dmax) {}
 
-ParticleDensityColorCallback::ParticleDensityColorCallback(const ChColor& base_color, double dmin, double dmax)
-    : m_monochrome(true), m_base_color(base_color), m_dmin(dmin), m_dmax(dmax) {}
+std::string ParticleDensityColorCallback::GetTile() const {
+    return "Density (kg/m3)";
+}
 
-ChColor ParticleDensityColorCallback::get(unsigned int n) const {
+ChVector2d ParticleDensityColorCallback::GetDataRange() const {
+    return ChVector2d(m_dmin, m_dmax);
+}
+
+ChColor ParticleDensityColorCallback::GetColor(unsigned int n) const {
     double d = prop[n].x;
-
-    if (m_monochrome) {
-        float factor = (float)((d - m_dmin) / (m_dmax - m_dmin));  // color scaling factor (0,1)
-        return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-    } else
-        return ChColor::ComputeFalseColor(d, m_dmin, m_dmax);
+    return m_vsys->GetColormap().Get(d, m_dmin, m_dmax);
 }
 
-ParticlePressureColorCallback::ParticlePressureColorCallback(double pmin, double pmax)
-    : m_monochrome(false), m_bichrome(false), m_pmin(pmin), m_pmax(pmax) {}
-
-ParticlePressureColorCallback::ParticlePressureColorCallback(const ChColor& base_color, double pmin, double pmax)
-    : m_monochrome(true), m_bichrome(false), m_base_color(base_color), m_pmin(pmin), m_pmax(pmax) {}
-
-ParticlePressureColorCallback::ParticlePressureColorCallback(const ChColor& base_color_neg,
-                                                             const ChColor& base_color_pos,
-                                                             double pmin,
-                                                             double pmax)
-    : m_monochrome(false),
-      m_bichrome(true),
-      m_base_color_neg(base_color_neg),
-      m_base_color_pos(base_color_pos),
-      m_pmin(pmin),
-      m_pmax(pmax) {
-    assert(m_pmin < 0);
+ParticlePressureColorCallback::ParticlePressureColorCallback(double pmin, double pmax, bool bimodal)
+    : m_bimodal(bimodal), m_pmin(pmin), m_pmax(pmax) {
+    assert(!m_bimodal || m_pmin < 0);
 }
 
-ChColor ParticlePressureColorCallback::get(unsigned int n) const {
+std::string ParticlePressureColorCallback::GetTile() const {
+    return "Pressure (N/m2)";
+}
+
+ChVector2d ParticlePressureColorCallback::GetDataRange() const {
+    return ChVector2d(m_pmin, m_pmax);
+}
+
+ChColor ParticlePressureColorCallback::GetColor(unsigned int n) const {
     double p = prop[n].y;
 
-    if (m_monochrome) {
-        float factor = (float)((p - m_pmin) / (m_pmax - m_pmin));  // color scaling factor (0,1)
-        return ChColor(factor * m_base_color.R, factor * m_base_color.G, factor * m_base_color.B);
-    } else if (m_bichrome) {
+    if (m_bimodal) {
         if (p < 0) {
-            float factor = (float)(p / m_pmin);  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color_neg.R, factor * m_base_color_neg.G, factor * m_base_color_neg.B);
+            float factor = (float)(p / m_pmin);  // color scaling factor (1...0)
+            return m_vsys->GetColormap().Get(0.5 * (1 - factor));
         } else {
-            float factor = (float)(+p / m_pmax);  // color scaling factor (0,1)
-            return ChColor(factor * m_base_color_pos.R, factor * m_base_color_pos.G, factor * m_base_color_pos.B);
+            float factor = (float)(p / m_pmax);  // color scaling factor (0...1)
+            return m_vsys->GetColormap().Get(0.5 * (1 + factor));
         }
-    } else
-        return ChColor::ComputeFalseColor(p, m_pmin, m_pmax);
+    } else {
+        return m_vsys->GetColormap().Get(p, m_pmin, m_pmax);
+    }
 }
 
 }  // namespace sph

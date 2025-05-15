@@ -315,15 +315,14 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (render) {
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.0);
-        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
-            ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 3900);
+        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(-1000, 3900, true);
 
         // FSI plugin
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::RED_BLUE);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
