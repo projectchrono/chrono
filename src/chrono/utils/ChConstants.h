@@ -26,6 +26,9 @@ static constexpr double CH_RPM_TO_RAD_S = CH_2PI / 60.0;
 static constexpr double CH_RAD_S_TO_RPM = 60.0 / CH_2PI;
 
 static constexpr double CH_SQRT_2 = 1.41421356237309504880;
+static constexpr double CH_SQRT_1_2 = 0.70710678118654757274;
+static constexpr double CH_SQRT_3 = 1.73205080756887729353;
+static constexpr double CH_SQRT_1_3 = 0.57735026918962573106;
 
 static constexpr double CH_1_3 = 1.0 / 3.0;
 static constexpr double CH_1_6 = 1.0 / 6.0;

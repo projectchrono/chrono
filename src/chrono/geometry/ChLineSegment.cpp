@@ -27,7 +27,7 @@ ChLineSegment::ChLineSegment(const ChLineSegment& source) : ChLine(source) {
 ChFrame<> ChLineSegment::GetFrame() const {
     ChVector3d dir = (pB - pA).GetNormalized();
     ChVector3d u, v, w;
-    dir.GetDirectionAxesAsX(w, u, v);
+    dir.GetDirectionAxes(w, u, v);
 
     return ChFrame<>(0.5 * (pB + pA), ChMatrix33<>(u, v, w));
 }
