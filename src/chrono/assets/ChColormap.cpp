@@ -31,6 +31,8 @@ CH_FACTORY_REGISTER(ChColormap)
 std::unordered_map<ChColormap::Type, ChColormap::Files> ChColormap::m_colormap_files{
     {ChColormap::Type::BLACK_BODY,
      {GetChronoDataFile("colormaps/black-body-table-float-0512.csv"), GetChronoDataFile("colormaps/black-body.png")}},
+    {ChColormap::Type::BROWN,
+     {GetChronoDataFile("colormaps/brown-table-float-0512.csv"), GetChronoDataFile("colormaps/brown.png")}},
     {ChColormap::Type::COPPER,
      {GetChronoDataFile("colormaps/copper-table-float-0512.csv"), GetChronoDataFile("colormaps/copper.png")}},
     {ChColormap::Type::FAST,
@@ -43,6 +45,8 @@ std::unordered_map<ChColormap::Type, ChColormap::Files> ChColormap::m_colormap_f
      {GetChronoDataFile("colormaps/kindlmann-table-float-0512.csv"), GetChronoDataFile("colormaps/kindlmann.png")}},
     {ChColormap::Type::PLASMA,
      {GetChronoDataFile("colormaps/plasma-table-float-0512.csv"), GetChronoDataFile("colormaps/plasma.png")}},
+    {ChColormap::Type::RED_BLUE,
+     {GetChronoDataFile("colormaps/red-blue-table-float-0512.csv"), GetChronoDataFile("colormaps/red-blue.png")}},
     {ChColormap::Type::VIRIDIS,
      {GetChronoDataFile("colormaps/viridis-table-float-0512.csv"), GetChronoDataFile("colormaps/viridis.png")}}};
 
