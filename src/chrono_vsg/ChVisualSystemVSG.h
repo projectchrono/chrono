@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -28,6 +29,7 @@
 
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualModel.h"
+#include "chrono/assets/ChColormap.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
@@ -248,7 +250,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Add a colorbar as a GUI component.
     /// Returns the index of the new component. This function must be called before Initialize().
-    size_t AddGuiColorbar(const std::string& title, double min_val, double max_val);
+    size_t AddGuiColorbar(const std::string& title, ChColormap::Type type, double min_val, double max_val);
 
     /// Access the specified GUI component.
     /// Identify the GUI component with the index returned by AddGuiComponent.
@@ -297,6 +299,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Get a reference to the underlying shape builder.
     vsg::ref_ptr<ShapeBuilder> GetVSGShapeBuilder() const { return m_shapeBuilder; }
+
+    /// Get the ImGui texture for the specified colormap.
+    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const { return m_colormap_textures.at(type); }
 
   protected:
     /// Perform necessary setup operations at the beginning of a time step.
@@ -567,6 +572,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     ChTimer m_timer_render;                           ///< timer for rendering speed
     double m_old_time, m_current_time, m_time_total;  ///< render times
     double m_fps;                                     ///< estimated FPS (moving average)
+
+    // ImGui textures
+    vsg::ref_ptr<vsgImGui::Texture> m_logo_texture;
+    std::unordered_map<ChColormap::Type, vsg::ref_ptr<vsgImGui::Texture>> m_colormap_textures; 
 
     friend class ChMainGuiVSG;
     friend class ChBaseGuiComponentVSG;

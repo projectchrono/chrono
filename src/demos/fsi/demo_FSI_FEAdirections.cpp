@@ -212,14 +212,11 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
         visVSG->AddCamera(ChVector3d(0, -2.0, 0.3), ChVector3d(0, 0, 0.3));
-        ////visVSG->AddCamera(ChVector3d(0.2, -0.75, 0.2), ChVector3d(0.2, 0, 0.2));
-        visVSG->AddGuiColorbar("Velocity (m/s)", vel_min, vel_max);
+        visVSG->AddGuiColorbar("Velocity (m/s)", ChColormap::Type::FAST, vel_min, vel_max);
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();
-
-        ////visVSG->SetFeaMeshVisibility(false);
 
         vis = visVSG;
     }

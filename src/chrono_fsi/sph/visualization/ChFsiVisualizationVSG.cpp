@@ -35,7 +35,7 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
   public:
     FSIStatsVSG(ChFsiVisualizationVSG* vsysFSI) : m_vsysFSI(vsysFSI) {}
 
-    virtual void render() override {
+    virtual void render(vsg::CommandBuffer& cb) override {
         vsg3d::ChVisualSystemVSG& vsys = m_vsysFSI->GetVisualSystemVSG();
 
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));

@@ -81,13 +81,13 @@ class ChSTRKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 class ChSTRGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
     ChSTRGuiComponentVSG(ChSuspensionTestRigVisualSystemVSG* app) : m_app(app) {}
-    virtual void render() override;
+    virtual void render(vsg::CommandBuffer& cb) override;
 
   private:
     ChSuspensionTestRigVisualSystemVSG* m_app;
 };
 
-void ChSTRGuiComponentVSG::render() {
+void ChSTRGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     auto driver = std::dynamic_pointer_cast<ChSuspensionTestRigInteractiveDriver>(m_app->m_rig->GetDriver());
 
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));

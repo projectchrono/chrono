@@ -175,7 +175,7 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
     ChVehicleGuiComponentVSG(ChVehicleVisualSystemVSG* vsys) : m_vsys(vsys) {}
-    virtual void render() override;
+    virtual void render(vsg::CommandBuffer& cb) override;
 
   private:
     ChVehicleVisualSystemVSG* m_vsys;
@@ -233,7 +233,7 @@ void ShowHelp() {
     }
 }
 
-void ChVehicleGuiComponentVSG::render() {
+void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
     ImGui::Begin("Vehicle");

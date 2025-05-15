@@ -32,7 +32,7 @@ class SCMStatsVSG : public vsg3d::ChGuiComponentVSG {
   public:
     SCMStatsVSG(ChScmVisualizationVSG* vsysFSI) : m_vsysSCM(vsysFSI) {}
 
-    virtual void render() override {
+    virtual void render(vsg::CommandBuffer& cb) override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin("SCM");
 
@@ -44,8 +44,16 @@ class SCMStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::TableNextColumn();
             ImGui::Text("%6.2e", m_vsysSCM->m_scm_resolution);
 
-            if (m_vsysSCM->m_plot_type != SCMTerrain::PLOT_NONE)
-                Colorbar(m_vsysSCM->m_plot_label, m_vsysSCM->m_plot_min, m_vsysSCM->m_plot_max);
+            if (m_vsysSCM->m_plot_type != SCMTerrain::PLOT_NONE &&
+                m_vsysSCM->m_plot_type != SCMTerrain::PLOT_ISLAND_ID &&
+                m_vsysSCM->m_plot_type != SCMTerrain::PLOT_IS_TOUCHED) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(m_vsysSCM->m_plot_label.c_str());
+                ImGui::TableNextColumn();
+                Colorbar(m_vsysSCM->m_vsys->GetColormapTexture(m_vsysSCM->m_scm->GetColormapType()),
+                         m_vsysSCM->m_plot_min, m_vsysSCM->m_plot_max, cb.deviceID);
+            }
 
             ImGui::EndTable();
         }
@@ -67,61 +75,6 @@ class SCMStatsVSG : public vsg3d::ChGuiComponentVSG {
         }
 
         ImGui::End();
-    }
-
-    void Colorbar(const std::string& title, double min_val, double max_val) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::TextUnformatted(title.c_str());
-        ImGui::TableNextColumn();
-
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
-        float alpha = 1.0f;
-        float cv = 0.9f;
-        float cv13 = cv * CH_1_3;
-        float cv23 = 2 * cv13;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
-        snprintf(label, nstr, "%.3f", min_val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        double stride = max_val - min_val;
-        double val = min_val + stride * CH_1_6;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = min_val + stride * CH_1_3;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = min_val + 0.5 * stride;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = min_val + stride * CH_2_3;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = min_val + stride * 5.0 / 6.0;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv13, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, 0.0, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", max_val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
     }
 
   private:
