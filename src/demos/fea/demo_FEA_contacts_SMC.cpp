@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
 
     auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemeshbeam->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemeshbeam->SetColormapRange(0.0, 5.50);
     mvisualizemeshbeam->SetSmoothFaces(true);
     my_mesh_beams->AddVisualShapeFEA(mvisualizemeshbeam);
 

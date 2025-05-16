@@ -47,7 +47,7 @@ sys.Add(mesh)
 
 visualizebeamA = chrono.ChVisualShapeFEA()
 visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
-visualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
+visualizebeamA.SetColormapRange(-0.4, 0.4)
 visualizebeamA.SetSmoothFaces(True)
 visualizebeamA.SetWireframe(False)
 mesh.AddVisualShapeFEA(visualizebeamA)

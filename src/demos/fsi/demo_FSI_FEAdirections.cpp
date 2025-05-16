@@ -340,7 +340,7 @@ std::shared_ptr<ChMesh> CreateANCFCable(ChSystem& sysMBS, double x, int n) {
 
     auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
+    vis_mesh->SetColormapRange(-0.4, 0.4);
     vis_mesh->SetSmoothFaces(true);
     vis_mesh->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_mesh);
@@ -384,7 +384,7 @@ std::shared_ptr<ChMesh> CreateANCF3243Beam(ChSystem& sysMBS, double x, int n) {
 
     auto vis_mesh1 = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh1->SetColorscaleMinMax(-0.4, 0.4);
+    vis_mesh1->SetColormapRange(-0.4, 0.4);
     vis_mesh1->SetSmoothFaces(true);
     vis_mesh1->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_mesh1);
@@ -444,7 +444,7 @@ std::shared_ptr<ChMesh> CreateANCF3333Beam(ChSystem& sysMBS, double x, int n) {
 
     auto vis_mesh1 = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh1->SetColorscaleMinMax(-0.4, 0.4);
+    vis_mesh1->SetColormapRange(-0.4, 0.4);
     vis_mesh1->SetSmoothFaces(true);
     vis_mesh1->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_mesh1);
@@ -484,7 +484,7 @@ std::shared_ptr<ChMesh> CreateEulerBeam(ChSystem& sysMBS, double x, int n) {
 
     auto vis_mesh1 = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh1->SetColorscaleMinMax(-0.4, 0.4);
+    vis_mesh1->SetColormapRange(-0.4, 0.4);
     vis_mesh1->SetSmoothFaces(true);
     vis_mesh1->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_mesh1);

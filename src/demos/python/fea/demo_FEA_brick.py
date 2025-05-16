@@ -192,7 +192,7 @@ mvisualizemeshD = chrono.ChVisualShapeFEA()
 mvisualizemeshD.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NONE)
 mvisualizemeshD.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshD.SetSymbolsScale(1)
-mvisualizemeshD.SetColorscaleMinMax(-0.5, 5)
+mvisualizemeshD.SetColormapRange(-0.5, 5)
 mvisualizemeshD.SetZbufferHide(False)
 mesh.AddVisualShapeFEA(mvisualizemeshD)
 

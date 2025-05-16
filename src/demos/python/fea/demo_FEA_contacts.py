@@ -182,7 +182,7 @@ sys.Add(my_mesh_beams)
 
 mvisualizemesh = chrono.ChVisualShapeFEA()
 mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
-mvisualizemesh.SetColorscaleMinMax(0.0, 5.50)
+mvisualizemesh.SetColormapRange(0.0, 5.50)
 mvisualizemesh.SetSmoothFaces(True)
 mesh.AddVisualShapeFEA(mvisualizemesh)
 
@@ -194,7 +194,7 @@ mesh.AddVisualShapeFEA(mvisualizemeshcoll)
 
 mvisualizemeshbeam = chrono.ChVisualShapeFEA()
 mvisualizemeshbeam.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
-mvisualizemeshbeam.SetColorscaleMinMax(0.0, 5.50)
+mvisualizemeshbeam.SetColormapRange(0.0, 5.50)
 mvisualizemeshbeam.SetSmoothFaces(True)
 my_mesh_beams.AddVisualShapeFEA(mvisualizemeshbeam)
 

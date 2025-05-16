@@ -188,7 +188,7 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
 
     auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    vis_speed->SetColorscaleMinMax(0.0, 5.50);
+    vis_speed->SetColormapRange(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(vis_speed);
 }
@@ -212,7 +212,7 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
 
     auto vis_speed = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    vis_speed->SetColorscaleMinMax(0.0, 5.50);
+    vis_speed->SetColormapRange(0.0, 5.50);
     vis_speed->SetSmoothFaces(true);
     vis_speed->SetWireframe(true);
     mesh->AddVisualShapeFEA(vis_speed);

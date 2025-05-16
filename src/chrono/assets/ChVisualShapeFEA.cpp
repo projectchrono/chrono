@@ -41,7 +41,7 @@ namespace chrono {
 
 using namespace fea;
 
-ChVisualShapeFEA::ChVisualShapeFEA() : obj(nullptr) {
+ChVisualShapeFEA::ChVisualShapeFEA() : obj(nullptr), m_colormap_type(ChColormap::Type::JET) {
     fem_data_type = DataType::SURFACE;
     fem_glyph = GlyphType::NONE;
 
@@ -72,62 +72,93 @@ ChVisualShapeFEA::ChVisualShapeFEA() : obj(nullptr) {
 
     m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     m_glyphs_shape = chrono_types::make_shared<ChGlyphs>();
+
+    m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
 }
 
-ChColor ChVisualShapeFEA::ComputeFalseColor(double mv) {
+void ChVisualShapeFEA::SetColormapRange(double min, double max) {
+    colorscale_min = min;
+    colorscale_max = max;
+}
+
+void ChVisualShapeFEA::SetColormapRange(const ChVector2d& range) {
+    colorscale_min = range[0];
+    colorscale_max = range[1];
+}
+
+void ChVisualShapeFEA::SetShrinkElements(bool shrink, double factor) {
+    shrink_elements = shrink;
+    shrink_factor = factor;
+}
+
+void ChVisualShapeFEA::SetColormap(ChColormap::Type type) {
+    m_colormap_type = type;
+    if (m_colormap) {
+        m_colormap->Load(type);
+    }
+}
+
+const ChColormap& ChVisualShapeFEA::GetColormap() const {
+    return *m_colormap;
+}
+
+ChColormap::Type ChVisualShapeFEA::GetColormapType() const {
+    return m_colormap_type;
+}
+
+ChColor ChVisualShapeFEA::ComputeFalseColor(double value) const {
     if (fem_data_type == DataType::SURFACE)
         return meshcolor;
 
-    return ChColor::ComputeFalseColor(mv, colorscale_min, colorscale_max, true);
+    return m_colormap->Get(value, colorscale_min, colorscale_max);
 }
 
-double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode,
-                                             int nodeID,
-                                             std::shared_ptr<ChElementBase> melement) {
+double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> node,
+                                             std::shared_ptr<ChElementBase> element) const {
     switch (fem_data_type) {
         case DataType::SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
         case DataType::NODE_DISP_NORM:
-            return (mnode->GetPos() - mnode->GetX0()).Length();
+            return (node->GetPos() - node->GetX0()).Length();
         case DataType::NODE_DISP_X:
-            return (mnode->GetPos() - mnode->GetX0()).x();
+            return (node->GetPos() - node->GetX0()).x();
         case DataType::NODE_DISP_Y:
-            return (mnode->GetPos() - mnode->GetX0()).y();
+            return (node->GetPos() - node->GetX0()).y();
         case DataType::NODE_DISP_Z:
-            return (mnode->GetPos() - mnode->GetX0()).z();
+            return (node->GetPos() - node->GetX0()).z();
         case DataType::NODE_SPEED_NORM:
-            return mnode->GetPosDt().Length();
+            return node->GetPosDt().Length();
         case DataType::NODE_SPEED_X:
-            return mnode->GetPosDt().x();
+            return node->GetPosDt().x();
         case DataType::NODE_SPEED_Y:
-            return mnode->GetPosDt().y();
+            return node->GetPosDt().y();
         case DataType::NODE_SPEED_Z:
-            return mnode->GetPosDt().z();
+            return node->GetPosDt().z();
         case DataType::NODE_ACCEL_NORM:
-            return mnode->GetPosDt2().Length();
+            return node->GetPosDt2().Length();
         case DataType::NODE_ACCEL_X:
-            return mnode->GetPosDt2().x();
+            return node->GetPosDt2().x();
         case DataType::NODE_ACCEL_Y:
-            return mnode->GetPosDt2().y();
+            return node->GetPosDt2().y();
         case DataType::NODE_ACCEL_Z:
-            return mnode->GetPosDt2().z();
+            return node->GetPosDt2().z();
         case DataType::ELEM_STRAIN_VONMISES:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(element)) {
                 return mytetra->GetStrain().GetEquivalentVonMises();
             }
             break;
         case DataType::ELEM_STRESS_VONMISES:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(element)) {
                 return mytetra->GetStress().GetEquivalentVonMises();
             }
             break;
         case DataType::ELEM_STRAIN_HYDROSTATIC:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(element)) {
                 return mytetra->GetStrain().GetEquivalentMeanHydrostatic();
             }
             break;
         case DataType::ELEM_STRESS_HYDROSTATIC:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(element)) {
                 return mytetra->GetStress().GetEquivalentMeanHydrostatic();
             }
             break;
@@ -138,14 +169,13 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode
     return 0;
 }
 
-double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode,
-                                             int nodeID,
-                                             std::shared_ptr<ChElementBase> melement) {
+double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> node,
+                                             std::shared_ptr<ChElementBase> element) const {
     switch (fem_data_type) {
         case DataType::SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
         case DataType::NODE_FIELD_VALUE:
-            return (mnode->GetFieldVal());
+            return (node->GetFieldVal());
         default:
             return 1e30;
     }
@@ -238,13 +268,13 @@ void ChVisualShapeFEA::UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementB
     ++i_verts;
 
     // color
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node0, 0, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node0, element));
     ++i_vcols;
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node1, 1, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node1, element));
     ++i_vcols;
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node2, 2, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node2, element));
     ++i_vcols;
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node3, 3, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node3, element));
     ++i_vcols;
 
     // faces indexes
@@ -307,13 +337,13 @@ void ChVisualShapeFEA::UpdateBuffers_Tetra_4_P(std::shared_ptr<fea::ChElementBas
     ++i_verts;
 
     // color
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node0, 0, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node0, element));
     ++i_vcols;
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node1, 1, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node1, element));
     ++i_vcols;
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node2, 2, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node2, element));
     ++i_vcols;
-    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node3, 3, element));
+    trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(node3, element));
     ++i_vcols;
 
     // faces indexes
@@ -378,7 +408,7 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
 
     // colours and colours indexes
     for (int in = 0; in < 8; ++in) {
-        trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(nodes[in], in, element));
+        trianglemesh.GetCoordsColors()[i_vcols] = ComputeFalseColor(ComputeScalarOutput(nodes[in], element));
         ++i_vcols;
     }
 

@@ -112,7 +112,7 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
         visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
         visFEA->SetShellResolution(3);
         visFEA->SetWireframe(false);
-        visFEA->SetColorscaleMinMax(0.0, 5.0);
+        visFEA->SetColormapRange(0.0, 5.0);
         visFEA->SetSmoothFaces(true);
         m_mesh->AddVisualShapeFEA(visFEA);
 

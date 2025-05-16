@@ -780,6 +780,13 @@ size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title,
                                          ChColormap::Type type,
                                          bool bimodal,
                                          float width) {
+    if (m_initialized) {
+        std::cout << "Error: Attempt to create a VSG colorbar after initialization of the VSG visual system."
+                  << std::endl;
+
+        throw std::runtime_error("Attempt to create a VSG colorbar after initialization of the VSG visual system");
+    }
+
     auto gc = chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, range, type, bimodal, width);
     gc->m_vsys = this;
     m_gui.push_back(gc);
