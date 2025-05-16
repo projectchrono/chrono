@@ -378,7 +378,6 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->SetCameraTarget(wheel->GetPos());
         vis->Render();
-        ////tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
 
         sys.DoStepDynamics(0.002);

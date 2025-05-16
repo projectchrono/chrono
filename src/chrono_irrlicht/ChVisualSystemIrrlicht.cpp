@@ -51,6 +51,7 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
       m_container(nullptr),
       m_win_title(""),
       m_yup(true),
+      m_draw_colorbar(false),
       m_use_effects(false),
       m_quality(0) {
     // Set default device parameter values
@@ -82,6 +83,10 @@ ChVisualSystemIrrlicht::ChVisualSystemIrrlicht()
         capsuleMesh->grab();
     if (coneMesh)
         coneMesh->grab();
+
+    // Create default colormap (for colorbar display)
+    m_colormap_type = ChColormap::Type::JET;
+    m_colormap = chrono_types::make_unique<ChColormap>(m_colormap_type);
 }
 
 ChVisualSystemIrrlicht::ChVisualSystemIrrlicht(ChSystem* sys,
@@ -305,6 +310,25 @@ int ChVisualSystemIrrlicht::AddCamera(const ChVector3d& pos, ChVector3d targ) {
 
     m_cameras.push_back(camera);
     return (int)m_cameras.size() - 1;
+}
+
+void ChVisualSystemIrrlicht::AddGuiColorbar(const std::string& title,  // title
+                                            const ChVector2d& range,   // data range
+                                            ChColormap::Type type,     // colormap type
+                                            bool bimodal,              // negative/positive
+                                            const ChVector2i& pos,     // position of top-left colorbar corner
+                                            const ChVector2i& size     // colorbar size
+) {
+    m_draw_colorbar = true;
+    m_colorbar_title = title;
+    m_colorbar_range = range;
+    if (type != m_colormap_type) {
+        m_colormap_type = type;
+        m_colormap->Load(type);
+    }
+    m_colormap_bimodal = bimodal;
+    m_colorbar_pos = pos;
+    m_colorbar_size = size;
 }
 
 void ChVisualSystemIrrlicht::AddGrid(double x_step, double y_step, int nx, int ny, ChCoordsys<> pos, ChColor col) {
@@ -580,6 +604,15 @@ void ChVisualSystemIrrlicht::Render() {
     }
 
     m_gui->Render();
+
+    if (m_draw_colorbar) {
+        tools::drawColorbar(this,                                       //
+                            *m_colormap,                                //
+                            m_colorbar_range[0], m_colorbar_range[1],   //
+                            m_colorbar_title,                           //
+                            m_colorbar_pos.x(), m_colorbar_pos.y(),     //
+                            m_colorbar_size.x(), m_colorbar_size.y());  //
+    }
 
     ChVisualSystem::Render();
 }

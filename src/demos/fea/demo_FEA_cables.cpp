@@ -27,7 +27,7 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Select solver type (SPARSE_QR, SPARSE_LU, or MINRES).
 ChSolver::Type solver_type = ChSolver::Type::SPARSE_QR;
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     // setting  proper coordinates and vertex colors as in the FEM elements. Such triangle mesh can be rendered by
     // Irrlicht or POVray or whatever postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-    ChColormap::Type colormap_type = ChColormap::Type::PLASMA;
-    ChVector2d colormap_range(-0.4, 0.4);
+    ChColormap::Type colormap_type = ChColormap::Type::JET;
+    ChVector2d colormap_range(-0.01, 0.01);
 
     auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     // Create the run-time visualization system
     auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Cables FEM",  //
                                          ChVector3d(0, 0.6, -1.0), VNULL,                    //
-                                         true, "Mz", colormap_range, colormap_type);
+                                         true, "Mz (Nm)", colormap_range, colormap_type);
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

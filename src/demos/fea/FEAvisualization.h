@@ -76,6 +76,10 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
                                         ChColor(0.6f, 0.8f, 1.0f));
             vis_irr->EnableShadows();
 
+            if (create_colorbar) {
+                vis_irr->AddGuiColorbar(colorbar_title, colorbar_range, colormap_type, false);
+            }
+
             vis = vis_irr;
 #endif
             break;

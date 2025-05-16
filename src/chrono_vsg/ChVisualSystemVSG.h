@@ -250,11 +250,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Add a colorbar as a GUI component.
     /// Returns the index of the new component. This function must be called before Initialize().
-    size_t AddGuiColorbar(const std::string& title,  // GUI window title
-                          const ChVector2d& range,   // data range
-                          ChColormap::Type type,     // colormap
-                          bool bimodal = false,      // negative/positive
-                          float width = 400          // texture width in pixels
+    size_t AddGuiColorbar(const std::string& title,  ///< GUI window title
+                          const ChVector2d& range,   ///< data range
+                          ChColormap::Type type,     ///< colormap
+                          bool bimodal = false,      ///< negative/positive
+                          float width = 400          ///< texture width in pixels
     );
 
     /// Access the specified GUI component.

@@ -113,9 +113,13 @@ int main(int argc, char* argv[]) {
         10);  // number of concentric vertex selections subject to erosion
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
+    
+    ChColormap::Type colormap_type = ChColormap::Type::JET;
+
     // mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
     // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE, 0, 30000.2);
     mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000.2);
+    mterrain.SetColormap(colormap_type);
     // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
     // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
     // mterrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
@@ -137,6 +141,7 @@ int main(int argc, char* argv[]) {
     vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                             ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
+    vis->AddGuiColorbar("Pressure yield [Pa]", {0, 30000}, colormap_type, false);
 
     // THE SOFT-REAL-TIME CYCLE
 
@@ -158,7 +163,6 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 30000, "Pressure yield [Pa]", 1180);
         vis->EndScene();
         sys.DoStepDynamics(0.002);
     }
