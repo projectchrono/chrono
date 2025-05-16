@@ -534,10 +534,6 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         double mass = density * volume;
         auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
-
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetMass(mass);
         cylinder->SetInertiaXX(mass * gyration);
@@ -546,6 +542,10 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(true);
         sysMBS.AddBody(cylinder);
 
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(contact_material_info);
+        geometry.coll_cylinders.push_back(
+            utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
         geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
         geometry.CreateCollisionShapes(cylinder, 1, sysMBS.GetContactMethod());
 
