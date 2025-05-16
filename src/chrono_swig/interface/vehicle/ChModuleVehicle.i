@@ -90,6 +90,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
+#include "chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
@@ -255,6 +256,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChVehicleJoint)
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
+%shared_ptr(chrono::vehicle::ChSpindle)
 %shared_ptr(chrono::vehicle::ChWheeledVehicle)
 %shared_ptr(chrono::vehicle::ChWheeledTrailer)
 %shared_ptr(chrono::vehicle::WheeledVehicle)
@@ -385,6 +387,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChTire.i"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChSpindle.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
