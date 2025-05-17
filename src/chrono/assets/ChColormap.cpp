@@ -29,33 +29,34 @@ CH_FACTORY_REGISTER(ChColormap)
 
 // Initialize static members
 std::unordered_map<ChColormap::Type, ChColormap::Files> ChColormap::m_colormap_files{
-    {ChColormap::Type::BLACK_BODY,
-     {GetChronoDataFile("colormaps/black-body-table-float-0512.csv"), GetChronoDataFile("colormaps/black-body.png")}},
-    {ChColormap::Type::BROWN,
-     {GetChronoDataFile("colormaps/brown-table-float-0512.csv"), GetChronoDataFile("colormaps/brown.png")}},
-    {ChColormap::Type::COPPER,
-     {GetChronoDataFile("colormaps/copper-table-float-0512.csv"), GetChronoDataFile("colormaps/copper.png")}},
-    {ChColormap::Type::FAST,
-     {GetChronoDataFile("colormaps/fast-table-float-0512.csv"), GetChronoDataFile("colormaps/fast.png")}},
-    {ChColormap::Type::INFERNO,
-     {GetChronoDataFile("colormaps/inferno-table-float-0512.csv"), GetChronoDataFile("colormaps/inferno.png")}},
-    {ChColormap::Type::JET,
-     {GetChronoDataFile("colormaps/jet-table-float-0512.csv"), GetChronoDataFile("colormaps/jet.png")}},
-    {ChColormap::Type::KINDLMANN,
-     {GetChronoDataFile("colormaps/kindlmann-table-float-0512.csv"), GetChronoDataFile("colormaps/kindlmann.png")}},
-    {ChColormap::Type::PLASMA,
-     {GetChronoDataFile("colormaps/plasma-table-float-0512.csv"), GetChronoDataFile("colormaps/plasma.png")}},
-    {ChColormap::Type::RED_BLUE,
-     {GetChronoDataFile("colormaps/red-blue-table-float-0512.csv"), GetChronoDataFile("colormaps/red-blue.png")}},
-    {ChColormap::Type::VIRIDIS,
-     {GetChronoDataFile("colormaps/viridis-table-float-0512.csv"), GetChronoDataFile("colormaps/viridis.png")}}};
+    {ChColormap::Type::BLACK_BODY,                                                                   //
+     {GetChronoDataFile("colormaps/black-body-table-float-0512.csv"), "colormaps/black-body.png"}},  //
+    {ChColormap::Type::BROWN,                                                                        //
+     {GetChronoDataFile("colormaps/brown-table-float-0512.csv"), "colormaps/brown.png"}},            //
+    {ChColormap::Type::COPPER,                                                                       //
+     {GetChronoDataFile("colormaps/copper-table-float-0512.csv"), "colormaps/copper.png"}},          //
+    {ChColormap::Type::FAST,                                                                         //
+     {GetChronoDataFile("colormaps/fast-table-float-0512.csv"), "colormaps/fast.png"}},              //
+    {ChColormap::Type::INFERNO,                                                                      //
+     {GetChronoDataFile("colormaps/inferno-table-float-0512.csv"), "colormaps/inferno.png"}},        //
+    {ChColormap::Type::JET,                                                                          //
+     {GetChronoDataFile("colormaps/jet-table-float-0512.csv"), "colormaps/jet.png"}},                //
+    {ChColormap::Type::KINDLMANN,                                                                    //
+     {GetChronoDataFile("colormaps/kindlmann-table-float-0512.csv"), "colormaps/kindlmann.png"}},    //
+    {ChColormap::Type::PLASMA,                                                                       //
+     {GetChronoDataFile("colormaps/plasma-table-float-0512.csv"), "colormaps/plasma.png"}},          //
+    {ChColormap::Type::RED_BLUE,                                                                     //
+     {GetChronoDataFile("colormaps/red-blue-table-float-0512.csv"), "colormaps/red-blue.png"}},      //
+    {ChColormap::Type::VIRIDIS,                                                                      //
+     {GetChronoDataFile("colormaps/viridis-table-float-0512.csv"), "colormaps/viridis.png"}}         //
+};
 
 ChColormap::ChColormap(Type type) {
     Load(type);
 }
 
 void ChColormap::Load(Type type) {
-    const std::string& filename = m_colormap_files.at(type).data_file;
+    const std::string& filename = GetChronoDataFile(m_colormap_files.at(type).data_file);
     std::ifstream ifs(filename);
     if (ifs.is_open()) {
         m_map.clear();
