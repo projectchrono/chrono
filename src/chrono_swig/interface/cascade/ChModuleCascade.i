@@ -146,6 +146,7 @@ using namespace chrono::cascade;
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"

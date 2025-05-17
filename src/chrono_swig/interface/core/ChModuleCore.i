@@ -327,6 +327,8 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/core/ChGlobal.h"
 //%include "ChArchive.i"
 %include "ChMatrix.i"
+%include "ChVector2.i"
+#define ChVector2d ChVector2d
 %include "ChVector3.i"
 #define ChVector3d ChVector3d
 %include "ChQuaternion.i"
@@ -370,6 +372,7 @@ inline const char* ChUtils_GetFilename() {
 
 // assets
 %include "ChColor.i"
+%include "ChColormap.i"
 %include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"

@@ -49,6 +49,7 @@
 #include <vector>
 
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/solver/ChSolver.h"
 
@@ -234,6 +235,7 @@ using namespace chrono::industrial;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"

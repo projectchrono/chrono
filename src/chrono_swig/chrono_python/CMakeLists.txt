@@ -161,23 +161,13 @@ message(STATUS "Add python CORE module")
 # Interface files
 set(CHPY_CORE_MODULE_FILE ChModuleCore_python.i)
 
-set(CHPY_CORE_WRAPPER_FILES
-    ../interface/core/ChCoordsys.i
-    ../interface/core/ChVector3.i
-    ../interface/core/ChQuaternion.i
-    )
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
 endif()
 set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
-set_source_files_properties(${CHPY_CORE_WRAPPER_FILES} PROPERTIES HEADER_FILE_ONLY ON)
-source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
 if(MSVC)
   set_source_files_properties(${CHPY_CORE_MODULE_FILE} PROPERTIES COMPILE_OPTIONS ${CHRONO_SWIG_FLAGS})
 endif()
-
-
 
 swig_add_library(core LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
 target_link_libraries(core PRIVATE Python3::Python Chrono_core)
