@@ -258,6 +258,6 @@ if(CH_ENABLE_MODULE_VSG)
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include/chrono_fsi) # TODO DARIOM: verify if correct folder
+            INCLUDES DESTINATION include/chrono_fsi)
 
 endif()

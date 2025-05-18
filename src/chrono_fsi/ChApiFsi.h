@@ -37,7 +37,6 @@
     - Chrono_fsisph implements a concrete, SPH-based version of the FSI interface.
     and granular-solid interaction problems.
     - Chrono_fsisph_vsg implements a customized Chrono::VSG run-time visualization system for SPH FSI problems.
-    - Chrono_fsisph_opengl implements a customized Chrono::OpenGL run-time visualization system for SPH FSI problems.
 
     For additional information, see:
     - the [Installation guide](@ref module_fsi_installation)
