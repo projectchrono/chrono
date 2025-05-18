@@ -103,6 +103,10 @@ void ChSystemGpu::SetFixedStepSize(float size_UU) {
     m_sys->stepSize_UU = size_UU;
 }
 
+float ChSystemGpu::GetFixedStepSize() const {
+    return m_sys->stepSize_UU;
+}
+
 void ChSystemGpu::EnableMinLength(bool useMinLen) {
     m_sys->use_min_length_unit = useMinLen;
 }
@@ -422,6 +426,8 @@ bool ChSystemGpu::GetBCReactionForces(size_t BC_id, ChVector3f& force) const {
     force = ChVector3f(frc.x, frc.y, frc.z);
     return ret;
 }
+
+// ------------------
 
 unsigned int ChSystemGpu::GetNumContacts() const {
     return m_sys->GetNumContacts();
