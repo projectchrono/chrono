@@ -70,19 +70,26 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Default: 0.5.
     void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
 
+    /// Available styles of modified Newton methods
+    enum ModifiedNewton : int {
+        UNMODIFIED, // Classical Newton. Jacobian updated at every iteration
+        EVERY_STEP, // Jacobian updated at every step
+        CONSTANT,   // Jacobian never updated
+        AUTOMATIC   // Jaobian updated when appropriate. TODO: implement
+    };
+
     /// Enable/disable modified Newton.
     /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once
     /// per step or if the Newton iteration does not converge with an out-of-date matrix.
     /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
     /// Default: true.
-    void SetModifiedNewton(bool enable) { modified_Newton = enable; }
-
-    /// Enable/disable persistent Newton.
-    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once
-    /// at the beginning of the first step or if the Newton iteration does not converge with an out-of-date matrix.
-    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
-    /// Default: false.
-    void SetPersistentNewton(bool enable) { persistent_Newton = enable; }
+    void SetModifiedNewton(ModifiedNewton style) { modified_Newton = style; }
+    void SetModifiedNewton(bool enable) { // Overload for backward compatibility with boolean implementation
+        if (enable)
+            modified_Newton = ModifiedNewton::EVERY_STEP;
+        else
+            modified_Newton = ModifiedNewton::UNMODIFIED;
+    }
 
     /// Perform an integration timestep, by advancing the state by the specified time step.
     virtual void Advance(const double dt) override;
@@ -103,6 +110,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     void Increment(ChIntegrableIIorder* integrable2);
     bool CheckConvergence(int it);
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
+    bool SetupRequiredForIteration(int iteration, bool previous_substep_converged);
 
   private:
     double alpha;  ///< HHT method parameter:  -1/3 <= alpha <= 0
@@ -132,9 +140,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h;                           ///< internal stepsize
     unsigned int num_successful_steps;  ///< number of successful steps
 
-    bool modified_Newton;    ///< use modified Newton?
-    bool persistent_Newton;  ///< use persistent Newton?
-    bool persistent_matrix_computed; ///< persistent Newton matrix computed?
+    ModifiedNewton modified_Newton;    ///< style of modified Newton?
     bool matrix_is_current;  ///< is the Newton matrix up-to-date?
     bool call_setup;         ///< should the solver's Setup function be called?
 
