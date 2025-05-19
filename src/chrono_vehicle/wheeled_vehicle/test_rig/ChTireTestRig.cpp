@@ -601,7 +601,7 @@ void ChTireTestRig::CreateTerrainCRM() {
     mat_props.cohesion_coeff = m_params_crm.cohesion;
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initSpace0;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;
@@ -613,8 +613,8 @@ void ChTireTestRig::CreateTerrainCRM() {
     sph_params.num_proximity_search_steps = 1;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
 
     terrain->SetElasticSPH(mat_props);
     terrain->SetSPHParameters(sph_params);
@@ -625,7 +625,7 @@ void ChTireTestRig::CreateTerrainCRM() {
                        BoxSide::ALL & ~BoxSide::Z_POS);
 
     // Guesstimate of reasonable active domain size
-    terrain->SetActiveDomain(ChVector3d(m_tire->GetRadius() * 2, m_tire->GetWidth() * 2, m_tire->GetRadius() * 2));
+    terrain->SetActiveDomain(ChVector3d(4 * m_tire->GetRadius(), 4 * m_tire->GetWidth(), 4 * m_tire->GetRadius()));
 
     if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(m_tire)) {
         std::cout << "Adding FEA mesh to CRMTerrain" << std::endl;

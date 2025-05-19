@@ -91,6 +91,20 @@ using namespace chrono::fea;
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #define CH_DEPRECATED(msg)
 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+// I'm not certain if this is a python issue also, so wrap only for csharp for now
+// Stop SWIG from generating a baked literal for the __FILENAME__ macro
+%ignore __FILENAME__;
+%inline %{
+// if needed there can be a pinvoke func instead of a broken char constant that SWIG produces from the macro
+inline const char* ChUtils_GetFilename() {
+    return __FILE__ + SOURCE_PATH_SIZE;
+}
+%}
+// make the new function visible as a public static for c#
+%csmethodmodifiers ChUtils_GetFilename "public static"
+#endif             // --------------------------------------------------------------------- CSHARP
+
 %ignore CH_ENUM_MAPPER_BEGIN;
 %ignore CH_ENUM_VAL;
 %ignore CH_ENUM_MAPPER_END;
@@ -313,6 +327,8 @@ using namespace chrono::fea;
 %include "../../../chrono/core/ChGlobal.h"
 //%include "ChArchive.i"
 %include "ChMatrix.i"
+%include "ChVector2.i"
+#define ChVector2d ChVector2d
 %include "ChVector3.i"
 #define ChVector3d ChVector3d
 %include "ChQuaternion.i"
@@ -356,6 +372,7 @@ using namespace chrono::fea;
 
 // assets
 %include "ChColor.i"
+%include "ChColormap.i"
 %include "ChVisualMaterial.i"
 %include "ChVisualShape.i"
 %include "ChVisualModel.i"

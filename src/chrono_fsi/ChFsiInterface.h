@@ -48,7 +48,9 @@ class CH_FSI_API ChFsiInterface {
     // ------------
 
     /// Add a rigid body.
-    FsiBody& AddFsiBody(std::shared_ptr<ChBody> body);
+    /// The fluid-solid interaction is based on the provided rigid geometry.
+    /// If geometry=nullptr, it is assumed that the interaction geometry is provided separately.
+    FsiBody& AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry);
 
     /// Add a flexible solid with segment set contact to the FSI system.
     FsiMesh1D& AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
@@ -81,6 +83,17 @@ class CH_FSI_API ChFsiInterface {
 
     /// Get the number of FSI 2-D mesh nodes.
     unsigned int GetNumNodes2D() const;
+
+    // ------------
+
+    /// Get the set of bodies added to the FSI interface.
+    const std::vector<FsiBody>& GetBodies() const { return m_fsi_bodies; }
+    
+    /// Get the set of 1D meshes added to the FSI interface.
+    const std::vector<FsiMesh1D>& GetMeshes1D() const { return m_fsi_meshes1D; }
+    
+    /// Get the set of 2D meshes added to the FSI interface.
+    const std::vector<FsiMesh2D>& GetMeshes2D() const { return m_fsi_meshes2D; }
 
     // ------------
 
@@ -150,14 +163,6 @@ class CH_FSI_API ChFsiInterface {
 
   protected:
     ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD);
-
-    /// Utility function to calculate direction vectors at the flexible 1-D mesh nodes.
-    /// For 1-D meshes, these are averages of the segment direction vectors of adjacent segments.
-    void CalculateDirectionsMesh1D(const FsiMesh1D& mesh, FsiMeshState& states);
-
-    /// Utility function to calculate direction vectors at the flexible 2-D mesh nodes.
-    /// For 2-D meshes, these are averages of the face normals of adjacent faces.
-    void CalculateDirectionsMesh2D(const FsiMesh2D& mesh, FsiMeshState& states);
 
     bool m_verbose;
     bool m_initialized;

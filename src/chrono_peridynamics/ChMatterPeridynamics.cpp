@@ -9,25 +9,23 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Arman Pazouki
-// =============================================================================
-//
-// Chrono-fsi configuration header file
-//
-// Automatically created during CMake configuration.
-//
+// Authors: Alessandro Tasora, Radu Serban 
 // =============================================================================
 
-#ifndef CH_CONFIG_FSI_H
-#define CH_CONFIG_FSI_H 
+#include <cstdlib>
+#include <algorithm>
 
-// Include main Chrono configuration  header
-#include "chrono/ChConfig.h"
+#include "chrono_peridynamics/ChMatterPeridynamics.h"
+#include "chrono_peridynamics/ChPeridynamics.h"
 
-// -----------------------------------------------------------------------------
+namespace chrono {
 
-// If using double precision
-//   #define CHRONO_FSI_USE_DOUBLE
-@CHRONO_FSI_USE_DOUBLE@
+using namespace fea;
+using namespace peridynamics;
 
-#endif
+// Register into the object factory, to enable run-time dynamic creation and persistence
+//CH_FACTORY_REGISTER(ChBlaBla)
+
+
+
+} // end namespace chrono

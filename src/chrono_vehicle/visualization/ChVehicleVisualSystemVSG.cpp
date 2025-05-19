@@ -19,7 +19,7 @@
 
 #include "chrono_vsg/ChGuiComponentVSG.h"
 
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/powertrain/ChAutomaticTransmissionShafts.h"
 
@@ -175,7 +175,7 @@ class ChVehicleKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 class ChVehicleGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
     ChVehicleGuiComponentVSG(ChVehicleVisualSystemVSG* vsys) : m_vsys(vsys) {}
-    virtual void render() override;
+    virtual void render(vsg::CommandBuffer& cb) override;
 
   private:
     ChVehicleVisualSystemVSG* m_vsys;
@@ -233,7 +233,7 @@ void ShowHelp() {
     }
 }
 
-void ChVehicleGuiComponentVSG::render() {
+void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));
     ////ImGui::SetNextWindowPos(ImVec2(5.0f, 150.0f));
     ImGui::Begin("Vehicle");
@@ -463,7 +463,7 @@ void ChVehicleGuiComponentVSG::render() {
 // -----------------------------------------------------------------------------
 
 ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG() {
-    m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
+    ////m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
 
     // Disable global visibility controls
     m_show_visibility_controls = false;

@@ -26,7 +26,6 @@
 
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 #include "chrono_fsi/sph/physics/FsiDataManager.cuh"
-#include "chrono_fsi/sph/physics/CollisionSystem.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -119,12 +118,9 @@ class FsiForce {
     virtual ~FsiForce();
 
     /// Function to calculate forces on SPH particles.
-    /// Implemented by derived classes to compute forces in an implicit integrator using ISPH method (see
-    /// FsiForceISPH) or an explicit integrator using WCPSH method (see FsiForceWCSPH).
-    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, bool firstHalfStep) = 0;
+    virtual void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkers_D, Real time, Real step) = 0;
 
-    /// Synchronize the copy of the data (parameters and number of objects)
-    /// between device (GPU) and host (CPU).
+    /// Synchronize the copy of the data (parameters and number of objects) between device (GPU) and host (CPU).
     /// This function needs to be called once the host data are modified.
     virtual void Initialize();
 
@@ -165,16 +161,12 @@ class FsiForce {
     /// Function to set the linear solver type for the solver implemented using the ISPH method (FsiForceISPH).
     void SetLinearSolver(SolverType type);
 
-    std::shared_ptr<CollisionSystem> fsiCollisionSystem;  ///< collision system for building neighbors list
-
   protected:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
     BceManager& m_bce_mgr;       ///< BCE manager
 
-    // NOTE: this is cached at each call to ForceSPH()
-    std::shared_ptr<SphMarkerDataD> m_sortedSphMarkers_D;  ///< device copy of the sorted sph particles data
-
     bool m_verbose;
+    bool* m_errflagD;
 
     friend class FluidDynamics;
 };

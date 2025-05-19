@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
 
     auto beam_visA = chrono_types::make_shared<ChVisualShapeFEA>();
     beam_visA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    beam_visA->SetColorscaleMinMax(-400, 200);
+    beam_visA->SetColormapRange(-400, 200);
     beam_visA->SetSmoothFaces(true);
     beam_visA->SetWireframe(false);
     mesh->AddVisualShapeFEA(beam_visA);

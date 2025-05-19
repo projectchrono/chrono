@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     {
         auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>();
         fea_vis->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-        fea_vis->SetColorscaleMinMax(0.0, 5.50);
+        fea_vis->SetColormapRange(0.0, 5.50);
         fea_vis->SetSmoothFaces(true);
         mesh_cables->AddVisualShapeFEA(fea_vis);
     }

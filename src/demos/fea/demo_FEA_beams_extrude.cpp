@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization of the FEM mesh.
     auto vis_element = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_element->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_element->SetColorscaleMinMax(-0.4, 0.4);
+    vis_element->SetColormapRange(-0.4, 0.4);
     vis_element->SetSmoothFaces(true);
     vis_element->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_element);

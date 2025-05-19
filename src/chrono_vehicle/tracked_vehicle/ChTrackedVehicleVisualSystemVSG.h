@@ -19,7 +19,7 @@
 #ifndef CH_TRACKED_VEHICLE_VISUAL_SYSTEM_VSG_H
 #define CH_TRACKED_VEHICLE_VISUAL_SYSTEM_VSG_H
 
-#include "chrono_vehicle/ChVehicleVisualSystemVSG.h"
+#include "chrono_vehicle/visualization/ChVehicleVisualSystemVSG.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {

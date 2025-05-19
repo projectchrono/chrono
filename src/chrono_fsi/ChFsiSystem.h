@@ -19,13 +19,14 @@
 #ifndef CH_FSI_SYSTEM_H
 #define CH_FSI_SYSTEM_H
 
+#include "chrono/ChConfig.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceSegmentSet.h"
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChConfigFsi.h"
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiFluidSystem.h"
 
@@ -70,14 +71,16 @@ class CH_FSI_API ChFsiSystem {
     void SetStepsizeMBD(double step);
 
     /// Add a rigid body to the FSI system.
+    /// If geometry=nullptr, it is assumed that the interaction geometry is provided separately.
     /// Returns the index of the FSI body in the internal list.
-    size_t AddFsiBody(std::shared_ptr<ChBody> body);
+    size_t AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry = nullptr);
 
     /// Add an FEA mesh to the FSI system.
     /// Contact surfaces (of type segment_set or tri_mesh) already defined for the FEA mesh are used to generate the
     /// interface between the solid and fluid phases. If none are defined, one contact surface of each type is created
     /// (as needed), but these are not attached to the given FEA mesh.
-    void AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
+    /// Returns the index of the FSI mesh in the internal lists (separate for 1D and 2D meshes).
+    size_t AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Enable/disable use of node direction vectors for FSI flexible meshes.
     /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
@@ -163,10 +166,10 @@ class CH_FSI_API ChFsiSystem {
     /// Return the time in seconds for data exchange between phases over the last step.
     double GetTimerFSI() const { return m_timer_FSI(); }
 
-    /// Return the time in seconds for optional setup operations before a step.
-    double GetTimerStepSetup() const { return m_timer_setup(); }
-
     // ----------
+
+    /// Get a list of the FSI rigid bodies.
+    const std::vector<FsiBody>& GetBodies() const { return m_fsi_interface->GetBodies(); }
 
     //// TODO: change these to take a shared_ptr to a ChBody
 
@@ -194,10 +197,10 @@ class CH_FSI_API ChFsiSystem {
 
   private:
     /// Add a flexible solid with segment set contact to the FSI system.
-    void AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
+    size_t AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    void AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
+    size_t AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
 
     void AdvanceCFD(double step, double threshold);
     void AdvanceMBS(double step, double threshold);
@@ -208,7 +211,6 @@ class CH_FSI_API ChFsiSystem {
 
     std::shared_ptr<MBDCallback> m_MBD_callback;  ///< callback for MBS dynamics
 
-    ChTimer m_timer_setup;  ///< timer for setup operations before a step
     ChTimer m_timer_step;   ///< timer for integration step
     ChTimer m_timer_FSI;    ///< timer for FSI data exchange
     double m_timer_CFD;     ///< timer for fluid dynamics integration

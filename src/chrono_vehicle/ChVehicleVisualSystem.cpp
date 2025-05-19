@@ -102,6 +102,13 @@ void ChVehicleVisualSystem::SetChaseCameraPosition(const ChVector3d& pos) {
     if (m_camera)
         m_camera->SetCameraPos(m_camera_pos);
 }
+
+void ChVehicleVisualSystem::SetChaseCameraPosition(const ChVector3d& camera_pos, const ChVector3d& camera_target) {
+    m_camera_pos = camera_pos;
+    if (m_camera)
+        m_camera->SetCameraPos(m_camera_pos, camera_target);
+}
+
 void ChVehicleVisualSystem::SetChaseCameraAngle(double angle) {
     m_camera_angle = angle;
     if (m_camera)

@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NONE);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 

@@ -15,12 +15,18 @@
 #ifndef CH_GUI_COMPONENT_VSG_H
 #define CH_GUI_COMPONENT_VSG_H
 
+#include <vsg/all.h>
 #include <vsgImGui/imgui.h>
+#include <vsgImGui/Texture.h>
+
+#include "chrono/core/ChVector2.h"
 
 #include "chrono_vsg/ChApiVSG.h"
 
 namespace chrono {
 namespace vsg3d {
+
+class ChVisualSystemVSG;
 
 /// @addtogroup vsg_module
 /// @{
@@ -28,11 +34,15 @@ namespace vsg3d {
 /// Base class for a GUI component for the VSG run-time visualization system.
 class CH_VSG_API ChGuiComponentVSG {
   public:
-    ChGuiComponentVSG() : m_visible(true) {}
+    ChGuiComponentVSG();
     virtual ~ChGuiComponentVSG() {}
 
+    /// Allow the GUI component to initialize itself.
+    /// This function is called after the main GUI container is created.
+    virtual void Initialize() {}
+
     /// Specify the ImGui elements to be rendered for this GUI component.
-    virtual void render() = 0;
+    virtual void render(vsg::CommandBuffer& cb) = 0;
 
     /// Set visibility for this GUI component.
     void SetVisibility(bool visible) { m_visible = visible; }
@@ -44,16 +54,20 @@ class CH_VSG_API ChGuiComponentVSG {
     bool IsVisible() const { return m_visible; }
 
     /// Utility function to draw a gauge.
-    static void DrawGauge(float val, float v_min, float v_max) {
-        ImGui::PushItemWidth(150.0f);
-        ImGui::PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor(200, 100, 20));
-        ImGui::SliderFloat("", &val, v_min, v_max, "%.2f");
-        ImGui::PopStyleColor();
-        ImGui::PopItemWidth();
-    }
+    static void DrawGauge(float val, float v_min, float v_max);
+
+    /// Utility function to draw a colorbar (colormap legend).
+    static void Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
+                         const ChVector2d& range,
+                         bool bimodal,
+                         float width,
+                         uint32_t deviceID);
 
   protected:
     bool m_visible;
+    ChVisualSystemVSG* m_vsys;
+
+    friend class ChVisualSystemVSG;
 };
 
 /// @} vsg_module

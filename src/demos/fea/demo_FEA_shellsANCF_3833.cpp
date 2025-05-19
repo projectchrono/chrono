@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
 
     auto visualizemeshA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizemeshA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    visualizemeshA->SetColorscaleMinMax(0.0, 5.50);
+    visualizemeshA->SetColormapRange(0.0, 5.50);
     visualizemeshA->SetShrinkElements(true, 0.85);
     visualizemeshA->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(visualizemeshA);
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
     visualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     visualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     visualizemeshD->SetSymbolsScale(1);
-    visualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    visualizemeshD->SetColormapRange(-0.5, 5);
     visualizemeshD->SetZbufferHide(false);
     mesh->AddVisualShapeFEA(visualizemeshD);
 

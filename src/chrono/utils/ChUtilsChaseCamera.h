@@ -44,7 +44,8 @@ class ChApi ChChaseCamera {
         Follow,  ///< camera attached to a "flexible beam" articulated on the body
         Track,   ///< camera is fixed and tracks the body
         Inside,  ///< camera is rigidly fixed at a given point on the body
-        Free     ///< detached camera
+        Free,    ///< detached camera
+        Fixed    ///< fixed camera
     };
 
     /// Construct a chase camera associated with the given body.
@@ -78,6 +79,9 @@ class ChApi ChChaseCamera {
 
     /// Overwrite chase camera position.
     void SetCameraPos(const ChVector3d& pos);
+
+    /// Overwrite camera target position.
+    void SetCameraPos(const ChVector3d& camera_pos, const ChVector3d& camera_target);
 
     /// Overwrite chase camera angle (in horizontal plane).
     void SetCameraAngle(double angle);
@@ -132,8 +136,9 @@ class ChApi ChChaseCamera {
     double m_mult;                      ///< zoom multiplier
     double m_angle;                     ///< camera angle (in horizontal plane)
 
-    ChVector3d m_loc;      ///< current camera location
-    ChVector3d m_lastLoc;  ///< last cached camera location (used when switching modes)
+    ChVector3d m_loc;         ///< current camera location
+    ChVector3d m_lastLoc;     ///< last cached camera location (used when switching modes)
+    ChVector3d m_target_loc;  ///< camera look-at point (for Fixed camera only)
 
     double m_horizGain;  ///< internal dynamics gain for camera movement in horizontal plane
     double m_vertGain;   ///< internal dynamics gain for camera movement in vertical direction
@@ -141,7 +146,7 @@ class ChApi ChChaseCamera {
     double m_maxMult;    ///< upper zoom limit
 
     static const double m_maxTrackDist2;
-    static const std::string m_stateNames[5];
+    static const std::string m_stateNames[6];
 };
 
 }  // end namespace utils

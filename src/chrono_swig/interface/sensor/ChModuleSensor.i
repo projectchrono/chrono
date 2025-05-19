@@ -269,8 +269,10 @@ using namespace chrono::sensor;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColormap.i"
 %import(module = "pychrono.core") "chrono/assets/ChVisualShapeTriangleMesh.h"
 
 %template(vector_ChFramed) std::vector< chrono::ChFrame<double> >;

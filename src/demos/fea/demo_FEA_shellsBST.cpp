@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     auto vis_shell_speed = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_shell_speed->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    vis_shell_speed->SetColorscaleMinMax(0.0, 7.5);
+    vis_shell_speed->SetColormapRange(0.0, 7.5);
     vis_shell_speed->SetWireframe(false);
     vis_shell_speed->SetShellResolution(3);
     mesh->AddVisualShapeFEA(vis_shell_speed);

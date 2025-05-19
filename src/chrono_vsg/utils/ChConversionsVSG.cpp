@@ -66,3 +66,5 @@ dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, const chrono::ChVector3d& scale
 dmat4CH::dmat4CH(const chrono::ChFrame<>& frame, double scale) : dmat4CH(frame, chrono::ChVector3d(scale)) {}
 
 }  // namespace vsg
+
+    ImVec4CH::ImVec4CH(const chrono::ChColor& color, float alpha) : ImVec4(color.R, color.G, color.B, alpha) {}

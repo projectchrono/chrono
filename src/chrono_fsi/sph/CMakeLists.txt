@@ -23,6 +23,33 @@ endif()
 message(STATUS "  Chrono CUDA architectures: ${CHRONO_CUDA_ARCHITECTURES}")
 
 #-----------------------------------------------------------------------------
+
+# Additional options for this module
+option(CH_USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
+if(CH_USE_FSI_DOUBLE)
+  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+endif()
+
+message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
+
+#-----------------------------------------------------------------------------
+
+find_package(Splashsurf QUIET)
+if(SPLASHSURF_FOUND)
+    message(STATUS "  Splashsurf executable: ${SPLASHSURF_EXECUTABLE}")
+    message(STATUS "  Splashsurf version:    ${SPLASHSURF_VERSION_STRING}")
+
+    # Prepare replacement variables
+    set(CHRONO_HAS_SPLASHSURF "#define CHRONO_HAS_SPLASHSURF")
+    set(CHRONO_SPLASHSURF_EXECUTABLE "#define SPLASHSURF_EXECUTABLE \"${SPLASHSURF_EXECUTABLE}\"")
+else()
+    message(STATUS "  Splashsurf NOT found. Surface reconstruction utility disabled.")
+
+    set(CHRONO_HAS_SPLASHSURF "#undef CHRONO_HAS_SPLASHSURF")
+    set(CHRONO_SPLASHSURF_EXECUTABLE "#undef SPLASHSURF_EXECUTABLE")
+endif()
+
+#-----------------------------------------------------------------------------
 # List all files for the SPH-based Chrono::FSI library
 #-----------------------------------------------------------------------------
 
@@ -37,11 +64,13 @@ set(FSISPH_BASE_FILES
     ChFsiInterfaceSPH.h
     ChFsiFluidSystemSPH.h
     ChFsiPrintUtilsSPH.h
+    ChFsiSplashsurfSPH.h
 
     ChFsiProblemSPH.cpp
     ChFsiSystemSPH.cpp
     ChFsiInterfaceSPH.cpp
     ChFsiFluidSystemSPH.cpp
+    ChFsiSplashsurfSPH.cpp
 )
 source_group("" FILES ${FSISPH_BASE_FILES})
 
@@ -56,7 +85,8 @@ set(FSISPH_PHYSICS_FILES
     physics/FsiForceWCSPH.cuh
     physics/FsiForceISPH.cuh
     physics/SphGeneral.cuh
-
+    physics/FsiParticleRelocator.cuh
+    #
     physics/FsiDataManager.cu
     physics/FsiInterface.cu
     physics/BceManager.cu
@@ -66,6 +96,7 @@ set(FSISPH_PHYSICS_FILES
     physics/FsiForceWCSPH.cu
     physics/FsiForceISPH.cu
     physics/SphGeneral.cu
+    physics/FsiParticleRelocator.cu
 )
 source_group("physics" FILES ${FSISPH_PHYSICS_FILES})
 
@@ -83,12 +114,11 @@ set(FSISPH_MATH_FILES
 source_group("math" FILES ${FSISPH_MATH_FILES})
 
 set(FSISPH_UTILS_FILES
-    utils/UtilsPrintSph.cuh
     utils/UtilsDevice.cuh
-    utils/UtilsTypeConvert.cuh
-
-    utils/UtilsPrintSph.cu
     utils/UtilsDevice.cu
+    utils/UtilsTypeConvert.cuh
+    utils/UtilsPrintSph.cuh
+    utils/UtilsPrintSph.cu
 )
 source_group("utils" FILES ${FSISPH_UTILS_FILES})
 
@@ -176,6 +206,16 @@ install(TARGETS Chrono_fsisph
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
 
+#-----------------------------------------------------------------------------
+# Generate and install configuration file
+#-----------------------------------------------------------------------------
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChFsiConfigSPH.h.in
+               ${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h)
+
+install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/sph/ChFsiConfigSPH.h"
+        DESTINATION include/chrono_fsi)
+
 #-------------------------------------------------------------------------------
 # Add the Chrono_fsisph_vsg library
 #-------------------------------------------------------------------------------
@@ -218,6 +258,6 @@ if(CH_ENABLE_MODULE_VSG)
             RUNTIME DESTINATION bin
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
-            INCLUDES DESTINATION include/chrono_fsi) # TODO DARIOM: verify if correct folder
+            INCLUDES DESTINATION include/chrono_fsi)
 
 endif()

@@ -134,9 +134,9 @@ int main(int argc, char* argv[]) {
     sysSPH.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
-    ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 10 * bzDim);
-    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::NONE);
+    ChVector3d cMin(-5 * bxDim, -byDim / 2 - initSpace0 / 2, -5 * bzDim);
+    ChVector3d cMax(+5 * bxDim, +byDim / 2 + initSpace0 / 2, 10 * bzDim);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_NONE);
 
     // Set SPH discretization type, consistent or inconsistent
     sysSPH.SetConsistentDerivativeDiscretization(false, false);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;

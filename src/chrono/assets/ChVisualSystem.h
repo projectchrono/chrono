@@ -47,6 +47,9 @@ class ChApi ChVisualSystem {
     /// Enable/disable information terminal output during initialization (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Indicate whether the visual system was initialized or not.
+    bool IsInitialized() const { return m_initialized; }
+
     /// Attach a Chrono system to this visualization system.
     virtual void AttachSystem(ChSystem* sys);
 

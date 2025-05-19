@@ -246,7 +246,7 @@ void ChTrackAssemblyBandANCF::AddVisualizationAssets(VisualizationType vis) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     m_track_mesh->AddVisualShapeFEA(mvisualizemesh);

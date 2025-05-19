@@ -20,7 +20,7 @@ namespace chrono {
 
 ChVisualSystem ::ChVisualSystem()
     : m_initialized(false),
-      m_background_color(ChColor(0.07f, 0.1f, 0.12f)),
+      m_background_color(ChColor(0.2f, 0.325f, 0.4f)),
       m_verbose(false),
       m_rtf(0),
       m_write_images(false),

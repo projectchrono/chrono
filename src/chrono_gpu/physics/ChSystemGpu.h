@@ -83,8 +83,11 @@ class CH_GPU_API ChSystemGpu {
     /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS.
     void SetParticleOutputFlags(unsigned int flags);
 
-    /// Set timestep size.
+    /// Set time step size.
     void SetFixedStepSize(float size_UU);
+
+    /// Get time step size.
+    float GetFixedStepSize() const;
 
     /// If yes, on Initialize(), particles will have their order re-arranged so that those in the same SD are close
     /// together. This is usually done if starting from scratch, and optional if this is a re-started simulation. Note
@@ -216,7 +219,30 @@ class CH_GPU_API ChSystemGpu {
     /// Prescribe the motion of the big domain, allows wavetank-style simulations.
     void setBDWallsMotionFunction(const GranPositionFunction& pos_fn);
 
-    // -------------------------- A plethora of "Get" methods -------------------------------- //
+    // -------------------------- Setters --------------------------------
+
+    /// Set particle position
+    void SetParticlePosition(int nSphere, const ChVector3d pos);
+
+    /// Set particle density
+    void SetParticleDensity(float density);
+
+    /// Set particle radius
+    void SetParticleRadius(float rad);
+
+    /// Set particle velocity
+    void SetParticleVelocity(int nSphere, const ChVector3d velo);
+
+    /// Set position of BC spheres
+    void SetBCSpherePosition(size_t sphere_bc_id, const ChVector3f& pos);
+
+    /// Set velocity of BC spheres
+    void SetBCSphereVelocity(size_t sphere_bc_id, const ChVector3f& velo);
+
+    /// Set BC plane rotation
+    void SetBCPlaneRotation(size_t plane_id, ChVector3d center, ChVector3d omega);
+
+    // -------------------------- Getters --------------------------------
 
     /// Return current simulation time.
     float GetSimTime() const;
@@ -242,29 +268,14 @@ class CH_GPU_API ChSystemGpu {
     /// Return particle position.
     ChVector3f GetParticlePosition(int nSphere) const;
 
-    /// Set particle position
-    void SetParticlePosition(int nSphere, const ChVector3d pos);
-
-    /// Set particle density
-    void SetParticleDensity(float density);
-
-    /// Set particle radius
-    void SetParticleRadius(float rad);
-
-    /// Set particle velocity
-    void SetParticleVelocity(int nSphere, const ChVector3d velo);
+    /// Return particle linear velocity.
+    ChVector3f GetParticleVelocity(int nSphere) const;
 
     /// Return particle angular velocity.
     ChVector3f GetParticleAngVelocity(int nSphere) const;
 
-    /// return particle acc
+    /// Return particle linear acceleration.
     ChVector3f GetParticleLinAcc(int nSphere) const;
-
-    /// Return whether or not the particle is fixed
-    bool IsFixed(int nSphere) const;
-
-    /// Return particle linear velocity.
-    ChVector3f GetParticleVelocity(int nSphere) const;
 
     /// Return the total kinetic energy of all particles.
     float GetParticlesKineticEnergy() const;
@@ -275,17 +286,11 @@ class CH_GPU_API ChSystemGpu {
     /// Return position of BC sphere
     ChVector3f GetBCSpherePosition(size_t sphere_id) const;
 
-    /// Set position of BC spheres
-    void SetBCSpherePosition(size_t sphere_bc_id, const ChVector3f& pos);
+    /// Return whether or not the particle is fixed
+    bool IsFixed(int nSphere) const;
 
     /// Return velocity of BC sphere
     ChVector3f GetBCSphereVelocity(size_t sphere_id) const;
-
-    /// Set velocity of BC spheres
-    void SetBCSphereVelocity(size_t sphere_bc_id, const ChVector3f& velo);
-
-    /// Set BC plane rotation
-    void SetBCPlaneRotation(size_t plane_id, ChVector3d center, ChVector3d omega);
 
     /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
     bool GetBCReactionForces(size_t BC_id, ChVector3f& force) const;
@@ -296,7 +301,7 @@ class CH_GPU_API ChSystemGpu {
     /// Return number of subdomains in the big domain.
     unsigned int GetNumSDs() const;
 
-    // ------------------------------- End of "Get" methods -------------------------------//
+    // --------------------------------------------------------------
 
     /// Initialize simulation so that it can be advanced.
     /// Must be called before AdvanceSimulation and after simulation parameters are set.

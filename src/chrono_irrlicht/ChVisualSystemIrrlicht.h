@@ -23,6 +23,8 @@
 
 #include <irrlicht.h>
 
+#include "chrono/core/ChVector2.h"
+
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
@@ -35,6 +37,7 @@
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapePath.h"
 #include "chrono/assets/ChVisualShapeLine.h"
+#include "chrono/assets/ChColormap.h"
 
 #include "chrono_irrlicht/ChApiIrr.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
@@ -131,6 +134,15 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
                          ) override;
 
     void UpdateGrid(int id, const ChCoordsys<>& csys);
+
+    /// Add a colorbar widget.
+    void AddGuiColorbar(const std::string& title,                     ///< title
+                        const ChVector2d& range,                      ///< data range
+                        ChColormap::Type type,                        ///< colormap type
+                        bool bimodal = false,                         ///< negative/positive
+                        const ChVector2i& pos = ChVector2i(740, 20),  ///< position of top-left colorbar corner
+                        const ChVector2i& size = ChVector2i(30, 300)  ///< colorbar size
+    );
 
     /// Set the location of the specified camera.
     virtual void SetCameraPosition(int id, const ChVector3d& pos) override;
@@ -402,6 +414,16 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::IMesh* cylinderMesh;
     irr::scene::IMesh* capsuleMesh;
     irr::scene::IMesh* coneMesh;
+
+    // colorbar parameters
+    bool m_draw_colorbar;
+    std::string m_colorbar_title;
+    ChVector2d m_colorbar_range;
+    ChColormap::Type m_colormap_type;
+    std::unique_ptr<ChColormap> m_colormap;
+    ChVector2i m_colorbar_pos;
+    ChVector2i m_colorbar_size;
+    bool m_colormap_bimodal;
 };
 
 /// @} irrlicht_module
