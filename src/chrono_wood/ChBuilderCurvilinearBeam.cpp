@@ -393,7 +393,7 @@ void ChBuilderCurvilinearBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,       
     }
     
     ChLineNurbs my_nurbs(p, my_points);
-    my_nurbs.weights=my_weights;
+    my_nurbs.m_weights=my_weights;
     
     
     // Create the 'complete' stl vector of control points, with uniform distribution    
@@ -646,7 +646,7 @@ void ChBuilderCurvilinearBeamIGA::read_CBL_info(std::shared_ptr<ChMesh> my_mesh,
     	ChLineNurbs my_nurbs(orderOfBasisFunctions,           // order (3 = cubic, etc)
                                       my_points);  // control points, will become the IGA nodes
 	
-	my_nurbs.weights=my_weight;	
+	my_nurbs.m_weights=my_weight;
 	
 	//std::cout<<"order : "<<my_nurbs.GetOrder()<<std::endl;
 	//std::cout<<"knot:\n"<<my_nurbs.Knots()<<std::endl;

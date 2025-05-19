@@ -20,6 +20,7 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 using namespace chrono;
 
