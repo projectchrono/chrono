@@ -34,9 +34,8 @@
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
-#include "chrono_gpu/visualization/ChGpuVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_gpu/visualization/ChGpuVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -47,7 +46,7 @@ using namespace chrono::gpu;
 // Output frequency
 float out_fps = 50;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
 float render_fps = 2000;
 
@@ -82,20 +81,28 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ball_body->AddVisualShape(sph);
     sys_ball.AddBody(ball_body);
 
-#if !defined(CHRONO_OPENGL)
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
+
+#ifdef CHRONO_VSG
+    // GPU plugin
+    auto visGPU = chrono_types::make_shared<ChGpuVisualizationVSG>(&gpu_sys);
+
+    // VSG visual system (attach visGPU as plugin)
+    auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    visVSG->AttachPlugin(visGPU);
+    visVSG->SetWindowTitle("Chrono::Gpu ball cosim demo");
+    visVSG->SetWindowSize(1280, 800);
+    visVSG->SetWindowPosition(100, 100);
+    visVSG->AddCamera(ChVector3d(0, -200, 100), ChVector3d(0, 0, 0));
+    visVSG->SetLightIntensity(0.9f);
+    visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
+
+    visVSG->Initialize();
+    vis = visVSG;
+#else
     render = false;
 #endif
-
-    std::shared_ptr<ChGpuVisualization> visGPU;
-    if (render) {
-#ifdef CHRONO_OPENGL
-        visGPU = chrono_types::make_shared<ChGpuVisualizationGL>(&gpu_sys);
-        visGPU->SetTitle("Chrono::Gpu ball cosim demo");
-        visGPU->AddCamera(ChVector3d(0, -200, 100), ChVector3d(0, 0, 0));
-        visGPU->SetCameraMoveScale(1.0f);
-        visGPU->Initialize();
-#endif
-    }
 
     std::string out_dir = GetChronoOutputPath() + "GPU/";
     filesystem::create_directory(filesystem::path(out_dir));
@@ -139,8 +146,9 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
         }
 
         if (render && t >= render_frame / render_fps) {
-            if (!visGPU->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
 

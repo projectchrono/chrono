@@ -29,6 +29,10 @@ endif()
 list(APPEND LIBS "Chrono_vehicle")
 list(APPEND LIBS "ChronoModels_vehicle")
 
+if(CH_ENABLE_MODULE_FSI)
+    list(APPEND LIBS "Chrono_fsisph")
+endif()
+
 if(CH_ENABLE_MODULE_PARDISO_MKL)
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
@@ -49,6 +53,9 @@ endif()
 
 if(CH_ENABLE_MODULE_VSG)
     list(APPEND LIBS "Chrono_vehicle_vsg")
+    if(CH_ENABLE_MODULE_FSI)
+      list(APPEND LIBS "Chrono_fsisph_vsg")
+    endif()
 endif()
 
 #--------------------------------------------------------------

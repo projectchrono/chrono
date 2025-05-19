@@ -209,9 +209,14 @@ int main(int argc, char* argv[]) {
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
+
+    ChColormap::Type colormap_type = ChColormap::Type::JET;
+    ChVector2d colormap_range(0.0, 10);
+
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 10);
+    mvisualizemesh->SetColormapRange(colormap_range);
+    mvisualizemesh->SetColormap(colormap_type);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
@@ -230,8 +235,9 @@ int main(int argc, char* argv[]) {
      */
 
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Abaqus wheel",
-                                         ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0));
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "Abaqus wheel",     //
+                                         ChVector3d(1.0, 1.4, -1.2), ChVector3d(0, tire_rad, 0),  //
+                                         true, "Node speed", colormap_range, colormap_type);
 
     // SIMULATION LOOP
 

@@ -136,8 +136,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type) {
+                     std::string& boundary_method,
+                     std::string& viscosity_method) {
     ChCLI cli(argv[0], "Baffle Flow FSI demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -153,8 +153,8 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
     // options for boundary condition and viscosity type
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Physics", "viscosity_type",
+    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_method",
                                "Viscosity type (artificial_unilateral/artificial_bilateral)", "artificial_unilateral");
 
     if (!cli.Parse(argc, argv)) {
@@ -174,8 +174,8 @@ bool GetProblemSpecs(int argc,
 
     ps_freq = cli.GetAsType<int>("ps_freq");
 
-    boundary_type = cli.GetAsType<std::string>("boundary_type");
-    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    boundary_method = cli.GetAsType<std::string>("boundary_method");
+    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
 
     return true;
 }
@@ -185,6 +185,7 @@ bool GetProblemSpecs(int argc,
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.01;
     double step_size = 1e-4;
+    IntegrationScheme integration_scheme = IntegrationScheme::RK2;
 
     // Parse command line arguments
     double t_end = 0.7;
@@ -195,10 +196,10 @@ int main(int argc, char* argv[]) {
     double render_fps = 300;
     bool snapshots = false;
     int ps_freq = 1;
-    std::string boundary_type = "adami";
-    std::string viscosity_type = "artificial_unilateral";
+    std::string boundary_method = "adami";
+    std::string viscosity_method = "artificial_unilateral";
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_type, viscosity_type)) {
+                         boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -234,7 +235,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = integration_scheme;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.1;
@@ -246,17 +247,17 @@ int main(int argc, char* argv[]) {
     sph_params.num_proximity_search_steps = ps_freq;
 
     // Set boundary type
-    if (boundary_type == "holmes") {
-        sph_params.boundary_type = BoundaryType::HOLMES;
+    if (boundary_method == "holmes") {
+        sph_params.boundary_method = BoundaryMethod::HOLMES;
     } else {
-        sph_params.boundary_type = BoundaryType::ADAMI;
+        sph_params.boundary_method = BoundaryMethod::ADAMI;
     }
 
     // Set viscosity type
-    if (viscosity_type == "artificial_bilateral") {
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    if (viscosity_method == "artificial_bilateral") {
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     } else {
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     }
 
     fsi.SetSPHParameters(sph_params);
@@ -283,7 +284,7 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChAABB aabb(ChVector3d(-csize.x() / 2, -csize.y() / 2, -0.1),
                 ChVector3d(+csize.x() / 2, +csize.y() / 2, +0.1 + csize.z()));
-    fsi.SetComputationalDomain(aabb, PeriodicSide::NONE);
+    fsi.SetComputationalDomain(aabb, BC_NONE);
 
     if (show_rigid) {
         ChVector3d ground_box_size(csize.x(), csize.y(), 0.02);
@@ -303,7 +304,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        out_dir = out_dir + viscosity_type + "_" + boundary_type + std::to_string(ps_freq);
+        out_dir = out_dir + viscosity_method + "_" + boundary_method + std::to_string(ps_freq);
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cerr << "Error creating directory " << out_dir << std::endl;
             return 1;

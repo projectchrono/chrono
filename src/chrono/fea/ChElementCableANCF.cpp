@@ -534,8 +534,6 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
     );
     Faxial *= -E * Area * length;
 
-    Fi = Faxial;
-
     // 2)
     // Integrate   (k_e'*k_e)
 
@@ -623,8 +621,8 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
                                                      3               // order of integration
     );
 
-    // Also subtract contribution of initial configuration
-    Fi -= (E * I * length) * Fcurv + m_GenForceVec0;
+    // Calculate total internal forces (also subtract contribution of initial configuration)
+    Fi = Faxial - (E * I * length) * Fcurv - m_GenForceVec0;
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method

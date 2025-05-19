@@ -107,13 +107,13 @@ int main(int argc, char* argv[]) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);  // plot V, potential field
-    mvisualizemesh->SetColorscaleMinMax(-0.1, 24);
+    mvisualizemesh->SetColormapRange(-0.1, 24);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
     // This will paint the wireframe
     auto mvisualizemeshB = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemeshB->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-    mvisualizemeshB->SetColorscaleMinMax(-0.1, 24);
+    mvisualizemeshB->SetColormapRange(-0.1, 24);
     mvisualizemeshB->SetWireframe(true);
     my_mesh->AddVisualShapeFEA(mvisualizemeshB);
 

@@ -74,13 +74,13 @@ class ChTTRKeyboardHandlerVSG : public vsg3d::ChEventHandlerVSG {
 class ChTTRGuiComponentVSG : public vsg3d::ChGuiComponentVSG {
   public:
     ChTTRGuiComponentVSG(ChTrackTestRigVisualSystemVSG* app) : m_app(app) {}
-    virtual void render() override;
+    virtual void render(vsg::CommandBuffer& cb) override;
 
   private:
     ChTrackTestRigVisualSystemVSG* m_app;
 };
 
-void ChTTRGuiComponentVSG::render() {
+void ChTTRGuiComponentVSG::render(vsg::CommandBuffer& cb) {
     auto driver = std::dynamic_pointer_cast<ChTrackTestRigInteractiveDriver>(m_app->m_rig->GetDriver());
 
     ImGui::SetNextWindowSize(ImVec2(280.0f, 0.0f));

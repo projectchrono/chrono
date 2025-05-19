@@ -15,18 +15,11 @@ endif()
 
 message(STATUS "\n==== Chrono FSI module ====\n")
 
-message(STATUS "Generic Chrono::FSI interface library")
-
-# Additional options for this module
-option(CH_USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" OFF)
-if(CH_USE_FSI_DOUBLE)
-  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
-endif()
-
-message(STATUS "  Use double precision? ${CH_USE_FSI_DOUBLE}")
-
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Create the generic FSI interface library
+#-------------------------------------------------------------------------------
+
+message(STATUS "Generic Chrono::FSI interface library")
 
 set(FSI_FILES
     ChApiFsi.h
@@ -46,7 +39,6 @@ message(STATUS "  Add Chrono_fsi library")
 add_library(Chrono_fsi
     ${FSI_FILES}
     ${FSI_UTILS_FILES}
-    
 )
 add_library(Chrono::fsi ALIAS Chrono_fsi)
 
@@ -70,19 +62,15 @@ install(TARGETS Chrono_fsi
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_fsi)
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # Configure submodules
+#-------------------------------------------------------------------------------
 
 add_subdirectory(sph)
 
-#-----------------------------------------------------------------------------
-# Generate and install configuration file
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFsi.h.in
-               ${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h)
-
-install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFsi.h"
-        DESTINATION include/chrono_fsi)
+#-------------------------------------------------------------------------------
+# Install files
+#-------------------------------------------------------------------------------
 
 # Old way (install all Chrono::FSI headers preserving directory structure)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/

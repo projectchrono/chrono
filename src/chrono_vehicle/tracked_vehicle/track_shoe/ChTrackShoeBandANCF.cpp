@@ -82,9 +82,11 @@ void ChTrackShoeBandANCF::SetWebMeshProperties(std::shared_ptr<fea::ChMaterialSh
 void ChTrackShoeBandANCF::Construct(std::shared_ptr<ChChassis> chassis,
                                     const ChVector3d& location,
                                     const ChQuaternion<>& rotation) {
-    auto chassis_body = chassis->GetBody();
+    // Invoke base class (construct m_shoe body)
+    ChTrackShoeBand::Construct(chassis, location, rotation);
 
     // Express the tread body location and orientation in global frame.
+    auto chassis_body = chassis->GetBody();
     ChVector3d loc = chassis_body->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis_body->GetRot() * rotation;
     ChVector3d xdir = rot.GetAxisX();

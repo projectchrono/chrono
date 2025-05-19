@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         // Mesh visualization - speed
         auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
         vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-        vis_mesh->SetColorscaleMinMax(0.0, 5.50);
+        vis_mesh->SetColormapRange(0.0, 5.50);
         vis_mesh->SetShrinkElements(true, 0.85);
         vis_mesh->SetSmoothFaces(true);
         mesh->AddVisualShapeFEA(vis_mesh);

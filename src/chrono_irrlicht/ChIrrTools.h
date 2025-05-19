@@ -16,11 +16,12 @@
 #include <vector>
 #include <irrlicht.h>
 
+#include "chrono/assets/ChVisualMaterial.h"
+#include "chrono/assets/ChColormap.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/functions/ChFunctionBase.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -230,6 +231,7 @@ ChApiIrr void drawGrid(ChVisualSystemIrrlicht* vis,
 /// Draw color bar with a color map and 2D legend.
 /// Plot widget coordinates are considered from top-left corner of the Irrlicht window.
 ChApiIrr void drawColorbar(ChVisualSystemIrrlicht* vis,  ///< visual system
+                           const ChColormap& colormap,   ///< current colormap
                            double value_min,             ///< minimum value of the color map
                            double value_max,             ///< maximum value of the color map
                            const std::string& label,     ///< label of the color bar

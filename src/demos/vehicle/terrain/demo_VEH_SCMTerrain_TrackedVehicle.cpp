@@ -35,6 +35,7 @@ using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
+    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
     #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -91,7 +92,6 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
-void AddMovingObstacles(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     M113 m113;
+    m113.SetChassisFixed(false);
     m113.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m113.SetContactMethod(ChContactMethod::SMC);
     m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
@@ -158,14 +159,27 @@ int main(int argc, char* argv[]) {
                               3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
     );
 
-    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    // Set false coloring of SCM mesh
+    terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 30000);
     ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
+
+    // SCM active domains
+    //   0. default (AABB of collision shapes)
+    //   1. vehicle level
+    //   2. track-assembly level
+    // Note: the M113 chassis reference frame is centered between the two sprockets
+
+    // 1. vehicle level: single domain around vehicle chassis
+    ////terrain.AddActiveDomain(m113.GetChassisBody(), ChVector3d(-2, 0, -0.5), ChVector3d(5, 3, 1));
+
+    // 2. track-assembly level: one domain around each track assembly
+    terrain.AddActiveDomain(m113.GetChassisBody(), ChVector3d(-2, +1.0795, -0.5), ChVector3d(5, 0.6, 1));
+    terrain.AddActiveDomain(m113.GetChassisBody(), ChVector3d(-2, -1.0795, -0.5), ChVector3d(5, 0.6, 1));
 
     terrain.Initialize(terrain_length, terrain_width, delta);
 
     // Add obstacles
     AddFixedObstacles(system);
-    ////AddMovingObstacles(system);
 
     // Set the time response for steering and throttle keyboard inputs.
     double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
@@ -216,6 +230,9 @@ int main(int argc, char* argv[]) {
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
+            // SCM plugin
+            auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
+
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Tracked vehicle on SCM deformable terrain");
@@ -229,7 +246,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetChaseCameraMultipliers(1e-4, 10);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->AttachDriver(&driver);
-            vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
+            vis_vsg->AttachPlugin(visSCM);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -382,40 +399,4 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     system->AddBody(obstacle);
-}
-
-void AddMovingObstacles(ChSystem* system) {
-    double radius = 0.2;
-    double mass = 100;
-    ChVector3d pos(-4, 0, 0.6);
-    ChQuaternion<> rot(1, 0, 0, 0);
-    ChVector3d init_vel(0, 0, 0);
-    ChVector3d init_ang_vel(0, 30, 0);
-
-    // Create a material
-    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
-    material->SetRestitution(0.1f);
-    material->SetFriction(0.4f);
-
-    // Create a ball
-    auto ball = chrono_types::make_shared<ChBody>();
-
-    ball->SetMass(mass);
-    ball->SetPos(pos);
-    ball->SetRot(rot);
-    ball->SetPosDt(init_vel);
-    ball->SetAngVelLocal(init_ang_vel);
-    ball->SetFixed(false);
-    ball->EnableCollision(true);
-
-    auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
-    ball->AddCollisionShape(ct_shape);
-
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
-
-    auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    ball->AddVisualShape(sphere);
-
-    system->AddBody(ball);
 }

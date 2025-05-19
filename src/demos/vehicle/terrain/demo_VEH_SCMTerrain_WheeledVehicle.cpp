@@ -46,6 +46,7 @@ using namespace chrono::irrlicht;
 #endif
 
 #ifdef CHRONO_VSG
+    #include "chrono_vehicle/visualization/ChScmVisualizationVSG.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
@@ -209,7 +210,9 @@ int main(int argc, char* argv[]) {
     }
     hmmwv.Initialize();
 
-    hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+    hmmwv.SetChassisVisualizationType(VisualizationType::MESH);
+    hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
 
     ChSystem* sys = hmmwv.GetSystem();
 
@@ -266,14 +269,19 @@ int main(int argc, char* argv[]) {
     ////                                5,    // number of erosion refinements per timestep
     ////                                10);  // number of concentric vertex selections subject to erosion
 
-    // Optionally, enable active domains feature (single domain around vehicle chassis)
-    terrain.AddActiveDomain(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+    // SCM active domains
+    //  0. default (AABB of collision shapes)
+    //  1. vehicle level
+    //  2. wheel level
 
-    // Optionally, enable domains feature (multiple domains around each wheel)
-    ////for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddActiveDomain(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
-    ////    terrain.AddActiveDomain(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
-    ////}
+    // 1. vehicle level: single domain around vehicle chassis
+    ////terrain.AddActiveDomain(hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
+
+    // 2. wheel level: one domain around each wheel
+    for (auto& axle : hmmwv.GetVehicle().GetAxles()) {
+        terrain.AddActiveDomain(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+        terrain.AddActiveDomain(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    }
 
     switch (patch_type) {
         case PatchType::FLAT:
@@ -295,8 +303,9 @@ int main(int argc, char* argv[]) {
         terrain.GetMesh()->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"));
 
     if (render_sinkage) {
-        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
-        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+        terrain.SetColormap(ChColormap::Type::FAST);
+        terrain.SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.08);
+        ////terrain.SetPlotType(vehicle::SCMTerrain::PLOT_PRESSURE_YIELD, 0, 150000);
     }
 
     // -------------------------------------------
@@ -332,17 +341,20 @@ int main(int argc, char* argv[]) {
         default:
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
+            // SCM plugin
+            auto visSCM = chrono_types::make_shared<ChScmVisualizationVSG>(&terrain);
+
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Wheeled vehicle on SCM deformable terrain");
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->EnableSkyBox();
+            //vis_vsg->EnableSkyBox();
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->AttachTerrain(&terrain);
-            vis_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
+            vis_vsg->AttachPlugin(visSCM);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

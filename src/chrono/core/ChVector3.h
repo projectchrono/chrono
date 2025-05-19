@@ -19,6 +19,7 @@
 #include <cmath>
 #include <limits>
 
+#include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/serialization/ChArchive.h"
@@ -1016,11 +1017,14 @@ inline void ChVector3<Real>::ArchiveIn(ChArchiveIn& archive_in) {
 // -----------------------------------------------------------------------------
 // Reversed operators
 
-/// Operator for scaling the vector by a scalar value, as s*V
+/// Operator for scaling the vector by a scalar value, as s*V.
 template <class Real>
 ChVector3<Real> operator*(Real s, const ChVector3<Real>& V) {
     return ChVector3<Real>(V.x() * s, V.y() * s, V.z() * s);
 }
+
+/// Operator for scaling an integer vector by a double scalar, as s*V.
+ChApi ChVector3d operator*(double s, const ChVector3i& V);
 
 }  // end namespace chrono
 

@@ -99,7 +99,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     m_sysSPH->SetElasticSPH(material);
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = 0.02;  // 2 cm
     sph_params.d0_multiplier = 1.2;
     sph_params.artificial_viscosity = 0.5;
@@ -110,8 +110,8 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     sph_params.kernel_threshold = 0.8;
     sph_params.max_velocity = 1.0;
     sph_params.num_proximity_search_steps = 1;
-    sph_params.boundary_type = BoundaryType::ADAMI;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
 
     m_sysSPH->SetSPHParameters(sph_params);
 
@@ -133,13 +133,12 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         ChVector3d(m_box_size.x() * box_multiplier, m_box_size.y() * box_multiplier, m_box_size.z()));
     m_sysSPH->SetConsistentDerivativeDiscretization(false, false);  // No consistent discertization
 
-    // Set domain boundaries - This depends on how many of 50 boxes are there since for each hundred added, we add it
-    // along z
+    // Set domain boundaries, based on actual number of boxes (added in layers in the Z direction)
     ChVector3d cMin(-m_box_size.x() / 2, -m_box_size.y() / 2,
-                    -(box_multiplier * m_box_size.z()) * (m_num_boxes / m_boxes_per_layer + 1));
-    ChVector3d cMax(m_box_size.x() / 2, m_box_size.y() / 2,
-                    (box_multiplier * m_box_size.z()) * (m_num_boxes / m_boxes_per_layer + 1));
-    m_sysSPH->SetComputationalBoundaries(cMin, cMax, PeriodicSide::ALL);
+                    -box_multiplier * m_box_size.z() * (m_num_boxes / m_boxes_per_layer + 1));
+    ChVector3d cMax(+m_box_size.x() / 2, +m_box_size.y() / 2,
+                    +box_multiplier * m_box_size.z() * (m_num_boxes / m_boxes_per_layer + 1));
+    m_sysSPH->SetComputationalDomain(ChAABB(cMin, cMax), BC_ALL_PERIODIC);
 
     chrono::utils::ChGridSampler<> sampler(sph_params.initial_spacing);
     ChVector3d boxCenter(0.0, 0.0, 0.0);

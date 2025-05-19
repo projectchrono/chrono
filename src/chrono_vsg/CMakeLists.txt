@@ -61,9 +61,10 @@ endif()
 
 set(CE_VSG_BASE_FILES
     ChApiVSG.h
-    ChVisualSystemVSG.cpp
     ChVisualSystemVSG.h
+    ChVisualSystemVSG.cpp
     ChGuiComponentVSG.h
+    ChGuiComponentVSG.cpp
     ChEventHandlerVSG.h
 )
 

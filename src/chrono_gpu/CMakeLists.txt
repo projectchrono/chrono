@@ -88,17 +88,17 @@ set(GPU_UTILITY_FILES
     )
 source_group(utilities FILES ${GPU_UTILITY_FILES})
 
-set(GPU_VIS_FILES
-    visualization/ChGpuVisualization.h
-    visualization/ChGpuVisualization.cpp
-)
-source_group(visualization FILES ${GPU_VIS_FILES})
+# --------------- GPU VSG INTERFACE
 
-set(GPU_GL_FILES
-    visualization/ChGpuVisualizationGL.h
-    visualization/ChGpuVisualizationGL.cpp
-   )
-source_group("" FILES ${GPU_GL_FILES})
+if(CH_ENABLE_MODULE_VSG)
+    set(GPU_VSG_FILES
+        visualization/ChGpuVisualizationVSG.h
+        visualization/ChGpuVisualizationVSG.cpp
+    )
+else()
+    set(GPU_VSG_FILES "")
+endif()
+source_group("" FILES ${GPU_VSG_FILES})
 
 # ------------------------------------------------------------------------------
 # Set dependencies on other Chrono modules
@@ -121,8 +121,7 @@ add_library(Chrono_gpu
             ${GPU_BASE_FILES}
             ${GPU_PHYSICS_FILES}
             ${GPU_CUDA_FILES}
-            ${Chrono_GPU_UTILITIES}
-            ${GPU_VIS_FILES})
+            ${Chrono_GPU_UTILITIES})
 
 add_library(Chrono::gpu ALIAS Chrono_gpu)
 
@@ -158,6 +157,48 @@ install(TARGETS Chrono_gpu
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_gpu
 )
+
+#-------------------------------------------------------------------------------
+# Add the Chrono_gpu_vsg library
+#-------------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_VSG)
+    message(STATUS "  Add Chrono_gpu_vsg library")
+
+    add_library(Chrono_gpu_vsg
+        ${GPU_VSG_FILES}
+    )
+    add_library(Chrono::gpu_vsg ALIAS Chrono_gpu_vsg)
+   
+    if (CH_STATIC)
+      set_target_properties(Chrono_gpu_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+ 
+    if(MSVC)
+      # disable warnings related to missing DLL interface
+      target_compile_options(Chrono_gpu_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(Chrono_gpu_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    target_compile_definitions(Chrono_gpu_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_GPU>)
+    
+    target_link_libraries(Chrono_gpu_vsg PRIVATE Chrono_core Chrono_gpu)
+    target_link_libraries(Chrono_gpu_vsg PUBLIC Chrono_vsg)
+
+    target_link_libraries(Chrono_gpu_vsg PRIVATE CUDA::cudart_static)
+    target_link_libraries(Chrono_gpu_vsg PRIVATE CUDA::nvrtc)
+    target_link_libraries(Chrono_gpu_vsg PRIVATE CUDA::cuda_driver)
+    target_link_libraries(Chrono_gpu_vsg PRIVATE CUDA::cublas)
+    target_link_libraries(Chrono_gpu_vsg PRIVATE CUDA::cusparse)
+
+    install(TARGETS Chrono_gpu_vsg
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_gpu)
+
+endif()
 
 #-------------------------------------------------------------------------------
 # Install files

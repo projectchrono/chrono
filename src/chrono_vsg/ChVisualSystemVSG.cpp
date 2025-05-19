@@ -50,67 +50,73 @@ static void HelpMarker(const char* desc) {
 
 class ChMainGuiVSG : public vsg::Inherit<vsg::Command, ChMainGuiVSG> {
   public:
-    vsg::ref_ptr<vsgImGui::Texture> texture;
-
     ChMainGuiVSG(ChVisualSystemVSG* app, vsg::ref_ptr<vsg::Options> options = {}, float tex_height = 64)
         : m_app(app), m_tex_height(tex_height) {
-        auto texData = vsg::read_cast<vsg::Data>(m_app->m_logo_filename, options);
-        texture = vsgImGui::Texture::create_if(texData, texData);
+        // Create textures
+        {
+            auto texData = vsg::read_cast<vsg::Data>(m_app->m_logo_filename, options);
+            m_app->m_logo_texture = vsgImGui::Texture::create_if(texData, texData);
+        }
+
+        for (const auto& cmap_files : ChColormap::GetFilenames()) {
+            auto texData = vsg::read_cast<vsg::Data>(cmap_files.second.img_file, options);
+            auto texture = vsgImGui::Texture::create_if(texData, texData);
+            m_app->m_colormap_textures[cmap_files.first] = texture;
+        }
     }
 
-    // we need to compile textures before we can use them for rendering
+    // Textures must be compiled before we can use them for rendering
     void compile(vsg::Context& context) override {
-        if (texture)
-            texture->compile(context);
+        m_app->m_logo_texture->compile(context);
+        for (const auto& cmap : m_app->m_colormap_textures)
+            cmap.second->compile(context);
     }
 
     // Example here taken from the Dear imgui comments (mostly)
     void record(vsg::CommandBuffer& cb) const override {
-        // Display logo first, so gui elements can cover it.
-        // When the logo covers gui elements, sometimes gui malfunctions occur.
-        if (texture) {
-            // UV in the logo texture - usually rectangular
-            ImVec2 squareUV(1.0f, 1.0f);
+        // Display logo first, so gui elements can cover it
+        ImVec2 squareUV(1.0f, 1.0f);  // UV in the logo texture - usually rectangular
 
-            if (m_app->m_show_logo) {
-                const float sizey = m_tex_height;
-                const float sizex = sizey * static_cast<float>(texture->width) / texture->height;
-                const float pad = 10;
+        if (m_app->m_show_logo) {
+            const float sizey = m_tex_height;
+            const float sizex =
+                sizey * static_cast<float>(m_app->m_logo_texture->width) / m_app->m_logo_texture->height;
+            const float pad = 10;
 
-                // Copied from imgui_demo.cpp simple overlay
-                ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-                                                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-                                                ImGuiWindowFlags_NoNav;
-                const ImGuiViewport* viewport = ImGui::GetMainViewport();
-                ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
-                ImVec2 work_size = viewport->WorkSize;
-                ImVec2 window_pos, window_pos_pivot;
-                window_pos.x = work_pos.x + work_size.x - sizex - m_app->m_logo_pos.x() - pad;
-                window_pos.y = work_pos.y + sizey + m_app->m_logo_pos.y() + pad;
-                window_pos_pivot.x = 0.0f;
-                window_pos_pivot.y = 1.0f;
-                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-                window_flags |= ImGuiWindowFlags_NoMove;
-                ImGui::SetNextWindowBgAlpha(0.0f);  // Transparent background
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-                ImGui::Begin("vsgCS UI", nullptr, window_flags);
+            // Copied from imgui_demo.cpp simple overlay
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                            ImGuiWindowFlags_NoNav;
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImVec2 work_pos = viewport->WorkPos;  // Use work area to avoid menu-bar/task-bar, if any!
+            ImVec2 work_size = viewport->WorkSize;
+            ImVec2 window_pos, window_pos_pivot;
+            window_pos.x = work_pos.x + work_size.x - sizex - m_app->m_logo_pos.x() - pad;
+            window_pos.y = work_pos.y + sizey + m_app->m_logo_pos.y() + pad;
+            window_pos_pivot.x = 0.0f;
+            window_pos_pivot.y = 1.0f;
+            ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+            window_flags |= ImGuiWindowFlags_NoMove;
+            ImGui::SetNextWindowBgAlpha(0.0f);  // Transparent background
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::Begin("vsgCS UI", nullptr, window_flags);
 
-                // Display a rectangle from the VSG logo
-                ImGui::Image(texture->id(cb.deviceID), ImVec2(sizex, sizey), ImVec2(0.0f, 0.0f), squareUV);
+            // Display a rectangle from the VSG logo
+            ImGui::Image(m_app->m_logo_texture->id(cb.deviceID), ImVec2(sizex, sizey), ImVec2(0.0f, 0.0f), squareUV);
 
-                ImGui::End();
-                ImGui::PopStyleVar();
-            }
+            ImGui::End();
+            ImGui::PopStyleVar();
         }
 
         // Render GUI
         if (m_app->m_show_gui) {
             for (auto& gui : m_app->m_gui) {
                 if (gui->IsVisible())
-                    gui->render();
+                    gui->render(cb);
             }
         }
     }
+
     ChVisualSystemVSG* m_app;
     float m_tex_height;
 };
@@ -122,7 +128,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
     ChBaseGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) {}
 
     // Example here taken from the Dear imgui comments (mostly)
-    virtual void render() override {
+    virtual void render(vsg::CommandBuffer& cb) override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
 
         ImGuiTableFlags table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit;
@@ -405,7 +411,7 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
   public:
     ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
 
-    virtual void render() override {
+    virtual void render(vsg::CommandBuffer& cb) override {
         auto p = m_app->GetCameraPosition();
         auto t = m_app->GetCameraTarget();
 
@@ -443,72 +449,31 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
 
 class ChColorbarGuiComponentVSG : public ChGuiComponentVSG {
   public:
-    ChColorbarGuiComponentVSG(const std::string& title, double min_val, double max_val)
-        : m_title(title), m_min_val(min_val), m_max_val(max_val) {}
+    ChColorbarGuiComponentVSG(const std::string& title,
+                              const ChVector2d& range,
+                              ChColormap::Type type,
+                              bool bimodal,
+                              float width = 400)
+        : m_title(title), m_type(type), m_range(range), m_bimodal(bimodal), m_width(width) {}
 
-    //// RADU TODO
-    ////   replace with a proper texture.
-    ////   see https://github.com/libigl/libigl/issues/1388
+    virtual void Initialize() override { m_texture = m_vsys->GetColormapTexture(m_type); }
 
-    virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
+    virtual void render(vsg::CommandBuffer& cb) override {
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin(m_title.c_str());
 
-        float alpha = 1.0f;
-        float cv = 0.9f;
-        float cv13 = cv * CH_1_3;
-        float cv23 = 2 * cv13;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, 0.0, cv, alpha));
-        snprintf(label, nstr, "%.3f", m_min_val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        double stride = m_max_val - m_min_val;
-        double val = m_min_val + stride * CH_1_6;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv13, cv, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = m_min_val + stride * CH_1_3;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv23, cv, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = m_min_val + 0.5 * stride;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0, cv, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = m_min_val + stride * CH_2_3;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv23, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        val = m_min_val + stride * 5.0 / 6.0;
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, cv13, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(cv, 0.0, 0.0, alpha));
-        snprintf(label, nstr, "%.3f", m_max_val);
-        ImGui::Button(label);
-        ImGui::PopStyleColor(1);
+        Colorbar(m_texture, m_range, m_bimodal, m_width, cb.deviceID);
 
         ImGui::End();
     }
 
   private:
     std::string m_title;
-    double m_min_val;
-    double m_max_val;
+    ChColormap::Type m_type;
+    bool m_bimodal;
+    vsg::ref_ptr<vsgImGui::Texture> m_texture;
+    float m_width;
+    ChVector2d m_range;
 };
 
 // -----------------------------------------------------------------------------
@@ -815,12 +780,26 @@ void ChVisualSystemVSG::EnableFullscreen(bool val) {
 }
 
 size_t ChVisualSystemVSG::AddGuiComponent(std::shared_ptr<ChGuiComponentVSG> gc) {
+    gc->m_vsys = this;
     m_gui.push_back(gc);
     return m_gui.size() - 1;
 }
 
-size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title, double min_val, double max_val) {
-    m_gui.push_back(chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, min_val, max_val));
+size_t ChVisualSystemVSG::AddGuiColorbar(const std::string& title,
+                                         const ChVector2d& range,
+                                         ChColormap::Type type,
+                                         bool bimodal,
+                                         float width) {
+    if (m_initialized) {
+        std::cout << "Error: Attempt to create a VSG colorbar after initialization of the VSG visual system."
+                  << std::endl;
+
+        throw std::runtime_error("Attempt to create a VSG colorbar after initialization of the VSG visual system");
+    }
+
+    auto gc = chrono_types::make_shared<ChColorbarGuiComponentVSG>(title, range, type, bimodal, width);
+    gc->m_vsys = this;
+    m_gui.push_back(gc);
     return m_gui.size() - 1;
 }
 
@@ -1127,6 +1106,10 @@ void ChVisualSystemVSG::Initialize() {
     m_scene->addChild(m_jointFrameScene);
     m_scene->addChild(m_decoScene);
 
+    // Let any plugins perform pre-bind operations
+    for (auto& plugin : m_plugins)
+        plugin->OnBindAssets();
+
     BindAll();
     CreateContacts();
 
@@ -1302,6 +1285,10 @@ void ChVisualSystemVSG::Initialize() {
 
     // Prepare reading 3d files
     m_loadThreads = vsg::OperationThreads::create(m_numThreads, m_viewer->status);
+
+    // Let all GUI components initialize themselves
+    for (auto& gui : m_gui)
+        gui->Initialize();
 
     m_initialized = true;
 }

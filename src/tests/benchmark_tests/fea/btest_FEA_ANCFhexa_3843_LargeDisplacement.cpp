@@ -182,7 +182,7 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     // Setup visualization
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(mvisualizemesh);
 

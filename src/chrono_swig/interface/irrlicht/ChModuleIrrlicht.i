@@ -125,6 +125,7 @@ using namespace gui;
 // WARNING: the drawChFunction is not working properly since it cannot recognize that ChFunction_XXX is derived from ChFunction
 
 %import(module="pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChVector2.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVector3.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChMatrix.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
@@ -136,6 +137,7 @@ using namespace gui;
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualShape.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualModel.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChColor.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChColormap.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChSystem.i"
 
 #ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP

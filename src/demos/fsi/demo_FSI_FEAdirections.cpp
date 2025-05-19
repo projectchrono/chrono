@@ -20,15 +20,12 @@
 #include "chrono/core/ChRotation.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
-#include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChMeshExporter.h"
+#include "chrono/fea/ChMaterialBeamANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
 #ifdef CHRONO_PARDISO_MKL
@@ -58,7 +55,11 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-bool use_FEA_node_directions = true;
+enum class ElementType { ANCF_CABLE, ANCF_3243, ANCF_3333, EULER };
+
+ElementType element_type = ElementType::ANCF_CABLE;
+int num_elements = 4;
+bool use_FEA_node_directions = false;
 
 // -----------------------------------------------------------------------------
 
@@ -79,10 +80,11 @@ class MarkerPositionVisibilityCallback : public ChFsiVisualizationVSG::MarkerVis
 
 int main(int argc, char* argv[]) {
     // Parse command line arguments
-    double t_end = 10.0;
-    bool verbose = true;
+    double t_end = 1.5;
+    bool verbose = false;
     bool render = true;
     double render_fps = 400;
+    bool snapshots = false;
 
     // Create the Chrono system and associated collision system
     ChSystemSMC sysMBS;
@@ -119,7 +121,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.0;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
@@ -129,8 +131,8 @@ int main(int argc, char* argv[]) {
     sph_params.kernel_threshold = 0.8;
     sph_params.artificial_viscosity = 0.5;
     sph_params.num_proximity_search_steps = 1;
-    sph_params.boundary_type = BoundaryType::ADAMI;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
 
     fsi.SetSPHParameters(sph_params);
 
@@ -138,8 +140,8 @@ int main(int argc, char* argv[]) {
     fsi.EnableNodeDirections(use_FEA_node_directions);
 
     // Dimension of computational domain and intial fluid domain
-    ChVector3d csize(3.0, 0.2, 2.0);
-    ChVector3d fsize(1.0, 0.2, 1.0);
+    ChVector3d csize(2.0, 0.15, 1.0);
+    ChVector3d fsize(0.6, 0.15, 0.8);
 
     // Create FSI solid phase
     auto ground = chrono_types::make_shared<ChBody>();
@@ -167,31 +169,39 @@ int main(int argc, char* argv[]) {
     // Explicitly set computational domain (necessary if no side walls)
     ChVector3d cMin = ChVector3d(-5 * csize.x(), -csize.y() / 2 - initial_spacing / 2, -5 * csize.z());
     ChVector3d cMax = ChVector3d(+5 * csize.x(), +csize.y() / 2 + initial_spacing / 2, +5 * csize.z());
-    fsi.SetComputationalDomain(ChAABB(cMin, cMax), PeriodicSide::Y);
+    fsi.SetComputationalDomain(ChAABB(cMin, cMax), BC_Y_PERIODIC);
 
     // Initialize FSI problem
     fsi.Initialize();
 
     // Create oputput directories
-    std::string out_dir = GetChronoOutputPath() + "FSI_FEAdirections/";
+    std::string out_dir = GetChronoOutputPath() + "FSI_FEAdirections";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
+    if (snapshots) {
+        if (!filesystem::create_directory(filesystem::path(out_dir + "/snapshots"))) {
+            std::cerr << "Error creating directory " << out_dir + "/snapshots" << std::endl;
+            return 1;
+        }
+    }
 
-    // Create a run-tme visualizer
+    // Create a run-time visualizer
     std::shared_ptr<ChVisualSystem> vis;
 
 #ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
-        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.5);
+        double vel_min = 0.0;
+        double vel_max = 2.5;
+        auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(vel_min, vel_max);
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(true);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(false);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::KINDLMANN);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
         // VSG visual system (attach visFSI as plugin)
@@ -201,11 +211,12 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Flexible Cable");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(1.5, -1.5, 0.5), ChVector3d(0, 0, 0));
+        visVSG->AddCamera(ChVector3d(0, -2.0, 0.3), ChVector3d(0, 0, 0.3));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
         visVSG->Initialize();
+
         vis = visVSG;
     }
 #else
@@ -231,9 +242,6 @@ int main(int argc, char* argv[]) {
     int sim_frame = 0;
     int render_frame = 0;
 
-    std::string out_file = out_dir + "/results.txt";
-    std::ofstream ofile(out_file, std::ios::trunc);
-
     ChTimer timer;
     timer.start();
     while (time < t_end) {
@@ -242,6 +250,15 @@ int main(int argc, char* argv[]) {
             if (!vis->Run())
                 break;
             vis->Render();
+
+            if (snapshots) {
+                if (verbose)
+                    std::cout << " -- Snapshot frame " << render_frame << " at t = " << time << std::endl;
+                std::ostringstream filename;
+                filename << out_dir << "/snapshots/img_" << std::setw(5) << std::setfill('0') << render_frame + 1
+                         << ".png";
+                vis->WriteImageToFile(filename.str());
+            }
 
             render_frame++;
         }
@@ -253,8 +270,6 @@ int main(int argc, char* argv[]) {
     }
     timer.stop();
     cout << "\nSimulation time: " << timer() << " seconds\n" << endl;
-
-    ofile.close();
 
     return 0;
 }
@@ -283,34 +298,33 @@ void CreateContainer(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground, const
                           ChVector3d(0, -csize.y() / 2 - 0.05, csize.z() / 2), QUNIT, false);
 }
 
-std::shared_ptr<ChMesh> CreateFlexibleCable1(ChSystem& sysMBS, double loc_x, std::shared_ptr<ChBody> ground) {
+const double beam_length = 0.6;
+const double section_dim = 0.02;
+
+std::shared_ptr<ChMesh> CreateANCFCable(ChSystem& sysMBS, double x, int n) {
     // Material Properties
-    double E = 5e9;
+    double E = 8e7;
     double density = 8000;
-    double BeamRayleighDamping = 0.02;
+    double BeamRayleighDamping = 0.1;
 
     auto section = chrono_types::make_shared<ChBeamSectionCable>();
-    section->SetDiameter(0.02);
+    section->SetDiameter(section_dim);
     section->SetYoungModulus(E);
     section->SetDensity(density);
     section->SetRayleighDamping(BeamRayleighDamping);
 
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
-    int num_elements = 5;
-    auto length = 0.15;
-    auto dq = QuatFromAngleY(-CH_PI_4 / (num_elements - 1));
-    auto p = ChVector3d(loc_x, 0.0, 0.02);
+    auto length = beam_length / n;
+    auto p = ChVector3d(x, 0.0, 0.005);
     auto dir = ChVector3d(0, 0, 1);
 
-    mesh->AddNode(chrono_types::make_shared<ChNodeFEAxyzD>(p, dir));
+    auto node0 = chrono_types::make_shared<ChNodeFEAxyzD>(p, dir);
+    node0->SetFixed(true);
+    mesh->AddNode(node0);
 
-    for (int i = 0; i < num_elements; i++) {
+    for (int i = 0; i < n; i++) {
         p += length * dir;
-
-        ////cout << "i = " << i << endl;
-        ////cout << "  dir: " << dir << endl;
-        ////cout << "  p: " << p << endl;
 
         mesh->AddNode(chrono_types::make_shared<ChNodeFEAxyzD>(p, dir));
         auto element = chrono_types::make_shared<ChElementCableANCF>();
@@ -319,24 +333,14 @@ std::shared_ptr<ChMesh> CreateFlexibleCable1(ChSystem& sysMBS, double loc_x, std
         element->SetSection(section);
         element->SetRestLength(length);
         mesh->AddElement(element);
-        dir = dq.Rotate(dir).GetNormalized();
     }
-
-    auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(0));
-    auto pos_const = chrono_types::make_shared<ChLinkNodeFrame>();
-    auto dir_const = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
-    pos_const->Initialize(node0, ground);
-    dir_const->Initialize(node0, ground);
-    dir_const->SetDirectionInAbsoluteCoords(node0->GetSlope1());
-    sysMBS.Add(pos_const);
-    sysMBS.Add(dir_const);
 
     // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
     auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
     vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
+    vis_mesh->SetColormapRange(-0.4, 0.4);
     vis_mesh->SetSmoothFaces(true);
     vis_mesh->SetWireframe(false);
     mesh->AddVisualShapeFEA(vis_mesh);
@@ -344,69 +348,154 @@ std::shared_ptr<ChMesh> CreateFlexibleCable1(ChSystem& sysMBS, double loc_x, std
     return mesh;
 }
 
-std::shared_ptr<ChMesh> CreateFlexibleCable2(ChSystem& sysMBS, double loc_x, std::shared_ptr<ChBody> ground) {
-    // Material Properties
-    double E = 5e8;
-    double density = 8000;
-    double BeamRayleighDamping = 0.02;
-
-    auto section = chrono_types::make_shared<ChBeamSectionCable>();
-    section->SetDiameter(0.02);
-    section->SetYoungModulus(E);
-    section->SetDensity(density);
-    section->SetRayleighDamping(BeamRayleighDamping);
-
+std::shared_ptr<ChMesh> CreateANCF3243Beam(ChSystem& sysMBS, double x, int n) {
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
 
-    auto length = 0.4;
+    double E = 8e6;
+    double nu = 0.3;
+    double density = 1000;
+    const double k1 = 10 * (1 + nu) / (12 + 11 * nu);
+    const double k2 = k1;  // k1, k2: Timoshenko shear correection coefficients
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E, nu, E * nu, k1, k2);
 
-    auto p0 = ChVector3d(loc_x, 0.0, 0.02);
-    auto p1 = p0 + ChVector3d(0, 0, length);
-    auto p2 = p1 + ChVector3d(length, 0, 0);
+    double length = beam_length / n;
 
-    auto d0 = ChVector3d(0, 0, 1);
-    auto d1 = ChVector3d(CH_SQRT_2 / 2, 0, CH_SQRT_2 / 2);
-    auto d2 = ChVector3d(1, 0, 0);
+    // Create the first node and fix it completely to ground (Cantilever constraint)
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(x, 0, 0.005), VECT_Z, VECT_X, VECT_Y);
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
 
-    auto node0 = chrono_types::make_shared<ChNodeFEAxyzD>(p0, d0);
-    auto node1 = chrono_types::make_shared<ChNodeFEAxyzD>(p1, d1);
-    auto node2 = chrono_types::make_shared<ChNodeFEAxyzD>(p2, d2);
-    mesh->AddNode(node0);
-    mesh->AddNode(node1);
-    mesh->AddNode(node2);
+    for (int i = 1; i <= n; i++) {
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(x, 0, length * i), VECT_Z, VECT_X, VECT_Y);
+        mesh->AddNode(nodeB);
 
-    {
-        auto element = chrono_types::make_shared<ChElementCableANCF>();
-        element->SetNodes(node0, node1);
-        element->SetSection(section);
-        element->SetRestLength(length);
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();
+        element->SetNodes(nodeA, nodeB);
+        element->SetDimensions(length, section_dim, section_dim);
+        element->SetMaterial(material);
+        element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
+
+        nodeA = nodeB;
     }
 
-    {
-        auto element = chrono_types::make_shared<ChElementCableANCF>();
-        element->SetNodes(node1, node2);
-        element->SetSection(section);
-        element->SetRestLength(length);
-        mesh->AddElement(element);
-    }
-
-    auto pos_const = chrono_types::make_shared<ChLinkNodeFrame>();
-    auto dir_const = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
-    pos_const->Initialize(node0, ground);
-    dir_const->Initialize(node0, ground);
-    dir_const->SetDirectionInAbsoluteCoords(node0->GetSlope1());
-    sysMBS.Add(pos_const);
-    sysMBS.Add(dir_const);
-
+    // Add the mesh to the MBS system
     sysMBS.Add(mesh);
 
-    auto vis_mesh = chrono_types::make_shared<ChVisualShapeFEA>();
-    vis_mesh->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
-    vis_mesh->SetColorscaleMinMax(-0.4, 0.4);
-    vis_mesh->SetSmoothFaces(true);
-    vis_mesh->SetWireframe(false);
-    mesh->AddVisualShapeFEA(vis_mesh);
+    auto vis_mesh1 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_mesh1->SetColormapRange(-0.4, 0.4);
+    vis_mesh1->SetSmoothFaces(true);
+    vis_mesh1->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_mesh1);
+
+    auto vis_mesh2 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh2->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    vis_mesh2->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_mesh2->SetSymbolsThickness(0.006);
+    vis_mesh2->SetSymbolsScale(0.01);
+    vis_mesh2->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(vis_mesh2);
+
+    return mesh;
+}
+
+std::shared_ptr<ChMesh> CreateANCF3333Beam(ChSystem& sysMBS, double x, int n) {
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+
+    double E = 1e7;
+    double nu = 0.3;
+    double density = 1000;
+    const double k1 = 10 * (1 + nu) / (12 + 11 * nu);
+    const double k2 = k1;  // k1, k2: Timoshenko shear correection coefficients
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(density, E, nu, E * nu, k1, k2);
+
+    double length = beam_length / n;
+
+    // Setup beam cross section gradients to initially aligned with the global x and y directions
+    ChVector3d dir1(1, 0, 0);
+    ChVector3d dir2(0, 1, 0);
+
+    // Create the first node and fix it completely to ground (Cantilever constraint)
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.005), dir1, dir2);
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
+
+    for (int i = 1; i <= n; i++) {
+        auto nodeB =
+            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 0)), dir1, dir2);
+        auto nodeC =
+            chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(x, 0, 0.5 * length * (2 * i - 1)), dir1, dir2);
+        mesh->AddNode(nodeB);
+        mesh->AddNode(nodeC);
+
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
+        element->SetNodes(nodeA, nodeB, nodeC);
+        element->SetDimensions(length, section_dim, section_dim);
+        element->SetMaterial(material);
+        element->SetAlphaDamp(0.0);
+        mesh->AddElement(element);
+
+        nodeA = nodeB;
+    }
+
+    // Add the mesh to the MBS system
+    sysMBS.Add(mesh);
+
+    auto vis_mesh1 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_mesh1->SetColormapRange(-0.4, 0.4);
+    vis_mesh1->SetSmoothFaces(true);
+    vis_mesh1->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_mesh1);
+
+    auto vis_mesh2 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh2->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    vis_mesh2->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_mesh2->SetSymbolsThickness(0.006);
+    vis_mesh2->SetSymbolsScale(0.01);
+    vis_mesh2->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(vis_mesh2);
+
+    return mesh;
+}
+
+std::shared_ptr<ChMesh> CreateEulerBeam(ChSystem& sysMBS, double x, int n) {
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+    auto section = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
+    section->SetAsRectangularSection(section_dim, section_dim);
+    section->SetYoungModulus(1e7);
+    section->SetShearModulus(1e7 * 0.3);
+    section->SetRayleighDamping(0.0);
+
+    ChBuilderBeamEuler builder;
+
+    builder.BuildBeam(mesh,                           // containing mesh
+                      section,                        // Euler beam section specification
+                      n,                              // number of elements
+                      ChVector3d(x, 0, 0.005),        // beginning of beam
+                      ChVector3d(x, 0, beam_length),  // end of beam
+                      ChVector3d(0, 0, 1));           // the up direction of the section for the beam
+
+    builder.GetLastBeamNodes().front()->SetFixed(true);
+
+    // Add the mesh to the MBS system
+    sysMBS.Add(mesh);
+
+    auto vis_mesh1 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh1->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_mesh1->SetColormapRange(-0.4, 0.4);
+    vis_mesh1->SetSmoothFaces(true);
+    vis_mesh1->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_mesh1);
+
+    auto vis_mesh2 = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh2->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_CSYS);
+    vis_mesh2->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_mesh2->SetSymbolsThickness(0.006);
+    vis_mesh2->SetSymbolsScale(0.01);
+    vis_mesh2->SetZbufferHide(false);
+    mesh->AddVisualShapeFEA(vis_mesh2);
 
     return mesh;
 }
@@ -414,17 +503,22 @@ std::shared_ptr<ChMesh> CreateFlexibleCable2(ChSystem& sysMBS, double loc_x, std
 void CreateCables(ChFsiProblemSPH& fsi, std::shared_ptr<ChBody> ground) {
     ChSystem& sysMBS = fsi.GetMultibodySystem();
 
-    // Downstream locations
-    double cable1_x = -0.3;
-    double cable2_x = +0.8;
+    std::shared_ptr<fea::ChMesh> mesh;
+    switch (element_type) {
+        case ElementType::ANCF_CABLE:
+            mesh = CreateANCFCable(sysMBS, 0, num_elements);
+            break;
+        case ElementType::ANCF_3243:
+            mesh = CreateANCF3243Beam(sysMBS, 0, num_elements);
+            break;
+        case ElementType::ANCF_3333:
+            mesh = CreateANCF3333Beam(sysMBS, 0, num_elements);
+            break;
+        case ElementType::EULER:
+            mesh = CreateEulerBeam(sysMBS, 0, num_elements);
+            break;
+    }
 
     fsi.SetBcePattern1D(BcePatternMesh1D::STAR, false);
-
-    // Create the first flexible cable and add to FSI system
-    auto mesh1 = CreateFlexibleCable1(sysMBS, cable1_x, ground);
-    fsi.AddFeaMesh(mesh1, false);
-
-    // Create the second flexible cable
-    auto mesh2 = CreateFlexibleCable2(sysMBS, cable2_x, ground);
-    fsi.AddFeaMesh(mesh2, false);
+    fsi.AddFeaMesh(mesh, false);
 }

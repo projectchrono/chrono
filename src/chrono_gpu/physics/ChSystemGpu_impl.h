@@ -359,13 +359,13 @@ class ChSystemGpu_impl {
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
 
-    /// Set particle position
+    /// Set particle position.
     void SetParticlePosition(int nSphere, double3 position);
 
-    /// return absolute velocity
+    /// Return absolute velocity.
     float getAbsVelocity(int nSphere);
 
-    // whether or not the particle is fixed
+    // Indicate whether or not the particle is fixed.
     bool IsFixed(int nSphere) const;
 
     /// Return particle linear velocity.
@@ -374,7 +374,7 @@ class ChSystemGpu_impl {
     /// Return particle angular velocity.
     float3 GetParticleAngVelocity(int nSphere) const;
 
-    /// Return particle acceleration
+    /// Return particle acceleration.
     float3 GetParticleLinAcc(int nSphere) const;
 
     /// Return number of particle-particle contacts.
@@ -383,105 +383,103 @@ class ChSystemGpu_impl {
     /// Return position of BC plane.
     float3 GetBCPlanePosition(size_t plane_id) const;
 
-    /// return position of BC sphere
+    /// Return position of BC sphere.
     float3 GetBCSpherePosition(size_t bc_id) const;
 
-    /// set bc sphere position
+    /// Set bc sphere position.
     void SetBCSpherePosition(size_t bc_id, const float3 pos);
 
-    /// set bc sphere vleocity
+    /// Set bc sphere vleocity.
     void SetBCSphereVelocity(size_t bc_id, const float3 velo);
 
-    /// return velocity of BC sphere
+    /// Return velocity of BC sphere.
     float3 GetBCSphereVelocity(size_t bc_id) const;
 
-    /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
+    /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID).
     bool GetBCReactionForces(size_t BC_id, float3& force) const;
 
-    /// Set initial particle positions. MUST be called only once and MUST be called before initialize
+    /// Set initial particle positions. MUST be called only once and MUST be called before initialize.
     void SetParticles(const std::vector<float3>& points,
                       const std::vector<float3>& vels = std::vector<float3>(),
                       const std::vector<float3>& ang_vels = std::vector<float3>());
 
-    /// set particle velocity, can be called during the simulation
+    /// Set particle velocity, can be called during the simulation.
     void SetParticleVelocity(int id, const double3& velocity);
 
     void SetBCPlaneRotation(size_t plane_id, double3 rotation_center, double3 rotation_omega);
 
-    /// Advance simulation by duration in user units, return actual duration elapsed
-    /// Requires initialize() to have been called
+    /// Advance simulation by duration in user units, return actual duration elapsed.
+    /// Requires initialize() to have been called.
     virtual double AdvanceSimulation(float duration);
 
-    /// This method figures out how big a SD is, and how many SDs are going to be necessary
-    /// in order to cover the entire BD.
+    /// Calculate size of an SD is and how many SDs are needed to cover the entire BD.
     /// Nomenclature: BD: Big domain, SD: Sub-domain.
     void partitionBD();
 
-    /// Copy constant sphere data to device
+    /// Copy constant sphere data to device.
     void copyConstSphereDataToDevice();
 
-    /// Reset binning and broadphase info
+    /// Reset binning and broadphase info.
     void resetBroadphaseInformation();
     /// Reset sphere accelerations
     void resetSphereAccelerations();
 
-    /// Reset sphere-wall forces
+    /// Reset sphere-wall forces.
     void resetBCForces();
 
-    /// Collect all the sphere data into the member struct
+    /// Collect all the sphere data into the member struct.
     void packSphereDataPointers();
 
-    /// Run the first sphere broadphase pass to get things started
+    /// Run the first sphere broadphase pass to get things started.
     void runSphereBroadphase();
 
-    /// Wrap the device helper function
+    /// Wrap the device helper function.
     int3 getSDTripletFromID(unsigned int SD_ID) const;
 
-    /// Create a helper to do sphere initialization
+    /// Create a helper to do sphere initialization.
     void initializeSpheres();
 
-    /// Sorts particle positions spatially in order to improve memory efficiency
+    /// Sorts particle positions spatially in order to improve memory efficiency.
     void defragment_initial_positions();
 
-    /// Sorts the user-provided contact history array in the order determined by defragment_initial_positions(),
-    /// if that is called
+    /// Sorts the user-provided contact history array in the order determined by defragment_initial_positions().
     void defragment_friction_history(unsigned int history_offset);
 
-    /// Setup sphere data, initialize local coords
+    /// Setup sphere data, initialize local coords.
     void setupSphereDataStructures();
 
-    /// Helper function to convert a position in UU to its SU representation while also changing data type
+    /// Helper function to convert a position in UU to its SU representation while also changing data type.
     template <typename T1, typename T2>
     T1 convertToPosSU(T2 val) {
         return (T1)(val / gran_params->LENGTH_UNIT);
     }
 
-    /// convert all BCs from UU to SU
+    /// Convert all BCs from UU to SU.
     void convertBCUnits();
 
-    /// Max velocity of all particles in system
+    /// Max velocity of all particles in system.
     float get_max_vel() const;
 
-    /// Get the maximum stiffness term in the system
+    /// Get the maximum stiffness term in the system.
     virtual double get_max_K() const;
 
-    /// This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the
-    /// scaling of various physical quantities set by the user.
+    /// This method defines the mass, time, length Simulation Units. 
+    /// It also sets several other constants that enter the scaling of various physical quantities set by the user.
     virtual void switchToSimUnits();
 
-    /// combine material properties of two types to get effective ones
+    /// Combine material properties of two types to get effective ones.
     void combineMaterialSurface();
 
-    /// Set the position function of a boundary condition and account for the offset
+    /// Set the position function of a boundary condition and account for the offset.
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
                      BC_params_t<int64_t, int64_t3>& params_SU,
                      double3 offset_UU);
 
-    /// Update positions of each boundary condition using prescribed functions
+    /// Update positions of each boundary condition using prescribed functions.
     void updateBCPositions();
 
-    /// Write particle positions, vels and ang vels to a file stream (based on a format)
+    /// Write particle positions, vels and ang vels to a file stream (based on a format).
     void WriteRawParticles(std::ofstream& ptFile) const;
     void WriteCsvParticles(std::ofstream& ptFile) const;
 
@@ -489,31 +487,32 @@ class ChSystemGpu_impl {
     void WriteH5Particles(H5::H5File& ptFile) const;
 #endif
 
-    /// Write contact info file
+    /// Write contact info file.
     void WriteContactInfoFile(const std::string& outfilename) const;
 
-    /// Get rolling friction torque between body i and j, return 0 if not in contact
+    /// Get rolling friction torque between body i and j, return 0 if not in contact.
     float3 getRollingFrictionTorque(unsigned int i, unsigned int j);
 
-    /// get rolling friction v_rot
+    /// Get rolling friction v_rot.
     float3 getRollingVrot(unsigned int i, unsigned int j);
 
-    /// get rolling characterisitc contact time
+    /// Get rolling characterisitc contact time.
     float getRollingCharContactTime(unsigned int i, unsigned int j);
 
-    /// Get tangential friction force between body i and j, return 0 if not in contact
+    /// Get tangential friction force between body i and j, return 0 if not in contact.
     float3 getSlidingFrictionForce(unsigned int i, unsigned int j);
 
-    /// Get normal friction force between body i and j, return 0 if not in contact
+    /// Get normal friction force between body i and j, return 0 if not in contact.
     float3 getNormalForce(unsigned int i, unsigned int j);
 
-    /// get list of neighbors in contact with particle ID
+    /// Get list of neighbors in contact with particle ID.
     void getNeighbors(unsigned int ID, std::vector<unsigned int>& neighborList);
 
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
 
     // Conversion factors from SU to UU
+
     /// 1 / C_L. Any length expressed in SU is a multiple of SU2UU
     double LENGTH_SU2UU;
     /// 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_SU2UU
@@ -528,25 +527,26 @@ class ChSystemGpu_impl {
     double VEL_SU2UU;
 
     // Tuning for non-dimensionalization
-    /// Safety factor on simulation time
+
+    /// Safety factor on simulation time.
     unsigned int psi_T;
 
-    /// Safety factor on space adim
+    /// Safety factor on space adim.
     unsigned int psi_L;
 
-    /// Fraction of sphere radius which gives an upper bound on the length unit
+    /// Fraction of sphere radius which gives an upper bound on the length unit.
     float psi_R;
 
-    /// Holds the sphere and big-domain-related params in unified memory
+    /// Holds the sphere and big-domain-related params in unified memory.
     GranParams* gran_params;
 
-    /// Holds system degrees of freedom
+    /// Holds system degrees of freedom.
     SphereData* sphere_data;
 
-    /// Contains information about the status of the granular simulator (solver)
+    /// Contains information about the status of the granular simulator (solver).
     ChSolverStateData stateOfSolver_resources;
 
-    /// Allows the code to be very verbose for debugging
+    /// Allows the code to be very verbose for debugging.
     CHGPU_VERBOSITY verbosity;
 
     /// If dividing the longest box dimension into INT_MAX pieces gives better resolution than the deformation-based
@@ -557,22 +557,19 @@ class ChSystemGpu_impl {
     /// each other
     bool defragment_on_start = true;
 
-    /// Bit flags indicating what fields to write out during WriteParticleFile
-    /// Set with the CHGPU_OUTPUT_FLAGS enum
+    /// Bit flags indicating what fields to write out during WriteParticleFile.
+    /// Set with the CHGPU_OUTPUT_FLAGS enum.
     unsigned int output_flags;
 
     /// How to write the output files?
-    /// Default is CSV
+    /// Default is CSV.
     CHGPU_OUTPUT_MODE file_write_mode;
 
-    /// Number of discrete elements
+    /// Number of discrete elements.
     unsigned int nSpheres;
-    /// Number of subdomains
+    /// Number of subdomains.
     unsigned int nSDs;
 
-    // Use CUDA allocator written by Colin Vanden Heuvel
-    // Could hit system performance if there's not a lot of RAM
-    // Makes somewhat faster memcpys
     /// Store X positions relative to owner subdomain in unified memory
     std::vector<int, cudallocator<int>> sphere_local_pos_X;
     /// Store Y positions relative to owner subdomain in unified memory

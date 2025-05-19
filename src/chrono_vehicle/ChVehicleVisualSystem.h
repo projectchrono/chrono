@@ -52,15 +52,24 @@ class CH_VEHICLE_API ChVehicleVisualSystem : virtual public ChVisualSystem {
                         double chaseDist,               ///< chase distance (behind tracked point)
                         double chaseHeight              ///< chase height (above tracked point)
     );
+    
     /// Set the step size for integration of the chase-cam dynamics.
     void SetStepsize(double val);
+    
     /// Set camera state (mode).
     void SetChaseCameraState(utils::ChChaseCamera::State state);
+    
     /// Set camera position.
     /// Note that this forces the chase-cam in Track mode.
     void SetChaseCameraPosition(const ChVector3d& pos);
+
+    /// Set camera and target position.
+    /// Note that this forces the chase-cam in Fixed mode.
+    void SetChaseCameraPosition(const ChVector3d& camera_pos, const ChVector3d& camera_target);
+
     /// Set camera angle.
     void SetChaseCameraAngle(double angle);
+    
     /// Set camera zoom multipliers.
     void SetChaseCameraMultipliers(double minMult, double maxMult);
 

@@ -16,6 +16,7 @@
 #define CH_VISUAL_SHAPE_FEA_H
 
 #include "chrono/assets/ChColor.h"
+#include "chrono/assets/ChColormap.h"
 #include "chrono/assets/ChGlyphs.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 
@@ -87,88 +88,103 @@ class ChApi ChVisualShapeFEA {
     ChVisualShapeFEA();
     ~ChVisualShapeFEA() {}
 
-    /// Returns the current data type to be plotted (speeds, forces, etc.).
-    DataType GetFEMdataType() { return fem_data_type; }
-
     /// Set the current data type to be plotted (speeds, forces, etc.).
-    void SetFEMdataType(DataType mdata) { fem_data_type = mdata; }
-
-    /// Returns the current data type to be drawn with glyphs.
-    GlyphType GetFEMglyphType() { return fem_glyph; }
+    void SetFEMdataType(DataType type) { fem_data_type = type; }
 
     /// Set the current data type to be drawn with glyphs.
-    void SetFEMglyphType(GlyphType mdata) { fem_glyph = mdata; }
+    void SetFEMglyphType(GlyphType type) { fem_glyph = type; }
 
-    /// Set min and max values of the plotted variable for the colorscale plots.
-    void SetColorscaleMinMax(double min, double max) {
-        colorscale_min = min;
-        colorscale_max = max;
-    }
+    /// Set color for SURFACE mode (also for wireframe lines).
+    void SetDefaultMeshColor(ChColor mcolor) { meshcolor = mcolor; }
 
-    /// Set the scale for drawing the symbols for vectors, tensors, etc.
-    void SetSymbolsScale(double mscale) { this->symbols_scale = mscale; }
-    double GetSymbolsScale() { return this->symbols_scale; }
+    /// Set color for GlyphType::NONE mode or for wireframe lines.
+    void SetDefaultSymbolsColor(ChColor mcolor) { symbolscolor = mcolor; }
 
-    /// Set the thickness of symbols used for drawing the vectors, tensors, etc.
-    void SetSymbolsThickness(double mthick) { this->symbols_thickness = mthick; }
-    double GetSymbolsThickness() { return this->symbols_thickness; }
+    /// Set min and max values for indexing in the colormap.
+    void SetColormapRange(double min, double max);
+
+    /// Set min and max values for indexing in the colormap.
+    void SetColormapRange(const ChVector2d& range);
+
+    /// Set the colormap type for false coloring of the SCM mesh.
+    /// The default colormap is JET (a divergent blue-red map).
+    void SetColormap(ChColormap::Type type);
+
+    /// Set the scale for drawing of symbols (e.g., vectors).
+    void SetSymbolsScale(double scale) { symbols_scale = scale; }
+
+    /// Set the thickness for drawing of symbols (e.g., vectors).
+    void SetSymbolsThickness(double thickness) { symbols_thickness = thickness; }
 
     /// Set the resolution of beam triangulated drawing, along the beam direction (default: 8).
-    void SetBeamResolution(int mres) { this->beam_resolution = mres; }
-    int GetBeamResolution() { return this->beam_resolution; }
+    void SetBeamResolution(int resolution) { beam_resolution = resolution; }
 
     /// Set the resolution of beam triangulated drawing, along the section (default: 10).
     /// For example, in case of a circular section, this is the number of points along the circle.
-    void SetBeamResolutionSection(int mres) { this->beam_resolution_section = mres; }
-    int GetBeamResolutionSection() { return this->beam_resolution_section; }
+    void SetBeamResolutionSection(int resolution) { beam_resolution_section = resolution; }
 
     /// Set the resolution of shell triangulated drawing (default: 2).
     /// This value represents the number of visualization mesh vertices on each FEM element edge.
     /// The default value of 2 results in a visualization mesh constructed using only the FEM nodes.
-    void SetShellResolution(int mres) { this->shell_resolution = mres; }
-    int GetShellResolution() { return this->shell_resolution; }
+    void SetShellResolution(int resolution) { shell_resolution = resolution; }
 
     /// Set shrinkage of elements during drawing.
-    void SetShrinkElements(bool mshrink, double mfact) {
-        shrink_elements = mshrink;
-        shrink_factor = mfact;
-    }
-
-    /// Set as wireframe visualization.
-    void SetWireframe(bool mwireframe) { this->wireframe = mwireframe; }
+    void SetShrinkElements(bool shrink, double factor);
 
     /// Set backface cull speedup (default false).
     /// Must be set true for shells and in general where already double-sided twin triangles are used.
-    void SetBackfaceCull(bool mbc) { this->backface_cull = mbc; }
+    void SetBackfaceCull(bool cull) { backface_cull = cull; }
 
     /// Set the Z buffer enable/disable, for visualization systems that support it (default: true).
     /// If hide = false, symbols will appear even if hidden by meshes/geometries.
-    void SetZbufferHide(bool mhide) { this->zbuffer_hide = mhide; }
-
-    /// Set color for SURFACE mode (also for wireframe lines).
-    void SetDefaultMeshColor(ChColor mcolor) { this->meshcolor = mcolor; }
-
-    /// Set color for GlyphType::NONE mode or for wireframe lines.
-    void SetDefaultSymbolsColor(ChColor mcolor) { this->symbolscolor = mcolor; }
+    void SetZbufferHide(bool hide) { zbuffer_hide = hide; }
 
     /// Activate Gourad or Phong smoothing for faces of non-straight elements.
     /// Note: experimental feature.
-    void SetSmoothFaces(bool msmooth) { this->smooth_faces = msmooth; }
+    void SetSmoothFaces(bool smooth) { smooth_faces = smooth; }
 
     /// Draw the mesh in its underformed (reference) configuration.
-    void SetDrawInUndeformedReference(bool mdu) { this->undeformed_reference = mdu; }
+    void SetDrawInUndeformedReference(bool undeformed) { undeformed_reference = undeformed; }
+
+    /// Set as wireframe visualization.
+    void SetWireframe(bool use_wireframe) { wireframe = use_wireframe; }
+
+    /// Return the current data type to be plotted (speeds, forces, etc.).
+    DataType GetFEMdataType() { return fem_data_type; }
+
+    /// Returns the current data type to be drawn with glyphs.
+    GlyphType GetFEMglyphType() { return fem_glyph; }
+
+    /// Get the type of the colormap currently in use.
+    ChColormap::Type GetColormapType() const;
+
+    /// Get the colormap object in current use.
+    const ChColormap& GetColormap() const;
+
+    /// Return the scale for drawing of symbols.
+    double GetSymbolsScale() const { return symbols_scale; }
+
+    /// Return the thickness for drawing of symbols.
+    double GetSymbolsThickness() const { return symbols_thickness; }
+
+    /// Return the resolution of beam triangulated drawing, along the beam direction.
+    int GetBeamResolution() const { return beam_resolution; }
+
+    /// Return the resolution of beam triangulated drawing, along the section.
+    int GetBeamResolutionSection() const { return beam_resolution_section; }
+
+    /// Return the resolution of shell triangulated drawing.
+    int GetShellResolution() const { return shell_resolution; }
 
     /// Update the triangle visualization mesh so that it matches with the FEM mesh.
     void Update(ChObj* updater, const ChFrame<>& frame);
 
   private:
-    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyz> mnode,
-                               int nodeID,
-                               std::shared_ptr<fea::ChElementBase> melement);
-    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyzP> mnode,
-                               int nodeID,
-                               std::shared_ptr<fea::ChElementBase> melement);
-    ChColor ComputeFalseColor(double in);
+    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyz> node,
+                               std::shared_ptr<fea::ChElementBase> element) const;
+    double ComputeScalarOutput(std::shared_ptr<fea::ChNodeFEAxyzP> node,
+                               std::shared_ptr<fea::ChElementBase> element) const;
+    ChColor ComputeFalseColor(double value) const;
 
     // Helper functions for updating buffers of specific element types
 
@@ -256,6 +272,9 @@ class ChApi ChVisualShapeFEA {
     std::shared_ptr<ChGlyphs> m_glyphs_shape;
 
     std::vector<int> normal_accumulators;
+
+    std::unique_ptr<ChColormap> m_colormap;  ///< colormap for mesh false coloring
+    ChColormap::Type m_colormap_type;        ///< colormap type
 
     friend class ChVisualModel;
     friend class ChObj;

@@ -140,7 +140,7 @@ load_container.Add(custom_load)
 
 beam_visA = chrono.ChVisualShapeFEA()
 beam_visA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
-beam_visA.SetColorscaleMinMax(-400, 200)
+beam_visA.SetColormapRange(-400, 200)
 beam_visA.SetSmoothFaces(True)
 beam_visA.SetWireframe(False)
 mesh.AddVisualShapeFEA(beam_visA)

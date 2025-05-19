@@ -17,10 +17,12 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyEasy.h"
 
+#include "chrono/assets/ChVisualShapeFEA.h"
+#include "chrono/assets/ChColormap.h"
+
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 
@@ -42,7 +44,11 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
                                                           ChSystem& sys,
                                                           const std::string& title,
                                                           const ChVector3d& cam_pos,
-                                                          const ChVector3d& cam_target = VNULL) {
+                                                          const ChVector3d& cam_target = VNULL,
+                                                          bool create_colorbar = false,
+                                                          const std::string& colorbar_title = "",
+                                                          const ChVector2d& colorbar_range = ChVector2d(0, 0),
+                                                          ChColormap::Type colormap_type = ChColormap::Type::JET) {
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -70,6 +76,10 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
                                         ChColor(0.6f, 0.8f, 1.0f));
             vis_irr->EnableShadows();
 
+            if (create_colorbar) {
+                vis_irr->AddGuiColorbar(colorbar_title, colorbar_range, colormap_type, false);
+            }
+
             vis = vis_irr;
 #endif
             break;
@@ -89,6 +99,11 @@ std::shared_ptr<ChVisualSystem> CreateVisualizationSystem(ChVisualSystem::Type v
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
+
+            if (create_colorbar) {
+                vis_vsg->AddGuiColorbar(colorbar_title, colorbar_range, colormap_type, false, 300);
+            }
+
             vis_vsg->Initialize();
 
             vis = vis_vsg;

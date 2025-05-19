@@ -123,8 +123,8 @@ bool GetProblemSpecs(int argc,
                      double& render_fps,
                      bool& snapshots,
                      int& ps_freq,
-                     std::string& boundary_type,
-                     std::string& viscosity_type) {
+                     std::string& boundary_method,
+                     std::string& viscosity_method) {
     ChCLI cli(argv[0], "Wave Tank FSI demo");
 
     cli.AddOption<double>("Input", "t_end", "Simulation duration [s]", std::to_string(t_end));
@@ -139,8 +139,8 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<int>("Proximity Search", "ps_freq", "Frequency of Proximity Search", std::to_string(ps_freq));
 
-    cli.AddOption<std::string>("Physics", "boundary_type", "Boundary condition type (holmes/adami)", "adami");
-    cli.AddOption<std::string>("Physics", "viscosity_type",
+    cli.AddOption<std::string>("Physics", "boundary_method", "Boundary condition type (holmes/adami)", "adami");
+    cli.AddOption<std::string>("Physics", "viscosity_method",
                                "Viscosity type (laminar/artificial_unilateral/artificial_bilateral)",
                                "artificial_unilateral");
 
@@ -161,8 +161,8 @@ bool GetProblemSpecs(int argc,
 
     ps_freq = cli.GetAsType<int>("ps_freq");
 
-    boundary_type = cli.GetAsType<std::string>("boundary_type");
-    viscosity_type = cli.GetAsType<std::string>("viscosity_type");
+    boundary_method = cli.GetAsType<std::string>("boundary_method");
+    viscosity_method = cli.GetAsType<std::string>("viscosity_method");
 
     return true;
 }
@@ -182,10 +182,10 @@ int main(int argc, char* argv[]) {
     double render_fps = 400;
     bool snapshots = true;
     int ps_freq = 1;
-    std::string boundary_type = "adami";
-    std::string viscosity_type = "artificial_unilateral";
+    std::string boundary_method = "adami";
+    std::string viscosity_method = "artificial_unilateral";
     if (!GetProblemSpecs(argc, argv, t_end, verbose, output, output_fps, render, render_fps, snapshots, ps_freq,
-                         boundary_type, viscosity_type)) {
+                         boundary_method, viscosity_method)) {
         return 1;
     }
 
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 4.0;  // maximum velocity should be 2*sqrt(grav * fluid_height)
@@ -235,18 +235,18 @@ int main(int argc, char* argv[]) {
     sph_params.eos_type = EosType::TAIT;
 
     // set boundary and viscosity types
-    if (boundary_type == "holmes") {
-        sph_params.boundary_type = BoundaryType::HOLMES;
+    if (boundary_method == "holmes") {
+        sph_params.boundary_method = BoundaryMethod::HOLMES;
     } else {
-        sph_params.boundary_type = BoundaryType::ADAMI;
+        sph_params.boundary_method = BoundaryMethod::ADAMI;
     }
 
-    if (viscosity_type == "laminar") {
-        sph_params.viscosity_type = ViscosityType::LAMINAR;
-    } else if (viscosity_type == "artificial_bilateral") {
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_BILATERAL;
+    if (viscosity_method == "laminar") {
+        sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    } else if (viscosity_method == "artificial_bilateral") {
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     } else {
-        sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
+        sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
     }
 
     fsi.SetSPHParameters(sph_params);
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    out_dir = out_dir + fsi.GetSphMethodTypeString() + "_" + viscosity_type + "_" + boundary_type + "_ps" +
+    out_dir = out_dir + fsi.GetSphIntegrationSchemeString() + "_" + viscosity_method + "_" + boundary_method + "_ps" +
               std::to_string(ps_freq);
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
@@ -315,15 +315,14 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
     if (render) {
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.0);
-        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
-            ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 3900);
+        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(-1000, 3900, true);
 
         // FSI plugin
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::RED_BLUE);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
