@@ -46,6 +46,8 @@
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include <boost/numeric/odeint.hpp>
+
 using namespace chrono;
 
 ///////////////////////data type definition ///////////////////////////////////////////////////////
@@ -62,7 +64,7 @@ class MyStateVar {
     double step_time=0;
     float radA=1;
     float radB=1;
-    float lambda=-1000.;
+    float lambda= 0.;
     ChVector3d strain={0,0,0};
     ChQuaternion<> mquaternion;
     
@@ -194,8 +196,53 @@ class ChApi ChConcreteDistribution : public ChDistribution {
 
 class ChMaterialFCM {
 
-  public:
-    /// Construct a material.
+   public:
+    float ENm=4.0E-2;
+	float ENa=100;
+	float mortar_h=3.0;		
+	float alpha=0.25;
+	float beta=0.5;
+	float np=1.0;
+	float sgmTmax=9.E-3;
+	float sgmTau0=5.E-4;
+	float kappa0=100.;
+	float eta_inf=10.E-6;
+	float flocbeta=1.0e-2;	
+	float flocm=1.0;
+	float flocTcr=1000;
+	float lambda_init=1.0e-8;
+	bool SmoothOnFlag = false;
+	bool ThixOnFlag = false;
+
+  public:   
+     // ODE system as a member variable
+    struct ThixotropyOdeSys {
+        float& T;
+        float& m;
+        float& beta;
+        float gammadot;        
+
+        ThixotropyOdeSys(float& T, float& m, float& beta)
+            : T(T), m(m), beta(beta), gammadot(0.0) {}
+
+        // Define the system of ODEs: y' = 1/(T * y^m) - beta * gammadot * y
+        void operator()(const std::vector<double>& y, std::vector<double>& dydt, double t) {
+        	//std::cout<<"time: "<<t<<"\t T: "<<T<<"\tm: "<<m<<"\tbeta: "<<beta<<"\tgammadot: "<<gammadot<<"\t"<<"lambda: "<<y[0]<<std::endl;
+            dydt[0] = 1.0 / (T * std::pow(y[0], m)) - beta * gammadot * y[0];
+        }
+        
+        // Update gammadot (time-varying)
+        void updateGammadot(double val) {
+            gammadot = val;  // Example: sinusoidal variation
+        }        
+        
+    };
+
+    // ODE system and stepper as member variables
+    ThixotropyOdeSys thixSystem = ThixotropyOdeSys(flocTcr, flocm, flocbeta);
+    boost::numeric::odeint::runge_kutta_dopri5<std::vector<double>> stepper;
+    
+     /// Construct a material.
     ChMaterialFCM(float mENm,
 		float mENa,
 		float mmortar_h,		
@@ -207,11 +254,10 @@ class ChMaterialFCM {
 		float mkappa0,
 		float meta_inf)
 		: ENm(mENm),  ENa(mENa), mortar_h(mmortar_h),	alpha(malpha), beta(mbeta), np(mnp), 
-		sgmTmax(msgmTmax), sgmTau0(msgmTau0), kappa0(mkappa0), eta_inf(meta_inf)
-		 { };
-		 
-
-    ChMaterialFCM(){};
+		sgmTmax(msgmTmax), sgmTau0(msgmTau0), kappa0(mkappa0), eta_inf(meta_inf) { };
+    
+    
+    ChMaterialFCM(){  };
 
     // Destructor declared:
     ~ChMaterialFCM(){};
@@ -261,8 +307,11 @@ class ChMaterialFCM {
     float Get_lambda_init() const { return lambda_init; }  
     void Set_lambda_init(float mlambda_init) { lambda_init=mlambda_init; }
     //	
-    float Get_SmoothOnFlag() const { return SmoothOnFlag; }  
-    void Set_SmoothOnFlag(float mSmoothOnFlag) { SmoothOnFlag=mSmoothOnFlag; }
+    bool Get_SmoothOnFlag() const { return SmoothOnFlag; }  
+    void Set_SmoothOnFlag(bool mSmoothOnFlag) { SmoothOnFlag=mSmoothOnFlag; }
+	//
+	bool Get_ThixOnFlag() const { return ThixOnFlag; }  
+    void Set_ThixOnFlag(bool mThixOnFlag) { ThixOnFlag=mThixOnFlag; }
 	
 	double CalculateEffDensity(ChSystem& sys, double specVol, double rho_0){		
 		double totVol=0;
@@ -294,23 +343,7 @@ class ChMaterialFCM {
 		}		
 	}
 	
-  public:
-    float ENm=4.0E-2;
-	float ENa=100;
-	float mortar_h=3.0;		
-	float alpha=0.25;
-	float beta=0.5;
-	float np=1.0;
-	float sgmTmax=9.E-3;
-	float sgmTau0=5.E-4;
-	float kappa0=100.;
-	float eta_inf=10.E-6;
-	float flocbeta=1.0e-2;	
-	float flocm=1.0;
-	float flocTcr=120;
-	float lambda_init=1.0;
-	bool SmoothOnFlag = false;
-
+	
 };
 
 
@@ -392,6 +425,71 @@ ChWrenchd CalculateForceTorque_ORG(
         return {force, torque};
     }
 
+
+
+
+
+float ChGetShapeDimension(const chrono::ChCollisionModel::ShapeInstance& shape_instance){
+		const auto& shape = shape_instance.first;        
+		float radius=5.0;
+        switch (shape->GetType()) {
+            case ChCollisionShape::Type::SPHERE: {            	
+                auto shape_sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
+                radius = shape_sphere->GetRadius();               
+                break;
+            }
+            case ChCollisionShape::Type::ELLIPSOID: {            	
+                auto shape_ell = std::static_pointer_cast<ChCollisionShapeEllipsoid>(shape);
+                auto haxes = shape_ell->GetSemiaxes(); 
+                radius = std::min(std::min(haxes.x(), haxes.y()), haxes.z());                 
+                break;
+            }
+            case ChCollisionShape::Type::BOX: {            	
+                auto shape_box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
+                auto len = shape_box->GetHalflengths();
+		radius = std::min(std::min(len.x(), len.y()), len.z());                
+                break;
+            }
+            case ChCollisionShape::Type::CYLINDER: {            	
+                auto shape_cylinder = std::static_pointer_cast<ChCollisionShapeCylinder>(shape);
+                auto height = shape_cylinder->GetHeight();
+                radius = shape_cylinder->GetRadius();                
+                break;
+            }            
+            case ChCollisionShape::Type::CAPSULE: {
+            	std::cout<<"CAPSULE\t";
+                auto shape_capsule = std::static_pointer_cast<ChCollisionShapeCapsule>(shape);
+                auto height = shape_capsule->GetHeight();
+                radius = shape_capsule->GetRadius();                
+                break;
+            }
+            case ChCollisionShape::Type::CYLSHELL: {
+                std::cout<<"CYLSHELL\t";
+                auto shape_cylshell = std::static_pointer_cast<ChCollisionShapeCylindricalShell>(shape);
+                auto height = shape_cylshell->GetHeight();
+                radius = shape_cylshell->GetRadius();               
+                break;
+            }            
+            case ChCollisionShape::Type::POINT: {            	
+                auto shape_point = std::static_pointer_cast<ChCollisionShapePoint>(shape);
+                auto radius = shape_point->GetRadius();                
+                break;
+            }  
+            case ChCollisionShape::Type::TRIANGLEMESH: {             	
+                auto shape_obj = std::static_pointer_cast<ChCollisionShapePoint>(shape);
+                auto radius = shape_obj->GetRadius();                
+                break;
+            }           
+            default:
+                // Shape type not supported
+                break;
+        }
+		
+		return radius;
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // -----------------------------------------------------------------------------
 // Class for overriding the default SMC contact force calculation
@@ -470,8 +568,11 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 		//
     		ChVector3d statevar=map_contact_info[mykey].strain;
     		double lambda0=map_contact_info[mykey].lambda;
-    		
-    		if (lambda0<0 ){
+			//
+			// ==== SIGMA-t influenced by Flocculation ======
+			sgmTmax=this->material->Get_sgmTmax()*(1.+lambda0);
+    		//    		
+    		if (lambda0==0 ){
     			lambda0=material->Get_lambda_init();    			
     			auto val0=ParticleThixoInfo[ID[0]];
     			auto val1=ParticleThixoInfo[ID[1]];
@@ -496,7 +597,7 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
     			lambda0=std::min(avg0, avg1);
     			map_contact_info[mykey].lambda=lambda0;
     			//std::cout << "lambda-4 " << map_contact_info[mykey].lambda <<  "key " << mykey << std::endl;
-			map_contact_info[mykey].step_time=current_time;
+				map_contact_info[mykey].step_time=current_time;
     		}
 		//
 		// initialize force values
@@ -521,49 +622,109 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 		
 		//
 		// Get the dimension of the object
-		//		
-		if (bodyA->GetCollisionModel()->GetShapeInstance(0).first->GetType()==0){        
+		//	
+		auto shapeA=bodyA->GetCollisionModel()->GetShapeInstance(0).first->GetType();
+		auto shapeB=bodyB->GetCollisionModel()->GetShapeInstance(0).first->GetType();
+		R1 = ChGetShapeDimension(bodyA->GetCollisionModel()->GetShapeInstance(0));	
+		R2 = ChGetShapeDimension(bodyB->GetCollisionModel()->GetShapeInstance(0));
+		
+		/*if (bodyA->GetCollisionModel()->GetShapeInstance(0).first->GetType()==0){        
 			//R1=bodyA->GetCollisionModel()->GetShapeDimensions(0)[0];
-			//R1=5;//bodyA->GetCollisionModel()->GetRadius();	
-			auto shape=bodyA->GetCollisionModel()->GetShapeInstance(0).first;
-			auto shape_sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
-            R1 = shape_sphere->GetRadius();				
+			//R1=5;//bodyA->GetCollisionModel()->GetRadius();
+			R1 = ChGetShapeDimension(bodyA->GetCollisionModel()->GetShapeInstance(0));	
+			//auto shape=bodyA->GetCollisionModel()->GetShapeInstance(0).first;
+			//auto shape_sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
+            		//R1 = shape_sphere->GetRadius();				
 		}
 		
 		if (bodyB->GetCollisionModel()->GetShapeInstance(0).first->GetType()==0){        
 			//R2=bodyB->GetCollisionModel()->GetShapeDimensions(0)[0];
 			//R2=5;//bodyA->GetCollisionModel()->GetRadius();
-			auto shape=bodyB->GetCollisionModel()->GetShapeInstance(0).first;
-			auto shape_sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
-            R2 = shape_sphere->GetRadius();				
-		}
-		
-		if (bodyA->GetCollisionModel()->GetShapeInstance(0).first->GetType()!=0 || 
-						bodyB->GetCollisionModel()->GetShapeInstance(0).first->GetType()!=0){ 
-			// contact of DFC sphere with outer wall surface
+			//auto shape=bodyB->GetCollisionModel()->GetShapeInstance(0).first;
+			//auto shape_sphere = std::static_pointer_cast<ChCollisionShapeSphere>(shape);
+            		//R2 = shape_sphere->GetRadius();	
+            		R2 = ChGetShapeDimension(bodyB->GetCollisionModel()->GetShapeInstance(0));			
+		}*/
+		if (shapeA==ChCollisionShape::Type::SPHERE & shapeB==ChCollisionShape::Type::SPHERE){
+			/// Concrete - Concrete Interaction
+			// Contact of two DFC spheres
+			// center to center distance between 2 objects	
+			L0ij=R1+R2-h;
+			Lij=abs(R1+R2-delta);
+			Rmin=std::min(R1, R2);	
+			Rmax=std::max(R1, R2);
+			delta_rmin=delta/2*(2.0*Rmax-delta)/Lij;
 			
-			/*ChWrenchd res=CalculateForceTorque_ORG(
-							sys,                    ///< containing sys
+		}else if((shapeA==ChCollisionShape::Type::SPHERE & shapeB==ChCollisionShape::Type::CYLINDER) || 
+				(shapeB==ChCollisionShape::Type::SPHERE & shapeA==ChCollisionShape::Type::CYLINDER) ) { /// Concrete - Fiber Interaction
+			// Contact of concrete sphere and cylindrical fiber object
+			// center to center distance between 2 objects
+			h=mortar_layer/2;
+			//sgmTmax=this->material->Get_sgmTmax()/2;
+			L0ij=R1+R2-h;
+			Lij=abs(R1+R2-delta);
+			Rmin=std::min(R1, R2);	
+			Rmax=std::max(R1, R2);	
+			delta_rmin=delta/2;
+			
+		}else if ( (shapeA==ChCollisionShape::Type::SPHERE & shapeB!=ChCollisionShape::Type::SPHERE) || 
+			   	(shapeB==ChCollisionShape::Type::SPHERE & shapeA!=ChCollisionShape::Type::SPHERE) ) { /// COncrete-container interaction
+			h=mortar_layer/2;
+			//sgmTmax=this->material->Get_sgmTmax()/2;
+			L0ij=R1+R2-h;
+			Lij=abs(R1+R2-delta);
+			if (shapeA==ChCollisionShape::Type::SPHERE){
+				Rmin=R1;
+			}else {
+				Rmin=R2;
+			}
+			//Rmin=std::min(R1, R2);	
+			Rmax=std::max(R1, R2);	
+			delta_rmin=delta;
+			
+		}else if (shapeA==ChCollisionShape::Type::TRIANGLEMESH && shapeB==ChCollisionShape::Type::TRIANGLEMESH) {
+					
+			// contact of DFC sphere with outer wall surface			
+			ChWrenchd res=default_contact_algorithm.CalculateForceTorque(
+							sys,                     ///< containing sys
 							normal_dir,              ///< normal contact direction (expressed in global frame)
 							p1,                      ///< most penetrated point on obj1 (expressed in global frame)
 							p2,                      ///< most penetrated point on obj2 (expressed in global frame)
 							vel1,                    ///< velocity of contact point on obj1 (expressed in global frame)
 							vel2,                    ///< velocity of contact point on obj2 (expressed in global frame)
-							mat,  ///< composite material for contact pair
-							delta,                              ///< overlap in normal direction
-							eff_radius,                         ///< effective radius of curvature at contact
-							mass1,                              ///< mass of obj1
-							mass2,                              ///< mass of obj2
-							objA,                       ///< pointer to contactable obj1
-							objB                        ///< pointer to contactable obj2
+							mat,  					 ///< composite material for contact pair
+							delta,                   ///< overlap in normal direction
+							eff_radius,              ///< effective radius of curvature at contact
+							mass1,                   ///< mass of obj1
+							mass2,                   ///< mass of obj2
+							objA,                    ///< pointer to contactable obj1
+							objB                     ///< pointer to contactable obj2
 							);
 			
-			return res;*/
+			return res;
+				
+			
+		}else{ /// Fiber-container or another object- container interaction
 			h=mortar_layer/2;
+			//sgmTmax=this->material->Get_sgmTmax()/2;
+			L0ij=R1+R2-h;
+			Lij=abs(R1+R2-delta);
+			Rmin=std::min(R1, R2);	
+			Rmax=std::max(R1, R2);	
+			delta_rmin=delta;
+		
+		}
+		
+		/*if (bodyA->GetCollisionModel()->GetShapeInstance(0).first->GetType()!=0 || 
+						bodyB->GetCollisionModel()->GetShapeInstance(0).first->GetType()!=0){ 
+			// contact of DFC sphere with outer wall surface
+			
+			h=mortar_layer/2;
+			//sgmTmax=this->material->Get_sgmTmax()/2;
 			Rmin=std::min(R1, R2);	
 			Rmax=std::max(R1, R2);
-			L0ij=Rmin-h;
-			Lij=abs(Rmin-delta);	
+			L0ij=2.0*Rmin-h;
+			Lij=abs(2.0*Rmin-delta);	
 			delta_rmin=delta;
 			
 		}else{
@@ -575,7 +736,7 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 			Rmax=std::max(R1, R2);
 			delta_rmin=delta/2*(2.0*Rmax-delta)/Lij;
 		}
-		
+		*/
 		
 		//
 		// Calculate contact plane rotation
@@ -629,11 +790,11 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 		*/				
 		//ChVector3d m_p1_loc = bodyA->Point_World2Body(p0);
 		ChVector3d m_p1_loc = bodyA->GetFrameRefToAbs().TransformPointParentToLocal(p0);
-		ChVector3d velA=bodyA->PointSpeedLocalToParent(m_p1_loc);
+		ChVector3d velA=bodyA->PointSpeedLocalToParent(m_p1_loc)/time_scale_val;
 		
 		//ChVector3d m_p2_loc = bodyB->Point_World2Body(p0);
 		ChVector3d m_p2_loc = bodyB->GetFrameRefToAbs().TransformPointParentToLocal(p0);
-		ChVector3d velB=bodyB->PointSpeedLocalToParent(m_p2_loc);
+		ChVector3d velB=bodyB->PointSpeedLocalToParent(m_p2_loc)/time_scale_val;
 		/*
 		printf("  %10.6f  %10.6f  %10.6f\n ", vcA.x(), vcA.y(), vcA.z());
 		printf("  %10.6f  %10.6f  %10.6f\n ", vcB.x(), vcB.y(), vcB.z());
@@ -697,9 +858,12 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 			double sgmN=0;
 			double sgmM=0;
 			double sgmL=0;	
-			double sgmT=0;			
-			
-			
+			double sgmT=0;
+			//
+			//double k= 10/mortar_layer;
+			//ENm= ENm + (ENa - ENm) / (1. + exp(-k * (delta_new -0.5* mortar_layer)));
+			//
+			//std::cout << "Penetration " << delta_new << " ENm= " << ENm << std::endl;
 			double stot;
 			if (epsN>=epsA){				
 				//stot=epsQ*ENm;	
@@ -747,18 +911,31 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 			//
 			//std::cout << "Lij : " << Lij << " vdeps_Comp : " << vDeps << std::endl;
 			double eta;
-			if(this->material->SmoothOnFlag){	
-				double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
+			double lambda=lambda0;
+			//std::cout<<"Lambda0: "<<lambda0<<std::endl;
+			if (this->material->ThixOnFlag) {
+				std::vector<double> lmd={lambda0};
+				this->material->thixSystem.updateGammadot(vDeps);
+				boost::numeric::odeint::integrate_adaptive(this->material->stepper, this->material->thixSystem, lmd, 
+									current_time, current_time+dT, dT);
+				lambda=lmd[0];
+				//std::cout<<"lambda: "<<lambda<<"\n";
 				map_contact_info[mykey].lambda=lambda;
+			}
+			
+			if(this->material->SmoothOnFlag){	
+				//double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
+				//map_contact_info[mykey].lambda=lambda;
 				//lambda=0;
 				if (vDeps>0){				
-					eta=(1.- exp(-vDeps/Deps0) ) * ( eta_inf + sgmTau0 * (1.0+lambda)/vDeps );				
+					eta=(1.- exp(-1.0E+3*vDeps/Deps0) ) * ( eta_inf + sgmTau0 * (1.0+lambda)/vDeps );				
 				}else{
 					eta= eta0*(1.0+lambda); //sgmTau0 * (1.0+lambda)/Deps0;
 				}
 			}else{
-				double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
-				map_contact_info[mykey].lambda=lambda;
+				//double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
+				//lambda=0;
+				//map_contact_info[mykey].lambda=lambda;
 				if(vDeps<=Deps0) {
 					eta=eta0;
 				}else{
@@ -819,18 +996,30 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 			//
 			//std::cout << "Lij : " << Lij << " vdeps_Tension : " << vDeps << std::endl;
 			double eta;
-			if(this->material->SmoothOnFlag){	
-				double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
+			double lambda=lambda0;
+			if (this->material->ThixOnFlag) {
+				std::vector<double> lmd={lambda0};
+				this->material->thixSystem.updateGammadot(vDeps);
+				boost::numeric::odeint::integrate_adaptive(this->material->stepper, this->material->thixSystem, lmd, 
+									current_time, current_time+dT, dT);
+				lambda=lmd[0];
+				//std::cout<<"lambda: "<<lambda<<"\n";
 				map_contact_info[mykey].lambda=lambda;
+			}
+			if(this->material->SmoothOnFlag){	
+			    //std::cout<<"lmd: "<<lmd[0]<<std::endl;
+				//double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
+				//map_contact_info[mykey].lambda=lambda;
 				//lambda=0;
 				if (vDeps>0){				
-					eta=(1.- exp(-vDeps/Deps0) ) * ( eta_inf + sgmTau0 * (1.0+lambda)/vDeps );				
+					eta=(1.- exp(-1.0E+3*vDeps/Deps0) ) * ( eta_inf + sgmTau0 * (1.0+lambda)/vDeps );				
 				}else{
 					eta= eta0*(1.0+lambda); //sgmTau0 * (1.0+lambda)/Deps0;
 				}
 			}else{
-				double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
-				map_contact_info[mykey].lambda=lambda;
+				//double lambda = rungeKutta4<double>(dfloc, lambda0, current_time, flocbeta, vDeps, flocm, flocTcr, dT, 1);
+				//lambda=0;
+				//map_contact_info[mykey].lambda=lambda;
 				if(vDeps<=Deps0) {
 					eta=eta0;
 				}else{
@@ -875,6 +1064,8 @@ class FCContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
 	public:	
 	
 	std::shared_ptr<ChMaterialFCM> material;
+	chrono::ChDefaultContactForceTorqueSMC default_contact_algorithm;
+	double time_scale_val=1.0;
 	
 };
 
@@ -1120,7 +1311,7 @@ void WriteParticlesVTK(ChSystem& sys, const std::string& filename, double h_laye
      
 	 std::vector<std::shared_ptr<ChBody>> body_list_new;
 	 for (auto body:body_list){
-	         if (body->GetCollisionModel() && !body->IsFixed()) {
+	         if (body->GetCollisionModel() && !body->IsFixed() && body->GetCollisionModel()->GetShapeInstance(0).first->GetType()==0) {
 		 	body_list_new.push_back(body);
 		 }
 	 }
@@ -1184,5 +1375,3 @@ void WriteParticlesVTK(ChSystem& sys, const std::string& filename, double h_laye
      // Close the file
      vtk_file.close();
 }
-
-
