@@ -12,12 +12,11 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code about collisions and contacts using the penalty method (SMC)
+// Simple demo for contact between a ball and a plate, using NSC or SMC contact
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono/assets/ChVisualSystem.h"
@@ -32,6 +31,7 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 
+ChContactMethod contact_method = ChContactMethod::SMC;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type coll_type = ChCollisionSystem::Type::BULLET;
 
@@ -40,8 +40,8 @@ int main(int argc, char* argv[]) {
 
     // Simulation parameters
     double gravity = -9.81;
-    double time_step = 0.00001;
-    double out_step = 2000 * time_step;
+    double time_step = contact_method == ChContactMethod::NSC ? 1e-3 : 1e-5;
+    double render_fps = 100;
 
     // Parameters for the falling ball
     double radius = 1;
@@ -53,28 +53,22 @@ int main(int argc, char* argv[]) {
     // Parameters for the containing bin
     double width = 2;
     double length = 2;
-    ////double height = 1;
     double thickness = 0.1;
 
     // Create the system
-    ChSystemSMC sys;
+    auto sys = ChSystem::Create(contact_method);
 
-    sys.SetGravitationalAcceleration(ChVector3d(0, gravity, 0));
-    sys.SetCollisionSystemType(coll_type);
+    sys->SetGravitationalAcceleration(ChVector3d(0, gravity, 0));
+    sys->SetCollisionSystemType(coll_type);
 
-    // The following two lines are optional, since they are the default options. They are added for future reference,
-    // i.e. when needed to change those models.
-    sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
-    sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
-
-    // Change the default collision effective radius of curvature
+    // Change the default collision effective radius of curvature (SMC only)
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create a material (will be used by both objects)
-    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
-    material->SetRestitution(0.1f);
-    material->SetFriction(0.4f);
-    material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
+    ChContactMaterialData mat_data;
+    mat_data.mu = 0.4f;
+    mat_data.cr = 0.1f;
+    auto material = mat_data.CreateMaterial(contact_method);
 
     // Create the falling ball
     auto ball = chrono_types::make_shared<ChBody>();
@@ -95,7 +89,7 @@ int main(int argc, char* argv[]) {
     sphere_vis->SetOpacity(1.0f);
     ball->AddVisualShape(sphere_vis);
 
-    sys.AddBody(ball);
+    sys->AddBody(ball);
 
     // Create container
     auto bin = chrono_types::make_shared<ChBody>();
@@ -113,7 +107,7 @@ int main(int argc, char* argv[]) {
     box_vis->SetOpacity(0.8f);
     bin->AddVisualShape(box_vis);
 
-    sys.AddBody(bin);
+    sys->AddBody(bin);
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT
@@ -131,13 +125,13 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("SMC demonstration");
+            vis_irr->SetWindowTitle("Ball drop demonstration");
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, 3, -6));
-            vis_irr->AttachSystem(&sys);
+            vis_irr->AttachSystem(sys.get());
             vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
                              ChColor(0.1f, 0.1f, 0.1f));
 
@@ -149,8 +143,8 @@ int main(int argc, char* argv[]) {
         case ChVisualSystem::Type::VSG: {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(&sys);
-            vis_vsg->SetWindowTitle("SMC demonstration");
+            vis_vsg->AttachSystem(sys.get());
+            vis_vsg->SetWindowTitle("Ball drop demonstration");
             vis_vsg->AddCamera(ChVector3d(0, 3, -6));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
@@ -171,23 +165,22 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // The soft-real-time cycle
-    double time = 0.0;
-    double out_time = 0.0;
-
+    // Simulation loop
     ChRealtimeStepTimer rt_timer;
-    while (vis->Run()) {
-        vis->BeginScene();
-        vis->Render();
-        vis->RenderFrame(ChFrame<>(ball->GetCoordsys()), 1.2 * radius);
-        vis->EndScene();
+    double time = 0.0;
+    int render_frame = 0;
 
-        while (time < out_time) {
-            sys.DoStepDynamics(time_step);
-            rt_timer.Spin(time_step);
-            time += time_step;
+    while (vis->Run()) {
+        if (time > render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
         }
-        out_time += out_step;
+
+        sys->DoStepDynamics(time_step);
+        rt_timer.Spin(time_step);
+        time += time_step;
     }
 
     return 0;

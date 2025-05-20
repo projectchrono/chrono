@@ -23,6 +23,8 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverPJacobi.h"
@@ -118,6 +120,16 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
 
 ChSystem::~ChSystem() {
     Clear();
+}
+
+std::unique_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            return chrono_types::make_unique<ChSystemNSC>();
+        case ChContactMethod::SMC:
+            return chrono_types::make_unique<ChSystemSMC>();
+            break;
+    }
 }
 
 void ChSystem::Clear() {
