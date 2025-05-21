@@ -92,7 +92,7 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetTreadThickness() const override { return m_tread_thickness; }
 
     /// Return bushing stiffness and damping data.
-    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const override { return m_bushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> GetBushingData() const override { return m_bushingData; }
 
     /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
     virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
@@ -130,7 +130,7 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     std::string m_meshFile;        ///< name of OBJ file with tread visualization mesh
     std::string m_tread_meshName;  ///< name for procedurally-generated tread visualization mesh
 
-    std::shared_ptr<ChVehicleBushingData> m_bushingData;  ///< bushing parameters
+    std::shared_ptr<ChJoint::BushingData> m_bushingData;  ///< bushing parameters
 };
 
 /// @} vehicle_tracked_shoe

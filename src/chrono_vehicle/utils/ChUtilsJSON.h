@@ -73,10 +73,10 @@ CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 
 CH_VEHICLE_API ChContactMaterialData ReadMaterialInfoJSON(const rapidjson::Value& mat);
 
-CH_VEHICLE_API std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd);
+CH_VEHICLE_API std::shared_ptr<ChJoint::BushingData> ReadBushingDataJSON(const rapidjson::Value& bd);
 
 /// Load and return a vehicle joint type from the specific JSON value.
-CH_VEHICLE_API ChVehicleJoint::Type ReadVehicleJointTypeJSON(const rapidjson::Value& a);
+CH_VEHICLE_API ChJoint::Type ReadVehicleJointTypeJSON(const rapidjson::Value& a);
 
 // -----------------------------------------------------------------------------
 

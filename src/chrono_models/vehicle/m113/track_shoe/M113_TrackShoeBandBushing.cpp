@@ -66,7 +66,7 @@ const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
 M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : ChTrackShoeBandBushing(name) {
-    m_bushingData = chrono_types::make_shared<ChVehicleBushingData>();
+    m_bushingData = chrono_types::make_shared<ChJoint::BushingData>();
     m_bushingData->K_lin = 7e7;
     m_bushingData->D_lin = 0.05 * 7e7;
     m_bushingData->K_rot = 1e5;

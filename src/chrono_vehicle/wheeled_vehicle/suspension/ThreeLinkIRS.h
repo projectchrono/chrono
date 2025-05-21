@@ -63,19 +63,19 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getArmChassisBushingData() const override {
+    virtual std::shared_ptr<ChJoint::BushingData> getArmChassisBushingData() const override {
         return m_armChassisBushingData;
     }
-    virtual std::shared_ptr<ChVehicleBushingData> getArmUpperBushingData() const override {
+    virtual std::shared_ptr<ChJoint::BushingData> getArmUpperBushingData() const override {
         return m_armUpperBushingData;
     }
-    virtual std::shared_ptr<ChVehicleBushingData> getArmLowerBushingData() const override {
+    virtual std::shared_ptr<ChJoint::BushingData> getArmLowerBushingData() const override {
         return m_armLowerBushingData;
     }
-    virtual std::shared_ptr<ChVehicleBushingData> getChassisUpperBushingData() const override {
+    virtual std::shared_ptr<ChJoint::BushingData> getChassisUpperBushingData() const override {
         return m_chassisUpperBushingData;
     }
-    virtual std::shared_ptr<ChVehicleBushingData> getChassisLowerBushingData() const override {
+    virtual std::shared_ptr<ChJoint::BushingData> getChassisLowerBushingData() const override {
         return m_chassisLowerBushingData;
     }
 
@@ -112,11 +112,11 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
 
     double m_axleInertia;
 
-    std::shared_ptr<ChVehicleBushingData> m_armChassisBushingData;
-    std::shared_ptr<ChVehicleBushingData> m_armUpperBushingData;
-    std::shared_ptr<ChVehicleBushingData> m_armLowerBushingData;
-    std::shared_ptr<ChVehicleBushingData> m_chassisUpperBushingData;
-    std::shared_ptr<ChVehicleBushingData> m_chassisLowerBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_armChassisBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_armUpperBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_armLowerBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_chassisUpperBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_chassisLowerBushingData;
 
     double m_springRestLength;
     double m_shockRestLength;

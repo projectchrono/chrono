@@ -169,8 +169,8 @@ ChContactMaterialData ReadMaterialInfoJSON(const rapidjson::Value& mat) {
     return minfo;
 }
 
-std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
-    auto bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+std::shared_ptr<ChJoint::BushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
+    auto bushing_data = chrono_types::make_shared<ChJoint::BushingData>();
 
     bushing_data->K_lin = bd["Stiffness Linear"].GetDouble();
     bushing_data->D_lin = bd["Damping Linear"].GetDouble();
@@ -187,24 +187,24 @@ std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value
     return bushing_data;
 }
 
-ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
+ChJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
     assert(a.IsString());
     std::string type = a.GetString();
     if (type.compare("Lock") == 0) {
-        return ChVehicleJoint::Type::LOCK;
+        return ChJoint::Type::LOCK;
     } else if (type.compare("Point Line") == 0) {
-        return ChVehicleJoint::Type::POINTLINE;
+        return ChJoint::Type::POINTLINE;
     } else if (type.compare("Point Plane") == 0) {
-        return ChVehicleJoint::Type::POINTPLANE;
+        return ChJoint::Type::POINTPLANE;
     } else if (type.compare("Revolute") == 0) {
-        return ChVehicleJoint::Type::REVOLUTE;
+        return ChJoint::Type::REVOLUTE;
     } else if (type.compare("Spherical") == 0) {
-        return ChVehicleJoint::Type::SPHERICAL;
+        return ChJoint::Type::SPHERICAL;
     } else if (type.compare("Universal") == 0) {
-        return ChVehicleJoint::Type::UNIVERSAL;
+        return ChJoint::Type::UNIVERSAL;
     } else {
         // TODO Unknown type, what do we do here?
-        return ChVehicleJoint::Type::LOCK;
+        return ChJoint::Type::LOCK;
     }
 }
 

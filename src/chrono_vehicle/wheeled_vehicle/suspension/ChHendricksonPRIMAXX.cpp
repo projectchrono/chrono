@@ -319,13 +319,13 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
         chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
 
         // Connect tierod body to knuckle (spherical) and chassis (universal)
-        m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_knuckle[side], m_tierod[side],
+        m_sphericalTierod[side] = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_knuckle[side], m_tierod[side],
             ChFrame<>(points[TIEROD_K], QUNIT), getTierodBushingData());
         m_sphericalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_sphericalTierod[side]);
-        m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
+        m_universalTierod[side] = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
             ChFrame<>(points[TIEROD_C], rot.GetQuaternion()), getTierodBushingData());
         m_universalTierod[side]->SetTag(m_obj_tag);
         chassis->AddJoint(m_universalTierod[side]);
