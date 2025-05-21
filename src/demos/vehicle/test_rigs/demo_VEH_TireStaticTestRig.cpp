@@ -31,6 +31,7 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChTireStaticTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChMBTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -93,6 +94,7 @@ int main() {
 
     bool handling_tire = std::dynamic_pointer_cast<ChForceElementTire>(tire) != nullptr;
     bool fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire) != nullptr;
+    bool mb_tire = std::dynamic_pointer_cast<ChMBTire>(tire) != nullptr;
     bool rigid_tire = std::dynamic_pointer_cast<ChRigidTire>(tire) != nullptr;
 
     if (handling_tire) {
@@ -114,7 +116,9 @@ int main() {
     ChTimestepper::Type integrator_type;
     double step_size = 0;
 
-    if (fea_tire) {
+    if (mb_tire) {
+        cout << "Setting solver and integrator for MB tire" << endl;
+
         sys = new ChSystemSMC;
         step_size = 5e-5;
         ////solver_type = ChSolver::Type::PARDISO_MKL;
@@ -124,7 +128,14 @@ int main() {
 
         integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
         ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-    } else if (rigid_tire) {
+    } else if (fea_tire) {
+        cout << "Setting solver and integrator for FEA tire" << endl;
+
+        sys = new ChSystemSMC;
+        step_size = 1e-4;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::HHT;
+    } else if (rigid_tire || handling_tire) {
         sys = new ChSystemNSC;
         step_size = 2e-4;
         solver_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -144,11 +155,20 @@ int main() {
     int num_threads_eigen = 1;
 
     // Number of threads used by PardisoMKL
-    int num_threads_pardiso = std::min(4, ChOMP::GetNumProcs());
+    int num_threads_pardiso = std::min(8, ChOMP::GetNumProcs());
 
     sys->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
     SetChronoSolver(*sys, solver_type, integrator_type, num_threads_pardiso);
     tire->SetStepsize(step_size);
+
+    auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
+    if (hht) {
+        hht->SetAlpha(-0.2);
+        hht->SetMaxIters(5);
+        hht->SetAbsTolerances(1e-2);
+        hht->SetStepControl(false);
+        hht->SetMinStepSize(1e-4);
+    }
 
     // -----------------
     // Initialize output
