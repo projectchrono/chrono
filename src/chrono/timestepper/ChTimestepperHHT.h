@@ -71,10 +71,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
 
     /// Available styles of modified Newton methods
-    enum ModifiedNewton : int {
-        UNMODIFIED, // Classical Newton. Jacobian updated at every iteration
+    enum class JacobianUpdate {
+        EVERY_ITERATION, // Classical Newton. Jacobian updated at every iteration
         EVERY_STEP, // Jacobian updated at every step
-        CONSTANT,   // Jacobian never updated
+        NEVER,   // Jacobian never updated
         AUTOMATIC   // Jaobian updated when appropriate. TODO: implement
     };
 
@@ -83,12 +83,12 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// per step or if the Newton iteration does not converge with an out-of-date matrix.
     /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
     /// Default: true.
-    void SetModifiedNewton(ModifiedNewton style) { modified_Newton = style; }
+    void SetModifiedNewton(JacobianUpdate style) { modified_Newton = style; }
     void SetModifiedNewton(bool enable) { // Overload for backward compatibility with boolean implementation
         if (enable)
-            modified_Newton = ModifiedNewton::EVERY_STEP;
+            modified_Newton = JacobianUpdate::EVERY_STEP;
         else
-            modified_Newton = ModifiedNewton::UNMODIFIED;
+            modified_Newton = JacobianUpdate::EVERY_ITERATION;
     }
 
     /// Perform an integration timestep, by advancing the state by the specified time step.
@@ -140,7 +140,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h;                           ///< internal stepsize
     unsigned int num_successful_steps;  ///< number of successful steps
 
-    ModifiedNewton modified_Newton;    ///< style of modified Newton?
+    JacobianUpdate modified_Newton;    ///< style of modified Newton?
     bool matrix_is_current;  ///< is the Newton matrix up-to-date?
     bool call_setup;         ///< should the solver's Setup function be called?
 

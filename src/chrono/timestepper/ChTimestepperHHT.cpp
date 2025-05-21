@@ -34,7 +34,7 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
       h_min(1e-10),
       h(1e6),
       num_successful_steps(0),
-      modified_Newton(EVERY_STEP),
+      modified_Newton(JacobianUpdate::EVERY_STEP),
       call_setup(true) {
     SetAlpha(-0.2);  // default: some dissipation
 }
@@ -114,20 +114,20 @@ void ChTimestepperHHT::Advance(const double dt) {
 
         for (it = 0; it < maxiters; it++) {
             // Monitor flags controlling whether or not the Newton matrix must be updated.
-            // If using ModifiedNewton::UNMODIFIED, a matrix update occurs:
+            // If using JacobianUpdate::EVERY_ITERATION, a matrix update occurs:
             //   - at every iteration
-            // If using ModifiedNewton::EVERY_STEP, a matrix update occurs:
+            // If using JacobianUpdate::EVERY_STEP, a matrix update occurs:
             //   - at the beginning of a step
             //   - on a stepsize decrease
             //   - if the Newton iteration does not converge with an out-of-date matrix
-            // If using ModifiedNewton::CONSTANT, a matrix update occurs:
+            // If using JacobianUpdate::NEVER, a matrix update occurs:
             //   - only at the beginning of the very first step
-            // If using ModifiedNewton::AUTOMATIC, a matrix update occurs:
+            // If using JacobianUpdate::AUTOMATIC, a matrix update occurs:
             //   - when appropriate. TODO: implement
             // Otherwise, the matrix is updated at each iteration.
             call_setup = SetupRequiredForIteration(it, converged);
 
-            if (verbose && (modified_Newton != ModifiedNewton::UNMODIFIED) && call_setup)
+            if (verbose && (modified_Newton != JacobianUpdate::EVERY_ITERATION) && call_setup)
                 std::cout << " HHT call Setup." << std::endl;
 
             // Solve linear system and increment state
@@ -363,20 +363,20 @@ void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol,
 bool ChTimestepperHHT::SetupRequiredForIteration(int iteration, bool previous_substep_converged) {
     bool setup;
     switch (modified_Newton) {
-        case UNMODIFIED:
+        case JacobianUpdate::EVERY_ITERATION:
             setup = true;
             break;
-        case EVERY_STEP:
+        case JacobianUpdate::EVERY_STEP:
             // Force a matrix re-evaluation (due to change in stepsize) if previous sub-step did not converge
             // Do not setup again at start of sub-step if previous sub-step converged
             setup = (iteration == 0 && !previous_substep_converged);
             break;
-        case CONSTANT:
+        case JacobianUpdate::NEVER:
             // Only call setup on very first iteration of very first run
             // call_setup(true) in constructor, or reset to true if modified Newton changed to another style
             setup = (call_setup && iteration == 0);
             break;
-        case AUTOMATIC:
+        case JacobianUpdate::AUTOMATIC:
             // TODO: implement. function potentially needs more arguments to determine automatic update schedule
             setup = true; // TEMP
             break;
