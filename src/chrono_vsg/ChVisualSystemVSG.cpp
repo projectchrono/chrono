@@ -898,7 +898,7 @@ void ChVisualSystemVSG::SetGuiFontSize(float theSize) {
 
 void ChVisualSystemVSG::SetWindowSize(const ChVector2i& size) {
     if (m_initialized) {
-        std::cerr << "Function ChVisualSystemVSG::SetGuiFontSize can only be called before initialization!"
+        std::cerr << "Function ChVisualSystemVSG::SetWindowSize can only be called before initialization!"
                   << std::endl;
         return;
     }
@@ -1240,7 +1240,6 @@ void ChVisualSystemVSG::Initialize() {
     // in this case the desired font size is too big. We take the standard font instead.
     if (m_window->traits()->width != m_window->extent2D().width) {
 #endif
-
         auto foundFontFile = vsg::findFile("vsg/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf", m_options);
         if (foundFontFile) {
             // convert native filename to UTF8 string that is compatible with ImuGUi.
@@ -1403,15 +1402,9 @@ void ChVisualSystemVSG::Render() {
 
         for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
             m_body_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
-            if (m_yup) {
-                m_body_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
-                m_body_labels_layout[iPos]->position =
-                    vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
-            } else {
-                m_body_labels_layout[iPos]->vertical = vsg::vec3(0, 0, label_size);
-                m_body_labels_layout[iPos]->position =
-                    vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y(), c_pos[iPos].z() - label_size / 2);
-            }
+            m_body_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
+            m_body_labels_layout[iPos]->position =
+                vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
             m_body_labels_layout[iPos]->color = vsg::vec4CH(m_body_labels_color, 1.0f);
             m_body_labels_text[iPos]->setup(0, m_options);
         }
@@ -1428,15 +1421,9 @@ void ChVisualSystemVSG::Render() {
 
         for (size_t iPos = 0; iPos < c_pos.size(); iPos++) {
             m_link_labels_layout[iPos]->horizontal = vsg::vec3(label_size, 0, 0);
-            if (m_yup) {
-                m_link_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
-                m_link_labels_layout[iPos]->position =
-                    vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
-            } else {
-                m_link_labels_layout[iPos]->vertical = vsg::vec3(0, 0, label_size);
-                m_link_labels_layout[iPos]->position =
-                    vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y(), c_pos[iPos].z() - label_size / 2);
-            }
+            m_link_labels_layout[iPos]->vertical = vsg::vec3(0, label_size, 0);
+            m_link_labels_layout[iPos]->position =
+                vsg::vec3(c_pos[iPos].x(), c_pos[iPos].y() - label_size / 2, c_pos[iPos].z());
             m_link_labels_layout[iPos]->color = vsg::vec4CH(m_link_labels_color, 1.0f);
             m_link_labels_text[iPos]->setup(0, m_options);
         }
@@ -1882,11 +1869,7 @@ void ChVisualSystemVSG::BindLabels() {
         layout->verticalAlignment = vsg::StandardLayout::TOP_ALIGNMENT;
         layout->position = vsg::vec3(0.0, 0.0, 0.0);
         layout->horizontal = vsg::vec3(m_label_size, 0.0, 0.0);
-        if (m_yup) {
-            layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
-        } else {
-            layout->vertical = vsg::vec3(0.0, 0.0, m_label_size);
-        }
+        layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
         layout->color = vsg::vec4CH(m_body_labels_color, 1.0f);
         dynamic_text->text = text;
         dynamic_text->font = m_labelFont;
@@ -1907,11 +1890,7 @@ void ChVisualSystemVSG::BindLabels() {
         layout->verticalAlignment = vsg::StandardLayout::TOP_ALIGNMENT;
         layout->position = vsg::vec3(0.0, 0.0, 0.0);
         layout->horizontal = vsg::vec3(m_label_size, 0.0, 0.0);
-        if (m_yup) {
-            layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
-        } else {
-            layout->vertical = vsg::vec3(0.0, 0.0, m_label_size);
-        }
+        layout->vertical = vsg::vec3(0.0, m_label_size, 0.0);
         layout->color = vsg::vec4CH(m_link_labels_color, 1.0f);
         dynamic_text->text = text;
         dynamic_text->font = m_labelFont;
