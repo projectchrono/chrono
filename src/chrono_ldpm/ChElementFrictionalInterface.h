@@ -223,7 +223,7 @@ class ChLdpmApi ChElementFrictionalInterface : public ChElementGeneric,
 //   Triangle consists of 3 ChNodeFEAxyz nodes and inner node is also ChNodeFEAxyz
 /// Node inside triangular face is mass-less, so if used in dynamic analysis, the mass must
 /// be set with non-zero value.
-class ChApi ChElementFrictionalInterfaceRot : public ChElementGeneric,
+class ChLdpmApi ChElementFrictionalInterfaceRot : public ChElementGeneric,
 											public ChElementCorotational,
 											public ChLoadableUVW {
   public:
