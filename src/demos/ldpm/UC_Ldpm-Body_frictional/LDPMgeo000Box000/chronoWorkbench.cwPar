@@ -1,1 +1,86 @@
 
+// ================================================================================
+// CHRONO WORKBENCH - github.com/Concrete-Chrono-Development/chrono-preprocessor
+//
+// Copyright (c) 2023 
+// All rights reserved. 
+//
+// Use of the code that generated this file is governed by a BSD-style license that
+// can be found in the LICENSE file at the top level of the distribution and at
+// github.com/Concrete-Chrono-Development/chrono-preprocessor/blob/main/LICENSE
+//
+// ================================================================================
+// Chrono Workbench Parameter File
+// ================================================================================
+// 
+// Chrono Workbench developed by Northwestern University
+//
+// ================================================================================
+        
+
+constitutiveEQ = Concrete-Failure-V1
+matParaSet = Custom Parameters
+numCPU = 1
+numIncrements = 10
+maxIter = 50000
+placementAlg = Trial-and-Error
+geoType = Box
+dimensions = ['50.00 mm', '50.00 mm', '50.00 mm']
+cadFile = 
+minPar = 6.0
+maxPar = 12.0
+fullerCoef = 0.5
+sieveCurveDiameter = 
+sieveCurvePassing = 
+wcRatio = 0.5
+densityWater = 1e-09
+cementC = 3.15e-10
+flyashC = 0.0
+silicaC = 0.0
+scmC = 0.0
+cementDensity = 3.15e-09
+flyashDensity = 7e-10
+silicaDensity = 2.8e-09
+scmDensity = 5e-10
+airFrac1 = 0.03
+fillerC = 0.0
+fillerDensity = 0.0
+airFrac2 = 0.03
+htcToggle = Off
+htcLength = 0.0
+fiberToggle = Off
+fiberCutting = Off
+fiberDiameter = 0.0
+fiberLength = 0.0
+fiberVol = 0.0
+fiberOrientation1 = 0.0
+fiberOrientation2 = 0.0
+fiberOrientation3 = 0.0
+fiberPref = 0.0
+fiberFile = 
+multiMatToggle = Off
+multiMatFile = 
+aggFile = 
+multiMatRule = 9
+grainAggMin = 0.0
+grainAggMax = 0.0
+grainAggFuller = 0.0
+grainAggSieveD = 
+grainAggSieveP = 
+grainITZMin = 0.0
+grainITZMax = 0.0
+grainITZFuller = 0.0
+grainITZSieveD = 
+grainITZSieveP = 
+grainBinderMin = 0.0
+grainBinderMax = 0.0
+grainBinderFuller = 0.0
+grainBinderSieveD = 
+grainBinderSieveP = 
+periodicToggle = Off
+dataFilesGen = True
+visFilesGen = True
+singleTetGen = False
+modelType = Lattice Discrete Particle Model (LDPM)
+outputDir = C:\Users\24445\chronoWorkbench
+
