@@ -83,7 +83,11 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// per step or if the Newton iteration does not converge with an out-of-date matrix.
     /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
     /// Default: true.
-    void SetModifiedNewton(JacobianUpdate style) { modified_Newton = style; }
+    void SetModifiedNewton(JacobianUpdate style) {
+        modified_Newton = style;
+        // Reset setup call for JacobianUpdate::NEVER, e.g. if used after another style during the same simulation
+        if (style == JacobianUpdate::NEVER) call_setup_for_NEVER = true;
+    }
     void SetModifiedNewton(bool enable) { // Overload for backward compatibility with boolean implementation
         if (enable)
             modified_Newton = JacobianUpdate::EVERY_STEP;
@@ -143,6 +147,15 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     JacobianUpdate modified_Newton;    ///< style of modified Newton?
     bool matrix_is_current;  ///< is the Newton matrix up-to-date?
     bool call_setup;         ///< should the solver's Setup function be called?
+    // TODO: I needed the variable below for the corner case where HHT converges after 1 iteration, and SetupRequiredForIteration()
+    //       returned true for JacobianUpdate::NEVER at the following step, which is not the desired behavior!
+    //       Determining if style JacobianUpdate::NEVER should call setup, cannot be determined by SetupRequiredForIteration() from the iteration count, previous convergence status, etc, without leaving this corner case.
+    //       I could not use existing variables such as numsetups or numiters because those are reset to zero at every call of Advance() and I need something that persists across steps.
+    //       I needed a persistent state variable to determine whether JacobianUpdate::NEVER should call setup.
+    //       ans that values must be different from call_setup which currently gives the immediate value used by StateSolveCorrection() inside Increment()
+    //       One a side note, I think call_setup is not needed as a state variable. It could be made local to Advance() and passed to Increment(), rather than be a private member of HHT.
+    //       I did not want to change too many things and refactor this so I simply added a new variable.
+    bool call_setup_for_NEVER;
 
     ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)

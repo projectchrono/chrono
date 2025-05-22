@@ -35,7 +35,8 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* intgr)
       h(1e6),
       num_successful_steps(0),
       modified_Newton(JacobianUpdate::EVERY_STEP),
-      call_setup(true) {
+      call_setup(true),
+      call_setup_for_NEVER(true) {
     SetAlpha(-0.2);  // default: some dissipation
 }
 
@@ -372,9 +373,9 @@ bool ChTimestepperHHT::SetupRequiredForIteration(int iteration, bool previous_su
             setup = (iteration == 0 && !previous_substep_converged);
             break;
         case JacobianUpdate::NEVER:
-            // Only call setup on very first iteration of very first run
-            // call_setup(true) in constructor, or reset to true if modified Newton changed to another style
-            setup = (call_setup && iteration == 0);
+            // Only call setup once when SetModifiedNewton(JacobianUpdate::NEVER) and never again
+            setup = call_setup_for_NEVER;
+            if (setup) call_setup_for_NEVER = false;
             break;
         case JacobianUpdate::AUTOMATIC:
             // TODO: implement. function potentially needs more arguments to determine automatic update schedule
