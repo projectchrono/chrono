@@ -79,6 +79,9 @@
 // If module FMI was enabled, define CHRONO_FMI
 @CHRONO_FMI@
 
+// If module FLOW was enabled, define CHRONO_FLOW
+@CHRONO_FLOW@
+
 // -----------------------------------------------------------------------------
 // OpenMP settings
 // -----------------------------------------------------------------------------
