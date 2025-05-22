@@ -728,11 +728,10 @@ int main(int argc, char** argv) {
     ///
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     
-	std::string current_dir;
-	current_dir=getCurrentDirectory();
-	//
-    std::string LDPM_data_path=current_dir+"LDPMgeo000Box000_Ke/";
-    std::string LDPM_GeoName="LDPMgeo000";
+    std::string current_dir;
+    current_dir=getCurrentDirectory();
+    //
+   
     //
     std::string out_dir=current_dir+"out/";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
