@@ -125,6 +125,10 @@ set(Chrono_VSG_AVAILABLE            @CH_ENABLE_MODULE_VSG@)
 set(Chrono_CSHARP_AVAILABLE         @CH_ENABLE_MODULE_CSHARP@)
 set(Chrono_FMI_AVAILABLE            @CH_ENABLE_MODULE_FMI@)
 set(Chrono_ROS_AVAILABLE            @CH_ENABLE_MODULE_ROS@)
+<<<<<<< HEAD
+=======
+set(Chrono_FLOW_AVAILABLE           @CH_ENABLE_MODULE_FLOW@)
+>>>>>>> 9a96b1b67 (initial push to create flow module)
 
 if(CHRONO_MPI_CXX_AVAILABLE)
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
@@ -153,6 +157,10 @@ set(Chrono_MODAL_DEPENDENCIES          "@DEPENDENCIES_MODAL@")
 set(Chrono_VSG_DEPENDENCIES            "@DEPENDENCIES_VSG@")
 set(Chrono_ROS_DEPENDENCIES            "@DEPENDENCIES_ROS@")
 set(Chrono_VEHICLECOSIM_DEPENDENCIES   "@DEPENDENCIES_VEHICLECOSIM@")
+<<<<<<< HEAD
+=======
+set(Chrono_FLOW_DEPENDENCIES           "@CH_ENABLE_MODULE_DEPENDENCIES@")
+>>>>>>> 9a96b1b67 (initial push to create flow module)
 
 #-------------------------------------------------------------------------------
 # Build complete list of Chrono modules (requested and their dependencies)
@@ -1027,6 +1035,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     list(PREPEND CHRONO_LIB_NAMES "Chrono_fmi")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_fmi.dll")
+    endif()
+
+  elseif(${COMPONENT_UPPER} MATCHES "FLOW")
+    
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_flow")
+    if (NOT CHRONO_STATIC)
+      list(APPEND CHRONO_DLL_NAMES "Chrono_flow.dll")
     endif()
 
   endif() # end if-else for component type

@@ -525,6 +525,10 @@ add_subdirectory(chrono_synchrono)
 add_subdirectory(chrono_ros)
 add_subdirectory(chrono_swig/chrono_python)
 add_subdirectory(chrono_swig/chrono_csharp)
+<<<<<<< HEAD
+=======
+add_subdirectory(chrono_flow)
+>>>>>>> 9a96b1b67 (initial push to create flow module)
 
 # Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
@@ -688,6 +692,12 @@ if(CH_ENABLE_MODULE_PERIDYNAMICS)
   set(CHRONO_PERIDYNAMICS "#define CHRONO_PERIDYNAMICS")
 else()
   set(CHRONO_PERIDYNAMICS "#undef CHRONO_PERIDYNAMICS")
+endif()
+
+if(CH_ENABLE_MODULE_FLOW)
+  set(CHRONO_FLOW "#define CHRONO_FLOW")
+else()
+  set(CHRONO_FLOW "#undef CHRONO_FLOW")
 endif()
 
 if(CH_USE_SIMD)
