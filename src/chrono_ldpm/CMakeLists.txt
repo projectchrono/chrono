@@ -18,10 +18,11 @@ SET(ChronoEngine_LDPM_SOURCES
     ChSectionLDPM.cpp
     ChBuilderLDPM.cpp
     ChMeshLine.cpp
-	ChLinkNodeNodeRot.cpp
+    ChLinkNodeNodeRot.cpp
     ChLinkNodeRotFace.cpp
     ChLinkPoint2Line.cpp
-	ChRepresentedVolumeElement.cpp
+    ChRepresentedVolumeElement.cpp
+    ChElementFrictionalInterface.cpp
 )
 
 SET(ChronoEngine_LDPM_HEADERS
@@ -34,10 +35,11 @@ SET(ChronoEngine_LDPM_HEADERS
     ChMeshLine.h
     ChLDPMFace.h
     ChMeshSurfaceLDPM.h
-	ChLinkNodeNodeRot.h
+    ChLinkNodeNodeRot.h
     ChLinkNodeRotFace.h
     ChLinkPoint2Line.h
-	ChRepresentedVolumeElement.h
+    ChRepresentedVolumeElement.h
+    ChElementFrictionalInterface.h
 )
 
 SOURCE_GROUP("" FILES 
