@@ -122,14 +122,15 @@ ChSystem::~ChSystem() {
     Clear();
 }
 
-std::unique_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
+std::shared_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
     switch (contact_method) {
         case ChContactMethod::NSC:
-            return chrono_types::make_unique<ChSystemNSC>();
+            return chrono_types::make_shared<ChSystemNSC>();
         case ChContactMethod::SMC:
-            return chrono_types::make_unique<ChSystemSMC>();
+            return chrono_types::make_shared<ChSystemSMC>();
             break;
     }
+    return nullptr;
 }
 
 void ChSystem::Clear() {
