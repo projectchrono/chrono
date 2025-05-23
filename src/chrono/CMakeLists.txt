@@ -1085,6 +1085,7 @@ set(Chrono_utils_SOURCES
     utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
+    utils/ChForceFunctors.cpp
     utils/ChSocket.cpp
     utils/ChSocketCommunication.cpp
     )
@@ -1105,6 +1106,7 @@ set(Chrono_utils_HEADERS
     utils/ChCompositeInertia.h
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
+    utils/ChForceFunctors.h
     utils/ChSocket.h
     utils/ChSocketCommunication.h
 )

@@ -181,10 +181,10 @@ double ARTcar_ShockForce::evaluate(double time, double rest_length, double lengt
 // Constructors
 // -----------------------------------------------------------------------------
 ARTcar_DoubleWishboneFront::ARTcar_DoubleWishboneFront(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
     );
     m_shockForceCB =
-        chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient  // coefficient for linear damping
+        chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient  // coefficient for linear damping
         );
 
     // float f = .1;
@@ -202,10 +202,10 @@ ARTcar_DoubleWishboneFront::ARTcar_DoubleWishboneFront(const std::string& name) 
 }
 
 ARTcar_DoubleWishboneRear::ARTcar_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
     );
     m_shockForceCB =
-        chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient  // coefficient for linear damping
+        chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient  // coefficient for linear damping
         );
 
     // float f = .1;

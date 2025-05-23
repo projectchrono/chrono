@@ -61,8 +61,8 @@ const double Sedan_MultiLink::m_springRestLength = 0.339;
 // Constructor
 // -----------------------------------------------------------------------------
 Sedan_MultiLink::Sedan_MultiLink(const std::string& name) : ChMultiLink(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
