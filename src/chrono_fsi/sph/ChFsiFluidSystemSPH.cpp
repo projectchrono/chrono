@@ -1141,6 +1141,21 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
             break;
     }
 
+    switch (params.integration_scheme) {
+        case IntegrationScheme::EULER:
+			cout << "  Integration scheme: Explicit Euler" << endl;
+			break;
+        case IntegrationScheme::RK2:
+            cout << "  Integration scheme: Runge-Kutta 2" << endl;
+            break;
+        case IntegrationScheme::SYMPLECTIC:
+			cout << "  Integration scheme: Symplectic Euler" << endl;
+            break;
+		case IntegrationScheme::IMPLICIT_SPH:
+			cout << "  Integration scheme: Implicit SPH" << endl;
+			break;
+    }
+    
     cout << "  num_neighbors: " << params.num_neighbors << endl;
     cout << "  rho0: " << params.rho0 << endl;
     cout << "  invrho0: " << params.invrho0 << endl;
