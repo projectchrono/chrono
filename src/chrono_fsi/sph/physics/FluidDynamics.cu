@@ -289,6 +289,7 @@ __device__ void PositionEulerStep(Real dT, const Real3& vel, Real4& pos) {
 __device__ void PositionMidpointStep(Real dT, const Real3& vel, const Real3& acc, Real4& pos) {
     Real3 p = mR3(pos);
     p += dT * vel + 0.5 * dT * dT * acc;
+    pos = mR4(p, pos.w);
 }
 
 __device__ void VelocityEulerStep(Real dT, const Real3& acc, Real3& vel) {
