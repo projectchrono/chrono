@@ -107,6 +107,12 @@ void ChJoint::CreateLink(Type type,
             m_joint = link;
             break;
         }
+        case Type::PRISMATIC: {
+            auto link = chrono_types::make_shared<ChLinkLockPrismatic>();
+            link->Initialize(body1, body2, link_frame);
+            m_joint = link;
+            break;
+        }
         case Type::UNIVERSAL: {
             auto link = chrono_types::make_shared<ChLinkUniversal>();
             link->Initialize(body1, body2, link_frame);
@@ -160,6 +166,7 @@ void ChJoint::CreateBushing(Type type,
             D_matrix(3, 3) = bd->D_rot_dof;
             D_matrix(4, 4) = bd->D_rot_dof;
             break;
+        case Type::PRISMATIC:
         case Type::POINTLINE:
         case Type::POINTPLANE:
             return;  // do not create a bushing
@@ -176,6 +183,8 @@ std::string ChJoint::GetTypeString(Type type) {
             return "spherical";
         case Type::REVOLUTE:
             return "revolute";
+        case Type::PRISMATIC:
+            return "prismatic";
         case Type::UNIVERSAL:
             return "universal";
         case Type::POINTLINE:

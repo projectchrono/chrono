@@ -36,10 +36,11 @@ namespace chrono {
 class ChApi ChJoint {
   public:
     /// Supported types of joints.
-    /// For a kinematic joint, the wrapped element will be a ChLink of the appropriate type. For a bushing, the
-    /// stiffness and damping in the appropriate directions (as defined by the DOFs of the joint type) are set to a
-    /// different value (typically 0).
-    enum class Type { LOCK, SPHERICAL, REVOLUTE, UNIVERSAL, POINTLINE, POINTPLANE };
+    /// - For a kinematic joint, the wrapped element will be a ChLink of the appropriate type.
+    /// - For a bushing, the stiffness and damping in the appropriate directions (as defined by the DOFs of the joint
+    /// type) are set to a different value (typically 0).
+    /// - A bushing of type PRISMATIC, POINTLINE, or POINTPLANE is prohibited.
+    enum class Type { LOCK, SPHERICAL, REVOLUTE, PRISMATIC, UNIVERSAL, POINTLINE, POINTPLANE };
 
     /// Stiffness and damping data for a bushing specification.
     /// Attention! The Chrono bushing formulation is valid only for small relative rotations. As such, define a non-zero
