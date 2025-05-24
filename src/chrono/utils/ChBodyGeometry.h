@@ -71,6 +71,7 @@ class ChApi ChBodyGeometry {
         ChQuaternion<> rot;  ///< orientation relative to body
         ChVector3d dims;     ///< box dimensions
         int matID;           ///< index in contact material list
+        ChColor color;       ///< visualization color
     };
 
     /// Sphere shape for visualization and/or collision.
@@ -80,6 +81,7 @@ class ChApi ChBodyGeometry {
         ChVector3d pos;  ///< center position relative to body
         double radius;   ///< sphere radius
         int matID;       ///< index in contact material list
+        ChColor color;   ///< visualization color
     };
 
     /// Cylinder shape for visualization and/or collision.
@@ -92,6 +94,7 @@ class ChApi ChBodyGeometry {
         double radius;       ///< cylinder radius
         double length;       ///< cylinder length
         int matID;           ///< index in contact material list
+        ChColor color;       ///< visualization color
     };
 
     /// Line shape for visualization.
@@ -174,9 +177,9 @@ class ChApi ChBodyGeometry {
     std::vector<CylinderShape> vis_cylinders;  ///< list of visualization cylinders
     std::vector<LineShape> vis_lines;          ///< list of visualization lines
 
-    ChColor color_boxes;      ///< visualization color
-    ChColor color_spheres;    ///< visualization color
-    ChColor color_cylinders;  ///< visualization color
+    ChColor color_boxes;      ///< default visualization color for box primitives
+    ChColor color_spheres;    ///< default visualization color for sphere primitives
+    ChColor color_cylinders;  ///< default visualization color for cylinder primitives
 
     std::string vis_mesh_file;  ///< name of Wavefront OBJ file with visualization mesh
 };
