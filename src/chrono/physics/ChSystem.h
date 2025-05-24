@@ -77,7 +77,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
 
-    static std::unique_ptr<ChSystem> Create(ChContactMethod contact_method);
+    static std::shared_ptr<ChSystem> Create(ChContactMethod contact_method);
 
     /// Set the system name.
     void SetName(const std::string& name) { m_name = name; }

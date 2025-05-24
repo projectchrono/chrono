@@ -35,35 +35,35 @@ namespace chrono {
 namespace utils {
 
 ChBodyGeometry::ChBodyGeometry()
-    : color_boxes(ChColor(0.5f, 0.5f, 0.5f)),
-      color_spheres(ChColor(0.5f, 0.5f, 0.5f)),
-      color_cylinders(ChColor(0.5f, 0.5f, 0.5f)) {}
+    : color_boxes(ChColor(0.75f, 0.75f, 0.75f)),
+      color_spheres(ChColor(0.75f, 0.75f, 0.75f)),
+      color_cylinders(ChColor(0.75f, 0.75f, 0.75f)) {}
 
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID)
-    : pos(pos), rot(rot), dims(dims), matID(matID) {}
+    : pos(pos), rot(rot), dims(dims), matID(matID), color({-1, -1, -1}) {}
 
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChBox& box, int matID)
-    : pos(pos), rot(rot), dims(box.GetLengths()), matID(matID) {}
+    : pos(pos), rot(rot), dims(box.GetLengths()), matID(matID), color({-1, -1, -1}) {}
 
 ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, double radius, int matID)
-    : pos(pos), radius(radius), matID(matID) {}
+    : pos(pos), radius(radius), matID(matID), color({-1, -1, -1}) {}
 
 ChBodyGeometry::SphereShape::SphereShape(const ChVector3d& pos, const ChSphere& sphere, int matID)
-    : pos(pos), radius(sphere.GetRadius()), matID(matID) {}
+    : pos(pos), radius(sphere.GetRadius()), matID(matID), color({-1, -1, -1}) {}
 
 ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
                                              const ChQuaternion<>& rot,
                                              double radius,
                                              double length,
                                              int matID)
-    : pos(pos), rot(rot), radius(radius), length(length), matID(matID) {}
+    : pos(pos), rot(rot), radius(radius), length(length), matID(matID), color({-1, -1, -1}) {}
 
 ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
                                              const ChVector3d& axis,
                                              double radius,
                                              double length,
                                              int matID)
-    : pos(pos), radius(radius), length(length), matID(matID) {
+    : pos(pos), radius(radius), length(length), matID(matID), color({-1, -1, -1}) {
     ChMatrix33<> rot_mat;
     rot_mat.SetFromAxisX(axis);
     rot = rot_mat.GetQuaternion() * QuatFromAngleY(-CH_PI_2);
@@ -73,7 +73,12 @@ ChBodyGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
                                              const ChQuaternion<>& rot,
                                              const ChCylinder& cylinder,
                                              int matID)
-    : pos(pos), rot(rot), radius(cylinder.GetRadius()), length(cylinder.GetHeight()), matID(matID) {}
+    : pos(pos),
+      rot(rot),
+      radius(cylinder.GetRadius()),
+      length(cylinder.GetHeight()),
+      matID(matID),
+      color({-1, -1, -1}) {}
 
 ChBodyGeometry::LineShape::LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line)
     : pos(pos), rot(rot), line(line) {}
@@ -200,19 +205,28 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
 
     for (auto& sphere : vis_spheres) {
         auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
-        sphere_shape->AddMaterial(sph_mat);
+        if (sphere.color.R < 0 || sphere.color.G < 0 || sphere.color.B < 0)
+            sphere_shape->AddMaterial(sph_mat);
+        else
+            sphere_shape->SetColor(sphere.color);
         body->AddVisualShape(sphere_shape, ChFrame<>(sphere.pos));
     }
 
     for (auto& box : vis_boxes) {
         auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(box.dims);
-        box_shape->AddMaterial(box_mat);
+        if (box.color.R < 0 || box.color.G < 0 || box.color.B < 0)
+            box_shape->AddMaterial(box_mat);
+        else
+            box_shape->SetColor(box.color);
         body->AddVisualShape(box_shape, ChFrame<>(box.pos, box.rot));
     }
 
     for (auto& cyl : vis_cylinders) {
         auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(cyl.radius, cyl.length);
-        cyl_shape->AddMaterial(cyl_mat);
+        if (cyl.color.R < 0 || cyl.color.G < 0 || cyl.color.B < 0)
+            cyl_shape->AddMaterial(cyl_mat);
+        else
+            cyl_shape->SetColor(cyl.color);
         body->AddVisualShape(cyl_shape, ChFrame<>(cyl.pos, cyl.rot));
     }
 
