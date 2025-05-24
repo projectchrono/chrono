@@ -58,6 +58,12 @@ if(BUILD_DEMOS_COSIMULATION)
     add_subdirectory(cosimulation)
 endif()
 
+option(BUILD_DEMOS_YAML "Build YAML parser demo programs" TRUE)
+mark_as_advanced(FORCE BUILD_DEMOS_YAML)
+if(BUILD_DEMOS_YAML)
+    add_subdirectory(yaml)
+endif()
+
 if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
     option(BUILD_DEMOS_MBS "Build demo programs for MBS module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_MBS)
