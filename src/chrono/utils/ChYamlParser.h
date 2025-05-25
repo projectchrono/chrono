@@ -56,6 +56,9 @@ class ChApi ChYamlParser {
     /// Load the model from the specified input YAML model file.
     void Load(const std::string& yaml_filename);
 
+    /// Return the name of the YAML model.
+    const std::string& GetName() const { return m_name; }
+
     /// Populate the given system with the cached Chrono components.
     /// An instance of the underlying Chrono model can be created at the specified frame (relative to the global frame),
     /// with all Chrono object names using the specified prefix.
@@ -192,7 +195,7 @@ class ChApi ChYamlParser {
     std::unordered_map<std::string, RSDA> m_rsdas;                ///< RSDA force elements
     std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
 
-    ChSystem* m_sys;
+    std::string m_name;    ///< name of the YAML model
     bool m_verbose;        ///< verbose terminal output (default: false)
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
     bool m_initialized;    ///< YAML file loaded

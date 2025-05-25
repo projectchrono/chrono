@@ -1,4 +1,5 @@
-angle_unit: DEG
+name: Slider-crank (reduced)
+angle_degrees: true
 
 bodies:
   - name: ground

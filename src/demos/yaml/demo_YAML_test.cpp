@@ -78,9 +78,15 @@ int main(int argc, char* argv[]) {
     ChYamlParser parser;
     parser.SetVerbose(true);
     parser.Load(GetChronoDataFile(model_yaml_filename));
+    auto model_name = parser.GetName();
+
+    // Populate Chrono system with YAML model
     instance1 = parser.Populate(*sys, frame1, prefix1);
     if (second_instance)
         instance2 = parser.Populate(*sys, frame2, prefix2);
+
+    // Print system hierarchy
+    sys->ShowHierarchy(std::cout);
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT
@@ -98,7 +104,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Ball drop demonstration");
+            vis_irr->SetWindowTitle("YAML model - " + model_name);
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->Initialize();
             vis_irr->AddLogo();
@@ -118,7 +124,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(sys.get());
-            vis_vsg->SetWindowTitle("Ball drop demonstration");
+            vis_vsg->SetWindowTitle("YAML model - " + model_name);
             vis_vsg->AddCamera(ChVector3d(2, -8, 0), ChVector3d(2, 0, 0));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);

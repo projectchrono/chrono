@@ -41,9 +41,9 @@ using std::endl;
 namespace chrono {
 namespace utils {
 
-ChYamlParser::ChYamlParser() : m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {}
+ChYamlParser::ChYamlParser() : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {}
 ChYamlParser::ChYamlParser(const std::string& yaml_filename, bool verbose)
-    : m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {
+    : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {
     Load(yaml_filename);
 }
 
@@ -62,6 +62,9 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
     } 
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
+
+    if (yaml["name"])
+        m_name = yaml["name"].as<std::string>();
 
     if (yaml["angle_degrees"])
         m_use_degrees = yaml["angle_degrees"].as<bool>();
