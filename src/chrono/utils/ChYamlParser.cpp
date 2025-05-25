@@ -17,7 +17,7 @@
 ////   or assume the file will be first checked against a fully defined YAML schema?
 //// - add definition functions for link-type components using 2 local frames
 ////   (alternative ChLink initialization)
-//// - add support for constraints (e.g., distance)
+//// - add support for other constraints (composite joints: rev-sph and rev-prismatic)
 //// - add support for motors and actuators
 //// - what is the best way to deal with collision families?
 
@@ -148,7 +148,36 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
 
     // Read constraints
     if (yaml["constraints"]) {
-        //// TODO
+        auto constraints = yaml["constraints"];
+        ChAssertAlways(constraints.IsSequence());
+        if (m_verbose) {
+            cout << "constraints: " << constraints.size() << endl;
+        }
+        for (size_t i = 0; i < constraints.size(); i++) {
+            ChAssertAlways(constraints[i]["type"]);
+            auto type = ToUpper(constraints[i]["type"].as<std::string>());
+            auto name = constraints[i]["name"].as<std::string>();
+
+            if (type == "DISTANCE") {
+                DistanceConstraint dist;
+                ChAssertAlways(constraints[i]["body1"]);
+                ChAssertAlways(constraints[i]["body2"]);
+                ChAssertAlways(constraints[i]["point1"]);
+                ChAssertAlways(constraints[i]["point2"]);
+                dist.body1 = constraints[i]["body1"].as<std::string>();
+                dist.body2 = constraints[i]["body2"].as<std::string>();
+                dist.point1 = ReadVector(constraints[i]["point1"]);
+                dist.point2 = ReadVector(constraints[i]["point2"]);
+
+                m_dists.insert({name, dist});
+
+            } else if (type == "REVOLUTE-SPHERICAL") {
+                //// TODO
+            } else if (type == "REVOLUTE-TRANSLATIONAL") {
+                //// TODO
+            }
+
+        }
     }
 
     // Read spring damper force elements elements

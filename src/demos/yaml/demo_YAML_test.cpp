@@ -39,6 +39,7 @@ using namespace chrono::utils;
 // -----------------------------------------------------------------------------
 
 std::string model_yaml_filename = "yaml/slider_crank.yaml";
+////std::string model_yaml_filename = "yaml/slider_crank_reduced.yaml";
 
 ChContactMethod contact_method = ChContactMethod::SMC;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
