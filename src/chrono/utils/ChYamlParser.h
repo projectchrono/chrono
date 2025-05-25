@@ -42,14 +42,27 @@ namespace utils {
 class ChApi ChYamlParser {
   public:
     ChYamlParser();
-    ChYamlParser(const std::string& yaml_filename);
+
+    /// Create a YAML parser and load the model from the specified input YAML file.
+    ChYamlParser(const std::string& yaml_filename, bool verbose = false);
     ~ChYamlParser();
 
+    /// Set verbose temrinal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Return true if a YAML model file has been loaded.
+    bool IsInitialized() const { return m_initialized; }
+
+    /// Load the model from the specified input YAML model file.
     void Load(const std::string& yaml_filename);
-    void Populate(ChSystem& sys);
-    void Depopulate(ChSystem& sys);
+
+    /// Populate the given system with the cached Chrono components.
+    /// An instance of the underlying Chrono model can be created at the specified frame (relative to the global frame),
+    /// with all Chrono object names using the specified prefix.
+    int Populate(ChSystem& sys, const ChFramed& model_frame = ChFramed(), const std::string& model_prefix = "");
+
+    /// Remove from the specified system the Chrono objects from the specified instance.
+    void Depopulate(ChSystem& sys, int instance_index);
 
   public:
     /// Load and return a ChVector3d from the specified node.
@@ -65,7 +78,7 @@ class ChApi ChYamlParser {
     /// Return a quaternion loaded from the specified node.
     /// Data is assumed to provide a quaternion or a Cardan extrinsic X-Y-Z angle set.
     ChQuaterniond ReadRotation(const YAML::Node& a);
-    
+
     /// Load and return a coordinate system from the specified node.
     ChCoordsysd ReadCoordinateSystem(const YAML::Node& a);
 
@@ -81,7 +94,7 @@ class ChApi ChYamlParser {
     ChJoint::Type ReadJointType(const YAML::Node& a);
 
     /// Load and return joint coordinate syustem from the specified node.
-    ChCoordsysd ReadJointFrame(const YAML::Node& a);
+    ChFramed ReadJointFrame(const YAML::Node& a);
 
     /// Load and return a geometry structure from the specified node.
     /// Collision geometry and contact material information is set in the return ChBodyGeometry object if the given
@@ -105,15 +118,15 @@ class ChApi ChYamlParser {
         Body();
         void PrintInfo(const std::string& name);
 
-        std::shared_ptr<ChBodyAuxRef> body;  ///< underlying Chrono body
-        ChVector3d pos;                      ///< body position (in global frame)
-        ChQuaterniond rot;                   ///< body orientation (in global frame)
-        bool is_fixed;                       ///< indicate if body fixed relative to global frame
-        double mass;                         ///< body mass
-        ChFramed com;                        ///< centroidal frame (relative to body frame)
-        ChVector3d inertia_moments;          ///< moments of inertia (relative to centroidal frame)
-        ChVector3d inertia_products;         ///< products of inertia (relative to centroidal frame)
-        ChBodyGeometry geometry;             ///< visualization and collision geometry
+        std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
+        ChVector3d pos;                                   ///< body position (relative to instance frame)
+        ChQuaterniond rot;                                ///< body orientation (relative to instance frame)
+        bool is_fixed;                                    ///< indicate if body fixed relative to global frame
+        double mass;                                      ///< body mass
+        ChFramed com;                                     ///< centroidal frame (relative to body frame)
+        ChVector3d inertia_moments;                       ///< moments of inertia (relative to centroidal frame)
+        ChVector3d inertia_products;                      ///< products of inertia (relative to centroidal frame)
+        ChBodyGeometry geometry;                          ///< visualization and collision geometry
     };
 
     /// Internal specification of a suspension joint.
@@ -121,11 +134,11 @@ class ChApi ChYamlParser {
         Joint();
         void PrintInfo(const std::string& name);
 
-        std::shared_ptr<ChJoint> joint;               ///< underlying Chrono joint
+        std::vector<std::shared_ptr<ChJoint>> joint;  ///< underlying Chrono joints (one per instance)
         ChJoint::Type type;                           ///< joint type
         std::string body1;                            ///< identifier of 1st body
         std::string body2;                            ///< identifier of 2nd body
-        ChCoordsysd csys;                             ///< joint position and orientation (in global frame)
+        ChFramed frame;                               ///< joint frame (relative to instance frame)
         std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
     };
 
@@ -134,11 +147,11 @@ class ChApi ChYamlParser {
         DistanceConstraint();
         void PrintInfo(const std::string& name);
 
-        std::shared_ptr<ChLinkDistance> dist;  ///< underlying Chrono distance constraint
-        std::string body1;                     ///< identifier of 1st body
-        std::string body2;                     ///< identifier of 2nd body
-        ChVector3d point1;                     ///< point on body1 (in global frame)
-        ChVector3d point2;                     ///< point on body2 (in global frame)
+        std::vector<std::shared_ptr<ChLinkDistance>> dist;  ///< underlying Chrono constraints (one per instance)
+        std::string body1;                                  ///< identifier of 1st body
+        std::string body2;                                  ///< identifier of 2nd body
+        ChVector3d point1;                                  ///< point on body1 (relative to instance frame)
+        ChVector3d point2;                                  ///< point on body2 (relative to instance frame)
     };
 
     /// Internal specification of a suspension TSDA.
@@ -146,11 +159,11 @@ class ChApi ChYamlParser {
         TSDA();
         void PrintInfo(const std::string& name);
 
-        std::shared_ptr<ChLinkTSDA> tsda;                 ///< underlying Chrono TSDA element
+        std::vector<std::shared_ptr<ChLinkTSDA>> tsda;    ///< underlying Chrono TSDAs (one per instance)
         std::string body1;                                ///< identifier of 1st body
         std::string body2;                                ///< identifier of 2nd body
-        ChVector3d point1;                                ///< point on body1 (in global frame)
-        ChVector3d point2;                                ///< point on body2 (in global frame)
+        ChVector3d point1;                                ///< point on body1 (relative to instance frame)
+        ChVector3d point2;                                ///< point on body2 (relative to instance frame)
         double free_length;                               ///< TSDA free (rest) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
         ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
@@ -161,15 +174,16 @@ class ChApi ChYamlParser {
         RSDA();
         void PrintInfo(const std::string& name);
 
-        std::shared_ptr<ChLinkRSDA> rsda;                   ///< underlying Chrono RSDA element
+        std::vector<std::shared_ptr<ChLinkRSDA>> rsda;      ///< underlying Chrono RSDAs (one per instance)
         std::string body1;                                  ///< identifier of 1st body
         std::string body2;                                  ///< identifier of 2nd body
-        ChVector3d pos;                                     ///< RSDA position (in global frame, visualization)
-        ChVector3d axis;                                    ///< axis of action for the RSDA (in global frame)
+        ChVector3d pos;                                     ///< RSDA position (relative to instance frame)
+        ChVector3d axis;                                    ///< RSDA action axis (relative to instance frame)
         double free_angle;                                  ///< RSDA free (rest) angle
         std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
     };
 
+    /// Utility function to find the ChBodyAuxRef with specified name.
     std::shared_ptr<ChBodyAuxRef> ChYamlParser::FindBody(const std::string& name) const;
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
@@ -179,9 +193,10 @@ class ChApi ChYamlParser {
     std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
 
     ChSystem* m_sys;
-    bool m_initialized;  ///< YAML file loaded
-    bool m_verbose;      ///< verbose terminal output (default: false)
-    bool m_use_degrees;  ///< all angles given in degrees (default: true)
+    bool m_verbose;        ///< verbose terminal output (default: false)
+    bool m_use_degrees;    ///< all angles given in degrees (default: true)
+    bool m_initialized;    ///< YAML file loaded
+    int m_instance_index;  ///< index of the last model instance created
 };
 
 /// @} chrono_utils

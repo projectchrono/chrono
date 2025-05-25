@@ -15,9 +15,6 @@
 //// TODO
 //// - perform checks during loading of YAML file,
 ////   or assume the file will be first checked against a fully defined YAML schema?
-//// - allow model to be relocatable and instantiated
-////     - take a ChFrame argument to Populate
-////     - take a std::String prefix argument to Populate
 //// - add definition functions for link-type components using 2 local frames
 ////   (alternative ChLink initialization)
 //// - add support for constraints (e.g., distance)
@@ -35,6 +32,8 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChYamlParser.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -42,9 +41,9 @@ using std::endl;
 namespace chrono {
 namespace utils {
 
-ChYamlParser::ChYamlParser() : m_verbose(false), m_initialized(false), m_use_degrees(true) {}
-ChYamlParser::ChYamlParser(const std::string& yaml_filename)
-    : m_verbose(false), m_initialized(false), m_use_degrees(false) {
+ChYamlParser::ChYamlParser() : m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {}
+ChYamlParser::ChYamlParser(const std::string& yaml_filename, bool verbose)
+    : m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {
     Load(yaml_filename);
 }
 
@@ -56,6 +55,12 @@ std::string ToUpper(std::string in) {
 }
 
 void ChYamlParser::Load(const std::string& yaml_filename) {
+    auto path = filesystem::path(yaml_filename);
+    if (!path.exists() || !path.is_file()) {
+        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+        throw std::runtime_error("File not found");
+    } 
+
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
     if (yaml["angle_degrees"])
@@ -132,7 +137,7 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
             if (joints[i]["bushing_data"])
                 joint.bdata = ReadBushingData(joints[i]["bushing_data"]);
 
-            joint.csys = ReadJointFrame(joints[i]);
+            joint.frame = ReadJointFrame(joints[i]);
 
             if (m_verbose)
                 joint.PrintInfo(name);
@@ -201,14 +206,16 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
 std::shared_ptr<ChBodyAuxRef> ChYamlParser::FindBody(const std::string& name) const {
     auto b = m_bodies.find(name);
     ChAssertAlways(b != m_bodies.end());
-    return b->second.body;
+    return b->second.body[m_instance_index];
 }
 
-void ChYamlParser::Populate(ChSystem& sys) {
+int ChYamlParser::Populate(ChSystem& sys, const ChFramed& model_frame, const std::string& model_prefix) {
     if (!m_initialized) {
-        cerr << "Error: No YAML model loaded" << endl;
+        cerr << "Error: no YAML model loaded." << endl;
         throw std::runtime_error("No YAML model loaded");
     }
+
+    m_instance_index++;
 
     // Create a load container for bushings
     auto container_bushings = chrono_types::make_shared<ChLoadContainer>();
@@ -216,32 +223,33 @@ void ChYamlParser::Populate(ChSystem& sys) {
 
     // Create bodies
     for (auto& item : m_bodies) {
-        item.second.body = chrono_types::make_shared<ChBodyAuxRef>();
-        item.second.body->SetName(item.first);
-        item.second.body->SetFixed(item.second.is_fixed);
-        item.second.body->SetMass(item.second.mass);
-        item.second.body->SetFrameCOMToRef(item.second.com);
-        item.second.body->SetInertiaXX(item.second.inertia_moments);
-        item.second.body->SetInertiaXY(item.second.inertia_products);
-        item.second.body->SetFrameRefToAbs(ChFramed(item.second.pos, item.second.rot));
-        sys.AddBody(item.second.body);
+        auto body = chrono_types::make_shared<ChBodyAuxRef>();
+        body->SetName(model_prefix + item.first);
+        body->SetFixed(item.second.is_fixed);
+        body->SetMass(item.second.mass);
+        body->SetFrameCOMToRef(item.second.com);
+        body->SetInertiaXX(item.second.inertia_moments);
+        body->SetInertiaXY(item.second.inertia_products);
+        body->SetFrameRefToAbs(model_frame * ChFramed(item.second.pos, item.second.rot));
+        sys.AddBody(body);
+        item.second.body.push_back(body);
     }
 
     // Create joints (kinematic or bushings)
     for (auto& item : m_joints) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
-
-        item.second.joint = chrono_types::make_shared<ChJoint>(item.second.type,             //
-                                                               item.first,                   //
-                                                               body1,                        //
-                                                               body2,                        //
-                                                               ChFrame<>(item.second.csys),  //
-                                                               item.second.bdata);
-        if (item.second.joint->IsKinematic())
-            sys.AddLink(item.second.joint->GetAsLink());
+        auto joint = chrono_types::make_shared<ChJoint>(item.second.type,                 //
+                                                        model_prefix + item.first,        //
+                                                        body1,                            //
+                                                        body2,                            //
+                                                        model_frame * item.second.frame,  //
+                                                        item.second.bdata);
+        if (joint->IsKinematic())
+            sys.AddLink(joint->GetAsLink());
         else
-            container_bushings->Add(item.second.joint->GetAsBushing());
+            container_bushings->Add(joint->GetAsBushing());
+        item.second.joint.push_back(joint);
     }
 
     // Create distance constraints
@@ -249,23 +257,24 @@ void ChYamlParser::Populate(ChSystem& sys) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
 
-        item.second.dist = chrono_types::make_shared<ChLinkDistance>();
-        item.second.dist->SetName(item.first);
-        item.second.dist->Initialize(body1, body2, false, item.second.point1, item.second.point2);
-        sys.AddLink(item.second.dist);
+        auto dist = chrono_types::make_shared<ChLinkDistance>();
+        dist->SetName(model_prefix + item.first);
+        dist->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
+        sys.AddLink(dist);
+        item.second.dist.push_back(dist);
     }
 
     // Create TSDAs
     for (auto& item : m_tsdas) {
         auto body1 = FindBody(item.second.body1);
         auto body2 = FindBody(item.second.body2);
-
-        item.second.tsda = chrono_types::make_shared<ChLinkTSDA>();
-        item.second.tsda->SetName(item.first);
-        item.second.tsda->Initialize(body1, body2, false, item.second.point1, item.second.point2);
-        item.second.tsda->SetRestLength(item.second.free_length);
-        item.second.tsda->RegisterForceFunctor(item.second.force);
-        sys.AddLink(item.second.tsda);
+        auto tsda = chrono_types::make_shared<ChLinkTSDA>();
+        tsda->SetName(model_prefix + item.first);
+        tsda->Initialize(body1, body2, false, model_frame * item.second.point1, model_frame * item.second.point2);
+        tsda->SetRestLength(item.second.free_length);
+        tsda->RegisterForceFunctor(item.second.force);
+        sys.AddLink(tsda);
+        item.second.tsda.push_back(tsda);
     }
 
     // Create RSDAs
@@ -277,53 +286,68 @@ void ChYamlParser::Populate(ChSystem& sys) {
         rot.SetFromAxisX(item.second.axis);
         ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
 
-        item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
-        item.second.rsda->SetName(item.first);
-        item.second.rsda->Initialize(body1, body2, ChFrame<>(item.second.pos, quat));
-        item.second.rsda->SetRestAngle(item.second.free_angle);
-        item.second.rsda->RegisterTorqueFunctor(item.second.torque);
-        sys.AddLink(item.second.rsda);
+        auto rsda = chrono_types::make_shared<ChLinkRSDA>();
+        rsda->SetName(model_prefix + item.first);
+        rsda->Initialize(body1, body2, model_frame * ChFrame<>(item.second.pos, quat));
+        rsda->SetRestAngle(item.second.free_angle);
+        rsda->RegisterTorqueFunctor(item.second.torque);
+        sys.AddLink(rsda);
+        item.second.rsda.push_back(rsda);
     }
 
     // Create body collision models
     for (auto& item : m_bodies) {
         if (item.second.geometry.HasCollision())
-            item.second.geometry.CreateCollisionShapes(item.second.body, 0, sys.GetContactMethod());
+            item.second.geometry.CreateCollisionShapes(item.second.body[m_instance_index], 0, sys.GetContactMethod());
     }
 
     // Create visualization assets
     for (auto& item : m_bodies)
-        item.second.geometry.CreateVisualizationAssets(item.second.body, VisualizationType::MESH);
+        item.second.geometry.CreateVisualizationAssets(item.second.body[m_instance_index], VisualizationType::MESH);
     for (auto& item : m_tsdas)
-        item.second.geometry.CreateVisualizationAssets(item.second.tsda);
+        item.second.geometry.CreateVisualizationAssets(item.second.tsda[m_instance_index]);
     for (auto& item : m_dists)
-        item.second.dist->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+        item.second.dist[m_instance_index]->AddVisualShape(chrono_types::make_shared<ChVisualShapeSegment>());
+
+    return m_instance_index;
 }
 
-void ChYamlParser::Depopulate(ChSystem& sys) {
-    for (auto& item : m_bodies)
-        sys.Remove(item.second.body);
-    for (auto& item : m_joints)
-        ChJoint::Remove(item.second.joint);
-    for (auto& item : m_dists)
-        sys.Remove(item.second.dist);
-    for (auto& item : m_tsdas)
-        sys.Remove(item.second.tsda);
-    for (auto& item : m_rsdas)
-        sys.Remove(item.second.rsda);
+void ChYamlParser::Depopulate(ChSystem& sys, int instance_index) {
+    for (auto& item : m_bodies) {
+        ChAssertAlways(item.second.body.size() > instance_index);
+        sys.Remove(item.second.body[instance_index]);
+        item.second.body.erase(item.second.body.begin() + instance_index);
+    }
 
-    m_bodies.clear();
-    m_joints.clear();
-    m_dists.clear();
-    m_tsdas.clear();
-    m_rsdas.clear();
+    for (auto& item : m_joints) {
+        ChAssertAlways(item.second.joint.size() > instance_index);
+        ChJoint::Remove(item.second.joint[instance_index]);
+        item.second.joint.erase(item.second.joint.begin() + instance_index);
+    }
+
+    for (auto& item : m_dists) {
+        ChAssertAlways(item.second.dist.size() > instance_index);
+        sys.Remove(item.second.dist[instance_index]);
+        item.second.dist.erase(item.second.dist.begin() + instance_index);
+    }
+
+    for (auto& item : m_tsdas) {
+        ChAssertAlways(item.second.tsda.size() > instance_index);
+        sys.Remove(item.second.tsda[instance_index]);
+        item.second.tsda.erase(item.second.tsda.begin() + instance_index);
+    }
+
+    for (auto& item : m_rsdas) {
+        ChAssertAlways(item.second.rsda.size() > instance_index);
+        sys.Remove(item.second.rsda[instance_index]);
+        item.second.rsda.erase(item.second.rsda.begin() + instance_index);
+    }
 }
 
 // -----------------------------------------------------------------------------
 
 ChYamlParser::Body::Body()
-    : body(nullptr),
-      pos(VNULL),
+    : pos(VNULL),
       rot(QUNIT),
       is_fixed(false),
       mass(1),
@@ -332,16 +356,16 @@ ChYamlParser::Body::Body()
       inertia_products(ChVector3d(0)) {}
 
 ChYamlParser::Joint::Joint()
-    : joint(nullptr), type(ChJoint::Type::LOCK), body1(""), body2(""), csys({VNULL, QUNIT}), bdata(nullptr) {}
+    : type(ChJoint::Type::LOCK), body1(""), body2(""), frame({VNULL, QUNIT}), bdata(nullptr) {}
 
 ChYamlParser::TSDA::TSDA()
-    : tsda(nullptr), body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
+    : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
 ChYamlParser::RSDA::RSDA()
-    : rsda(nullptr), body1(""), body2(""), pos(VNULL), axis(ChVector3d(0, 0, 1)), free_angle(0), torque(nullptr) {}
+    : body1(""), body2(""), pos(VNULL), axis(ChVector3d(0, 0, 1)), free_angle(0), torque(nullptr) {}
 
 ChYamlParser::DistanceConstraint::DistanceConstraint()
-    : dist(nullptr), body1(""), body2(""), point1(VNULL), point2(VNULL) {}
+    : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
 
 void PrintGeometry(const ChBodyGeometry& geometry) {
     bool collision = geometry.HasCollision();
@@ -356,24 +380,24 @@ void PrintGeometry(const ChBodyGeometry& geometry) {
 }
 
 void ChYamlParser::Body::PrintInfo(const std::string& name) {
-    cout << "  name:       " << name << endl;
-    cout << "    pos:      " << pos << endl;
-    cout << "    rot:      " << rot << endl;
-    cout << "    fixed?    " << (is_fixed ? "true" : "false") << endl;
-    cout << "    mass:     " << mass << endl;
-    cout << "    I_xx:     " << inertia_moments << endl;
-    cout << "    I_xy:     " << inertia_products << endl;
-    cout << "    geometry: " << endl;
+    cout << "  name:        " << name << endl;
+    cout << "    pos:       " << pos << endl;
+    cout << "    rot:       " << rot << endl;
+    cout << "    fixed?     " << (is_fixed ? "true" : "false") << endl;
+    cout << "    mass:      " << mass << endl;
+    cout << "    com frame: " << com.GetPos() << " | " << com.GetRot() << endl;
+    cout << "    I_xx:      " << inertia_moments << endl;
+    cout << "    I_xy:      " << inertia_products << endl;
+    cout << "    geometry:  " << endl;
     PrintGeometry(geometry);
 }
 
 void ChYamlParser::Joint::PrintInfo(const std::string& name) {
-    cout << "  name:       " << name << endl;
-    cout << "     type:    " << ChJoint::GetTypeString(type) << endl;
-    cout << "     body1:   " << body1 << endl;
-    cout << "     body2:   " << body2 << endl;
-    cout << "     pos:     " << csys.pos << endl;
-    cout << "     rot :    " << csys.rot << endl;
+    cout << "  name:           " << name << endl;
+    cout << "     type:        " << ChJoint::GetTypeString(type) << endl;
+    cout << "     body1:       " << body1 << endl;
+    cout << "     body2:       " << body2 << endl;
+    cout << "     joint frame: " << frame.GetPos() << " | " << frame.GetRot() << endl;
 }
 
 void ChYamlParser::TSDA::PrintInfo(const std::string& name) {
@@ -524,16 +548,16 @@ ChJoint::Type ChYamlParser::ReadJointType(const YAML::Node& a) {
     }
 }
 
-ChCoordsysd ChYamlParser::ReadJointFrame(const YAML::Node& a) {
-    //// TODO - for now, assume joints are specified through a single csys (expressed in global frame)
-    ChCoordsys csys;
+ChFramed ChYamlParser::ReadJointFrame(const YAML::Node& a) {
+    //// TODO - for now, assume joints are specified through a single frame (expressed relative to instance frame)
     ChAssertAlways(a["location"]);
-    csys.pos = ReadVector(a["location"]);
+    ChVector3d pos = ReadVector(a["location"]);
+    ChQuaterniond rot = QUNIT;
 
     switch (ReadJointType(a["type"])) {
         case ChJoint::Type::LOCK:
         case ChJoint::Type::SPHERICAL:
-            csys.rot = QUNIT;
+            rot = QUNIT;
             break;
         case ChJoint::Type::REVOLUTE:
         case ChJoint::Type::PRISMATIC: {
@@ -542,7 +566,7 @@ ChCoordsysd ChYamlParser::ReadJointFrame(const YAML::Node& a) {
             axis.Normalize();
             ChMatrix33 R;
             R.SetFromAxisZ(axis);
-            csys.rot = R.GetQuaternion();
+            rot = R.GetQuaternion();
             break;
         }
         case ChJoint::Type::UNIVERSAL: {
@@ -556,14 +580,14 @@ ChCoordsysd ChYamlParser::ReadJointFrame(const YAML::Node& a) {
             axis_y.Normalize();
             axis_z.Normalize();
             ChMatrix33d R(axis_x, axis_y, axis_z);
-            csys.rot = R.GetQuaternion();
+            rot = R.GetQuaternion();
             break;
         }
     }
 
     //// TODO - POINTLINE, POINTPLANE
 
-    return csys;
+    return ChFramed(pos, rot);
 }
 
 std::shared_ptr<ChJoint::BushingData> ChYamlParser::ReadBushingData(const YAML::Node& bd) {

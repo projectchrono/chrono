@@ -36,11 +36,25 @@ using namespace chrono::vsg3d;
 using namespace chrono;
 using namespace chrono::utils;
 
+// -----------------------------------------------------------------------------
+
 std::string model_yaml_filename = "yaml/slider_crank.yaml";
 
 ChContactMethod contact_method = ChContactMethod::SMC;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type coll_type = ChCollisionSystem::Type::BULLET;
+
+// -----------------------------------------------------------------------------
+
+bool second_instance = false;  // create a second instance of the model
+ChFramed frame1 = second_instance ? ChFramed(ChVector3d(0, -1, 0), QUNIT) : ChFramed(ChVector3d(0, 0, 0), QUNIT);
+ChFramed frame2 = ChFramed(ChVector3d(0, +1, 0), QUNIT);
+std::string prefix1 = second_instance ? "m1_" : "";
+std::string prefix2 = "m2_";
+int instance1 = -1;
+int instance2 = -1;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
@@ -63,7 +77,9 @@ int main(int argc, char* argv[]) {
     ChYamlParser parser;
     parser.SetVerbose(true);
     parser.Load(GetChronoDataFile(model_yaml_filename));
-    parser.Populate(*sys);
+    instance1 = parser.Populate(*sys, frame1, prefix1);
+    if (second_instance)
+        instance2 = parser.Populate(*sys, frame2, prefix2);
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT
