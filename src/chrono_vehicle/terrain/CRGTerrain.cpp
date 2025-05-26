@@ -45,6 +45,8 @@
 #include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -212,14 +214,23 @@ void CRGTerrain::SetRoadsidePosts() {
         if (crgEvaluv2z(m_cpId, u, vr, &zr) != 1) {
             std::cerr << "could not get zr in CRGTerrain::SetRoadsidePosts" << std::endl;
         }
-
-        auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
-        shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
-        m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector3d(xl, yl, zl + 0.5), QUNIT));
-
-        auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
-        shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
-        m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector3d(xr, yr, zr + 0.5), QUNIT));
+        if(iu == 0) {
+            auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_l->SetTexture(GetChronoDataFile("textures/greenwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector3d(xl, yl, zl + 0.5), QUNIT));
+            
+            auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_r->SetTexture(GetChronoDataFile("textures/greenwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector3d(xr, yr, zr + 0.5), QUNIT));
+        } else {
+            auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector3d(xl, yl, zl + 0.5), QUNIT));
+            
+            auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector3d(xr, yr, zr + 0.5), QUNIT));
+        }
     }
 }
 
