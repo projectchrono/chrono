@@ -843,15 +843,15 @@ int main(int argc, char** argv) {
 		std::cout<<"\n\nFrictional interface is active\n\n";
 		auto interfaceTop = chrono_types::make_shared<ChElementFrictionalInterfaceRot>();
 		interfaceTop->SetSpringCoefficient(1e9);
-		interfaceTop->SetInitialFrictionCoefficient(0.);
-		interfaceTop->SetDynamicFrictionCoefficient(0.);
+		interfaceTop->SetInitialFrictionCoefficient(0.13);
+		interfaceTop->SetDynamicFrictionCoefficient(0.015);
 		interfaceTop->CreateInteractionNodeToBody(sys, my_mesh, t_nodes, top_plate);
 		
 		std::cout<<"\n\nFrictional interface is active\n\n";
 		auto interfaceBot = chrono_types::make_shared<ChElementFrictionalInterfaceRot>();
 		interfaceBot->SetSpringCoefficient(1e9);
-		interfaceBot->SetInitialFrictionCoefficient(0.);
-		interfaceBot->SetDynamicFrictionCoefficient(0.);
+		interfaceBot->SetInitialFrictionCoefficient(0.13);
+		interfaceBot->SetDynamicFrictionCoefficient(0.015);
 		interfaceBot->CreateInteractionNodeToBody(sys, my_mesh, bot_nodes, bottom_plate);		
 				
 	
