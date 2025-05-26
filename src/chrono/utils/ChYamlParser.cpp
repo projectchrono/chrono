@@ -517,11 +517,12 @@ ChYamlParser::Body::Body()
       rot(QUNIT),
       is_fixed(false),
       mass(1),
-      com({VNULL, QUNIT}),
+      com(ChFramed(VNULL, QUNIT)),
       inertia_moments(ChVector3d(1)),
       inertia_products(ChVector3d(0)) {}
 
-ChYamlParser::Joint::Joint() : type(ChJoint::Type::LOCK), body1(""), body2(""), frame({VNULL, QUNIT}), bdata(nullptr) {}
+ChYamlParser::Joint::Joint()
+    : type(ChJoint::Type::LOCK), body1(""), body2(""), frame(ChFramed(VNULL, QUNIT)), bdata(nullptr) {}
 
 ChYamlParser::TSDA::TSDA() : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
@@ -903,7 +904,7 @@ ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
             for (size_t i = 0; i < num_shapes; i++) {
                 const YAML::Node& shape = d["visualization"]["shapes"][i];
                 std::string type = ToUpper(shape["type"].as<std::string>());
-                ChColor color({-1, -1, -1});
+                ChColor color(-1, -1, -1);
                 if (shape["color"]) {
                     color = ReadColor(shape["color"]);
                 }

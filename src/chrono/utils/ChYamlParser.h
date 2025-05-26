@@ -146,7 +146,7 @@ class ChApi ChYamlParser {
     enum class MotorActuation {
         POSITION,  ///< position-level (displacement or angle)
         SPEED,     ///< velocity-level (linear or angular speed)
-        FORCE,      ///< force-level (force or torque)
+        FORCE,     ///< force-level (force or torque)
         NONE
     };
 
@@ -241,13 +241,12 @@ class ChApi ChYamlParser {
     std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a);
 
     /// Utility function to find the ChBodyAuxRef with specified name.
-    std::shared_ptr<ChBodyAuxRef> ChYamlParser::FindBody(const std::string& name) const;
+    std::shared_ptr<ChBodyAuxRef> FindBody(const std::string& name) const;
 
     /// Return motor actuation type as a string.
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
-
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
     std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
