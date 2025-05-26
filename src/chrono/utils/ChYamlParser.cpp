@@ -49,7 +49,8 @@ using std::endl;
 namespace chrono {
 namespace utils {
 
-ChYamlParser::ChYamlParser() : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {}
+ChYamlParser::ChYamlParser()
+    : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {}
 ChYamlParser::ChYamlParser(const std::string& yaml_filename, bool verbose)
     : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {
     Load(yaml_filename);
@@ -67,7 +68,7 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
     if (!path.exists() || !path.is_file()) {
         cerr << "Error: file '" << yaml_filename << "' not found." << endl;
         throw std::runtime_error("File not found");
-    } 
+    }
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
@@ -190,7 +191,6 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
             } else if (type == "REVOLUTE-TRANSLATIONAL") {
                 //// TODO
             }
-
         }
     }
 
@@ -413,16 +413,16 @@ int ChYamlParser::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
 
         std::shared_ptr<ChLinkMotorLinear> motor;
-        switch (item.second.actuation_type) { 
-          case MotorActuation::POSITION:
-          motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-              break;
-          case MotorActuation::SPEED:
-              motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
-              break;
-          case MotorActuation::FORCE:
-              motor = chrono_types::make_shared<ChLinkMotorLinearForce>();
-              break;
+        switch (item.second.actuation_type) {
+            case MotorActuation::POSITION:
+                motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+                break;
+            case MotorActuation::SPEED:
+                motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
+                break;
+            case MotorActuation::FORCE:
+                motor = chrono_types::make_shared<ChLinkMotorLinearForce>();
+                break;
         }
         motor->SetName(model_prefix + item.first);
         motor->SetGuideConstraint(item.second.guide);
@@ -521,17 +521,14 @@ ChYamlParser::Body::Body()
       inertia_moments(ChVector3d(1)),
       inertia_products(ChVector3d(0)) {}
 
-ChYamlParser::Joint::Joint()
-    : type(ChJoint::Type::LOCK), body1(""), body2(""), frame({VNULL, QUNIT}), bdata(nullptr) {}
+ChYamlParser::Joint::Joint() : type(ChJoint::Type::LOCK), body1(""), body2(""), frame({VNULL, QUNIT}), bdata(nullptr) {}
 
-ChYamlParser::TSDA::TSDA()
-    : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
+ChYamlParser::TSDA::TSDA() : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
 ChYamlParser::RSDA::RSDA()
     : body1(""), body2(""), pos(VNULL), axis(ChVector3d(0, 0, 1)), free_angle(0), torque(nullptr) {}
 
-ChYamlParser::DistanceConstraint::DistanceConstraint()
-    : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
+ChYamlParser::DistanceConstraint::DistanceConstraint() : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
 
 ChYamlParser::MotorLinear::MotorLinear()
     : actuation_type(MotorActuation::NONE),
@@ -748,19 +745,19 @@ ChContactMaterialData ChYamlParser::ReadMaterialData(const YAML::Node& mat) {
 
 ChJoint::Type ChYamlParser::ReadJointType(const YAML::Node& a) {
     std::string type = ToUpper(a.as<std::string>());
-    if (type.compare("LOCK") == 0) {
+    if (type == "LOCK") {
         return ChJoint::Type::LOCK;
-    } else if (type.compare("POINT LINE") == 0) {
+    } else if (type == "POINT LINE") {
         return ChJoint::Type::POINTLINE;
-    } else if (type.compare("POINT PLANE") == 0) {
+    } else if (type == "POINT PLANE") {
         return ChJoint::Type::POINTPLANE;
-    } else if (type.compare("REVOLUTE") == 0) {
+    } else if (type == "REVOLUTE") {
         return ChJoint::Type::REVOLUTE;
-    } else if (type.compare("SPHERICAL") == 0) {
+    } else if (type == "SPHERICAL") {
         return ChJoint::Type::SPHERICAL;
-    } else if (type.compare("PRISMATIC") == 0) {
+    } else if (type == "PRISMATIC") {
         return ChJoint::Type::PRISMATIC;
-    } else if (type.compare("UNIVERSAL") == 0) {
+    } else if (type == "UNIVERSAL") {
         return ChJoint::Type::UNIVERSAL;
     } else {
         return ChJoint::Type::LOCK;
@@ -865,25 +862,25 @@ ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
             std::string type = ToUpper(shape["type"].as<std::string>());
             int matID = FindMaterial(shape["material"].as<std::string>(), materials);
 
-            if (type.compare("SPHERE") == 0) {
+            if (type == "SPHERE") {
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 double radius = shape["radius"].as<double>();
                 geometry.coll_spheres.push_back(ChBodyGeometry::SphereShape(pos, radius, matID));
-            } else if (type.compare("BOX") == 0) {
+            } else if (type == "BOX") {
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 ChQuaternion<> rot = ChYamlParser::ReadRotation(shape["orientation"]);
                 ChVector3d dims = ChYamlParser::ReadVector(shape["dimensions"]);
                 geometry.coll_boxes.push_back(ChBodyGeometry::BoxShape(pos, rot, dims, matID));
-            } else if (type.compare("CYLINDER") == 0) {
+            } else if (type == "CYLINDER") {
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 ChVector3d axis = ChYamlParser::ReadVector(shape["axis"]);
                 double radius = shape["radius"].as<double>();
                 double length = shape["length"].as<double>();
                 geometry.coll_cylinders.push_back(ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
-            } else if (type.compare("HULL") == 0) {
+            } else if (type == "HULL") {
                 std::string filename = shape["filename"].as<std::string>();
                 geometry.coll_hulls.push_back(ChBodyGeometry::ConvexHullsShape(GetChronoDataFile(filename), matID));
-            } else if (type.compare("MESH") == 0) {
+            } else if (type == "MESH") {
                 std::string filename = shape["filename"].as<std::string>();
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 double radius = shape["contact_radius"].as<double>();
@@ -910,20 +907,20 @@ ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
                 if (shape["color"]) {
                     color = ReadColor(shape["color"]);
                 }
-                if (type.compare("SPHERE") == 0) {
+                if (type == "SPHERE") {
                     ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                     double radius = shape["radius"].as<double>();
                     auto sphere = ChBodyGeometry::SphereShape(pos, radius);
                     sphere.color = color;
                     geometry.vis_spheres.push_back(sphere);
-                } else if (type.compare("BOX") == 0) {
+                } else if (type == "BOX") {
                     ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                     ChQuaternion<> rot = ChYamlParser::ReadRotation(shape["orientation"]);
                     ChVector3d dims = ChYamlParser::ReadVector(shape["dimensions"]);
                     auto box = ChBodyGeometry::BoxShape(pos, rot, dims);
                     box.color = color;
                     geometry.vis_boxes.push_back(box);
-                } else if (type.compare("CYLINDER") == 0) {
+                } else if (type == "CYLINDER") {
                     ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                     ChVector3d axis = ChYamlParser::ReadVector(shape["axis"]);
                     double radius = shape["radius"].as<double>();
@@ -1316,10 +1313,10 @@ ChLinkMotorRotation::SpindleConstraint ChYamlParser::ReadMotorSpindleType(const 
 
 std::shared_ptr<ChFunction> ChYamlParser::ReadFunction(const YAML::Node& a) {
     std::shared_ptr<ChFunction> function = nullptr;
-  
-  ChAssertAlways(a["type"]);
+
+    ChAssertAlways(a["type"]);
     auto type = ToUpper(a["type"].as<std::string>());
-    if (type=="CONSTANT") {
+    if (type == "CONSTANT") {
         ChAssertAlways(a["value"]);
         auto value = a["value"].as<double>();
         function = chrono_types::make_shared<ChFunctionConst>(value);
