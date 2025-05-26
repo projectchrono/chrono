@@ -113,12 +113,13 @@ bodies:
           color: [0.6, 0.6, 1.0]
 
 joints:
-  - name: ground_crank
-    type: REVOLUTE
-    body1: ground
-    body2: crank
-    location: [0, 0, 0]
-    axis: [0, 1, 0]
+# Crank connected to ground with (passive) revolute joint
+##  - name: ground_crank
+##    type: REVOLUTE
+##    body1: ground
+##    body2: crank
+##    location: [0, 0, 0]
+##    axis: [0, 1, 0]
   
   - name: ground_slider
     type: PRISMATIC
@@ -147,6 +148,20 @@ joints:
     body2: ball
     location: [5.5, 0, 0]
     axis: [1, 0, 0]
+
+# Crank connected to ground with speed rotational motor
+motors:
+  - name: ground_crank
+    type: ROTATION
+    spindle: REVOLUTE
+    body1: ground
+    body2: crank
+    location: [0, 0, 0]
+    axis: [0, 1, 0]
+    actuation_type: SPEED
+    actuation_function:
+      type: CONSTANT
+      value: 3.14
 
 spring_dampers:
   - name: spring

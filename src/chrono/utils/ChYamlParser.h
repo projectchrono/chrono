@@ -27,6 +27,10 @@
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
+#include "chrono/physics/ChLinkMotorLinear.h"
+#include "chrono/physics/ChLinkMotorRotation.h"
+
+#include "chrono/functions/ChFunction.h"
 
 #include "chrono/utils/ChBodyGeometry.h"
 
@@ -67,7 +71,116 @@ class ChApi ChYamlParser {
     /// Remove from the specified system the Chrono objects from the specified instance.
     void Depopulate(ChSystem& sys, int instance_index);
 
-  public:
+  private:
+    /// Internal specification of a body.
+    struct Body {
+        Body();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
+        ChVector3d pos;                                   ///< body position (relative to instance frame)
+        ChQuaterniond rot;                                ///< body orientation (relative to instance frame)
+        bool is_fixed;                                    ///< indicate if body fixed relative to global frame
+        double mass;                                      ///< body mass
+        ChFramed com;                                     ///< centroidal frame (relative to body frame)
+        ChVector3d inertia_moments;                       ///< moments of inertia (relative to centroidal frame)
+        ChVector3d inertia_products;                      ///< products of inertia (relative to centroidal frame)
+        ChBodyGeometry geometry;                          ///< visualization and collision geometry
+    };
+
+    /// Internal specification of a joint.
+    struct Joint {
+        Joint();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChJoint>> joint;  ///< underlying Chrono joints (one per instance)
+        ChJoint::Type type;                           ///< joint type
+        std::string body1;                            ///< identifier of 1st body
+        std::string body2;                            ///< identifier of 2nd body
+        ChFramed frame;                               ///< joint frame (relative to instance frame)
+        std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
+    };
+
+    /// Internal specification of a distance constraint.
+    struct DistanceConstraint {
+        DistanceConstraint();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLinkDistance>> dist;  ///< underlying Chrono constraints (one per instance)
+        std::string body1;                                  ///< identifier of 1st body
+        std::string body2;                                  ///< identifier of 2nd body
+        ChVector3d point1;                                  ///< point on body1 (relative to instance frame)
+        ChVector3d point2;                                  ///< point on body2 (relative to instance frame)
+    };
+
+    /// Internal specification of a TSDA.
+    struct TSDA {
+        TSDA();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLinkTSDA>> tsda;    ///< underlying Chrono TSDAs (one per instance)
+        std::string body1;                                ///< identifier of 1st body
+        std::string body2;                                ///< identifier of 2nd body
+        ChVector3d point1;                                ///< point on body1 (relative to instance frame)
+        ChVector3d point2;                                ///< point on body2 (relative to instance frame)
+        double free_length;                               ///< TSDA free (rest) length
+        std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
+        ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
+    };
+
+    /// Internal specification of an RSDA.
+    struct RSDA {
+        RSDA();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLinkRSDA>> rsda;      ///< underlying Chrono RSDAs (one per instance)
+        std::string body1;                                  ///< identifier of 1st body
+        std::string body2;                                  ///< identifier of 2nd body
+        ChVector3d pos;                                     ///< RSDA position (relative to instance frame)
+        ChVector3d axis;                                    ///< RSDA action axis (relative to instance frame)
+        double free_angle;                                  ///< RSDA free (rest) angle
+        std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
+    };
+
+    /// Motor actuation type.
+    enum class MotorActuation {
+        POSITION,  ///< position-level (displacement or angle)
+        SPEED,     ///< velocity-level (linear or angular speed)
+        FORCE,      ///< force-level (force or torque)
+        NONE
+    };
+
+    /// Internal specification of a linear motor.
+    struct MotorLinear {
+        MotorLinear();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLinkMotorLinear>> motor;  ///< underlying Chrono motors (one per instance)
+        ChLinkMotorLinear::GuideConstraint guide;               ///< motor guide type
+        std::string body1;                                      ///< identifier of 1st body
+        std::string body2;                                      ///< identifier of 2nd body
+        ChVector3d pos;                                         ///< motor position (relative to instance frame)
+        ChVector3d axis;                                        ///< motor action axis (relative to instance frame)
+        MotorActuation actuation_type;                          ///< actuation type (motor type)
+        std::shared_ptr<ChFunction> actuation_function;         ///< actuation function
+    };
+
+    /// Internal specification of a rotational motor.
+    struct MotorRotation {
+        MotorRotation();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLinkMotorRotation>> motor;  ///< underlying Chrono motors (one per instance)
+        ChLinkMotorRotation::SpindleConstraint spindle;           ///< motor spindle type
+        std::string body1;                                        ///< identifier of 1st body
+        std::string body2;                                        ///< identifier of 2nd body
+        ChVector3d pos;                                           ///< motor position (relative to instance frame)
+        ChVector3d axis;                                          ///< motor action axis (relative to instance frame)
+        MotorActuation actuation_type;                            ///< actuation type (motor type)
+        std::shared_ptr<ChFunction> actuation_function;           ///< actuation function
+    };
+
+  private:
     /// Load and return a ChVector3d from the specified node.
     ChVector3d ReadVector(const YAML::Node& a);
 
@@ -115,85 +228,33 @@ class ChApi ChYamlParser {
     /// The TSDA free angle is also set if the particular functor type defines it.
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctor(const YAML::Node& td, double& free_angle);
 
-  private:
-    /// Internal specification of a suspension body.
-    struct Body {
-        Body();
-        void PrintInfo(const std::string& name);
+    /// Load and return a motor actuation type from the specified node.
+    MotorActuation ReadMotorActuationType(const YAML::Node& a);
 
-        std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
-        ChVector3d pos;                                   ///< body position (relative to instance frame)
-        ChQuaterniond rot;                                ///< body orientation (relative to instance frame)
-        bool is_fixed;                                    ///< indicate if body fixed relative to global frame
-        double mass;                                      ///< body mass
-        ChFramed com;                                     ///< centroidal frame (relative to body frame)
-        ChVector3d inertia_moments;                       ///< moments of inertia (relative to centroidal frame)
-        ChVector3d inertia_products;                      ///< products of inertia (relative to centroidal frame)
-        ChBodyGeometry geometry;                          ///< visualization and collision geometry
-    };
+    /// Load and return a linear motor guide constraint type from the specified node.
+    ChLinkMotorLinear::GuideConstraint ReadMotorGuideType(const YAML::Node& a);
 
-    /// Internal specification of a suspension joint.
-    struct Joint {
-        Joint();
-        void PrintInfo(const std::string& name);
+    /// Load and return a rotation motor spindle constraint type from the specified node.
+    ChLinkMotorRotation::SpindleConstraint ReadMotorSpindleType(const YAML::Node& a);
 
-        std::vector<std::shared_ptr<ChJoint>> joint;  ///< underlying Chrono joints (one per instance)
-        ChJoint::Type type;                           ///< joint type
-        std::string body1;                            ///< identifier of 1st body
-        std::string body2;                            ///< identifier of 2nd body
-        ChFramed frame;                               ///< joint frame (relative to instance frame)
-        std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
-    };
-
-    /// Internal specification of a distance constraint.
-    struct DistanceConstraint {
-        DistanceConstraint();
-        void PrintInfo(const std::string& name);
-
-        std::vector<std::shared_ptr<ChLinkDistance>> dist;  ///< underlying Chrono constraints (one per instance)
-        std::string body1;                                  ///< identifier of 1st body
-        std::string body2;                                  ///< identifier of 2nd body
-        ChVector3d point1;                                  ///< point on body1 (relative to instance frame)
-        ChVector3d point2;                                  ///< point on body2 (relative to instance frame)
-    };
-
-    /// Internal specification of a suspension TSDA.
-    struct TSDA {
-        TSDA();
-        void PrintInfo(const std::string& name);
-
-        std::vector<std::shared_ptr<ChLinkTSDA>> tsda;    ///< underlying Chrono TSDAs (one per instance)
-        std::string body1;                                ///< identifier of 1st body
-        std::string body2;                                ///< identifier of 2nd body
-        ChVector3d point1;                                ///< point on body1 (relative to instance frame)
-        ChVector3d point2;                                ///< point on body2 (relative to instance frame)
-        double free_length;                               ///< TSDA free (rest) length
-        std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
-        ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
-    };
-
-    /// Internal specification of a suspension RSDA.
-    struct RSDA {
-        RSDA();
-        void PrintInfo(const std::string& name);
-
-        std::vector<std::shared_ptr<ChLinkRSDA>> rsda;      ///< underlying Chrono RSDAs (one per instance)
-        std::string body1;                                  ///< identifier of 1st body
-        std::string body2;                                  ///< identifier of 2nd body
-        ChVector3d pos;                                     ///< RSDA position (relative to instance frame)
-        ChVector3d axis;                                    ///< RSDA action axis (relative to instance frame)
-        double free_angle;                                  ///< RSDA free (rest) angle
-        std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
-    };
+    /// Load and return a motor actuation ChFunction object from the specified node.
+    std::shared_ptr<ChFunction> ReadFunction(const YAML::Node& a);
 
     /// Utility function to find the ChBodyAuxRef with specified name.
     std::shared_ptr<ChBodyAuxRef> ChYamlParser::FindBody(const std::string& name) const;
+
+    /// Return motor actuation type as a string.
+    static std::string GetMotorActuationTypeString(MotorActuation type);
+
+  private:
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
     std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
     std::unordered_map<std::string, RSDA> m_rsdas;                ///< RSDA force elements
     std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
+    std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
+    std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
 
     std::string m_name;    ///< name of the YAML model
     bool m_verbose;        ///< verbose terminal output (default: false)
