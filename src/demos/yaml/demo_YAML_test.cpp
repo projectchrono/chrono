@@ -108,12 +108,10 @@ int main(int argc, char* argv[]) {
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->Initialize();
             vis_irr->AddLogo();
-            vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
-            vis_irr->AddCamera(ChVector3d(2, -8, 0), ChVector3d(2, 0, 0));
+            vis_irr->AddCamera(ChVector3d(2, -6, 0), ChVector3d(2, 0, 0));
             vis_irr->AttachSystem(sys.get());
-            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
-                             ChColor(0.1f, 0.1f, 0.1f));
+            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(VNULL, Q_ROTATE_Y_TO_Z), ChColor(0.4f, 0.4f, 0.4f));
 
             vis = vis_irr;
 #endif
@@ -128,15 +126,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(2, -8, 0), ChVector3d(2, 0, 0));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
-            vis_vsg->SetBackgroundColor(ChColor(0.8f, 0.85f, 0.9f));
-            vis_vsg->EnableSkyBox();
+            vis_vsg->SetBackgroundColor(ChColor(0.4f, 0.45f, 0.55f));
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(-CH_PI_4, CH_PI_4);
             vis_vsg->EnableShadows();
-            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
-                             ChColor(0.1f, 0.1f, 0.1f));
+            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(VNULL, Q_ROTATE_Y_TO_Z), ChColor(0.4f, 0.4f, 0.4f));
             vis_vsg->Initialize();
 
             vis = vis_vsg;
