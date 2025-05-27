@@ -5,6 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
+  - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
+  - [\[Added\] New Chrono::VSG features and capabilities](#added-new-chronovsg-features-and-capabilities)
   - [\[Changed\] Refactoring of Chrono CMake build system](#changed-refactoring-of-chrono-cmake-build-system) 
   - [\[Added\] Support for modeling components with internal dynamics (DAE)](#added-support-for-modeling-components-with-internal-dynamics-dae)
   - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
@@ -113,6 +116,18 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Added] Chrono::Peridynamics module
+
+**TODO**
+
+## [Added] Chrono::VSG plugins for FSI and granular dynamics visualization
+
+**TODO**
+
+## [Added] New Chrono::VSG features and capabilities
+
+**TODO**
 
 ## [Changed] Refactoring of Chrono CMake build system
 
