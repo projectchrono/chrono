@@ -45,6 +45,8 @@
 #include "chrono/assets/ChVisualShapePath.h"
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
+
 
 #include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -64,6 +66,7 @@ CRGTerrain::CRGTerrain(ChSystem* system)
       m_post_distance(0.0),
       m_friction(0.8f),
       m_dataSetId(0),
+      m_simplified_mesh(false),
       m_cpId(0),
       m_isClosed(false) {
     m_ground = chrono_types::make_shared<ChBody>();
@@ -153,21 +156,13 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
         std::cerr << "CRGTerrain::CRGTTerrain(): could not get increments from data file " << crg_file << std::endl;
         return;
     }
-    // dirty hack:
-    if (m_vinc <= 0.01 && m_use_vis_mesh) {
+    // for left/right excitation surface, also good for flat surfaces
+    if (m_simplified_mesh && m_use_vis_mesh) {
         m_v.push_back(m_vbeg);
         m_v.push_back(-0.05);
         m_v.push_back(0.0);
         m_v.push_back(0.05);
         m_v.push_back(m_vend);
-        std::cout << " \nCaution:\n";
-        std::cout << " Mesh seemes to be nonequidistant in v direction (vinc = " << m_vinc << "m).\n";
-        std::cout << " We use 5 distinct v values [";
-        for (size_t i = 0; i < m_v.size(); i++) {
-            std::cout << " " << m_v[i];
-        }
-        std::cout << " ] as fallback values.\n";
-        std::cout << " If it does not work for you, only use v-eqidistant crg files with vinc > 0.01 m.\n\n";
     }
 
     int uIsClosed;
@@ -219,14 +214,23 @@ void CRGTerrain::SetRoadsidePosts() {
         if (crgEvaluv2z(m_cpId, u, vr, &zr) != 1) {
             std::cerr << "could not get zr in CRGTerrain::SetRoadsidePosts" << std::endl;
         }
-
-        auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
-        shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
-        m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector3d(xl, yl, zl + 0.5), QUNIT));
-
-        auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
-        shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
-        m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector3d(xr, yr, zr + 0.5), QUNIT));
+        if(iu == 0) {
+            auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_l->SetTexture(GetChronoDataFile("textures/greenwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector3d(xl, yl, zl + 0.5), QUNIT));
+            
+            auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_r->SetTexture(GetChronoDataFile("textures/greenwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector3d(xr, yr, zr + 0.5), QUNIT));
+        } else {
+            auto shape_l = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_l->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_l, ChFrame<>(ChVector3d(xl, yl, zl + 0.5), QUNIT));
+            
+            auto shape_r = chrono_types::make_shared<ChVisualShapeCylinder>(0.07, 1.0);
+            shape_r->SetTexture(GetChronoDataFile("textures/redwhite.png"), 2.0, 2.0);
+            m_ground->AddVisualShape(shape_r, ChFrame<>(ChVector3d(xr, yr, zr + 0.5), QUNIT));
+        }
     }
 }
 
@@ -423,8 +427,8 @@ void CRGTerrain::GenerateMesh() {
     std::vector<double> x0, y0, z0;
     std::vector<double> tu0, tv0;
     // Define the vertices
-    if (m_v.size() == 5) {
-        // v is nonequidistant, we use m_v[]
+    if (m_simplified_mesh) {
+        // we use m_v[] for a simpler graphics
         nv = static_cast<int>(m_v.size());
         for (auto i = 0; i < nu; i++) {
             double u = m_ubeg + m_uinc * double(i);
