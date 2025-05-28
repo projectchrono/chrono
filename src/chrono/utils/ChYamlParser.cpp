@@ -14,14 +14,14 @@
 
 //// TODO
 //// - perform checks during loading of YAML file or use a 3rd party YAML schema validator?
-//// - add definition functions for link-type components using 2 local frames
-////   (alternative ChLink initialization)
+//// - add definition functions for link-type components using 2 local frames (alternative ChLink initialization)
 //// - add support for other constraints (composite joints: rev-sph and rev-prismatic)
 //// - add support for more ChFunction types:
 ////   - implement and expose a "data" ChFunction (derived from ChFunctionSetpointCallback)
 ////   - add YAML support for repeating functions
 //// - add support for point-point actuators (hydraulic, FMU, external)
 //// - what is the best way to deal with collision families?
+//// - exdpand set of simulation parameters (e.g. integrator/solver pasrameters)
 
 #include <algorithm>
 
@@ -100,10 +100,14 @@ void ChYamlParser::LoadSimulationFile(const std::string& yaml_filename) {
     ChAssertAlways(yaml["contact_method"]);
     m_sim.time_step = yaml["time_step"].as<double>();
     auto contact_method = ToUpper(yaml["contact_method"].as<std::string>());
-    if (contact_method == "SMC")
+    if (contact_method == "SMC") {
         m_sim.contact_method = ChContactMethod::SMC;
-    else
+    } else if (contact_method == "NSC") {
         m_sim.contact_method = ChContactMethod::NSC;
+    } else {
+        cerr << "Incorrect contact method: " << yaml["contact_method"].as<std::string>() << endl;
+        throw std::runtime_error("Incorrect contact method");
+    }
 
     // Optional
     if (yaml["end_time"])
@@ -121,11 +125,15 @@ void ChYamlParser::LoadSimulationFile(const std::string& yaml_filename) {
     if (yaml["render_fps"])
         m_sim.render_fps = yaml["render_fps"].as<double>();
     if (yaml["camera_vertical"]) {
-        auto camera_vertical = yaml["camera_vertical"].as<std::string>();
+        auto camera_vertical = ToUpper(yaml["camera_vertical"].as<std::string>());
         if (camera_vertical == "Y")
             m_sim.camera_vertical = CameraVerticalDir::Y;
-        else
+        else if (camera_vertical == "Z")
             m_sim.camera_vertical = CameraVerticalDir::Z;
+        else {
+            cerr << "Incorrect camera vertical " << yaml["camera_vertical"].as<std::string>() << endl;
+            throw std::runtime_error("Incorrect camera vertical");
+        }
     }
 
     if (m_verbose)
@@ -163,16 +171,23 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
             cout << "\nbodies: " << bodies.size() << endl;
         }
         for (size_t i = 0; i < bodies.size(); i++) {
+            ChAssertAlways(bodies[i]["name"]);
             auto name = bodies[i]["name"].as<std::string>();
 
             Body body;
-            if (bodies[i]["location"])
-                body.pos = ReadVector(bodies[i]["location"]);
-            if (bodies[i]["orientation"])
-                body.rot = ReadRotation(bodies[i]["orientation"]);
+
             if (bodies[i]["fixed"])
                 body.is_fixed = bodies[i]["fixed"].as<bool>();
-            if (bodies[i]["mass"])
+
+            ChAssertAlways(bodies[i]["location"]);
+            ChAssertAlways(body.is_fixed || bodies[i]["mass"]);
+            ChAssertAlways(body.is_fixed || bodies[i]["inertia"]);
+            ChAssertAlways(body.is_fixed || bodies[i]["inertia"]["moments"]);
+
+            body.pos = ReadVector(bodies[i]["location"]);
+            if (bodies[i]["orientation"])
+                body.rot = ReadRotation(bodies[i]["orientation"]);
+            if (!body.is_fixed)
                 body.mass = bodies[i]["mass"].as<double>();
             if (bodies[i]["com"]) {
                 ChVector3d com_pos = VNULL;
@@ -183,12 +198,10 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
                     com_rot = ReadRotation(bodies[i]["com"]["orientation"]);
                 body.com = ChFramed(com_pos, com_rot);
             }
-            if (bodies[i]["inertia"]) {
-                if (bodies[i]["inertia"]["moments"])
-                    body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
-                if (bodies[i]["inertia"]["products"])
-                    body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
-            }
+            if (!body.is_fixed)
+                body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
+            if (bodies[i]["inertia"]["products"])
+                body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
             body.geometry = ReadGeometry(bodies[i]);
 
             if (m_verbose)
@@ -206,13 +219,15 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
             cout << "\njoints: " << joints.size() << endl;
         }
         for (size_t i = 0; i < joints.size(); i++) {
-            auto name = joints[i]["name"].as<std::string>();
-
-            Joint joint;
+            ChAssertAlways(joints[i]["name"]);
             ChAssertAlways(joints[i]["type"]);
             ChAssertAlways(joints[i]["body1"]);
             ChAssertAlways(joints[i]["body2"]);
             ChAssertAlways(joints[i]["location"]);
+
+            auto name = joints[i]["name"].as<std::string>();
+
+            Joint joint;
             joint.type = ReadJointType(joints[i]["type"]);
             joint.body1 = joints[i]["body1"].as<std::string>();
             joint.body2 = joints[i]["body2"].as<std::string>();
@@ -238,9 +253,10 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
             cout << "\nconstraints: " << constraints.size() << endl;
         }
         for (size_t i = 0; i < constraints.size(); i++) {
+            ChAssertAlways(constraints[i]["name"]);
             ChAssertAlways(constraints[i]["type"]);
-            auto type = ToUpper(constraints[i]["type"].as<std::string>());
             auto name = constraints[i]["name"].as<std::string>();
+            auto type = ToUpper(constraints[i]["type"].as<std::string>());
 
             if (type == "DISTANCE") {
                 DistanceConstraint dist;
@@ -274,9 +290,10 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
             cout << "\nspring dampers: " << spring_dampers.size() << endl;
         }
         for (size_t i = 0; i < spring_dampers.size(); i++) {
+            ChAssertAlways(spring_dampers[i]["name"]);
             ChAssertAlways(spring_dampers[i]["type"]);
-            auto type = ToUpper(spring_dampers[i]["type"].as<std::string>());
             auto name = spring_dampers[i]["name"].as<std::string>();
+            auto type = ToUpper(spring_dampers[i]["type"].as<std::string>());
 
             if (type == "TSDA") {
                 TSDA tsda;
@@ -341,6 +358,8 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
             auto actuation_type = ReadMotorActuationType(motors[i]["actuation_type"]);
             auto actuation_function = ReadFunction(motors[i]["actuation_function"]);
 
+            ChAssertAlways(motors[i]["location"]);
+            ChAssertAlways(motors[i]["axis"]);
             if (type == "LINEAR") {
                 MotorLinear motor;
                 motor.body1 = body1;
@@ -422,7 +441,10 @@ void ChYamlParser::SetSimulationParameters(ChSystem& sys) {
 
 std::shared_ptr<ChBodyAuxRef> ChYamlParser::FindBody(const std::string& name) const {
     auto b = m_bodies.find(name);
-    ChAssertAlways(b != m_bodies.end());
+    if (b == m_bodies.end()) {
+        cerr << "Cannot find body with name: " << name << endl;
+        throw std::runtime_error("Invalid body name");
+    }
     return b->second.body[m_instance_index];
 }
 
@@ -855,6 +877,8 @@ ChColor ChYamlParser::ReadColor(const YAML::Node& a) {
 
 ChSolver::Type ChYamlParser::ReadSolverType(const YAML::Node& a) {
     auto type = ToUpper(a.as<std::string>());
+    if (type == "BARZILAI_BORWEIN")
+        return ChSolver::Type::BARZILAIBORWEIN;
     if (type == "PSOR")
         return ChSolver::Type::PSOR;
     if (type == "APGD")
@@ -874,11 +898,14 @@ ChSolver::Type ChYamlParser::ReadSolverType(const YAML::Node& a) {
     if (type == "SPARSE_QR")
         return ChSolver::Type::SPARSE_QR;
 
-    return ChSolver::Type::BARZILAIBORWEIN;
+    cerr << "Unknown solver type: " << a.as<std::string>() << endl;
+    throw std::runtime_error("Invalid solver type");
 }
 
 ChTimestepper::Type ChYamlParser::ReadIntegratorType(const YAML::Node& a) {
     auto type = ToUpper(a.as<std::string>());
+    if (type == "EULER_IMPLICIT_LINEARIZED")
+        return ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     if (type == "EULER_IMPLICIT_PROJECTED")
         return ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
     if (type == "EULER_IMPLICIT")
@@ -886,7 +913,8 @@ ChTimestepper::Type ChYamlParser::ReadIntegratorType(const YAML::Node& a) {
     if (type == "HHT")
         return ChTimestepper::Type::HHT;
 
-    return ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    cerr << "Unknown integrator type: " << a.as<std::string>() << endl;
+    throw std::runtime_error("Invalid integrator type");
 }
 
 // -----------------------------------------------------------------------------
@@ -1003,9 +1031,12 @@ std::shared_ptr<ChJoint::BushingData> ChYamlParser::ReadBushingData(const YAML::
 // -----------------------------------------------------------------------------
 
 int FindMaterial(const std::string& name, const std::unordered_map<std::string, size_t> materials) {
-    auto b = materials.find(name);
-    ChAssertAlways(b != materials.end());
-    return (int)b->second;
+    auto m = materials.find(name);
+    if (m == materials.end()) {
+        cerr << "Cannot find contact material with name: " << name << endl;
+        throw std::runtime_error("Invalid contact material name");
+    }
+    return (int)m->second;
 }
 
 ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
@@ -1040,24 +1071,37 @@ ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
             int matID = FindMaterial(shape["material"].as<std::string>(), materials);
 
             if (type == "SPHERE") {
+                ChAssertAlways(shape["location"]);
+                ChAssertAlways(shape["radius"]);
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 double radius = shape["radius"].as<double>();
                 geometry.coll_spheres.push_back(ChBodyGeometry::SphereShape(pos, radius, matID));
             } else if (type == "BOX") {
+                ChAssertAlways(shape["location"]);
+                ChAssertAlways(shape["orientation"]);
+                ChAssertAlways(shape["dimensions"]);
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 ChQuaternion<> rot = ChYamlParser::ReadRotation(shape["orientation"]);
                 ChVector3d dims = ChYamlParser::ReadVector(shape["dimensions"]);
                 geometry.coll_boxes.push_back(ChBodyGeometry::BoxShape(pos, rot, dims, matID));
             } else if (type == "CYLINDER") {
+                ChAssertAlways(shape["location"]);
+                ChAssertAlways(shape["axis"]);
+                ChAssertAlways(shape["radius"]);
+                ChAssertAlways(shape["length"]);
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 ChVector3d axis = ChYamlParser::ReadVector(shape["axis"]);
                 double radius = shape["radius"].as<double>();
                 double length = shape["length"].as<double>();
                 geometry.coll_cylinders.push_back(ChBodyGeometry::CylinderShape(pos, axis, radius, length, matID));
             } else if (type == "HULL") {
+                ChAssertAlways(shape["filename"]);
                 std::string filename = shape["filename"].as<std::string>();
                 geometry.coll_hulls.push_back(ChBodyGeometry::ConvexHullsShape(GetChronoDataFile(filename), matID));
             } else if (type == "MESH") {
+                ChAssertAlways(shape["filename"]);
+                ChAssertAlways(shape["location"]);
+                ChAssertAlways(shape["contact_radius"]);
                 std::string filename = shape["filename"].as<std::string>();
                 ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                 double radius = shape["contact_radius"].as<double>();
@@ -1085,12 +1129,17 @@ ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
                     color = ReadColor(shape["color"]);
                 }
                 if (type == "SPHERE") {
+                    ChAssertAlways(shape["location"]);
+                    ChAssertAlways(shape["radius"]);
                     ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                     double radius = shape["radius"].as<double>();
                     auto sphere = ChBodyGeometry::SphereShape(pos, radius);
                     sphere.color = color;
                     geometry.vis_spheres.push_back(sphere);
                 } else if (type == "BOX") {
+                    ChAssertAlways(shape["location"]);
+                    ChAssertAlways(shape["orientation"]);
+                    ChAssertAlways(shape["dimensions"]);
                     ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                     ChQuaternion<> rot = ChYamlParser::ReadRotation(shape["orientation"]);
                     ChVector3d dims = ChYamlParser::ReadVector(shape["dimensions"]);
@@ -1098,6 +1147,10 @@ ChBodyGeometry ChYamlParser::ReadGeometry(const YAML::Node& d) {
                     box.color = color;
                     geometry.vis_boxes.push_back(box);
                 } else if (type == "CYLINDER") {
+                    ChAssertAlways(shape["location"]);
+                    ChAssertAlways(shape["axis"]);
+                    ChAssertAlways(shape["radius"]);
+                    ChAssertAlways(shape["length"]);
                     ChVector3d pos = ChYamlParser::ReadVector(shape["location"]);
                     ChVector3d axis = ChYamlParser::ReadVector(shape["axis"]);
                     double radius = shape["radius"].as<double>();
@@ -1117,6 +1170,7 @@ ChTSDAGeometry ChYamlParser::ReadTSDAGeometry(const YAML::Node& d) {
     ChTSDAGeometry geometry;
 
     if (d["visualization"]) {
+        ChAssertAlways(d["visualization"]["type"]);
         std::string type = ToUpper(d["visualization"]["type"].as<std::string>());
         if (type == "SEGMENT") {
             geometry.vis_segment = chrono_types::make_shared<ChTSDAGeometry::SegmentShape>();
@@ -1135,6 +1189,9 @@ ChTSDAGeometry ChYamlParser::ReadTSDAGeometry(const YAML::Node& d) {
             if (d["visualization"]["turns"])
                 turns = d["visualization"]["turns"].as<double>();
             geometry.vis_spring = chrono_types::make_shared<ChTSDAGeometry::SpringShape>(radius, resolution, turns);
+        } else {
+            cerr << "Incorrect TSDA visualizatino shape type: " << d["visualization"]["type"].as<std::string>() << endl;
+            throw std::runtime_error("Incorrect TSDA visualizatino shape type");
         }
     }
 
@@ -1199,8 +1256,8 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ChYamlParser::ReadTSDAFunctor(const YA
 
         case FunctorType::LinearSpring: {
             ChAssertAlways(tsda["free_length"]);
+            ChAssertAlways(tsda["spring_coefficient"]);
             free_length = tsda["free_length"].as<double>();
-
             double k = tsda["spring_coefficient"].as<double>();
 
             auto forceCB = chrono_types::make_shared<LinearSpringForce>(k, preload);
@@ -1230,12 +1287,16 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ChYamlParser::ReadTSDAFunctor(const YA
         }
 
         case FunctorType::LinearDamper: {
+            ChAssertAlways(tsda["damping_coefficient"]);
             double c = tsda["damping_coefficient"].as<double>();
 
             return chrono_types::make_shared<LinearDamperForce>(c);
         }
 
         case FunctorType::DegressiveDamper: {
+            ChAssertAlways(tsda["damping_coefficient"]);
+            ChAssertAlways(tsda["degressivity_compression"]);
+            ChAssertAlways(tsda["degressivity_expansion"]);
             double c = tsda["damping_coefficient"].as<double>();
             double dc = tsda["degressivity_compression"].as<double>();
             double de = tsda["degressivity_expansion"].as<double>();
@@ -1259,8 +1320,9 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ChYamlParser::ReadTSDAFunctor(const YA
 
         case FunctorType::LinearSpringDamper: {
             ChAssertAlways(tsda["free_length"]);
+            ChAssertAlways(tsda["spring_coefficient"]);
+            ChAssertAlways(tsda["damping_coefficient"]);
             free_length = tsda["free_length"].as<double>();
-
             double k = tsda["spring_coefficient"].as<double>();
             double c = tsda["damping_coefficient"].as<double>();
 
@@ -1284,6 +1346,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ChYamlParser::ReadTSDAFunctor(const YA
                 double force = tsda["spring_curve_data"][i][1].as<double>();
                 forceCB->add_pointK(def, force);
             }
+            ChAssertAlways(tsda["damping_curve_data"].IsSequence() && tsda["damping_curve_data"][0].size() == 2);
             int num_speeds = tsda["damping_curve_data"].size();
             for (int i = 0; i < num_speeds; i++) {
                 double vel = tsda["damping_curve_data"][i][0].as<double>();
@@ -1300,6 +1363,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ChYamlParser::ReadTSDAFunctor(const YA
             auto forceCB = chrono_types::make_shared<MapSpringDamperForce>(preload);
 
             ChAssertAlways(tsda["deformation"]);
+            ChAssertAlways(tsda["map_data"]);
             ChAssertAlways(tsda["deformation"].IsSequence());
             ChAssertAlways(tsda["map_data"].IsSequence() &&
                            tsda["map_data"][0].size() == tsda["deformation"].size() + 1);
@@ -1370,8 +1434,8 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChYamlParser::ReadRSDAFunctor(const Y
 
         case FunctorType::LinearSpring: {
             ChAssertAlways(rsda["free_angle"]);
+            ChAssertAlways(rsda["spring_coefficient"]);
             free_angle = rsda["free_angle"].as<double>();
-
             double k = rsda["spring_coefficient"].as<double>();
 
             return chrono_types::make_shared<LinearSpringTorque>(k, preload);
@@ -1395,6 +1459,7 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChYamlParser::ReadRSDAFunctor(const Y
         }
 
         case FunctorType::LinearDamper: {
+            ChAssertAlways(rsda["damping_coefficient"]);
             double c = rsda["damping_coefficient"].as<double>();
 
             return chrono_types::make_shared<LinearDamperTorque>(c);
@@ -1416,8 +1481,9 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChYamlParser::ReadRSDAFunctor(const Y
 
         case FunctorType::LinearSpringDamper: {
             ChAssertAlways(rsda["free_angle"]);
+            ChAssertAlways(rsda["spring_coefficient"]);
+            ChAssertAlways(rsda["damping_coefficient"]);
             free_angle = rsda["free_angle"].as<double>();
-
             double k = rsda["spring_coefficient"].as<double>();
             double c = rsda["damping_coefficient"].as<double>();
 
@@ -1507,7 +1573,11 @@ std::shared_ptr<ChFunction> ChYamlParser::ReadFunction(const YAML::Node& a) {
         if (m_use_degrees)
             phase *= CH_DEG_TO_RAD;
         function = chrono_types::make_shared<ChFunctionSine>(amplitude, frequency, phase);
+    } else {
+        cerr << "Incorrect function type: " << a["type"] << endl;
+        throw std::runtime_error("Incorrect function type");
     }
+
     //// TODO - more function types
 
     return function;
