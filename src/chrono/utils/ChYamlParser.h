@@ -21,6 +21,8 @@
 
 #include "chrono/core/ChApiCE.h"
 
+#include "chrono/assets/ChVisualSystem.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChJoint.h"
@@ -42,34 +44,82 @@ namespace utils {
 /// @addtogroup chrono_utils
 /// @{
 
-/// Utility class to parse a YAML specification of a Chrono model and populate a Chrono system.
+/// Utility class to parse YAML specification files for Chrono models and simulations.
+/// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
+/// populating a Chrono system and setting solver and simulation parameters.
 class ChApi ChYamlParser {
   public:
     ChYamlParser();
 
     /// Create a YAML parser and load the model from the specified input YAML file.
-    ChYamlParser(const std::string& yaml_filename, bool verbose = false);
+    ChYamlParser(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
     ~ChYamlParser();
 
     /// Set verbose temrinal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Return true if a YAML simulation file has been loaded.
+    bool HasSimulationData() const { return m_sim_loaded; }
+
     /// Return true if a YAML model file has been loaded.
-    bool IsInitialized() const { return m_initialized; }
+    bool HasModelData() const { return m_model_loaded; }
+
+    // --------------
+
+    /// Load the simulation parameters from the specified input YAML simulation file.
+    void LoadSimulationFile(const std::string& yaml_filename);
+
+    double GetTimestep() const { return m_sim.time_step; }
+    double GetEndtime() const { return m_sim.end_time; }
+    bool EnforceRealtime() const { return m_sim.enforce_realtime; }
+    bool Render() const { return m_sim.render; }
+    double GetRenderFPS() const { return m_sim.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_sim.camera_vertical; }
+
+    /// Create and return a Chrono system configured from cached simulation parameters.
+    /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.
+    std::shared_ptr<ChSystem> CreateSystem();
+
+    /// Set solver and integrator settings from cached values.
+    /// If no YAML simulation file was loaded, this function is a no-op.
+    void SetSimulationParameters(ChSystem& sys);
+
+    // --------------
 
     /// Load the model from the specified input YAML model file.
-    void Load(const std::string& yaml_filename);
+    void LoadModelFile(const std::string& yaml_filename);
 
     /// Return the name of the YAML model.
     const std::string& GetName() const { return m_name; }
 
     /// Populate the given system with the cached Chrono components.
     /// An instance of the underlying Chrono model can be created at the specified frame (relative to the global frame),
-    /// with all Chrono object names using the specified prefix.
+    /// with all Chrono object names using the specified prefix. Throws an error if no YAML model file was loaded.
     int Populate(ChSystem& sys, const ChFramed& model_frame = ChFramed(), const std::string& model_prefix = "");
 
     /// Remove from the specified system the Chrono objects from the specified instance.
     void Depopulate(ChSystem& sys, int instance_index);
+
+  private:
+    /// Simulation and run-time visualization parameters.
+    struct SimParams {
+        SimParams();
+        void PrintInfo();
+
+        ChVector3d gravity;
+
+        ChContactMethod contact_method;
+        ChTimestepper::Type integrator_type;
+        ChSolver::Type solver_type;
+
+        double time_step;
+        double end_time;
+        bool enforce_realtime;
+
+        bool render;
+        double render_fps;
+        CameraVerticalDir camera_vertical;
+    };
 
   private:
     /// Internal specification of a body.
@@ -201,6 +251,10 @@ class ChApi ChYamlParser {
     ///  Load and return a ChColor from the specified node.
     ChColor ReadColor(const YAML::Node& a);
 
+    ChSolver::Type ReadSolverType(const YAML::Node& a);
+    ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
+
+    /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
 
     /// Load and return bushing data from the specified node.
@@ -247,6 +301,8 @@ class ChApi ChYamlParser {
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
+    SimParams m_sim;  ///< simulation and visualization parameters
+
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
     std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
@@ -255,10 +311,12 @@ class ChApi ChYamlParser {
     std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
 
+    bool m_verbose;  ///< verbose terminal output (default: false)
+
+    bool m_sim_loaded;     ///< YAML simulation file loaded
+    bool m_model_loaded;   ///< YAML model file loaded
     std::string m_name;    ///< name of the YAML model
-    bool m_verbose;        ///< verbose terminal output (default: false)
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
-    bool m_initialized;    ///< YAML file loaded
     int m_instance_index;  ///< index of the last model instance created
 };
 

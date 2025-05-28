@@ -28,6 +28,8 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 
+#include "chrono/physics//ChSystemNSC.h"
+#include "chrono/physics//ChSystemSMC.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
@@ -50,20 +52,89 @@ namespace chrono {
 namespace utils {
 
 ChYamlParser::ChYamlParser()
-    : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {}
-ChYamlParser::ChYamlParser(const std::string& yaml_filename, bool verbose)
-    : m_name("YAML model"), m_verbose(false), m_use_degrees(true), m_initialized(false), m_instance_index(-1) {
-    Load(yaml_filename);
+    : m_name("YAML model"),
+      m_verbose(false),
+      m_use_degrees(true),
+      m_sim_loaded(false),
+      m_model_loaded(false),
+      m_instance_index(-1) {}
+
+ChYamlParser::ChYamlParser(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose)
+    : m_name("YAML model"),
+      m_verbose(false),
+      m_use_degrees(true),
+      m_sim_loaded(false),
+      m_model_loaded(false),
+      m_instance_index(-1) {
+    LoadModelFile(yaml_model_filename);
+    LoadSimulationFile(yaml_sim_filename);
 }
 
 ChYamlParser::~ChYamlParser() {}
+
+// -----------------------------------------------------------------------------
 
 std::string ToUpper(std::string in) {
     std::transform(in.begin(), in.end(), in.begin(), ::toupper);
     return in;
 }
 
-void ChYamlParser::Load(const std::string& yaml_filename) {
+void ChYamlParser::LoadSimulationFile(const std::string& yaml_filename) {
+    auto path = filesystem::path(yaml_filename);
+    if (!path.exists() || !path.is_file()) {
+        cerr << "Error: file '" << yaml_filename << "' not found." << endl;
+        throw std::runtime_error("File not found");
+    }
+
+    YAML::Node yaml = YAML::LoadFile(yaml_filename);
+
+    if (m_verbose) {
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\nLoading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
+    }
+
+    SimParams sim;
+
+    // Mandatory
+    ChAssertAlways(yaml["time_step"]);
+    ChAssertAlways(yaml["contact_method"]);
+    m_sim.time_step = yaml["time_step"].as<double>();
+    auto contact_method = ToUpper(yaml["contact_method"].as<std::string>());
+    if (contact_method == "SMC")
+        m_sim.contact_method = ChContactMethod::SMC;
+    else
+        m_sim.contact_method = ChContactMethod::NSC;
+
+    // Optional
+    if (yaml["end_time"])
+        m_sim.end_time = yaml["end_time"].as<double>();
+    if (yaml["enforce_realtime"])
+        m_sim.enforce_realtime = yaml["enforce_realtime"].as<bool>();
+    if (yaml["gravity"])
+        m_sim.gravity = ReadVector(yaml["gravity"]);
+    if (yaml["integrator_type"])
+        m_sim.integrator_type = ReadIntegratorType(yaml["integrator_type"]);
+    if (yaml["solver_type"])
+        m_sim.solver_type = ReadSolverType(yaml["solver_type"]);
+    if (yaml["render"])
+        m_sim.render = yaml["render"].as<bool>();
+    if (yaml["render_fps"])
+        m_sim.render_fps = yaml["render_fps"].as<double>();
+    if (yaml["camera_vertical"]) {
+        auto camera_vertical = yaml["camera_vertical"].as<std::string>();
+        if (camera_vertical == "Y")
+            m_sim.camera_vertical = CameraVerticalDir::Y;
+        else
+            m_sim.camera_vertical = CameraVerticalDir::Z;
+    }
+
+    if (m_verbose)
+        m_sim.PrintInfo();
+
+    m_sim_loaded = true;
+}
+
+void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
     auto path = filesystem::path(yaml_filename);
     if (!path.exists() || !path.is_file()) {
         cerr << "Error: file '" << yaml_filename << "' not found." << endl;
@@ -79,8 +150,9 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
         m_use_degrees = yaml["angle_degrees"].as<bool>();
 
     if (m_verbose) {
-        cout << "\nLoading Chrono model specification from: " << yaml_filename << endl;
-        cout << "\nangles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
+        cout << "\n-------------------------------------------------" << endl;
+        cout << "\nLoading Chrono model specification from: " << yaml_filename << "\n" << endl;
+        cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
     }
 
     // Read bodies
@@ -163,7 +235,7 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
         auto constraints = yaml["constraints"];
         ChAssertAlways(constraints.IsSequence());
         if (m_verbose) {
-            cout << "constraints: " << constraints.size() << endl;
+            cout << "\nconstraints: " << constraints.size() << endl;
         }
         for (size_t i = 0; i < constraints.size(); i++) {
             ChAssertAlways(constraints[i]["type"]);
@@ -199,7 +271,7 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
         auto spring_dampers = yaml["spring_dampers"];
         ChAssertAlways(spring_dampers.IsSequence());
         if (m_verbose) {
-            cout << "spring dampers: " << spring_dampers.size() << endl;
+            cout << "\nspring dampers: " << spring_dampers.size() << endl;
         }
         for (size_t i = 0; i < spring_dampers.size(); i++) {
             ChAssertAlways(spring_dampers[i]["type"]);
@@ -252,7 +324,7 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
         auto motors = yaml["motors"];
         ChAssertAlways(motors.IsSequence());
         if (m_verbose) {
-            cout << "motors: " << motors.size() << endl;
+            cout << "\nmotors: " << motors.size() << endl;
         }
         for (size_t i = 0; i < motors.size(); i++) {
             ChAssertAlways(motors[i]["name"]);
@@ -306,7 +378,44 @@ void ChYamlParser::Load(const std::string& yaml_filename) {
         }
     }
 
-    m_initialized = true;
+    m_model_loaded = true;
+}
+
+// -----------------------------------------------------------------------------
+
+std::shared_ptr<ChSystem> ChYamlParser::CreateSystem() {
+    if (!m_sim_loaded) {
+        cerr << "[ChYamlParser::CreateSystem] Warning: no YAML simulation file loaded." << endl;
+        cerr << "Returning a default ChSystemNSC." << endl;
+        return chrono_types::make_shared<ChSystemNSC>();
+    }
+
+    auto sys = ChSystem::Create(m_sim.contact_method);
+    sys->SetGravitationalAcceleration(m_sim.gravity);
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+
+    sys->SetTimestepperType(m_sim.integrator_type);
+    sys->SetSolverType(m_sim.solver_type);
+
+    ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
+
+    return sys;
+}
+
+void ChYamlParser::SetSimulationParameters(ChSystem& sys) {
+    if (!m_sim_loaded) {
+        cerr << "[ChYamlParser::SetSimulationParameters] Warning: no YAML simulation file loaded." << endl;
+        cerr << "No changes applied to system." << endl;
+        return;
+    }
+
+    if (sys.GetContactMethod() != m_sim.contact_method) {
+        cerr << "[ChYamlParser::SetSimulationParameters] Warning: contact method mismatch." << endl;
+    }
+
+    sys.SetGravitationalAcceleration(m_sim.gravity);
+    sys.SetTimestepperType(m_sim.integrator_type);
+    sys.SetSolverType(m_sim.solver_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -318,8 +427,8 @@ std::shared_ptr<ChBodyAuxRef> ChYamlParser::FindBody(const std::string& name) co
 }
 
 int ChYamlParser::Populate(ChSystem& sys, const ChFramed& model_frame, const std::string& model_prefix) {
-    if (!m_initialized) {
-        cerr << "Error: no YAML model loaded." << endl;
+    if (!m_model_loaded) {
+        cerr << "[ChYamlParser::Populate] Error: no YAML model loaded." << endl;
         throw std::runtime_error("No YAML model loaded");
     }
 
@@ -512,6 +621,35 @@ void ChYamlParser::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
+ChYamlParser::SimParams::SimParams()
+    : gravity({0, 0, -9.8}),
+      contact_method(ChContactMethod::NSC),
+      integrator_type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
+      solver_type(ChSolver::Type::BARZILAIBORWEIN),
+      time_step(1e-3),
+      end_time(-1),
+      enforce_realtime(false),
+      render(false),
+      render_fps(120),
+      camera_vertical(CameraVerticalDir::Z) {}
+
+void ChYamlParser::SimParams::PrintInfo() {
+    cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
+    cout << endl;
+    cout << "simulation end time:    " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
+    cout << "integration time step:  " << time_step << endl;
+    cout << "enforce real time?      " << std::boolalpha << enforce_realtime << endl;
+    cout << endl;
+    cout << "integrator type:        " << ChTimestepper::GetTypeAsString(integrator_type) << endl;
+    cout << "solver type:            " << ChSolver::GetTypeAsString(solver_type) << endl;
+    cout << endl;
+    cout << "run-time visualization? " << std::boolalpha << render << endl;
+    cout << "render FPS:             " << render_fps << endl;
+    cout << "camera vertical dir:    " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+}
+
+// -----------------------------------------------------------------------------
+
 ChYamlParser::Body::Body()
     : pos(VNULL),
       rot(QUNIT),
@@ -598,7 +736,7 @@ void ChYamlParser::Joint::PrintInfo(const std::string& name) {
 }
 
 void ChYamlParser::TSDA::PrintInfo(const std::string& name) {
-    cout << " name:            " << name << endl;
+    cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     point1:      " << point1 << endl;
@@ -607,7 +745,7 @@ void ChYamlParser::TSDA::PrintInfo(const std::string& name) {
 }
 
 void ChYamlParser::RSDA::PrintInfo(const std::string& name) {
-    cout << " name:            " << name << endl;
+    cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     pos:         " << pos << endl;
@@ -616,7 +754,7 @@ void ChYamlParser::RSDA::PrintInfo(const std::string& name) {
 }
 
 void ChYamlParser::DistanceConstraint::PrintInfo(const std::string& name) {
-    cout << " name:            " << name << endl;
+    cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     point1:      " << point1 << endl;
@@ -711,6 +849,44 @@ ChColor ChYamlParser::ReadColor(const YAML::Node& a) {
     ChAssertAlways(a.IsSequence());
     ChAssertAlways(a.size() == 3);
     return ChColor(a[0].as<float>(), a[1].as<float>(), a[2].as<float>());
+}
+
+// -----------------------------------------------------------------------------
+
+ChSolver::Type ChYamlParser::ReadSolverType(const YAML::Node& a) {
+    auto type = ToUpper(a.as<std::string>());
+    if (type == "PSOR")
+        return ChSolver::Type::PSOR;
+    if (type == "APGD")
+        return ChSolver::Type::APGD;
+    if (type == "MINRES")
+        return ChSolver::Type::MINRES;
+    if (type == "GMRES")
+        return ChSolver::Type::GMRES;
+    if (type == "BICGSTAB")
+        return ChSolver::Type::BICGSTAB;
+    if (type == "PARDISO")
+        return ChSolver::Type::PARDISO_MKL;
+    if (type == "MUMPS")
+        return ChSolver::Type::MUMPS;
+    if (type == "SPARSE_LU")
+        return ChSolver::Type::SPARSE_LU;
+    if (type == "SPARSE_QR")
+        return ChSolver::Type::SPARSE_QR;
+
+    return ChSolver::Type::BARZILAIBORWEIN;
+}
+
+ChTimestepper::Type ChYamlParser::ReadIntegratorType(const YAML::Node& a) {
+    auto type = ToUpper(a.as<std::string>());
+    if (type == "EULER_IMPLICIT_PROJECTED")
+        return ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+    if (type == "EULER_IMPLICIT")
+        return ChTimestepper::Type::EULER_IMPLICIT;
+    if (type == "HHT")
+        return ChTimestepper::Type::HHT;
+
+    return ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
 }
 
 // -----------------------------------------------------------------------------
