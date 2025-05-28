@@ -38,6 +38,7 @@ if(NOT "${Irrlicht_INCLUDE_DIR}" STREQUAL "" AND NOT "${Irrlicht_LIBRARY}" STREQ
   find_path(IRRLICHT_INCLUDE_DIR NAMES irrlicht.h PATHS ${Irrlicht_INCLUDE_DIR} NO_CACHE NO_PACKAGE_ROOT_PATH)
 
   if(IRRLICHT_INCLUDE_DIR AND EXISTS ${Irrlicht_LIBRARY})
+    set(IRRLICHT_LIBRARY ${Irrlicht_LIBRARY})
     set(Irrlicht_FOUND TRUE)
   endif()
 endif()
