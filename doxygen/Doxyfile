@@ -913,7 +913,8 @@ EXCLUDE_PATTERNS       = */src/demos/* \
                          */src/chrono_thirdparty/fmu-forge/rapidxml \
                          */src/chrono_thirdparty/fmu-forge/miniz-cpp \
                          */src/chrono_thirdparty/fmu-forge/variant \
-                         */src/chrono_thirdparty/fmu-forge/fmusim
+                         */src/chrono_thirdparty/fmu-forge/fmusim \
+                         */src/chrono_thirdparty/yaml-cpp
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the

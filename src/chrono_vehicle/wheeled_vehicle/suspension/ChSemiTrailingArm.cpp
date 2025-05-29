@@ -152,8 +152,8 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.SetFromDirectionAxes(u, v, w);
 
-    m_revoluteArm[side] = chrono_types::make_shared<ChVehicleJoint>(
-        ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
+    m_revoluteArm[side] = chrono_types::make_shared<ChJoint>(
+        ChJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
         ChFrame<>((points[TA_O] + points[TA_I]) / 2, rot.GetQuaternion()), getCABushingData());
     m_revoluteArm[side]->SetTag(m_obj_tag);
     chassis->AddJoint(m_revoluteArm[side]);

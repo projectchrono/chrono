@@ -77,11 +77,11 @@ const double BMW_E90_DoubleWishbone::m_damperConstant = 5810.4;
 
 BMW_E90_DoubleWishbone::BMW_E90_DoubleWishbone(const std::string& name, bool use_tierod_bodies)
     : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springConstant, m_springPreload);
-    auto sptr = std::static_pointer_cast<LinearSpringForce>(m_springForceCB);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springConstant, m_springPreload);
+    auto sptr = std::static_pointer_cast<utils::LinearSpringForce>(m_springForceCB);
     sptr->enable_stops(m_springRestLength - 0.05, m_springRestLength + 0.05);
     sptr->set_stops(2.0 * m_springConstant, 2.0 * m_springConstant);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_damperConstant);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_damperConstant);
 }
 
 BMW_E90_DoubleWishbone::~BMW_E90_DoubleWishbone() {}

@@ -184,11 +184,7 @@ void ChTireTestRig::SetTerrainCRM(double radius,
                                   double terrain_length,
                                   double terrain_width,
                                   double terrain_depth) {
-#ifndef CHRONO_FSI
-    std::cerr << "ERROR: CRM terrain requires Chrono::FSI module." << std::endl;
-    throw std::runtime_error("ERROR: CRM terrain requires Chrono::FSI module.");
-#endif
-
+#ifdef CHRONO_FSI
     if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
         std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
         throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
@@ -202,20 +198,24 @@ void ChTireTestRig::SetTerrainCRM(double radius,
     m_params_crm.length = terrain_length;
     m_params_crm.width = terrain_width;
     m_params_crm.depth = terrain_depth;
+#else
+    std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
+#endif
 }
 
 void ChTireTestRig::SetTerrainCRM(const TerrainParamsCRM& params) {
-#ifndef CHRONO_FSI
-    std::cerr << "ERROR: CRM terrain requires Chrono::FSI module." << std::endl;
-    throw std::runtime_error("ERROR: CRM terrain requires Chrono::FSI module.");
-#endif
-
+#ifdef CHRONO_FSI
     if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
         std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
         throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
     }
     m_terrain_type = TerrainType::CRM;
     m_params_crm = params;
+#else
+    std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -647,6 +647,9 @@ void ChTireTestRig::CreateTerrainCRM() {
     std::cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << std::endl;
 
     m_terrain = terrain;
+#else
+    std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
 #endif
 }
 

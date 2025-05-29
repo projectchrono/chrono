@@ -199,6 +199,7 @@ set(Chrono_physics_links_SOURCES
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
     physics/ChLinkMotionImposed.cpp
+    physics/ChJoint.cpp
     )
 set(Chrono_physics_links_HEADERS
     physics/ChLinkLimit.h
@@ -239,6 +240,7 @@ set(Chrono_physics_links_HEADERS
     physics/ChLinkMotorLinearDriveline.h
     physics/ChLinkMotionImposed.h
     physics/ChLinkMotorAll.h
+    physics/ChJoint.h
     )
 source_group(physics\\links FILES ${Chrono_physics_links_SOURCES} ${Chrono_physics_links_HEADERS})
 
@@ -1083,6 +1085,7 @@ set(Chrono_utils_SOURCES
     utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
+    utils/ChForceFunctors.cpp
     utils/ChSocket.cpp
     utils/ChSocketCommunication.cpp
     )
@@ -1103,6 +1106,7 @@ set(Chrono_utils_HEADERS
     utils/ChCompositeInertia.h
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
+    utils/ChForceFunctors.h
     utils/ChSocket.h
     utils/ChSocketCommunication.h
 )

@@ -52,12 +52,13 @@ const double Cherokee_SolidAxleRear::m_damperDegressivityExpansion = 1.0;
 const double Cherokee_SolidAxleRear::m_axleShaftInertia = 0.4;
 
 Cherokee_SolidAxleRear::Cherokee_SolidAxleRear(const std::string& name) : ChLeafspringAxle(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient, m_springPreload);
-    auto ptr = std::static_pointer_cast<LinearSpringForce>(m_springForceCB);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient, m_springPreload);
+    auto ptr = std::static_pointer_cast<utils::LinearSpringForce>(m_springForceCB);
     ptr->enable_stops(m_springMinLength, m_springMaxLength);
     ptr->set_stops(2.0 * m_springCoefficient, 2.0 * m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(m_damperCoefficientCompression, m_damperDegressivityCompression,
-                                                                      m_damperCoefficientExpansion, m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(
+        m_damperCoefficientCompression, m_damperDegressivityCompression, m_damperCoefficientExpansion,
+        m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------

@@ -155,8 +155,6 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
-    ChVehicleJoint.h
-    ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
     ChPowertrainAssembly.h

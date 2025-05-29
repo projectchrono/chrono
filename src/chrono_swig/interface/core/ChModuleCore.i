@@ -46,6 +46,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotionImposed.h"
+#include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChNodeBase.h"
@@ -80,6 +81,7 @@
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChYamlParser.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -271,7 +273,7 @@ inline const char* ChUtils_GetFilename() {
 %shared_ptr(chrono::ChLinkLockPointSpline)
 %shared_ptr(chrono::ChLinkMotionImposed)
 %shared_ptr(chrono::ChLinkBushing)
-
+%shared_ptr(chrono::ChJoint)
 
 %shared_ptr(chrono::ChGeometry)
 %shared_ptr(chrono::ChLine)
@@ -434,7 +436,7 @@ inline const char* ChUtils_GetFilename() {
 %include "ChShaftMotor.i"
 %include "ChLinkMotor.i"
 %include "ChLinkBushing.i"
-
+%include "../../../chrono/physics/ChJoint.h"
 
 
 // Utils
@@ -447,6 +449,7 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
+%include "../../../chrono/utils/ChYamlParser.h"
 
 %include "ChParticleFactory.i"
 //

@@ -58,8 +58,8 @@ On **Windows**, to make the OpenCASCADE DLLs visible to the Chrono::Cascade demo
 
 <span style="color:red; font-weight:bold">ATTENTION!</span><br>
 Note that the precompiled OpenCascade 7.4.0 has a couple of bugs in the provided CMake configuration script (needed in step 3 above) where paths to some external dependencies are hard-coded. This may pose problems when building the Chrono::Cascade on Windows or when building the pythonocc-core Python library to use the Chrono::Cascade Python wrappers. Users **must** redirect these paths as appropriate.
-In particular, in the C:\OpenCASCADE-7.4.0-vc14-64\opencascade-7.4.0\cmake\OpenCASCADE***.cmake scripts, fix:
-- `occt-3rdparty` (e.g., replace all C:/occt-3rdparty/Windows-64-VC14/*** to C:/OpenCASCADE-7.4.0-vc14-64/***)
+In particular, in the C:\\OpenCASCADE-7.4.0-vc14-64\\opencascade-7.4.0\\cmake\\OpenCASCADE***.cmake scripts, fix:
+- `occt-3rdparty` (e.g., replace all C:\\occt-3rdparty\\Windows-64-VC14\\*** to C:\\OpenCASCADE-7.4.0-vc14-64\\***)
 - `tbb44_20160526oss` (e.g., replace it with `tbb_2017.0.100`)
 <br><br>
 If building OpenCascade 7.4.0 from sources, the generated CMake project configuration scripts will have the correct paths to Cascade dependencies.

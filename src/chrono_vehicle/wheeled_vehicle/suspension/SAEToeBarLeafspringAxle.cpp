@@ -236,13 +236,15 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
 
     double damping_factor = 0.01;
 
-    m_latRotSpringCBA = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
-    m_latRotSpringCBB = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatB, KrotLatB * damping_factor, 0);
+    m_latRotSpringCBA =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB =
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotLatB, KrotLatB * damping_factor, 0);
 
     m_vertRotSpringCBA =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
     m_vertRotSpringCBB =
-        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
+        chrono_types::make_shared<utils::LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 }
 
 }  // end namespace vehicle

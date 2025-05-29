@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChJoint.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
@@ -37,7 +38,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
