@@ -8,28 +8,29 @@ set(DEMOS
 #--------------------------------------------------------------
 
 list(APPEND LIBS Chrono_core)
+list(APPEND LIBS Chrono_parsers)
 
 if(CH_ENABLE_MODULE_IRRLICHT)
-  list(APPEND LIBS "Chrono_irrlicht")
+  list(APPEND LIBS Chrono_irrlicht)
 endif()
 
 if(CH_ENABLE_MODULE_VSG)
-  list(APPEND LIBS "Chrono_vsg")
+  list(APPEND LIBS Chrono_vsg)
 endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
-  list(APPEND LIBS "Chrono_pardisomkl")
+  list(APPEND LIBS Chrono_pardisomkl)
 endif()
 
 if(CH_ENABLE_MODULE_MUMPS)
-  list(APPEND LIBS "Chrono_mumps")
+  list(APPEND LIBS Chrono_mumps)
 endif()
 
 #--------------------------------------------------------------
 
 # Add executables
 
-message(STATUS "Add demo programs for YAML module")
+message(STATUS "Add demo programs for YAML parser")
 
 foreach(PROGRAM ${DEMOS})
   add_executable(${PROGRAM}  "${PROGRAM}.cpp")

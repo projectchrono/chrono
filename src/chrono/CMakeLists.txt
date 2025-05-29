@@ -1088,7 +1088,6 @@ set(Chrono_utils_SOURCES
     utils/ChForceFunctors.cpp
     utils/ChSocket.cpp
     utils/ChSocketCommunication.cpp
-    utils/ChYamlParser.cpp
     )
 set(Chrono_utils_HEADERS
     utils/ChConstants.h
@@ -1110,7 +1109,6 @@ set(Chrono_utils_HEADERS
     utils/ChForceFunctors.h
     utils/ChSocket.h
     utils/ChSocketCommunication.h
-    utils/ChYamlParser.h
 )
 if(BUILD_BENCHMARKING)
     set(Chrono_utils_HEADERS ${Chrono_utils_HEADERS} utils/ChBenchmark.h)
@@ -1230,19 +1228,6 @@ set(Chrono_libstl_FILES
 )
 source_group(utils\\libstl FILES ${Chrono_libstl_FILES})
 
-# -----------------------------
-
-include(FetchContent)
-
-FetchContent_Declare(
-  yaml-cpp
-  SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yaml-cpp"
-)
-FetchContent_MakeAvailable(yaml-cpp)
-
-mark_as_advanced(FORCE YAML_CPP_INSTALL)
-mark_as_advanced(FORCE YAML_CPP_INSTALL_CMAKEDIR)
-
 # -------------------------------------------------------------------------------------------------
 # Collect all source and header files for the Chrono core library
 # -------------------------------------------------------------------------------------------------
@@ -1338,10 +1323,6 @@ elseif(MSVC)
   set_source_files_properties(${Chrono_collision_convexdecompHACDv2_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_collision_gimpact_FILES} PROPERTIES COMPILE_OPTIONS "/w")
   set_source_files_properties(${Chrono_tiny_obj_FILES} PROPERTIES COMPILE_OPTIONS "/w")
-
-  target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
-  target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4275>)
-  target_compile_options(yaml-cpp PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/wd4267>)
 else()
   set_source_files_properties(${Chrono_collision_bullet_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
   set_source_files_properties(${Chrono_collision_convexdecompHACD_FILES} PROPERTIES COMPILE_OPTIONS "-w")
@@ -1391,8 +1372,6 @@ target_include_directories(Chrono_core PUBLIC
 )
 
 target_link_libraries(Chrono_core PUBLIC Eigen3::Eigen)
-
-target_link_libraries(Chrono_core PUBLIC yaml-cpp::yaml-cpp)
 
 if(CHRONO_THRUST_FOUND)
   target_link_libraries(Chrono_core PRIVATE Thrust::Thrust)
@@ -1569,7 +1548,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND MSVC AND ("${CMAKE_VS_PLATFORM_NAM
 	target_compile_definitions(Chrono_core PRIVATE "$<$<CONFIG:RELEASE>:EIGEN_STRONG_INLINE=inline>")
 endif()
 
-install(TARGETS yaml-cpp Chrono_core
+install(TARGETS Chrono_core
     EXPORT ChronoTargets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib

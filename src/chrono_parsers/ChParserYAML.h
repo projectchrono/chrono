@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CH_YAML_PARSER_H
-#define CH_YAML_PARSER_H
+#ifndef CH_PARSER_YAML_H
+#define CH_PARSER_YAML_H
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 
-#include "chrono/core/ChApiCE.h"
+#include "chrono_parsers/ChApiParsers.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 
@@ -39,21 +39,21 @@
 #include "chrono_thirdparty/yaml-cpp/include/yaml-cpp/yaml.h"
 
 namespace chrono {
-namespace utils {
+namespace parsers {
 
-/// @addtogroup chrono_utils
+/// @addtogroup parsers_module
 /// @{
 
 /// Utility class to parse YAML specification files for Chrono models and simulations.
 /// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
 /// populating a Chrono system and setting solver and simulation parameters.
-class ChApi ChYamlParser {
+class ChApi ChParserYAML {
   public:
-    ChYamlParser();
+    ChParserYAML();
 
     /// Create a YAML parser and load the model from the specified input YAML file.
-    ChYamlParser(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
-    ~ChYamlParser();
+    ChParserYAML(const std::string& yaml_model_filename, const std::string& yaml_sim_filename, bool verbose = false);
+    ~ChParserYAML();
 
     /// Set verbose temrinal output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
@@ -140,7 +140,7 @@ class ChApi ChYamlParser {
         ChFramed com;                                     ///< centroidal frame (relative to body frame)
         ChVector3d inertia_moments;                       ///< moments of inertia (relative to centroidal frame)
         ChVector3d inertia_products;                      ///< products of inertia (relative to centroidal frame)
-        ChBodyGeometry geometry;                          ///< visualization and collision geometry
+        utils::ChBodyGeometry geometry;                   ///< visualization and collision geometry
     };
 
     /// Internal specification of a joint.
@@ -180,7 +180,7 @@ class ChApi ChYamlParser {
         ChVector3d point2;                                ///< point on body2 (relative to instance frame)
         double free_length;                               ///< TSDA free (rest) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
-        ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
+        utils::ChTSDAGeometry geometry;                   ///< (optional) visualization geometry
     };
 
     /// Internal specification of an RSDA.
@@ -274,10 +274,10 @@ class ChApi ChYamlParser {
     /// Load and return a geometry structure from the specified node.
     /// Collision geometry and contact material information is set in the return ChBodyGeometry object if the given
     /// object has a member "Contact". Visualization geometry is loaded if the object has a member "Visualization".
-    ChBodyGeometry ReadGeometry(const YAML::Node& d);
+    utils::ChBodyGeometry ReadGeometry(const YAML::Node& d);
 
     /// Load and return a TSDA geometry structure from the specified node.
-    ChTSDAGeometry ReadTSDAGeometry(const YAML::Node& d);
+    utils::ChTSDAGeometry ReadTSDAGeometry(const YAML::Node& d);
 
     /// Load and return a TSDA functor object from the specified node.
     /// The TSDA free length is also set if the particular functor type defines it.
@@ -325,9 +325,9 @@ class ChApi ChYamlParser {
     int m_instance_index;  ///< index of the last model instance created
 };
 
-/// @} chrono_utils
+/// @} parsers_module
 
-}  // namespace utils
+}  // end namespace parsers
 }  // namespace chrono
 
 #endif

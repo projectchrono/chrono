@@ -20,11 +20,12 @@
 ////#include <float.h>
 ////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/core/ChRealtimeStep.h"
-#include "chrono/utils/ChYamlParser.h"
+#include "chrono_parsers/ChParserYAML.h"
 
 #include "chrono/assets/ChVisualSystem.h"
+#include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystem.h"
+
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
@@ -37,7 +38,6 @@ using namespace chrono::vsg3d;
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
-using namespace chrono::utils;
 
 // -----------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Simulation YAML file:   " << sim_yaml_filename << std::endl;
 
     // Create YAML parser object
-    ChYamlParser parser;
+    parsers::ChParserYAML parser;
     parser.SetVerbose(true);
 
     // Load the YAML simulation file and create a Chrono system based on its content
