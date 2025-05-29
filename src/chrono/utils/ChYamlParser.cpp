@@ -25,6 +25,8 @@
 
 #include <algorithm>
 
+#include "chrono/ChConfig.h"
+
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
 
@@ -37,6 +39,18 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
+
+#include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChIterativeSolverVI.h"
+#include "chrono/solver/ChDirectSolverLS.h"
+
+////#ifdef CHRONO_PARDISO_MKL
+////    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+////#endif
+////
+////#ifdef CHRONO_MUMPS
+////    #include "chrono_mumps/ChSolverMumps.h"
+////#endif
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChForceFunctors.h"
@@ -402,6 +416,82 @@ void ChYamlParser::LoadModelFile(const std::string& yaml_filename) {
 
 // -----------------------------------------------------------------------------
 
+void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
+    if (type == chrono::ChSolver::Type::PARDISO_MKL) {
+////#ifdef CHRONO_PARDISO_MKL
+////        auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>(num_threads_pardiso);
+////        solver->LockSparsityPattern(true);
+////        sys.SetSolver(solver);
+////#endif
+    } else if (type == chrono::ChSolver::Type::MUMPS) {
+////#ifdef CHRONO_MUMPS
+////        auto solver = chrono_types::make_shared<chrono::ChSolverMumps>();
+////        solver->LockSparsityPattern(true);
+////        solver->EnableNullPivotDetection(true);
+////        solver->GetMumpsEngine().SetICNTL(14, 50);
+////        sys.SetSolver(solver);
+////        if (verbose)
+////            cout << prefix << "Setting solver MUMPS with locked sparsity pattern" << endl;
+////#endif
+    } else {
+        sys.SetSolverType(type);
+        switch (type) {
+            case chrono::ChSolver::Type::SPARSE_LU:
+            case chrono::ChSolver::Type::SPARSE_QR: {
+                auto solver = std::static_pointer_cast<chrono::ChDirectSolverLS>(sys.GetSolver());
+                solver->LockSparsityPattern(false);
+                solver->UseSparsityPatternLearner(false);
+                break;
+            }
+            case chrono::ChSolver::Type::BARZILAIBORWEIN:
+            case chrono::ChSolver::Type::APGD:
+            case chrono::ChSolver::Type::PSOR: {
+                auto solver = std::static_pointer_cast<chrono::ChIterativeSolverVI>(sys.GetSolver());
+                solver->SetMaxIterations(100);
+                solver->SetOmega(0.8);
+                solver->SetSharpnessLambda(1.0);
+                break;
+            }
+            case chrono::ChSolver::Type::BICGSTAB:
+            case chrono::ChSolver::Type::MINRES:
+            case chrono::ChSolver::Type::GMRES: {
+                auto solver = std::static_pointer_cast<chrono::ChIterativeSolverLS>(sys.GetSolver());
+                solver->SetMaxIterations(200);
+                solver->SetTolerance(1e-10);
+                solver->EnableDiagonalPreconditioner(true);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+void SetIntegrator(ChSystem& sys, ChTimestepper::Type type) {
+    sys.SetTimestepperType(type);
+    switch (type) {
+        case chrono::ChTimestepper::Type::HHT: {
+            auto integrator = std::static_pointer_cast<chrono::ChTimestepperHHT>(sys.GetTimestepper());
+            integrator->SetAlpha(-0.2);
+            integrator->SetMaxIters(50);
+            integrator->SetAbsTolerances(1e-4, 1e2);
+            integrator->SetStepControl(false);
+            integrator->SetModifiedNewton(false);
+            break;
+        }
+        case chrono::ChTimestepper::Type::EULER_IMPLICIT: {
+            auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
+            integrator->SetMaxIters(50);
+            integrator->SetAbsTolerances(1e-4, 1e2);
+            break;
+        }
+        case chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
+        case chrono::ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
+        default:
+            break;
+    }
+}
+
 std::shared_ptr<ChSystem> ChYamlParser::CreateSystem() {
     if (!m_sim_loaded) {
         cerr << "[ChYamlParser::CreateSystem] Warning: no YAML simulation file loaded." << endl;
@@ -410,11 +500,13 @@ std::shared_ptr<ChSystem> ChYamlParser::CreateSystem() {
     }
 
     auto sys = ChSystem::Create(m_sim.contact_method);
-    sys->SetGravitationalAcceleration(m_sim.gravity);
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    sys->SetTimestepperType(m_sim.integrator_type);
-    sys->SetSolverType(m_sim.solver_type);
+    sys->SetGravitationalAcceleration(m_sim.gravity);
+    sys->SetNumThreads(m_sim.num_threads_chrono, m_sim.num_threads_collision, m_sim.num_threads_eigen);
+
+    SetIntegrator(*sys, m_sim.integrator_type);
+    SetSolver(*sys, m_sim.solver_type, m_sim.num_threads_pardiso);
 
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
 
@@ -433,8 +525,10 @@ void ChYamlParser::SetSimulationParameters(ChSystem& sys) {
     }
 
     sys.SetGravitationalAcceleration(m_sim.gravity);
-    sys.SetTimestepperType(m_sim.integrator_type);
-    sys.SetSolverType(m_sim.solver_type);
+    sys.SetNumThreads(m_sim.num_threads_chrono, m_sim.num_threads_collision, m_sim.num_threads_eigen);
+
+    SetIntegrator(sys, m_sim.integrator_type);
+    SetSolver(sys, m_sim.solver_type, m_sim.num_threads_pardiso);
 }
 
 // -----------------------------------------------------------------------------
@@ -648,12 +742,17 @@ ChYamlParser::SimParams::SimParams()
       contact_method(ChContactMethod::NSC),
       integrator_type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
       solver_type(ChSolver::Type::BARZILAIBORWEIN),
+      num_threads_chrono(1),
+      num_threads_collision(1),
+      num_threads_eigen(1),
+      num_threads_pardiso(1),
       time_step(1e-3),
       end_time(-1),
       enforce_realtime(false),
       render(false),
       render_fps(120),
-      camera_vertical(CameraVerticalDir::Z) {}
+      camera_vertical(CameraVerticalDir::Z) {
+}
 
 void ChYamlParser::SimParams::PrintInfo() {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
@@ -661,6 +760,11 @@ void ChYamlParser::SimParams::PrintInfo() {
     cout << "simulation end time:    " << (end_time < 0 ? "infinite" : std::to_string(end_time)) << endl;
     cout << "integration time step:  " << time_step << endl;
     cout << "enforce real time?      " << std::boolalpha << enforce_realtime << endl;
+    cout << endl;
+    cout << "num threads Chrono:     " << num_threads_chrono << endl;
+    cout << "num threads collision:  " << num_threads_collision << endl;
+    cout << "num threads Eigen:      " << num_threads_eigen << endl;
+    cout << "num threads Pardiso:    " << num_threads_pardiso << endl;
     cout << endl;
     cout << "integrator type:        " << ChTimestepper::GetTypeAsString(integrator_type) << endl;
     cout << "solver type:            " << ChSolver::GetTypeAsString(solver_type) << endl;

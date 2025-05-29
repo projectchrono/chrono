@@ -112,6 +112,11 @@ class ChApi ChYamlParser {
         ChTimestepper::Type integrator_type;
         ChSolver::Type solver_type;
 
+        int num_threads_chrono;
+        int num_threads_collision;
+        int num_threads_eigen;
+        int num_threads_pardiso;
+
         double time_step;
         double end_time;
         bool enforce_realtime;
