@@ -18,36 +18,43 @@
 
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
+import pychrono.parsers as parsers
 import math
 
 # -----------------------------------------------------------------------------
 
-model_yaml_filename = 'yaml/slider_crank.yaml'
-##model_yaml_filename = 'yaml/slider_crank_reduced.yaml'
+model_yaml_filename = 'yaml/models/slider_crank.yaml'
+##model_yaml_filename = 'yaml/models/slider_crank_reduced.yaml'
 
-time_step = 1e-4
-render_fps = 120
+sim_yaml_filename = 'yaml/simulations/basic_mbs.yaml'
 
-# Create the system
-sys = chrono.ChSystemSMC()
-sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
-sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-chrono.ChCollisionInfo.SetDefaultEffectiveCurvatureRadius(0.2)
+# -----------------------------------------------------------------------------
 
-# Create YAML parser object and load model file
-parser = chrono.ChYamlParser()
+# Create YAML parser object
+parser = parsers.ChParserYAML()
 parser.SetVerbose(True)
-parser.Load(chrono.GetChronoDataFile(model_yaml_filename))
-model_name = parser.GetName()
 
-# Populate Chrono system with YAML model
-instance1 = parser.Populate(sys)
+# Load the YAML simulation file and create a Chrono system based on its content
+parser.LoadSimulationFile(chrono.GetChronoDataFile(sim_yaml_filename))
+sys = parser.CreateSystem()
+
+# Load the YAML model and populate the Chrono system
+parser.LoadModelFile(chrono.GetChronoDataFile(model_yaml_filename))
+parser.Populate(sys)
+
+# Extract information from parsed YAML files
+model_name = parser.GetName()
+time_end = parser.GetEndtime()
+time_step = parser.GetTimestep()
+real_time = parser.EnforceRealtime()
+render = parser.Render()
+render_fps = parser.GetRenderFPS()
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
 vis.AttachSystem(sys)
 vis.SetWindowSize(1280,800)
-vis.SetWindowTitle('YAML model')
+vis.SetWindowTitle('YAML model - ' + model_name)
 vis.SetCameraVertical(chrono.CameraVerticalDir_Z)
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
@@ -60,14 +67,17 @@ rt_timer = chrono.ChRealtimeStepTimer()
 time = 0.0
 render_frame = 0
 
-while vis.Run(): 
-    if time >= render_frame / render_fps:
+while time_end <= 0 or time < time_end: 
+    if render and time >= render_frame / render_fps:
+        ok = vis.Run()
+        if not ok:
+            break
         vis.BeginScene()
         vis.Render()
         vis.EndScene()
         render_frame = render_frame + 1
 
     sys.DoStepDynamics(time_step)
-    rt_timer.Spin(time_step)
+    if real_time:
+        rt_timer.Spin(time_step)
     time = time + time_step
-
