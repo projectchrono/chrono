@@ -60,151 +60,124 @@ int main(int argc, char* argv[]) {
     // It is a SMC (penalty) material that we will assign to
     // all surfaces that might generate contacts.
 
-    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
-    mysurfmaterial->SetYoungModulus(1e5);
-    mysurfmaterial->SetFriction(0.3f);
-    mysurfmaterial->SetRestitution(0.2f);
-    mysurfmaterial->SetAdhesion(0);
+    auto contact_material = chrono_types::make_shared<ChContactMaterialSMC>();
+    contact_material->SetYoungModulus(1e5);
+    contact_material->SetFriction(0.3f);
+    contact_material->SetRestitution(0.2f);
+    contact_material->SetAdhesion(0);
 
     // Create a floor:
 
     bool do_mesh_collision_floor = false;
 
-    auto mmeshbox = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), true, true);
+    auto box_mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/cube.obj"), true, true);
 
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:
-        auto mfloor = chrono_types::make_shared<ChBody>();
-        mfloor->SetPos(ChVector3d(0, -1, 0));
-        mfloor->SetFixed(true);
-        sys.Add(mfloor);
+        auto floor = chrono_types::make_shared<ChBody>();
+        floor->SetPos(ChVector3d(0, -1, 0));
+        floor->SetFixed(true);
+        sys.Add(floor);
 
-        auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
+        auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(contact_material, box_mesh, false,
                                                                                    false, sphere_swept_thickness);
-        mfloor->AddCollisionShape(floor_shape);
-        mfloor->EnableCollision(true);
+        floor->AddCollisionShape(floor_shape);
+        floor->EnableCollision(true);
 
-        auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        masset_meshbox->SetMesh(mmeshbox);
-        masset_meshbox->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-        mfloor->AddVisualShape(masset_meshbox);
+        auto box_mesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        box_mesh_shape->SetMesh(box_mesh);
+        box_mesh_shape->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        floor->AddVisualShape(box_mesh_shape);
     } else {
         // floor as a simple collision primitive:
-        auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, mysurfmaterial);
-        mfloor->SetFixed(true);
-        mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-        sys.Add(mfloor);
+        auto floor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, contact_material);
+        floor->SetFixed(true);
+        floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
+        sys.Add(floor);
     }
 
     // two falling objects:
 
-    auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 2700, true, true, mysurfmaterial);
-    mcube->SetPos(ChVector3d(0.6, 0.5, 0.6));
-    sys.Add(mcube);
+    auto cube = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 2700, true, true, contact_material);
+    cube->SetPos(ChVector3d(0.6, 0.5, 0.6));
+    sys.Add(cube);
 
-    auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2700, true, true, mysurfmaterial);
-    msphere->SetPos(ChVector3d(0.8, 0.5, 0.6));
-    sys.Add(msphere);
+    auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2700, true, true, contact_material);
+    sphere->SetPos(ChVector3d(0.8, 0.5, 0.6));
+    sys.Add(sphere);
 
     // Example 1: tetrahedrons, with collisions
 
     // Create a mesh. We will use it for tetrahedrons.
 
-    auto my_mesh = chrono_types::make_shared<ChMesh>();
+    auto mesh = chrono_types::make_shared<ChMesh>();
 
     // 1) a FEA tetrahedron(s):
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
-    auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->SetPoissonRatio(0.3);
-    mmaterial->SetRayleighDampingBeta(0.003);
-    mmaterial->SetDensity(1000);
+    auto material = chrono_types::make_shared<ChContinuumElastic>();
+    material->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    material->SetPoissonRatio(0.3);
+    material->SetRayleighDampingBeta(0.003);
+    material->SetDensity(1000);
 
-    if (false) {
-        for (int k = 0; k < 3; ++k)
-            for (int j = 0; j < 3; ++j)
-                for (int i = 0; i < 3; ++i) {
-                    // Creates the nodes for the tetrahedron
-                    ChVector3d offset(j * 0.21, i * 0.21, k * 0.21);
-                    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.1, 0) + offset);
-                    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.1, 0.2) + offset);
-                    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.3, 0) + offset);
-                    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0.2, 0.1, 0) + offset);
-
-                    my_mesh->AddNode(mnode1);
-                    my_mesh->AddNode(mnode2);
-                    my_mesh->AddNode(mnode3);
-                    my_mesh->AddNode(mnode4);
-
-                    auto melement1 = chrono_types::make_shared<ChElementTetraCorot_4>();
-                    melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
-                    melement1->SetMaterial(mmaterial);
-
-                    my_mesh->AddElement(melement1);
-                }
-    }
-
-    if (true) {
-        double angles[4] = {0.24304, 0.774199, 0.963853, 0.47501};
-        for (int i = 0; i < 4; ++i) {
-            try {
-                ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
-                ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_2PI * ChRandom::Get()) * QuatFromAngleX(CH_PI_2));
-                ChCoordsys<> cydisp(ChVector3d(-0.3, 0.1 + i * 0.1, -0.3));
-                ChCoordsys<> ctot = cdown >> crot >> cydisp;
-                ChMatrix33<> mrot(ctot.rot);
-                ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
-                                                 GetChronoDataFile("fea/beam.ele").c_str(), mmaterial, ctot.pos, mrot);
-            } catch (std::exception myerr) {
-                std::cerr << myerr.what();
-                return 0;
-            }
+    for (int i = 0; i < 4; ++i) {
+        try {
+            ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
+            ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_2PI * ChRandom::Get()) * QuatFromAngleX(CH_PI_2));
+            ChCoordsys<> cydisp(ChVector3d(-0.3, 0.1 + i * 0.1, -0.3));
+            ChCoordsys<> ctot = cdown >> crot >> cydisp;
+            ChMatrix33<> rot(ctot.rot);
+            ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
+                                             GetChronoDataFile("fea/beam.ele").c_str(), material, ctot.pos, rot);
+        } catch (std::exception err) {
+            std::cerr << err.what();
+            return 0;
         }
     }
 
     // Create the contact surface(s).
     // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collisions.
 
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
-    mcontactsurf->AddFacesFromBoundary(*my_mesh, sphere_swept_thickness);
-    my_mesh->AddContactSurface(mcontactsurf);
+    auto contact_surface = chrono_types::make_shared<ChContactSurfaceMesh>(contact_material);
+    contact_surface->AddFacesFromBoundary(*mesh, sphere_swept_thickness);
+    mesh->AddContactSurface(contact_surface);
 
     // Remember to add the mesh to the system!
-    sys.Add(my_mesh);
+    sys.Add(mesh);
 
     // Example 2: beams, with collisions
 
     // Create a mesh. We will use it for beams only.
 
-    auto my_mesh_beams = chrono_types::make_shared<ChMesh>();
+    auto mesh_beam = chrono_types::make_shared<ChMesh>();
 
     // 2) an ANCF cable:
 
-    auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
-    msection_cable2->SetDiameter(0.05);
-    msection_cable2->SetYoungModulus(0.01e9);
-    msection_cable2->SetRayleighDamping(0.05);
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    section_cable->SetDiameter(0.05);
+    section_cable->SetYoungModulus(0.01e9);
+    section_cable->SetRayleighDamping(0.05);
 
     ChBuilderCableANCF builder;
 
-    builder.BuildBeam(my_mesh_beams,             // the mesh where to put the created nodes and elements
-                      msection_cable2,           // the ChBeamSectionCable to use for the ChElementCableANCF elements
-                      10,                        // the number of ChElementCableANCF to create
-                      ChVector3d(0, 0.1, -0.1),  // the 'A' point in space (beginning of beam)
-                      ChVector3d(0.5, 0.13, -0.1));  // the 'B' point in space (end of beam)
+    builder.BuildBeam(mesh_beam,                     // containing mesh
+                      section_cable,                 // section definition for the ChElementCableANCF elements
+                      10,                            // number of ChElementCableANCF to create
+                      ChVector3d(0, 0.1, -0.1),      // beginning of beam location
+                      ChVector3d(0.5, 0.13, -0.1));  // end of beam location
 
     // Create the contact surface(s).
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
     // all nodes to it.
 
-    auto mcontactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
-    mcontactcloud->AddAllNodes(*my_mesh_beams, 0.025);  // use larger point size to match beam section radius
-    my_mesh_beams->AddContactSurface(mcontactcloud);
+    auto contact_nodecloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(contact_material);
+    contact_nodecloud->AddAllNodes(*mesh_beam, 0.025);  // use larger point size to match beam section radius
+    mesh_beam->AddContactSurface(contact_nodecloud);
 
     // Remember to add the mesh to the system!
-    sys.Add(my_mesh_beams);
+    sys.Add(mesh_beam);
 
     // Optional...  visualization
 
@@ -214,33 +187,40 @@ int main(int argc, char* argv[]) {
     // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
-    auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColormapRange(0.0, 5.50);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddVisualShapeFEA(mvisualizemesh);
 
-    auto mvisualizemeshcoll = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizemeshcoll->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
-    mvisualizemeshcoll->SetWireframe(true);
-    mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
-    my_mesh->AddVisualShapeFEA(mvisualizemeshcoll);
+    ChColormap::Type colormap_type = ChColormap::Type::FAST;
+    ChVector2d colormap_range(0.0, 2.50);
 
-    auto mvisualizemeshbeam = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizemeshbeam->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemeshbeam->SetColormapRange(0.0, 5.50);
-    mvisualizemeshbeam->SetSmoothFaces(true);
-    my_mesh_beams->AddVisualShapeFEA(mvisualizemeshbeam);
+    auto vis_mesh_A = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh_A->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_mesh_A->SetColormap(colormap_type);
+    vis_mesh_A->SetColormapRange(colormap_range);
+    vis_mesh_A->SetSmoothFaces(true);
+    mesh->AddVisualShapeFEA(vis_mesh_A);
 
-    auto mvisualizemeshbeamnodes = chrono_types::make_shared<ChVisualShapeFEA>();
-    mvisualizemeshbeamnodes->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
-    mvisualizemeshbeamnodes->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
-    mvisualizemeshbeamnodes->SetSymbolsThickness(0.008);
-    my_mesh_beams->AddVisualShapeFEA(mvisualizemeshbeamnodes);
+    auto vis_mesh_B = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_mesh_B->SetFEMdataType(ChVisualShapeFEA::DataType::CONTACTSURFACES);
+    vis_mesh_B->SetWireframe(true);
+    vis_mesh_B->SetDefaultMeshColor(ChColor(1, 0.5, 0));
+    mesh->AddVisualShapeFEA(vis_mesh_B);
+
+    auto vis_beam_A = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_beam_A->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+    vis_beam_A->SetColormap(colormap_type);
+    vis_beam_A->SetColormapRange(colormap_range);
+    vis_beam_A->SetSmoothFaces(true);
+    mesh_beam->AddVisualShapeFEA(vis_beam_A);
+
+    auto vis_beam_B = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_beam_B->SetFEMglyphType(ChVisualShapeFEA::GlyphType::NODE_DOT_POS);
+    vis_beam_B->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
+    vis_beam_B->SetSymbolsThickness(0.008);
+    mesh_beam->AddVisualShapeFEA(vis_beam_B);
 
     // Create the run-time visualization system
-    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA contacts (SMC)",
-                                         ChVector3d(0.0, 0.6, -1.0));
+    auto vis = CreateVisualizationSystem(vis_type, CameraVerticalDir::Y, sys, "FEA contacts (SMC)",  //
+                                         ChVector3d(0.0, 0.6, -1.0), VNULL,                          //
+                                         true, "Node speed (m/s)", colormap_range, colormap_type);
 
     // SIMULATION LOOP
 

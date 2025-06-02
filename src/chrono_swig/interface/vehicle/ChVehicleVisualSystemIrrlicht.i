@@ -8,6 +8,7 @@
 
 %{
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 #include "chrono_vehicle/visualization/ChVehicleVisualSystemIrrlicht.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h"
@@ -146,6 +147,9 @@ using namespace irr::scene; // This is inserted for the extend functions that us
     %shared_ptr(chrono::vehicle::ChTrackedVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChWheeledVehicleVisualSystemIrrlicht)
     %shared_ptr(chrono::vehicle::ChSuspensionTestRigVisualSystemIRR)
+
+    %shared_ptr(chrono::vehicle::ChInteractiveDriver)
+    %include "../../../chrono_vehicle/ChDriver.h"
 
     %import(module = "pychrono.irrlicht") "chrono_swig/interface/irrlicht/ChVisualSystemIrrlicht.i"
     %include "../../../chrono_vehicle/ChVehicleVisualSystem.h"

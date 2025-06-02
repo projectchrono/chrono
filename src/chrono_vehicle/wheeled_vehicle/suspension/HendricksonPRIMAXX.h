@@ -79,7 +79,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
         return m_shockLBForceCB;
     }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
     virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
@@ -125,7 +125,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
 
     double m_axleInertia;
 
-    std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_tierodBushingData;
 
     double m_shockAH_restLength;
     double m_shockLB_restLength;

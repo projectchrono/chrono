@@ -58,8 +58,8 @@ const double Generic_MacPhersonStrut::m_springRestLength = 0.306;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_MacPhersonStrut::Generic_MacPhersonStrut(const std::string& name) : ChMacPhersonStrut(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
-    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<utils::LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<utils::LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

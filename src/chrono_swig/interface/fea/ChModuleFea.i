@@ -345,6 +345,7 @@ using namespace chrono::fea;
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
@@ -359,6 +360,7 @@ using namespace chrono::fea;
 %feature("director") chrono::ChFunction;
 %import(module = "pychrono.core")  "../../../chrono/functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChColormap.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChIndexedNodes.h"

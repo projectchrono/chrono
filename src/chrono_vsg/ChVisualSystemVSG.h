@@ -168,12 +168,34 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void SetCOMFrameScale(double axis_length);
     void ToggleCOMFrameVisibility();
 
+    /// Render link frames for all links in the system.
+    void SetLinkFrameScale(double axis_length);
+    void ToggleLinkFrameVisibility();
+
     /// Render COM symbol for all bodies in the system.
     void ToggleCOMSymbolVisibility();
 
-    /// Render joint frames for all links in the system.
-    void SetJointFrameScale(double axis_length);
-    void ToggleJointFrameVisibility();
+    // --- Labels
+
+    /// Toggle visibility of body labels.
+    void ToggleBodyLabelVisibility();
+
+    /// Set color for body labels.
+    void SetBodyLabelsColor(const ChColor& color);
+
+    /// Set rendering scale for body labels.
+    void SetBodyLabelsScale(double length);
+
+    /// Toggle visibility of link labels.
+    void ToggleLinkLabelVisibility();
+
+    /// Set color for link labels.
+    void SetLinkLabelsColor(const ChColor& color);
+
+    /// Set rendering scale for link labels.
+    void SetLinkLabelsScale(double length);
+
+    // ---
 
     /// Create a snapshot of the frame to be rendered and save it to the provided file.
     /// The file extension determines the image format.
@@ -306,7 +328,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<ShapeBuilder> GetVSGShapeBuilder() const { return m_shapeBuilder; }
 
     /// Get the ImGui texture for the specified colormap.
-    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const { return m_colormap_textures.at(type); }
+    vsg::ref_ptr<vsgImGui::Texture> GetColormapTexture(ChColormap::Type type) const {
+        return m_colormap_textures.at(type);
+    }
 
   protected:
     /// Perform necessary setup operations at the beginning of a time step.
@@ -351,9 +375,11 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     vsg::ref_ptr<vsg::Switch> m_contactForcesScene;
     vsg::ref_ptr<vsg::Switch> m_absFrameScene;
     vsg::ref_ptr<vsg::Switch> m_refFrameScene;
+    vsg::ref_ptr<vsg::Switch> m_linkFrameScene;
     vsg::ref_ptr<vsg::Switch> m_comFrameScene;
     vsg::ref_ptr<vsg::Switch> m_comSymbolScene;
-    vsg::ref_ptr<vsg::Switch> m_jointFrameScene;
+    vsg::ref_ptr<vsg::Switch> m_bodyLabelScene;
+    vsg::ref_ptr<vsg::Switch> m_linkLabelScene;
     vsg::ref_ptr<vsg::Group> m_decoScene;
 
     vsg::ref_ptr<vsg::Options> m_options;  ///< I/O related options for vsg::read/write calls
@@ -485,10 +511,14 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the body COM frame.
     void BindCOMFrame(const std::shared_ptr<ChBody>& body);
 
-    /// Bind the joint frames.
+    /// Bind the body COM symbols.
+    void BindCOMSymbols();
+
+    /// Bind the link frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
-    void BindCOMSymbols();
+    /// Bind the body and link labels.
+    void BindLabels();
 
     /// Utility function to populate a VSG group with visualization shapes (from the given visual model).
     void PopulateVisGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChVisualModel> model);
@@ -497,9 +527,15 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// The VSG shapes are always rendered wireframe.
     void PopulateCollGroup(vsg::ref_ptr<vsg::Group> group, std::shared_ptr<ChCollisionModel> model);
 
-    /// Utility functions to collect active body positions from all assemblies in all systems.
+    /// Utility function to collect active body positions from all assemblies in all systems.
     static void CollectActiveBodyCOMPositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions);
-    static void ConvertCOMPositions(const std::vector<ChVector3d>& c, vsg::ref_ptr<vsg::vec4Array> v, double w);
+
+    /// Utility function to collect link frame positions from all assemblies in all systems.
+    /// We always use the 2nd link reference frame.
+    static void CollectLinkFramePositions(const ChAssembly& assembly, std::vector<ChVector3d>& positions);
+
+    /// Utility function to convert a vector of Chrono positions to VSG positions.
+    static void ConvertPositions(const std::vector<ChVector3d>& c, vsg::ref_ptr<vsg::vec4Array> v, double w);
 
     /// Export screen image as file (png, bmp, tga, jpg).
     void ExportScreenImage();
@@ -528,10 +564,10 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     float m_guiFontSize = 20.0f;
 
     // Component rendering
-    bool m_show_body_objs;   ///< flag to toggle body asset visibility
-    bool m_show_link_objs;   ///< flag to toggle link asset visibility
-    bool m_show_springs;     ///< flag to toggle spring visibility
-    bool m_show_fea_meshes;  ///< flag to toggle FEA mesh visibility
+    bool m_show_body_objs;       ///< flag to toggle body asset visibility
+    bool m_show_link_objs;       ///< flag to toggle link asset visibility
+    bool m_show_spring_dampers;  ///< flag to toggle spring-damper visibility
+    bool m_show_fea_meshes;      ///< flag to toggle FEA mesh visibility
 
     // Collision rendering
     bool m_show_collision;           ///< flag to toggle collision shape visibility
@@ -556,21 +592,42 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     std::vector<vsg::ref_ptr<vsg::vec3Array>> m_contact_forces_colors;
 
     // Frame rendering
-    bool m_show_abs_frame;       ///< flag to toggle absolute frame visibility
-    bool m_show_ref_frames;      ///< flag to toggle object reference frame visibility
-    bool m_show_com_frames;      ///< flag to toggle COM frame visibility
-    bool m_show_com_symbols;     ///< flag to toggle COM symbol visibility
-    bool m_show_joint_frames;    ///< flag to toggle link frame visibility
-    double m_abs_frame_scale;    ///< current absolute frame scale
-    double m_ref_frame_scale;    ///< current reference frame scale
-    double m_com_frame_scale;    ///< current COM frame scale
-    double m_com_symbol_ratio;   ///< COM symbol scale relative to current COM frame scale
-    double m_joint_frame_scale;  ///< current joint frame scale
+    bool m_show_abs_frame;      ///< flag to toggle absolute frame visibility
+    bool m_show_ref_frames;     ///< flag to toggle object reference frame visibility
+    bool m_show_com_frames;     ///< flag to toggle COM frame visibility
+    bool m_show_com_symbols;    ///< flag to toggle COM symbol visibility
+    bool m_show_link_frames;    ///< flag to toggle link frame visibility
+    double m_abs_frame_scale;   ///< current absolute frame scale
+    double m_ref_frame_scale;   ///< current reference frame scale
+    double m_com_frame_scale;   ///< current COM frame scale
+    double m_com_symbol_ratio;  ///< COM symbol scale relative to current COM frame scale
+    double m_link_frame_scale;  ///< current link frame scale
 
     vsg::ref_ptr<vsg::vec3Array> m_com_symbol_vertices;
     vsg::ref_ptr<vsg::vec4Array> m_com_symbol_positions;
     bool m_com_size_changed;
     bool m_com_symbols_empty;
+
+    // Labels
+    std::string m_labelFontPath;          ///< path to label font
+    vsg::ref_ptr<vsg::Font> m_labelFont;  ///< font for body and link labels
+    double m_label_size;                  ///< base label text size
+
+    bool m_show_body_labels;      ///< flag to toggle body label visibility
+    double m_body_labels_scale;   ///< current body label size scale
+    ChColor m_body_labels_color;  ///< current color for body labels
+
+    bool m_show_link_labels;      ///< flag to toggle link label visibility
+    double m_link_labels_scale;   ///< current link label size scale
+    ChColor m_link_labels_color;  ///< current color for link labels
+
+    std::vector<vsg::ref_ptr<vsg::stringValue>> m_body_labels;
+    std::vector<vsg::ref_ptr<vsg::StandardLayout>> m_body_labels_layout;
+    std::vector<vsg::ref_ptr<vsg::Text>> m_body_labels_text;
+
+    std::vector<vsg::ref_ptr<vsg::stringValue>> m_link_labels;
+    std::vector<vsg::ref_ptr<vsg::StandardLayout>> m_link_labels_layout;
+    std::vector<vsg::ref_ptr<vsg::Text>> m_link_labels_text;
 
     unsigned int m_frame_number;                      ///< current number of rendered frames
     double m_start_time;                              ///< wallclock time at first render
@@ -580,7 +637,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     // ImGui textures
     vsg::ref_ptr<vsgImGui::Texture> m_logo_texture;
-    std::unordered_map<ChColormap::Type, vsg::ref_ptr<vsgImGui::Texture>> m_colormap_textures; 
+    std::unordered_map<ChColormap::Type, vsg::ref_ptr<vsgImGui::Texture>> m_colormap_textures;
 
     friend class ChMainGuiVSG;
     friend class ChBaseGuiComponentVSG;
@@ -601,7 +658,7 @@ class ChVisualSystemVSGPlugin {
 
     /// TODO - remove AddEventHandler?
     /// A plugin can call the VSG system's AddEventHandler in its OnAttach() function.
-    
+
     /// Add custom event handlers for this plugin.
     void AddEventHandler(std::shared_ptr<ChEventHandlerVSG> eh) { m_evhandler.push_back(eh); }
 

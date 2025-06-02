@@ -2,9 +2,11 @@
 #include <string>
 #include <vector>
 
+#include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChColor.h"
+#include "chrono/assets/ChColormap.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
@@ -23,7 +25,9 @@
 
 #ifdef SWIGCSHARP
 %import "chrono_swig/interface/core/ChColor.i"
+%import "chrono_swig/interface/core/ChColormap.i"
 %import "chrono_swig/interface/core/ChSystem.i"
+%import "chrono_swig/interface/core/ChVector2.i"
 %import "chrono_swig/interface/core/ChVector3.i"
 %import "chrono_swig/interface/core/ChFrame.i"
 %import "chrono_swig/interface/core/ChBody.i"
@@ -34,7 +38,9 @@
 
 #ifdef SWIGPYTHON
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChColormap.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector2.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBody.i"

@@ -27,9 +27,9 @@ To install a PyChrono conda module, do the following:
 
 3. We strongly recommend to use a dedicated conda environment and install the desired Python distribution, necessary dependencies, and PyChrono package under that environment.
 
-   For example, to create a `chrono` environment with Python 3.9, use:
+   To create a `chrono` environment with Python 3.10, use:
 ```
-   conda create -n chrono python=3.9
+   conda create -n chrono python=3.10
 ```   
    Then activate that environment:
 ```
@@ -64,7 +64,7 @@ To install a PyChrono conda module, do the following:
      - Requires NVIDIA graphics driver 515.xx +
      - Install CUDA 11.7:
    ```
-     conda install -c nvidia/label/cuda-11.7.0 cuda-toolkit
+     conda install -c nvidia/label/cuda-12.3.0 cuda-toolkit
    ```
      - install GLFW: 
    ```

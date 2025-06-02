@@ -19,7 +19,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS"
 
@@ -382,8 +381,6 @@ ts.SetMaxIters(5)
 ts.SetAbsTolerances(1e-12, 1e-12)
 
 timestep = 0.1
-sys.Setup()
-sys.Update()
 
 rec_X = []
 rec_Y = []

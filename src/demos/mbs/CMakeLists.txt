@@ -8,7 +8,7 @@ endif()
 # Add demos that can work with either Irrlicht or VSG
 set(DEMOS
   demo_MBS_aux_ref
-  demo_MBS_ballSMC
+  demo_MBS_ball
   demo_MBS_bricks
   demo_MBS_callbackNSC
   demo_MBS_callbackSMC

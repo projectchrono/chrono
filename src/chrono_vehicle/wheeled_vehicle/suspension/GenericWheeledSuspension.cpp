@@ -143,7 +143,7 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
             auto body2 = ReadBodyIdentifierJSON(joint["Body2"]);
             auto pos = ReadVectorJSON(joint["Position"]);
             auto rot = ReadQuaternionJSON(joint["Rotation"]);
-            std::shared_ptr<ChVehicleBushingData> bushingData = nullptr;
+            std::shared_ptr<ChJoint::BushingData> bushingData = nullptr;
             if (joint.HasMember("Bushing Data") && joint["Bushing Data"].IsObject()) {
                 bushingData = ReadBushingDataJSON(joint["Bushing Data"]);
             }

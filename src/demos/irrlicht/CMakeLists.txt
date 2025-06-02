@@ -27,6 +27,7 @@ foreach(PROGRAM ${DEMOS})
 
   set_target_properties(${PROGRAM} PROPERTIES FOLDER demos)
   if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
     set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
   endif()
   if(MSVC)
