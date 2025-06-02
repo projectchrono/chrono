@@ -2,6 +2,7 @@
 #define CHMESHSURFACELDPM_H
 
 #include "chrono_ldpm/ChLdpmApi.h"
+#include "chrono_ldpm/ChLDPMFace.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/fea/ChElementBase.h"
 
