@@ -30,7 +30,7 @@ def create_terrain(
     height: int,
     offset: int,
 ):
-    ground_mat = ch.ChContactMaterial_DefaultMaterial(system.GetContactMethod())
+    ground_mat = ch.ChContactMaterialSMC()
     ground_mat.SetFriction(0.8)
     ground_mat.SetRestitution(0.0)
     ch.CastToChContactMaterialSMC(ground_mat).SetYoungModulus(1e7)
