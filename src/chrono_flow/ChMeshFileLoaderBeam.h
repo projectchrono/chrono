@@ -19,16 +19,14 @@
 
 #include <map>
 
-#include "chrono_flow/ChElementSpringP.h"
+#include "chrono_flow/ChElementSpringPPP.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/core/ChMatrix.h"
-
 #include "chrono_flow/ChFlowApi.h"
 
 using namespace chrono::fea;
-using namespace chrono;
 
 namespace chrono {
 namespace flow {
@@ -52,13 +50,17 @@ class ChFlowApi ChMeshFileLoaderBeam {
     /// elements.
     /// If you pass a material inherited by ChContinuumPoisson3D, nodes with scalar field are used (ex. thermal,
     /// electrostatics, etc)
-    static void FromTetGenFile(
+    /// Load tetrahedrons, if any, saved in a .inp file for Abaqus.
+    static void FromFreeCADFile(
         std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename_node,                         ///< name of the .node file
-        const char* filename_ele,                          ///< name of the .ele  file
+        const char* filename,                              ///< input file name
         std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
-        ChVector3d pos_transform = VNULL,                  ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1)       ///< optional rotation/scaling of imported mesh
+        std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
+            node_sets,                                 ///< vect of vectors of 'marked'nodes
+        ChVector3d pos_transform = VNULL,              ///< optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
+        bool discard_unused_nodes =
+            true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
 
     /// Load tetrahedrons, if any, saved in a .inp file for Abaqus.

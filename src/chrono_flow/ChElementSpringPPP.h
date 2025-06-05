@@ -12,21 +12,24 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHELEMENTSPRINGP_H
-#define CHELEMENTSPRINGP_H
+#ifndef ChElementSpringPPP_H
+#define ChElementSpringPPP_H
 
-#include "ChNodeFEAxyzPP.h"
+#include "chrono_flow/ChNodeFEAxyzPPP.h"
+#include "chrono_flow/ChContinuumPoissonFlow3D.h"
+#include "chrono_flow/ChFlowApi.h"
 
 #include <cmath>
 
-#include "ChContinuumPoisson2D.h"
 #include "chrono/fea/ChElementTetrahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
-//#include "chrono/fea/ChNodeFEAxyzP.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/core/ChTensors.h"
 #include "chrono/core/ChMatrix.h"
+
+using namespace chrono::fea;
 
 namespace chrono {
 namespace flow {
@@ -37,14 +40,14 @@ namespace flow {
 /// Simple finite element with two nodes and a spring/damper between the two nodes.
 /// This element is mass-less, so if used in dynamic analysis, the two nodes must
 /// be set with non-zero point mass.
-class ChFlowApi ChElementSpringP : public ChElementGeneric, 
+class ChFlowApi ChElementSpringPPP : public ChElementGeneric, 
                                public ChElementCorotational, 
                                public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 2>;
 
-    ChElementSpringP();
-    ~ChElementSpringP();
+    ChElementSpringPPP();
+    ~ChElementSpringPPP();
 
     virtual unsigned int GetNumNodes() override { return 2; }
     virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 3; }
@@ -52,8 +55,8 @@ class ChFlowApi ChElementSpringP : public ChElementGeneric,
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
-    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzPP> nodeA, 
-                          std::shared_ptr<ChNodeFEAxyzPP> nodeB);
+    virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzPPP> nodeA, 
+                          std::shared_ptr<ChNodeFEAxyzPPP> nodeB);
 
     /// Update element at each time step.
     virtual void Update() override;
@@ -66,12 +69,14 @@ class ChFlowApi ChElementSpringP : public ChElementGeneric,
     /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
+    virtual void GetStateBlockDt(ChVectorDynamic<>& mD);
+
     /// Computes the local STIFFNESS MATRIX of the element:
     /// K = Volume * [B]' * [D] * [B]
     virtual void ComputeStiffnessMatrix();
 
-    /// Update diffusivity constants in material constitutive matrix
-    virtual void UpdateMaterialConstitutiveMatrix();
+    /// Computes the local MASS MATRIX of the element:
+    virtual void ComputeMassMatrix();
 
     /// compute large rotation of element for corotational approach
     virtual void UpdateRotation() override {};
@@ -92,8 +97,8 @@ class ChFlowApi ChElementSpringP : public ChElementGeneric,
     //
 
     /// Set the material of the element
-    void SetMaterial(std::shared_ptr<ChContinuumPoisson2D> my_material) { Material = my_material; }
-    std::shared_ptr<ChContinuumPoisson2D> GetMaterial() { return Material; }
+    void SetMaterial(std::shared_ptr<ChContinuumPoissonFlow3D> my_material) { Material = my_material; }
+    std::shared_ptr<ChContinuumPoissonFlow3D> GetMaterial() { return Material; }
 
     /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
     const ChMatrixDynamic<>& GetMatrB() const { return MatrB; }
@@ -176,24 +181,42 @@ class ChFlowApi ChElementSpringP : public ChElementGeneric,
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override { return this->Material->GetDensity(); }
     
-    ///???
-    ChVectorDynamic<> GetElementStateVariable() { return ElementState; }
+    /// Get element state variables
+    const ChVectorDynamic<>& GetElementStateVariable() { return ElementState; }
 
-    /// ???
-    void SetElementStateVariable(ChVectorDynamic<> ElState) { ElementState = ElState; }
+    /// Set element state variables
+    void SetElementStateVariable(ChVectorDynamic<>& ElState) { ElementState = ElState; }
+
+    /// Compute element source terms
+    void ComputeSourceTerm();
+
+    /// Set element FreeCAD geometry inputs
+    void SetElementL1(double l1) { elL1 = l1; };
+    void SetElementL2(double l2) { elL2 = l2; };
+    void SetElementA(double a) { elA = a; };
+    void SetElementVol(double v) { elVol = v; };
+    void SetElementType(double type) { elType = type; };
 
   private:
     /// Initial setup: set up the element's parameters and matrices
     virtual void SetupInitial(ChSystem* system) override;
 
-    std::vector<std::shared_ptr<ChNodeFEAxyzPP>> nodes;
-    std::shared_ptr<ChContinuumPoisson2D> Material;
-    ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
-    ChMatrixDynamic<> StiffnessMatrix;  // local stiffness matrix
+    std::vector<std::shared_ptr<ChNodeFEAxyzPPP>> nodes;
+    std::shared_ptr<ChContinuumPoissonFlow3D> Material;
+    ChMatrixDynamic<> MatrB;               // matrix of shape function's partial derivatives
+    ChMatrixDynamic<> StiffnessMatrix;     // local stiffness matrix
+    ChMatrixDynamic<> MassMatrix;          // local mass matrix
     ChMatrixDynamic<> UpdatedConstitutiveMatrix;  // local stiffness matrix
-    //ChMatrixNM<double, 4, 4> mM;      // for speeding up corotational approach
+    //ChMatrixNM<double, 4, 4> mM;         // for speeding up corotational approach
     double Volume;
-    ChVectorDynamic<> ElementState;     // Vector to store element state variables  
+    ChVectorDynamic<> ElementState;        // Vector to store element state variables  
+    ChVectorDynamic<> ElementSourceTerm;   // Vector to store element source term  
+    // Element FreeCAD geometry inputs                       
+    double elL1;                            
+    double elL2;
+    double elA;
+    double elVol;
+    double elType;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

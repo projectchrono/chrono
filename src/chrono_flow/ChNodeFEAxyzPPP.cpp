@@ -12,16 +12,18 @@
 // Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono_flow/ChNodeFEAxyzPP.h"
+#include "chrono_flow/ChNodeFEAxyzPPP.h"
+
+using namespace chrono::fea;
 
 namespace chrono {
 namespace flow {
 
-ChNodeFEAxyzPP::ChNodeFEAxyzPP(ChVector3d initial_pos) : pos(initial_pos), P(0, 0, 0), P_dt(0, 0, 0), F(0, 0, 0) {
+ChNodeFEAxyzPPP::ChNodeFEAxyzPPP(ChVector3d initial_pos) : pos(initial_pos), P(0, 0, 0), P_dt(0, 0, 0), F(0, 0, 0) {
     variables.SetNodeMass(0);
 }
 
-ChNodeFEAxyzPP::ChNodeFEAxyzPP(const ChNodeFEAxyzPP& other) : ChNodeFEAbase(other), ChNodeXYZ(other) {
+ChNodeFEAxyzPPP::ChNodeFEAxyzPPP(const ChNodeFEAxyzPPP& other) : ChNodeFEAbase(other), ChNodeXYZ(other) {
     pos = other.pos;
     P = other.P;
     P_dt = other.P_dt;
@@ -30,8 +32,7 @@ ChNodeFEAxyzPP::ChNodeFEAxyzPP(const ChNodeFEAxyzPP& other) : ChNodeFEAbase(othe
 }
 
 // -----------------------------------------------------------------------------
-
-ChNodeFEAxyzPP& ChNodeFEAxyzPP::operator=(const ChNodeFEAxyzPP& other) {
+ChNodeFEAxyzPPP& ChNodeFEAxyzPPP::operator=(const ChNodeFEAxyzPPP& other) {
     if (&other == this)
         return *this;
 
@@ -46,23 +47,21 @@ ChNodeFEAxyzPP& ChNodeFEAxyzPP::operator=(const ChNodeFEAxyzPP& other) {
 }
 
 // -----------------------------------------------------------------------------
-
-void ChNodeFEAxyzPP::SetFixed(bool fixed) {
+void ChNodeFEAxyzPPP::SetFixed(bool fixed) {
     variables.SetDisabled(fixed);
 }
 
-bool ChNodeFEAxyzPP::IsFixed() const {
+bool ChNodeFEAxyzPPP::IsFixed() const {
     return variables.IsDisabled();
 }
 
-void ChNodeFEAxyzPP::Relax() {
+void ChNodeFEAxyzPPP::Relax() {
     P = (0, 0, 0);
     P_dt = (0, 0, 0);
 }
 
 // -----------------------------------------------------------------------------
-
-void ChNodeFEAxyzPP::NodeIntStateGather(const unsigned int off_x,
+void ChNodeFEAxyzPPP::NodeIntStateGather(const unsigned int off_x,
                                        ChState& x,
                                        const unsigned int off_v,
                                        ChStateDelta& v,
@@ -71,7 +70,7 @@ void ChNodeFEAxyzPP::NodeIntStateGather(const unsigned int off_x,
     v.segment(off_v, 3) = P_dt.eigen();
 }
 
-void ChNodeFEAxyzPP::NodeIntStateScatter(const unsigned int off_x,
+void ChNodeFEAxyzPPP::NodeIntStateScatter(const unsigned int off_x,
                                         const ChState& x,
                                         const unsigned int off_v,
                                         const ChStateDelta& v,
@@ -80,19 +79,19 @@ void ChNodeFEAxyzPP::NodeIntStateScatter(const unsigned int off_x,
     SetFieldValDt(v.segment(off_v, 3));
 }
 
-void ChNodeFEAxyzPP::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
+void ChNodeFEAxyzPPP::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     // a(off_a) = P_dtdt; // NOT NEEDED?
 }
 
-void ChNodeFEAxyzPP::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
+void ChNodeFEAxyzPPP::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     // P_dtdt = (a(off_a)); // NOT NEEDED?
 }
 
-void ChNodeFEAxyzPP::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+void ChNodeFEAxyzPPP::NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     R.segment(off, 3) += c * F.eigen();
 }
 
-void ChNodeFEAxyzPP::NodeIntLoadResidual_Mv(const unsigned int off,
+void ChNodeFEAxyzPPP::NodeIntLoadResidual_Mv(const unsigned int off,
                                            ChVectorDynamic<>& R,
                                            const ChVectorDynamic<>& w,
                                            const double c) {
@@ -101,7 +100,7 @@ void ChNodeFEAxyzPP::NodeIntLoadResidual_Mv(const unsigned int off,
     R(off + 2) += c * GetMass() * w(off + 2);
 }
 
-void ChNodeFEAxyzPP::NodeIntLoadLumpedMass_Md(const unsigned int off,
+void ChNodeFEAxyzPPP::NodeIntLoadLumpedMass_Md(const unsigned int off,
                                              ChVectorDynamic<>& Md,
                                              double& error,
                                              const double c) {
@@ -110,26 +109,25 @@ void ChNodeFEAxyzPP::NodeIntLoadLumpedMass_Md(const unsigned int off,
     Md(off + 2) += c * GetMass();
 }
 
-void ChNodeFEAxyzPP::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
+void ChNodeFEAxyzPPP::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     variables.State() = v.segment(off_v, 3);
     variables.Force() = R.segment(off_v, 3);
 }
 
-void ChNodeFEAxyzPP::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
+void ChNodeFEAxyzPPP::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
     v.segment(off_v, 3) = variables.State();
 }
 
 // -----------------------------------------------------------------------------
-
-void ChNodeFEAxyzPP::InjectVariables(ChSystemDescriptor& descriptor) {
+void ChNodeFEAxyzPPP::InjectVariables(ChSystemDescriptor& descriptor) {
     descriptor.InsertVariables(&variables);
 }
 
-void ChNodeFEAxyzPP::VariablesFbReset() {
+void ChNodeFEAxyzPPP::VariablesFbReset() {
     variables.Force().setZero();
 }
 
-void ChNodeFEAxyzPP::VariablesFbLoadForces(double factor) {
+void ChNodeFEAxyzPPP::VariablesFbLoadForces(double factor) {
     if (variables.IsDisabled())
         return;
     variables.Force()(0) += F[0] * factor;
@@ -137,7 +135,7 @@ void ChNodeFEAxyzPP::VariablesFbLoadForces(double factor) {
     variables.Force()(2) += F[2] * factor;
 }
 
-void ChNodeFEAxyzPP::VariablesQbLoadSpeed() {
+void ChNodeFEAxyzPPP::VariablesQbLoadSpeed() {
     if (variables.IsDisabled())
         return;
 
@@ -146,20 +144,20 @@ void ChNodeFEAxyzPP::VariablesQbLoadSpeed() {
     variables.State()(2) = P_dt[2];
 }
 
-void ChNodeFEAxyzPP::VariablesQbSetSpeed(double step) {
+void ChNodeFEAxyzPPP::VariablesQbSetSpeed(double step) {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
     P_dt = variables.State();
 }
 
-void ChNodeFEAxyzPP::VariablesFbIncrementMq() {
+void ChNodeFEAxyzPPP::VariablesFbIncrementMq() {
     if (variables.IsDisabled())
         return;
     variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
-void ChNodeFEAxyzPP::VariablesQbIncrementPosition(double step) {
+void ChNodeFEAxyzPPP::VariablesQbIncrementPosition(double step) {
     if (variables.IsDisabled())
         return;
 
@@ -170,10 +168,9 @@ void ChNodeFEAxyzPP::VariablesQbIncrementPosition(double step) {
 }
 
 // -----------------------------------------------------------------------------
-
-void ChNodeFEAxyzPP::ArchiveOut(ChArchiveOut& archive_out) {
+void ChNodeFEAxyzPPP::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChNodeFEAxyzPP>();
+    archive_out.VersionWrite<ChNodeFEAxyzPPP>();
     // serialize parent class
     ChNodeFEAbase::ArchiveOut(archive_out);
     // serialize all member data:
@@ -182,9 +179,9 @@ void ChNodeFEAxyzPP::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(F);
 }
 
-void ChNodeFEAxyzPP::ArchiveIn(ChArchiveIn& archive_in) {
+void ChNodeFEAxyzPPP::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChNodeFEAxyzPP>();
+    /*int version =*/archive_in.VersionRead<ChNodeFEAxyzPPP>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIn(archive_in);
     // stream in all member data:

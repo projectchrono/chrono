@@ -2,8 +2,8 @@
 // ================================================================================
 // CHRONO WORKBENCH - github.com/Concrete-Chrono-Development/chrono-preprocessor
 //
-// Copyright (c) 2023
-// All rights reserved.
+// Copyright (c) 2023 
+// All rights reserved. 
 //
 // Use of the code that generated this file is governed by a BSD-style license that
 // can be found in the LICENSE file at the top level of the distribution and at
@@ -25,11 +25,11 @@
 #include <chrono/timestepper/ChTimestepperHHT.h>
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
-#include "chrono_flow/ChElementSpringP.h"
-#include "chrono_flow/ChContinuumHydroThermal2D.h"
-#include "chrono_flow/ChContinuumPoisson2D.h"
+#include "chrono_flow/ChElementSpringPPP.h"
+#include "chrono_flow/ChFlow3D.h"
+#include "chrono_flow/ChContinuumPoissonFlow3D.h"
 #include "chrono_flow/ChMeshFileLoaderBeam.h"
-#include "chrono_flow/ChNodeFEAxyzPP.h"
+#include "chrono_flow/ChNodeFEAxyzPPP.h"
 
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChContinuumThermal.h"
@@ -42,7 +42,7 @@
 #include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include <chrono_irrlicht/ChVisualSystemIrrlicht.h>
+// #include <chrono_irrlicht/ChVisualSystemIrrlicht.h>
 #include <chrono/fea/ChMeshExporter.h>
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -59,15 +59,14 @@
 #include <fstream>
 #include <cstdlib>
 #include <string>
-#include <string_view>
 #include <typeinfo>
 #include <map>
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 using namespace chrono::flow;
-using namespace irr;
+// using namespace chrono::irrlicht;
+// using namespace irr;
 
 void WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename) {
     std::ofstream out_stream;
@@ -85,17 +84,18 @@ void WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename) {
     }
 
     int numBeams = 0;
-
+    
     for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
-        if (std::dynamic_pointer_cast<ChElementSpringP>(mesh->GetElement(iele)))
+        if (std::dynamic_pointer_cast<ChElementSpringPPP>(mesh->GetElement(iele)))
             numBeams++;
     }
-    out_stream << "\nCELLS " << mesh->GetNumElements() << " " << (unsigned int)(numBeams * 3) << "\n";
+    out_stream << "\nCELLS " << mesh->GetNumElements() << " "
+               << (unsigned int)(numBeams*3) << "\n";
 
     for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         std::vector<int> mynodes;
 
-        if (auto elementBm = std::dynamic_pointer_cast<ChElementSpringP>(mesh->GetElement(iele))) {
+        if (auto elementBm = std::dynamic_pointer_cast<ChElementSpringPPP>(mesh->GetElement(iele)))  {
             mynodes.resize(2);
             out_stream << "2 ";
             int nodeOrder[] = {0, 1};
@@ -114,20 +114,22 @@ void WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename) {
                 }
             }
             out_stream << "\n";
-        }
+		} 
     }
 
     out_stream << "\nCELL_TYPES " << mesh->GetNumElements() << "\n";
 
     for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
-        if (std::dynamic_pointer_cast<ChElementSpringP>(mesh->GetElement(iele)))
+        if (std::dynamic_pointer_cast<ChElementSpringPPP>(mesh->GetElement(iele)))
             out_stream << "3\n";
     }
 
     out_stream.close();
 }
 
-void WriteFrame(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename, const std::string& vtk_filename) {
+void WriteFrame(std::shared_ptr<ChMesh> mesh,
+                const std::string& mesh_filename,
+                const std::string& vtk_filename) {
     std::ofstream out_stream;
     out_stream.open(vtk_filename, std::ios::trunc);
 
@@ -139,7 +141,7 @@ void WriteFrame(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename, 
     out_stream << "POINTS " << mesh->GetNumNodes() << " double\n";
 
     for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
-        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(mesh->GetNode(i));
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(mesh->GetNode(i));
         out_stream << node->GetPos().x() << " " << node->GetPos().y() << " " << node->GetPos().z() << "\n";
     }
 
@@ -148,11 +150,11 @@ void WriteFrame(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename, 
 
     int numCell = 0;
     for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
-        if (std::dynamic_pointer_cast<ChElementSpringP>(mesh->GetElement(iele)))
+        if (std::dynamic_pointer_cast<ChElementSpringPPP>(mesh->GetElement(iele)))
             numCell++;
     }
 
-    // out_stream << "\nCELL_DATA " << numCell << "\n";
+    //out_stream << "\nCELL_DATA " << numCell << "\n";
 
     out_stream << "\nPOINT_DATA " << mesh->GetNumNodes() << "\n";
     out_stream << "SCALARS Temperature double\n";
@@ -160,7 +162,7 @@ void WriteFrame(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename, 
 
     ChVector3<> tempT;
     for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
-        tempT = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(mesh->GetNode(i))->GetFieldVal();
+        tempT = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(mesh->GetNode(i))->GetFieldVal();
         tempT += ChVector3<>(1e-40);
         out_stream << tempT.x() << "\n";
     }
@@ -170,7 +172,7 @@ void WriteFrame(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename, 
 
     ChVector3<> tempH;
     for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
-        tempH = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(mesh->GetNode(i))->GetFieldVal();
+        tempH = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(mesh->GetNode(i))->GetFieldVal();
         tempH += ChVector3<>(1e-40);
         out_stream << tempH.y() << "\n";
     }
@@ -179,19 +181,19 @@ void WriteFrame(std::shared_ptr<ChMesh> mesh, const std::string& mesh_filename, 
 }
 
 int main(int argc, char** argv) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-    SetChronoDataPath(CHRONO_DATA_DIR);
-
+	std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+	SetChronoDataPath(CHRONO_DATA_DIR);    
+    
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
-    // sys.SetNumThreads(8);
+    //sys.SetNumThreads(8);
 
     // Create a fixed body (reference)
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     sys.Add(ground);
 
-    // Prepare output diectory and file name 
+    // Prepare output diectory and file name
     std::filesystem::path path_to_this_file(__FILE__);
     std::string current_dir = path_to_this_file.remove_filename().string();
     std::string out_dir = current_dir + "/out/";
@@ -202,12 +204,12 @@ int main(int argc, char** argv) {
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
-    }
-
+    }   
+   
     // Create a material, that must be assigned to each element and set its parameters
-    auto mmaterial = chrono_types::make_shared<ChContinuumHydroThermal2D>();
-    mmaterial->SetSpecificHeatCapacity(1);
-    mmaterial->SetDiffusivityConstants(128, 2.5, 128);
+    auto mmaterial = chrono_types::make_shared<ChFlow3D>();
+    mmaterial->SetSpecificHeatCapacity(1100);
+    mmaterial->SetDiffusivityConstants(2.5, 2.5, 2.5);
     mmaterial->SetDensity(2400);
 
     // Create mesh
@@ -215,48 +217,60 @@ int main(int argc, char** argv) {
 
     // Load an Abaqus .INP beam mesh file from disk, defining a complicate beam mesh.
     std::cout << "Parsing Abaqus file!" << std::endl;
-    std::string MyString = mesh_dir + "prism_100mmx500mm-edgeEle.inp";
-    std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
+    std::string MyString = mesh_dir+"prism_100mmx500mm-edgeEle.inp";
+
+    std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
     try {
-        ChMeshFileLoaderBeam::FromAbaqusFile(my_mesh, MyString.c_str(), mmaterial, node_sets);
+        ChMeshFileLoaderBeam::FromAbaqusFile(my_mesh, MyString.c_str(), mmaterial,
+                                            node_sets);
     } catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
         return 1;
     }
-
+    
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
     /// Select the nodes on the top surface of the mesh
     ChVector3d RightBC(0.0, 0.0, 0.0);
-    std::vector<std::shared_ptr<ChNodeFEAxyzPP>> top_nodes;
+    std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> top_nodes;	    
     for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
-        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(my_mesh->GetNode(i));
-        auto cz = node->GetPos().z();
-        if (cz > 500.0) {
-            top_nodes.push_back(node);
-            node->SetFixed(true);
-            node->SetFieldVal(RightBC);  // field: temperature [K]
-        }
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
+        auto cz=node->GetPos().z();
+        if (cz>500.0) {
+        //if (cz>0.049) {
+        	top_nodes.push_back(node);  
+            node->SetFixed(true);   
+            node->SetFieldVal(RightBC);  // field: temperature [K]  	     	
+        }       
     }
-
+    
     /// Select the nodes on the bottom surface of the mesh
-    ChVector3d LeftBC(100.0, 1.0, 100.0);
-    std::vector<std::shared_ptr<ChNodeFEAxyzPP>> bottom_nodes;
+    ChVector3d LeftBC(100.0, 100.0, 100.0);
+    std::vector< std::shared_ptr<ChNodeFEAxyzPPP>> bottom_nodes;
     for (unsigned int i = 0; i < my_mesh->GetNumNodes(); i++) {
-        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(my_mesh->GetNode(i));
-        auto cz = node->GetPos().z();
-        if (cz < 0.0) {
-            bottom_nodes.push_back(node);
-            node->SetFixed(true);
-            node->SetFieldVal(LeftBC);  // field: temperature [K]
-        }
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(i)); 
+        auto cz=node->GetPos().z();
+        if (cz<0.0) {
+        //if (cz<0.01) {
+        	bottom_nodes.push_back(node);    
+            node->SetFixed(true);    
+            node->SetFieldVal(LeftBC);  // field: temperature [K]  	   	
+        }       
     }
-
+       
     // We do not want gravity effect on FEA elements in this demo
     my_mesh->SetAutomaticGravity(false);
-    
-    // Create the Irrlicht visualization system (doesn't work with Windows currently)
+
+    // auto mvisualize = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
+    // mvisualize->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
+    // mvisualize->SetSymbolsThickness(5);
+    // mvisualize->SetColorscaleMinMax(-1., 12.);
+    // mvisualize->SetShrinkElements(false, 0.85);
+    // mvisualize->SetWireframe(true);
+    // my_mesh->AddVisualShapeFEA(mvisualize);
+
+    // // Create the Irrlicht visualization system
     // auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     // vis->SetWindowSize(1200, 600);
     // vis->SetWindowTitle("Truss FEA test: use ChElementSpring and ChElementBar");
@@ -277,16 +291,15 @@ int main(int argc, char** argv) {
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(true);
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-
+	
     std::ofstream histfile;
-    histfile.open(out_dir + history_filename, std::ios::out);
-    histfile << "time" << " " << "node" << " " << "temp" << " " << "humidity" << "\n";
+    histfile.open(out_dir+history_filename, std::ios::out);   
+    histfile  << "time" << " " << "node" << " " << "temp" << " " << "humidity" << "\n";
     // print temperature at the nodes along x axis and y=0
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
-        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(my_mesh->GetNode(inode))) {
+        if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(inode))) {
             if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
-                histfile << "0.0" << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " "
-                         << mnode->GetFieldVal().y() << "\n";
+                histfile  << "0.0" << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
             }
         }
     }
@@ -298,46 +311,49 @@ int main(int argc, char** argv) {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     std::cout << "DYNAMIC ANALYSIS STARTED! \n\n";
 
-    double timestep = 6000.0;            // seconds
-    double simtime = 10 * 24 * 60 * 60;  // seconds
-    int stepnum = 0;
-    int VTKint = 10;
-    int HISTint = 5;
+    double timestep = 3153600.0; // seconds
+    double simtime = 20 * 365 * 24 * 60 * 60; // seconds
+    int stepnum=0;
+    int VTKint=10;
+    int HISTint=5;
 
     // Write VTK file for nodal temperature
-    std::string mesh_filename = out_dir + "TempMesh" + std::to_string(stepnum) + ".vtk";
-    std::string vtk_filename = out_dir + "TempVTK" + std::to_string(stepnum) + ".vtk";
+    std::string mesh_filename=out_dir+"TempMesh"+std::to_string(stepnum)+".vtk";
+    std::string vtk_filename=out_dir+"TempVTK"+std::to_string(stepnum)+".vtk";
     WriteMesh(my_mesh, mesh_filename);
     WriteFrame(my_mesh, mesh_filename, vtk_filename);
-
+    
     std::cout << "TIME STEPPING STARTED! \n\n";
     while (sys.GetChTime() < simtime) {
-        sys.DoStepDynamics(timestep);
-        stepnum++;
 
+        sys.DoStepDynamics(timestep);        
+        stepnum++;
+        
         double sim_time = sys.GetChTime();
         std::cout << "SIMULATION TIME =" << " " << sim_time << std::endl;
 
         // Write VTK file for nodal temperature
-        if (stepnum % VTKint == 0) {
-            std::string mesh_filename = out_dir + "TempMesh" + std::to_string(stepnum) + ".vtk";
-            std::string vtk_filename = out_dir + "TempVTK" + std::to_string(stepnum) + ".vtk";
+        if(stepnum%VTKint==0) {
+            std::string mesh_filename=out_dir+"TempMesh"+std::to_string(stepnum)+".vtk";
+            std::string vtk_filename=out_dir+"TempVTK"+std::to_string(stepnum)+".vtk";
             WriteMesh(my_mesh, mesh_filename);
             WriteFrame(my_mesh, mesh_filename, vtk_filename);
-        }
+        }	
 
         // print temperature at the nodes along z axis and x=y=50.0
-        if (stepnum % VTKint == 0) {
+        if(stepnum%VTKint==0) {
             for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
-                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPP>(my_mesh->GetNode(inode))) {
+                if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzPPP>(my_mesh->GetNode(inode))) {
                     if (abs(mnode->GetPos().x() - 50.0) < 6.6 && abs(mnode->GetPos().y() - 50.0) < 6.6) {
-                        histfile << sim_time << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " "
-                                 << mnode->GetFieldVal().y() << "\n";
+                        histfile  << sim_time << " " << mnode->GetPos().z() << " " << mnode->GetFieldVal().x() << " " << mnode->GetFieldVal().y() << "\n";
                     }
                 }
             }
         }
+
     }
 
     return 0;
-}
+}       
+
+

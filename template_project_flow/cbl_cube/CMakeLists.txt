@@ -12,7 +12,7 @@ cmake_policy(SET CMP0091 NEW)
 # 1. Set the project name
 #--------------------------------------------------------------
 
-project(hydrothermal_test)
+project(cbl_template)
 
 #--------------------------------------------------------------
 # 2. Find REQUIRED and OPTIONAL Chrono modules
@@ -66,8 +66,8 @@ project(hydrothermal_test)
 #--------------------------------------------------------------
 
 find_package(Chrono
-             COMPONENTS Irrlicht PardisoMKL flow
-             OPTIONAL_COMPONENTS 
+             COMPONENTS PardisoMKL flow
+             OPTIONAL_COMPONENTS Irrlicht
              CONFIG)
 
 # Return now if Chrono or a required component was not found.
@@ -96,9 +96,9 @@ endif()
 # 3. Specify project sources and add executable
 #--------------------------------------------------------------
 
-set(MY_FILES hydrothermal_prism.cpp)
+set(MY_FILES run_MultiPhaseFlow_3D_flowSmall.cpp)
 
-add_executable(hydrothermal_prism ${MY_FILES})
+add_executable(spruce_cube ${MY_FILES})
 
 #--------------------------------------------------------------
 # Set properties for the executable target
@@ -108,17 +108,17 @@ add_executable(hydrothermal_prism ${MY_FILES})
 # path to the Chrono data directory, either in its source tree
 # (if using a build version of Chrono), or in its install tree
 # (if using an installed version of Chrono).
-target_compile_definitions(hydrothermal_prism PRIVATE "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
+target_compile_definitions(spruce_cube PRIVATE "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\"") 
 
 if(MSVC)
-    set_target_properties(hydrothermal_prism PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
+    set_target_properties(spruce_cube PROPERTIES MSVC_RUNTIME_LIBRARY ${CHRONO_MSVC_RUNTIME_LIBRARY})
 endif()
 
 #--------------------------------------------------------------
 # Link to Chrono targets for the requested modules
 #--------------------------------------------------------------
 
-target_link_libraries(hydrothermal_prism PRIVATE ${CHRONO_TARGETS})
+target_link_libraries(spruce_cube PRIVATE ${CHRONO_TARGETS})
 
 #--------------------------------------------------------------
 # 4. OPTIONAL (Windows only)

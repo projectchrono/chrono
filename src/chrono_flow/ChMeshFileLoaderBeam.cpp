@@ -21,16 +21,16 @@
 #include <sstream>
 #include <string>
 #include <cctype>
-#include <array>
 
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_flow/ChNodeFEAxyzPP.h"
-#include "chrono_flow/ChElementSpringP.h"
+#include <array>
+#include "chrono_flow/ChNodeFEAxyzPPP.h"
+#include "chrono_flow/ChElementSpringPPP.h"
 #include "chrono_flow/ChMeshFileLoaderBeam.h"
-#include "chrono_flow/ChContinuumHydroThermal2D.h"
-#include "chrono_flow/ChContinuumPoisson2D.h"
+#include "chrono_flow/ChFlow3D.h"
+#include "chrono_flow/ChContinuumPoissonFlow3D.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
@@ -39,176 +39,188 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 using namespace chrono::fea;
-using namespace chrono;
 
 namespace chrono {
 namespace flow {
 
-void ChMeshFileLoaderBeam::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
-                                      const char* filename_node,
-                                      const char* filename_ele,
+void ChMeshFileLoaderBeam::FromFreeCADFile(std::shared_ptr<ChMesh> mesh,
+                                      const char* filename,
                                       std::shared_ptr<ChContinuumMaterial> my_material,
+                                      std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
                                       ChVector3d pos_transform,
-                                      ChMatrix33<> rot_transform) {
-    unsigned int totnodes = 0;
-    unsigned int nodes_offset = mesh->GetNumNodes();
-    unsigned int added_nodes = 0;
+                                      ChMatrix33<> rot_transform,
+                                      bool discard_unused_nodes) {
+    std::map<unsigned int, std::pair<std::shared_ptr<ChNodeFEAbase>, bool>> parsed_nodes;
+    std::vector<std::shared_ptr<ChNodeFEAbase>>* current_nodeset_vector = nullptr;
 
-    // Load .node TetGen file
-    {
-        bool parse_header = true;
-        bool parse_nodes = false;
+    enum eChFreeCADParserSection {
+        E_PARSE_UNKNOWN = 0,
+        E_PARSE_NODES_XYZ,
+        E_PARSE_BEAMS,
+        E_PARSE_TETS_4,
+        E_PARSE_TETS_10,
+        E_PARSE_NODESET
+    } e_parse_section = E_PARSE_UNKNOWN;
 
-        std::ifstream fin(filename_node);
-        if (!fin.good())
-            throw std::invalid_argument("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
+    std::ifstream fin(filename);
+    if (fin.good())
+        std::cout << "Parsing FreeCAD mesh file: " << filename << std::endl;
+    else
+        throw std::invalid_argument("ERROR opening FreeCAD mesh file: " + std::string(filename) + "\n");
 
-        unsigned int nnodes = 0;
-        int ndims = 0;
-        int nattrs = 0;
-        int nboundarymark = 0;
+    std::string line;
+    while (std::getline(fin, line)) {
+        // print the line read
+        //std::cout << line << std::endl;
 
-        std::string line;
-        while (std::getline(fin, line)) {
-            // trims white space from the beginning of the string
-            line.erase(line.begin(),
-                       std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
+        // trims white space from the beginning of the string
+        line.erase(line.begin(),
+                   std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
 
-            if (line[0] == '#')
-                continue;  // skip comment
-            if (line[0] == 0)
-                continue;  // skip empty lines
+        // convert parsed line to uppercase (since string::find is case sensitive and Abaqus INP is not)
+        std::for_each(line.begin(), line.end(), [](char& c) { c = toupper(static_cast<unsigned char>(c)); });
 
-            if (parse_header) {
-                std::stringstream(line) >> nnodes >> ndims >> nattrs >> nboundarymark;
-                if (ndims != 3)
-                    throw std::invalid_argument("ERROR in TetGen .node file. Only 3 dimensional nodes supported: \n" +
-                                                line);
-                if (nattrs != 0)
-                    throw std::invalid_argument("ERROR in TetGen .node file. Only nodes with 0 attrs supported: \n" +
-                                                line);
-                if (nboundarymark != 0)
-                    throw std::invalid_argument("ERROR in TetGen .node file. Only nodes with 0 markers supported: \n" +
-                                                line);
-                parse_header = false;
-                parse_nodes = true;
-                totnodes = nnodes;
-                continue;
+        // skip empty lines
+        if (line[0] == 0)
+            continue;
+
+        // check if the current line opens a new section
+        if (line[0] == '*') {
+            e_parse_section = E_PARSE_UNKNOWN;
+
+            if (line.find("*NODES") == 0) {
+                std::cout << "Parsing node section!" << std::endl;
+                e_parse_section = E_PARSE_NODES_XYZ;
             }
 
-            unsigned int idnode = 0;
+            if (line.find("*ELEMENT") == 0) {
+                std::cout << "Parsing element section!" << std::endl;
+                e_parse_section = E_PARSE_BEAMS;
+            }
+
+            continue;
+        }
+
+        // node parsing
+        if (e_parse_section == E_PARSE_NODES_XYZ) {
+            int idnode = 0;
             double x = -10e30;
             double y = -10e30;
             double z = -10e30;
+            double tokenvals[20];
+            int ntoken = 0;
 
-            if (parse_nodes) {
-                std::stringstream(line) >> idnode >> x >> y >> z;
-                ++added_nodes;
-                if (idnode <= 0 || idnode > nnodes)
-                    throw std::invalid_argument("ERROR in TetGen .node file. Node ID not in range: \n" + line + "\n");
-                if (idnode != added_nodes)
+            std::string token;
+            std::istringstream ss(line);
+            while (std::getline(ss, token, ',') && ntoken < 20) {
+                std::istringstream stoken(token);
+                stoken >> tokenvals[ntoken];
+                ++ntoken;
+            }
+
+            if (ntoken != 4)
+                throw std::invalid_argument("ERROR in .inp file: nodes require ID and three x y z coords, see line:\n" +
+                                            line + "\n");
+            x = tokenvals[1];
+            y = tokenvals[2];
+            z = tokenvals[3];
+            if (x == -10e30 || y == -10e30 || z == -10e30)
+                throw std::invalid_argument("ERROR in .inp file: in parsing x,y,z coordinates of node: \n" + line +
+                                            "\n");
+
+            // TODO: is it worth to keep a so specific routine inside this function?
+            // especially considering that is affecting only some types of elements...
+            ChVector3d node_position(x, y, z);
+            node_position = rot_transform * node_position;  // rotate/scale, if needed
+            node_position = pos_transform + node_position;  // move, if needed
+
+            idnode = static_cast<unsigned int>(tokenvals[0]);
+            if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(node_position);
+                mnode->SetIndex(idnode);
+                parsed_nodes[idnode] = std::make_pair(mnode, false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
+            } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(ChVector3d(x, y, z));
+                mnode->SetIndex(idnode);
+                parsed_nodes[idnode] = std::make_pair(mnode, false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
+            } else if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzPPP>(ChVector3d(x, y, z));
+                mnode->SetIndex(idnode);
+                parsed_nodes[idnode] = std::make_pair(mnode, false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
+            } else
+                throw std::invalid_argument("ERROR in .inp generation. Material type not supported. \n");
+        }
+
+        // element parsing
+        if (e_parse_section == E_PARSE_BEAMS) {
+            unsigned int tokenvals[3];
+            double tokenvalsdouble[18];
+            int ntoken = 0;
+
+            std::string token;
+            std::istringstream ss(line);
+            while (std::getline(ss, token, ',') && ntoken < 25) {
+                std::istringstream stoken(token);
+                if (ntoken < 3)
+                    stoken >> tokenvals[ntoken];
+                else
+                    stoken >> tokenvalsdouble[ntoken-3];
+                ++ntoken;
+            }
+
+            if (e_parse_section == E_PARSE_BEAMS) {
+                if (ntoken != 21)
                     throw std::invalid_argument(
-                        "ERROR in TetGen .node file. Nodes IDs must be sequential (1 2 3 ..): \n" + line + "\n");
-                if (x == -10e30 || y == -10e30 || z == -10e30)
-                    throw std::invalid_argument("ERROR in TetGen .node file: in parsing x,y,z coordinates of node: \n" +
-                                                line + "\n");
+                        "ERROR in .inp file: each flow element require node ID and 20 inputs, see line:\n" + line + "\n");
 
-                ChVector3d node_position(x, y, z);
-                node_position = rot_transform * node_position;  // rotate/scale, if needed
-                node_position = pos_transform + node_position;  // move, if needed
-
-                if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(node_position);
-                    mesh->AddNode(mnode);
-                } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(node_position);
-                    mesh->AddNode(mnode);
-                } else
-                    throw std::invalid_argument("ERROR in TetGen generation. Material type not supported. \n");
+                for (int in = 0; in < 2; ++in)
+                    if (tokenvals[in + 1] == -10e30)
+                        throw std::invalid_argument("ERROR in in .inp file: in parsing IDs of beam: \n" + line + "\n");
             }
+            
+            if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
+                std::array<std::shared_ptr<ChNodeFEAbase>, 2> element_nodes;
+                for (auto node_sel = 0; node_sel < 2; ++node_sel) {
+                    // check if the nodes required by the current element exist
+                    std::pair<std::shared_ptr<ChNodeFEAbase>, bool>& node_found =
+                        parsed_nodes.at(static_cast<unsigned int>(tokenvals[node_sel + 1]));
 
-        }  // end while
+                    element_nodes[node_sel] = node_found.first;
+                    node_found.second = true;
+                }
 
-    }  // end .node file
-
-    // Load .ele TetGen file
-    {
-        bool parse_header = true;
-        bool parse_tet = false;
-
-        std::ifstream fin(filename_ele);
-        if (!fin.good())
-            throw std::invalid_argument("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
-
-        unsigned int ntets = 0, nnodespertet, nattrs = 0;
-
-        std::string line;
-        while (std::getline(fin, line)) {
-            // trims white space from the beginning of the string
-            line.erase(line.begin(),
-                       std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
-
-            if (line[0] == '#')
-                continue;  // skip comment
-            if (line[0] == 0)
-                continue;  // skip empty lines
-
-            if (parse_header) {
-                std::stringstream(line) >> ntets >> nnodespertet >> nattrs;
-                if (nnodespertet != 4)
-                    throw std::invalid_argument("ERROR in TetGen .ele file. Only 4 -nodes per tes supported: \n" +
-                                                line + "\n");
-                if (nattrs != 0)
-                    throw std::invalid_argument("ERROR in TetGen .ele file. Only tets with 0 attrs supported: \n" +
-                                                line + "\n");
-                parse_header = false;
-                parse_tet = true;
-                continue;
-            }
-
-            unsigned int idtet = 0;
-            unsigned int n1, n2, n3, n4;
-
-            if (parse_tet) {
-                std::stringstream(line) >> idtet >> n1 >> n2 >> n3 >> n4;
-                if (idtet <= 0 || idtet > ntets)
-                    throw std::invalid_argument("ERROR in TetGen .node file. Tetrahedron ID not in range: \n" + line +
-                                                "\n");
-                if (n1 > totnodes)
-                    throw std::invalid_argument("ERROR in TetGen .node file: ID of 1st node is out of range: \n" +
-                                                line + "\n");
-                if (n2 > totnodes)
-                    throw std::invalid_argument("ERROR in TetGen .node file: ID of 2nd node is out of range: \n" +
-                                                line + "\n");
-                if (n3 > totnodes)
-                    throw std::invalid_argument("ERROR in TetGen .node file: ID of 3rd node is out of range: \n" +
-                                                line + "\n");
-                if (n4 > totnodes)
-                    throw std::invalid_argument("ERROR in TetGen .node file: ID of 4th node is out of range: \n" +
-                                                line + "\n");
-                if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4>();
-                    mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n1 - 1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n3 - 1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n2 - 1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n4 - 1)));
-                    mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
+                if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
+                    auto mel = chrono_types::make_shared<ChElementSpringPPP>();
+                    mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[1]),
+                                  std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[0]));
+                    mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(my_material));
+                    mel->SetElementL1(tokenvalsdouble[0]);
+                    mel->SetElementL2(tokenvalsdouble[1]);
+                    mel->SetElementA(tokenvalsdouble[2]);
+                    mel->SetElementVol(tokenvalsdouble[3]);         
+                    mel->SetElementType(tokenvalsdouble[4]);             
                     mesh->AddElement(mel);
-                } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4_P>();
-                    mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n1 - 1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n3 - 1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n2 - 1)),
-                                  std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n4 - 1)));
-                    mel->SetMaterial(std::static_pointer_cast<ChContinuumPoisson3D>(my_material));
-                    mesh->AddElement(mel);
-                } else
-                    throw std::invalid_argument("ERROR in TetGen generation. Material type not supported. \n");
-            }
+                } 
 
-        }  // end while
+            } else
+                throw std::invalid_argument("ERROR in .inp generation. Material type not supported.\n");
+        }
 
-    }  // end .ele file
+    }  // end while
+
+    // only used nodes have been saved in 'parsed_nodes_used' and are now inserted in the mesh node list
+    if (discard_unused_nodes) {
+        for (auto node_it = parsed_nodes.begin(); node_it != parsed_nodes.end(); ++node_it) {
+            if (node_it->second.second)
+                mesh->AddNode(node_it->second.first);
+        }
+    }
 }
 
 void ChMeshFileLoaderBeam::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
@@ -363,8 +375,8 @@ void ChMeshFileLoaderBeam::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 parsed_nodes[idnode] = std::make_pair(mnode, false);
                 if (!discard_unused_nodes)
                     mesh->AddNode(mnode);
-            } else if (std::dynamic_pointer_cast<ChContinuumHydroThermal2D>(my_material)) {
-                auto mnode = chrono_types::make_shared<ChNodeFEAxyzPP>(ChVector3d(x, y, z));
+            } else if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzPPP>(ChVector3d(x, y, z));
                 mnode->SetIndex(idnode);
                 parsed_nodes[idnode] = std::make_pair(mnode, false);
                 if (!discard_unused_nodes)
@@ -457,7 +469,7 @@ void ChMeshFileLoaderBeam::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     mel->SetMaterial(std::static_pointer_cast<ChContinuumPoisson3D>(my_material));
                     mesh->AddElement(mel);
                 }
-            } else if (std::dynamic_pointer_cast<ChContinuumHydroThermal2D>(my_material)) {
+            } else if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
                 std::array<std::shared_ptr<ChNodeFEAbase>, 2> element_nodes;
                 for (auto node_sel = 0; node_sel < 2; ++node_sel) {
                     // check if the nodes required by the current element exist
@@ -468,11 +480,11 @@ void ChMeshFileLoaderBeam::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     node_found.second = true;
                 }
 
-                if (std::dynamic_pointer_cast<ChContinuumHydroThermal2D>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementSpringP>();
-                    mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzPP>(element_nodes[1]),
-                                  std::static_pointer_cast<ChNodeFEAxyzPP>(element_nodes[0]));
-                    mel->SetMaterial(std::static_pointer_cast<ChContinuumHydroThermal2D>(my_material));
+                if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
+                    auto mel = chrono_types::make_shared<ChElementSpringPPP>();
+                    mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[1]),
+                                  std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[0]));
+                    mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(my_material));
                     mesh->AddElement(mel);
                 } 
 

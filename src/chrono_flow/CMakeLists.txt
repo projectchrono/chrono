@@ -13,18 +13,18 @@ MESSAGE(STATUS "\n==== Chrono FLOW module ====\n")
 
 # List all source and header files for the Chrono_flow library
 SET(Chrono_FLOW_SOURCES 
-    ChNodeFEAxyzPP.cpp
+    ChNodeFEAxyzPPP.cpp
     ChMeshFileLoaderBeam.cpp
-    ChElementSpringP.cpp
+    ChElementSpringPPP.cpp
 )
 
 SET(Chrono_FLOW_HEADERS
 	  ChFlowApi.h
-    ChNodeFEAxyzPP.h
+    ChNodeFEAxyzPPP.h
     ChMeshFileLoaderBeam.h
-    ChElementSpringP.h
-    ChContinuumPoisson2D.h
-    ChContinuumHydroThermal2D.h
+    ChElementSpringPPP.h
+    ChContinuumPoissonFlow3D.h
+    ChFlow3D.h
 )
 
 SOURCE_GROUP("" FILES 

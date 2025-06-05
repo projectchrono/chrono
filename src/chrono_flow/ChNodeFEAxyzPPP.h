@@ -12,17 +12,15 @@
 // Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHNODEFEAXYZPP_H
-#define CHNODEFEAXYZPP_H
+#ifndef CHNODEFEAXYZPPP_H
+#define CHNODEFEAXYZPPP_H
 
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/solver/ChVariablesGeneric.h"
 #include "chrono/fea/ChNodeFEAbase.h"
-
 #include "chrono_flow/ChFlowApi.h"
 
 using namespace chrono::fea;
-using namespace chrono;
 
 namespace chrono {
 namespace flow {
@@ -33,13 +31,13 @@ namespace flow {
 /// Class for a generic finite element node in 3D space, with two scalar fields P & P.
 /// This can be used for typical Poisson-type problems with two scalar fields 
 /// (In this case temperature T and moisture content h are the two scalar fields)
-class ChFlowApi ChNodeFEAxyzPP : public ChNodeFEAbase, public ChNodeXYZ {
+class ChFlowApi ChNodeFEAxyzPPP : public ChNodeFEAbase, public ChNodeXYZ {
   public:
-    ChNodeFEAxyzPP(ChVector3d initial_pos = VNULL);
-    ChNodeFEAxyzPP(const ChNodeFEAxyzPP& other);
-    virtual ~ChNodeFEAxyzPP() {}
+    ChNodeFEAxyzPPP(ChVector3d initial_pos = VNULL);
+    ChNodeFEAxyzPPP(const ChNodeFEAxyzPPP& other);
+    virtual ~ChNodeFEAxyzPPP() {}
 
-    ChNodeFEAxyzPP& operator=(const ChNodeFEAxyzPP& other);
+    ChNodeFEAxyzPPP& operator=(const ChNodeFEAxyzPPP& other);
 
     virtual ChVariablesNode& Variables() override { return variables; }
     //virtual ChVariables& Variables() { return variables; }
@@ -149,7 +147,7 @@ class ChFlowApi ChNodeFEAxyzPP : public ChNodeFEAbase, public ChNodeXYZ {
 
 /// @} fea_nodes
 
-}  // end namespace fea
+}  // end namespace flpw
 }  // end namespace chrono
 
 #endif
