@@ -67,9 +67,9 @@ int main(int argc, char* argv[]) {
     double motion_cycle_time = 6;
     ChCoordsysd key_0 = robot->GetMarkerTCP()->GetAbsCoordsys();
     ChCoordsysd key_1 =
-        ChCoordsys(key_0.pos + ChVector3d(-0.1, 0.2, 0), QuatFromAngleZ(30 * CH_DEG_TO_RAD) * key_0.rot);
+        ChCoordsysd(key_0.pos + ChVector3d(-0.1, 0.2, 0), QuatFromAngleZ(30 * CH_DEG_TO_RAD) * key_0.rot);
     ChCoordsysd key_2 =
-        ChCoordsys(key_1.pos + ChVector3d(0.2, -0.1, 0.2), QuatFromAngleX(-50 * CH_DEG_TO_RAD) * key_0.rot);
+        ChCoordsysd(key_1.pos + ChVector3d(0.2, -0.1, 0.2), QuatFromAngleX(-50 * CH_DEG_TO_RAD) * key_0.rot);
     std::vector<ChCoordsysd> keys = {key_0, key_1, key_2, key_0};
 
     // Create a trajectory interpolator from given keyframes

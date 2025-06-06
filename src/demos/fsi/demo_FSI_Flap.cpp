@@ -531,7 +531,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer timer;
     timer.start();
-    ChVector3 reaction_force;
+    ChVector3d reaction_force;
     double flap_angular_velo;  // pitch velo
     double pto_power;
 
