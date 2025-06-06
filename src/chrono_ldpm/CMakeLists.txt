@@ -77,18 +77,18 @@ TARGET_LINK_LIBRARIES(ChronoEngine_ldpm
 ADD_DEPENDENCIES(ChronoEngine_ldpm ChronoEngine)
 
 # Handle Windows DLL copying
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  ADD_CUSTOM_COMMAND(
-    TARGET ChronoEngine_ldpm POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_LDPM_DLL}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMENT "Copying LDPM DLL..."
-  )
-  install(FILES "${CH_LDPM_DLL}" DESTINATION bin)
-ENDIF()
+#IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+#  ADD_CUSTOM_COMMAND(
+#    TARGET ChronoEngine_ldpm POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E make_directory
+#            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            "${CH_LDPM_DLL}"
+#            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
+#    COMMENT "Copying LDPM DLL..."
+#  )
+#  install(FILES "${CH_LDPM_DLL}" DESTINATION bin)
+#ENDIF()
 
 # Install the library and headers
 INSTALL(TARGETS ChronoEngine_ldpm
