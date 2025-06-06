@@ -1517,9 +1517,7 @@ void ChFsiFluidSystemSPH::AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_
 
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Update particle activity
-    if (time >= m_paramsH->settlingTime) {
-        m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D);
-    }
+    m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D, time);
 
     // Resize arrays
     bool resize_arrays = m_fluid_dynamics->CheckActivityArrayResize();

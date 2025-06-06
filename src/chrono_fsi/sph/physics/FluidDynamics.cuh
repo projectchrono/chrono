@@ -89,7 +89,7 @@ class FluidDynamics {
 
     /// Update activity of SPH particles.
     /// SPH particles which are in an active domain (e.g., close to a solid) are set as active particles.
-    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD, double time);
 
     /// Check if arrays must be resized due to change in particle activity.
     bool CheckActivityArrayResize();
