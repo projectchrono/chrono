@@ -226,6 +226,7 @@ void ViperPart::Construct(ChSystem* system) {
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetMutable(false);
         m_body->AddVisualShape(trimesh_shape);
+        trimesh_shape->SetColor(m_color);
     }
 
     // Add collision shape
