@@ -665,7 +665,7 @@ void ChRepresentedVolumeElement::ApplyPeriodicBoundaryConditions() {
 	    }
 	    std::sort(edge_nodes.begin(), edge_nodes.end(), []( std::shared_ptr<ChNodeFEAxyzrot>& nodeA, std::shared_ptr<ChNodeFEAxyzrot>& nodeB) { return manhattan_dist(nodeA) < manhattan_dist(nodeB); });
 		std::cout<<"edge_nodes: "<<edge_nodes.size()<<std::endl;		
-	    if (i>2 & edge_nodes.size()>0){
+	    if (i>2 && edge_nodes.size()>0){
 			edge_nodes.erase(edge_nodes.begin());
 			edge_nodes.erase(edge_nodes.end() - 1);
 	    }
@@ -756,13 +756,13 @@ void ChRepresentedVolumeElement::ApplyPeriodicBoundaryConditions() {
     	if(abs(p.x()-x_min)<max_dist ){
     		//std::cout<<"node i="<<i<<"  p: "<<p<<std::endl;
     		nodes_left_surf.push_back(node);   
-    		if (abs(p.y()-y_min)<max_dist &  abs(p.z()-z_min)<max_dist )
+    		if (abs(p.y()-y_min)<max_dist && abs(p.z()-z_min)<max_dist )
     			node_v1= node;
-    		if (abs(p.z()-z_max)<max_dist & abs(p.y()-y_min)<max_dist)
+    		if (abs(p.z()-z_max)<max_dist && abs(p.y()-y_min)<max_dist)
     			node_v5= node;	
-    		if (abs(p.y()-y_max)<max_dist & abs(p.z()-z_min)<max_dist)
+    		if (abs(p.y()-y_max)<max_dist && abs(p.z()-z_min)<max_dist)
     			node_v4= node;
-    		if (abs(p.y()-y_max)<max_dist & abs(p.z()-z_max)<max_dist)
+    		if (abs(p.y()-y_max)<max_dist && abs(p.z()-z_max)<max_dist)
     			node_v8= node;	
     	}  
     	
@@ -772,11 +772,11 @@ void ChRepresentedVolumeElement::ApplyPeriodicBoundaryConditions() {
     	if(abs(p.z()-z_min)<max_dist){
     		//std::cout<<"node i="<<i<<"  p: "<<p<<std::endl;
     		nodes_back_surf.push_back(node);
-    		if (abs(p.x()-x_max)<max_dist & abs(p.y()-y_min)<max_dist){
+    		if (abs(p.x()-x_max)<max_dist && abs(p.y()-y_min)<max_dist){
     			node_v2= node;
     		}
     		
-    		if (abs(p.x()-x_max)<max_dist & abs(p.y()-y_max)<max_dist)
+    		if (abs(p.x()-x_max)<max_dist && abs(p.y()-y_max)<max_dist)
     			node_v3= node;
     	}  
     	
@@ -786,12 +786,12 @@ void ChRepresentedVolumeElement::ApplyPeriodicBoundaryConditions() {
     	if(abs(p.y()-y_min)<max_dist){
     		//std::cout<<"node i="<<i<<"  p: "<<p<<std::endl;
     		nodes_bottom_surf.push_back(node);
-    		if (abs(p.x()-x_max)<max_dist & abs(p.z()-z_max)<max_dist)
+    		if (abs(p.x()-x_max)<max_dist && abs(p.z()-z_max)<max_dist)
     			node_v6= node;
     	}   
     	
     	
-    	if (abs(p.x()-x_max)<max_dist & abs(p.y()-y_max)<max_dist & abs(p.z()-z_max)<max_dist)
+    	if (abs(p.x()-x_max)<max_dist && abs(p.y()-y_max)<max_dist && abs(p.z()-z_max)<max_dist)
     			node_v7= node;
     	
     }
@@ -1008,9 +1008,9 @@ void ChRepresentedVolumeElement::ApplyPeriodicBoundaryConditions() {
     	//
     	// Left surface ----> minusX
     	//        	
-    	if( p.x()>(xmean-lenrange) & p.x()<(xmean+lenrange) ){
-    		if( p.y()>(ymean-lenrange) & p.y()<(ymean+lenrange) )
-    			if( p.z()>(zmean-lenrange) & p.z()<(zmean+lenrange) ) {   		
+    	if( p.x()>(xmean-lenrange) && p.x()<(xmean+lenrange) ){
+    		if( p.y()>(ymean-lenrange) && p.y()<(ymean+lenrange) )
+    			if( p.z()>(zmean-lenrange) && p.z()<(zmean+lenrange) ) {   		
     				//node->SetFixed(true); 
     				auto constr_inner_node=chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, false, false, false);    	
     				constr_inner_node->Initialize(node, mtruss, false, node->Frame(), node->Frame());     
@@ -1041,8 +1041,9 @@ void ChRepresentedVolumeElement::Solve() {
 void ChRepresentedVolumeElement::ComputeMacroStress() {
         macro_stress->setZero();  // Reset to zero
 #pragma omp parallel for 
-        for (auto elem : mmesh->GetElements()) {
-             //
+		for (int i = 0; i < mmesh->GetNumElements(); ++i) {
+			auto elem=mmesh->GetElement(i);        
+            //
             // LDPM ELEMENTS
             //
             
@@ -1086,5 +1087,3 @@ void ChRepresentedVolumeElement::ComputeMacroStress() {
 
 }
 }
-
-
