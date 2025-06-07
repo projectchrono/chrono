@@ -1275,32 +1275,25 @@ void PrintRefArrays(const thrust::host_vector<int4>& referenceArray,
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
-                                     const std::vector<FsiMesh1D>& fsi_meshes1D,
-                                     const std::vector<FsiMesh2D>& fsi_meshes2D,
+void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>& fsi_bodies,
+                                     const std::vector<std::shared_ptr<FsiMesh1D>>& fsi_meshes1D,
+                                     const std::vector<std::shared_ptr<FsiMesh2D>>& fsi_meshes2D,
                                      const std::vector<FsiBodyState>& body_states,
                                      const std::vector<FsiMeshState>& mesh1D_states,
                                      const std::vector<FsiMeshState>& mesh2D_states,
                                      bool use_node_directions) {
-    // Process FSI rigid bodies: create BCE markers on FSI bodies with specified geometry
-    uint num_fsi_bodies = (uint)fsi_bodies.size();
-    m_num_rigid_bodies = num_fsi_bodies;
-
-    for (const auto& b : fsi_bodies) {
-        if (!b.geometry)
-            continue;
-        //// TODO -- for now we assume rigid body BCEs are always created by the caller
-    }
+    // Process FSI rigid bodies
+    m_num_rigid_bodies = (uint)fsi_bodies.size();
 
     // Process FSI 1D meshes: create BCE markers
     uint num_fsi_meshes1D = 0;
     uint num_fsi_nodes1D = 0;
     uint num_fsi_elements1D = 0;
     for (const auto& m : fsi_meshes1D) {
-        AddFsiMesh1D(num_fsi_meshes1D, m, use_node_directions);
+        AddFsiMesh1D(num_fsi_meshes1D, *m, use_node_directions);
         num_fsi_meshes1D++;
-        num_fsi_nodes1D += m.GetNumNodes();
-        num_fsi_elements1D += m.GetNumElements();
+        num_fsi_nodes1D += m->GetNumNodes();
+        num_fsi_elements1D += m->GetNumElements();
     }
 
     // Process FSI 2D meshes: create BCE markers
@@ -1308,10 +1301,10 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
     uint num_fsi_nodes2D = 0;
     uint num_fsi_elements2D = 0;
     for (const auto& m : fsi_meshes2D) {
-        AddFsiMesh2D(num_fsi_meshes2D, m, use_node_directions);
+        AddFsiMesh2D(num_fsi_meshes2D, *m, use_node_directions);
         num_fsi_meshes2D++;
-        num_fsi_nodes2D += m.GetNumNodes();
-        num_fsi_elements2D += m.GetNumElements();
+        num_fsi_nodes2D += m->GetNumNodes();
+        num_fsi_elements2D += m->GetNumElements();
     }
 
     // ----------------
@@ -1420,7 +1413,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBody>& fsi_bodies,
 
     // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
     // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
-    m_data_mgr->Initialize(num_fsi_bodies,                                                            //
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                                        //
                            num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D,  //
                            use_node_directions);
 
@@ -2332,7 +2325,6 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool
 //--------------------------------------------------------------------------------------------------------------------------------
 
 //// TODO RADU: consider using monotone cubic Hermite interpolation instead of cubic Bezier
-//// TODO RADU: do we really need to calculate exact locatrions of BCE markers here or just get the right count?
 
 unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID,
                                                 const FsiMesh1D& fsi_mesh,

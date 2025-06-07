@@ -510,9 +510,9 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         double length = 0.8;
         double radius = 0.02;
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(contact_material_info);
+        geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
 
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetPos(ChVector3d(post_x, 0, length / 2));
@@ -520,7 +520,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(false);
         sysMBS.AddBody(cylinder);
 
-        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
@@ -542,12 +542,12 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         cylinder->EnableCollision(true);
         sysMBS.AddBody(cylinder);
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(contact_material_info);
+        geometry->coll_cylinders.push_back(
             utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Y_TO_Z, radius, length, 0));
-        geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
-        geometry.CreateCollisionShapes(cylinder, 1, sysMBS.GetContactMethod());
+        geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+        geometry->CreateCollisionShapes(cylinder, 1, sysMBS.GetContactMethod());
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }

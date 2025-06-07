@@ -50,13 +50,13 @@ class CH_FSI_API ChFsiInterface {
     /// Add a rigid body.
     /// The fluid-solid interaction is based on the provided rigid geometry.
     /// If geometry=nullptr, it is assumed that the interaction geometry is provided separately.
-    FsiBody& AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry);
+    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<utils::ChBodyGeometry> geometry);
 
     /// Add a flexible solid with segment set contact to the FSI system.
-    FsiMesh1D& AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
+    std::shared_ptr<FsiMesh1D> AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface);
 
     /// Add a flexible solid with surface mesh contact to the FSI system.
-    FsiMesh2D& AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
+    std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface);
 
     /// Initialize the FSI interface.
     virtual void Initialize();
@@ -87,13 +87,13 @@ class CH_FSI_API ChFsiInterface {
     // ------------
 
     /// Get the set of bodies added to the FSI interface.
-    const std::vector<FsiBody>& GetBodies() const { return m_fsi_bodies; }
+    const std::vector<std::shared_ptr<FsiBody>>& GetBodies() const { return m_fsi_bodies; }
     
     /// Get the set of 1D meshes added to the FSI interface.
-    const std::vector<FsiMesh1D>& GetMeshes1D() const { return m_fsi_meshes1D; }
+    const std::vector<std::shared_ptr<FsiMesh1D>>& GetMeshes1D() const { return m_fsi_meshes1D; }
     
     /// Get the set of 2D meshes added to the FSI interface.
-    const std::vector<FsiMesh2D>& GetMeshes2D() const { return m_fsi_meshes2D; }
+    const std::vector<std::shared_ptr<FsiMesh2D>>& GetMeshes2D() const { return m_fsi_meshes2D; }
 
     // ------------
 
@@ -170,9 +170,9 @@ class CH_FSI_API ChFsiInterface {
     ChSystem& m_sysMBS;
     ChFsiFluidSystem& m_sysCFD;
 
-    std::vector<FsiBody> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
-    std::vector<FsiMesh1D> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
-    std::vector<FsiMesh2D> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
+    std::vector<std::shared_ptr<FsiBody>> m_fsi_bodies;      ///< rigid bodies exposed to the FSI system
+    std::vector<std::shared_ptr<FsiMesh1D>> m_fsi_meshes1D;  ///< FEA meshes with 1-D segments exposed to the FSI system
+    std::vector<std::shared_ptr<FsiMesh2D>> m_fsi_meshes2D;  ///< FEA meshes with 2-D faces exposed to the FSI system
 };
 
 // =============================================================================

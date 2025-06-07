@@ -319,9 +319,9 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    auto nv = m_geometry[i_shape].coll_meshes[0].trimesh->GetNumVertices();
-    auto i_mat = m_geometry[i_shape].coll_meshes[0].matID;
-    auto material = m_geometry[i_shape].materials[i_mat].CreateMaterial(m_method);
+    auto nv = m_geometry[i_shape]->coll_meshes[0].trimesh->GetNumVertices();
+    auto i_mat = m_geometry[i_shape]->coll_meshes[0].matID;
+    auto material = m_geometry[i_shape]->materials[i_mat].CreateMaterial(m_method);
 
     double mass_p = m_load_mass[i_shape] / nv;
     ChVector3d inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector3d(1, 1, 1);
@@ -363,12 +363,12 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(true);
 
     // Create visualization assets (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
+    m_geometry[i_shape]->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes
-    for (auto& mesh : m_geometry[i_shape].coll_meshes)
+    for (auto& mesh : m_geometry[i_shape]->coll_meshes)
         mesh.radius = m_radius_p;
-    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
+    m_geometry[i_shape]->CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->DisallowCollisionsWith(1);
 

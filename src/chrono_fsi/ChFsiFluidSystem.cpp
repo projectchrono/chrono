@@ -51,7 +51,8 @@ void ChFsiFluidSystem::SetStepSize(double step) {
 }
 
 void ChFsiFluidSystem::Initialize() {
-    Initialize(std::vector<FsiBody>(), std::vector<FsiMesh1D>(), std::vector<FsiMesh2D>(),             //
+    Initialize(std::vector<std::shared_ptr<FsiBody>>(),                                                //
+               std::vector<std::shared_ptr<FsiMesh1D>>(), std::vector<std::shared_ptr<FsiMesh2D>>(),   //
                std::vector<FsiBodyState>(), std::vector<FsiMeshState>(), std::vector<FsiMeshState>(),  //
                false);
 }

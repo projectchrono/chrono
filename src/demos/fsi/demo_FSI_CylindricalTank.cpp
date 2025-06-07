@@ -153,11 +153,11 @@ int main(int argc, char* argv[]) {
     body->EnableCollision(false);
     sysMBS.AddBody(body);
 
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
+    geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body (create BCE markers on a grid)
     fsi.AddRigidBody(body, geometry, true, false);

@@ -72,6 +72,7 @@ struct FsiMeshForce {
 struct FsiBody {
     std::shared_ptr<ChBody> body;              ///< rigid body exposed to FSI system
     std::shared_ptr<ChBodyGeometry> geometry;  ///< geometry for FSI interaction
+    size_t index;                              ///< body index in the list of FSI bodies
     ChVector3d fsi_force;                      ///< fluid force at body COM (expressed in absolute frame)
     ChVector3d fsi_torque;                     ///< induced torque (expressed in absolute frame)
     unsigned int fsi_accumulator;              ///< index of the body force accumulator for fluid forces

@@ -78,7 +78,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// pruned). To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     size_t AddRigidBody(std::shared_ptr<ChBody> body,
-                        const chrono::utils::ChBodyGeometry& geometry,
+                        std::shared_ptr<utils::ChBodyGeometry> geometry,
                         bool check_embedded,
                         bool use_grid_bce = false);
 
@@ -117,7 +117,7 @@ class CH_FSI_API ChFsiProblemSPH {
     );
 
     /// Add an FEA mesh to the FSI problem.
-    /// BCE markers are created based on the type of elements and a corresponding FEA collision surface.
+    /// BCE markers are created based on the type of elements and the corresponding FEA collision surface.
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
     size_t AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
@@ -260,20 +260,27 @@ class CH_FSI_API ChFsiProblemSPH {
     typedef std::unordered_set<ChVector3i, CoordHash> GridPoints;
     typedef std::vector<ChVector3d> RealPoints;
 
-    /// Specification of an FSI rigid body.
+    /// Specification of an FSI rigid solid.
     struct RigidBody {
-        std::shared_ptr<ChBody> body;            ///< associated body
-        chrono::utils::ChBodyGeometry geometry;  ///< geometry for body BCE
-        bool check_embedded;                     ///< if true, check for overlapping SPH particles
-        RealPoints bce;                          ///< body BCE marker locations
-        ChVector3d oobb_center;                  ///< center of bounding box
-        ChVector3d oobb_dims;                    ///< dimensions of bounding box
+        std::shared_ptr<FsiBody> fsi_body;  ///< underlying FSI solid
+        bool check_embedded;                ///< if true, check for overlapping SPH particles
+        RealPoints bce;                     ///< body BCE marker locations
+        ChVector3d oobb_center;             ///< center of bounding box
+        ChVector3d oobb_dims;               ///< dimensions of bounding box
     };
 
-    /// Specification of an FSI FEA mesh.
-    struct FeaMesh {
-        std::shared_ptr<fea::ChMesh> mesh;  ///< associated FEA mesh
-        bool check_embedded;                ///< if true, check for overlapping SPH particles
+    /// Specification of a 1D FSI deformable solid surface.
+    struct FeaMesh1D {
+        std::shared_ptr<FsiMesh1D> fsi_mesh;  ///< underlying FSI solid
+        RealPoints bce;                       ///< initial mesh BCE marker locations
+        bool check_embedded;                  ///< if true, check for overlapping SPH particles
+    };
+
+    /// Specification of a 2D FSI deformable solid surface.
+    struct FeaMesh2D {
+        std::shared_ptr<FsiMesh2D> fsi_mesh;  ///< underlying FSI solid
+        RealPoints bce;                       ///< initial mesh BCE marker locations
+        bool check_embedded;                  ///< if true, check for overlapping SPH particles
     };
 
     /// Prune SPH markers that are inside the solid body volume.
@@ -285,6 +292,12 @@ class CH_FSI_API ChFsiProblemSPH {
     /// defined by the body BCEs. Note that this assumes the BCE markers form a watertight boundary.
     int ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trimesh, const ChVector3d& interior_point);
 
+    /// Prune SPH markers that overlap with the FEA mesh BCE markers.
+    void ProcessFeaMesh1D(FeaMesh1D& m);
+
+    /// Prune SPH markers that overlap with the FEA mesh BCE markers.
+    void ProcessFeaMesh2D(FeaMesh2D& m);
+
     // Only derived classes can use the following particle and marker relocation functions
 
     void CreateParticleRelocator();
@@ -293,22 +306,24 @@ class CH_FSI_API ChFsiProblemSPH {
     void SPHMoveAABB2AABB(const ChAABB& aabb_src, const ChIntAABB& aabb_dest);
     void ForceProximitySearch();
 
-    ChFsiFluidSystemSPH m_sysSPH;      ///< underlying Chrono SPH system
-    ChFsiSystemSPH m_sysFSI;           ///< underlying Chrono FSI system
-    ChFsiSplashsurfSPH m_splashsurf;   ///< surface reconstructor
-    double m_spacing;                  ///< particle and marker spacing
-    std::shared_ptr<ChBody> m_ground;  ///< ground body
-    GridPoints m_sph;                  ///< SPH particle grid locations
-    GridPoints m_bce;                  ///< boundary BCE marker grid locations
-    ChVector3d m_offset_sph;           ///< SPH particles offset
-    ChVector3d m_offset_bce;           ///< boundary BCE particles offset
-    ChAABB m_domain_aabb;              ///< computational domain bounding box
-    BoundaryConditions m_bc_type;      ///< boundary conditions in each direction
-    ChAABB m_sph_aabb;                 ///< SPH volume bounding box
-    std::vector<RigidBody> m_bodies;   ///< list of FSI rigid bodies
-    std::vector<FeaMesh> m_meshes;     ///< list of FSI FEA meshes
+    ChFsiFluidSystemSPH m_sysSPH;       ///< underlying Chrono SPH system
+    ChFsiSystemSPH m_sysFSI;            ///< underlying Chrono FSI system
+    ChFsiSplashsurfSPH m_splashsurf;    ///< surface reconstructor
+    double m_spacing;                   ///< particle and marker spacing
+    std::shared_ptr<ChBody> m_ground;   ///< ground body
+    GridPoints m_sph;                   ///< SPH particle grid locations
+    GridPoints m_bce;                   ///< boundary BCE marker grid locations
+    ChVector3d m_offset_sph;            ///< SPH particles offset
+    ChVector3d m_offset_bce;            ///< boundary BCE particles offset
+    ChAABB m_domain_aabb;               ///< computational domain bounding box
+    BoundaryConditions m_bc_type;       ///< boundary conditions in each direction
+    ChAABB m_sph_aabb;                  ///< SPH volume bounding box
+    std::vector<RigidBody> m_bodies;    ///< list of FSI rigid bodies
+    std::vector<FeaMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
+    std::vector<FeaMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
 
-    std::unordered_map<std::shared_ptr<ChBody>, size_t> m_fsi_bodies;
+    std::unordered_map<std::shared_ptr<ChBody>, size_t>
+        m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
 
     std::shared_ptr<ParticlePropertiesCallback> m_props_cb;  ///< callback for particle properties
 

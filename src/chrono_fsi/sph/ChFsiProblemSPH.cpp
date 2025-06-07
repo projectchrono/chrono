@@ -99,44 +99,48 @@ void ChFsiProblemSPH::SetSplashsurfParameters(const ChFsiFluidSystemSPH::Splashs
 // ----------------------------------------------------------------------------
 
 size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
-                                     const utils::ChBodyGeometry& geometry,
+                                     std::shared_ptr<utils::ChBodyGeometry> geometry,
                                      bool check_embedded,
                                      bool use_grid) {
     if (m_verbose) {
         cout << "Add FSI rigid body " << body->GetName() << endl;
     }
 
+    // Add the FSI rigid body to the underlying FSI system
+    auto fsi_body = m_sysFSI.AddFsiBody(body, geometry);
+    m_fsi_bodies[body] = fsi_body->index;
+
+    // Process geometry and create BCE points for the rigid body
     RigidBody b;
-    b.body = body;
-    b.geometry = geometry;
+    b.fsi_body = fsi_body;
     b.check_embedded = check_embedded;
 
     //// TODO: eliminate duplicate BCE markers (from multiple volumes).
     ////       easiest if BCE created on a grid!
 
     // Create the BCE markers for each shape in the collision geometry
-    for (const auto& sphere : geometry.coll_spheres) {
+    for (const auto& sphere : geometry->coll_spheres) {
         std::vector<ChVector3d> points;
         m_sysSPH.CreateBCE_SphereInterior(sphere.radius, !use_grid, points);
         for (auto& p : points)
             p += sphere.pos;
         b.bce.insert(b.bce.end(), points.begin(), points.end());
     }
-    for (const auto& box : geometry.coll_boxes) {
+    for (const auto& box : geometry->coll_boxes) {
         std::vector<ChVector3d> points;
         m_sysSPH.CreateBCE_BoxInterior(box.dims, points);
         for (auto& p : points)
             p = box.pos + box.rot.Rotate(p);
         b.bce.insert(b.bce.end(), points.begin(), points.end());
     }
-    for (const auto& cyl : geometry.coll_cylinders) {
+    for (const auto& cyl : geometry->coll_cylinders) {
         std::vector<ChVector3d> points;
         m_sysSPH.CreateBCE_CylinderInterior(cyl.radius, cyl.length, !use_grid, points);
         for (auto& p : points)
             p = cyl.pos + cyl.rot.Rotate(p);
         b.bce.insert(b.bce.end(), points.begin(), points.end());
     }
-    for (const auto& mesh : geometry.coll_meshes) {
+    for (const auto& mesh : geometry->coll_meshes) {
         std::vector<ChVector3d> points;
         m_sysSPH.CreatePoints_Mesh(*mesh.trimesh, m_spacing, points);
         for (auto& p : points)
@@ -147,7 +151,7 @@ size_t ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
     m_bodies.push_back(b);
 
     if (m_verbose) {
-        cout << "  Cummulative num. BCE markers: " << b.bce.size() << endl;
+        cout << "  Num. BCE markers: " << b.bce.size() << endl;
     }
 
     return b.bce.size();
@@ -157,14 +161,14 @@ size_t ChFsiProblemSPH::AddRigidBodySphere(std::shared_ptr<ChBody> body,
                                            const ChVector3d& pos,
                                            double radius,
                                            bool use_grid) {
-    utils::ChBodyGeometry geometry;
-    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(pos, radius));
     return AddRigidBody(body, geometry, true, use_grid);
 }
 
 size_t ChFsiProblemSPH::AddRigidBodyBox(std::shared_ptr<ChBody> body, const ChFramed& frame, const ChVector3d& size) {
-    utils::ChBodyGeometry geometry;
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), size));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(frame.GetPos(), frame.GetRot(), size));
     return AddRigidBody(body, geometry, true, true);
 }
 
@@ -173,8 +177,8 @@ size_t ChFsiProblemSPH::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
                                               double radius,
                                               double length,
                                               bool use_grid) {
-    utils::ChBodyGeometry geometry;
-    geometry.coll_cylinders.push_back(
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->coll_cylinders.push_back(
         utils::ChBodyGeometry::CylinderShape(frame.GetPos(), frame.GetRotMat().GetAxisX(), radius, length));
     return AddRigidBody(body, geometry, true, use_grid);
 }
@@ -184,8 +188,8 @@ size_t ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
                                          const std::string& obj_filename,
                                          const ChVector3d& interior_point,
                                          double scale) {
-    utils::ChBodyGeometry geometry;
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
     return AddRigidBody(body, geometry, true, true);
 }
 
@@ -205,17 +209,38 @@ void ChFsiProblemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_cent
 
 size_t ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
     if (m_verbose) {
-        cout << "Add FSI FEM mesh " << mesh->GetName() << endl;
+        cout << "Add FSI FEA mesh 1D " << mesh->GetName() << endl;
     }
 
-    FeaMesh m;
-    m.mesh = mesh;
-    m.check_embedded = check_embedded;
+    size_t num_bce = 0;
 
-    auto index = m_meshes.size();
-    m_meshes.push_back(m);
+    // Add 1D surfaces from given FEA mesh to the underlying FSI system
+    auto fsi_mesh1D = m_sysFSI.AddFsiMesh1D(mesh);
+    if (fsi_mesh1D) {
+        FeaMesh1D m;
+        m.fsi_mesh = fsi_mesh1D;
+        m.check_embedded = check_embedded;
 
-    return index;
+        /// TODO - create BCE markers
+        num_bce += 0;
+
+        m_meshes1D.push_back(m);
+    }
+
+    // Add 2D surfaces from given mesh to the underlying FSI system
+    auto fsi_mesh2D = m_sysFSI.AddFsiMesh2D(mesh);
+    if (fsi_mesh2D) {
+        FeaMesh2D m;
+        m.fsi_mesh = fsi_mesh2D;
+        m.check_embedded = check_embedded;
+
+        /// TODO - create BCE markers
+        num_bce += 0;
+
+        m_meshes2D.push_back(m);
+    }
+
+    return num_bce;
 }
 
 // ----------------------------------------------------------------------------
@@ -229,6 +254,14 @@ void ChFsiProblemSPH::Initialize() {
         for (auto& b : m_bodies)
             if (b.check_embedded)
                 ProcessBody(b);
+
+        for (auto m : m_meshes1D)
+            if (m.check_embedded)
+                ProcessFeaMesh1D(m);
+
+        for (auto m : m_meshes2D)
+            if (m.check_embedded)
+                ProcessFeaMesh2D(m);
 
         if (m_verbose)
             cout << "  Num. SPH particles: " << m_sph.size() << endl;
@@ -291,22 +324,20 @@ void ChFsiProblemSPH::Initialize() {
     // Create the body BCE markers and update AABB
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
     for (const auto& b : m_bodies) {
-        auto body_index = m_sysFSI.AddFsiBody(b.body, nullptr);
-        m_sysSPH.AddPointsBCE(b.body, b.bce, ChFrame<>(), true);
-        m_fsi_bodies[b.body] = body_index;
+        m_sysSPH.AddPointsBCE(b.fsi_body->body, b.bce, ChFrame<>(), true);
         for (const auto& p : b.bce) {
-            aabb += b.body->TransformPointLocalToParent(p);
+            aabb += b.fsi_body->body->TransformPointLocalToParent(p);
         }
     }
 
     // Create the mesh BCE markers and update AABB
     // (ATTENTION: BCE markers for moving objects must be created after the fixed BCE markers!)
-    for (const auto& m : m_meshes) {
-        m_sysFSI.AddFsiMesh(m.mesh);
-        for (const auto& surf : m.mesh->GetContactSurfaces()) {
-            aabb += surf->GetAABB();
-        }
-    }
+    ////for (const auto& m : m_meshes) {
+    ////    m_sysFSI.AddFsiMesh(m.mesh);
+    ////    for (const auto& surf : m.mesh->GetContactSurfaces()) {
+    ////        aabb += surf->GetAABB();
+    ////    }
+    ////}
 
     if (m_verbose) {
         cout << "AABB of SPH particles:" << endl;
@@ -376,9 +407,9 @@ void ChFsiProblemSPH::ProcessBody(RigidBody& b) {
     ChVector3i aabb_min(+std::numeric_limits<int>::max());
     ChVector3i aabb_max(-std::numeric_limits<int>::max());
     for (auto& p : b.bce) {
-        auto p_abs = b.body->TransformPointLocalToParent(p);  // BCE point in absolute frame
-        auto p_sph = p_abs - m_offset_sph;                    // BCE point in ChFsiProblemSPH frame
-        auto p_grd = Snap2Grid(p_sph);                        // BCE point in integer grid coordinates
+        auto p_abs = b.fsi_body->body->TransformPointLocalToParent(p);  // BCE point in absolute frame
+        auto p_sph = p_abs - m_offset_sph;                             // BCE point in ChFsiProblemSPH frame
+        auto p_grd = Snap2Grid(p_sph);                                 // BCE point in integer grid coordinates
         aabb_min = Vmin(aabb_min, p_grd);
         aabb_max = Vmax(aabb_max, p_grd);
     }
@@ -393,9 +424,9 @@ void ChFsiProblemSPH::ProcessBody(RigidBody& b) {
                 // Convert to body local frame
                 ChVector3d p_sph = Grid2Point({ix, iy, iz});
                 ChVector3d p_abs = p_sph + m_offset_sph;
-                ChVector3d p_loc = b.body->TransformPointParentToLocal(p_abs);
+                ChVector3d p_loc = b.fsi_body->body->TransformPointParentToLocal(p_abs);
                 // Check if inside a primitive shape
-                if (InsidePoint(b.geometry, p_loc, m_spacing))
+                if (InsidePoint(*b.fsi_body->geometry, p_loc, m_spacing))
                     interior.insert(ChVector3i(ix, iy, iz));
             }
         }
@@ -411,13 +442,13 @@ void ChFsiProblemSPH::ProcessBody(RigidBody& b) {
     }
 
     // Treat mesh shapes spearately
-    for (const auto& mesh : b.geometry.coll_meshes) {
+    for (const auto& mesh : b.fsi_body->geometry->coll_meshes) {
         auto num_removed_mesh = ProcessBodyMesh(b, *mesh.trimesh, mesh.int_point);
         num_removed += num_removed_mesh;
     }
 
     if (m_verbose) {
-        cout << "  Body name: " << b.body->GetName() << endl;
+        cout << "  Body name: " << b.fsi_body->body->GetName() << endl;
         cout << "    Num. SPH particles removed: " << num_removed << endl;
     }
 }
@@ -437,8 +468,8 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
     // Transform mesh in ChFsiProblemSPH frame
     // (to address any roundoff issues that may result in a set of BCE markers that are not watertight)
     for (auto& v : trimesh.GetCoordsVertices()) {
-        auto v_abs = b.body->TransformPointLocalToParent(v);  // vertex in absolute frame
-        v = v_abs - m_offset_sph;                             // vertex in FSIProblem frame
+        auto v_abs = b.fsi_body->body->TransformPointLocalToParent(v);  // vertex in absolute frame
+        v = v_abs - m_offset_sph;                                      // vertex in FSIProblem frame
     }
 
     // BCE marker locations (in FSIProblem frame)
@@ -452,9 +483,9 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
     }
 
     // Express the provided interior point in ChFsiProblemSPH grid coordinates
-    auto c_abs = b.body->TransformPointLocalToParent(interior_point);  // interior point in absolute frame
-    auto c_sph = c_abs - m_offset_sph;                                 // interior point in ChFsiProblemSPH frame
-    auto c = Snap2Grid(c_sph);                                         // interior point in integer grid coordinates
+    auto c_abs = b.fsi_body->body->TransformPointLocalToParent(interior_point);  // interior point (abs frame)
+    auto c_sph = c_abs - m_offset_sph;                                          // interior point (FSI problem frame)
+    auto c = Snap2Grid(c_sph);                                                  // interior point (integer grid coords)
 
     // Calculate the (integer) mesh AABB
     ChVector3i aabb_min(+std::numeric_limits<int>::max());
@@ -504,6 +535,14 @@ int ChFsiProblemSPH::ProcessBodyMesh(RigidBody& b, ChTriangleMeshConnected trime
     }
 
     return num_removed;
+}
+
+void ChFsiProblemSPH::ProcessFeaMesh1D(FeaMesh1D& m) {
+    //// TODO
+}
+
+void ChFsiProblemSPH::ProcessFeaMesh2D(FeaMesh2D& m) {
+    //// TODO
 }
 
 // ----------------------------------------------------------------------------
@@ -1159,9 +1198,9 @@ std::shared_ptr<ChBody> ChFsiProblemCartesian::ConstructWaveTank(
         }
     }
 
-    utils::ChBodyGeometry geometry;
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, body_size));
-    geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, body_size));
+    geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add wavemaker body as FSI body
     auto num_piston_bce = AddRigidBody(body, geometry, true);

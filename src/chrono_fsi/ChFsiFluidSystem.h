@@ -98,9 +98,9 @@ class CH_FSI_API ChFsiFluidSystem {
     /// Initialize the fluid system using initial states of solid FSI objects.
     /// A call to this function marks completion of the fluid system construction and can only be made from ChFsiSystem.
     /// The boolean `has_node_directions` indicates whether or not mesh states also contain node directions.
-    virtual void Initialize(const std::vector<FsiBody>& fsi_bodies,
-                            const std::vector<FsiMesh1D>& fsi_meshes1D,
-                            const std::vector<FsiMesh2D>& fsi_meshes2D,
+    virtual void Initialize(const std::vector<std::shared_ptr<FsiBody>>& fsi_bodies,
+                            const std::vector<std::shared_ptr<FsiMesh1D>>& fsi_meshes1D,
+                            const std::vector<std::shared_ptr<FsiMesh2D>>& fsi_meshes2D,
                             const std::vector<FsiBodyState>& body_states,
                             const std::vector<FsiMeshState>& mesh1D_states,
                             const std::vector<FsiMeshState>& mesh2D_states,

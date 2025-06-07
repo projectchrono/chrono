@@ -330,7 +330,7 @@ struct FsiDataManager {
 
     // FSI solid states
     std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< rigid body state (host)
-    std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< rigid body state 2 (device)
+    std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< rigid body state (device)
 
     std::shared_ptr<FsiMeshStateH> fsiMesh1DState_H;  ///< 1-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh1DState_D;  ///< 1-D FEA mesh state (device)

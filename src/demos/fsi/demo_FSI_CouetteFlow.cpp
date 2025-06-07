@@ -195,7 +195,8 @@ int main(int argc, char* argv[]) {
     sysSPH.AddPlateBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2, 0.2));
     sysSPH.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL),
                      ChVector3d(outer_cylinder_radius * 2.5, 4 * initial_spacing, outer_cylinder_radius * 2.5), true);
-    auto bottom_plate_index = sysFSI.AddFsiBody(bottom_plate);
+    const auto& fsi_bottom_plate = sysFSI.AddFsiBody(bottom_plate);
+    auto bottom_plate_index = fsi_bottom_plate->index;
     */
 
     // Cylinder center
@@ -219,7 +220,8 @@ int main(int argc, char* argv[]) {
                                  cylinder_height,                              //
                                  true);
 
-    auto inner_cylinder_index = sysFSI.AddFsiBody(inner_cylinder);
+    const auto& fsi_inner_cylinder = sysFSI.AddFsiBody(inner_cylinder);
+    auto inner_cylinder_index = fsi_inner_cylinder->index;
 
     // Create outer cylinder that spins
     double outer_cylinder_mass = 1.0;
@@ -237,7 +239,8 @@ int main(int argc, char* argv[]) {
                                  outer_cylinder_radius + 3 * initial_spacing,  //
                                  cylinder_height,                              //
                                  true);
-    auto outer_cylinder_index = sysFSI.AddFsiBody(outer_cylinder);
+    const auto& fsi_outer_cylinder = sysFSI.AddFsiBody(outer_cylinder);
+    auto outer_cylinder_index = fsi_outer_cylinder->index;
 
     // Add motor between outer cylinder and plate
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();

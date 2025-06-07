@@ -340,15 +340,15 @@ void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrai
     auto track_geometry = vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 
     // Consider only collision boxes that are large enough
-    utils::ChBodyGeometry geometry;
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     auto min_length = 2 * (sysSPH.GetNumBCELayers() - 1) * sysSPH.GetInitialSpacing();
     for (const auto& box : track_geometry.coll_boxes) {
         if (box.dims.x() > min_length && box.dims.y() > min_length && box.dims.z() < min_length) {
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));
         }
     }
 
-    cout << "Consider " << geometry.coll_boxes.size() << " collision boxes out of " << track_geometry.coll_boxes.size()
+    cout << "Consider " << geometry->coll_boxes.size() << " collision boxes out of " << track_geometry.coll_boxes.size()
          << endl;
 
     // Add an FSI body and associated BCE markers for each track shoe
