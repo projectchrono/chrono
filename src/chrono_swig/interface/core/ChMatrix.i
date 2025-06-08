@@ -40,7 +40,7 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
 %}
 
 // version handling
-#if SWIG_VERSION >= 40300
+#if SWIG_VERSION >= 0x040300
   // SWIG 4.3.0+ use a new three argument form with $isvoid flag
   %typemap(argout) (double* p, int len) {
     PyObject* list = PyList_New($2);
@@ -94,7 +94,7 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
     delete($1);
 %}
 
-#if SWIG_VERSION >= 40300
+#if SWIG_VERSION >= 0x040300
   // SWIG 4.3.0+ use a new three argument form with $isvoid flag
   %typemap(argout) (int* p, int len) {
     PyObject* list = PyList_New($2);
