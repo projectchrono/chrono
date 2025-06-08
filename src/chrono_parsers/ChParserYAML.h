@@ -47,7 +47,7 @@ namespace parsers {
 /// Utility class to parse YAML specification files for Chrono models and simulations.
 /// The parser caches model information and simulation settings from the corresponding YAML input files and then allows
 /// populating a Chrono system and setting solver and simulation parameters.
-class ChApi ChParserYAML {
+class ChApiParsers ChParserYAML {
   public:
     ChParserYAML();
 
