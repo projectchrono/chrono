@@ -44,6 +44,17 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     /// Access the associated SPH fluid system.
     ChFsiFluidSystemSPH& GetFluidSystemSPH() const;
 
+    // Allow using the AddFsiBody method from parent class
+    using ChFsiSystem::AddFsiBody;
+
+    /// Add a rigid body to the FSI system.
+    /// BCE markers are created at the specified points (expressed in the given frame, relative to the body reference
+    /// frame).
+    std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body,
+                                        const std::vector<ChVector3d>& bce,
+                                        const ChFrame<>& rel_frame,
+                                        bool check_embedded);
+
   private:
     ChFsiFluidSystemSPH& m_sysSPH;  ///< cached SPH fluid solver
     bool m_generic_fsi_interface;

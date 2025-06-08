@@ -357,13 +357,15 @@ void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrai
     auto nshoes_left = vehicle->GetNumTrackShoes(VehicleSide::LEFT);
     for (size_t i = 0; i < nshoes_left; i++) {
         auto shoe_body = vehicle->GetTrackShoe(VehicleSide::LEFT, i)->GetShoeBody();
-        num_track_BCE += terrain.AddRigidBody(shoe_body, geometry, false);
+        terrain.AddRigidBody(shoe_body, geometry, false);
+        num_track_BCE += terrain.GetNumBCE(shoe_body);
     }
 
     auto nshoes_right = vehicle->GetNumTrackShoes(VehicleSide::RIGHT);
     for (size_t i = 0; i < nshoes_right; i++) {
         auto shoe_body = vehicle->GetTrackShoe(VehicleSide::RIGHT, i)->GetShoeBody();
-        num_track_BCE += terrain.AddRigidBody(shoe_body, geometry, false);
+        terrain.AddRigidBody(shoe_body, geometry, false);
+        num_track_BCE += terrain.GetNumBCE(shoe_body);
     }
 
     cout << "Added " << num_track_BCE << " BCE markers on track shoes" << endl;

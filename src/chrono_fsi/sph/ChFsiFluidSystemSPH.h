@@ -110,10 +110,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Structure with surface reconstruction parameters.
     struct CH_FSI_API SplashsurfParameters {
-        double smoothing_length;    ///< smoothing length used for the SPH kernel (in multiplies of the particle radius)
+        double smoothing_length;   ///< smoothing length used for the SPH kernel (in multiplies of the particle radius)
         double cube_size;          ///< cube edge length used for marching cubes (in multiplies of the particle radius)
         double surface_threshold;  ///< iso-surface threshold for the density  (in multiplies of the rest density)
-    
+
         SplashsurfParameters();
     };
 
@@ -242,7 +242,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Set kernel type.
     void SetKernelType(KernelType kernel_type);
-    
+
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
 
@@ -429,14 +429,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                  double height,
                                  bool polar = true);
 
-    /// Add BCE markers from a set of points and associate them with the given body.
-    /// The points are assumed to be provided relative to the specified frame.
-    /// The BCE markers are created in the absolute coordinate frame.
-    size_t AddPointsBCE(std::shared_ptr<ChBody> body,
-                        const std::vector<ChVector3d>& points,
-                        const ChFrame<>& rel_frame,
-                        bool solid);
-
     // ----------- Functions for adding FEA meshes and associated BCE markers
 
     /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh.
@@ -556,8 +548,49 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::string GetSphIntegrationSchemeString() const;
 
   private:
+    /// SPH specification of an FSI rigid solid.
+    struct FsiSphBody {
+        std::shared_ptr<FsiBody> fsi_body;   ///< underlying FSI solid
+        std::vector<ChVector3d> bce_coords;  ///< local BCE coordinates: (x, y, z) in body frame
+        std::vector<int> bce_ids;            ///< BCE identification (body ID)
+        bool check_embedded;                 ///< if true, check for overlapping SPH particles
+    };
+
+    /// SPH specification of a 1D FSI deformable solid surface.
+    struct FsiSphMesh1D {
+        std::shared_ptr<FsiMesh1D> fsi_mesh;  ///< underlying FSI solid
+        std::vector<ChVector3d> bce_coords;   ///< local BCE coordinates: (u, y, z) in segment frame
+        std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local segment ID, global segment ID)
+        bool check_embedded;                  ///< if true, check for overlapping SPH particles
+    };
+
+    /// SPH specification of a 2D FSI deformable solid surface.
+    struct FsiSphMesh2D {
+        std::shared_ptr<FsiMesh2D> fsi_mesh;  ///< underlying FSI solid
+        std::vector<ChVector3d> bce_coords;   ///< local BCE coordinates: (u, v, z) in triangle frame
+        std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local face ID, global face ID)
+        bool check_embedded;                  ///< if true, check for overlapping SPH particles
+    };
+
     /// Initialize simulation parameters with default values.
     void InitParams();
+
+    /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
+    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
+
+    /// SPH solver-specific actions taken when a 1D deformable solid is added as an FSI object.
+    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> mesh, bool check_embedded) override;
+
+    /// SPH solver-specific actions taken when a 2D deformable solid is added as an FSI object.
+    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> mesh, bool check_embedded) override;
+
+    /// Add BCE markers at the given set of points and associate them with the given body.
+    /// The points are assumed to be provided relative to the specified frame (itself relative to the body frame).
+    /// The BCE markers are created in the absolute coordinate frame.
+    size_t AddPointsBCE(std::shared_ptr<ChBody> body,
+                        const std::vector<ChVector3d>& points,
+                        const ChFrame<>& rel_frame,
+                        bool solid);
 
     /// Initialize the SPH fluid system with FSI support.
     virtual void Initialize(const std::vector<std::shared_ptr<FsiBody>>& fsi_bodies,
@@ -621,6 +654,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+
+    std::vector<FsiSphBody> m_bodies;      ///< list of FSI rigid bodies
+    std::vector<FsiSphMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
+    std::vector<FsiSphMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 

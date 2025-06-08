@@ -201,8 +201,10 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         box->SetFixed(false);
         box->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(box_size), ChFrame<>());
         m_sysMBS->AddBody(box);
-        m_sysFSI->AddFsiBody(box);
-        m_sysSPH->AddBoxBCE(box, ChFrame<>(), box_size, true);
+
+        std::vector<ChVector3d> points;
+        m_sysSPH->CreateBCE_BoxInterior(box_size, points);
+        m_sysFSI->AddFsiBody(box, points, ChFrame<>(), false);
     }
 
     m_sysFSI->Initialize();

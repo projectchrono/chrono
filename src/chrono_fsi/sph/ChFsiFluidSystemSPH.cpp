@@ -72,7 +72,7 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
       m_num_flex2D_elements(0),
       m_output_level(OutputLevel::STATE_PRESSURE),
       m_force_proximity_search(false),
-      m_check_errors (true) {
+      m_check_errors(true) {
     m_paramsH = chrono_types::make_shared<ChFsiParamsSPH>();
     InitParams();
 
@@ -595,8 +595,7 @@ void ChFsiFluidSystemSPH::SetContainerDim(const ChVector3d& box_dim) {
     m_paramsH->boxDimZ = box_dim.z();
 }
 
-void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB,
-                                                 BoundaryConditions bc_type) {
+void ChFsiFluidSystemSPH::SetComputationalDomain(const ChAABB& computational_AABB, BoundaryConditions bc_type) {
     m_paramsH->cMin = ToReal3(computational_AABB.min);
     m_paramsH->cMax = ToReal3(computational_AABB.max);
     m_paramsH->use_default_limits = false;
@@ -1143,25 +1142,24 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
 
     switch (params.integration_scheme) {
         case IntegrationScheme::EULER:
-			cout << "  Integration scheme: Explicit Euler" << endl;
-			break;
+            cout << "  Integration scheme: Explicit Euler" << endl;
+            break;
         case IntegrationScheme::RK2:
             cout << "  Integration scheme: Runge-Kutta 2" << endl;
             break;
         case IntegrationScheme::SYMPLECTIC:
-			cout << "  Integration scheme: Symplectic Euler" << endl;
+            cout << "  Integration scheme: Symplectic Euler" << endl;
             break;
-		case IntegrationScheme::IMPLICIT_SPH:
-			cout << "  Integration scheme: Implicit SPH" << endl;
-			break;
+        case IntegrationScheme::IMPLICIT_SPH:
+            cout << "  Integration scheme: Implicit SPH" << endl;
+            break;
     }
-    
+
     cout << "  num_neighbors: " << params.num_neighbors << endl;
     cout << "  rho0: " << params.rho0 << endl;
     cout << "  invrho0: " << params.invrho0 << endl;
     cout << "  mu0: " << params.mu0 << endl;
-    cout << "  bodyForce3: " << params.bodyForce3.x << " " << params.bodyForce3.y << " "
-         << params.bodyForce3.z << endl;
+    cout << "  bodyForce3: " << params.bodyForce3.x << " " << params.bodyForce3.y << " " << params.bodyForce3.z << endl;
     cout << "  gravity: " << params.gravity.x << " " << params.gravity.y << " " << params.gravity.z << endl;
 
     cout << "  d0: " << params.d0 << endl;
@@ -1229,8 +1227,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
 
     cout << "  binSize0: " << params.binSize0 << endl;
     cout << "  boxDims: " << params.boxDims.x << " " << params.boxDims.y << " " << params.boxDims.z << endl;
-    cout << "  gridSize: " << params.gridSize.x << " " << params.gridSize.y << " " << params.gridSize.z
-         << endl;
+    cout << "  gridSize: " << params.gridSize.x << " " << params.gridSize.y << " " << params.gridSize.z << endl;
     cout << "  cMin: " << params.cMin.x << " " << params.cMin.y << " " << params.cMin.z << endl;
     cout << "  cMax: " << params.cMax.x << " " << params.cMax.y << " " << params.cMax.z << endl;
 
@@ -1275,6 +1272,58 @@ void PrintRefArrays(const thrust::host_vector<int4>& referenceArray,
 
 //------------------------------------------------------------------------------
 
+void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
+    FsiSphBody b;
+    b.fsi_body = fsi_body;
+    b.check_embedded = check_embedded;
+
+    //// TODO:
+    //// - give control over Cartesian / polar BCE distribution (where applicable)
+    //// - eliminate duplicate BCE markers (from multiple volumes). Easiest if BCE created on a grid!
+
+    const auto& geometry = fsi_body->geometry;
+    if (geometry) {
+        for (const auto& sphere : geometry->coll_spheres) {
+            std::vector<ChVector3d> points;
+            CreateBCE_SphereInterior(sphere.radius, true, points);
+            for (auto& p : points)
+                p += sphere.pos;
+            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+        }
+        for (const auto& box : geometry->coll_boxes) {
+            std::vector<ChVector3d> points;
+            CreateBCE_BoxInterior(box.dims, points);
+            for (auto& p : points)
+                p = box.pos + box.rot.Rotate(p);
+            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+        }
+        for (const auto& cyl : geometry->coll_cylinders) {
+            std::vector<ChVector3d> points;
+            CreateBCE_CylinderInterior(cyl.radius, cyl.length, true, points);
+            for (auto& p : points)
+                p = cyl.pos + cyl.rot.Rotate(p);
+            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+        }
+        for (const auto& mesh : geometry->coll_meshes) {
+            std::vector<ChVector3d> points;
+            CreatePoints_Mesh(*mesh.trimesh, m_paramsH->d0, points);
+            for (auto& p : points)
+                p += mesh.pos;
+            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+        }
+
+        b.bce_ids.resize(b.bce_coords.size(), fsi_body->index);
+    }
+
+    m_bodies.push_back(b);
+}
+
+void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> mesh, bool check_embedded) {}
+
+void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> mesh, bool check_embedded) {}
+
+//------------------------------------------------------------------------------
+
 void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>& fsi_bodies,
                                      const std::vector<std::shared_ptr<FsiMesh1D>>& fsi_meshes1D,
                                      const std::vector<std::shared_ptr<FsiMesh2D>>& fsi_meshes2D,
@@ -1283,7 +1332,11 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>
                                      const std::vector<FsiMeshState>& mesh2D_states,
                                      bool use_node_directions) {
     // Process FSI rigid bodies
-    m_num_rigid_bodies = (uint)fsi_bodies.size();
+    assert(fsi_bodies.size() == m_bodies.size());
+    m_num_rigid_bodies = (uint)m_bodies.size();
+    for (const auto& b : m_bodies) {
+        AddPointsBCE(b.fsi_body->body, b.bce_coords, ChFrame<>(), true);
+    }
 
     // Process FSI 1D meshes: create BCE markers
     uint num_fsi_meshes1D = 0;

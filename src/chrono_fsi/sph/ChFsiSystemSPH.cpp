@@ -50,6 +50,23 @@ ChFsiFluidSystemSPH& ChFsiSystemSPH::GetFluidSystemSPH() const {
     return m_sysSPH;
 }
 
+std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body,
+                                                    const std::vector<ChVector3d>& bce,
+                                                    const ChFrame<>& rel_frame,
+                                                    bool check_embedded) {
+    // Add the FSI body with no geometry
+    auto fsi_body = ChFsiSystem::AddFsiBody(body, nullptr, check_embedded);
+
+    // Explicitly set the BCE marker locations
+    auto& fsisph_body = m_sysSPH.m_bodies.back();
+    fsisph_body.bce_ids.resize(bce.size(), fsisph_body.fsi_body->index);
+    fsisph_body.bce_coords = bce;
+    for (auto& p : fsisph_body.bce_coords)
+        p = rel_frame.TransformPointLocalToParent(p);
+
+  return fsi_body;
+}
+
 }  // end namespace sph
 }  // end namespace fsi
 }  // end namespace chrono

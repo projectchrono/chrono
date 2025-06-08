@@ -246,8 +246,9 @@ int main(int argc, char* argv[]) {
     chrono::utils::AddSphereGeometry(sphere.get(), cmaterial, sphere_radius);
     sphere->GetCollisionModel()->SetSafeMargin(init_spacing);
 
-    sysFSI.AddFsiBody(sphere);
-    sysSPH.AddSphereBCE(sphere, ChFrame<>(VNULL, QUNIT), sphere_radius, true, true);
+    std::vector<ChVector3d> sphere_bce;
+    sysSPH.CreateBCE_SphereInterior(sphere_radius, true, sphere_bce);
+    sysFSI.AddFsiBody(sphere, sphere_bce, ChFrame<>(), false);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();

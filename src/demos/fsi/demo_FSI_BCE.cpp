@@ -159,8 +159,7 @@ void Box() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, false);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     {
@@ -181,8 +180,7 @@ void Box() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, false);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     {
@@ -203,8 +201,7 @@ void Box() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     {
@@ -225,8 +222,7 @@ void Box() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     if (render) {
@@ -274,8 +270,7 @@ void Sphere() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, false);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Spherical container (Polar coordinates)
@@ -297,8 +292,7 @@ void Sphere() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, false);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Spherical solid (Cartesian coordinates)
@@ -320,8 +314,7 @@ void Sphere() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Spherical solid (Polar coordinates)
@@ -343,8 +336,7 @@ void Sphere() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     if (render) {
@@ -394,8 +386,7 @@ void Cylinder1() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, false);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Cylindrical container (Polar coordinates)
@@ -419,8 +410,7 @@ void Cylinder1() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, false);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Cylindrical solid (Cartesian coordinates)
@@ -444,8 +434,7 @@ void Cylinder1() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Cylindrical solid (Polar coordinates)
@@ -469,8 +458,7 @@ void Cylinder1() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     if (render) {
@@ -518,8 +506,7 @@ void Cylinder2() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Cylindrical solid short (Polar coordinates)
@@ -543,8 +530,7 @@ void Cylinder2() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Cylindrical solid thin (Cartesian coordinates)
@@ -568,8 +554,7 @@ void Cylinder2() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     // Cylindrical solid thin (Polar coordinates)
@@ -593,8 +578,7 @@ void Cylinder2() {
         fbce.close();
 
         sysMBS.AddBody(body);
-        sysFSI.AddFsiBody(body);
-        sysSPH.AddPointsBCE(body, bce, frame, true);
+        sysFSI.AddFsiBody(body, bce, frame, false);
     }
 
     if (render) {

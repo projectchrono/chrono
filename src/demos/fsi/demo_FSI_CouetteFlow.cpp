@@ -182,22 +182,16 @@ int main(int argc, char* argv[]) {
         sysSPH.AddSPHParticle({x, y, z}, fluid_props.density, pressure, fluid_props.viscosity);
     }
 
-    // Add cylinder bottom plate
+    // Add cylinder bottom plate, fixed
     ChVector2d bottom_plate_size(outer_cylinder_radius * 2.5, outer_cylinder_radius * 2.5);
     auto bottom_plate = chrono_types::make_shared<ChBody>();
     bottom_plate->SetPos(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0));
     bottom_plate->SetFixed(true);
     sysMBS.AddBody(bottom_plate);
 
-    sysSPH.AddPlateBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
-
-    /*
-    sysSPH.AddPlateBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2, 0.2));
-    sysSPH.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL),
-                     ChVector3d(outer_cylinder_radius * 2.5, 4 * initial_spacing, outer_cylinder_radius * 2.5), true);
-    const auto& fsi_bottom_plate = sysFSI.AddFsiBody(bottom_plate);
-    auto bottom_plate_index = fsi_bottom_plate->index;
-    */
+    std::vector<ChVector3d> bce_plate;
+    sysSPH.CreateBCE_Plate(bottom_plate_size, bce_plate);
+    const auto& fsi_bottom_plate = sysFSI.AddFsiBody(bottom_plate, bce_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), false);
 
     // Cylinder center
     ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);
@@ -208,22 +202,15 @@ int main(int argc, char* argv[]) {
     inner_cylinder->EnableCollision(false);
     sysMBS.AddBody(inner_cylinder);
 
-    ////sysSPH.AddCylinderBCE(inner_cylinder,                               //
-    ////                      ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
-    ////                      inner_cylinder_radius - initial_spacing / 2,  //
-    ////                      cylinder_height,                              //
-    ////                      true, true);
-    sysSPH.AddCylinderAnnulusBCE(inner_cylinder,                               //
-                                 ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
-                                 inner_cylinder_radius - 3 * initial_spacing,  //
-                                 inner_cylinder_radius - initial_spacing / 2,  //
-                                 cylinder_height,                              //
-                                 true);
-
-    const auto& fsi_inner_cylinder = sysFSI.AddFsiBody(inner_cylinder);
+    std::vector<ChVector3d> bce_inner;
+    sysSPH.CreatePoints_CylinderAnnulus(inner_cylinder_radius - 3 * initial_spacing,
+                                        inner_cylinder_radius - initial_spacing / 2, cylinder_height, true,
+                                        initial_spacing, bce_inner);
+    const auto& fsi_inner_cylinder =
+        sysFSI.AddFsiBody(inner_cylinder, bce_inner, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
     auto inner_cylinder_index = fsi_inner_cylinder->index;
 
-    // Create outer cylinder that spins
+    // Create outer cylinder, spinning
     double outer_cylinder_mass = 1.0;
     auto outer_cylinder = chrono_types::make_shared<ChBody>();
     sysMBS.AddBody(outer_cylinder);
@@ -231,15 +218,12 @@ int main(int argc, char* argv[]) {
     outer_cylinder->EnableCollision(false);
     outer_cylinder->SetMass(outer_cylinder_mass);
     outer_cylinder->SetInertia(ChMatrix33d(ChVector3d(1, 1, 1)));
-
-    // Outer cylinder modeled as an annulus ring with a thickness of 3 * initial_spacing
-    sysSPH.AddCylinderAnnulusBCE(outer_cylinder,                               //
-                                 ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
-                                 outer_cylinder_radius + initial_spacing / 2,  //
-                                 outer_cylinder_radius + 3 * initial_spacing,  //
-                                 cylinder_height,                              //
-                                 true);
-    const auto& fsi_outer_cylinder = sysFSI.AddFsiBody(outer_cylinder);
+    std::vector<ChVector3d> bce_outer;
+    sysSPH.CreatePoints_CylinderAnnulus(outer_cylinder_radius + initial_spacing / 2,
+                                        outer_cylinder_radius + 3 * initial_spacing, cylinder_height, true,
+                                        initial_spacing, bce_outer);
+    const auto& fsi_outer_cylinder =
+        sysFSI.AddFsiBody(outer_cylinder, bce_outer, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
     auto outer_cylinder_index = fsi_outer_cylinder->index;
 
     // Add motor between outer cylinder and plate
