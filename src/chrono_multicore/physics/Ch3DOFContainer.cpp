@@ -40,7 +40,7 @@ class ChMulticoreVisualizationCloud : public ChParticleCloud {
     virtual size_t GetNumParticles() const override { return dm->num_particles; }
     virtual const ChVector3d& GetParticlePos(unsigned int n) const override {
         const auto& p = dm->host_data.pos_3dof[n];
-        tmp = ChVector3(p.x, p.y, p.z);
+        tmp = ChVector3d(p.x, p.y, p.z);
         return tmp;
     }
     virtual const ChVector3d& GetParticleVel(unsigned int n) const override {
