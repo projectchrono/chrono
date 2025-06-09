@@ -20,7 +20,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 #include "chrono/utils/ChUtils.h"
 
 #include "chrono/functions/ChFunctionSetpoint.h"
@@ -203,16 +203,9 @@ void CuriosityPart::Construct(ChSystem* system) {
     // Add visualization shape
     if (m_visualize) {
         auto vis_mesh_file = GetChronoDataFile("robot/curiosity/obj/" + m_mesh_name + ".obj");
-        auto trimesh_vis = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
-        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-        trimesh_vis->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
-
-        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(trimesh_vis);
-        trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetMutable(false);
-
-        m_body->AddVisualShape(trimesh_shape);
+        auto shape = chrono_types::make_shared<ChVisualShapeModelFile>(vis_mesh_file);                          // if meshes are not watertight
+        shape->SetMutable(false);
+        m_body->AddVisualShape(shape, m_mesh_xform);
     }
 
     // Add collision shape
@@ -278,7 +271,6 @@ CuriosityChassis::CuriosityChassis(const std::string& name,
             m_mesh_name = "scarecrow_chassis";
             break;
     }
-    m_color = ChColor(1.0f, 1.0f, 1.0f);
 }
 
 void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
@@ -305,7 +297,6 @@ CuriosityWheel::CuriosityWheel(const std::string& name,
             m_mesh_name = "curiosity_cylwheel";
             break;
     }
-    m_color = ChColor(1.0f, 1.0f, 1.0f);
 
     double radius = 0.25;       // wheel radius
     double width = 0.40;        // wheel width
@@ -327,7 +318,6 @@ CuriosityRocker::CuriosityRocker(const std::string& name,
                                  int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_F_L_arm" : "curiosity_F_R_arm";
-    m_color = ChColor(1.0f, 0.4f, 0.0f);
 
     // Titanium tubing (use an average density)
     CalcMassProperties(2000);
@@ -340,7 +330,6 @@ CuriosityBogie::CuriosityBogie(const std::string& name,
                                int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_B_L_arm" : "curiosity_B_R_arm";
-    m_color = ChColor(0.4f, 1.0f, 0.0f);
 
     // Titanium tubing (use an average density)
     CalcMassProperties(2000);
@@ -352,7 +341,6 @@ CuriosityUpright::CuriosityUpright(const std::string& name,
                                    std::shared_ptr<ChContactMaterial> mat)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_steer";
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
 
     m_mass = 6;
     m_inertia = ChVector3d(0.007, 0.007, 0.004) * m_mass;
@@ -365,7 +353,6 @@ CuriosityDifferentialBar::CuriosityDifferentialBar(const std::string& name,
                                                    std::shared_ptr<ChContactMaterial> mat)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_balancer";
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
 
     CalcMassProperties(1000);
 }
@@ -377,7 +364,6 @@ CuriosityDifferentialLink::CuriosityDifferentialLink(const std::string& name,
                                                      int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_bar_L" : "curiosity_bar_R";
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
 
     CalcMassProperties(1000);
 }

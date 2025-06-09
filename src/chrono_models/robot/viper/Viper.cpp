@@ -33,7 +33,7 @@
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono/functions/ChFunctionSetpoint.h"
 
@@ -217,16 +217,9 @@ void ViperPart::Construct(ChSystem* system) {
     // Add visualization shape
     if (m_visualize) {
         auto vis_mesh_file = GetChronoDataFile("robot/viper/obj/" + m_mesh_name + ".obj");
-        auto trimesh_vis = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
-        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-        trimesh_vis->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
-
-        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(trimesh_vis);
-        trimesh_shape->SetName(m_mesh_name);
-        trimesh_shape->SetMutable(false);
-        m_body->AddVisualShape(trimesh_shape);
-        trimesh_shape->SetColor(m_color);
+        auto shape = chrono_types::make_shared<ChVisualShapeModelFile>(vis_mesh_file);
+        shape->SetMutable(false);
+        m_body->AddVisualShape(shape, m_mesh_xform);
     }
 
     // Add collision shape
@@ -275,7 +268,6 @@ void ViperPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
 ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChContactMaterial> mat)
     : ViperPart(name, ChFrame<>(VNULL, QUNIT), mat, false) {
     m_mesh_name = "viper_chassis";
-    m_color = ChColor(1.0f, 1.0f, 1.0f);
     CalcMassProperties(165);
 }
 
@@ -305,7 +297,6 @@ ViperWheel::ViperWheel(const std::string& name,
             break;
     }
 
-    m_color = ChColor(0.4f, 0.7f, 0.4f);
     CalcMassProperties(800);
 }
 
@@ -323,7 +314,6 @@ ViperUpperArm::ViperUpperArm(const std::string& name,
         m_mesh_name = "viper_R_up_sus";
     }
 
-    m_color = ChColor(0.7f, 0.4f, 0.4f);
     CalcMassProperties(2000);
 }
 
@@ -341,7 +331,6 @@ ViperLowerArm::ViperLowerArm(const std::string& name,
         m_mesh_name = "viper_R_bt_sus";
     }
 
-    m_color = ChColor(0.7f, 0.4f, 0.4f);
     CalcMassProperties(4500);
 }
 
@@ -359,7 +348,6 @@ ViperUpright::ViperUpright(const std::string& name,
         m_mesh_name = "viper_R_steer";
     }
 
-    m_color = ChColor(0.7f, 0.7f, 0.7f);
     CalcMassProperties(4500);
 }
 
