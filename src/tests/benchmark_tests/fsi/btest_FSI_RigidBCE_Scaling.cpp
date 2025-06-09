@@ -181,11 +181,9 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
     ground->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
-    m_sysSPH->AddBoxContainerBCE(ground,                                    //
-                                 ChFrame<>(ChVector3d(0., 0., 0.), QUNIT),  //
-                                 ChVector3d(box_multiplier * m_box_size.x(), box_multiplier * m_box_size.y(),
-                                            m_box_size.z()),  //
-                                 ChVector3i(0, 0, -1));
+    auto ground_bce = m_sysSPH->CreatePointsBoxContainer(
+        ChVector3d(box_multiplier * m_box_size.x(), box_multiplier * m_box_size.y(), m_box_size.z()), {0, 0, -1});
+    m_sysFSI->AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0., 0., 0.), QUNIT), false);
 
     // =========================================================================
     // Create rigid bodies
@@ -202,8 +200,7 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         box->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(box_size), ChFrame<>());
         m_sysMBS->AddBody(box);
 
-        std::vector<ChVector3d> points;
-        m_sysSPH->CreateBCE_BoxInterior(box_size, points);
+        auto points = m_sysSPH->CreatePointsBoxInterior(box_size);
         m_sysFSI->AddFsiBody(box, points, ChFrame<>(), false);
     }
 

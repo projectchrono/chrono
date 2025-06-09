@@ -219,10 +219,8 @@ int main(int argc, char* argv[]) {
     box->EnableCollision(false);
 
     // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(box,                                            //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 2, -1));
+    auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 2, -1});
+    sysFSI.AddFsiBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
 
     // Create a falling sphere
     double volume = ChSphere::GetVolume(sphere_radius);
@@ -246,8 +244,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::AddSphereGeometry(sphere.get(), cmaterial, sphere_radius);
     sphere->GetCollisionModel()->SetSafeMargin(init_spacing);
 
-    std::vector<ChVector3d> sphere_bce;
-    sysSPH.CreateBCE_SphereInterior(sphere_radius, true, sphere_bce);
+    auto sphere_bce = sysSPH.CreatePointsSphereInterior(sphere_radius, true);
     sysFSI.AddFsiBody(sphere, sphere_bce, ChFrame<>(), false);
 
     // Complete construction of the FSI system

@@ -168,12 +168,10 @@ int main(int argc, char* argv[]) {
 
     bool use_polar_coords = true;
 
-    std::vector<ChVector3d> points;
-    sysSPH.CreatePoints_CylinderAnnulus(inner_cylinder_radius + initial_spacing / 2,  //
-                                        outer_cylinder_radius - initial_spacing / 2,  //
-                                        fluid_height,                                 //
-                                        use_polar_coords, initial_spacing,            //
-                                        points);
+    auto points = sysSPH.CreatePointsCylinderAnnulus(inner_cylinder_radius + initial_spacing / 2,  //
+                                                     outer_cylinder_radius - initial_spacing / 2,  //
+                                                     fluid_height,                                 //
+                                                     use_polar_coords);
     for (const auto& p : points) {
         double x = p.x();
         double y = p.z();
@@ -189,8 +187,7 @@ int main(int argc, char* argv[]) {
     bottom_plate->SetFixed(true);
     sysMBS.AddBody(bottom_plate);
 
-    std::vector<ChVector3d> bce_plate;
-    sysSPH.CreateBCE_Plate(bottom_plate_size, bce_plate);
+    auto bce_plate = sysSPH.CreatePointsPlate(bottom_plate_size);
     const auto& fsi_bottom_plate = sysFSI.AddFsiBody(bottom_plate, bce_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), false);
 
     // Cylinder center
@@ -202,10 +199,10 @@ int main(int argc, char* argv[]) {
     inner_cylinder->EnableCollision(false);
     sysMBS.AddBody(inner_cylinder);
 
-    std::vector<ChVector3d> bce_inner;
-    sysSPH.CreatePoints_CylinderAnnulus(inner_cylinder_radius - 3 * initial_spacing,
-                                        inner_cylinder_radius - initial_spacing / 2, cylinder_height, true,
-                                        initial_spacing, bce_inner);
+    auto bce_inner = sysSPH.CreatePointsCylinderAnnulus(inner_cylinder_radius - 3 * initial_spacing,  //
+                                                        inner_cylinder_radius - initial_spacing / 2,  //
+                                                        cylinder_height,                              //
+                                                        use_polar_coords);
     const auto& fsi_inner_cylinder =
         sysFSI.AddFsiBody(inner_cylinder, bce_inner, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
     auto inner_cylinder_index = fsi_inner_cylinder->index;
@@ -218,10 +215,11 @@ int main(int argc, char* argv[]) {
     outer_cylinder->EnableCollision(false);
     outer_cylinder->SetMass(outer_cylinder_mass);
     outer_cylinder->SetInertia(ChMatrix33d(ChVector3d(1, 1, 1)));
-    std::vector<ChVector3d> bce_outer;
-    sysSPH.CreatePoints_CylinderAnnulus(outer_cylinder_radius + initial_spacing / 2,
-                                        outer_cylinder_radius + 3 * initial_spacing, cylinder_height, true,
-                                        initial_spacing, bce_outer);
+
+    auto bce_outer = sysSPH.CreatePointsCylinderAnnulus(outer_cylinder_radius + initial_spacing / 2,  //
+                                                        outer_cylinder_radius + 3 * initial_spacing,  //
+                                                        cylinder_height,                              //
+                                                        true);
     const auto& fsi_outer_cylinder =
         sysFSI.AddFsiBody(outer_cylinder, bce_outer, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
     auto outer_cylinder_index = fsi_outer_cylinder->index;

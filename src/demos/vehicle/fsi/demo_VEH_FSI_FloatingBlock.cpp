@@ -182,10 +182,8 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(ground);
 
     // Add FSI container
-    sysSPH.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 0, -1));
+    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 0, -1});
+    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
 
     // Floating block size and density
     ChVector3d plate_size(0.9 * fxDim, 0.7 * fyDim, 4 * init_space);
@@ -218,8 +216,7 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(floating_plate);
 
     {
-        std::vector<ChVector3d> bce;
-        sysSPH.CreateBCE_BoxInterior(plate_size, bce);
+        auto bce = sysSPH.CreatePointsBoxInterior(plate_size);
         sysFSI.AddFsiBody(floating_plate, bce, ChFrame<>(), false);
     }
 
@@ -421,10 +418,10 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
             wheel->GetSpindle()->AddCollisionShape(wheel_shape);
             wheel->GetSpindle()->EnableCollision(true);
 
-            std::vector<ChVector3d> points;
-            sysSPH.CreatePoints_Mesh(*trimesh, sysSPH.GetInitialSpacing(), points);
+            auto points = sysSPH.CreatePointsMesh(*trimesh);
             sysFSI.AddFsiBody(wheel->GetSpindle(), points, ChFrame<>(), false);
         }
     }
+
     return vehicle;
 }

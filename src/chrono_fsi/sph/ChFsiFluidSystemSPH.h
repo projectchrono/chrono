@@ -355,92 +355,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
     void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
 
-    // ----------- Functions for adding BCE markers for different shapes
-
-    /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// X-Y BCE layers are created in the negative Z direction of the plate orientation frame.
-    /// Such a plate is assumed to be used as boundary.
-    void AddPlateBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size);
-
-    /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
-    /// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
-    /// axes. Such a container is assumed to be used as a boundary.
-    /// The 'faces' input vector specifies which faces of the container are to be created: for each direction, a value
-    /// of -1 indicates the face in the negative direction, a value of +1 indicates the face in the positive direction,
-    /// and a value of 2 indicates both faces. Setting a value of 0 does not create container faces in that direction.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// Such a container is assumed to be used as a fixed boundary and the associated body is not tracked in FSI.
-    void AddBoxContainerBCE(std::shared_ptr<ChBody> body,
-                            const ChFrame<>& frame,
-                            const ChVector3d& size,
-                            const ChVector3i faces);
-
-    /// Add BCE markers for a box of specified dimensions and associate them with the given body.
-    /// The box is assumed to be centered at the origin of the provided frame and aligned with its axes.
-    /// BCE markers are created inside the box if solid=true, and outside the box otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    size_t AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector3d& size, bool solid);
-
-    /// Add BCE markers for a sphere of specified radius and associate them with the given body.
-    /// The sphere is assumed to be centered at the origin of the provided frame.
-    /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using spherical coordinates (default), or else on a uniform Cartesian grid.
-    size_t AddSphereBCE(std::shared_ptr<ChBody> body,
-                        const ChFrame<>& frame,
-                        double radius,
-                        bool solid,
-                        bool polar = true);
-
-    /// Add BCE markers for a cylinder of specified radius and height and associate them with the given body.
-    /// The cylinder is assumed centered at the origin of the provided frame and aligned with its Z axis.
-    /// BCE markers are created inside the cylinder if solid=true, and outside the cylinder otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    size_t AddCylinderBCE(std::shared_ptr<ChBody> body,
-                          const ChFrame<>& frame,
-                          double radius,
-                          double height,
-                          bool solid,
-                          bool polar = true);
-
-    /// Add BCE markers for a cone of specified radius and height and associate them with the given body.
-    /// The cone is assumed centered at the origin of the provided frame and aligned with its Z axis.
-    /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    size_t AddConeBCE(std::shared_ptr<ChBody> body,
-                      const ChFrame<>& frame,
-                      double radius,
-                      double height,
-                      bool solid,
-                      bool polar = true);
-
-    /// Add BCE markers for a cylindrical annulus of specified radii and height and associate them with the given body.
-    /// The cylindrical annulus is assumed centered at the origin of the provided frame and aligned with its Z axis.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    /// Such a cylindrical annulus is assumed to be used on a solid body.
-    size_t AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
-                                 const ChFrame<>& frame,
-                                 double radius_inner,
-                                 double radius_outer,
-                                 double height,
-                                 bool polar = true);
-
     // ----------- Functions for adding FEA meshes and associated BCE markers
 
-    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh.
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh1D.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
-    void SetBcePattern1D(BcePatternMesh1D pattern,   ///< marker pattern in cross-section
-                         bool remove_center = false  ///< eliminate markers on center line
+    void SetBcePattern1D(BcePatternMesh1D pattern,  ///< marker pattern in cross-section
+                         bool remove_center         ///< eliminate markers on center line
     );
 
-    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh.
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh2D.
     /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
-    void SetBcePattern2D(BcePatternMesh2D pattern,   ///< pattern of marker locations along normal
-                         bool remove_center = false  ///< eliminate markers on surface
+    void SetBcePattern2D(BcePatternMesh2D pattern,  ///< pattern of marker locations along normal
+                         bool remove_center         ///< eliminate markers on surface
     );
 
     // ----------- Utility functions for extracting information at specific SPH particles
@@ -478,69 +404,73 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Extract forces applied to allmarkers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetForces(const std::vector<int>& indices) const;
 
-    // ----------- Utility functions for creating BCE marker points in various volumes
-
-    /// Create BCE markers on a rectangular plate of specified X-Y dimensions, assumed centered at the origin.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE layers are created in the negative Z direction.
-    void CreateBCE_Plate(const ChVector2d& size, std::vector<ChVector3d>& bce);
-
-    /// Create BCE interior markers for a box of specified dimensions, assumed centered at the origin.
-    /// BCE markers are created inside the box, in a number of layers corresponding to system parameters.
-    void CreateBCE_BoxInterior(const ChVector3d& size, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE markers for a box of specified dimensions, assumed centered at the origin.
-    /// BCE markers are created outside the box, in a number of layers corresponding to system parameters.
-    void CreateBCE_BoxExterior(const ChVector3d& size, std::vector<ChVector3d>& bce);
-
-    /// Create interior BCE markers for a sphere of specified radius, assumed centered at the origin.
-    /// BCE markers are created inside the sphere, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_SphereInterior(double radius, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE markers for a sphere of specified radius, assumed centered at the origin.
-    /// BCE markers are created outside the sphere, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_SphereExterior(double radius, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create interior BCE markers for a cylinder of specified radius and height.
-    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created inside the cylinder, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_CylinderInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE markers for a cylinder of specified radius and height.
-    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created outside the cylinder, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_CylinderExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create interior BCE particles for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created inside the cone, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_ConeInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE particles for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created outside the cone, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_ConeExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
     // ----------- Utility functions for creating points in various volumes
 
-    /// Create points at suggested separation 'delta' filling a cylindrical annulus of specified radii and height.
-    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    static void CreatePoints_CylinderAnnulus(double rad_inner,
-                                             double rad_outer,
-                                             double height,
-                                             bool polar,
-                                             double delta,
-                                             std::vector<ChVector3d>& points);
+    /// Create marker points on a rectangular plate of specified X-Y dimensions, assumed centered at the origin.
+    /// Markers are created in a number of layers (in the negative Z direction) corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsPlate(const ChVector2d& size) const;
 
-    /// Create points at suggested separation 'delta' filling a closed mesh.
-    static void CreatePoints_Mesh(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points);
+    /// Create marker points for a box container of specified dimensions.
+    /// The box volume is assumed to be centered at the origin. The 'faces' input vector specifies which faces of the
+    /// container are to be created: for each direction, a value of -1 indicates the face in the negative direction, a
+    /// value of +1 indicates the face in the positive direction, and a value of 2 indicates both faces. Setting a value
+    /// of 0 does not create container faces in that direction. Markers are created in a number of layers corresponding
+    /// to system parameters.
+    std::vector<ChVector3d> CreatePointsBoxContainer(const ChVector3d& size, const ChVector3i& faces) const;
+
+    /// Create interior marker points for a box of specified dimensions, assumed centered at the origin.
+    /// Markers are created inside the box, in a number of layers corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsBoxInterior(const ChVector3d& size) const;
+
+    /// Create exterior marker points for a box of specified dimensions, assumed centered at the origin.
+    /// Markers are created outside the box, in a number of layers corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsBoxExterior(const ChVector3d& size) const;
+
+    /// Create interior marker points for a sphere of specified radius, assumed centered at the origin.
+    /// Markers are created inside the sphere, in a number of layers corresponding to system parameters.
+    /// Markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsSphereInterior(double radius, bool polar) const;
+
+    /// Create exterior marker pointss for a sphere of specified radius, assumed centered at the origin.
+    /// Markers are created outside the sphere, in a number of layers corresponding to system parameters.
+    /// Markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsSphereExterior(double radius, bool polar) const;
+
+    /// Create interior marker points for a cylinder of specified radius and height.
+    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created inside the cylinder, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsCylinderInterior(double rad, double height, bool polar) const;
+
+    /// Create exterior marker points for a cylinder of specified radius and height.
+    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created outside the cylinder, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsCylinderExterior(double rad, double height, bool polar) const;
+
+    /// Create interior marker points for a cone of specified radius and height.
+    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created inside the cone, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsConeInterior(double rad, double height, bool polar) const;
+
+    /// Create exterior marker points for a cone of specified radius and height.
+    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created outside the cone, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsConeExterior(double rad, double height, bool polar) const;
+
+    /// Create marker points filling a cylindrical annulus of specified radii and height.
+    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsCylinderAnnulus(double rad_inner,
+                                                        double rad_outer,
+                                                        double height,
+                                                        bool polar) const;
+
+    /// Create marker points filling a closed mesh.
+    /// Markers are created on a Cartesian grid with a separation corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsMesh(ChTriangleMeshConnected& mesh) const;
 
   public:
     PhysicsProblem GetPhysicsProblem() const;

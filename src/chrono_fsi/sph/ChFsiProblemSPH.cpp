@@ -426,8 +426,7 @@ int ChFsiProblemSPH::ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b, ChTrian
     }
 
     // BCE marker locations (in FSIProblem frame)
-    std::vector<ChVector3d> bce;
-    m_sysSPH.CreatePoints_Mesh(trimesh, m_spacing, bce);
+    auto bce = m_sysSPH.CreatePointsMesh(trimesh);
 
     // BCE marker locations in integer grid coordinates
     GridPoints gbce;

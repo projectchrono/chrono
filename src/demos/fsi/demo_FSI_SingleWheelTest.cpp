@@ -150,10 +150,8 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     ground->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(ground,                                     //
-                              ChFrame<>(ChVector3d(0, 0, bzDim), QUNIT),  //
-                              ChVector3d(bxDim, byDim, 2 * bzDim),        //
-                              ChVector3i(2, 0, -1));
+    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, 2 * bzDim), {2, 0, -1});
+    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim), QUNIT), false);
 
     // Create the wheel -- always SECOND body in the system
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -197,8 +195,7 @@ void CreateSolidPhase(ChFsiSystemSPH& sysFSI) {
     wheel->EnableCollision(false);
 
     // Add this body to the FSI system
-    std::vector<ChVector3d> BCE_wheel;
-    sysSPH.CreatePoints_Mesh(*trimesh, initSpacing, BCE_wheel);
+    auto BCE_wheel = sysSPH.CreatePointsMesh(*trimesh);
     sysFSI.AddFsiBody(wheel, BCE_wheel, ChFrame<>(), false);
 
     // Create the chassis -- always THIRD body in the system

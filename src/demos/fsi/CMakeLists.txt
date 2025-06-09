@@ -7,7 +7,6 @@ set(DEMOS ${DEMOS}
    demo_FSI_Compressibility
    demo_FSI_Poiseuille_flow
    demo_FSI_SingleWheelTest
-   demo_FSI_BCE
    demo_FSI_Kernels
    demo_FSI_ObjectDrop
    demo_FSI_CylindricalTank
@@ -19,6 +18,12 @@ set(DEMOS ${DEMOS}
    demo_FSI_AngleRepose
    demo_FSI_Cratering
 )
+
+if(CH_ENABLE_MODULE_VSG)
+  set(DEMOS ${DEMOS}
+      demo_FSI_BCE
+  )      
+endif()
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
    set(DEMOS ${DEMOS}

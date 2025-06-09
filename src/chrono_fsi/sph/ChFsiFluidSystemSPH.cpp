@@ -22,6 +22,7 @@
 //// #define DEBUG_LOG
 
 #include <cmath>
+#include <algorithm>
 
 #include "chrono/core/ChTypes.h"
 
@@ -1284,29 +1285,25 @@ void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool c
     const auto& geometry = fsi_body->geometry;
     if (geometry) {
         for (const auto& sphere : geometry->coll_spheres) {
-            std::vector<ChVector3d> points;
-            CreateBCE_SphereInterior(sphere.radius, true, points);
+            auto points = CreatePointsSphereInterior(sphere.radius, true);
             for (auto& p : points)
                 p += sphere.pos;
             b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
         }
         for (const auto& box : geometry->coll_boxes) {
-            std::vector<ChVector3d> points;
-            CreateBCE_BoxInterior(box.dims, points);
+            auto points = CreatePointsBoxInterior(box.dims);
             for (auto& p : points)
                 p = box.pos + box.rot.Rotate(p);
             b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
         }
         for (const auto& cyl : geometry->coll_cylinders) {
-            std::vector<ChVector3d> points;
-            CreateBCE_CylinderInterior(cyl.radius, cyl.length, true, points);
+            auto points = CreatePointsCylinderInterior(cyl.radius, cyl.length, true);
             for (auto& p : points)
                 p = cyl.pos + cyl.rot.Rotate(p);
             b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
         }
         for (const auto& mesh : geometry->coll_meshes) {
-            std::vector<ChVector3d> points;
-            CreatePoints_Mesh(*mesh.trimesh, m_paramsH->d0, points);
+            auto points = CreatePointsMesh(*mesh.trimesh);
             for (auto& p : points)
                 p += mesh.pos;
             b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
@@ -1663,119 +1660,6 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiFluidSystemSPH::AddPlateBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size) {
-    std::vector<ChVector3d> points;
-    CreateBCE_Plate(size, points);
-    AddPointsBCE(body, points, frame, false);
-}
-
-void ChFsiFluidSystemSPH::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
-                                             const ChFrame<>& frame,
-                                             const ChVector3d& size,
-                                             const ChVector3i faces) {
-    Real spacing = m_paramsH->d0;
-    Real buffer = 2 * (m_paramsH->num_bce_layers - 1) * spacing;
-
-    ChVector3d hsize = size / 2;
-
-    ChVector3d xn(-hsize.x(), 0, 0);
-    ChVector3d xp(+hsize.x(), 0, 0);
-    ChVector3d yn(0, -hsize.y(), 0);
-    ChVector3d yp(0, +hsize.y(), 0);
-    ChVector3d zn(0, 0, -hsize.z());
-    ChVector3d zp(0, 0, +hsize.z());
-
-    // Z- wall
-    if (faces.z() == -1 || faces.z() == 2)
-        AddPlateBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
-    // Z+ wall
-    if (faces.z() == +1 || faces.z() == 2)
-        AddPlateBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_PI)), {size.x(), size.y()});
-
-    // X- wall
-    if (faces.x() == -1 || faces.x() == 2)
-        AddPlateBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_PI_2)), {size.z() + buffer, size.y()});
-    // X+ wall
-    if (faces.x() == +1 || faces.x() == 2)
-        AddPlateBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_PI_2)), {size.z() + buffer, size.y()});
-
-    // Y- wall
-    if (faces.y() == -1 || faces.y() == 2)
-        AddPlateBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)), {size.x() + buffer, size.z() + buffer});
-    // Y+ wall
-    if (faces.y() == +1 || faces.y() == 2)
-        AddPlateBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)), {size.x() + buffer, size.z() + buffer});
-}
-
-size_t ChFsiFluidSystemSPH::AddBoxBCE(std::shared_ptr<ChBody> body,
-                                      const ChFrame<>& frame,
-                                      const ChVector3d& size,
-                                      bool solid) {
-    std::vector<ChVector3d> points;
-    if (solid)
-        CreateBCE_BoxInterior(size, points);
-    else
-        CreateBCE_BoxExterior(size, points);
-
-    return AddPointsBCE(body, points, frame, solid);
-}
-
-size_t ChFsiFluidSystemSPH::AddSphereBCE(std::shared_ptr<ChBody> body,
-                                         const ChFrame<>& frame,
-                                         double radius,
-                                         bool solid,
-                                         bool polar) {
-    std::vector<ChVector3d> points;
-    if (solid)
-        CreateBCE_SphereInterior(radius, polar, points);
-    else
-        CreateBCE_SphereExterior(radius, polar, points);
-
-    return AddPointsBCE(body, points, frame, solid);
-}
-
-size_t ChFsiFluidSystemSPH::AddCylinderBCE(std::shared_ptr<ChBody> body,
-                                           const ChFrame<>& frame,
-                                           double radius,
-                                           double height,
-                                           bool solid,
-                                           bool polar) {
-    std::vector<ChVector3d> points;
-    if (solid)
-        CreateBCE_CylinderInterior(radius, height, polar, points);
-    else
-        CreateBCE_CylinderExterior(radius, height, polar, points);
-
-    return AddPointsBCE(body, points, frame, solid);
-}
-
-size_t ChFsiFluidSystemSPH::AddConeBCE(std::shared_ptr<ChBody> body,
-                                       const ChFrame<>& frame,
-                                       double radius,
-                                       double height,
-                                       bool solid,
-                                       bool polar) {
-    std::vector<ChVector3d> points;
-    if (solid)
-        CreateBCE_ConeInterior(radius, height, polar, points);
-    else
-        CreateBCE_ConeExterior(radius, height, polar, points);
-
-    return AddPointsBCE(body, points, frame, true);
-}
-
-size_t ChFsiFluidSystemSPH::AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
-                                                  const ChFrame<>& frame,
-                                                  double radius_inner,
-                                                  double radius_outer,
-                                                  double height,
-                                                  bool polar) {
-    auto delta = m_paramsH->d0;
-    std::vector<ChVector3d> points;
-    CreatePoints_CylinderAnnulus(radius_inner, radius_outer, height, polar, delta, points);
-    return AddPointsBCE(body, points, frame, true);
-}
-
 size_t ChFsiFluidSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
                                          const std::vector<ChVector3d>& points,
                                          const ChFrame<>& rel_frame,
@@ -1801,7 +1685,9 @@ size_t ChFsiFluidSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
 
 const Real pi = Real(CH_PI);
 
-void ChFsiFluidSystemSPH::CreateBCE_Plate(const ChVector2d& size, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsPlate(const ChVector2d& size) const {
+    std::vector<ChVector3d> bce;
+
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -1817,9 +1703,74 @@ void ChFsiFluidSystemSPH::CreateBCE_Plate(const ChVector2d& size, std::vector<Ch
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_BoxInterior(const ChVector3d& size, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxContainer(const ChVector3d& size,
+                                                                      const ChVector3i& faces) const {
+    std::vector<ChVector3d> bce;
+
+    Real spacing = m_paramsH->d0;
+    Real buffer = 2 * (m_paramsH->num_bce_layers - 1) * spacing;
+
+    ChVector3d hsize = size / 2;
+
+    ChVector3d xn(-hsize.x(), 0, 0);
+    ChVector3d xp(+hsize.x(), 0, 0);
+    ChVector3d yn(0, -hsize.y(), 0);
+    ChVector3d yp(0, +hsize.y(), 0);
+    ChVector3d zn(0, 0, -hsize.z());
+    ChVector3d zp(0, 0, +hsize.z());
+
+    // Z- wall
+    if (faces.z() == -1 || faces.z() == 2) {
+        auto bce1 = CreatePointsPlate({size.x(), size.y()});
+        ChFramed X(zn, QUNIT);
+        std::transform(bce1.begin(), bce1.end(), std::back_inserter(bce), [&X](ChVector3d& v) { return X * v; });
+    }
+
+    // Z+ wall
+    if (faces.z() == +1 || faces.z() == 2) {
+        auto bce1 = CreatePointsPlate({size.x(), size.y()});
+        ChFramed X(zp, QuatFromAngleX(CH_PI));
+        std::transform(bce1.begin(), bce1.end(), std::back_inserter(bce), [&X](ChVector3d& v) { return X * v; });
+    }
+
+    // X- wall
+    if (faces.x() == -1 || faces.x() == 2) {
+        auto bce1 = CreatePointsPlate({size.z() + buffer, size.y()});
+        ChFramed X(xn, QuatFromAngleY(+CH_PI_2));
+        std::transform(bce1.begin(), bce1.end(), std::back_inserter(bce), [&X](ChVector3d& v) { return X * v; });
+    }
+
+    // X+ wall
+    if (faces.x() == +1 || faces.x() == 2) {
+        auto bce1 = CreatePointsPlate({size.z() + buffer, size.y()});
+        ChFramed X(xp, QuatFromAngleY(-CH_PI_2));
+        std::transform(bce1.begin(), bce1.end(), std::back_inserter(bce), [&X](ChVector3d& v) { return X * v; });
+    }
+
+    // Y- wall
+    if (faces.y() == -1 || faces.y() == 2) {
+        auto bce1 = CreatePointsPlate({size.x() + buffer, size.z() + buffer});
+        ChFramed X(yn, QuatFromAngleX(-CH_PI_2));
+        std::transform(bce1.begin(), bce1.end(), std::back_inserter(bce), [&X](ChVector3d& v) { return X * v; });
+    }
+
+    // Y+ wall
+    if (faces.y() == +1 || faces.y() == 2) {
+        auto bce1 = CreatePointsPlate({size.x() + buffer, size.z() + buffer});
+        ChFramed X(yp, QuatFromAngleX(+CH_PI_2));
+        std::transform(bce1.begin(), bce1.end(), std::back_inserter(bce), [&X](ChVector3d& v) { return X * v; });
+    }
+
+    return bce;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxInterior(const ChVector3d& size) const {
+    std::vector<ChVector3d> bce;
+
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -1844,7 +1795,7 @@ void ChFsiFluidSystemSPH::CreateBCE_BoxInterior(const ChVector3d& size, std::vec
                 }
             }
         }
-        return;
+        return bce;
     }
 
     // Create interior BCE layers
@@ -1885,9 +1836,13 @@ void ChFsiFluidSystemSPH::CreateBCE_BoxInterior(const ChVector3d& size, std::vec
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_BoxExterior(const ChVector3d& size, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsBoxExterior(const ChVector3d& size) const {
+    std::vector<ChVector3d> bce;
+
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -1939,9 +1894,13 @@ void ChFsiFluidSystemSPH::CreateBCE_BoxExterior(const ChVector3d& size, std::vec
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_SphereInterior(double radius, bool polar, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsSphereInterior(double radius, bool polar) const {
+    std::vector<ChVector3d> bce;
+
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -1968,7 +1927,8 @@ void ChFsiFluidSystemSPH::CreateBCE_SphereInterior(double radius, bool polar, st
                 }
             }
         }
-        return;
+
+        return bce;
     }
 
     // Use a Cartesian grid and accept/reject points
@@ -1996,9 +1956,13 @@ void ChFsiFluidSystemSPH::CreateBCE_SphereInterior(double radius, bool polar, st
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_SphereExterior(double radius, bool polar, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsSphereExterior(double radius, bool polar) const {
+    std::vector<ChVector3d> bce;
+
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2023,7 +1987,8 @@ void ChFsiFluidSystemSPH::CreateBCE_SphereExterior(double radius, bool polar, st
                 }
             }
         }
-        return;
+
+        return bce;
     }
 
     // Inflate sphere and accept/reject points on a Cartesian grid
@@ -2052,12 +2017,13 @@ void ChFsiFluidSystemSPH::CreateBCE_SphereExterior(double radius, bool polar, st
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_CylinderInterior(double rad,
-                                                     double height,
-                                                     bool polar,
-                                                     std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderInterior(double rad, double height, bool polar) const {
+    std::vector<ChVector3d> bce;
+
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2117,7 +2083,7 @@ void ChFsiFluidSystemSPH::CreateBCE_CylinderInterior(double rad,
             }
         }
 
-        return;
+        return bce;
     }
 
     // Use a Cartesian grid and accept/reject points
@@ -2148,12 +2114,13 @@ void ChFsiFluidSystemSPH::CreateBCE_CylinderInterior(double rad,
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_CylinderExterior(double rad,
-                                                     double height,
-                                                     bool polar,
-                                                     std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double rad, double height, bool polar) const {
+    std::vector<ChVector3d> bce;
+
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2205,7 +2172,7 @@ void ChFsiFluidSystemSPH::CreateBCE_CylinderExterior(double rad,
             }
         }
 
-        return;
+        return bce;
     }
 
     // Inflate cylinder and accept/reject points on a Cartesian grid
@@ -2239,9 +2206,13 @@ void ChFsiFluidSystemSPH::CreateBCE_CylinderExterior(double rad,
             }
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_ConeInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeInterior(double rad, double height, bool polar) const {
+    std::vector<ChVector3d> bce;
+
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2277,7 +2248,7 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeInterior(double rad, double height, bool
 
         //// TODO: add cap
 
-        return;
+        return bce;
     }
 
     // Use a regular grid and accept/reject points
@@ -2304,9 +2275,13 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeInterior(double rad, double height, bool
             //// TODO: add cap
         }
     }
+
+    return bce;
 }
 
-void ChFsiFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce) {
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsConeExterior(double rad, double height, bool polar) const {
+    std::vector<ChVector3d> bce;
+
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
@@ -2346,7 +2321,7 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool
 
         //// TODO: add cap
 
-        return;
+        return bce;
     }
 
     // Use a regular grid and accept/reject points
@@ -2373,6 +2348,157 @@ void ChFsiFluidSystemSPH::CreateBCE_ConeExterior(double rad, double height, bool
             //// TODO: add cap
         }
     }
+
+    return bce;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderAnnulus(double rad_inner,
+                                                                         double rad_outer,
+                                                                         double height,
+                                                                         bool polar) const {
+    std::vector<ChVector3d> points;
+
+    Real spacing = m_paramsH->d0;
+    double hheight = height / 2;
+
+    // Calculate actual spacing
+    int np_h = (int)std::round(hheight / spacing);
+    double delta_h = hheight / np_h;
+
+    // Use polar coordinates
+    if (polar) {
+        int np_r = (int)std::round((rad_outer - rad_inner) / spacing);
+        double delta_r = (rad_outer - rad_inner) / np_r;
+        for (int ir = 0; ir <= np_r; ir++) {
+            double r = rad_inner + ir * delta_r;
+            int np_th = (int)std::round(2 * pi * r / spacing);
+            double delta_th = (2 * pi) / np_th;
+            for (int it = 0; it < np_th; it++) {
+                double theta = it * delta_th;
+                double x = r * cos(theta);
+                double y = r * sin(theta);
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    double z = iz * delta_h;
+                    points.push_back({x, y, z});
+                }
+            }
+        }
+
+        return points;
+    }
+
+    // Use a regular grid and accept/reject points
+    int np_r = (int)std::round(rad_outer / spacing);
+    double delta_r = rad_outer / np_r;
+
+    double r_in2 = rad_inner * rad_inner;
+    double r_out2 = rad_outer * rad_outer;
+    for (int ix = -np_r; ix <= np_r; ix++) {
+        double x = ix * delta_r;
+        for (int iy = -np_r; iy <= np_r; iy++) {
+            double y = iy * delta_r;
+            double r2 = x * x + y * y;
+            if (r2 >= r_in2 && r2 <= r_out2) {
+                for (int iz = -np_h; iz <= np_h; iz++) {
+                    double z = iz * delta_h;
+                    points.push_back({x, y, z});
+                }
+            }
+        }
+    }
+
+    return points;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsMesh(ChTriangleMeshConnected& mesh) const {
+    std::vector<ChVector3d> points;
+
+    Real spacing = m_paramsH->d0;
+
+    // Ensure mesh if watertight
+    mesh.RepairDuplicateVertexes(1e-9);
+    auto bbox = mesh.GetBoundingBox();
+
+    const double EPSI = 1e-6;
+
+    ChVector3d ray_origin;
+    for (double x = bbox.min.x(); x < bbox.max.x(); x += spacing) {
+        ray_origin.x() = x + 1e-9;
+        for (double y = bbox.min.y(); y < bbox.max.y(); y += spacing) {
+            ray_origin.y() = y + 1e-9;
+            for (double z = bbox.min.z(); z < bbox.max.z(); z += spacing) {
+                ray_origin.z() = z + 1e-9;
+
+                ChVector3d ray_dir[2] = {ChVector3d(5, 0.5, 0.25), ChVector3d(-3, 0.7, 10)};
+                int intersectCounter[2] = {0, 0};
+
+                for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
+                    auto& t_face = mesh.m_face_v_indices[i];
+                    auto& v1 = mesh.m_vertices[t_face.x()];
+                    auto& v2 = mesh.m_vertices[t_face.y()];
+                    auto& v3 = mesh.m_vertices[t_face.z()];
+
+                    // Find vectors for two edges sharing V1
+                    auto edge1 = v2 - v1;
+                    auto edge2 = v3 - v1;
+
+                    int t_inter[2] = {0, 0};
+
+                    for (unsigned int j = 0; j < 2; j++) {
+                        // Begin calculating determinant - also used to calculate uu parameter
+                        auto pvec = Vcross(ray_dir[j], edge2);
+                        // if determinant is near zero, ray is parallel to plane of triangle
+                        double det = Vdot(edge1, pvec);
+                        // NOT CULLING
+                        if (det > -EPSI && det < EPSI) {
+                            t_inter[j] = 0;
+                            continue;
+                        }
+                        double inv_det = 1.0 / det;
+
+                        // calculate distance from V1 to ray origin
+                        auto tvec = ray_origin - v1;
+
+                        /// Calculate uu parameter and test bound
+                        double uu = Vdot(tvec, pvec) * inv_det;
+                        // The intersection lies outside of the triangle
+                        if (uu < 0.0 || uu > 1.0) {
+                            t_inter[j] = 0;
+                            continue;
+                        }
+
+                        // Prepare to test vv parameter
+                        auto qvec = Vcross(tvec, edge1);
+
+                        // Calculate vv parameter and test bound
+                        double vv = Vdot(ray_dir[j], qvec) * inv_det;
+                        // The intersection lies outside of the triangle
+                        if (vv < 0.0 || ((uu + vv) > 1.0)) {
+                            t_inter[j] = 0;
+                            continue;
+                        }
+
+                        double tt = Vdot(edge2, qvec) * inv_det;
+                        if (tt > EPSI) {  /// ray intersection
+                            t_inter[j] = 1;
+                            continue;
+                        }
+
+                        // No hit, no win
+                        t_inter[j] = 0;
+                    }
+
+                    intersectCounter[0] += t_inter[0];
+                    intersectCounter[1] += t_inter[1];
+                }
+
+                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
+                    points.push_back(ChVector3d(x, y, z));
+            }
+        }
+    }
+
+    return points;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2640,147 +2766,6 @@ unsigned int ChFsiFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID,
     ////ofile.close();
 
     return num_bce;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-void ChFsiFluidSystemSPH::CreatePoints_CylinderAnnulus(double rad_inner,
-                                                       double rad_outer,
-                                                       double height,
-                                                       bool polar,
-                                                       double delta,
-                                                       std::vector<ChVector3d>& points) {
-    // Calculate actual spacing
-    double hheight = height / 2;
-    int np_h = (int)std::round(hheight / delta);
-    double delta_h = hheight / np_h;
-
-    // Use polar coordinates
-    if (polar) {
-        int np_r = (int)std::round((rad_outer - rad_inner) / delta);
-        double delta_r = (rad_outer - rad_inner) / np_r;
-        for (int ir = 0; ir <= np_r; ir++) {
-            double r = rad_inner + ir * delta_r;
-            int np_th = (int)std::round(2 * pi * r / delta);
-            double delta_th = (2 * pi) / np_th;
-            for (int it = 0; it < np_th; it++) {
-                double theta = it * delta_th;
-                double x = r * cos(theta);
-                double y = r * sin(theta);
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
-                    points.push_back({x, y, z});
-                }
-            }
-        }
-        return;
-    }
-
-    // Use a regular grid and accept/reject points
-    int np_r = (int)std::round(rad_outer / delta);
-    double delta_r = rad_outer / np_r;
-
-    double r_in2 = rad_inner * rad_inner;
-    double r_out2 = rad_outer * rad_outer;
-    for (int ix = -np_r; ix <= np_r; ix++) {
-        double x = ix * delta_r;
-        for (int iy = -np_r; iy <= np_r; iy++) {
-            double y = iy * delta_r;
-            double r2 = x * x + y * y;
-            if (r2 >= r_in2 && r2 <= r_out2) {
-                for (int iz = -np_h; iz <= np_h; iz++) {
-                    double z = iz * delta_h;
-                    points.push_back({x, y, z});
-                }
-            }
-        }
-    }
-}
-
-void ChFsiFluidSystemSPH::CreatePoints_Mesh(ChTriangleMeshConnected& mesh,
-                                            double delta,
-                                            std::vector<ChVector3d>& points) {
-    mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
-    auto bbox = mesh.GetBoundingBox();
-
-    const double EPSI = 1e-6;
-
-    ChVector3d ray_origin;
-    for (double x = bbox.min.x(); x < bbox.max.x(); x += delta) {
-        ray_origin.x() = x + 1e-9;
-        for (double y = bbox.min.y(); y < bbox.max.y(); y += delta) {
-            ray_origin.y() = y + 1e-9;
-            for (double z = bbox.min.z(); z < bbox.max.z(); z += delta) {
-                ray_origin.z() = z + 1e-9;
-
-                ChVector3d ray_dir[2] = {ChVector3d(5, 0.5, 0.25), ChVector3d(-3, 0.7, 10)};
-                int intersectCounter[2] = {0, 0};
-
-                for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
-                    auto& t_face = mesh.m_face_v_indices[i];
-                    auto& v1 = mesh.m_vertices[t_face.x()];
-                    auto& v2 = mesh.m_vertices[t_face.y()];
-                    auto& v3 = mesh.m_vertices[t_face.z()];
-
-                    // Find vectors for two edges sharing V1
-                    auto edge1 = v2 - v1;
-                    auto edge2 = v3 - v1;
-
-                    int t_inter[2] = {0, 0};
-
-                    for (unsigned int j = 0; j < 2; j++) {
-                        // Begin calculating determinant - also used to calculate uu parameter
-                        auto pvec = Vcross(ray_dir[j], edge2);
-                        // if determinant is near zero, ray is parallel to plane of triangle
-                        double det = Vdot(edge1, pvec);
-                        // NOT CULLING
-                        if (det > -EPSI && det < EPSI) {
-                            t_inter[j] = 0;
-                            continue;
-                        }
-                        double inv_det = 1.0 / det;
-
-                        // calculate distance from V1 to ray origin
-                        auto tvec = ray_origin - v1;
-
-                        /// Calculate uu parameter and test bound
-                        double uu = Vdot(tvec, pvec) * inv_det;
-                        // The intersection lies outside of the triangle
-                        if (uu < 0.0 || uu > 1.0) {
-                            t_inter[j] = 0;
-                            continue;
-                        }
-
-                        // Prepare to test vv parameter
-                        auto qvec = Vcross(tvec, edge1);
-
-                        // Calculate vv parameter and test bound
-                        double vv = Vdot(ray_dir[j], qvec) * inv_det;
-                        // The intersection lies outside of the triangle
-                        if (vv < 0.0 || ((uu + vv) > 1.0)) {
-                            t_inter[j] = 0;
-                            continue;
-                        }
-
-                        double tt = Vdot(edge2, qvec) * inv_det;
-                        if (tt > EPSI) {  /// ray intersection
-                            t_inter[j] = 1;
-                            continue;
-                        }
-
-                        // No hit, no win
-                        t_inter[j] = 0;
-                    }
-
-                    intersectCounter[0] += t_inter[0];
-                    intersectCounter[1] += t_inter[1];
-                }
-
-                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
-                    points.push_back(ChVector3d(x, y, z));
-            }
-        }
-    }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

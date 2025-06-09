@@ -159,10 +159,8 @@ int main(int argc, char* argv[]) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    sysSPH.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 0, 2));
+    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 0, 2});
+    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();

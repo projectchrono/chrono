@@ -149,55 +149,6 @@ std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh
     return nullptr;
 }
 
-//// REMOVE
-/*
-size_t ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
-    ChAssertAlways(m_fsi_interface);
-
-    size_t index = 0;
-
-    bool has_contact1D = false;
-    bool has_contact2D = false;
-
-    // Search for contact surfaces associated with the FEA mesh
-    for (const auto& surface : mesh->GetContactSurfaces()) {
-        if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
-            if (surface_segs->GetNumSegments() > 0)
-                index = AddFsiMesh1D(surface_segs);
-            has_contact1D = true;
-        } else if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            if (surface_mesh->GetNumTriangles() > 0)
-                index = AddFsiMesh2D(surface_mesh);
-            has_contact2D = true;
-        }
-    }
-
-    // If no 1D surface contact found, create one with a default contact material and add segments from cable and beam
-    // elements in the FEA mesh. Do not add the new contact surface to the mesh.
-    if (!has_contact1D) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        surface_segs->AddAllSegments(*mesh, 0);
-        if (surface_segs->GetNumSegments() > 0)
-            index = AddFsiMesh1D(surface_segs);
-    }
-
-    // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
-    // FEA mesh. Do not add the new contact surface to the mesh.
-    if (!has_contact2D) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
-        if (surface_mesh->GetNumTriangles() > 0)
-            index = AddFsiMesh2D(surface_mesh);
-    }
-
-    return index;
-}
-*/
-
 void ChFsiSystem::Initialize() {
     if (!m_fsi_interface) {
         cout << "ERROR: No FSI interface was created." << endl;
