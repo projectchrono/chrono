@@ -67,8 +67,8 @@ double cyDim = 0.2;
 double czDim = 2.0;
 
 // Create additional solids
-bool create_flex_cable2 = true;
-bool create_cylinder_post = false;
+bool create_flex_cable2 = false;
+bool create_cylinder_post = true;
 bool create_cylinder_free = true;
 
 // Use nodal directions

@@ -316,6 +316,9 @@ struct FsiDataManager {
     /// Resize data arrays based on particle activity.
     void ResizeArrays(uint numExtended);
 
+    /// Return device memory usage.
+    size_t GetCurrentGPUMemoryUsage() const;
+
     // ------------------------
 
     std::shared_ptr<CudaDeviceInfo> cudaDeviceInfo;  ///< CUDA device information
@@ -328,6 +331,8 @@ struct FsiDataManager {
     std::shared_ptr<SphMarkerDataD> sortedSphMarkers2_D;  ///< sorted information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataH> sphMarkers_H;         ///< information of SPH particles on host
 
+    // ------------------------
+
     // FSI solid states
     std::shared_ptr<FsiBodyStateH> fsiBodyState_H;  ///< rigid body state (host)
     std::shared_ptr<FsiBodyStateD> fsiBodyState_D;  ///< rigid body state (device)
@@ -337,44 +342,44 @@ struct FsiDataManager {
     std::shared_ptr<FsiMeshStateH> fsiMesh2DState_H;  ///< 2-D FEA mesh state (host)
     std::shared_ptr<FsiMeshStateD> fsiMesh2DState_D;  ///< 2-D FEA mesh state (device)
 
-    // Flex solid connectivity
+    // FSI flex solid connectivity
     thrust::host_vector<int2> flex1D_Nodes_H;    ///< node indices for each 1-D flex segment (host)
     thrust::device_vector<int2> flex1D_Nodes_D;  ///< node indices for each 1-D flex segment (device)
     thrust::host_vector<int3> flex2D_Nodes_H;    ///< node indices for each 2-D flex face (host)
     thrust::device_vector<int3> flex2D_Nodes_D;  ///< node indices for each 2-D flex face (device)
 
     // FSI solid BCEs
-    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< rigid body BCE position (local reference frame)
+    thrust::host_vector<Real3> rigid_BCEcoords_H;     ///< local coordinates for BCE markers on rigid bodies (host)
+    thrust::device_vector<Real3> rigid_BCEcoords_D;   ///< local coordinates for BCE markers on rigid bodies (device)
     thrust::host_vector<Real3> flex1D_BCEcoords_H;    ///< local coords for BCE markers on 1-D flex segments (host)
     thrust::device_vector<Real3> flex1D_BCEcoords_D;  ///< local coords for BCE markers on 1-D flex segments (device)
     thrust::host_vector<Real3> flex2D_BCEcoords_H;    ///< local coords for BCE markers on 2-D flex faces (host)
     thrust::device_vector<Real3> flex2D_BCEcoords_D;  ///< local coors for BCE markers on 2-D flex faces (device)
 
-    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< associated body ID for BCE markers on rigid bodies
-    thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< associated mesh and segment for BCE markers on 1-D segments
-    thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< associated mesh and segment for BCE markers on 1-D segments
-    thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< associated mesh and face for BCE markers on 2-D faces
-    thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< associated mesh and face for BCE markers on 2-D faces
+    thrust::host_vector<uint> rigid_BCEsolids_H;      ///< body ID for BCE markers on rigid bodies (host)
+    thrust::device_vector<uint> rigid_BCEsolids_D;    ///< body ID for BCE markers on rigid bodies (device)
+    thrust::host_vector<uint3> flex1D_BCEsolids_H;    ///< mesh and segment IDs for BCE markers on 1-D segments (host)
+    thrust::device_vector<uint3> flex1D_BCEsolids_D;  ///< mesh and segment IDs for BCE markers on 1-D segments (device)
+    thrust::host_vector<uint3> flex2D_BCEsolids_H;    ///< mesh and face IDs for BCE markers on 2-D faces (host)
+    thrust::device_vector<uint3> flex2D_BCEsolids_D;  ///< mesh and face IDs for BCE markers on 2-D faces (device)
 
-    // Solid FSI forces
+    // FSI solid forces
     thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< surface-integrated forces to rigid bodies
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< surface-integrated torques to rigid bodies
 
     thrust::device_vector<Real3> flex1D_FSIforces_D;  ///< surface-integrated forces on FEA 1-D segment nodes
     thrust::device_vector<Real3> flex2D_FSIforces_D;  ///< surface-integrated forces on FEA 2-D face nodes
 
+    // ------------------------
+
     std::shared_ptr<ProximityDataD> markersProximity_D;  ///< information of neighbor search on the device
 
-    // fluidfsiBodiesIndex (host)
     thrust::host_vector<int4> referenceArray;      ///< phases in the array of SPH particles
     thrust::host_vector<int4> referenceArray_FEA;  ///< phases in the array of SPH particles for flexible elements
 
     // Fluid data (device)
     thrust::device_vector<Real4> derivVelRhoD;          ///< particle dv/dt and d(rho)/dt for particles
     thrust::device_vector<Real4> derivVelRhoOriginalD;  ///< particle dv/dt and d(rho)/dt - unsorted
-
-    /// Add this method declaration in the FsiDataManager struct
-    size_t GetCurrentGPUMemoryUsage() const;
 
     thrust::device_vector<Real3> derivTauXxYyZzD;         ///< d(tau)/dt for particles
     thrust::device_vector<Real3> derivTauXyXzYzD;         ///< d(tau)/dt for particles

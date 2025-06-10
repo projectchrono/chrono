@@ -266,7 +266,7 @@ void ChFsiProblemSPH::Initialize() {
 
     // Create boundary BCE markers
     // (ATTENTION: BCE markers must be created after the SPH particles!)
-    m_sysSPH.AddBCEFsiBody(m_ground, bce_points, false);
+    m_sysSPH.AddBCEBoundary(bce_points, m_ground->GetFrameRefToAbs());
 
     // Update AABB using geometry of FSI solids 
     for (const auto& b : m_sysSPH.m_bodies) {

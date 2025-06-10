@@ -355,19 +355,14 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
     void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
 
-    // ----------- Functions for adding FEA meshes and associated BCE markers
+    // -----------
 
-    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh1D.
-    /// By default, a full set of BCE markers is used across each section, including a central marker.
-    void SetBcePattern1D(BcePatternMesh1D pattern,  ///< marker pattern in cross-section
-                         bool remove_center         ///< eliminate markers on center line
-    );
-
-    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh2D.
-    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
-    void SetBcePattern2D(BcePatternMesh2D pattern,  ///< pattern of marker locations along normal
-                         bool remove_center         ///< eliminate markers on surface
-    );
+    /// Add boundary BCE markers at the specified points.
+    /// The points are assumed to be provided relative to the specified frame.
+    /// These BCE markers are not associated with a particular FSI body and, as such, cannot be used to extract fluid
+    /// forces and moments. If fluid reaction forces are needed, create an FSI body with the desirted geometry or list
+    /// of BCE points and add it through the contianing FSI system.
+    void AddBCEBoundary(const std::vector<ChVector3d>& points, const ChFramed& frame);
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -519,6 +514,18 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// SPH solver-specific actions taken when a 2D deformable solid is added as an FSI object.
     virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
 
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh1D.
+    /// By default, a full set of BCE markers is used across each section, including a central marker.
+    void SetBcePattern1D(BcePatternMesh1D pattern,  ///< marker pattern in cross-section
+                         bool remove_center         ///< eliminate markers on center line
+    );
+
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh2D.
+    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
+    void SetBcePattern2D(BcePatternMesh2D pattern,  ///< pattern of marker locations along normal
+                         bool remove_center         ///< eliminate markers on surface
+    );
+
     /// Create the the local BCE coordinates, their body associations, and the initial global BCE positions for the
     /// given FSI rigid body.
     void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
@@ -549,7 +556,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Add the BCE markers for the given FSI rigid body to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.
-    void AddBCEFsiBody(std::shared_ptr<ChBody> body, const std::vector<ChVector3d>& points, bool solid);
+    void AddBCEFsiBody(const FsiSphBody& fsisph_body);
 
     /// Add the BCE markers for the given FSI 1D mesh to the underlying data manager.
     /// Note: BCE markers are created with zero velocities.

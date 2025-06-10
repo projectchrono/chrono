@@ -82,7 +82,7 @@ ChFsiFluidSystemSPH::ChFsiFluidSystemSPH()
 
 ChFsiFluidSystemSPH::~ChFsiFluidSystemSPH() {}
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::InitParams() {
     //// RADU TODO
@@ -180,7 +180,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->num_proximity_search_steps = 4;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 Real3 LoadVectorJSON(const Value& a) {
     assert(a.IsArray());
@@ -546,7 +546,7 @@ void ChFsiFluidSystemSPH::ReadParametersFromFile(const std::string& json_file) {
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::SetBoundaryType(BoundaryMethod boundary_method) {
     m_paramsH->boundary_method = boundary_method;
@@ -913,7 +913,7 @@ void ChFsiFluidSystemSPH::SetLinSolverParameters(const LinSolverParameters& lins
 ChFsiFluidSystemSPH::SplashsurfParameters::SplashsurfParameters()
     : smoothing_length(1.5), cube_size(0.5), surface_threshold(0.6) {}
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 PhysicsProblem ChFsiFluidSystemSPH::GetPhysicsProblem() const {
     return (m_paramsH->elastic_SPH ? PhysicsProblem::CRM : PhysicsProblem::CFD);
@@ -946,7 +946,7 @@ std::string ChFsiFluidSystemSPH::GetSphIntegrationSchemeString() const {
     return method;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 // Convert host data from the provided SOA to the data manager's AOS and copy to device.
 void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_states,
@@ -1604,26 +1604,23 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemSPH::AddBCEFsiBody(std::shared_ptr<ChBody> body,
-                                        const std::vector<ChVector3d>& points,
-                                        bool solid) {
-    // Set BCE marker type
-    MarkerType type = solid ? MarkerType::BCE_RIGID : MarkerType::BCE_WALL;
+void ChFsiFluidSystemSPH::AddBCEFsiBody(const FsiSphBody& fsisph_body) {
+    const auto& fsi_body = fsisph_body.fsi_body;
 
-    for (const auto& p : points) {
-        auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(p);
-
-        m_data_mgr->AddBceMarker(type, ToReal3(pos_abs), {0, 0, 0});
+    // Add BCE markers and load their local coordinates and body associations
+    auto num_bce = fsisph_body.bce.size();
+    for (size_t i = 0; i < num_bce; i++) {
+        m_data_mgr->AddBceMarker(MarkerType::BCE_RIGID, ToReal3(fsisph_body.bce[i]), {0, 0, 0});
+        m_data_mgr->rigid_BCEcoords_H.push_back(ToReal3(fsisph_body.bce_coords[i]));
+        m_data_mgr->rigid_BCEsolids_H.push_back(fsisph_body.bce_ids[i]);
     }
 
-    if (solid)
-        m_fsi_bodies_bce_num.push_back((int)points.size());
+    m_fsi_bodies_bce_num.push_back((int)num_bce);
 
-    ////if (m_verbose) {
-    ////    cout << "Add BCE for body" << endl;
-    ////    cout << "  Num. BCE markers: " << num_bce << endl;
-
-    ////}
+    if (m_verbose) {
+        cout << "Add BCE for rigid body" << endl;
+        cout << "  Num. BCE markers: " << num_bce << endl;
+    }
 }
 
 void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
@@ -1636,7 +1633,7 @@ void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
         m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
     }
 
-    // Load local BCE coordinates and their mesh associations
+    // Add BCE markers and load their local coordinates and mesh associations
     auto num_bce = fsisph_mesh.bce.size();
     for (size_t i = 0; i < num_bce; i++) {
         m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
@@ -1645,7 +1642,7 @@ void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
     }
 
     if (m_verbose) {
-        cout << "Add BCE for mesh1D" << endl;
+        cout << "Add BCE for 1D mesh" << endl;
         cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
         cout << "  Num. segments:    " << fsi_mesh->GetNumElements() << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
@@ -1663,7 +1660,7 @@ void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
         m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
     }
 
-    // Load local BCE coordinates and their mesh associations
+    // Add BCE markers and load their local coordinates and mesh associations
     auto num_bce = fsisph_mesh.bce.size();
     for (size_t i = 0; i < num_bce; i++) {
         m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
@@ -1672,7 +1669,7 @@ void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
     }
 
     if (m_verbose) {
-        cout << "Add BCE for mesh2D" << endl;
+        cout << "Add BCE for 2D mesh" << endl;
         cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
         cout << "  Num. faces:       " << fsi_mesh->GetNumElements() << endl;
         cout << "  Num. BCE markers: " << num_bce << endl;
@@ -1695,7 +1692,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_num_flex2D_elements = 0;
 
     for (const auto& b : m_bodies) {
-        AddBCEFsiBody(b.fsi_body->body, b.bce_coords, true);
+        AddBCEFsiBody(b);
         m_num_rigid_bodies++;
     }
 
@@ -1910,7 +1907,7 @@ void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
                                            m_data_mgr->sphMarkers_D);
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
     writeParticleFileCSV(filename, *m_data_mgr);
@@ -1927,7 +1924,7 @@ void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) con
     saveSolidData(dir, time, *m_data_mgr);
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::AddSPHParticle(const ChVector3d& pos,
                                          double rho,
@@ -1961,7 +1958,14 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
     }
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+void ChFsiFluidSystemSPH::AddBCEBoundary(const std::vector<ChVector3d>& points, const ChFramed& frame) {
+    for (const auto& p : points)
+        m_data_mgr->AddBceMarker(MarkerType::BCE_WALL, ToReal3(frame.TransformPointLocalToParent(p)), {0, 0, 0});
+}
+
+//------------------------------------------------------------------------------
 
 const Real pi = Real(CH_PI);
 
@@ -2781,7 +2785,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsMesh(ChTriangleMeshConn
     return points;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 double ChFsiFluidSystemSPH::GetKernelLength() const {
     return m_paramsH->h;
@@ -2851,7 +2855,7 @@ size_t ChFsiFluidSystemSPH::GetNumBoundaryMarkers() const {
     return m_data_mgr->countersH->numBoundaryMarkers;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticlePositions() const {
     auto pos3 = GetPositions();
@@ -2903,7 +2907,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleFluidProperties() const 
     return props;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
     const ChVector3d& Pos = frame.GetPos();
