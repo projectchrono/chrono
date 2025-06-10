@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     fsi.SetSPHParameters(sph_params);
 
     // Enable/disable use of node directions for FSI flexible meshes
-    fsi.EnableNodeDirections(use_FEA_node_directions);
+    fsi.UseNodeDirections(use_FEA_node_directions);
 
     // Dimension of computational domain and intial fluid domain
     ChVector3d csize(2.0, 0.15, 1.0);

@@ -112,10 +112,7 @@ class CH_FSI_API ChFsiInterface {
     // ------------
 
     /// Enable calculation and communication of node directions for FSI meshes. Default: false.
-    void EnableNodeDirections(bool val);
-
-    /// Indicate whether or not node directions are being used.
-    bool UseNodeDirections() const { return m_use_node_directions; }
+    void UseNodeDirections(bool val);
 
     /// Utility function to allocate state vectors.
     /// If use of node directions is enabled, also resize the vectors of node directions for FSI meshes.

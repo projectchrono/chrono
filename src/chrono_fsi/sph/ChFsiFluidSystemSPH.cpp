@@ -1274,87 +1274,441 @@ void PrintRefArrays(const thrust::host_vector<int4>& referenceArray,
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) {
+    ChAssertAlways(!m_is_initialized);
+
     FsiSphBody b;
     b.fsi_body = fsi_body;
     b.check_embedded = check_embedded;
 
-    //// TODO:
-    //// - give control over Cartesian / polar BCE distribution (where applicable)
-    //// - eliminate duplicate BCE markers (from multiple volumes). Easiest if BCE created on a grid!
+    CreateBCEFsiBody(fsi_body, b.bce_ids, b.bce_coords, b.bce);
+    m_num_rigid_bodies++;
 
+    m_bodies.push_back(b);
+}
+
+void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) {
+    ChAssertAlways(!m_is_initialized);
+
+    FsiSphMesh1D m;
+    m.fsi_mesh = fsi_mesh;
+    m.check_embedded = check_embedded;
+
+    CreateBCEFsiMesh1D(fsi_mesh, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
+    m_num_flex1D_elements += fsi_mesh->GetNumElements();
+
+    m_meshes1D.push_back(m);
+}
+
+void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) {
+    ChAssertAlways(!m_is_initialized);
+
+    FsiSphMesh2D m;
+    m.fsi_mesh = fsi_mesh;
+    m.check_embedded = check_embedded;
+
+    CreateBCEFsiMesh2D(fsi_mesh, m.bce_ids, m.bce_coords, m.bce);
+    m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
+    m_num_flex2D_elements += fsi_mesh->GetNumElements();
+
+    m_meshes2D.push_back(m);
+}
+
+//// TODO FSI bodies:
+////   - give control over Cartesian / polar BCE distribution (where applicable)
+////   - eliminate duplicate BCE markers (from multiple volumes). Easiest if BCE created on a grid!
+//// TODO FSI meshes:
+////   - consider using monotone cubic Hermite interpolation instead of cubic Bezier
+
+void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
+                                           std::vector<int>& bce_ids,
+                                           std::vector<ChVector3d>& bce_coords,
+                                           std::vector<ChVector3d>& bce) {
     const auto& geometry = fsi_body->geometry;
     if (geometry) {
         for (const auto& sphere : geometry->coll_spheres) {
             auto points = CreatePointsSphereInterior(sphere.radius, true);
             for (auto& p : points)
                 p += sphere.pos;
-            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+            bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
         for (const auto& box : geometry->coll_boxes) {
             auto points = CreatePointsBoxInterior(box.dims);
             for (auto& p : points)
                 p = box.pos + box.rot.Rotate(p);
-            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+            bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
         for (const auto& cyl : geometry->coll_cylinders) {
             auto points = CreatePointsCylinderInterior(cyl.radius, cyl.length, true);
             for (auto& p : points)
                 p = cyl.pos + cyl.rot.Rotate(p);
-            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+            bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
         for (const auto& mesh : geometry->coll_meshes) {
             auto points = CreatePointsMesh(*mesh.trimesh);
             for (auto& p : points)
                 p += mesh.pos;
-            b.bce_coords.insert(b.bce_coords.end(), points.begin(), points.end());
+            bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
 
-        b.bce_ids.resize(b.bce_coords.size(), fsi_body->index);
-    }
+        // Set initial global BCE positions
+        const auto& X = fsi_body->body->GetFrameRefToAbs();
+        std::transform(bce_coords.begin(), bce_coords.end(), std::back_inserter(bce),
+                       [&X](ChVector3d& v) { return X.TransformPointLocalToParent(v); });
 
-    m_bodies.push_back(b);
+        // Set BCE body association
+        bce_ids.resize(bce_coords.size(), fsi_body->index);
+    }
 }
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> mesh, bool check_embedded) {}
+void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+                                             std::vector<ChVector3i>& bce_ids,
+                                             std::vector<ChVector3d>& bce_coords,
+                                             std::vector<ChVector3d>& bce) {
+    auto meshID = fsi_mesh->index;
+    const auto& surface = fsi_mesh->contact_surface;
 
-void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> mesh, bool check_embedded) {}
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
+
+    // Calculate nodal directions if requested
+    std::vector<ChVector3d> dir;
+    if (m_use_node_directions) {
+        dir.resize(fsi_mesh->GetNumNodes());
+        std::fill(dir.begin(), dir.end(), VNULL);
+        for (const auto& seg : surface->GetSegmentsXYZ()) {
+            const auto& node0 = seg->GetNode(0);
+            const auto& node1 = seg->GetNode(1);
+            auto i0 = fsi_mesh->ptr2ind_map.at(node0);
+            auto i1 = fsi_mesh->ptr2ind_map.at(node1);
+            auto d = (node1->GetPos() - node0->GetPos()).GetNormalized();
+            dir[i0] += d;
+            dir[i1] += d;
+        }
+        for (auto& d : dir)
+            d.Normalize();
+    }
+
+    // Traverse the contact segments:
+    // - calculate their discretization number n
+    //   (largest number that results in a discretization no coarser than the initial spacing)
+    // - generate segment coordinates for a uniform grid over the segment (load `bce_coords`)
+    // - generate mesh and segment association (load `bce_ids`)
+    // - generate initial global BCE positions (load `bce`)
+    unsigned int num_seg = (unsigned int)surface->GetSegmentsXYZ().size();
+    for (unsigned int segID = 0; segID < num_seg; segID++) {
+        const auto& seg = surface->GetSegmentsXYZ()[segID];
+
+        auto i0 = fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
+        auto i1 = fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
+
+        const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
+        const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
+
+        auto len = (P1 - P0).Length();          // segment length
+        int n = (int)std::ceil(len / spacing);  // required divisions on segment
+
+        for (int i = 0; i <= n; i++) {
+            if (i == 0 && !seg->OwnsNode(0))  // segment does not own vertex 0
+                continue;
+            if (i == n && !seg->OwnsNode(1))  // segment does not own vertex 1
+                continue;
+
+            auto t = double(i) / n;
+
+            ChVector3d P;
+            ChVector3d D;
+            if (m_use_node_directions) {
+                auto t2 = t * t;
+                auto t3 = t2 * t;
+
+                auto a0 = 2 * t3 - 3 * t2 + 1;
+                auto a1 = -2 * t3 + 3 * t2;
+                auto b0 = t3 - 2 * t2 + t;
+                auto b1 = t3 - t2;
+                P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
+
+                auto a0d = 6 * t2 - 6 * t;
+                auto a1d = -6 * t2 + 6 * t;
+                auto b0d = 3 * t2 - 4 * t + 1;
+                auto b1d = 3 * t2 - 2 * t;
+                D = P0 * a0d + P1 * a1d + dir[i0] * b0d + dir[i1] * b1d;
+            } else {
+                P = P0 * (1 - t) + P1 * t;
+                D = P1 - P0;
+            }
+
+            // Create local frame
+            ChVector3d x_dir = D.GetNormalized();
+            ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
+            y_dir.Normalize();
+            ChVector3<> z_dir = Vcross(x_dir, y_dir);
+
+            for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
+                for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
+                    if (m_remove_center1D && j == 0 && k == 0)
+                        continue;
+                    if (m_pattern1D == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
+                        continue;
+                    double y_val = j * spacing / 2;
+                    double z_val = k * spacing / 2;
+
+                    bce.push_back(P + y_val * y_dir + z_val * z_dir);
+                    bce_coords.push_back({t, y_val, z_val});
+                    bce_ids.push_back(ChVector3i(meshID, segID, m_num_flex1D_elements + segID));
+                }
+            }
+        }
+    }
+}
+
+void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+                                             std::vector<ChVector3i>& bce_ids,
+                                             std::vector<ChVector3d>& bce_coords,
+                                             std::vector<ChVector3d>& bce) {
+    auto meshID = fsi_mesh->index;
+    const auto& surface = fsi_mesh->contact_surface;
+
+    // Calculate nodal directions if requested
+    std::vector<ChVector3d> dir;
+    if (m_use_node_directions) {
+        dir.resize(fsi_mesh->GetNumNodes());
+        std::fill(dir.begin(), dir.end(), VNULL);
+        for (const auto& tri : surface->GetTrianglesXYZ()) {
+            const auto& node0 = tri->GetNode(0);
+            const auto& node1 = tri->GetNode(1);
+            const auto& node2 = tri->GetNode(2);
+            auto i0 = fsi_mesh->ptr2ind_map.at(node0);
+            auto i1 = fsi_mesh->ptr2ind_map.at(node1);
+            auto i2 = fsi_mesh->ptr2ind_map.at(node2);
+            auto d = ChTriangle::CalcNormal(node0->GetPos(), node1->GetPos(), node2->GetPos());
+            dir[i0] += d;
+            dir[i1] += d;
+            dir[i2] += d;
+        }
+        for (auto& d : dir)
+            d.Normalize();
+    }
+
+    Real spacing = m_paramsH->d0;
+    int num_layers = m_paramsH->num_bce_layers;
+
+    ////std::ofstream ofile("mesh2D.txt");
+    ////ofile << mesh->GetNumTriangles() << endl;
+    ////ofile << endl;
+
+    // Traverse the contact surface faces:
+    // - calculate their discretization number n
+    //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
+    // - generate barycentric coordinates for a uniform grid over the triangular face (load `bce_coords`)
+    // - generate mesh and face association (load `bce_ids`)
+    // - generate initial global BCE positions (load `bce`)
+    unsigned int num_tri = (int)surface->GetTrianglesXYZ().size();
+    for (unsigned int triID = 0; triID < num_tri; triID++) {
+        const auto& tri = surface->GetTrianglesXYZ()[triID];
+
+        const auto& P0 = tri->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
+        const auto& P1 = tri->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
+        const auto& P2 = tri->GetNode(2)->GetPos();  // vertex 2 position (absolute coordinates)
+
+        const auto& V0 = tri->GetNode(0)->GetPosDt();  // vertex 0 velocity (absolute coordinates)
+        const auto& V1 = tri->GetNode(1)->GetPosDt();  // vertex 1 velocity (absolute coordinates)
+        const auto& V2 = tri->GetNode(2)->GetPosDt();  // vertex 2 velocity (absolute coordinates)
+
+        auto normal = Vcross(P1 - P0, P2 - P1);  // triangle normal
+        normal.Normalize();
+
+        int n0 = (int)std::ceil((P2 - P1).Length() / spacing);  // required divisions on edge 0
+        int n1 = (int)std::ceil((P0 - P2).Length() / spacing);  // required divisions on edge 1
+        int n2 = (int)std::ceil((P1 - P0).Length() / spacing);  // required divisions on edge 2
+
+        int n_median = max(min(n0, n1), min(max(n0, n1), n2));  // number of divisions on each edge (median)
+        ////int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
+
+        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")";
+        ////cout << "  Median : " << n_median << " Max : " << n_max << endl;
+
+        int n = n_median;
+
+        ////ofile << P0 << endl;
+        ////ofile << P1 << endl;
+        ////ofile << P2 << endl;
+        ////ofile << tri->OwnsNode(0) << " " << tri->OwnsNode(1) << " " << tri->OwnsNode(2) << endl;
+        ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
+        ////ofile << n << endl;
+
+        bool remove_center = m_remove_center2D;
+        int m_start = 0;
+        int m_end = 0;
+        switch (m_pattern2D) {
+            case BcePatternMesh2D::INWARD:
+                m_start = -2 * (num_layers - 1);
+                m_end = 0;
+                remove_center = false;
+                break;
+            case BcePatternMesh2D::CENTERED:
+                m_start = -(num_layers - 1);
+                m_end = +(num_layers - 1);
+                break;
+            case BcePatternMesh2D::OUTWARD:
+                m_start = 0;
+                m_end = +2 * (num_layers - 1);
+                remove_center = false;
+                break;
+        }
+
+        for (int i = 0; i <= n; i++) {
+            if (i == n && !tri->OwnsNode(0))  // triangle does not own vertex v0
+                continue;
+            if (i == 0 && !tri->OwnsEdge(1))  // triangle does not own edge v1-v2 = e1
+                continue;
+
+            for (int j = 0; j <= n - i; j++) {
+                int k = n - i - j;
+                auto lambda = ChVector3<>(i, j, k) / n;  // barycentric coordinates of BCE marker
+
+                if (j == n && !tri->OwnsNode(1))  // triangle does not own vertex v1
+                    continue;
+                if (j == 0 && !tri->OwnsEdge(2))  // triangle does not own edge v2-v0 = e2
+                    continue;
+
+                if (k == n && !tri->OwnsNode(2))  // triangle does not own vertex v2
+                    continue;
+                if (k == 0 && !tri->OwnsEdge(0))  // triangle does not own edge v0-v1 = e0
+                    continue;
+
+                //// TODO RADU - add cubic interpolation (position and normal) if using nodal directions
+
+                auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
+
+                // Create layers in normal direction
+                for (int m = m_start; m <= m_end; m += 2) {
+                    if (remove_center && m == 0)
+                        continue;
+                    double z_val = m * spacing / 2;
+
+                    bce.push_back(P + z_val * normal);
+                    bce_coords.push_back({lambda[0], lambda[1], z_val});
+                    bce_ids.push_back(ChVector3i(meshID, triID, m_num_flex2D_elements + triID));
+
+                    ////ofile << Q << endl;
+                }
+            }
+        }
+
+        ////ofile << endl;
+    }
+
+    ////ofile.close();
+}
 
 //------------------------------------------------------------------------------
 
-void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>& fsi_bodies,
-                                     const std::vector<std::shared_ptr<FsiMesh1D>>& fsi_meshes1D,
-                                     const std::vector<std::shared_ptr<FsiMesh2D>>& fsi_meshes2D,
-                                     const std::vector<FsiBodyState>& body_states,
+void ChFsiFluidSystemSPH::AddBCEFsiBody(std::shared_ptr<ChBody> body,
+                                        const std::vector<ChVector3d>& points,
+                                        bool solid) {
+    // Set BCE marker type
+    MarkerType type = solid ? MarkerType::BCE_RIGID : MarkerType::BCE_WALL;
+
+    for (const auto& p : points) {
+        auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(p);
+
+        m_data_mgr->AddBceMarker(type, ToReal3(pos_abs), {0, 0, 0});
+    }
+
+    if (solid)
+        m_fsi_bodies_bce_num.push_back((int)points.size());
+
+    ////if (m_verbose) {
+    ////    cout << "Add BCE for body" << endl;
+    ////    cout << "  Num. BCE markers: " << num_bce << endl;
+
+    ////}
+}
+
+void ChFsiFluidSystemSPH::AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh) {
+    const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
+
+    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    for (const auto& seg : fsi_mesh->contact_surface->GetSegmentsXYZ()) {
+        auto node0_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
+        auto node1_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
+        m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+    }
+
+    // Load local BCE coordinates and their mesh associations
+    auto num_bce = fsisph_mesh.bce.size();
+    for (size_t i = 0; i < num_bce; i++) {
+        m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
+        m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3(fsisph_mesh.bce_coords[i]));
+        m_data_mgr->flex1D_BCEsolids_H.push_back(ToUint3(fsisph_mesh.bce_ids[i]));
+    }
+
+    if (m_verbose) {
+        cout << "Add BCE for mesh1D" << endl;
+        cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
+        cout << "  Num. segments:    " << fsi_mesh->GetNumElements() << endl;
+        cout << "  Num. BCE markers: " << num_bce << endl;
+    }
+}
+
+void ChFsiFluidSystemSPH::AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh) {
+    const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
+
+    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    for (const auto& tri : fsi_mesh->contact_surface->GetTrianglesXYZ()) {
+        auto node0_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(0));
+        auto node1_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(1));
+        auto node2_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(2));
+        m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
+    }
+
+    // Load local BCE coordinates and their mesh associations
+    auto num_bce = fsisph_mesh.bce.size();
+    for (size_t i = 0; i < num_bce; i++) {
+        m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, ToReal3(fsisph_mesh.bce[i]), {0, 0, 0});
+        m_data_mgr->flex2D_BCEcoords_H.push_back(ToReal3(fsisph_mesh.bce_coords[i]));
+        m_data_mgr->flex2D_BCEsolids_H.push_back(ToUint3(fsisph_mesh.bce_ids[i]));
+    }
+
+    if (m_verbose) {
+        cout << "Add BCE for mesh2D" << endl;
+        cout << "  Num. nodes:       " << fsi_mesh->GetNumNodes() << endl;
+        cout << "  Num. faces:       " << fsi_mesh->GetNumElements() << endl;
+        cout << "  Num. BCE markers: " << num_bce << endl;
+    }
+}
+
+void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_states,
                                      const std::vector<FsiMeshState>& mesh1D_states,
-                                     const std::vector<FsiMeshState>& mesh2D_states,
-                                     bool use_node_directions) {
-    // Process FSI rigid bodies
-    assert(fsi_bodies.size() == m_bodies.size());
-    m_num_rigid_bodies = (uint)m_bodies.size();
+                                     const std::vector<FsiMeshState>& mesh2D_states) {
+    assert(body_states.size() == m_bodies.size());
+    assert(mesh1D_states.size() == m_meshes1D.size());
+    assert(mesh2D_states.size() == m_meshes2D.size());
+
+    // Process FSI solids - load BCE data to data manager
+    // Note: counters must be regenerated, as they are used as offsets for global indices
+    m_num_rigid_bodies = 0;
+    m_num_flex1D_nodes = 0;
+    m_num_flex1D_elements = 0;
+    m_num_flex2D_nodes = 0;
+    m_num_flex2D_elements = 0;
+
     for (const auto& b : m_bodies) {
-        AddPointsBCE(b.fsi_body->body, b.bce_coords, ChFrame<>(), true);
+        AddBCEFsiBody(b.fsi_body->body, b.bce_coords, true);
+        m_num_rigid_bodies++;
     }
 
-    // Process FSI 1D meshes: create BCE markers
-    uint num_fsi_meshes1D = 0;
-    uint num_fsi_nodes1D = 0;
-    uint num_fsi_elements1D = 0;
-    for (const auto& m : fsi_meshes1D) {
-        AddFsiMesh1D(num_fsi_meshes1D, *m, use_node_directions);
-        num_fsi_meshes1D++;
-        num_fsi_nodes1D += m->GetNumNodes();
-        num_fsi_elements1D += m->GetNumElements();
+    for (const auto& m : m_meshes1D) {
+        AddBCEFsiMesh1D(m);
+        m_num_flex1D_nodes += m.fsi_mesh->GetNumNodes();
+        m_num_flex1D_elements += m.fsi_mesh->GetNumElements();
     }
 
-    // Process FSI 2D meshes: create BCE markers
-    uint num_fsi_meshes2D = 0;
-    uint num_fsi_nodes2D = 0;
-    uint num_fsi_elements2D = 0;
-    for (const auto& m : fsi_meshes2D) {
-        AddFsiMesh2D(num_fsi_meshes2D, *m, use_node_directions);
-        num_fsi_meshes2D++;
-        num_fsi_nodes2D += m->GetNumNodes();
-        num_fsi_elements2D += m->GetNumElements();
+    for (const auto& m : m_meshes2D) {
+        AddBCEFsiMesh2D(m);
+        m_num_flex2D_nodes += m.fsi_mesh->GetNumNodes();
+        m_num_flex2D_elements += m.fsi_mesh->GetNumElements();
     }
 
     // ----------------
@@ -1463,9 +1817,9 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>
 
     // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
     // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
-    m_data_mgr->Initialize(m_num_rigid_bodies,                                                        //
-                           num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D,  //
-                           use_node_directions);
+    m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
+                           m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
+                           m_use_node_directions);
 
     // ----------------
 
@@ -1474,7 +1828,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, use_node_directions, m_verbose, m_check_errors);
+    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_use_node_directions, m_verbose, m_check_errors);
     m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
 
     // Initialize worker objects
@@ -1503,57 +1857,6 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<std::shared_ptr<FsiBody>>
     }
 
     CheckSPHParameters();
-}
-
-void ChFsiFluidSystemSPH::AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh, bool use_node_directions) {
-    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& seg : fsi_mesh.contact_surface->GetSegmentsXYZ()) {
-        auto node0_index = m_num_flex1D_nodes + fsi_mesh.ptr2ind_map.at(seg->GetNode(0));
-        auto node1_index = m_num_flex1D_nodes + fsi_mesh.ptr2ind_map.at(seg->GetNode(1));
-        m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
-    }
-
-    // Create the BCE markers based on the mesh contact segments
-    auto num_bce = AddBCE_mesh1D(index, fsi_mesh, use_node_directions);
-
-    // Update total number of flex 1-D nodes and segments
-    auto num_nodes = fsi_mesh.GetNumNodes();
-    m_num_flex1D_nodes += num_nodes;
-    auto num_elements = fsi_mesh.GetNumElements();
-    m_num_flex1D_elements += num_elements;
-
-    if (m_verbose) {
-        cout << "Add mesh1D" << endl;
-        cout << "  Num. nodes:       " << num_nodes << endl;
-        cout << "  Num. segments:    " << num_elements << endl;
-        cout << "  Num. BCE markers: " << num_bce << endl;
-    }
-}
-
-void ChFsiFluidSystemSPH::AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh, bool use_node_directions) {
-    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
-    for (const auto& tri : fsi_mesh.contact_surface->GetTrianglesXYZ()) {
-        auto node0_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map.at(tri->GetNode(0));
-        auto node1_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map.at(tri->GetNode(1));
-        auto node2_index = m_num_flex2D_nodes + fsi_mesh.ptr2ind_map.at(tri->GetNode(2));
-        m_data_mgr->flex2D_Nodes_H.push_back(mI3(node0_index, node1_index, node2_index));
-    }
-
-    // Create the BCE markers based on the mesh contact surface
-    auto num_bce = AddBCE_mesh2D(index, fsi_mesh, use_node_directions);
-
-    // Update total number of flex 2-D nodes and faces
-    auto num_nodes = fsi_mesh.GetNumNodes();
-    m_num_flex2D_nodes += num_nodes;
-    auto num_elements = fsi_mesh.GetNumElements();
-    m_num_flex2D_elements += num_elements;
-
-    if (m_verbose) {
-        cout << "Add mesh2D" << endl;
-        cout << "  Num. nodes:       " << num_nodes << endl;
-        cout << "  Num. faces:       " << num_elements << endl;
-        cout << "  Num. BCE markers: " << num_bce << endl;
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -1656,29 +1959,6 @@ void ChFsiFluidSystemSPH::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3
                        ChVector3d(0),   // tauxxyyzz
                        ChVector3d(0));  // tauxyxzyz
     }
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-size_t ChFsiFluidSystemSPH::AddPointsBCE(std::shared_ptr<ChBody> body,
-                                         const std::vector<ChVector3d>& points,
-                                         const ChFrame<>& rel_frame,
-                                         bool solid) {
-    // Set BCE marker type
-    MarkerType type = solid ? MarkerType::BCE_RIGID : MarkerType::BCE_WALL;
-
-    for (const auto& p : points) {
-        auto pos_body = rel_frame.TransformPointLocalToParent(p);
-        auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(pos_body);
-        auto vel_abs = body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_body);
-
-        m_data_mgr->AddBceMarker(type, ToReal3(pos_abs), ToReal3(vel_abs));
-    }
-
-    if (solid)
-        m_fsi_bodies_bce_num.push_back((int)points.size());
-
-    return points.size();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -2499,273 +2779,6 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsMesh(ChTriangleMeshConn
     }
 
     return points;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
-//// TODO RADU: consider using monotone cubic Hermite interpolation instead of cubic Bezier
-
-unsigned int ChFsiFluidSystemSPH::AddBCE_mesh1D(unsigned int meshID,
-                                                const FsiMesh1D& fsi_mesh,
-                                                bool use_node_directions) {
-    const auto& surface = fsi_mesh.contact_surface;
-
-    // Calculate nodal directions if requested
-    std::vector<ChVector3d> dir;
-    if (use_node_directions) {
-        dir.resize(fsi_mesh.GetNumNodes());
-        std::fill(dir.begin(), dir.end(), VNULL);
-        for (const auto& seg : surface->GetSegmentsXYZ()) {
-            const auto& node0 = seg->GetNode(0);
-            const auto& node1 = seg->GetNode(1);
-            auto i0 = fsi_mesh.ptr2ind_map.at(node0);
-            auto i1 = fsi_mesh.ptr2ind_map.at(node1);
-            auto d = (node1->GetPos() - node0->GetPos()).GetNormalized();
-            dir[i0] += d;
-            dir[i1] += d;
-        }
-        for (auto& d : dir)
-            d.Normalize();
-    }
-
-    Real spacing = m_paramsH->d0;
-    int num_layers = m_paramsH->num_bce_layers;
-
-    // Traverse the contact segments:
-    // - calculate their discretization number n
-    //   (largest number that results in a discretization no coarser than the initial spacing)
-    // - generate segment coordinates for a uniform grid over the segment
-    // - generate locations of BCE points on segment
-    unsigned int num_seg = (unsigned int)surface->GetSegmentsXYZ().size();
-    unsigned int num_bce = 0;
-    for (unsigned int segID = 0; segID < num_seg; segID++) {
-        const auto& seg = surface->GetSegmentsXYZ()[segID];
-
-        auto i0 = fsi_mesh.ptr2ind_map.at(seg->GetNode(0));
-        auto i1 = fsi_mesh.ptr2ind_map.at(seg->GetNode(1));
-
-        const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
-        const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
-
-        const auto& V0 = seg->GetNode(0)->GetPosDt();  // vertex 0 velocity (absolute coordinates)
-        const auto& V1 = seg->GetNode(1)->GetPosDt();  // vertex 1 velocity (absolute coordinates)
-
-        auto len = (P1 - P0).Length();          // segment length
-        int n = (int)std::ceil(len / spacing);  // required divisions on segment
-
-        unsigned int n_bce = 0;  // number of BCE markers on segment
-        for (int i = 0; i <= n; i++) {
-            if (i == 0 && !seg->OwnsNode(0))  // segment does not own vertex 0
-                continue;
-            if (i == n && !seg->OwnsNode(1))  // segment does not own vertex 1
-                continue;
-
-            auto t = double(i) / n;
-
-            ChVector3d P;
-            ChVector3d D;
-            if (use_node_directions) {
-                auto t2 = t * t;
-                auto t3 = t2 * t;
-
-                auto a0 = 2 * t3 - 3 * t2 + 1;
-                auto a1 = -2 * t3 + 3 * t2;
-                auto b0 = t3 - 2 * t2 + t;
-                auto b1 = t3 - t2;
-                P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
-
-                auto a0d = 6 * t2 - 6 * t;
-                auto a1d = -6 * t2 + 6 * t;
-                auto b0d = 3 * t2 - 4 * t + 1;
-                auto b1d = 3 * t2 - 2 * t;
-                D = P0 * a0d + P1 * a1d + dir[i0] * b0d + dir[i1] * b1d;
-            } else {
-                P = P0 * (1 - t) + P1 * t;
-                D = P1 - P0;
-            }
-            ChVector3d V = V0 * (1 - t) + V1 * t;
-
-            // Create local frame
-            ChVector3d x_dir = D.GetNormalized();
-            ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
-            y_dir.Normalize();
-            ChVector3<> z_dir = Vcross(x_dir, y_dir);
-
-            for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
-                for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
-                    if (m_remove_center1D && j == 0 && k == 0)
-                        continue;
-                    if (m_pattern1D == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
-                        continue;
-                    double y_val = j * spacing / 2;
-                    double z_val = k * spacing / 2;
-                    auto Q = P + y_val * y_dir + z_val * z_dir;
-
-                    m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX1D, ToReal3(Q), ToReal3(V));
-
-                    m_data_mgr->flex1D_BCEcoords_H.push_back(ToReal3({t, y_val, z_val}));
-                    m_data_mgr->flex1D_BCEsolids_H.push_back(mU3(meshID, segID, m_num_flex1D_elements + segID));
-                    n_bce++;
-                }
-            }
-        }
-
-        // Add the number of BCE markers for this segment
-        num_bce += n_bce;
-    }
-
-    return num_bce;
-}
-
-unsigned int ChFsiFluidSystemSPH::AddBCE_mesh2D(unsigned int meshID,
-                                                const FsiMesh2D& fsi_mesh,
-                                                bool use_node_directions) {
-    const auto& surface = fsi_mesh.contact_surface;
-
-    // Calculate nodal directions if requested
-    std::vector<ChVector3d> dir;
-    if (use_node_directions) {
-        dir.resize(fsi_mesh.GetNumNodes());
-        std::fill(dir.begin(), dir.end(), VNULL);
-        for (const auto& tri : surface->GetTrianglesXYZ()) {
-            const auto& node0 = tri->GetNode(0);
-            const auto& node1 = tri->GetNode(1);
-            const auto& node2 = tri->GetNode(2);
-            auto i0 = fsi_mesh.ptr2ind_map.at(node0);
-            auto i1 = fsi_mesh.ptr2ind_map.at(node1);
-            auto i2 = fsi_mesh.ptr2ind_map.at(node2);
-            auto d = ChTriangle::CalcNormal(node0->GetPos(), node1->GetPos(), node2->GetPos());
-            dir[i0] += d;
-            dir[i1] += d;
-            dir[i2] += d;
-        }
-        for (auto& d : dir)
-            d.Normalize();
-    }
-
-    Real spacing = m_paramsH->d0;
-    int num_layers = m_paramsH->num_bce_layers;
-
-    ////std::ofstream ofile("mesh2D.txt");
-    ////ofile << mesh->GetNumTriangles() << endl;
-    ////ofile << endl;
-
-    // Traverse the contact surface faces:
-    // - calculate their discretization number n
-    //   (largest number that results in a discretization no coarser than the initial spacing on each edge)
-    // - generate barycentric coordinates for a uniform grid over the triangular face
-    // - generate locations of BCE points on triangular face
-    unsigned int num_tri = (int)surface->GetTrianglesXYZ().size();
-    unsigned int num_bce = 0;
-    for (unsigned int triID = 0; triID < num_tri; triID++) {
-        const auto& tri = surface->GetTrianglesXYZ()[triID];
-
-        const auto& P0 = tri->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
-        const auto& P1 = tri->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
-        const auto& P2 = tri->GetNode(2)->GetPos();  // vertex 2 position (absolute coordinates)
-
-        const auto& V0 = tri->GetNode(0)->GetPosDt();  // vertex 0 velocity (absolute coordinates)
-        const auto& V1 = tri->GetNode(1)->GetPosDt();  // vertex 1 velocity (absolute coordinates)
-        const auto& V2 = tri->GetNode(2)->GetPosDt();  // vertex 2 velocity (absolute coordinates)
-
-        auto normal = Vcross(P1 - P0, P2 - P1);  // triangle normal
-        normal.Normalize();
-
-        int n0 = (int)std::ceil((P2 - P1).Length() / spacing);  // required divisions on edge 0
-        int n1 = (int)std::ceil((P0 - P2).Length() / spacing);  // required divisions on edge 1
-        int n2 = (int)std::ceil((P1 - P0).Length() / spacing);  // required divisions on edge 2
-
-        int n_median = max(min(n0, n1), min(max(n0, n1), n2));  // number of divisions on each edge (median)
-        ////int n_max = std::max(n0, std::max(n1, n2));             // number of divisions on each edge (max)
-
-        ////cout << "(" << n0 << " " << n1 << " " << n2 << ")";
-        ////cout << "  Median : " << n_median << " Max : " << n_max << endl;
-
-        int n = n_median;
-
-        ////ofile << P0 << endl;
-        ////ofile << P1 << endl;
-        ////ofile << P2 << endl;
-        ////ofile << tri->OwnsNode(0) << " " << tri->OwnsNode(1) << " " << tri->OwnsNode(2) << endl;
-        ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
-        ////ofile << n << endl;
-
-        bool remove_center = m_remove_center2D;
-        int m_start = 0;
-        int m_end = 0;
-        switch (m_pattern2D) {
-            case BcePatternMesh2D::INWARD:
-                m_start = -2 * (num_layers - 1);
-                m_end = 0;
-                remove_center = false;
-                break;
-            case BcePatternMesh2D::CENTERED:
-                m_start = -(num_layers - 1);
-                m_end = +(num_layers - 1);
-                break;
-            case BcePatternMesh2D::OUTWARD:
-                m_start = 0;
-                m_end = +2 * (num_layers - 1);
-                remove_center = false;
-                break;
-        }
-
-        ////double z_start = centered ? (num_layers - 1) * spacing / 2 : 0;  // start layer z (along normal)
-
-        unsigned int n_bce = 0;  // number of BCE markers on triangle
-        for (int i = 0; i <= n; i++) {
-            if (i == n && !tri->OwnsNode(0))  // triangle does not own vertex v0
-                continue;
-            if (i == 0 && !tri->OwnsEdge(1))  // triangle does not own edge v1-v2 = e1
-                continue;
-
-            for (int j = 0; j <= n - i; j++) {
-                int k = n - i - j;
-                auto lambda = ChVector3<>(i, j, k) / n;  // barycentric coordinates of BCE marker
-
-                if (j == n && !tri->OwnsNode(1))  // triangle does not own vertex v1
-                    continue;
-                if (j == 0 && !tri->OwnsEdge(2))  // triangle does not own edge v2-v0 = e2
-                    continue;
-
-                if (k == n && !tri->OwnsNode(2))  // triangle does not own vertex v2
-                    continue;
-                if (k == 0 && !tri->OwnsEdge(0))  // triangle does not own edge v0-v1 = e0
-                    continue;
-
-                //// TODO RADU - add cubic interpolation (position and normal) if using nodal directions
-
-                auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
-                auto V = lambda[0] * V0 + lambda[1] * V1 + lambda[2] * V2;  // absolute velocity of BCE marker
-
-                // Create layers in normal direction
-                for (int m = m_start; m <= m_end; m += 2) {
-                    if (remove_center && m == 0)
-                        continue;
-                    double z_val = m * spacing / 2;
-                    auto Q = P + z_val * normal;
-
-                    m_data_mgr->AddBceMarker(MarkerType::BCE_FLEX2D, ToReal3(Q), ToReal3(V));
-
-                    m_data_mgr->flex2D_BCEcoords_H.push_back(ToReal3({lambda[0], lambda[1], z_val}));
-                    m_data_mgr->flex2D_BCEsolids_H.push_back(mU3(meshID, triID, m_num_flex2D_elements + triID));
-                    n_bce++;
-
-                    ////ofile << Q << endl;
-                }
-            }
-        }
-
-        ////ofile << n_bce << endl;
-        ////ofile << endl;
-
-        // Add the number of BCE markers for this triangle
-        num_bce += n_bce;
-    }
-
-    ////ofile.close();
-
-    return num_bce;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

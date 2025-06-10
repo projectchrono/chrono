@@ -67,8 +67,8 @@ double cyDim = 0.2;
 double czDim = 2.0;
 
 // Create additional solids
-bool create_flex_cable2 = false;
-bool create_cylinder_post = true;
+bool create_flex_cable2 = true;
+bool create_cylinder_post = false;
 bool create_cylinder_free = true;
 
 // Use nodal directions
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     // Enable/disable use of node directions for FSI flexible meshes
-    fsi.EnableNodeDirections(use_FEA_node_directions);
+    fsi.UseNodeDirections(use_FEA_node_directions);
 
     switch (problem_type) {
         case PhysicsProblem::CFD:
@@ -224,9 +224,6 @@ int main(int argc, char* argv[]) {
         sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
 
     fsi.SetSPHParameters(sph_params);
-
-    // Enable/disable use of node directions for FSI flexible meshes
-    fsi.EnableNodeDirections(true);
 
     // Create FSI solid bodies
     auto mesh = CreateSolidPhase(fsi);
@@ -515,6 +512,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, length));
 
         auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetName("CylinderPost");
         cylinder->SetPos(ChVector3d(post_x, 0, length / 2));
         cylinder->SetFixed(true);
         cylinder->EnableCollision(false);
@@ -535,6 +533,7 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
         auto gyration = ChCylinder::GetGyration(radius, length).diagonal();
 
         auto cylinder = chrono_types::make_shared<ChBody>();
+        cylinder->SetName("CylinderFree");
         cylinder->SetMass(mass);
         cylinder->SetInertiaXX(mass * gyration);
         cylinder->SetPos(ChVector3d(cyl_x, 0, 0.1 + radius));
@@ -556,11 +555,13 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi) {
 
     // Create the first flexible cable and add to FSI system
     auto mesh1 = CreateFlexibleCable(sysMBS, cable1_x, 6e8, 8, ground);
+    mesh1->SetName("Cable1");
     fsi.AddFeaMesh(mesh1, false);
 
     // Create second flexible cable
     if (create_flex_cable2) {
         auto mesh2 = CreateFlexibleCable(sysMBS, cable2_x, 5e8, 15, ground);
+        mesh2->SetName("Cable2");
         fsi.AddFeaMesh(mesh2, false);
     }
 

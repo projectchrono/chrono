@@ -102,6 +102,9 @@ void ChFsiProblemSPH::AddRigidBody(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<utils::ChBodyGeometry> geometry,
                                      bool check_embedded,
                                      bool use_grid) {
+    if (m_verbose)
+        cout << "Add rigid body '" << body->GetName() << "'" << endl;
+
     // Add the FSI rigid body to the underlying FSI system
     auto fsi_body = m_sysFSI.AddFsiBody(body, geometry, check_embedded);
     m_fsi_bodies[body] = fsi_body->index;
@@ -150,8 +153,8 @@ size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
 
 // ----------------------------------------------------------------------------
 
-void ChFsiProblemSPH::EnableNodeDirections(bool val) {
-    m_sysFSI.EnableNodeDirections(val);
+void ChFsiProblemSPH::UseNodeDirections(bool val) {
+    m_sysFSI.UseNodeDirections(val);
 }
 
 void ChFsiProblemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {
@@ -162,40 +165,27 @@ void ChFsiProblemSPH::SetBcePattern2D(BcePatternMesh2D pattern, bool remove_cent
     m_sysSPH.SetBcePattern2D(pattern, remove_center);
 }
 
-size_t ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
-    if (m_verbose) {
-        cout << "Add FSI FEA mesh 1D " << mesh->GetName() << endl;
-    }
-
-    size_t num_bce = 0;
+void ChFsiProblemSPH::AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
+    if (m_verbose)
+        cout << "Add FEA mesh '" << mesh->GetName() << "'" << endl;
 
     // Add 1D surfaces from given FEA mesh to the underlying FSI system
     auto fsi_mesh1D = m_sysFSI.AddFsiMesh1D(mesh, check_embedded);
-    if (fsi_mesh1D) {
-        FsiSphMesh1D m;
-        m.fsi_mesh = fsi_mesh1D;
-        m.check_embedded = check_embedded;
-
-        /// TODO - create BCE markers
-        num_bce += 0;
-
-        m_meshes1D.push_back(m);
+    if (m_verbose) {
+        if (fsi_mesh1D)
+            cout << "  added " << fsi_mesh1D->GetNumElements() << " segments" << endl;
+        else
+            cout << "  mesh does not contain any 1D elements" << endl;
     }
 
     // Add 2D surfaces from given mesh to the underlying FSI system
     auto fsi_mesh2D = m_sysFSI.AddFsiMesh2D(mesh, check_embedded);
-    if (fsi_mesh2D) {
-        FsiSphMesh2D m;
-        m.fsi_mesh = fsi_mesh2D;
-        m.check_embedded = check_embedded;
-
-        /// TODO - create BCE markers
-        num_bce += 0;
-
-        m_meshes2D.push_back(m);
+    if (m_verbose) {
+        if (fsi_mesh2D)
+            cout << "  added " << fsi_mesh2D->GetNumElements() << " faces" << endl;
+        else
+            cout << "  mesh does not contain any 2D elements" << endl;
     }
-
-    return num_bce;
 }
 
 // ----------------------------------------------------------------------------
@@ -210,11 +200,11 @@ void ChFsiProblemSPH::Initialize() {
             if (b.check_embedded)
                 ProcessBody(b);
 
-        for (auto m : m_meshes1D)
+        for (auto m : m_sysSPH.m_meshes1D)
             if (m.check_embedded)
                 ProcessFeaMesh1D(m);
 
-        for (auto m : m_meshes2D)
+        for (auto m : m_sysSPH.m_meshes2D)
             if (m.check_embedded)
                 ProcessFeaMesh2D(m);
 
@@ -276,7 +266,7 @@ void ChFsiProblemSPH::Initialize() {
 
     // Create boundary BCE markers
     // (ATTENTION: BCE markers must be created after the SPH particles!)
-    m_sysSPH.AddPointsBCE(m_ground, bce_points, ChFrame<>(), false);
+    m_sysSPH.AddBCEFsiBody(m_ground, bce_points, false);
 
     // Update AABB using geometry of FSI solids 
     for (const auto& b : m_sysSPH.m_bodies) {
@@ -489,11 +479,11 @@ int ChFsiProblemSPH::ProcessBodyMesh(ChFsiFluidSystemSPH::FsiSphBody& b, ChTrian
     return num_removed;
 }
 
-void ChFsiProblemSPH::ProcessFeaMesh1D(FsiSphMesh1D& m) {
+void ChFsiProblemSPH::ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m) {
     //// TODO
 }
 
-void ChFsiProblemSPH::ProcessFeaMesh2D(FsiSphMesh2D& m) {
+void ChFsiProblemSPH::ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m) {
     //// TODO
 }
 

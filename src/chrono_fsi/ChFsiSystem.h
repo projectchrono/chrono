@@ -90,7 +90,7 @@ class CH_FSI_API ChFsiSystem {
     /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
     /// calculated from the FSI mesh position states and communicated to the fluid solver. The default is set by a
     /// concrete ChFsiSystem and the associated FSI interface.
-    void EnableNodeDirections(bool val);
+    void UseNodeDirections(bool val);
 
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.

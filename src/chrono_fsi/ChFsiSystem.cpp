@@ -88,10 +88,11 @@ void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_sysMBS.SetGravitationalAcceleration(gravity);
 }
 
-void ChFsiSystem::EnableNodeDirections(bool val) {
+void ChFsiSystem::UseNodeDirections(bool val) {
     ChAssertAlways(m_fsi_interface);
     ChDebugLog("uses direction data? " << val);
-    m_fsi_interface->EnableNodeDirections(val);
+    m_fsi_interface->UseNodeDirections(val);
+    m_sysCFD.UseNodeDirections(val);
 }
 
 std::shared_ptr<FsiBody> ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body,
@@ -178,11 +179,7 @@ void ChFsiSystem::Initialize() {
 
     // Initialize fluid system with initial solid states
     m_sysCFD.SetStepSize(m_step_CFD);
-    m_sysCFD.Initialize(m_fsi_interface->GetBodies(),               //
-                        m_fsi_interface->GetMeshes1D(),             //
-                        m_fsi_interface->GetMeshes2D(),             //
-                        body_states, mesh1D_states, mesh2D_states,  //
-                        m_fsi_interface->UseNodeDirections());      //
+    m_sysCFD.Initialize(body_states, mesh1D_states, mesh2D_states);
 
     // Mark systems as initialized
     m_sysCFD.m_is_initialized = true;

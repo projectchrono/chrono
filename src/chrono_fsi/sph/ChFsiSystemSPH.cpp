@@ -38,10 +38,6 @@ ChFsiSystemSPH::ChFsiSystemSPH(ChSystem& sysMBS, ChFsiFluidSystemSPH& sysSPH, bo
         std::cout << "Create an FSI system using a custom SPH FSI interface" << std::endl;
         m_fsi_interface = chrono_types::make_shared<ChFsiInterfaceSPH>(sysMBS, sysSPH);
     }
-
-    // By default, use node directions for flexible meshes
-    m_fsi_interface->EnableNodeDirections(true);
-    ChDebugLog("default: use direction data");
 }
 
 ChFsiSystemSPH::~ChFsiSystemSPH() {}

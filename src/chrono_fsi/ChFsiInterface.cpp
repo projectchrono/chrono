@@ -142,6 +142,9 @@ std::shared_ptr<FsiMesh1D> ChFsiInterface::AddFsiMesh1D(std::shared_ptr<fea::ChC
         }
     }
 
+    // Set the mesh index in list of FSI 1D meshes
+    fsi_mesh->index = m_fsi_bodies.size();
+
     // Let the fluid solver process the FSI solid
     m_sysCFD.OnAddFsiMesh1D(fsi_mesh, check_embedded);
 
@@ -177,6 +180,9 @@ std::shared_ptr<FsiMesh2D> ChFsiInterface::AddFsiMesh2D(std::shared_ptr<fea::ChC
     assert(fsi_mesh->ptr2ind_map.size() == surface->GetNumVertices());
     assert(fsi_mesh->ind2ptr_map.size() == surface->GetNumVertices());
 
+    // Set the mesh index in list of FSI 1D meshes
+    fsi_mesh->index = m_fsi_bodies.size();
+
     // Let the fluid solver process the FSI solid
     m_sysCFD.OnAddFsiMesh2D(fsi_mesh, check_embedded);
 
@@ -205,7 +211,7 @@ void ChFsiInterface::Initialize() {
 
 // ------------
 
-void ChFsiInterface::EnableNodeDirections(bool val) {
+void ChFsiInterface::UseNodeDirections(bool val) {
     ChAssertAlways(!m_initialized);
     m_use_node_directions = val;
 }

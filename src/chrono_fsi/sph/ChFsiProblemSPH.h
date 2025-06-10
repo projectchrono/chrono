@@ -101,11 +101,11 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
 
-    /// Enable/disable use of node direction vectors for FSI flexible meshes.
-    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
-    /// calculated from the FSI mesh position states and communicated to the SPH fluid solver which uses these to
-    /// generate BCE markers. By default, this option is enabled in the SPH fluid solver.
-    void EnableNodeDirections(bool val);
+    /// Enable/disable use of node directions when assigning BCE locations on FEA elements.
+    /// By default, node directions are not used, resulting in linear interpolation between nodes.
+    /// If enabled, node direction vectors (average of adjacent segment directions or average of face normals) are used,
+    /// resulting in a piecewise cubic Bezier interpolation.
+    void UseNodeDirections(bool val);
 
     /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh.
     /// By default, a full set of BCE markers is used across each section, including a central marker.
@@ -123,7 +123,7 @@ class CH_FSI_API ChFsiProblemSPH {
     /// BCE markers are created based on the type of elements and the corresponding FEA collision surface.
     /// To check for possible overlap with SPH particles, set 'check_embedded=true'.
     /// This function must be called before Initialize().
-    size_t AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
+    void AddFeaMesh(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
     /// Interface for callback to set initial particle pressure, density, viscosity, and velocity.
     class CH_FSI_API ParticlePropertiesCallback {
@@ -257,26 +257,11 @@ class CH_FSI_API ChFsiProblemSPH {
         }
     };
 
-    virtual ChVector3i Snap2Grid(const ChVector3d& point) = 0;
-    virtual ChVector3d Grid2Point(const ChVector3i& p) = 0;
-
+    /// Grid points with integer coordinates.
     typedef std::unordered_set<ChVector3i, CoordHash> GridPoints;
 
-    /// SPH specification of a 1D FSI deformable solid surface.
-    struct FsiSphMesh1D {
-        std::shared_ptr<FsiMesh1D> fsi_mesh;  ///< underlying FSI solid
-        std::vector<ChVector3d> bce_coords;   ///< local BCE coordinates: (u, y, z) in segment frame
-        std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local segment ID, global segment ID)
-        bool check_embedded;                  ///< if true, check for overlapping SPH particles
-    };
-
-    /// SPH specification of a 2D FSI deformable solid surface.
-    struct FsiSphMesh2D {
-        std::shared_ptr<FsiMesh2D> fsi_mesh;  ///< underlying FSI solid
-        std::vector<ChVector3d> bce_coords;   ///< local BCE coordinates: (u, v, z) in triangle frame
-        std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local face ID, global face ID)
-        bool check_embedded;                  ///< if true, check for overlapping SPH particles
-    };
+    virtual ChVector3i Snap2Grid(const ChVector3d& point) = 0;
+    virtual ChVector3d Grid2Point(const ChVector3i& p) = 0;
 
     /// Prune SPH markers that are inside the solid body volume.
     /// Treat separately primitive shapes (use explicit test for interior points) and mesh shapes (use ProcessBodyMesh).
@@ -290,10 +275,10 @@ class CH_FSI_API ChFsiProblemSPH {
                         const ChVector3d& interior_point);
 
     /// Prune SPH markers that overlap with the FEA mesh BCE markers.
-    void ProcessFeaMesh1D(FsiSphMesh1D& m);
+    void ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m);
 
     /// Prune SPH markers that overlap with the FEA mesh BCE markers.
-    void ProcessFeaMesh2D(FsiSphMesh2D& m);
+    void ProcessFeaMesh2D(ChFsiFluidSystemSPH::FsiSphMesh2D& m);
 
     // Only derived classes can use the following particle and marker relocation functions
 
@@ -315,9 +300,6 @@ class CH_FSI_API ChFsiProblemSPH {
     ChAABB m_domain_aabb;              ///< computational domain bounding box
     BoundaryConditions m_bc_type;      ///< boundary conditions in each direction
     ChAABB m_sph_aabb;                 ///< SPH volume bounding box
-
-    std::vector<FsiSphMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
-    std::vector<FsiSphMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
 
     std::unordered_map<std::shared_ptr<ChBody>, size_t>
         m_fsi_bodies;  ///< map from ChBody pointer to index in FSI body list
