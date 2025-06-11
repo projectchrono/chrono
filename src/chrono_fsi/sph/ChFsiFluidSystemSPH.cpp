@@ -1293,7 +1293,7 @@ void ChFsiFluidSystemSPH::OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bo
     m.fsi_mesh = fsi_mesh;
     m.check_embedded = check_embedded;
 
-    CreateBCEFsiMesh1D(fsi_mesh, m.bce_ids, m.bce_coords, m.bce);
+    CreateBCEFsiMesh1D(fsi_mesh, m_pattern1D, m_remove_center1D, m.bce_ids, m.bce_coords, m.bce);
     m_num_flex1D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex1D_elements += fsi_mesh->GetNumElements();
 
@@ -1307,7 +1307,7 @@ void ChFsiFluidSystemSPH::OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bo
     m.fsi_mesh = fsi_mesh;
     m.check_embedded = check_embedded;
 
-    CreateBCEFsiMesh2D(fsi_mesh, m.bce_ids, m.bce_coords, m.bce);
+    CreateBCEFsiMesh2D(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
 
@@ -1362,6 +1362,8 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
 }
 
 void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+                                             BcePatternMesh1D pattern,
+                                             bool remove_center,
                                              std::vector<ChVector3i>& bce_ids,
                                              std::vector<ChVector3d>& bce_coords,
                                              std::vector<ChVector3d>& bce) {
@@ -1446,9 +1448,9 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
-                    if (m_remove_center1D && j == 0 && k == 0)
+                    if (remove_center && j == 0 && k == 0)
                         continue;
-                    if (m_pattern1D == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
+                    if (pattern == BcePatternMesh1D::STAR && std::abs(j) + std::abs(k) > num_layers)
                         continue;
                     double y_val = j * spacing / 2;
                     double z_val = k * spacing / 2;
@@ -1463,6 +1465,8 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
 }
 
 void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+                                             BcePatternMesh2D pattern,
+                                             bool remove_center,
                                              std::vector<ChVector3i>& bce_ids,
                                              std::vector<ChVector3d>& bce_coords,
                                              std::vector<ChVector3d>& bce) {
@@ -1537,10 +1541,9 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
         ////ofile << tri->OwnsEdge(0) << " " << tri->OwnsEdge(1) << " " << tri->OwnsEdge(2) << endl;
         ////ofile << n << endl;
 
-        bool remove_center = m_remove_center2D;
         int m_start = 0;
         int m_end = 0;
-        switch (m_pattern2D) {
+        switch (pattern) {
             case BcePatternMesh2D::INWARD:
                 m_start = -2 * (num_layers - 1);
                 m_end = 0;

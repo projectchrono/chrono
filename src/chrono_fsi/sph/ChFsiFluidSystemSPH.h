@@ -536,6 +536,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Create the the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 1D mesh.
     void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+                            BcePatternMesh1D pattern,
+                            bool remove_center,
                             std::vector<ChVector3i>& bce_ids,
                             std::vector<ChVector3d>& bce_coords,
                             std::vector<ChVector3d>& bce);
@@ -543,6 +545,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Create the the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
     /// given FSI 2D mesh.
     void CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+                            BcePatternMesh2D pattern,
+                            bool remove_center,
                             std::vector<ChVector3i>& bce_ids,
                             std::vector<ChVector3d>& bce_coords,
                             std::vector<ChVector3d>& bce);
