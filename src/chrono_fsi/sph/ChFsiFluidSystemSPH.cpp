@@ -1407,6 +1407,8 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
         const auto& P0 = seg->GetNode(0)->GetPos();  // vertex 0 position (absolute coordinates)
         const auto& P1 = seg->GetNode(1)->GetPos();  // vertex 1 position (absolute coordinates)
 
+        ////cout << segID << "  " << P0 << "  |  " << P1 << endl;
+
         auto len = (P1 - P0).Length();          // segment length
         int n = (int)std::ceil(len / spacing);  // required divisions on segment
 

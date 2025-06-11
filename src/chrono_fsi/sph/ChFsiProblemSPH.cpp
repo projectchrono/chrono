@@ -495,7 +495,7 @@ void ChFsiProblemSPH::ProcessFeaMesh1D(ChFsiFluidSystemSPH::FsiSphMesh1D& m) {
     GridPoints gbce;
     for (auto& p : bce) {
         ////auto p_offset = p - m_offset_sph;
-        ////auto p_grid = Snap2Grid(p - m_offset_sph);
+        ////auto p_grid = Snap2Grid(p_offset);
         ////cout << p << "   |   " << p_offset << "  |   " << p_grid << endl;
         ////gbce.insert(p_grid);
         gbce.insert(Snap2Grid(p - m_offset_sph));

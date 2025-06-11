@@ -70,14 +70,14 @@ double pto_damping = 0;
 double depth = 0.4;
 
 // Output frequency
-bool output = true;
+bool output = false;
 double output_fps = 10;
 
 // write info frequency
 double csv_fps = 200;
 
 // Enable/disable run-time visualization
-bool render = false;
+bool render = true;
 float render_fps = 200;
 
 // Enable saving snapshots
@@ -310,6 +310,7 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     }
 
     auto flap = chrono_types::make_shared<ChBody>();
+    flap->SetName("WEC flap");
     flap->SetPos(wec_pos);
     flap->SetRot(QUNIT);
     flap->SetFixed(false);
@@ -336,8 +337,6 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     // add ground
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
-    ground->SetMass(2 * wec_mass);
-    ground->SetInertiaXX(flap->GetInertiaXX());
     sysMBS.AddBody(ground);
 
     // Add revolute joint

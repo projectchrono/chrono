@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     if (show_rigid)
         geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
-    // Add as an FSI body (create BCE markers on a grid)
+    // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable depth-based initial pressure for SPH particles

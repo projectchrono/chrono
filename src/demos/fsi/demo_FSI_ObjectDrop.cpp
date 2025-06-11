@@ -64,6 +64,7 @@ double density = 500;
 
 // Object initial height above floor (as a ratio of fluid height)
 double initial_height = 1.05;
+
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -279,7 +280,7 @@ int main(int argc, char* argv[]) {
     if (show_rigid)
         geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
-    // Add as an FSI body (create BCE markers on a grid)
+    // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, true);
 
     std::cout << "Body mass = " << mass << std::endl;

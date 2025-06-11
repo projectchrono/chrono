@@ -19,10 +19,16 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/assets/ChVisualSystem.h"
-#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
@@ -36,6 +42,7 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 using namespace chrono;
+using namespace chrono::fea;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
 using namespace chrono::utils;
@@ -54,6 +61,10 @@ double x_start = csize.x() / 2;
 
 // Fluid depth
 double depth = 0.4;
+
+// Create FSI flexible solids
+bool create_flex_cable = false;
+bool create_flex_plate = false;
 
 // Visibility flags
 bool show_rigid = true;
@@ -169,6 +180,69 @@ bool GetProblemSpecs(int argc,
 
 // -----------------------------------------------------------------------------
 
+std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, ChVector3d loc) {
+    // Cable properties
+    double length_cable = 0.3;
+    double diameter = 0.02;
+    int num_elements = 8;
+
+    auto loc_tip = loc + ChVector3d(0, 0, length_cable);
+
+    double density = 8000;
+    double E = 6e8;
+    double Rayleigh_damping = 0.02;
+
+    // Create ground body
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    sysMBS.AddBody(ground);
+
+    // Create beam section and construct beam
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    section_cable->SetDiameter(diameter);
+    section_cable->SetYoungModulus(E);
+    section_cable->SetDensity(density);
+    section_cable->SetRayleighDamping(Rayleigh_damping);
+
+    auto mesh = chrono_types::make_shared<fea::ChMesh>();
+    mesh->SetName("Cable");
+    std::vector<std::vector<int>> node_indices;
+    std::vector<std::vector<int>> node_nbrs;
+    ChBuilderCableANCF builder;
+    builder.BuildBeam(mesh,           // FEA mesh with nodes and elements
+                      section_cable,  // section material for cable elements
+                      num_elements,   // number of elements in the segment
+                      loc,            // beam start point
+                      loc_tip,        // beam end point
+                      node_indices,   // node indices
+                      node_nbrs       // neighbor node indices
+    );
+
+    auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
+    auto pos_const = chrono_types::make_shared<ChLinkNodeFrame>();
+    pos_const->Initialize(node, ground);
+    sysMBS.Add(pos_const);
+
+    auto dir_const = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
+    dir_const->Initialize(node, ground);
+    dir_const->SetDirectionInAbsoluteCoords(node->GetSlope1());
+    sysMBS.Add(dir_const);
+
+    // Add FEA visualization
+    auto vis_cable = chrono_types::make_shared<ChVisualShapeFEA>();
+    vis_cable->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MZ);
+    vis_cable->SetColormapRange(-0.4, 0.4);
+    vis_cable->SetSmoothFaces(true);
+    vis_cable->SetWireframe(false);
+    mesh->AddVisualShapeFEA(vis_cable);
+
+    sysMBS.Add(mesh);
+
+    return mesh;
+}
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     double initial_spacing = 0.025;
     double step_size = 1e-4;
@@ -270,6 +344,12 @@ int main(int argc, char* argv[]) {
     ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
     ////                                  fun,                                                                       //
     ////                                  chrono_types::make_shared<WaveTankParabolicBeach>(x_start, 0.32), false);  //
+
+    if (create_flex_cable) {
+        auto mesh = CreateFlexibleCable(fsi.GetMultibodySystem(), ChVector3d(-csize.x() / 4, 0, initial_spacing));
+        fsi.SetBcePattern1D(BcePatternMesh1D::STAR, false);
+        fsi.AddFeaMesh(mesh, true);
+    }
 
     fsi.Initialize();
 
