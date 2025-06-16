@@ -113,11 +113,3 @@ install(FILES ${IRR_HEADER_FILES}
 # Install files for chrono-config (in both build and install trees)
 file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
-
-# On Windows, extract DLLs from targets and install
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    get_target_property(IRRLICHT_DLL Irrlicht::Irrlicht IMPORTED_LOCATION)
-    if(EXISTS "${IRRLICHT_DLL}")
-      install(FILES "${IRRLICHT_DLL}" DESTINATION bin)
-    endif()
-endif()

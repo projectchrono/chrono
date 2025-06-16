@@ -121,5 +121,5 @@ foreach(PROGRAM ${DEMOS})
   target_link_libraries(${PROGRAM} ${LIBS})  
 
 
-  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+  install(TARGETS ${PROGRAM} CONFIGURATIONS Release CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
