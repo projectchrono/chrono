@@ -512,9 +512,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
   elseif(${COMPONENT_UPPER} MATCHES "LDPM")
 
     list(APPEND CHRONO_INCLUDE_DIRS "@CH_LDPM_INCLUDES@")
-    list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_ldpm")
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_ldpm")
     if (NOT CHRONO_STATIC)
-    list(APPEND CHRONO_DLL_NAMES "ChronoEngine_ldpm.dll")
+      list(APPEND CHRONO_DLL_NAMES "Chrono_ldpm.dll")
     endif()
 
   elseif(${COMPONENT_UPPER} MATCHES "VSG")

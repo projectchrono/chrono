@@ -2,17 +2,17 @@
 # CMake configuration file for the Chrono ldpm module
 #===============================================================================
 
-option(ENABLE_MODULE_LDPM "Enable the Chrono LDPM module" OFF)
+option(CH_ENABLE_MODULE_LDPM "Enable the Chrono LDPM module" OFF)
 
 # Return now if this module is not enabled
-IF(NOT ENABLE_MODULE_LDPM)
+IF(NOT CH_ENABLE_MODULE_LDPM)
   RETURN()
 ENDIF()
 
 MESSAGE(STATUS "\n==== Chrono LDPM module ====\n")
 
-# List all source and header files for the ChronoEngine_ldpm library
-SET(ChronoEngine_LDPM_SOURCES 
+# List all source and header files for the Chrono_ldpm library
+SET(Chrono_LDPM_SOURCES
     ChElementLDPM.cpp
     ChMaterialVECT.cpp
     ChSectionLDPM.cpp
@@ -25,7 +25,7 @@ SET(ChronoEngine_LDPM_SOURCES
     ChElementFrictionalInterface.cpp
 )
 
-SET(ChronoEngine_LDPM_HEADERS
+SET(Chrono_LDPM_HEADERS
 	ChLdpmApi.h
     ChElementTetrahedron_6DOFs.h 
     ChElementLDPM.h
@@ -43,43 +43,43 @@ SET(ChronoEngine_LDPM_HEADERS
 )
 
 SOURCE_GROUP("" FILES 
-            ${ChronoEngine_LDPM_SOURCES} 
-            ${ChronoEngine_LDPM_HEADERS}
+            ${Chrono_LDPM_SOURCES}
+            ${Chrono_LDPM_HEADERS}
 )
 
 # Include directories (ensure LDPM_INCLUDE_DIR is defined or specify the correct path)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Create the ChronoEngine_ldpm library
-ADD_LIBRARY(ChronoEngine_ldpm
-  ${ChronoEngine_LDPM_SOURCES}
-  ${ChronoEngine_LDPM_HEADERS}
+# Create the Chrono_ldpm library
+ADD_LIBRARY(Chrono_ldpm
+  ${Chrono_LDPM_SOURCES}
+  ${Chrono_LDPM_HEADERS}
 )
 
 # Set compiler and linker flags
-SET_TARGET_PROPERTIES(ChronoEngine_ldpm PROPERTIES
+SET_TARGET_PROPERTIES(Chrono_ldpm PROPERTIES
   COMPILE_FLAGS "${CH_CXX_FLAGS}"
   LINK_FLAGS "${CH_LINKERFLAG_LIB}"
 )
 
 # Compile definitions
-target_compile_definitions(ChronoEngine_ldpm PRIVATE "CH_LDPM_API_COMPILE")
-target_compile_definitions(ChronoEngine_ldpm PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(Chrono_ldpm PRIVATE "CH_LDPM_API_COMPILE")
+target_compile_definitions(Chrono_ldpm PRIVATE "CH_IGNORE_DEPRECATED")
 
 # Link required libraries
-TARGET_LINK_LIBRARIES(ChronoEngine_ldpm
-  ChronoEngine
+TARGET_LINK_LIBRARIES(Chrono_ldpm
+  Chrono_core
   ${LDPM_LIBRARY}
 )
 
 
 # Add dependencies
-ADD_DEPENDENCIES(ChronoEngine_ldpm ChronoEngine)
+ADD_DEPENDENCIES(Chrono_ldpm Chrono_core)
 
 # Handle Windows DLL copying
 #IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 #  ADD_CUSTOM_COMMAND(
-#    TARGET ChronoEngine_ldpm POST_BUILD
+#    TARGET Chrono_ldpm POST_BUILD
 #    COMMAND ${CMAKE_COMMAND} -E make_directory
 #            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
 #    COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -91,11 +91,11 @@ ADD_DEPENDENCIES(ChronoEngine_ldpm ChronoEngine)
 #ENDIF()
 
 # Install the library and headers
-INSTALL(TARGETS ChronoEngine_ldpm
+INSTALL(TARGETS Chrono_ldpm
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
 
-INSTALL(FILES ${ChronoEngine_LDPM_HEADERS} DESTINATION include/chrono_ldpm)
+INSTALL(FILES ${Chrono_LDPM_HEADERS} DESTINATION include/chrono_ldpm)
 
