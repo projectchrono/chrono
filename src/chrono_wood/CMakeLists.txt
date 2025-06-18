@@ -21,8 +21,7 @@ SET(Chrono_WOOD_SOURCES
     ChBuilderCurvilinearBeam.cpp
     ChBuilderCBLCON.cpp
     ChLineBezierCBL.cpp
-    ChVisualShapeWOOD.cpp    
-    ChMeshFileLoaderBeam.cpp
+    ChVisualShapeWOOD.cpp
     ChMeshLine.cpp	
     ChLinkPoint2Line.cpp
     ChLinkNodeRotFace.cpp
@@ -43,8 +42,7 @@ SET(Chrono_WOOD_HEADERS
     ChBuilderCBLCON.h
     ChLineBezierCBL.h
     ChBasisToolsBeziers.h
-    ChVisualShapeWOOD.h      
-    ChMeshFileLoaderBeam.h
+    ChVisualShapeWOOD.h
     ChMeshLine.h
     ChMeshSurfaceGeneral.h
     ChLinkPoint2Line.h
