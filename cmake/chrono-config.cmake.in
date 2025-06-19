@@ -127,6 +127,7 @@ set(Chrono_FMI_AVAILABLE            @CH_ENABLE_MODULE_FMI@)
 set(Chrono_ROS_AVAILABLE            @CH_ENABLE_MODULE_ROS@)
 set(Chrono_LDPM_AVAILABLE           @CH_ENABLE_MODULE_LDPM@)
 set(Chrono_WOOD_AVAILABLE           @CH_ENABLE_MODULE_WOOD@)
+set(Chrono_FLOW_AVAILABLE           @CH_ENABLE_MODULE_FLOW@)
 
 if(CHRONO_MPI_CXX_AVAILABLE)
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
@@ -157,6 +158,7 @@ set(Chrono_ROS_DEPENDENCIES            "@DEPENDENCIES_ROS@")
 set(Chrono_VEHICLECOSIM_DEPENDENCIES   "@DEPENDENCIES_VEHICLECOSIM@")
 set(Chrono_LDPM_DEPENDENCIES           "@ENABLE_MODULE_DEPENDENCIES@")
 set(Chrono_WOOD_DEPENDENCIES           "@CH_ENABLE_MODULE_DEPENDENCIES@")
+set(Chrono_FLOW_DEPENDENCIES           "@CH_ENABLE_MODULE_DEPENDENCIES@")
 
 #-------------------------------------------------------------------------------
 # Build complete list of Chrono modules (requested and their dependencies)
@@ -1044,6 +1046,11 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     list(PREPEND CHRONO_LIB_NAMES "Chrono_wood")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_wood.dll")
+  elseif(${COMPONENT_UPPER} MATCHES "FLOW")
+    
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_flow")
+    if (NOT CHRONO_STATIC)
+      list(APPEND CHRONO_DLL_NAMES "Chrono_flow.dll")
     endif()
 
   endif() # end if-else for component type

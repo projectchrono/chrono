@@ -81,6 +81,8 @@
 
 // If module WOOD was enabled, define CHRONO_WOOD
 @CHRONO_WOOD@
+// If module FLOW was enabled, define CHRONO_FLOW
+@CHRONO_FLOW@
 
 // -----------------------------------------------------------------------------
 // OpenMP settings
