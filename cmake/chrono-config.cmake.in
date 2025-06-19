@@ -1046,6 +1046,7 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     list(PREPEND CHRONO_LIB_NAMES "Chrono_wood")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_wood.dll")
+      
   elseif(${COMPONENT_UPPER} MATCHES "FLOW")
     
     list(PREPEND CHRONO_LIB_NAMES "Chrono_flow")
