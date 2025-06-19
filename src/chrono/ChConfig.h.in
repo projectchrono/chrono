@@ -79,6 +79,9 @@
 // If module FMI was enabled, define CHRONO_FMI
 @CHRONO_FMI@
 
+// If module WOOD was enabled, define CHRONO_WOOD
+@CHRONO_WOOD@
+
 // -----------------------------------------------------------------------------
 // OpenMP settings
 // -----------------------------------------------------------------------------
