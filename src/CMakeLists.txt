@@ -697,10 +697,18 @@ if(CH_ENABLE_MODULE_WOOD)
   set(CHRONO_WOOD "#define CHRONO_WOOD")
 else()
   set(CHRONO_WOOD "#undef CHRONO_WOOD")
+endif()
+
 if(CH_ENABLE_MODULE_FLOW)
   set(CHRONO_FLOW "#define CHRONO_FLOW")
 else()
   set(CHRONO_FLOW "#undef CHRONO_FLOW")
+endif()
+
+if(ENABLE_MODULE_LDPM)
+  set(CHRONO_LDPM "#define CHRONO_LDPM")
+else()
+  set(CHRONO_LDPM "#undef CHRONO_LDPM")
 endif()
 
 if(CH_USE_SIMD)
@@ -731,12 +739,6 @@ else()
   set(CHRONO_HAS_THRUST "#undef CHRONO_HAS_THRUST")
   set(CHRONO_THRUST_VERSION "#undef CHRONO_THRUST_VERSION")
   set(CHRONO_COLLISION "#undef CHRONO_COLLISION")
-endif()
-
-if(ENABLE_MODULE_LDPM)
-  set(CHRONO_LDPM "#define CHRONO_LDPM")
-else()
-  set(CHRONO_LDPM "#undef CHRONO_LDPM")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
