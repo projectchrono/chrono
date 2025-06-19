@@ -107,7 +107,6 @@ set(CHRONO_CUDA_ARCHITECTURES "@CHRONO_CUDA_ARCHITECTURES@")
 # Local variables specifying which Chrono modules are available
 #-------------------------------------------------------------------------------
 
-
 set(Chrono_CASCADE_AVAILABLE        @CH_ENABLE_MODULE_CASCADE@)
 set(Chrono_IRRLICHT_AVAILABLE       @CH_ENABLE_MODULE_IRRLICHT@)
 set(Chrono_MATLAB_AVAILABLE         @CH_ENABLE_MODULE_MATLAB@)
@@ -127,7 +126,6 @@ set(Chrono_CSHARP_AVAILABLE         @CH_ENABLE_MODULE_CSHARP@)
 set(Chrono_FMI_AVAILABLE            @CH_ENABLE_MODULE_FMI@)
 set(Chrono_ROS_AVAILABLE            @CH_ENABLE_MODULE_ROS@)
 set(Chrono_LDPM_AVAILABLE           @CH_ENABLE_MODULE_LDPM@)
-
 
 if(CHRONO_MPI_CXX_AVAILABLE)
    set(Chrono_VEHICLECOSIM_AVAILABLE TRUE)
@@ -156,6 +154,7 @@ set(Chrono_MODAL_DEPENDENCIES          "@DEPENDENCIES_MODAL@")
 set(Chrono_VSG_DEPENDENCIES            "@DEPENDENCIES_VSG@")
 set(Chrono_ROS_DEPENDENCIES            "@DEPENDENCIES_ROS@")
 set(Chrono_VEHICLECOSIM_DEPENDENCIES   "@DEPENDENCIES_VEHICLECOSIM@")
+set(Chrono_LDPM_DEPENDENCIES           "@ENABLE_MODULE_DEPENDENCIES@")
 
 #-------------------------------------------------------------------------------
 # Build complete list of Chrono modules (requested and their dependencies)
@@ -509,14 +508,6 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       endif()
     endif()
       
-  elseif(${COMPONENT_UPPER} MATCHES "LDPM")
-
-    list(APPEND CHRONO_INCLUDE_DIRS "@CH_LDPM_INCLUDES@")
-    list(PREPEND CHRONO_LIB_NAMES "Chrono_ldpm")
-    if (NOT CHRONO_STATIC)
-      list(APPEND CHRONO_DLL_NAMES "Chrono_ldpm.dll")
-    endif()
-
   elseif(${COMPONENT_UPPER} MATCHES "VSG")
 
     if(NOT CHRONO_CXX_FOUND)
@@ -1038,6 +1029,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
     list(PREPEND CHRONO_LIB_NAMES "Chrono_fmi")
     if (NOT CHRONO_STATIC)
       list(APPEND CHRONO_DLL_NAMES "Chrono_fmi.dll")
+    endif()
+
+  elseif(${COMPONENT_UPPER} MATCHES "LDPM")
+
+    list(PREPEND CHRONO_LIB_NAMES "Chrono_ldpm")
+    if (NOT CHRONO_STATIC)
+      list(APPEND CHRONO_DLL_NAMES "Chrono_ldpm.dll")
     endif()
 
   endif() # end if-else for component type

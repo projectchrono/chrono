@@ -69,12 +69,7 @@ target_compile_definitions(Chrono_ldpm PRIVATE "CH_IGNORE_DEPRECATED")
 # Link required libraries
 TARGET_LINK_LIBRARIES(Chrono_ldpm
   Chrono_core
-  ${LDPM_LIBRARY}
 )
-
-
-# Add dependencies
-ADD_DEPENDENCIES(Chrono_ldpm Chrono_core)
 
 # Handle Windows DLL copying
 #IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -92,10 +87,10 @@ ADD_DEPENDENCIES(Chrono_ldpm Chrono_core)
 
 # Install the library and headers
 INSTALL(TARGETS Chrono_ldpm
+  EXPORT ChronoTargets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
 
 INSTALL(FILES ${Chrono_LDPM_HEADERS} DESTINATION include/chrono_ldpm)
-
