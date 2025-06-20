@@ -12,6 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeBox.h"
 
@@ -206,6 +208,11 @@ ChFsiVisualizationVSG::ChFsiVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
 }
 
 ChFsiVisualizationVSG::~ChFsiVisualizationVSG() {
+    auto& systems = m_vsys->GetSystems();
+    auto index = std::find(systems.begin(), systems.end(), m_sysMBS);
+    if (index != systems.end())
+        systems.erase(index);
+
     delete m_sysMBS;
 }
 
