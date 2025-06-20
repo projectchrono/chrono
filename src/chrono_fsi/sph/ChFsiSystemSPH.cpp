@@ -19,6 +19,7 @@
 ////#define DEBUG_LOG
 
 #include <iostream>
+#include <algorithm>
 
 #include "chrono/utils/ChUtils.h"
 
@@ -55,10 +56,14 @@ std::shared_ptr<FsiBody> ChFsiSystemSPH::AddFsiBody(std::shared_ptr<ChBody> body
 
     // Explicitly set the BCE marker locations
     auto& fsisph_body = m_sysSPH.m_bodies.back();
+    
     fsisph_body.bce_ids.resize(bce.size(), fsisph_body.fsi_body->index);
-    fsisph_body.bce_coords = bce;
-    for (auto& p : fsisph_body.bce_coords)
-        p = rel_frame.TransformPointLocalToParent(p);
+
+    ChFramed abs_frame = body->GetFrameRefToAbs() * rel_frame;
+    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce_coords),
+                   [&rel_frame](const ChVector3d& v) { return rel_frame.TransformPointLocalToParent(v); });
+    std::transform(bce.begin(), bce.end(), std::back_inserter(fsisph_body.bce),
+                   [&abs_frame](const ChVector3d& v) { return abs_frame.TransformPointLocalToParent(v); });
 
   return fsi_body;
 }
