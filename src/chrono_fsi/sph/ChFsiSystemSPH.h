@@ -47,13 +47,16 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
     // Allow using the AddFsiBody method from parent class
     using ChFsiSystem::AddFsiBody;
 
-    /// Add a rigid body to the FSI system.
-    /// BCE markers are created at the specified points (expressed in the given frame, relative to the body reference
-    /// frame).
+    /// Add a rigid body to the FSI system with given set of BCE markers.
+    /// BCE marker points are assumed to be specified in the given frame (itself relative to the given body).
     std::shared_ptr<FsiBody> AddFsiBody(std::shared_ptr<ChBody> body,
                                         const std::vector<ChVector3d>& bce,
                                         const ChFrame<>& rel_frame,
                                         bool check_embedded);
+
+    /// Add a set of boundary BCE markers.
+    /// BCE marker points are assumed to bve specified in the given frame (itself relative to the global frame).
+    void AddFsiBoundary(const std::vector<ChVector3d>& bce, const ChFrame<>& rel_frame);
 
   private:
     ChFsiFluidSystemSPH& m_sysSPH;  ///< cached SPH fluid solver
