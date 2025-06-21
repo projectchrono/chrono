@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
     // Create a falling sphere
     double volume = ChSphere::GetVolume(sphere_radius);
     double mass = sphere_density * volume;
-    auto inertia = mass * ChSphere::GetGyration(sphere_radius);
+    ChMatrix33d inertia = mass * ChSphere::GetGyration(sphere_radius);
     double impact_vel = std::sqrt(2 * Hdrop * g);
 
     ////double sphere_z_pos = Hdrop + fzDim + sphere_radius + 0.5 * init_spacing;
