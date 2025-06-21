@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
-    sysFSI.SetVerbose(verbose);
+    ////sysFSI.SetVerbose(verbose);
 
     // cylindrical container
     // container needs to be higher than fluid, otherwise water spills from the top
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(bottom_plate);
 
     auto bce_plate = sysSPH.CreatePointsPlate(bottom_plate_size);
-    const auto& fsi_bottom_plate = sysFSI.AddFsiBody(bottom_plate, bce_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), false);
+    sysFSI.AddFsiBoundary(bce_plate, ChFrame<>(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0), Q_ROTATE_Z_TO_Y));
 
     // Cylinder center
     ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
         ////auto torque_plate = sysFSI.GetFsiBodyTorque(bottom_plate_index).y();
 
         if (verbose) {
-            cout << "  time: " << time << endl;
+            cout << "time: " << time << endl;
             cout << "  cylinder angular velocity: " << angvel_outer << endl;
             cout << "  motor torque:              " << torque_motor << endl;
         }
