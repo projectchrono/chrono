@@ -580,11 +580,11 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
 
     fsi.SetBcePattern2D(BcePatternMesh2D::INWARD);
 
-    // Create the first flexible cable and add to FSI system
+    // Create the first flexible plate and add to FSI system
     auto mesh1 = CreateFlexiblePlate(sysMBS, plate1_x, 5e6, ground, verbose);
     fsi.AddFeaMesh(mesh1, false);
 
-    // Create second flexible cable
+    // Create second flexible plate
     if (create_flex_plate2) {
         auto mesh2 = CreateFlexiblePlate(sysMBS, plate2_x, 2e7, ground, verbose);
         fsi.AddFeaMesh(mesh2, false);
