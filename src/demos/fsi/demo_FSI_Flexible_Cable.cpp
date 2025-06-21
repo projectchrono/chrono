@@ -30,11 +30,11 @@
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
+#include "chrono_fsi/sph/ChFsiProblemSPH.h"
+
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
-
-#include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
         visFSI->EnableFlexBodyMarkers(show_mesh_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::FAST);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
         // VSG visual system (attach visFSI as plugin)
@@ -320,10 +320,13 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Flexible Cable");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
+        visVSG->SetCOMFrameScale(0.3);
         visVSG->AddCamera(ChVector3d(2.2, -1.6, 1.0), ChVector3d(0.1, 0.2, 0.2));
         ////visVSG->AddCamera(ChVector3d(-0.3, -1.5, 0.0), ChVector3d(-0.3, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
+
+        ////visVSG->AddGuiColorbar("Mz (Nm)", {-0.01, 0.01}, ChColormap::Type::JET);
 
         visVSG->Initialize();
         vis = visVSG;
@@ -424,25 +427,29 @@ int main(int argc, char* argv[]) {
 // -----------------------------------------------------------------------------
 // Create the solid objects in the MBD system and their counterparts in the FSI system
 
-std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS, double loc_x, double E, int num_elements, std::shared_ptr<ChBody> ground) {
+std::shared_ptr<ChMesh> CreateFlexibleCable(ChSystem& sysMBS,
+                                            double loc_x,
+                                            double E,
+                                            int num_elements,
+                                            std::shared_ptr<ChBody> ground) {
     double length_cable = 0.8;
 
     // Material Properties
     double density = 8000;
-    double BeamRayleighDamping = 0.02;
+    double rayleigh_damping = 0.02;
 
-    auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
-    msection_cable->SetDiameter(0.02);
-    msection_cable->SetYoungModulus(E);
-    msection_cable->SetDensity(density);
-    msection_cable->SetRayleighDamping(BeamRayleighDamping);
+    auto section_cable = chrono_types::make_shared<ChBeamSectionCable>();
+    section_cable->SetDiameter(0.02);
+    section_cable->SetYoungModulus(E);
+    section_cable->SetDensity(density);
+    section_cable->SetRayleighDamping(rayleigh_damping);
 
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
     std::vector<std::vector<int>> node_indices;
     std::vector<std::vector<int>> node_nbrs;
     ChBuilderCableANCF builder;
     builder.BuildBeam(mesh,                                  // FEA mesh with nodes and elements
-                      msection_cable,                        // section material for cable elements
+                      section_cable,                         // section material for cable elements
                       num_elements,                          // number of elements in the segment
                       ChVector3d(loc_x, 0.0, length_cable),  // beam start point
                       ChVector3d(loc_x, 0.0, 0.005),         // beam end point
