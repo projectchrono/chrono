@@ -837,6 +837,7 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       shifting_xsph_eps(0.5),
       shifting_ppst_push(3.0),
       shifting_ppst_pull(1.0),
+      shifting_beta_implicit(1.0),
       shifting_diffusion_A(1.0),
       shifting_diffusion_AFSM(3.0),
       shifting_diffusion_AFST(2),
