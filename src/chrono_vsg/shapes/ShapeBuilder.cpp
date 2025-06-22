@@ -1099,13 +1099,13 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
 // cone
 // height = 1
 // radius = 1
-// bottom at {0,0,0}
-// apex at   {0,0,1}
+// bottom at {0,0,-0.5}
+// apex at   {0,0,+0.5}
 ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
     int nPhi = num_divs;
 
     double r = 1.0;
-    double h = 1.0;
+    double h = 0.5;
     double dPhi = CH_2PI / nPhi;
 
     size_t nv = 3 * (nPhi + 1);
@@ -1127,10 +1127,10 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         double y = -r * sin(phi);
         double utex = 1 - (iPhi * 1.0) / nPhi;
 
-        auto normal = ChVector3d(x, y, r * r / h).GetNormalized();
+        auto normal = ChVector3d(x, y, r * r / (2 * h)).GetNormalized();
 
         // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, 0));
+        vertices->set(v, vsg::vec3(x, y, -h));
         normals->set(v, vsg::vec3CH(normal));
         texcoords->set(v, vsg::vec2(utex, 1));
 
@@ -1165,7 +1165,7 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         double vtex = (cos(phi) + 1) / CH_2PI;
 
         // bottom vertices
-        vertices->set(v, vsg::vec3(x, y, 0));
+        vertices->set(v, vsg::vec3(x, y, -h));
         normals->set(v, vsg::vec3(0, 0, -1));
         texcoords->set(v, vsg::vec2(utex, vtex));
 
