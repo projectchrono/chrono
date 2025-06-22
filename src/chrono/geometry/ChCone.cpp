@@ -37,13 +37,13 @@ double ChCone::GetVolume() const {
 }
 
 ChMatrix33<> ChCone::GetGyration(double radius, double height) {
-    double Ixx = (3.0 / 80.0) * (height * height) + (3.0 / 20.0) * (radius * radius);
+    double Ixx = (3.0 / 20.0) * (radius * radius) + (1.0 / 10.0) * (height * height);
 
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = Ixx;
-    J(1, 1) = (3.0 / 10.0) * (radius * radius);
-    J(2, 2) = Ixx;
+    J(1, 1) = Ixx;
+    J(2, 2) = (3.0 / 10.0) * (radius * radius);
 
     return J;
 }
@@ -53,7 +53,8 @@ ChMatrix33<> ChCone::GetGyration() const {
 }
 
 ChAABB ChCone::GetBoundingBox(double radius, double height) {
-    return ChAABB(ChVector3d(-radius, -radius, 0), ChVector3d(+radius, +radius, height));
+    return ChAABB(ChVector3d(-radius, -radius, -height / 2),  //
+                  ChVector3d(+radius, +radius, +height / 2));
 }
 
 ChAABB ChCone::GetBoundingBox() const {
