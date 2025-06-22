@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,12 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simple demo for contact between a ball and a plate, using NSC or SMC contact
+// Simple demo for contact between a primitive object and a plate (NSC or SMC)
 //
 // =============================================================================
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/utils/ChBodyGeometry.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
@@ -31,29 +32,37 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 
+// -----------------------------------------------------------------------------
+
 ChContactMethod contact_method = ChContactMethod::SMC;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type coll_type = ChCollisionSystem::Type::BULLET;
 
+enum class ObjectType {SPHERE, CYLINDER, CONE};
+ObjectType object_type = ObjectType::SPHERE;
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2025 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Simulation parameters
     double gravity = -9.81;
     double time_step = contact_method == ChContactMethod::NSC ? 1e-3 : 1e-5;
     double render_fps = 100;
 
-    // Parameters for the falling ball
+    // Parameters for the falling object
     double radius = 1;
-    double mass = 1000;
+    double height = 1;
+    double mass = 100;
+
     ChVector3d pos(0, 2, 0);
-    ChQuaternion<> rot(1, 0, 0, 0);
+    ChQuaterniond rot = QuatFromAngleZ(CH_PI / 6);
     ChVector3d init_vel(0, 0, 0);
 
-    // Parameters for the containing bin
-    double width = 2;
-    double length = 2;
-    double thickness = 0.1;
+    // Parameters for the plate
+    double side = 4;
+    double thickness = 0.2;
 
     // Create the system
     auto sys = ChSystem::Create(contact_method);
@@ -64,50 +73,76 @@ int main(int argc, char* argv[]) {
     // Change the default collision effective radius of curvature (SMC only)
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
-    // Create a material (will be used by both objects)
+    // Create a material (will be used by both collision shapes)
     ChContactMaterialData mat_data;
     mat_data.mu = 0.4f;
     mat_data.cr = 0.1f;
     auto material = mat_data.CreateMaterial(contact_method);
 
-    // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>();
-    ball->SetMass(mass);
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
-    ball->SetPos(pos);
-    ball->SetRot(rot);
-    ball->SetPosDt(init_vel);
-    // ball->SetAngVelParent(ChVector3d(0,0,3));
-    ball->SetFixed(false);
+    // Create the falling body
+    {
+        ChMatrix33 inertia;
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(mat_data);
 
-    auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
-    ball->AddCollisionShape(sphere_coll, ChFrame<>());
-    ball->EnableCollision(true);
+        switch (object_type) {
+            case ObjectType::SPHERE: {
+                auto sphere = utils::ChBodyGeometry::SphereShape(VNULL, radius, 0);
+                sphere.color = ChColor(0.1f, 0.5f, 0.9f);
+                geometry.coll_spheres.push_back(sphere);
+                inertia = mass * ChSphere::GetGyration(radius);
+                break;
+            }
+            case ObjectType::CYLINDER: {
+                auto cylinder = utils::ChBodyGeometry::CylinderShape(VNULL, VECT_Y, radius, height, 0);
+                cylinder.color = ChColor(0.1f, 0.5f, 0.9f);
+                geometry.coll_cylinders.push_back(cylinder);
+                inertia = mass * ChCylinder::GetGyration(radius, height);
+                break;
+            }
+            case ObjectType::CONE: {
+                auto cone = utils::ChBodyGeometry::ConeShape(ChVector3d(0, 0, 0), VECT_Y, radius, height, 0);
+                cone.color = ChColor(0.1f, 0.5f, 0.9f);
+                geometry.coll_cones.push_back(cone);
+                inertia = mass * ChCone::GetGyration(radius, height);
+                break;
+            }
+        }
 
-    auto sphere_vis = chrono_types::make_shared<ChVisualShapeSphere>(radius);
-    sphere_vis->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    sphere_vis->SetOpacity(1.0f);
-    ball->AddVisualShape(sphere_vis);
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetName("Object");
+        body->SetMass(mass);
+        body->SetInertia(inertia);
+        body->SetPos(pos);
+        body->SetRot(rot);
+        body->SetPosDt(init_vel);
+        body->SetFixed(false);
 
-    sys->AddBody(ball);
+        geometry.CreateCollisionShapes(body, 0, contact_method);
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
-    // Create container
-    auto bin = chrono_types::make_shared<ChBody>();
-    bin->SetMass(1);
-    bin->SetPos(ChVector3d(0, 0, 0));
-    bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    bin->SetFixed(true);
+        sys->AddBody(body);
+    }
 
-    auto box_coll = chrono_types::make_shared<ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
-    bin->AddCollisionShape(box_coll, ChFrame<>());
-    bin->EnableCollision(true);
+    // Create the plate
+    {
+        auto body = chrono_types::make_shared<ChBody>();
+        body->SetName("Plate");
+        body->SetMass(1);
+        body->SetPos(ChVector3d(0, 0, 0));
+        body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        body->SetFixed(true);
 
-    auto box_vis = chrono_types::make_shared<ChVisualShapeBox>(width * 2, thickness * 2, length * 2);
-    box_vis->SetColor(ChColor(0.8f, 0.2f, 0.2f));
-    box_vis->SetOpacity(0.8f);
-    bin->AddVisualShape(box_vis);
+        utils::ChBodyGeometry geometry;
+        geometry.materials.push_back(mat_data);
+        geometry.coll_boxes.push_back(
+            utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, ChVector3d(side, thickness, side), 0));
 
-    sys->AddBody(bin);
+        geometry.CreateCollisionShapes(body, 0, contact_method);
+        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+
+        sys->AddBody(body);
+    }
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT
@@ -125,14 +160,14 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
             vis_irr->SetWindowSize(800, 600);
-            vis_irr->SetWindowTitle("Ball drop demonstration");
+            vis_irr->SetWindowTitle("Object drop");
             vis_irr->Initialize();
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
             vis_irr->AddCamera(ChVector3d(0, 3, -6));
             vis_irr->AttachSystem(sys.get());
-            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
+            vis_irr->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.105, 0), QuatFromAngleX(CH_PI_2)),
                              ChColor(0.1f, 0.1f, 0.1f));
 
             vis = vis_irr;
@@ -144,7 +179,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
             vis_vsg->AttachSystem(sys.get());
-            vis_vsg->SetWindowTitle("Ball drop demonstration");
+            vis_vsg->SetWindowTitle("Object drop");
             vis_vsg->AddCamera(ChVector3d(0, 3, -6));
             vis_vsg->SetWindowSize(1280, 800);
             vis_vsg->SetWindowPosition(100, 100);
@@ -155,7 +190,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->EnableShadows();
-            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.11, 0), QuatFromAngleX(CH_PI_2)),
+            vis_vsg->AddGrid(0.2, 0.2, 20, 20, ChCoordsys<>(ChVector3d(0, 0.105, 0), QuatFromAngleX(CH_PI_2)),
                              ChColor(0.1f, 0.1f, 0.1f));
             vis_vsg->Initialize();
 
