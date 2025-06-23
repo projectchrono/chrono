@@ -77,11 +77,10 @@ int main(int argc, char* argv[]) {
     ChContactMaterialData mat_data;
     mat_data.mu = 0.4f;
     mat_data.cr = 0.1f;
-    auto material = mat_data.CreateMaterial(contact_method);
 
     // Create the falling body
     {
-        ChMatrix33 inertia;
+        ChMatrix33d inertia;
         utils::ChBodyGeometry geometry;
         geometry.materials.push_back(mat_data);
 
