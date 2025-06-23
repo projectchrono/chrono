@@ -1301,8 +1301,6 @@ void FsiForceISPH::PreProcessor(std::shared_ptr<SphMarkerDataD> sortedSphMarkers
     cudaCheckErrorFlag(m_errflagD, "calcNormalizedRho_Gi_fillInMatrixIndices");
 
     if (calcLaplacianOperator && !m_data_mgr.paramsH->Conservative_Form) {
-        printf("| calc_A_tensor+");
-
         calc_A_tensor<<<numBlocks, numThreads>>>(
             R1CAST(A_i), R1CAST(G_i), mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), m_errflagD);
