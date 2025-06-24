@@ -193,7 +193,7 @@ void AddConeGeometry(ChBody* body,
     }
     ChVector<> pos_shifted = frame.GetPos() + ChVector<>(0, 0.25 * height, 0);
 
-    body->GetCollisionModel()->AddCone(material, radius, radius, height, pos_shifted, rot);
+    body->GetCollisionModel()->AddCone(material, radius, height, pos_shifted, rot);
 
     if (visualization) {
         if (!body->GetVisualModel()) {
@@ -201,7 +201,8 @@ void AddConeGeometry(ChBody* body,
             body->AddVisualModel(model);
         }
         auto cone = chrono_types::make_shared<ChConeShape>();
-        cone->GetConeGeometry().rad = ChVector<>(radius, height, radius);
+        cone->GetConeGeometry().r = radius;
+        cone->GetConeGeometry().h = height;
         cone->AddMaterial(vis_material);
         body->GetVisualModel()->AddShape(cone, ChFrame<>(pos_shifted, rot));
     }

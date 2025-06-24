@@ -256,19 +256,20 @@ inline ChMatrix33<> CalcCylinderGyration(double radius,
     return J;
 }
 
-// Calculate the gyration tensor of a cone. len is the length of the cone axis and radius
-// is the base radius
+// Calculate the gyration tensor of a cone.
+// The cone is assumed to be specified relative to a frame with the Z axis aligned with the cone axis and origin at the
+// midpoint of the cone axis.
 inline ChMatrix33<> CalcConeGyration(double radius,
                                      double len,
                                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
-    double Ixx = (3.0 / 80.0) * (len * len) + (3.0 / 20.0) * (radius * radius);
+    double Ixx = (3.0 / 20.0) * (radius * radius) + (1.0 / 10.0) * (len * len);
 
     ChMatrix33<> J;
     J.setZero();
     J(0, 0) = Ixx;
-    J(1, 1) = (3.0 / 10.0) * (radius * radius);
-    J(2, 2) = Ixx;
+    J(1, 1) = Ixx;
+    J(2, 2) = (3.0 / 10.0) * (radius * radius);
 
     TransformGyration(J, pos, rot);
 

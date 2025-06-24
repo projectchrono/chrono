@@ -26,6 +26,7 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChConeShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChObjFileShape.h"
@@ -289,6 +290,7 @@ class ChApiIrr ChVisualSystemIrrlicht : virtual public ChVisualSystem {
     irr::scene::IMesh* cubeMesh;
     irr::scene::IMesh* cylinderMesh;
     irr::scene::IMesh* capsuleMesh;
+    irr::scene::IMesh* coneMesh;
 };
 
 }  // namespace irrlicht

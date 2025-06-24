@@ -425,7 +425,7 @@ void WriteVisualizationAssets(ChSystem* system,
                 a_count++;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(shape)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
-                gss << CONE << delim << geom.rad.x() << delim << geom.rad.y();
+                gss << CONE << delim << geom.r << delim << geom.h;
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(shape)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();

@@ -12,12 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code about collisions and contacts using the penalty method (SMC)
+// Simple demo for contact between a primitive object and a plate (SMC)
 //
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -25,31 +26,35 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
+// -----------------------------------------------------------------------------
+
+collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
+
+enum class ObjectType { SPHERE, CYLINDER, CONE };
+ObjectType object_type = ObjectType::SPHERE;
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Simulation parameters
     double gravity = -9.81;
-    double time_step = 0.00001;
+    double time_step = 1e-5;
     double out_step = 2000 * time_step;
 
     // Parameters for the falling ball
-    int ballId = 100;
     double radius = 1;
-    double mass = 1000;
+    double height = 1;
+    double mass = 100;
+
     ChVector<> pos(0, 2, 0);
     ChQuaternion<> rot(1, 0, 0, 0);
     ChVector<> init_vel(0, 0, 0);
 
     // Parameters for the containing bin
-    int binId = 200;
-    double width = 2;
-    double length = 2;
-    ////double height = 1;
+    double side = 4;
     double thickness = 0.1;
-
-    // Collision system type
-    auto collision_type = collision::ChCollisionSystemType::BULLET;
 
     // Create the system
     ChSystemSMC sys;
@@ -57,8 +62,6 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector<>(0, gravity, 0));
     sys.SetCollisionSystemType(collision_type);
 
-    // The following two lines are optional, since they are the default options. They are added for future reference,
-    // i.e. when needed to change those models.
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
 
@@ -71,40 +74,71 @@ int main(int argc, char* argv[]) {
     material->SetFriction(0.4f);
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
-    // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(collision_type);
+    // Create the falling object
+    ChMatrix33<> inertia;
 
-    ball->SetIdentifier(ballId);
-    ball->SetMass(mass);
-    ball->SetPos(pos);
-    ball->SetRot(rot);
-    ball->SetPos_dt(init_vel);
-    // ball->SetWvel_par(ChVector<>(0,0,3));
-    ball->SetBodyFixed(false);
+    auto body = chrono_types::make_shared<ChBody>(collision_type);
+    body->SetNameString("Object");
+    body->SetMass(mass);
+    body->SetPos(pos);
+    body->SetRot(rot);
+    body->SetPos_dt(init_vel);
+    body->SetBodyFixed(false);
 
-    ball->SetCollide(true);
+    body->SetCollide(true);
 
-    ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(material, radius);
-    ball->GetCollisionModel()->BuildModel();
+    body->GetCollisionModel()->ClearModel();
+    switch (object_type) {
+        case ObjectType::SPHERE: {
+            inertia = mass * utils::CalcSphereGyration(radius);
 
-    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
+            body->GetCollisionModel()->AddSphere(material, radius);
 
-    auto sphere = chrono_types::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = radius;
-    sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
-    sphere->SetOpacity(1.0f);
+            auto sphere = chrono_types::make_shared<ChSphereShape>();
+            sphere->GetSphereGeometry().rad = radius;
+            sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
+            sphere->SetOpacity(1.0f);
+            auto ball_vis = chrono_types::make_shared<ChVisualModel>();
+            ball_vis->AddShape(sphere);
+            body->AddVisualModel(ball_vis);
 
-    auto ball_vis = chrono_types::make_shared<ChVisualModel>();
-    ball_vis->AddShape(sphere);
-    ball->AddVisualModel(ball_vis);
+            break;
+        }
+        case ObjectType::CYLINDER: {
+            inertia = mass * utils::CalcCylinderGyration(radius, height / 2);
 
-    sys.AddBody(ball);
+            body->GetCollisionModel()->AddCylinder(material, radius, radius, height / 2);
+
+            auto cyl = chrono_types::make_shared<ChCylinderShape>();
+            cyl->GetCylinderGeometry().p1 = ChVector<>(0, +height / 2, 0);
+            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -height / 2, 0);
+            cyl->GetCylinderGeometry().rad = radius;
+            body->AddVisualShape(cyl);
+
+            break;
+        }
+        case ObjectType::CONE: {
+            inertia = mass * utils::CalcConeGyration(radius, height / 2);
+
+            body->GetCollisionModel()->AddCone(material, radius, height);
+
+            auto cone = chrono_types::make_shared<ChConeShape>();
+            cone->GetConeGeometry().r = radius;
+            cone->GetConeGeometry().h = height;
+            body->AddVisualShape(cone);
+
+            break;
+        }
+    }
+    body->GetCollisionModel()->BuildModel();
+
+    body->SetInertia(inertia);
+
+    sys.AddBody(body);
 
     // Create container
     auto bin = chrono_types::make_shared<ChBody>(collision_type);
 
-    bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -112,11 +146,11 @@ int main(int argc, char* argv[]) {
     bin->SetBodyFixed(true);
 
     bin->GetCollisionModel()->ClearModel();
-    bin->GetCollisionModel()->AddBox(material, width, thickness, length);
+    bin->GetCollisionModel()->AddBox(material, side, thickness, side);
     bin->GetCollisionModel()->BuildModel();
 
     auto box = chrono_types::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(width, thickness, length);
+    box->GetBoxGeometry().Size = ChVector<>(side, thickness, side);
     box->SetColor(ChColor(0.8f, 0.2f, 0.2f));
     box->SetOpacity(0.8f);
 
@@ -129,7 +163,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("SMC demonstration");
+    vis->SetWindowTitle("Object drop");
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
@@ -144,7 +178,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 0.2, 0.2, 20, 20, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+        tools::drawGrid(vis.get(), 0.4, 0.4, 20, 20, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
                         ChColor(0.31f, 0.39f, 0.39f), true);
         vis->EndScene();
 

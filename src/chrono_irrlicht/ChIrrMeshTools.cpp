@@ -541,8 +541,8 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     SMeshBuffer* buffer = new SMeshBuffer();
 
-    const f32 recTesselation = irr::core::reciprocal((f32)tesselation);
-    const f32 angleStep = (irr::core::PI * 2.f) * recTesselation;
+    const f32 recTesselation = 1 / (f32)tesselation;
+    const f32 angleStep = (2 * irr::core::PI) * recTesselation;
 
     // HULL
 
@@ -550,24 +550,26 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     irr::video::S3DVertex v;
     v.Color = color;
     f32 tcx = 0.f;
-    
-    auto beta = atan2f(radius_low-radius_top, length*2);
+
+    auto beta = atan2f(radius_low - radius_top, length * 2);
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
+
         v.Pos.X = -radius_low * cosf(angle);
-        v.Pos.Y = -length;
-        v.Pos.Z = radius_low * sinf(angle);
-        v.Normal = irr::core::vector3df(-cosf(angle)*cosf(beta),  sinf(beta), sinf(angle)*cosf(beta));
-        v.TCoords.X = -tcx;
-        v.TCoords.Y = 0.f;
+        v.Pos.Y = radius_low * sinf(angle);
+        v.Pos.Z = -length;
+        v.Normal = irr::core::vector3df(-cosf(angle) * cosf(beta), sinf(angle) * cosf(beta), sinf(beta));
+        v.TCoords.X = tcx;
+        v.TCoords.Y = 0;
         buffer->Vertices.push_back(v);
 
         v.Pos.X = -radius_top * cosf(angle);
-        v.Pos.Y = length;
-        v.Pos.Z = radius_top * sinf(angle);
-       // v.Normal = irr::core::vector3df(cosf(angle), sinf(beta), sinf(angle));
-        v.TCoords.Y = 1.f;
+        v.Pos.Y = radius_top * sinf(angle);
+        v.Pos.Z = +length;
+        v.Normal = irr::core::vector3df(-cosf(angle) * cosf(beta), sinf(angle) * cosf(beta), sinf(beta));
+        v.TCoords.X = tcx;
+        v.TCoords.Y = 1;
         buffer->Vertices.push_back(v);
 
         tcx += recTesselation;
@@ -576,12 +578,12 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     // indices for the main hull part
     for (i = 0; i < tesselation * 2; i += 2) {
         buffer->Indices.push_back(i + 2);
-        buffer->Indices.push_back(i + 0);
         buffer->Indices.push_back(i + 1);
+        buffer->Indices.push_back(i + 0);
 
         buffer->Indices.push_back(i + 2);
-        buffer->Indices.push_back(i + 1);
         buffer->Indices.push_back(i + 3);
+        buffer->Indices.push_back(i + 1);
     }
 
     // BOTTOM
@@ -591,20 +593,18 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
         v.Pos.X = -radius_low * cosf(angle);
-        v.Pos.Y = -length;
-        v.Pos.Z = radius_low * sinf(angle);
-        v.Normal = irr::core::vector3df(0, -1, 0);
+        v.Pos.Y = radius_low * sinf(angle);
+        v.Pos.Z = -length;
+        v.Normal = irr::core::vector3df(0, 0, -1);
         v.TCoords.X = -0.5f + 0.5f * cosf(angle);
         v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
         buffer->Vertices.push_back(v);
     }
 
     v.Pos.X = 0.f;
-    v.Pos.Y = -length;
-    v.Pos.Z = 0.f;
-    v.Normal.X = 0.f;
-    v.Normal.Y = -1.f;
-    v.Normal.Z = 0.f;
+    v.Pos.Y = 0.f;
+    v.Pos.Z = -length;
+    v.Normal = irr::core::vector3df(0, 0, -1);
     v.TCoords.X = -0.5;
     v.TCoords.Y = 0.5;
     buffer->Vertices.push_back(v);
@@ -613,32 +613,29 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
     for (i = 0; i < tesselation; ++i) {
         buffer->Indices.push_back(index_center);
-        buffer->Indices.push_back(index_bottom + i + 0);
         buffer->Indices.push_back(index_bottom + i + 1);
+        buffer->Indices.push_back(index_bottom + i + 0);
     }
 
     // TOP
     if (radius_top) {
-
         u32 index_top = buffer->Vertices.size();
 
         for (i = 0; i <= tesselation; ++i) {
             const f32 angle = angleStep * i;
             v.Pos.X = -radius_top * cosf(angle);
-            v.Pos.Y = length;
-            v.Pos.Z = radius_top * sinf(angle);
-            v.Normal = irr::core::vector3df(0, 1, 0);
+            v.Pos.Y = radius_top * sinf(angle);
+            v.Pos.Z = length;
+            v.Normal = irr::core::vector3df(0, 0, 1);
             v.TCoords.X = -0.5f - 0.5f * cosf(angle);
             v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
             buffer->Vertices.push_back(v);
         }
 
         v.Pos.X = 0.f;
-        v.Pos.Y = length;
-        v.Pos.Z = 0.f;
-        v.Normal.X = 0.f;
-        v.Normal.Y = 1.f;
-        v.Normal.Z = 0.f;
+        v.Pos.Y = 0.f;
+        v.Pos.Z = length;
+        v.Normal = irr::core::vector3df(0, 0, 1);
         v.TCoords.X = -0.5;
         v.TCoords.Y = 0.5;
         buffer->Vertices.push_back(v);
@@ -647,8 +644,8 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 
         for (i = 0; i < tesselation; ++i) {
             buffer->Indices.push_back(index_center);
-            buffer->Indices.push_back(index_top + i + 1);
             buffer->Indices.push_back(index_top + i + 0);
+            buffer->Indices.push_back(index_top + i + 1);
         }
     }
 

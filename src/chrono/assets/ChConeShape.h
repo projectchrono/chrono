@@ -24,10 +24,16 @@ class ChApi ChConeShape : public ChVisualShape {
     ChConeShape();
     ChConeShape(const geometry::ChCone& cone);
 
-    ~ChConeShape(){};
+    ~ChConeShape() {}
 
-    // Access the cone geometry.
+    /// Access the cone geometry.
     geometry::ChCone& GetConeGeometry() { return gcone; }
+
+    /// Get the cone radius.
+    double GetRadius() const { return gcone.r; }
+
+    /// Get the cone height.
+    double GetHeight() const { return gcone.h; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

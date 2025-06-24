@@ -21,14 +21,11 @@ namespace chrono {
 namespace geometry {
 
 /// A conical geometric object for collisions and visualization.
+/// The cone is assumed to be aligned with the z axis of a frame with origin at the cone axis center.
 class ChApi ChCone : public ChGeometry {
   public:
-    ChVector<> center;  ///< base center
-    ChVector<> rad;     ///< cone radius
-
-  public:
-    ChCone() : center(VNULL), rad(0) {}
-    ChCone(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
+    ChCone() : r(0), h(0) {}
+    ChCone(double radius, double height) : r(radius), h(height) {}
     ChCone(const ChCone& source);
     ~ChCone() {}
 
@@ -41,7 +38,7 @@ class ChApi ChCone : public ChGeometry {
     /// Note: 'rot' is currently ignored.
     virtual void GetBoundingBox(ChVector<>& cmin, ChVector<>& cmax, const ChMatrix33<>& rot) const override;
 
-    virtual ChVector<> Baricenter() const override { return center; }
+    virtual ChVector<> Baricenter() const override { return ChVector<>(); }
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -51,6 +48,9 @@ class ChApi ChCone : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+    double r;
+    double h;
 };
 
 }  // end namespace geometry
