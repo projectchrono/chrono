@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale, Jibril B. Coulibaly
+// Authors: Erol Lale,Jibril B. Coulibaly, Wisdom Akpan
 // =============================================================================
 // Class for CBLCON elements:
 //
@@ -750,12 +750,13 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     double epsV=0; // TODO JBC: Volumetric strain seems to be a remnant of LDPM. remove it when refactoring ComputeStress
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;
+    double random_field =mysection->GetRandomField();
 
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
     if (nonMechanicalStrain.size()){
-        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, epsV, statev, area, width, height, mstress, mcouple);
+        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, epsV, statev, area, width, height, random_field, mstress, mcouple);
     }else{
-        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, epsV, statev, area, width, height, mstress, mcouple);
+        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, epsV, statev, area, width, height, random_field, mstress, mcouple);
     }
 
     mysection->Set_StateVar(statev);
