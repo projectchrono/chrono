@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(ground);
 
     auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 0, 2});
-    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
+    sysFSI.AddFsiBoundary(ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT));
 
     // Complete construction of the FSI system
     sysFSI.Initialize();

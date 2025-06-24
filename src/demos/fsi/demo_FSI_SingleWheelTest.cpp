@@ -55,10 +55,9 @@ double kernelMultiplier = 1;
 double density = 1700.0;
 
 // Dimension of the terrain container
-double smalldis = 1.0e-9;
-double bxDim = 5.0 + smalldis;
-double byDim = 0.8 + smalldis;
-double bzDim = 0.12 + smalldis;
+double bxDim = 5.0;
+double byDim = 0.8;
+double bzDim = 0.12;
 
 // Size of the wheel
 double wheel_radius = 0.47;
@@ -383,7 +382,7 @@ int main(int argc, char* argv[]) {
         visVSG->SetWindowTitle("Single Wheel Test");
         visVSG->SetWindowSize(1280, 800);
         visVSG->SetWindowPosition(100, 100);
-        visVSG->AddCamera(ChVector3d(0, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
+        visVSG->AddCamera(ChVector3d(0.5 * bxDim, -5 * byDim, 5 * bzDim), ChVector3d(0, 0, 0));
         visVSG->SetLightIntensity(0.9f);
         visVSG->SetLightDirection(-CH_PI_2, CH_PI / 6);
 
