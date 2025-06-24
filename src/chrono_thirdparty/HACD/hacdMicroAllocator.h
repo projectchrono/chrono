@@ -174,6 +174,20 @@
 	typedef float				NxF32;
 	typedef double				NxF64;
 
+#elif defined(__OHOS__)
+	typedef long long		NxI64;
+	typedef signed int		NxI32;
+	typedef signed short		NxI16;
+	typedef signed char		NxI8;
+
+	typedef unsigned long long	NxU64;
+	typedef unsigned int		NxU32;
+	typedef unsigned short		NxU16;
+	typedef unsigned char		NxU8;
+
+	typedef float			NxF32;
+	typedef double			NxF64;
+
 #else
 	#error Unknown platform!
 #endif
