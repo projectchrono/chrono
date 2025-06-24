@@ -98,10 +98,10 @@ TEST(ChNarrowphaseMPR, support_functions) {
 
     {
         // cone
-        real3 R = real3(3.0, 1.0, 3.0);
+        real3 R = real3(3.0, 3.0, 1.0);
         real3 answer_a = GetSupportPoint_Cone(R, Dir);
 
-        cbtConeShape shape((cbtScalar)R.x, (cbtScalar)R.y);
+        cbtConeShapeZ shape((cbtScalar)R.x, 2 * (cbtScalar)R.z);
         shape.setMargin(0);
         real3 answer_b =
             ToReal3(shape.localGetSupportingVertex(cbtVector3((cbtScalar)Dir.x, (cbtScalar)Dir.y, (cbtScalar)Dir.z)));
