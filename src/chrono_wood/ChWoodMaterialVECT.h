@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale, Ke Yu, Jibril B. Coulibaly
+// Authors: Erol Lale, Wisdom Akpan, Ke Yu, Jibril B. Coulibaly
 // =============================================================================
 // Material class for LDPM and CSL elements 
 //
@@ -165,15 +165,15 @@ class ChWoodApi ChWoodMaterialVECT {
     double GetCoupleContrib2EquStrainFlag() const { return m_CoupleContrib2EquStrain; }
     void SetCoupleContrib2EquStrainFlag(double CoupleContrib2EquStrain) { m_CoupleContrib2EquStrain = CoupleContrib2EquStrain; }	
     /// Compute stresses from given strains and state variables.
-    void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple);
+    void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple);
     void ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& curvature_incr, double &length, StateVarVector& statev, double& width, double& height, ChVector3d& stress, ChVector3d& surfacic_couple);
     //
-	void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, ChVectorDynamic<>& eigenstrain, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple);
+	void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, ChVectorDynamic<>& eigenstrain, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple);
     
-    double FractureBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev);
+    double FractureBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsQN,  double& epsT, StateVarVector& statev);
 
     //double CompressBC(ChVectorDynamic<>& mstrain, double& epsV, ChVectorDynamic<>& statev);
-	double CompressBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev);
+	double CompressBC(ChVector3d& mstrain, double& random_field, double& len, double& epsQ, double& epsT, double& epsQN, StateVarVector& statev);
 
     std::pair<double, double> ShearBC(ChVector3d& mstrain, StateVarVector& statev);
 	
