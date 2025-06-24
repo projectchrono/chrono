@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale, Ke Yu, Jibril B. Coulibaly
+// Authors: Erol Lale, Wisdom Akpan, Ke Yu, Jibril B. Coulibaly
 // =============================================================================
 // Material class for LDPM and CSL elements 
 //
@@ -170,10 +170,10 @@ class ChWoodApi ChWoodMaterialVECT {
     //
 	void ComputeStress(ChVector3d& mstrain, ChVector3d& curvature, ChVectorDynamic<>& eigenstrain, double &len, double& epsV, StateVarVector& statev, double& area, double& width, double& height, ChVector3d& mstress, ChVector3d& mcouple);
     
-    double FractureBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev);
+    double FractureBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsQN,  double& epsT, StateVarVector& statev);
 
     //double CompressBC(ChVectorDynamic<>& mstrain, double& epsV, ChVectorDynamic<>& statev);
-	double CompressBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, StateVarVector& statev);
+	double CompressBC(ChVector3d& mstrain, double& len, double& epsQ, double& epsT, double& epsQN, StateVarVector& statev);
 
     std::pair<double, double> ShearBC(ChVector3d& mstrain, StateVarVector& statev);
 	

@@ -111,3 +111,8 @@ build_chrono_website.sh
 refman.pdf
 src/chrono_granular/DoxyGenDocs/
 
+/template_project_wood/plainstrain/new_con_eqn
+/template_project_wood/build2
+/template_project_wood/build3
+/template_project_wood/build4
+template_project_wood/plainstrain/plainstrain.cpp
