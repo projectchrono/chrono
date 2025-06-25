@@ -135,7 +135,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		}
 		else {
 			
-			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev);;
+			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev);
 			 
 			 mstress[0] = strsQ * mstrain[0] / epsQ;
 			 mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
@@ -268,7 +268,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
 }
 
-void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& curvature_incr, double &length, StateVarVector& statev, double& width, double& height, ChVector3d& stress, ChVector3d& surfacic_couple) {  
+/*
+void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& curvature_incr, double &length, StateVarVector& statev, double& width, double& height, double& random_field, ChVector3d& stress, ChVector3d& surfacic_couple) {  
     ChVector3d strain(statev[0] + strain_incr[0], statev[1] + strain_incr[1], statev[2] + strain_incr[2]);
     ChVector3d curvature;
 
@@ -311,9 +312,9 @@ void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& 
         // If for any reason we go from loading to epsQ <= 1e-16, the state variables will otherwise remain where they were, instead of going to zero.
         energy_and_crack_calculations_need_stress = true;
         if (strain[0] > strain_tol) {     // TODO JBC: WHY NOT ZERO ?!?!?! Is there a case where very small positive values should not lead to fracture? 
-            sigQ = FractureBC(strain, length, epsQ, epsT, statev);
+            sigQ = FractureBC(strain, random_field, length, epsQ, epsT, statev);
         } else {  
-            sigQ = CompressBC(strain, length, epsQ, epsT, statev);
+            sigQ = CompressBC(strain, random_field, length, epsQ, epsT, statev);
         }
         secant_N = sigQ / epsQ;
         secant_T = m_alpha * secant_N;
@@ -366,6 +367,7 @@ void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& 
         statev(17) = surfacic_couple[2];
     }
 }
+*/
 
 void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, double &epsV, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
     	ChVector3d mstrain;
@@ -595,13 +597,7 @@ double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field,
 	// calculate stress boudary sigma_bt for tension
 	double omega, sinw, cosw, cosw2, sigma0;
 	double r_st = sigmas / sigmat;
-	
-	//if (this->GetCoupleContrib2EquStrainFlag()){
-	//	omega = atan(epsQ / (pow(alpha, 0.5) * epsT));
-	//}else{
-	//	omega = atan(mstrain[0] / pow(alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5));
-		omega = atan(epsQN / (pow(alpha, 0.5) * epsT));
-	//}
+	omega = atan(epsQN / (pow(alpha, 0.5) * epsT));
 
 	sinw = sin(omega);
 	cosw = cos(omega);
@@ -624,14 +620,6 @@ double ChWoodMaterialVECT::FractureBC(ChVector3d& mstrain, double& random_field,
 
 	double eps_max = pow(statev(6) * statev(6) + alpha * statev(7) * statev(7), 0.5);
 	double sigma_bt = sigma0 * exp(-H0 * std::max((eps_max - eps0), 0.0) / sigma0);
-
-	/*
-	double eps_tr = kt * (eps_max - sigma_bt / E0);
-	if (eps_tr > epsQ) {
-		sigma_bt = 0;
-	}
-	*/
-	
 
 	double strs_ela = E0 * (epsQ - statev(8)) + statev(9);
 	double sigma_fr = std::min(std::max(strs_ela, 0.0), sigma_bt);
@@ -674,11 +662,7 @@ double ChWoodMaterialVECT::CompressBC(ChVector3d& mstrain, double& random_field,
 	// calculate stress boudary sigma_bt for tension
 	double omega, sinw, cosw, cosw2, beta2, sigma0;
 	
-	//if (this->GetCoupleContrib2EquStrainFlag()){
 	omega = atan(-epsQN / (pow(alpha, 0.5) * epsT));
-	//}else{
-	//	omega = atan(mstrain[0] / pow(alpha*(mstrain[1]*mstrain[1]+mstrain[2]*mstrain[2]), 0.5));
-	//}
 	
 	beta2 = (sigmas * sigmas) / (sigmac0 * sigmac0);
 

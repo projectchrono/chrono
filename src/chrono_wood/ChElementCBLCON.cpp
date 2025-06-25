@@ -322,8 +322,9 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
 
     ChMatrix33<double> nmL=this->section->Get_facetFrame();
     ChMatrix33<double> nmL_tr=nmL.transpose();
-
+    
     auto computeMass = [&](double L, int pos) {
+        std::cout << "i am here 2: " <<std::endl;
         double mass = Area * rho * std::abs(L);
         double MJxx = mass * L * L / 3.0; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
         double MJyy = mass * w * w / 12.0;
@@ -337,10 +338,17 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
         ChMatrix33<> block_UR_local, block_LR_local;
         block_UR_local.setZero();
         block_LR_local.setZero();
-        if (this->section->GetSectionType() == this->section->transverse_generic) {
-            MJzz *= 0.25; // TODO JBC: For some reason this is 12 for the default (transverse generic?) connector
+
+        auto type = this->section->GetSectionType();
+        if (type == this->section->transverse_generic ||
+            type == this->section->tangential_fibers_generic ||
+            type == this->section->radial_fibers_generic) {
+
+        MJzz *= 0.25; // TODO JBC: For some reason this is 12 for the default (transverse generic?) connector
         } else {
-            double sign = (this->section->GetSectionType() == this->section->transverse_top) ? 1.0 : -1.0;
+        double sign = (type == this->section->transverse_top ||
+                   type == this->section->tangential_fibers_top ||
+                   type == this->section->radial_fibers_top) ? 1.0 : -1.0;
             block_UR_local(0, 2) = sign * 0.5 * mass * h;
             block_UR_local(2, 0) = -sign * 0.5 * mass * h;
 
@@ -369,7 +377,6 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
         M.block<3,3>(pos + 3, pos) = block_UR.transpose();
         M.block<3,3>(pos + 3, pos + 3) = nmL * block_LR_local * nmL_tr;
     };
-
     computeMass(LA, 0);
     computeMass(-LB, 6);
 }

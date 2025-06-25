@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Erol Lale, Jibril B. Coulibaly
+// Authors: Erol Lale, Wisdom Akpan, Jibril B. Coulibaly
 // =============================================================================
 // Section class for LDPM and CSL elements 
 //
@@ -92,7 +92,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     StateVarVector  Get_StateVar() const { return m_state; };
     void Set_StateVar(StateVarVector  state) { m_state=state; }
     
-    enum ConSectionType { transverse_generic, transverse_top, transverse_bot, longitudinal };
+    enum ConSectionType { transverse_generic, transverse_top, transverse_bot, longitudinal, tangential_fibers_bot, tangential_fibers_top, tangential_fibers_generic, radial_fibers_top, radial_fibers_bot, radial_fibers_generic};
     
     ConSectionType GetSectionType() const { return mysectype; }
     void SetSectionType(ConSectionType sectype) { mysectype=sectype; }
