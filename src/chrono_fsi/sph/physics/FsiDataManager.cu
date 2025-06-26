@@ -518,9 +518,6 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     rigid_FSI_ForcesD.resize(countersH->numFsiBodies);
     rigid_FSI_TorquesD.resize(countersH->numFsiBodies);
 
-    rigid_BCEsolids_D.resize(countersH->numRigidMarkers);
-    rigid_BCEcoords_D.resize(countersH->numRigidMarkers);
-
     fsiMesh1DState_D->Resize(countersH->numFsiNodes1D, use_node_directions);
     fsiMesh1DState_H->Resize(countersH->numFsiNodes1D, use_node_directions);
     fsiMesh2DState_D->Resize(countersH->numFsiNodes2D, use_node_directions);

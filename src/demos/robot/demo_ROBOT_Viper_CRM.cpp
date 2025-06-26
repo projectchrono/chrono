@@ -144,9 +144,9 @@ int main(int argc, char* argv[]) {
     // Add rover wheels as FSI bodies
     cout << "Create wheel BCE markers..." << endl;
     std::string mesh_filename = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
+    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
 
     //// TODO: FIX ChFsiProblemSPH to allow rotating geometry on body!!
     for (int i = 0; i < 4; i++) {

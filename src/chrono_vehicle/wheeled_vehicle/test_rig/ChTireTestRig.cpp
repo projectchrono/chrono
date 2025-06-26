@@ -635,8 +635,8 @@ void ChTireTestRig::CreateTerrainCRM() {
         auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
         assert(rgd_tire->UseContactMesh());
         auto trimesh = rgd_tire->GetContactMesh();
-        utils::ChBodyGeometry geometry;
-        geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
         terrain->AddRigidBody(m_spindle, geometry, false);
     }
 

@@ -92,9 +92,9 @@ void CreateBaffles(ChFsiProblemSPH& fsi) {
     cmat.mu = 0.2f;
     cmat.cr = 0.05f;
 
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(cmat);
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0.5 * bsize.z()), QUNIT, bsize, 0));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(cmat);
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0.5 * bsize.z()), QUNIT, bsize, 0));
 
     auto baffle1 = chrono_types::make_shared<ChBody>();
     baffle1->SetPos(bloc1);
@@ -102,7 +102,7 @@ void CreateBaffles(ChFsiProblemSPH& fsi) {
     baffle1->SetFixed(true);
     sysMBS.AddBody(baffle1);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle1, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(baffle1, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle1, geometry, false);
 
     auto baffle2 = chrono_types::make_shared<ChBody>();
@@ -111,7 +111,7 @@ void CreateBaffles(ChFsiProblemSPH& fsi) {
     baffle2->SetFixed(true);
     sysMBS.AddBody(baffle2);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle2, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(baffle2, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle2, geometry, false);
 
     auto baffle3 = chrono_types::make_shared<ChBody>();
@@ -120,7 +120,7 @@ void CreateBaffles(ChFsiProblemSPH& fsi) {
     baffle3->SetFixed(true);
     sysMBS.AddBody(baffle3);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(baffle3, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(baffle3, VisualizationType::COLLISION);
     fsi.AddRigidBody(baffle3, geometry, false);
 }
 

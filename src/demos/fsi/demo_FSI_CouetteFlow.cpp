@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     // Create the FSI problem
     ChFsiFluidSystemSPH sysSPH;
     ChFsiSystemSPH sysFSI(sysMBS, sysSPH);
-    sysFSI.SetVerbose(verbose);
+    ////sysFSI.SetVerbose(verbose);
 
     // cylindrical container
     // container needs to be higher than fluid, otherwise water spills from the top
@@ -168,12 +168,10 @@ int main(int argc, char* argv[]) {
 
     bool use_polar_coords = true;
 
-    std::vector<ChVector3d> points;
-    sysSPH.CreatePoints_CylinderAnnulus(inner_cylinder_radius + initial_spacing / 2,  //
-                                        outer_cylinder_radius - initial_spacing / 2,  //
-                                        fluid_height,                                 //
-                                        use_polar_coords, initial_spacing,            //
-                                        points);
+    auto points = sysSPH.CreatePointsCylinderAnnulus(inner_cylinder_radius + initial_spacing / 2,  //
+                                                     outer_cylinder_radius - initial_spacing / 2,  //
+                                                     fluid_height,                                 //
+                                                     use_polar_coords);
     for (const auto& p : points) {
         double x = p.x();
         double y = p.z();
@@ -182,21 +180,15 @@ int main(int argc, char* argv[]) {
         sysSPH.AddSPHParticle({x, y, z}, fluid_props.density, pressure, fluid_props.viscosity);
     }
 
-    // Add cylinder bottom plate
+    // Add cylinder bottom plate, fixed
     ChVector2d bottom_plate_size(outer_cylinder_radius * 2.5, outer_cylinder_radius * 2.5);
     auto bottom_plate = chrono_types::make_shared<ChBody>();
     bottom_plate->SetPos(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0));
     bottom_plate->SetFixed(true);
     sysMBS.AddBody(bottom_plate);
 
-    sysSPH.AddPlateBCE(bottom_plate, ChFrame<>(VNULL, Q_ROTATE_Z_TO_Y), bottom_plate_size);
-
-    /*
-    sysSPH.AddPlateBCE(bottom_plate, ChFrame<>(ChVector3d(0, -fluid_height, 0), Q_ROTATE_Z_TO_Y), ChVector2d(0.2, 0.2));
-    sysSPH.AddBoxBCE(bottom_plate, ChFramed(ChVector3d(0, -2 * initial_spacing, 0), QNULL),
-                     ChVector3d(outer_cylinder_radius * 2.5, 4 * initial_spacing, outer_cylinder_radius * 2.5), true);
-    auto bottom_plate_index = sysFSI.AddFsiBody(bottom_plate);
-    */
+    auto bce_plate = sysSPH.CreatePointsPlate(bottom_plate_size);
+    sysFSI.AddFsiBoundary(bce_plate, ChFrame<>(ChVector3d(0, -fluid_height / 2 - initial_spacing, 0), Q_ROTATE_Z_TO_Y));
 
     // Cylinder center
     ChVector3d cylinder_center(0, cylinder_height / 2 - fluid_height / 2, 0);
@@ -207,21 +199,15 @@ int main(int argc, char* argv[]) {
     inner_cylinder->EnableCollision(false);
     sysMBS.AddBody(inner_cylinder);
 
-    ////sysSPH.AddCylinderBCE(inner_cylinder,                               //
-    ////                      ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
-    ////                      inner_cylinder_radius - initial_spacing / 2,  //
-    ////                      cylinder_height,                              //
-    ////                      true, true);
-    sysSPH.AddCylinderAnnulusBCE(inner_cylinder,                               //
-                                 ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
-                                 inner_cylinder_radius - 3 * initial_spacing,  //
-                                 inner_cylinder_radius - initial_spacing / 2,  //
-                                 cylinder_height,                              //
-                                 true);
+    auto bce_inner = sysSPH.CreatePointsCylinderAnnulus(inner_cylinder_radius - 3 * initial_spacing,  //
+                                                        inner_cylinder_radius - initial_spacing / 2,  //
+                                                        cylinder_height,                              //
+                                                        use_polar_coords);
+    const auto& fsi_inner_cylinder =
+        sysFSI.AddFsiBody(inner_cylinder, bce_inner, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
+    auto inner_cylinder_index = fsi_inner_cylinder->index;
 
-    auto inner_cylinder_index = sysFSI.AddFsiBody(inner_cylinder);
-
-    // Create outer cylinder that spins
+    // Create outer cylinder, spinning
     double outer_cylinder_mass = 1.0;
     auto outer_cylinder = chrono_types::make_shared<ChBody>();
     sysMBS.AddBody(outer_cylinder);
@@ -230,14 +216,13 @@ int main(int argc, char* argv[]) {
     outer_cylinder->SetMass(outer_cylinder_mass);
     outer_cylinder->SetInertia(ChMatrix33d(ChVector3d(1, 1, 1)));
 
-    // Outer cylinder modeled as an annulus ring with a thickness of 3 * initial_spacing
-    sysSPH.AddCylinderAnnulusBCE(outer_cylinder,                               //
-                                 ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y),  //
-                                 outer_cylinder_radius + initial_spacing / 2,  //
-                                 outer_cylinder_radius + 3 * initial_spacing,  //
-                                 cylinder_height,                              //
-                                 true);
-    auto outer_cylinder_index = sysFSI.AddFsiBody(outer_cylinder);
+    auto bce_outer = sysSPH.CreatePointsCylinderAnnulus(outer_cylinder_radius + initial_spacing / 2,  //
+                                                        outer_cylinder_radius + 3 * initial_spacing,  //
+                                                        cylinder_height,                              //
+                                                        true);
+    const auto& fsi_outer_cylinder =
+        sysFSI.AddFsiBody(outer_cylinder, bce_outer, ChFrame<>(cylinder_center, Q_ROTATE_Z_TO_Y), false);
+    auto outer_cylinder_index = fsi_outer_cylinder->index;
 
     // Add motor between outer cylinder and plate
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -343,7 +328,7 @@ int main(int argc, char* argv[]) {
         ////auto torque_plate = sysFSI.GetFsiBodyTorque(bottom_plate_index).y();
 
         if (verbose) {
-            cout << "  time: " << time << endl;
+            cout << "time: " << time << endl;
             cout << "  cylinder angular velocity: " << angvel_outer << endl;
             cout << "  motor torque:              " << torque_motor << endl;
         }

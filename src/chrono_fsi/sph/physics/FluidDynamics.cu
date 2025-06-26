@@ -141,7 +141,8 @@ __global__ void UpdateActivityD(const Real4* posRadD,
                                 const Real3* pos_nodes2D_D,
                                 int32_t* activityIdentifierD,
                                 int32_t* extendedActivityIdD,
-                                const Real4* rhoPreMuD) {
+                                const Real4* rhoPreMuD,
+                                double time) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numAllMarkers) {
         return;
@@ -150,17 +151,6 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     // Set the particle as an active particle
     activityIdentifierD[index] = 1;
     extendedActivityIdD[index] = 1;
-
-    size_t numFsiBodies = countersD.numFsiBodies;
-    size_t numFsiNodes1D = countersD.numFsiNodes1D;
-    size_t numFsiNodes2D = countersD.numFsiNodes2D;
-    size_t numTotal = numFsiBodies + numFsiNodes1D + numFsiNodes2D;
-
-    // Check the activity of this particle
-    uint isNotActive = 0;
-    uint isNotExtended = 0;
-    Real3 Acdomain = paramsD.bodyActiveDomain;
-    Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
     Real3 domainDims = paramsD.boxDims;
     Real3 domainOrigin = paramsD.worldOrigin;
     bool x_periodic = paramsD.x_periodic;
@@ -168,39 +158,50 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     bool z_periodic = paramsD.z_periodic;
 
     Real3 posRadA = mR3(posRadD[index]);
+    if (time >= paramsD.settlingTime) {
+        size_t numFsiBodies = countersD.numFsiBodies;
+        size_t numFsiNodes1D = countersD.numFsiNodes1D;
+        size_t numFsiNodes2D = countersD.numFsiNodes2D;
+        size_t numTotal = numFsiBodies + numFsiNodes1D + numFsiNodes2D;
 
-    for (uint num = 0; num < numFsiBodies; num++) {
-        Real3 detPos = posRadA - pos_bodies_D[num];
-        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-            isNotActive = isNotActive + 1;
-        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-            isNotExtended = isNotExtended + 1;
+        // Check the activity of this particle
+        uint isNotActive = 0;
+        uint isNotExtended = 0;
+        Real3 Acdomain = paramsD.bodyActiveDomain;
+        Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * paramsD.h_multiplier * paramsD.h);
+
+        for (uint num = 0; num < numFsiBodies; num++) {
+            Real3 detPos = posRadA - pos_bodies_D[num];
+            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
+                isNotActive = isNotActive + 1;
+            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
+                isNotExtended = isNotExtended + 1;
+        }
+
+        for (uint num = 0; num < numFsiNodes1D; num++) {
+            Real3 detPos = posRadA - pos_nodes1D_D[num];
+            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
+                isNotActive = isNotActive + 1;
+            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
+                isNotExtended = isNotExtended + 1;
+        }
+
+        for (uint num = 0; num < numFsiNodes2D; num++) {
+            Real3 detPos = posRadA - pos_nodes2D_D[num];
+            if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
+                isNotActive = isNotActive + 1;
+            if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
+                isNotExtended = isNotExtended + 1;
+        }
+
+        // Set the particle as an inactive particle if needed
+        if (isNotActive == numTotal && numTotal > 0) {
+            activityIdentifierD[index] = 0;
+            velMasD[index] = mR3(0.0);
+        }
+        if (isNotExtended == numTotal && numTotal > 0)
+            extendedActivityIdD[index] = 0;
     }
-
-    for (uint num = 0; num < numFsiNodes1D; num++) {
-        Real3 detPos = posRadA - pos_nodes1D_D[num];
-        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-            isNotActive = isNotActive + 1;
-        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-            isNotExtended = isNotExtended + 1;
-    }
-
-    for (uint num = 0; num < numFsiNodes2D; num++) {
-        Real3 detPos = posRadA - pos_nodes2D_D[num];
-        if (abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
-            isNotActive = isNotActive + 1;
-        if (abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
-            isNotExtended = isNotExtended + 1;
-    }
-
-    // Set the particle as an inactive particle if needed
-    if (isNotActive == numTotal && numTotal > 0) {
-        activityIdentifierD[index] = 0;
-        velMasD[index] = mR3(0.0);
-    }
-    if (isNotExtended == numTotal && numTotal > 0)
-        extendedActivityIdD[index] = 0;
-
     // Check if the particle is outside the zombie domain
     if (IsFluidParticle(rhoPreMuD[index].w)) {
         bool outside_domain = false;
@@ -230,7 +231,7 @@ __global__ void UpdateActivityD(const Real4* posRadD,
     return;
 }
 
-void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD, double time) {
     uint numBlocks, numThreads;
     computeGridSize((uint)m_data_mgr.countersH->numAllMarkers, 1024, numBlocks, numThreads);
 
@@ -238,8 +239,7 @@ void FluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD) 
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->pos),
         INT_32CAST(m_data_mgr.activityIdentifierOriginalD), INT_32CAST(m_data_mgr.extendedActivityIdentifierOriginalD),
-        mR4CAST(sphMarkersD->rhoPresMuD));
-    cudaCheckError();
+        mR4CAST(sphMarkersD->rhoPresMuD), time);
 }
 
 // -----------------------------------------------------------------------------
@@ -289,6 +289,7 @@ __device__ void PositionEulerStep(Real dT, const Real3& vel, Real4& pos) {
 __device__ void PositionMidpointStep(Real dT, const Real3& vel, const Real3& acc, Real4& pos) {
     Real3 p = mR3(pos);
     p += dT * vel + 0.5 * dT * dT * acc;
+    pos = mR4(p, pos.w);
 }
 
 __device__ void VelocityEulerStep(Real dT, const Real3& acc, Real3& vel) {

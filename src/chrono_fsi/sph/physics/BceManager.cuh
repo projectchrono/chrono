@@ -69,14 +69,17 @@ class BceManager {
 
     void updateBCEAcc();
 
-    /// Populate the BCE markers on the rigid bodies at the initial configuration of the system.
-    /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
-    /// during the update stage. In such a condition the position and orientation of the body is
-    /// enough to update the position of all the particles attached to it.
-    void Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum);
-
     /// Complete construction of the BCE at the intial configuration of the system.
     void Initialize(std::vector<int> fsiBodyBceNum);
+
+  private:
+    /// Set up block sizes for rigid body force accumulation.
+    void SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum);
+
+    // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
+    void CalcRigidBceAcceleration();
+    void CalcFlex1DBceAcceleration();
+    void CalcFlex2DBceAcceleration();
 
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
@@ -84,22 +87,14 @@ class BceManager {
     thrust::device_vector<Real3> m_totalForceRigid;   ///< Total forces from fluid to bodies
     thrust::device_vector<Real3> m_totalTorqueRigid;  ///< Total torques from fluid to bodies
 
-    uint m_rigidBodyBlockSize;  ///< Block size used for kernel that accumulates force from Rigid BCE markers
-    uint m_rigidBodyGridSize;   ///< Grid size used for kernel that accumulates force from Rigid BCE markers
-    thrust::device_vector<uint> m_rigidBodyBlockValidThreads;  ///< Vector of size number of blocks that holds the
-                                                               ///< number of valid (non-padding) threads in the block
-    thrust::device_vector<uint>
-        m_rigidBodyAccumulatedPaddedThreads;  ///< Vector of size number of blocks that holds the accumulated number of
-                                              ///< padded threads uptill that block
+    uint m_rigid_block_size;                                  ///< Block size for the rigid force accumulator kernel
+    uint m_rigid_grid_size;                                   ///< Grid size for the rigid force accumulator kernel
+    thrust::device_vector<uint> m_rigid_valid_threads;        ///< numbers of valid (non-padding) threads in the block
+    thrust::device_vector<uint> m_rigid_accumulated_threads;  ///< accumulated numbers of padded threads before a block
 
     bool m_use_node_directions;
     bool m_verbose;
     bool m_check_errors;
-
-    // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
-    void CalcRigidBceAcceleration();
-    void CalcFlex1DBceAcceleration();
-    void CalcFlex2DBceAcceleration();
 };
 
 /// @} fsisph_physics

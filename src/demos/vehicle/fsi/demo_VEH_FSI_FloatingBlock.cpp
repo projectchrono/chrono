@@ -182,10 +182,8 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(ground);
 
     // Add FSI container
-    sysSPH.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 0, -1));
+    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 0, -1});
+    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
 
     // Floating block size and density
     ChVector3d plate_size(0.9 * fxDim, 0.7 * fyDim, 4 * init_space);
@@ -216,8 +214,11 @@ int main(int argc, char* argv[]) {
     }
 
     sysMBS.AddBody(floating_plate);
-    sysFSI.AddFsiBody(floating_plate);
-    sysSPH.AddBoxBCE(floating_plate, ChFrame<>(), plate_size, true);
+
+    {
+        auto bce = sysSPH.CreatePointsBoxInterior(plate_size);
+        sysFSI.AddFsiBody(floating_plate, bce, ChFrame<>(), false);
+    }
 
     // Create vehicle
     ChVector3d veh_init_pos(-bxDim / 2 - bxDim * CH_1_3, 0, bzDim + 3 * init_space + 0.1);
@@ -414,13 +415,13 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
     // Create wheel BCE markers
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            std::vector<ChVector3d> points;
             wheel->GetSpindle()->AddCollisionShape(wheel_shape);
             wheel->GetSpindle()->EnableCollision(true);
-            sysSPH.CreatePoints_Mesh(*trimesh, sysSPH.GetInitialSpacing(), points);
-            sysSPH.AddPointsBCE(wheel->GetSpindle(), points, ChFrame<>(), true);
-            sysFSI.AddFsiBody(wheel->GetSpindle());
+
+            auto points = sysSPH.CreatePointsMesh(*trimesh);
+            sysFSI.AddFsiBody(wheel->GetSpindle(), points, ChFrame<>(), false);
         }
     }
+
     return vehicle;
 }

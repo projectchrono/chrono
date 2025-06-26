@@ -88,76 +88,66 @@ void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_sysMBS.SetGravitationalAcceleration(gravity);
 }
 
-void ChFsiSystem::EnableNodeDirections(bool val) {
+void ChFsiSystem::UseNodeDirections(bool val) {
     ChAssertAlways(m_fsi_interface);
     ChDebugLog("uses direction data? " << val);
-    m_fsi_interface->EnableNodeDirections(val);
+    m_fsi_interface->UseNodeDirections(val);
+    m_sysCFD.UseNodeDirections(val);
 }
 
-size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry) {
+std::shared_ptr<FsiBody> ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body,
+                                                 std::shared_ptr<ChBodyGeometry> geometry,
+                                                 bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
-
-    unsigned int index = m_fsi_interface->GetNumBodies();
-    auto& fsi_body = m_fsi_interface->AddFsiBody(body, geometry);
-    return index;
+    return m_fsi_interface->AddFsiBody(body, geometry, check_embedded);
 }
 
-size_t ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
+std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
-
-    size_t index = 0;
-
-    bool has_contact1D = false;
-    bool has_contact2D = false;
 
     // Search for contact surfaces associated with the FEA mesh
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
             if (surface_segs->GetNumSegments() > 0)
-                index = AddFsiMesh1D(surface_segs);
-            has_contact1D = true;
-        } else if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            if (surface_mesh->GetNumTriangles() > 0)
-                index = AddFsiMesh2D(surface_mesh);
-            has_contact2D = true;
+                return m_fsi_interface->AddFsiMesh1D(surface_segs, check_embedded);
         }
     }
 
     // If no 1D surface contact found, create one with a default contact material and add segments from cable and beam
     // elements in the FEA mesh. Do not add the new contact surface to the mesh.
-    if (!has_contact1D) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        surface_segs->AddAllSegments(*mesh, 0);
-        if (surface_segs->GetNumSegments() > 0)
-            index = AddFsiMesh1D(surface_segs);
+    ChContactMaterialData contact_material_data;
+    auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
+        contact_material_data.CreateMaterial(ChContactMethod::SMC));
+    surface_segs->AddAllSegments(*mesh, 0);
+    if (surface_segs->GetNumSegments() > 0)
+        return m_fsi_interface->AddFsiMesh1D(surface_segs, check_embedded);
+
+    // The FEA mesh contains no 1D elements (cable or beam)
+    return nullptr;
+}
+
+std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
+    ChAssertAlways(m_fsi_interface);
+
+    // Search for contact surfaces associated with the FEA mesh
+    for (const auto& surface : mesh->GetContactSurfaces()) {
+        if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
+            if (surface_mesh->GetNumTriangles() > 0)
+                return m_fsi_interface->AddFsiMesh2D(surface_mesh, check_embedded);
+        }
     }
 
     // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
     // FEA mesh. Do not add the new contact surface to the mesh.
-    if (!has_contact2D) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
-        if (surface_mesh->GetNumTriangles() > 0)
-            index = AddFsiMesh2D(surface_mesh);
-    }
+    ChContactMaterialData contact_material_data;
+    auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
+        contact_material_data.CreateMaterial(ChContactMethod::SMC));
+    surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
+    if (surface_mesh->GetNumTriangles() > 0)
+        return m_fsi_interface->AddFsiMesh2D(surface_mesh, check_embedded);
 
-    return index;
-}
-
-size_t ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
-    unsigned int index = m_fsi_interface->GetNumMeshes1D();
-    auto& fsi_mesh = m_fsi_interface->AddFsiMesh1D(surface);
-    return index;
-}
-
-size_t ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
-    unsigned int index = m_fsi_interface->GetNumMeshes2D();
-    auto& fsi_mesh = m_fsi_interface->AddFsiMesh2D(surface);
-    return index;
+    // The FEA mesh contains no 2D elements (shell or solid)
+    return nullptr;
 }
 
 void ChFsiSystem::Initialize() {
@@ -189,11 +179,7 @@ void ChFsiSystem::Initialize() {
 
     // Initialize fluid system with initial solid states
     m_sysCFD.SetStepSize(m_step_CFD);
-    m_sysCFD.Initialize(m_fsi_interface->GetBodies(),               //
-                        m_fsi_interface->GetMeshes1D(),             //
-                        m_fsi_interface->GetMeshes2D(),             //
-                        body_states, mesh1D_states, mesh2D_states,  //
-                        m_fsi_interface->UseNodeDirections());      //
+    m_sysCFD.Initialize(body_states, mesh1D_states, mesh2D_states);
 
     // Mark systems as initialized
     m_sysCFD.m_is_initialized = true;

@@ -70,14 +70,14 @@ double pto_damping = 0;
 double depth = 0.4;
 
 // Output frequency
-bool output = true;
+bool output = false;
 double output_fps = 10;
 
 // write info frequency
 double csv_fps = 200;
 
 // Enable/disable run-time visualization
-bool render = false;
+bool render = true;
 float render_fps = 200;
 
 // Enable saving snapshots
@@ -245,9 +245,9 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
 
     // TODO: use multiple chbodies
 
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(cmat);
-    // geometry.coll_boxes.push_back(
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(cmat);
+    // geometry->coll_boxes.push_back(
     //     utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0.5 * wec_size.z()), QUNIT, wec_size, 0));
 
     double door_thickness = 0.076;
@@ -296,20 +296,21 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     //  **  mini_window_0    **
     //  ***********************
 
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(front_box_pos, QUNIT, thin_plate_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(front_box_pos, QUNIT, thin_plate_size, 0));
     std::cout << "Add front box at location " << front_box_pos << ", size of : " << thin_plate_size
               << " and initial spacing of: " << initial_spacing << std::endl;
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(back_box_pos, QUNIT, thin_plate_size, 0));
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(top_panel_pos, QUNIT, top_panel_size, 0));
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(bottom_panel_pos, QUNIT, bottom_panel_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(back_box_pos, QUNIT, thin_plate_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(top_panel_pos, QUNIT, top_panel_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(bottom_panel_pos, QUNIT, bottom_panel_size, 0));
 
     for (int i = 0; i < num_windows; i++) {
-        geometry.coll_boxes.push_back(
+        geometry->coll_boxes.push_back(
             utils::ChBodyGeometry::BoxShape(mini_window_pos, QuatFromAngleY(mini_window_angle), mini_window_size, 0));
         mini_window_pos.z() += mini_window_height;
     }
 
     auto flap = chrono_types::make_shared<ChBody>();
+    flap->SetName("WEC flap");
     flap->SetPos(wec_pos);
     flap->SetRot(QUNIT);
     flap->SetFixed(false);
@@ -328,7 +329,7 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     std::cout << "wec_inertia: " << std::endl << flap->GetInertiaXX() << std::endl;
     sysMBS.AddBody(flap);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(flap, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(flap, VisualizationType::COLLISION);
 
     // TODO: do the class thing, so it initialize mass and inertia as well
     fsi.AddRigidBody(flap, geometry, true, true);
@@ -336,8 +337,6 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     // add ground
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
-    ground->SetMass(2 * wec_mass);
-    ground->SetInertiaXX(flap->GetInertiaXX());
     sysMBS.AddBody(ground);
 
     // Add revolute joint

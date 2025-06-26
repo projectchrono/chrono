@@ -70,6 +70,7 @@ struct FsiMeshForce {
 
 /// Description of a rigid body exposed to the FSI system.
 struct FsiBody {
+    size_t index;                              ///< body index in the list of FSI bodies
     std::shared_ptr<ChBody> body;              ///< rigid body exposed to FSI system
     std::shared_ptr<ChBodyGeometry> geometry;  ///< geometry for FSI interaction
     ChVector3d fsi_force;                      ///< fluid force at body COM (expressed in absolute frame)
@@ -77,21 +78,23 @@ struct FsiBody {
     unsigned int fsi_accumulator;              ///< index of the body force accumulator for fluid forces
 };
 
-/// Description of an FEA mesh with 1-D segments exposed to the FSI system.
+/// Description of an FEA mesh surface with 1-D segments exposed to the FSI system.
 struct FsiMesh1D {
     unsigned int GetNumElements() const { return contact_surface->GetNumSegments(); }
     unsigned int GetNumNodes() const { return (unsigned int)ind2ptr_map.size(); }
 
+    size_t index;                                                      ///< mesh index in the list of FSI 1D meshes
     std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
     std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
     std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
 };
 
-/// Description of an FEA mesh with 2-D faces exposed to the FSI system.
+/// Description of an FEA mesh surface with 2-D faces exposed to the FSI system.
 struct FsiMesh2D {
     unsigned int GetNumElements() const { return contact_surface->GetNumTriangles(); }
     unsigned int GetNumNodes() const { return (unsigned int)ind2ptr_map.size(); }
 
+    size_t index;                                                   ///< mesh index in the list of FSI 2D meshes
     std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
     std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
     std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping

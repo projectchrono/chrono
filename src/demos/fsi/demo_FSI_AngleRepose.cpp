@@ -184,10 +184,8 @@ int main(int argc, char* argv[]) {
     box->EnableCollision(false);
 
     // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(box,                                    //
-                              ChFrame<>(ChVector3d(0, 0, 0), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),        //
-                              ChVector3i(0, 0, -1));
+    auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {0, 0, -1});
+    sysFSI.AddFsiBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, 0), QUNIT), false);
 
     sysFSI.Initialize();
 
@@ -262,7 +260,6 @@ int main(int argc, char* argv[]) {
 #else
     render = false;
 #endif
-
 
     // Start the simulation
     double time = 0.0;

@@ -156,7 +156,7 @@ class ChApi ChVisualSystem {
     virtual void EndScene() {}
 
     /// Get the list of associated Chrono systems.
-    std::vector<ChSystem*> GetSystems() const { return m_systems; }
+    std::vector<ChSystem*>& GetSystems() { return m_systems; }
 
     /// Get the specified associated Chrono system.
     ChSystem& GetSystem(int i) const { return *m_systems[i]; }
