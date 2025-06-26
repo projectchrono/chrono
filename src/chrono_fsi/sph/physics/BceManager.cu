@@ -855,9 +855,9 @@ __global__ void UpdateMeshMarker1DState_D(
 
     // Create local frame
     Real3 x_dir = get_normalized(D);
-    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
-    y_dir = y_dir / length(y_dir);
-    Real3 z_dir = cross(x_dir, y_dir);
+    Real3 y_dir;
+    Real3 z_dir;
+    get_orthogonal_axes(x_dir, y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -923,9 +923,9 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
 
     // Create local frame
     Real3 x_dir = get_normalized(D);
-    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
-    y_dir = y_dir / length(y_dir);
-    Real3 z_dir = cross(x_dir, y_dir);
+    Real3 y_dir;
+    Real3 z_dir;
+    get_orthogonal_axes(x_dir, y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity

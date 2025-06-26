@@ -1362,6 +1362,16 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
     }
 }
 
+void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
+    ChVector3d y_tmp(0, 1, 0);
+    if (x.y() > 0.9 || x.y() < -0.9) {
+        y_tmp.x() = 1;
+        y_tmp.y() = 0;
+    }
+    z = Vcross(x, y_tmp).GetNormalized();
+    y = Vcross(z, x);
+}
+
 void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
                                              BcePatternMesh1D pattern,
                                              bool remove_center,
@@ -1445,9 +1455,9 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
 
             // Create local frame
             ChVector3d x_dir = D.GetNormalized();
-            ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
-            y_dir.Normalize();
-            ChVector3<> z_dir = Vcross(x_dir, y_dir);
+            ChVector3d y_dir;
+            ChVector3d z_dir;
+            GetOrthogonalAxes(x_dir, y_dir, z_dir);
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
