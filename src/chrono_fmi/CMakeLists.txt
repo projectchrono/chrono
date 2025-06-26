@@ -145,6 +145,10 @@ add_library(Chrono_fmi
             ${Chrono_FMI_HEADERS}
             ${Chrono_FMI_SOURCES})
 
+add_library(Chrono::fmi ALIAS Chrono_fmi)
+
+set_target_properties(Chrono_fmi PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 target_include_directories(Chrono_fmi PRIVATE "${FMU_FORGE_DIR}")
 
 if (CH_STATIC)

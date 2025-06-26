@@ -63,6 +63,8 @@ set(CH_IRRLICHT_DLL "${IRRLICHT_DLL}" PARENT_SCOPE)
 add_library(Chrono_irrlicht ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 add_library(Chrono::irrlicht ALIAS Chrono_irrlicht)
 
+set_target_properties(Chrono_irrlicht PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_irrlicht PROPERTIES LINK_FLAGS "/LTCG")

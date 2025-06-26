@@ -1057,63 +1057,55 @@ endforeach()
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
 
-get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT CHRONO_CONFIGURATION_TYPES)
-  if(IS_MULTI_CONFIG)
-    set(CHRONO_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES}) # system has multi-config IDE
-  else()
-    if(CMAKE_BUILD_TYPE)
-      set(CHRONO_CONFIGURATION_TYPES "${CMAKE_BUILD_TYPE}")
-    else()
-      set(CHRONO_CONFIGURATION_TYPES "Default")
-    endif()
-  endif()
-endif()
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)
 endif()
 
-foreach(config ${CHRONO_CONFIGURATION_TYPES})
-  string(TOUPPER config config_upper)
-  foreach(lib ${CHRONO_LIB_NAMES})
-    set(onelib "${lib}-NOTFOUND")
-    find_library(onelib ${lib}
-      PATHS "${CHRONO_PACKAGE_PREFIX_DIR}/lib"
-      PATH_SUFFIXES ${config}
-      NO_DEFAULT_PATH
-    )
-    if(NOT onelib)
-      list(APPEND CHRONO_MISSING_LIB_CONFIG_${config} ${lib})
-    endif()
-  endforeach()
+foreach(lib ${CHRONO_LIB_NAMES})
+  set(onelib "${lib}-NOTFOUND")
+  find_library(onelib ${lib}
+    PATHS "${CHRONO_PACKAGE_PREFIX_DIR}/lib"
+    PATH_SUFFIXES "Release" "RelWithDebInfo" "MinSizeRel"
+    NO_DEFAULT_PATH
+  )
+  if(NOT onelib)
+    list(APPEND CHRONO_MISSING_LIBS_NDEBUG ${lib})
+  endif()
 endforeach()
+unset(onelib CACHE)
 
+foreach(lib ${CHRONO_LIB_NAMES})
+  set(onelib "${lib}-NOTFOUND")
+  find_library(onelib ${lib}@CH_DEBUG_POSTFIX@
+    PATHS "${CHRONO_PACKAGE_PREFIX_DIR}/lib"
+    PATH_SUFFIXES "Debug"
+    NO_DEFAULT_PATH
+  )
+  if(NOT onelib)
+    list(APPEND CHRONO_MISSING_LIBS_DEBUG ${lib})
+  endif()
+endforeach()
 unset(onelib CACHE)
 
 #-------------------------------------------------------------------------------
 # Check that necessary Chrono libraries exist
 #-------------------------------------------------------------------------------
+if(NOT Chrono_FIND_QUIETLY)
+  if(CHRONO_MISSING_LIBS_NDEBUG)
+      message(STATUS "Chrono libraries not found for the non-debug configuration: ${CHRONO_MISSING_LIBS_NDEBUG}")
+  endif()
 
-if (IS_MULTI_CONFIG)
+  if(CHRONO_MISSING_LIBS_DEBUG)
+      message(STATUS "Chrono libraries not found for the debug configuration: ${CHRONO_MISSING_LIBS_DEBUG}")
+  endif()
+endif()
+
+if (CHRONO_MISSING_LIBS_NDEBUG AND CHRONO_MISSING_LIBS_DEBUG)
   if(NOT Chrono_FIND_QUIETLY)
-    message(STATUS "Chrono libraries for multi-config build systems")
+    message("Chrono libraries not found for both the NDEBUG and DEBUG configurations: ${CHRONO_MISSING_LIBS_NDEBUG} ${CHRONO_MISSING_LIBS_DEBUG}")
   endif()
-  foreach(config ${CHRONO_CONFIGURATION_TYPES})
-    # if the given configuration does not have a proper Chrono built library then link to Chrono Release, but only for non-static
-    if(NOT Chrono_FIND_QUIETLY)
-      if (CHRONO_MISSING_LIB_CONFIG_${config})
-        message(STATUS "  Configuration ${config} will not work properly since some Chrono libraries are missing for this configuration:\n      missing: ${CHRONO_MISSING_LIB_CONFIG_${config}}")
-      else()
-        message(STATUS "  Chrono libraries for configuration ${config} have been successfully found.")
-      endif()
-    endif()
-  endforeach()
-else()
-  if (CHRONO_MISSING_LIB_CONFIG_${CHRONO_CONFIGURATION_TYPES})
-    message(NOTICE "Some Chrono libraries are not installed properly: ${CHRONO_MISSING_LIB_CONFIG_${CHRONO_CONFIGURATION_TYPES}}")
-  endif()
-endif() 
+  set(Chrono_FOUND OFF)
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -1153,7 +1145,7 @@ if(NOT Chrono_FIND_QUIETLY)
 endif()
 
 #===============================================================================
-# Provide a CMake function which adds a custom command (COPY_DLLS), invoked
+# Provide a CMake function which adds a custom command (COPY_CHRONO_DLLS), invoked
 # pre-build to copy all DLLs specified in the input list to the appropriate
 # folder for the current VS configuration.
 #
@@ -1164,7 +1156,7 @@ endif()
 # Create custom commands, invoked pre-build to copy DLLs to the appropriate
 # directory (depending on the configuration selected at build time in VS)
 
-function(add_DLL_copy_command)
+function(add_CHRONO_DLLS_copy_command)
 
     # Return now if not windows
     if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -1198,47 +1190,64 @@ function(add_DLL_copy_command)
     list(REMOVE_DUPLICATES DLL_NAMES)
 
     # Find actual Chrono DLLs
+    unset(DLLS_NDEBUG)
+    unset(DLLS_DEBUG)
+    unset(DLL_MISSING_NDEBUG)
+    unset(DLL_MISSING_DEBUG)
 
-    foreach(config ${CHRONO_CONFIGURATION_TYPES})
-      unset(DLLS_${config})
-      unset(DLL_MISSING_${config})
+    # Look for non-debug DLLs
+    foreach(dll ${DLL_NAMES})
+      set(onedll "${dll}-NOTFOUND")
+      find_file(onedll ${dll}
+        PATHS "${CHRONO_PACKAGE_PREFIX_DIR}/bin"
+        PATH_SUFFIXES "Release" "RelWithDebInfo" "MinSizeRel"
+        NO_DEFAULT_PATH
+      )
+      if(NOT onedll)
+        list(APPEND DLL_MISSING_NDEBUG ${dll})
+        # message(STATUS "DLL '${dll}' in package Chrono is not installed properly")
+      else()
+        list(APPEND DLLS_NDEBUG "${onedll}")
+        # message(STATUS "...${onedll}")
+      endif()
     endforeach()
-
-    foreach(config ${CHRONO_CONFIGURATION_TYPES}) 
-      foreach(dll ${DLL_NAMES})
-        set(onedll "${dll}-NOTFOUND")
-        find_file(onedll ${dll}
-          PATHS "${CHRONO_PACKAGE_PREFIX_DIR}/bin"
-          PATH_SUFFIXES "${config}"
-          NO_DEFAULT_PATH
-        )
-        if(NOT onedll)
-          list(APPEND DLL_MISSING_${config} ${dll})
-          # message(STATUS "DLL '${dll}' in package Chrono is not installed properly")
-        else()
-          list(APPEND DLLS_${config} "${onedll}")
-          # message(STATUS "...${onedll}")
-        endif()
-      endforeach()
-    endforeach()  
     unset(onedll CACHE)
-    
-    # # if a given configuration is missing then the Release DLLs will be used as rollback for that given config
-    # foreach(config ${CHRONO_CONFIGURATION_TYPES})
-    #   if (DLL_MISSING_${config} AND NOT DLL_MISSING_Release)
-    #     set(DLLS_${config} ${DLLS_Release})
-    #   endif()
-    # endforeach()
+
+    # Look for debug DLLs
+    foreach(dll ${DLL_NAMES})
+      set(onedll "${dll}-NOTFOUND")
+      cmake_path(GET dll EXTENSION dll_extension)
+      cmake_path(GET dll EXTENSION dll_extension)
+
+      cmake_path(REMOVE_EXTENSION dll OUTPUT_VARIABLE dll_noextension)
+
+      set(dll_debugname "${dll_noextension}@CH_DEBUG_POSTFIX@${dll_extension}")
+
+      find_file(onedll ${dll_debugname}
+        PATHS "${CHRONO_PACKAGE_PREFIX_DIR}/bin"
+        PATH_SUFFIXES "Debug"
+        NO_DEFAULT_PATH
+      )
+      if(NOT onedll)
+        list(APPEND DLL_MISSING_DEBUG ${dll})
+        # message(STATUS "DLL '${dll}' in package Chrono is not installed properly")
+      else()
+        list(APPEND DLLS_DEBUG "${onedll}")
+        # message(STATUS "...${onedll}")
+      endif()
+    endforeach()
+    unset(onedll CACHE)
 
     # Create custom target for copying DLLs; add it to the default build target
-    add_custom_target(COPY_DLLS ALL)
+    add_custom_target(COPY_CHRONO_DLLS ALL)
 
-    # Grab the folder in which the given configuration will generate the files
+    # Identify the folder in which the given configuration will generate the files
     # this is not a per-target folder, but it assumed a commond folder for all the runtime artifacts for the entire project
-    # unless otherwise specified through the CMAKE_RUNTIME_OUTPUT_DIRECTORY and CMAKE_RUNTIME_OUTPUT_DIRECTORY_<CONFIG> variables
     foreach(config ${CHRONO_CONFIGURATION_TYPES})
       string(TOUPPER ${config} config_upper)
-      if(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper})
+      if(CHRONO_PROJECT_RUNTIME_OUTPUT_DIRECTORY_${config_upper})
+        set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${CHRONO_PROJECT_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}")
+      elseif(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper})
         set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}")
       else()
         if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -1247,10 +1256,10 @@ function(add_DLL_copy_command)
           set(TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${PROJECT_BINARY_DIR}/${config}/")
         endif()
       endif()
-
+      
       # Add custom command to create the destination folder
       add_custom_command(
-        TARGET COPY_DLLS PRE_BUILD
+        TARGET COPY_CHRONO_DLLS PRE_BUILD
         COMMENT "Creating DLL output directory ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"
         COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
             "$<$<CONFIG:${config}>:-E>"
@@ -1261,12 +1270,20 @@ function(add_DLL_copy_command)
 
     # Add custom command for each Chrono DLL
     foreach(config ${CHRONO_CONFIGURATION_TYPES})
+
       string(TOUPPER ${config} config_upper)
 
+      if(config_upper MATCHES "DEBUG")
+        set(DLLS_CURRENT_CONFIG ${DLLS_DEBUG})
+      else()
+        set(DLLS_CURRENT_CONFIG ${DLLS_NDEBUG})
+      endif()
+
       # copy Chrono DLLs in configuration-specific folder
-      foreach(DLL ${DLLS_${config}})
+      foreach(DLL ${DLLS_CURRENT_CONFIG})
+
           add_custom_command(
-              TARGET COPY_DLLS POST_BUILD
+              TARGET COPY_CHRONO_DLLS POST_BUILD
               COMMENT "Copying Chrono DLL ${DLL} in ${TEMP_RUNTIME_OUTPUT_DIRECTORY_${config_upper}}\n"  
               COMMAND "$<$<CONFIG:${config}>:${CMAKE_COMMAND}>"
                   "$<$<CONFIG:${config}>:-E>"
@@ -1276,7 +1293,9 @@ function(add_DLL_copy_command)
           )
       endforeach()
 
+      unset(DLLS_CURRENT_CONFIG)
     endforeach()
+
     unset(TEMP_RUNTIME_OUTPUT_DIRECTORY_CONFIG)
     unset(config_upper)
 

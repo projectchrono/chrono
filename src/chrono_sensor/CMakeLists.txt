@@ -348,6 +348,8 @@ add_library(Chrono_sensor ${ALL_CH_SENSOR_FILES}
                                 ${Chrono_sensor_CUDA_SOURCES})
 add_library(Chrono::sensor ALIAS Chrono_sensor)
 
+set_target_properties(Chrono_sensor PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_sensor PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_sensor PROPERTIES LINK_FLAGS "/LTCG")
@@ -465,6 +467,7 @@ else()
 
   # Create helper PTX library
   add_library(Chrono_sensor_ptx OBJECT ${Chrono_sensor_RT_SOURCES} ${Chrono_sensor_RT_HEADERS})
+  set_target_properties(Chrono_sensor_ptx PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
   target_include_directories(Chrono_sensor_ptx PRIVATE ${CMAKE_SOURCE_DIR}/src)
   set_property(TARGET Chrono_sensor_ptx PROPERTY CUDA_PTX_COMPILATION ON)
   target_link_libraries(Chrono_sensor_ptx PRIVATE OptiX::OptiX)

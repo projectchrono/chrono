@@ -149,7 +149,7 @@ By default, all Chrono modules are built as shared libraries (**DLLs** on Window
 
 To simplify things, `chrono-config.cmake` provides a function that copies the necessary Chrono DLLs from their location (in the Chrono build tree or in a Chrono installation) to the project's build directory (\<my_project_build\> in our example).
 This is done by introducing a new build target (`COPY_DLLS`) to the Visual Studio solution which is executed **POST_BUILD**.
-To enable the inclusion of this convenience target, the project's CMakeLists.txt script should call `add_DLL_copy_command()` at the end. Note that this function is a no-op on platforms other than Windows.
+To enable the inclusion of this convenience target, the project's CMakeLists.txt script should call `add_CHRONO_DLLS_copy_command()` at the end. Note that this function is a no-op on platforms other than Windows.
 
 ### Important information if using Chrono::CSharp
 

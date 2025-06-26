@@ -51,6 +51,9 @@ source_group("" FILES
 add_library(Chrono_postprocess ${Chrono_POSTPROCESS_SOURCES} ${Chrono_POSTPROCESS_HEADERS})
 add_library(Chrono::postprocess ALIAS Chrono_postprocess)
 
+
+set_target_properties(Chrono_postprocess PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_postprocess PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_postprocess PROPERTIES LINK_FLAGS "/LTCG")

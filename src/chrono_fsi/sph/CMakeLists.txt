@@ -171,6 +171,8 @@ add_library(Chrono_fsisph
 )
 add_library(Chrono::fsisph ALIAS Chrono_fsisph)
 
+set_target_properties(Chrono_fsisph PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if (CH_STATIC)
   set_target_properties(Chrono_fsisph PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
@@ -227,6 +229,9 @@ if(CH_ENABLE_MODULE_VSG)
         ${FSISPH_VSG_FILES}
     )
     add_library(Chrono::fsisph_vsg ALIAS Chrono_fsisph_vsg)
+
+    set_target_properties(Chrono_fsisph_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
    
     if (CH_STATIC)
       set_target_properties(Chrono_fsisph_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
