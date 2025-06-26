@@ -324,7 +324,6 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
     ChMatrix33<double> nmL_tr=nmL.transpose();
     
     auto computeMass = [&](double L, int pos) {
-        std::cout << "i am here 2: " <<std::endl;
         double mass = Area * rho * std::abs(L);
         double MJxx = mass * L * L / 3.0; // eccentricity in x direction equals to L/2  ----->  Jxx=(mass*L*L/12+mass*(L/2)*(L/2)
         double MJyy = mass * w * w / 12.0;

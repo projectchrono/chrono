@@ -288,7 +288,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 		// Get connector nodes which previously stored as pointers in mesh object	
 		//
 		if (connector.preCrack  || connector.conType == 11 || connector.conType == 12 || connector.conType == 13)
-			continue;   //if precrack and tranverse_fibers connectors, skip inserting  into mesh
+			continue;   //if precrack and tangential_fibers connectors, skip inserting  into mesh
 		//
 		auto nodeA = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.inode-1));
 		auto nodeB = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.jnode-1));
@@ -364,34 +364,34 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 		//msection->SetDrawThickness(0.1, 0.25);
 		switch(typeFlag) {
         		case 1: 
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_bot);  
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_bot);  //conector flag: 1
         			break;
         		case 2:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_generic); 
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_generic); //conector flag: 2
         			break;
         		case 3:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_top); 
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_top); //conector flag: 3
         			break;
         		case 4: 
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);        			
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);  //conector flag: 4      			
         			break;
 				case 11:
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_bot);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_bot);  //conector flag: 11      			
         			break;
 				case 12: 
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_generic);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_generic); //conector flag: 12       			
         			break;
 				case 13: 
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_top);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_top); //conector flag: 13       			
         			break;		
 				case 21: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_bot);        			
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_bot); //conector flag: 21       			
         			break;
 				case 22: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_generic);        			
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_generic);  //conector flag: 22      			
         			break;
 				case 23: 
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_top);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_top);  //conector flag: 23      			
         			break;
         	}
 		//		
@@ -494,7 +494,7 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
 		// Get connector nodes which previously stored as pointers in mesh object	
 		//
 		if (connector.preCrack || connector.conType == 11 || connector.conType == 12 || connector.conType == 13)
-			continue;   //if precrack and tranverse_fibers connectors, skip inserting  into mesh
+			continue;   //if precrack and tangential_fibers connectors, skip inserting  into mesh
 		//
 		auto nodeA = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.inode-1));
 		auto nodeB = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.jnode-1));
@@ -595,29 +595,17 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
 				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);
 				msection->Set_material(vect_mat[1]);
 				break;
-			case 11: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_bot);
-				msection->Set_material(vect_mat[2]);
-				break;
-			case 12: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_generic);
-				msection->Set_material(vect_mat[2]);
-				break;
-			case 13: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_top);
-				msection->Set_material(vect_mat[2]);
-				break;
 			case 21: 
 				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_bot);
-				msection->Set_material(vect_mat[3]);
+				msection->Set_material(vect_mat[2]);
 				break;
 			case 22: 
 				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_generic);
-				msection->Set_material(vect_mat[3]);
+				msection->Set_material(vect_mat[2]);
 				break;
 			case 23: 
 				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_top);
-				msection->Set_material(vect_mat[3]);
+				msection->Set_material(vect_mat[2]);
 				break;
         }
 		//		
