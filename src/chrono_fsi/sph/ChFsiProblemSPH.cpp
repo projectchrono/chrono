@@ -1135,8 +1135,10 @@ std::shared_ptr<ChBody> ChFsiProblemWavetank::ConstructWaveTank(
 
     // If using periodic BC in lateral direction, explicitly set computational domain and BC types
     if (m_periodic_BC) {
-        auto aabb_min = ChVector3d(-bce_layers * m_spacing, 0 * m_spacing, -bce_layers * m_spacing);
-        auto aabb_max = ChVector3d((Nx + bce_layers) * m_spacing, Ny * m_spacing, (Nzc + bce_layers) * m_spacing);
+        auto y_min = (0 + 0.5) * m_spacing;
+        auto y_max = ((Ny - 1) - 0.5) * m_spacing;
+        auto aabb_min = ChVector3d(-bce_layers * m_spacing, y_min, -bce_layers * m_spacing);
+        auto aabb_max = ChVector3d((Nx + bce_layers) * m_spacing, y_max, (Nzc + bce_layers) * m_spacing);
         m_domain_aabb = ChAABB(m_offset_sph + aabb_min, m_offset_sph + aabb_max);
         m_bc_type = BC_Y_PERIODIC;
     }
