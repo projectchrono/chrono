@@ -94,7 +94,8 @@ TEST(WoodMaterialVECTTest, stress_no_eigenstrain){
     // CBL stress calculation
     ChVector3d stress;
     ChVector3d couple;
-    my_mat->ComputeStress(strain,curvature, length, epsv, statev, facet_area, facet_width, facet_height, stress, couple);
+    double random_field = 1.0; // NO RANDOM FIELD
+    my_mat->ComputeStress(strain,curvature, length, epsv, statev, facet_area, facet_width, facet_height, random_field, stress, couple);
 
 }
 
