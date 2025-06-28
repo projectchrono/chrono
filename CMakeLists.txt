@@ -42,7 +42,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 #-----------------------------------------------------------------------------
 
 set(CHRONO_VERSION_MAJOR 8)
-set(CHRONO_VERSION_MINOR 0)
+set(CHRONO_VERSION_MINOR 1)
 set(CHRONO_VERSION_PATCH 0)
 
 project(Chrono VERSION ${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH})
@@ -55,7 +55,7 @@ set(CPACK_PACKAGE_VERSION_MINOR "${CHRONO_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
 
 # Version as a hexadecimal integer of the form 0x00MMmmPP
-set(CH_VERSION 0x00080000)
+set(CH_VERSION 0x00080100)
 
 #-----------------------------------------------------------------------------
 # Detect operating system and processor for host and target
