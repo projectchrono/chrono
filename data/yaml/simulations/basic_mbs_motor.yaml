@@ -11,4 +11,4 @@ solver_type: Barzilai_Borwein
 
 render: true
 render_fps: 1000
-camera_vertical: Y
+camera_vertical: Z
