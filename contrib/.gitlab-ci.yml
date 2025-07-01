@@ -283,6 +283,7 @@ windows:vs2022:build:
     expire_in: 3 hours
     paths:
       - build/
+      - contrib/build-scripts/gl_build
 
 windows:vs2022:test:
   stage: test
@@ -406,7 +407,11 @@ windows:deploy-python3.10:
 
 windows:deploy-installer:
   stage: deploy
-  needs: ["windows:vs2022:build"]
+  needs: 
+    - job: "windows:vs2022:build"
+      artifacts: true
+    - job: "windows:vs2022:test"
+      artifacts: false
   extends: .windows
   script:
     - echo "Generating installer..."
@@ -415,14 +420,13 @@ windows:deploy-installer:
     - mkdir -Force -p public
     - zip -r "public/chrono_install_${CI_COMMIT_SHORT_SHA}.zip" install/
     - cp "public/chrono_install_${CI_COMMIT_SHORT_SHA}.zip" "public/chrono_install_latest.zip"
-  when: on_success
   artifacts:
     expire_in: 10 days
     paths:
       - "public/chrono_install_${CI_COMMIT_SHORT_SHA}.zip"
       - "public/chrono_install_latest.zip"
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\]$/'
       when: on_success
 
 #----------------#
