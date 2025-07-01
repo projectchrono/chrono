@@ -408,9 +408,9 @@ windows:deploy-python3.10:
 windows:deploy-installer:
   stage: deploy
   needs: 
-    - job: "windows:vs2022:build"
+    - job: windows:vs2022:build
       artifacts: true
-    - job: "windows:vs2022:test"
+    - job: windows:vs2022:test
       artifacts: false
   extends: .windows
   script:
@@ -426,7 +426,7 @@ windows:deploy-installer:
       - "public/chrono_install_${CI_COMMIT_SHORT_SHA}.zip"
       - "public/chrono_install_latest.zip"
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\]$/'
+    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\]/'
       when: on_success
 
 #----------------#
