@@ -422,7 +422,7 @@ windows:deploy-installer:
       - "public/chrono_install_${CI_COMMIT_SHORT_SHA}.zip"
       - "public/chrono_install_latest.zip"
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /\\[install\\]$/'
+    - if: '$CI_COMMIT_REF_NAME == "main"'
       when: on_success
 
 #----------------#
