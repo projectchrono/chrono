@@ -275,12 +275,12 @@ windows:vs2022:build:
   # Build urdf with buildURDF script (it looks like we have already using thre pre-built urdf as of April 27th, 2025, disabling the building for now)
   # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/install" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
   artifacts:
-    expire_in: 60m
+    expire_in: 3 hours
     paths:
       - build/
 
@@ -403,6 +403,24 @@ windows:deploy-python3.10:
     expire_in: 60m
     paths:
       - ./logs/
+
+windows:deploy-installer:
+  stage: deploy
+  needs: ["windows:vs2022:build"]
+  script:
+    - echo "Generating installer..."
+    - cmake --install build --config Release
+  after_script:
+    - echo "Packing installer in zip file..."
+    - zip -r "chrono_install_${CI_COMMIT_SHORT_SHA}.zip" install/
+  when: on_success
+  artifacts:
+    expire_in: 10 days
+    paths:
+      - "chrono_install_${CI_COMMIT_SHORT_SHA}.zip"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_MESSAGE =~ /\\[install\\]$/'
+      when: on_success
 
 #----------------#
 # macOS Builders #
