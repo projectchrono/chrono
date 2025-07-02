@@ -421,14 +421,12 @@ windows:deploy-installer:
     - echo "Packing installer in zip file..."
     - New-Item -ItemType Directory -Force -Path public
     - Compress-Archive -Force -Path "install/*" -DestinationPath "$env:INSTALL_ZIP_SHA_PATH"
-    - Copy-Item "$env:INSTALL_ZIP_SHA_PATH" -Destination "public/chrono_install_latest.zip"
   artifacts:
     expire_in: 10 days
     paths:
       - $INSTALL_ZIP_SHA_PATH
-      - public/chrono_install_latest.zip
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\]/'
+    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\][\n\r\s]*/'
       when: on_success
 
 #----------------#
