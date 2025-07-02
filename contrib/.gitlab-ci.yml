@@ -407,6 +407,8 @@ windows:deploy-python3.10:
 
 windows:deploy-installer:
   stage: deploy
+  variables:
+    INSTALL_ZIP_SHA_PATH: "public/chrono_install_${CI_COMMIT_SHORT_SHA}.zip"
   needs: 
     - job: windows:vs2022:build
       artifacts: true
@@ -418,13 +420,13 @@ windows:deploy-installer:
     - cmake --install build --config Release
     - echo "Packing installer in zip file..."
     - New-Item -ItemType Directory -Force -Path public
-    - Compress-Archive -Force -Path "install/*" -DestinationPath "public/chrono_install_$($env:CI_COMMIT_SHORT_SHA).zip"
-    - Copy-Item "public/chrono_install_$($env:CI_COMMIT_SHORT_SHA).zip" -Destination "public/chrono_install_latest.zip"
+    - Compress-Archive -Force -Path "install/*" -DestinationPath "$env:INSTALL_ZIP_SHA_PATH"
+    - Copy-Item "$env:INSTALL_ZIP_SHA_PATH" -Destination "public/chrono_install_latest.zip"
   artifacts:
     expire_in: 10 days
     paths:
-      - "public/chrono_install_$CI_COMMIT_SHORT_SHA.zip"
-      - "public/chrono_install_latest.zip"
+      - $INSTALL_ZIP_SHA_PATH
+      - public/chrono_install_latest.zip
   rules:
     - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\]/'
       when: on_success
