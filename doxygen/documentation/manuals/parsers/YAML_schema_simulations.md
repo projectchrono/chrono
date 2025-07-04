@@ -25,24 +25,27 @@ A simulation file contains these main sections:
 |----------|-------------|------|
 | `end_time` | Total simulation time in seconds | number |
 | `enforce_realtime` | Whether to enforce real-time simulation | boolean |
-| `gravity` | Gravitational acceleration vector [x, y, z] in m/s^2 | array[3] |
-| `integrator_type` | Type of numerical integrator | string |
-| `solver_type` | Type of linear solver | string |
-| `render` | Whether to enable visualization | boolean |
-| `render_fps` | Target frames per second for visualization | number |
-| `camera_vertical` | Vertical axis for camera orientation | string (Y/Z) |
+| `gravity` | Gravitational acceleration vector [x, y, z] | array[3] |
 
-### Integrator Types
+### Integrator, solver, and visualization settings
 
-The `integrator_type` can be one of:
+| Property | Description | Type |
+|----------|-------------|------|
+| `integrator` | Integrator type and parameters | object |
+| `solver` | (DVI or linear) solver type and parameters | object |
+| `visualization` | Run-time visualization settings | object |
+
+### Integrator types and parameters
+
+The integrator can be of one of the following types:
 - `EULER_IMPLICIT_LINEARIZED`
 - `EULER_IMPLICIT_PROJECTED`
 - `EULER_IMPLICIT`
 - `HHT`
 
-### Solver Types
+### Solver types and parameters
 
-The `solver_type` can be one of:
+The solver can be one of the following types:
 - `BARZILAI_BORWEIN`
 - `PSOR`
 - `APGD`
@@ -54,28 +57,47 @@ The `solver_type` can be one of:
 - `SPARSE_LU`
 - `SPARSE_QR`
 
+### Run-time visualization parameters
+
+If an entry with key `visualization` is present, run-time visualization will be enabled.
+The following optional parameters can be set:
+
+| Property | Description | Type |
+|----------|-------------|------|
+| `render_fps` | Target frames per second for visualization | number |
+| `enable_shadows` | Whether or not shadows are enabled in the visualization system | boolean |
+| `camera` | Camera vertical, location, and look-at point | object |
+
+
 ## Example
 
 Below is an example of a simulation configuration:
 
 ```yaml
-# project_name.simulation.yaml
+# Basic MBS simulation
 
-# Required parameters
-time_step: 0.01
 contact_method: SMC
 
-# Optional parameters
-end_time: 40.0
-enforce_realtime: false
-gravity: [0, 0, -9.8]
-integrator_type: EULER_IMPLICIT
-solver_type: BARZILAI_BORWEIN
+time_step: 1e-4
+end_time: 100
+enforce_realtime: true
 
-# Visualization settings
-render: true
-render_fps: 120
-camera_vertical: Z
+integrator:
+    type: Euler_implicit_linearized
+
+solver:
+    type: Barzilai_Borwein
+    max_iterations: 100
+    overrelaxation_factor: 1.0
+    sharpness_factor: 1.0
+
+visualization:
+    render_fps: 120
+    enable_shadows: true
+    camera:
+        vertical: Z
+        location: [9, -4, 1]
+        target: [2, 0, 0]
 ```
 
 ## YAML schema

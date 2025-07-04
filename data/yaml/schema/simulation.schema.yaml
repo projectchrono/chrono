@@ -1,19 +1,17 @@
 description: |
   Schema for simulation parameters.
-  This schema defines the numerical integration settings and solver configuration.
+  This schema defines the numerical integration, solver, and visualization settings.
 type: object
 required: [time_step, contact_method]
 properties:
   time_step:
     type: number
-    description: |
-      Time step size in seconds.
+    description: Time step size in seconds.
     minimum: 0
   
   contact_method:
     type: string
-    description: |
-      Contact method for collision detection and response.
+    description: Contact method for collision detection and response.
     enum: [SMC, NSC]
   
   end_time:
@@ -25,45 +23,130 @@ properties:
   
   enforce_realtime:
     type: boolean
-    description: |
-      Whether to enforce real-time simulation.
+    description: Whether to enforce real-time simulation.
     default: false
   
   gravity:
     type: array
-    description: |
-      Gravitational acceleration vector [x, y, z] in m/s².
+    description: Gravitational acceleration vector [x, y, z].
     items:
       type: number
     minItems: 3
     maxItems: 3
+    default: [0, 0, -9.8]
   
-  integrator_type:
-    type: string
-    description: |
-      Type of numerical integrator.
-    enum: [EULER_IMPLICIT_LINEARIZED, EULER_IMPLICIT_PROJECTED, EULER_IMPLICIT, HHT]
+  integrator:
+    type: object
+    description: Integrator type and parameters.
+    required: [type]
+    properties:
+        type:
+            type: string
+            description: Type of numerical integrator.
+            enum: [EULER_IMPLICIT_LINEARIZED, EULER_IMPLICIT_PROJECTED, EULER_IMPLICIT, HHT]
+        rel_tolerance:
+            type: number
+            description: Relative tolerance (HHT and implicit Euler).
+            minimum: 0
+            default: 1e-4
+        abs_tolerance_states:
+            type: number
+            description: Absolute tolerance for state variables (HHT and implicit Euler).
+            minimum: 0
+            default: 1e-4
+        abs_tolerance_multipliers:
+            type: number
+            description: Absolute tolerance for Lagrange multipliers (HHT and implicit Euler).
+            minimum: 0
+            default: 1e2
+        max_iterations:
+            type: number
+            description: Maximum number of non-linear iteration for implicit integrators.
+            minimum: 0
+            default: 50
+        use_stepsize_control:
+            type: boolean
+            description: Whether to use internal step-size control 
+            default: false
+        use_modified_newton:
+            type: boolean
+            description: Whether to use a modified Newton iteration.
+            default: false
   
-  solver_type:
-    type: string
-    description: |
-      Type of linear solver.
-    enum: [BARZILAI_BORWEIN, PSOR, APGD, MINRES, GMRES, BICGSTAB, PARDISO, MUMPS, SPARSE_LU, SPARSE_QR]
+  solver:
+    type: object
+    description: Solver type and parameters.
+    required: [type]
+    properties:
+        type:
+            type: string
+            description: Type of linear solver.
+            enum: [BARZILAI_BORWEIN, PSOR, APGD, MINRES, GMRES, BICGSTAB, PARDISO, MUMPS, SPARSE_LU, SPARSE_QR]
+        max_iterations:
+            type: number
+            description: Maximum number of iteration for iterative DVI and linear solvers.
+            minimum: 0
+            default: 100
+        overrelaxation_factor:
+            type: number
+            description: Overrelaxation factor for iterative DVI solvers.
+            minimum: 0
+            default: 1.0
+        sharpness_factor:
+            type: number
+            description: Sharpness factor for iterative DVI solvers.
+            minimum: 0
+            default: 1.0
+        tolerance:
+            type: number
+            description: Tolerance for iterative Krylov linear solvers.
+            minimum: 0
+            default: 0.0
+        enable_diagonal_preconditioner:
+            type: boolean
+            description: Whether to use a diagonal preconditioner for iterative Krylov linear solvers.
+            default: false
+        lock_sparsity_pattern:
+            type: boolean
+            description: Keep matrix sparsity pattern unchanged (direct sparse linear solvers).
+            default: false
+        use_sparsity_pattern_learner:
+            type: boolean
+            description: Evaluate matrix sparsity pattern in a pre-processing stage (direct sparse linear solvers).
+            default: true
   
-  render:
-    type: boolean
-    description: |
-      Whether to enable visualization.
-    default: false
-  
-  render_fps:
-    type: number
-    description: |
-      Target frames per second for visualization.
-    minimum: 0
-  
-  camera_vertical:
-    type: string
-    description: |
-      Vertical axis for camera orientation.
-    enum: [Y, Z]
+  visualization:
+    type: object
+    properties:
+        render_fps:
+            type: number
+            description: Target frames per second for visualization.
+            minimum: 0
+        enable_shadows:
+            type: boolean
+            description: Whether to enable shadows in run-time visualization system.
+            default: true
+        camera:
+            type: object
+            properties:
+                vertical:
+                    type: string
+                    description: Vertical axis for camera orientation.
+                    enum: [Y, Z]
+                    default: Z
+                location:
+                    type: array
+                    description: Initial camera location (x, y, z)
+                    items:
+                        type: number
+                    minItems: 3
+                    maxItems: 3
+                    default: [0, -1, 0]
+                target:
+                    type: array
+                    description: Initial camera look-at point (x, y, z)
+                    items:
+                        type: number
+                    minItems: 3
+                    maxItems: 3
+                    default: [0, 0, 0]
