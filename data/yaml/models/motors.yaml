@@ -20,7 +20,7 @@ bodies:
       shapes:
         - type: BOX
           dimensions: [20.0, 20.0, 2.0]
-          color: [0.2, 0.6, 0.0]
+          color: [0.1, 0.3, 0.0]
           location: [0, 0, 0]
           orientation: [1, 0, 0, 0]
 
@@ -43,7 +43,6 @@ bodies:
           axis: [0, 1, 0]
 
   - name: rotor1
-    type: box
     location: [-2.5, 3.15, 2]
     orientation: [1, 0, 0, 0]
     mass: 1.0
@@ -76,7 +75,6 @@ bodies:
           axis: [0, 1, 0]
 
   - name: rotor2
-    type: box
     location: [-2.5, 2.15, 2]
     orientation: [1, 0, 0, 0]
     mass: 1.0
@@ -109,7 +107,6 @@ bodies:
           axis: [0, 1, 0]
 
   - name: rotor3
-    type: box
     location: [-2.5, 1.15, 2]
     orientation: [1, 0, 0, 0]
     mass: 10.0
@@ -152,7 +149,6 @@ bodies:
           color: [1.0, 0.7, 0.0]
 
   - name: slider1
-    type: box
     location: [0, 3, 0.3]
     orientation: [1, 0, 0, 0]
     mass: 40.0
@@ -179,7 +175,6 @@ bodies:
           color: [0.6, 0.6, 0.0]
 
   - name: obs1
-    type: box
     location: [1.5, 3, 0.4]
     orientation: [1, 0, 0, 0]
     mass: 512.0
@@ -233,7 +228,6 @@ bodies:
           color: [1.0, 0.7, 0.0]
 
   - name: slider2
-    type: box
     location: [0, 2, 0.3]
     orientation: [1, 0, 0, 0]
     mass: 40.0
@@ -260,7 +254,6 @@ bodies:
           color: [0.6, 0.6, 0.0]
 
   - name: obs2
-    type: box
     location: [1.5, 2, 0.4]
     orientation: [1, 0, 0, 0]
     mass: 512.0
@@ -314,7 +307,6 @@ bodies:
           color: [1.0, 0.7, 0.0]
 
   - name: slider3
-    type: box
     location: [0, 1, 0.3]
     orientation: [1, 0, 0, 0]
     mass: 40.0
@@ -341,7 +333,6 @@ bodies:
           color: [0.6, 0.6, 0.0]
 
   - name: obs3
-    type: box
     location: [1.5, 1, 0.4]
     orientation: [1, 0, 0, 0]
     mass: 512.0
