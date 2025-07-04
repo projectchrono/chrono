@@ -108,8 +108,6 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
         cout << "\nLoading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
     }
 
-    SimParams sim;
-
     // Mandatory
     ChAssertAlways(yaml["time_step"]);
     ChAssertAlways(yaml["contact_method"]);
@@ -135,24 +133,41 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
         m_sim.integrator_type = ReadIntegratorType(yaml["integrator_type"]);
     if (yaml["solver_type"])
         m_sim.solver_type = ReadSolverType(yaml["solver_type"]);
-    if (yaml["render"])
-        m_sim.render = yaml["render"].as<bool>();
-    if (yaml["render_fps"])
-        m_sim.render_fps = yaml["render_fps"].as<double>();
-    if (yaml["camera_vertical"]) {
-        auto camera_vertical = ToUpper(yaml["camera_vertical"].as<std::string>());
-        if (camera_vertical == "Y")
-            m_sim.camera_vertical = CameraVerticalDir::Y;
-        else if (camera_vertical == "Z")
-            m_sim.camera_vertical = CameraVerticalDir::Z;
-        else {
-            cerr << "Incorrect camera vertical " << yaml["camera_vertical"].as<std::string>() << endl;
-            throw std::runtime_error("Incorrect camera vertical");
+
+    // Run-time visualization (optional)
+    if (yaml["visualization"]) {
+        m_vis.render = true;
+        auto vis = yaml["visualization"];
+        if (vis["render_fps"])
+            m_vis.render_fps = vis["render_fps"].as<double>();
+        if (vis["enable_shadows"])
+            m_vis.enable_shadows = vis["enable_shadows"].as<bool>();
+        if (vis["camera"]) {
+            if (vis["camera"]["vertical"]) {
+                auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
+                if (camera_vertical == "Y")
+                    m_vis.camera_vertical = CameraVerticalDir::Y;
+                else if (camera_vertical == "Z")
+                    m_vis.camera_vertical = CameraVerticalDir::Z;
+                else {
+                    cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
+                    throw std::runtime_error("Incorrect camera vertical");
+                }
+            }
+            if (vis["camera"]["location"])
+                m_vis.camera_location = ReadVector(vis["camera"]["location"]);
+            if (vis["camera"]["target"])
+                m_vis.camera_target = ReadVector(vis["camera"]["target"]);
         }
+    } else {
+        m_vis.render = false;
     }
 
-    if (m_verbose)
+    if (m_verbose) {
         m_sim.PrintInfo();
+        cout << endl;
+        m_vis.PrintInfo();
+    }
 
     m_sim_loaded = true;
 }
@@ -753,10 +768,15 @@ ChParserYAML::SimParams::SimParams()
       num_threads_pardiso(1),
       time_step(1e-3),
       end_time(-1),
-      enforce_realtime(false),
-      render(false),
+      enforce_realtime(false) {}
+
+ChParserYAML::VisParams::VisParams()
+    : render(false),
       render_fps(120),
-      camera_vertical(CameraVerticalDir::Z) {}
+      camera_vertical(CameraVerticalDir::Z),
+      camera_location({0, -1, 0}),
+      camera_target({0, 0, 0}),
+      enable_shadows(true) {}
 
 void ChParserYAML::SimParams::PrintInfo() {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
@@ -772,10 +792,20 @@ void ChParserYAML::SimParams::PrintInfo() {
     cout << endl;
     cout << "integrator type:        " << ChTimestepper::GetTypeAsString(integrator_type) << endl;
     cout << "solver type:            " << ChSolver::GetTypeAsString(solver_type) << endl;
-    cout << endl;
-    cout << "run-time visualization? " << std::boolalpha << render << endl;
-    cout << "render FPS:             " << render_fps << endl;
-    cout << "camera vertical dir:    " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+}
+
+void ChParserYAML::VisParams::PrintInfo() {
+    if (!render) {
+        cout << "no run-time visualization  " << endl;
+        return;
+    }
+
+    cout << "run-time visualization  " << endl;
+    cout << "  render FPS:           " << render_fps << endl;
+    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
+    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+    cout << "  camera location:      " << camera_location << endl;
+    cout << "  camera target:        " << camera_target << endl;
 }
 
 // -----------------------------------------------------------------------------

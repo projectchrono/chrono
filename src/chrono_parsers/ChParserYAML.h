@@ -72,9 +72,13 @@ class ChApiParsers ChParserYAML {
     double GetTimestep() const { return m_sim.time_step; }
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
-    bool Render() const { return m_sim.render; }
-    double GetRenderFPS() const { return m_sim.render_fps; }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_sim.camera_vertical; }
+
+    bool Render() const { return m_vis.render; }
+    double GetRenderFPS() const { return m_vis.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
+    bool EnableShadows() const { return m_vis.enable_shadows; }
 
     /// Create and return a Chrono system configured from cached simulation parameters.
     /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.
@@ -120,10 +124,18 @@ class ChApiParsers ChParserYAML {
         double time_step;
         double end_time;
         bool enforce_realtime;
+    };
+
+    struct VisParams {
+        VisParams();
+        void PrintInfo();
 
         bool render;
         double render_fps;
         CameraVerticalDir camera_vertical;
+        ChVector3d camera_location;
+        ChVector3d camera_target;
+        bool enable_shadows;
     };
 
   private:
@@ -306,7 +318,8 @@ class ChApiParsers ChParserYAML {
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
-    SimParams m_sim;  ///< simulation and visualization parameters
+    SimParams m_sim;  ///< simulation parameters
+    VisParams m_vis;  ///< visualization parameters
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
