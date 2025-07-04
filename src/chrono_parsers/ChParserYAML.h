@@ -73,12 +73,12 @@ class ChApiParsers ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
     bool EnforceRealtime() const { return m_sim.enforce_realtime; }
 
-    bool Render() const { return m_vis.render; }
-    double GetRenderFPS() const { return m_vis.render_fps; }
-    CameraVerticalDir GetCameraVerticalDir() const { return m_vis.camera_vertical; }
-    const ChVector3d& GetCameraLocation() const { return m_vis.camera_location; }
-    const ChVector3d& GetCameraTarget() const { return m_vis.camera_target; }
-    bool EnableShadows() const { return m_vis.enable_shadows; }
+    bool Render() const { return m_sim.visualization.render; }
+    double GetRenderFPS() const { return m_sim.visualization.render_fps; }
+    CameraVerticalDir GetCameraVerticalDir() const { return m_sim.visualization.camera_vertical; }
+    const ChVector3d& GetCameraLocation() const { return m_sim.visualization.camera_location; }
+    const ChVector3d& GetCameraTarget() const { return m_sim.visualization.camera_target; }
+    bool EnableShadows() const { return m_sim.visualization.enable_shadows; }
 
     /// Create and return a Chrono system configured from cached simulation parameters.
     /// If no YAML simulation file was loaded, this function returns a ChSystemNSC with default settings.
@@ -106,24 +106,31 @@ class ChApiParsers ChParserYAML {
 
   private:
     /// Simulation and run-time visualization parameters.
-    struct SimParams {
-        SimParams();
+    struct SolverParams {
+        SolverParams();
         void PrintInfo();
 
-        ChVector3d gravity;
+        ChSolver::Type type;
+        bool lock_sparsity_pattern;
+        bool use_sparsity_pattern_learner;
+        double tolerance;
+        bool enable_diagonal_preconditioner;
+        int max_iterations;
+        double overrelaxation_factor;
+        double sharpness_factor;
+    };
 
-        ChContactMethod contact_method;
-        ChTimestepper::Type integrator_type;
-        ChSolver::Type solver_type;
+    struct IntegratorParams {
+        IntegratorParams();
+        void PrintInfo();
 
-        int num_threads_chrono;
-        int num_threads_collision;
-        int num_threads_eigen;
-        int num_threads_pardiso;
-
-        double time_step;
-        double end_time;
-        bool enforce_realtime;
+        ChTimestepper::Type type;
+        double rtol;
+        double atol_states;
+        double atol_multipliers;
+        int max_iterations;
+        bool use_stepsize_control;
+        bool use_modified_newton;
     };
 
     struct VisParams {
@@ -136,6 +143,28 @@ class ChApiParsers ChParserYAML {
         ChVector3d camera_location;
         ChVector3d camera_target;
         bool enable_shadows;
+    };
+
+    struct SimParams {
+        SimParams();
+        void PrintInfo();
+
+        ChVector3d gravity;
+
+        ChContactMethod contact_method;
+
+        int num_threads_chrono;
+        int num_threads_collision;
+        int num_threads_eigen;
+        int num_threads_pardiso;
+
+        double time_step;
+        double end_time;
+        bool enforce_realtime;
+
+        SolverParams solver;
+        IntegratorParams integrator;
+        VisParams visualization;
     };
 
   private:
@@ -314,12 +343,17 @@ class ChApiParsers ChParserYAML {
     /// Utility function to find the ChBodyAuxRef with specified name.
     std::shared_ptr<ChBodyAuxRef> FindBody(const std::string& name) const;
 
+    /// Set Chrono solver parameters.
+    void SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso);
+
+    /// Set Chrono integrator parameters.
+    void SetIntegrator(ChSystem& sys, const IntegratorParams& params);
+
     /// Return motor actuation type as a string.
     static std::string GetMotorActuationTypeString(MotorActuation type);
 
   private:
     SimParams m_sim;  ///< simulation parameters
-    VisParams m_vis;  ///< visualization parameters
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints

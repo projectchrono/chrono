@@ -129,45 +129,87 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
         m_sim.enforce_realtime = yaml["enforce_realtime"].as<bool>();
     if (yaml["gravity"])
         m_sim.gravity = ReadVector(yaml["gravity"]);
-    if (yaml["integrator_type"])
-        m_sim.integrator_type = ReadIntegratorType(yaml["integrator_type"]);
-    if (yaml["solver_type"])
-        m_sim.solver_type = ReadSolverType(yaml["solver_type"]);
+
+    // Integrator parameters (optional)
+    if (yaml["integrator"]) {
+        auto intgr = yaml["integrator"];
+        m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
+        switch (m_sim.integrator.type) {
+            case ChTimestepper::Type::HHT:
+                m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
+                m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
+                m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
+                m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
+                m_sim.integrator.use_stepsize_control = intgr["use_stepsize_control"].as<bool>();
+                m_sim.integrator.use_modified_newton = intgr["use_modified_newton"].as<bool>();
+                break;
+            case ChTimestepper::Type::EULER_IMPLICIT:
+                m_sim.integrator.rtol = intgr["rel tolerance"].as<double>();
+                m_sim.integrator.atol_states = intgr["abs tolerance states"].as<double>();
+                m_sim.integrator.atol_multipliers = intgr["abs tolerance multipliers"].as<double>();
+                m_sim.integrator.max_iterations = intgr["max iterations"].as<double>();
+                break;
+        }
+    }
+
+    // Solver parameters (optional)
+    if (yaml["solver"]) {
+        auto slvr = yaml["solver"];
+        m_sim.solver.type = ReadSolverType(slvr["type"]);
+        switch (m_sim.solver.type) {
+            case ChSolver::Type::SPARSE_LU:
+            case ChSolver::Type::SPARSE_QR:
+                m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
+                m_sim.solver.use_sparsity_pattern_learner = slvr["use_sparsity_pattern_learner"].as<bool>();
+                break;
+            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
+            case ChSolver::Type::PSOR:
+                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
+                m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
+                break;
+            case ChSolver::Type::BICGSTAB:
+            case ChSolver::Type::MINRES:
+            case ChSolver::Type::GMRES:
+                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                m_sim.solver.tolerance = slvr["tolerance"].as<double>();
+                m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
+                break;
+        }
+    }
 
     // Run-time visualization (optional)
     if (yaml["visualization"]) {
-        m_vis.render = true;
+        m_sim.visualization.render = true;
         auto vis = yaml["visualization"];
         if (vis["render_fps"])
-            m_vis.render_fps = vis["render_fps"].as<double>();
+            m_sim.visualization.render_fps = vis["render_fps"].as<double>();
         if (vis["enable_shadows"])
-            m_vis.enable_shadows = vis["enable_shadows"].as<bool>();
+            m_sim.visualization.enable_shadows = vis["enable_shadows"].as<bool>();
         if (vis["camera"]) {
             if (vis["camera"]["vertical"]) {
                 auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
                 if (camera_vertical == "Y")
-                    m_vis.camera_vertical = CameraVerticalDir::Y;
+                    m_sim.visualization.camera_vertical = CameraVerticalDir::Y;
                 else if (camera_vertical == "Z")
-                    m_vis.camera_vertical = CameraVerticalDir::Z;
+                    m_sim.visualization.camera_vertical = CameraVerticalDir::Z;
                 else {
                     cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
                     throw std::runtime_error("Incorrect camera vertical");
                 }
             }
             if (vis["camera"]["location"])
-                m_vis.camera_location = ReadVector(vis["camera"]["location"]);
+                m_sim.visualization.camera_location = ReadVector(vis["camera"]["location"]);
             if (vis["camera"]["target"])
-                m_vis.camera_target = ReadVector(vis["camera"]["target"]);
+                m_sim.visualization.camera_target = ReadVector(vis["camera"]["target"]);
         }
     } else {
-        m_vis.render = false;
+        m_sim.visualization.render = false;
     }
 
-    if (m_verbose) {
+    if (m_verbose)
         m_sim.PrintInfo();
-        cout << endl;
-        m_vis.PrintInfo();
-    }
 
     m_sim_loaded = true;
 }
@@ -432,20 +474,20 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
 
 // -----------------------------------------------------------------------------
 
-void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
-    if (type == chrono::ChSolver::Type::PARDISO_MKL) {
+void ChParserYAML::SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso) {
+    if (params.type == ChSolver::Type::PARDISO_MKL) {
 #ifdef CHRONO_PARDISO_MKL
-        auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>(num_threads_pardiso);
-        solver->LockSparsityPattern(true);
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(num_threads_pardiso);
+        solver->LockSparsityPattern(params.lock_sparsity_pattern);
         sys.SetSolver(solver);
 #else
         cerr << "Chrono::PardisoMKL module not enabled. PARDISO_MKL solver not available." << endl;
         throw std::runtime_error("Chrono::PardisoMKL module not enabled");
 #endif
-    } else if (type == chrono::ChSolver::Type::MUMPS) {
+    } else if (params.type == ChSolver::Type::MUMPS) {
 #ifdef CHRONO_MUMPS
-        auto solver = chrono_types::make_shared<chrono::ChSolverMumps>();
-        solver->LockSparsityPattern(true);
+        auto solver = chrono_types::make_shared<ChSolverMumps>();
+        solver->LockSparsityPattern(params.lock_sparsity_pattern);
         solver->EnableNullPivotDetection(true);
         solver->GetMumpsEngine().SetICNTL(14, 50);
         sys.SetSolver(solver);
@@ -454,31 +496,31 @@ void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
         throw std::runtime_error("Chrono::MUMPS module not enabled");
 #endif
     } else {
-        sys.SetSolverType(type);
-        switch (type) {
-            case chrono::ChSolver::Type::SPARSE_LU:
-            case chrono::ChSolver::Type::SPARSE_QR: {
-                auto solver = std::static_pointer_cast<chrono::ChDirectSolverLS>(sys.GetSolver());
-                solver->LockSparsityPattern(false);
-                solver->UseSparsityPatternLearner(false);
+        sys.SetSolverType(params.type);
+        switch (params.type) {
+            case ChSolver::Type::SPARSE_LU:
+            case ChSolver::Type::SPARSE_QR: {
+                auto solver = std::static_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
+                solver->LockSparsityPattern(params.lock_sparsity_pattern);
+                solver->UseSparsityPatternLearner(params.use_sparsity_pattern_learner);
                 break;
             }
-            case chrono::ChSolver::Type::BARZILAIBORWEIN:
-            case chrono::ChSolver::Type::APGD:
-            case chrono::ChSolver::Type::PSOR: {
-                auto solver = std::static_pointer_cast<chrono::ChIterativeSolverVI>(sys.GetSolver());
-                solver->SetMaxIterations(100);
-                solver->SetOmega(0.8);
-                solver->SetSharpnessLambda(1.0);
+            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
+            case ChSolver::Type::PSOR: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver());
+                solver->SetMaxIterations(params.max_iterations);
+                solver->SetOmega(params.overrelaxation_factor);
+                solver->SetSharpnessLambda(params.sharpness_factor);
                 break;
             }
-            case chrono::ChSolver::Type::BICGSTAB:
-            case chrono::ChSolver::Type::MINRES:
-            case chrono::ChSolver::Type::GMRES: {
-                auto solver = std::static_pointer_cast<chrono::ChIterativeSolverLS>(sys.GetSolver());
-                solver->SetMaxIterations(200);
-                solver->SetTolerance(1e-10);
-                solver->EnableDiagonalPreconditioner(true);
+            case ChSolver::Type::BICGSTAB:
+            case ChSolver::Type::MINRES:
+            case ChSolver::Type::GMRES: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
+                solver->SetMaxIterations(params.max_iterations);
+                solver->SetTolerance(params.tolerance);
+                solver->EnableDiagonalPreconditioner(params.enable_diagonal_preconditioner);
                 break;
             }
             default:
@@ -487,26 +529,29 @@ void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
     }
 }
 
-void SetIntegrator(ChSystem& sys, ChTimestepper::Type type) {
-    sys.SetTimestepperType(type);
-    switch (type) {
-        case chrono::ChTimestepper::Type::HHT: {
-            auto integrator = std::static_pointer_cast<chrono::ChTimestepperHHT>(sys.GetTimestepper());
+void ChParserYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& params) {
+    sys.SetTimestepperType(params.type);
+
+    switch (params.type) {
+        case ChTimestepper::Type::HHT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
             integrator->SetAlpha(-0.2);
-            integrator->SetMaxIters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
-            integrator->SetStepControl(false);
-            integrator->SetModifiedNewton(false);
+            integrator->SetMaxIters(params.max_iterations);
+            integrator->SetRelTolerance(params.rtol);
+            integrator->SetAbsTolerances(params.atol_states, params.atol_multipliers);
+            integrator->SetStepControl(params.use_stepsize_control);
+            integrator->SetModifiedNewton(params.use_modified_newton);
             break;
         }
-        case chrono::ChTimestepper::Type::EULER_IMPLICIT: {
-            auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-            integrator->SetMaxIters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
+        case ChTimestepper::Type::EULER_IMPLICIT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperEulerImplicit>(sys.GetTimestepper());
+            integrator->SetMaxIters(params.max_iterations);
+            integrator->SetRelTolerance(params.rtol);
+            integrator->SetAbsTolerances(params.atol_states, params.atol_multipliers);
             break;
         }
-        case chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
-        case chrono::ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
+        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
         default:
             break;
     }
@@ -521,14 +566,9 @@ std::shared_ptr<ChSystem> ChParserYAML::CreateSystem() {
 
     auto sys = ChSystem::Create(m_sim.contact_method);
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
-    sys->SetGravitationalAcceleration(m_sim.gravity);
-    sys->SetNumThreads(m_sim.num_threads_chrono, m_sim.num_threads_collision, m_sim.num_threads_eigen);
-
-    SetIntegrator(*sys, m_sim.integrator_type);
-    SetSolver(*sys, m_sim.solver_type, m_sim.num_threads_pardiso);
-
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
+
+    SetSimulationParameters(*sys);
 
     return sys;
 }
@@ -547,8 +587,8 @@ void ChParserYAML::SetSimulationParameters(ChSystem& sys) {
     sys.SetGravitationalAcceleration(m_sim.gravity);
     sys.SetNumThreads(m_sim.num_threads_chrono, m_sim.num_threads_collision, m_sim.num_threads_eigen);
 
-    SetIntegrator(sys, m_sim.integrator_type);
-    SetSolver(sys, m_sim.solver_type, m_sim.num_threads_pardiso);
+    SetSolver(sys, m_sim.solver, m_sim.num_threads_pardiso);
+    SetIntegrator(sys, m_sim.integrator);
 }
 
 // -----------------------------------------------------------------------------
@@ -757,18 +797,24 @@ void ChParserYAML::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
-ChParserYAML::SimParams::SimParams()
-    : gravity({0, 0, -9.8}),
-      contact_method(ChContactMethod::NSC),
-      integrator_type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
-      solver_type(ChSolver::Type::BARZILAIBORWEIN),
-      num_threads_chrono(1),
-      num_threads_collision(1),
-      num_threads_eigen(1),
-      num_threads_pardiso(1),
-      time_step(1e-3),
-      end_time(-1),
-      enforce_realtime(false) {}
+ChParserYAML::SolverParams::SolverParams()
+    : type(ChSolver::Type::BARZILAIBORWEIN),
+      lock_sparsity_pattern(false),
+      use_sparsity_pattern_learner(true),
+      tolerance(0.0),
+      max_iterations(100),
+      enable_diagonal_preconditioner(false),
+      overrelaxation_factor(1.0),
+      sharpness_factor(1.0) {}
+
+ChParserYAML::IntegratorParams::IntegratorParams()
+    : type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
+      rtol(1e-4),
+      atol_states(1e-4),
+      atol_multipliers(1e2),
+      max_iterations(50),
+      use_stepsize_control(false),
+      use_modified_newton(false) {}
 
 ChParserYAML::VisParams::VisParams()
     : render(false),
@@ -777,6 +823,69 @@ ChParserYAML::VisParams::VisParams()
       camera_location({0, -1, 0}),
       camera_target({0, 0, 0}),
       enable_shadows(true) {}
+
+ChParserYAML::SimParams::SimParams()
+    : gravity({0, 0, -9.8}),
+      contact_method(ChContactMethod::NSC),
+      num_threads_chrono(1),
+      num_threads_collision(1),
+      num_threads_eigen(1),
+      num_threads_pardiso(1),
+      time_step(1e-3),
+      end_time(-1),
+      enforce_realtime(false) {}
+
+void ChParserYAML::SolverParams::PrintInfo() {
+    cout << "solver" << endl;
+    cout << "  type:                         " << ChSolver::GetTypeAsString(type) << endl;
+    switch (type) {
+        case ChSolver::Type::SPARSE_LU:
+        case ChSolver::Type::SPARSE_QR:
+            cout << "  lock sparsity pattern?        " << std::boolalpha << lock_sparsity_pattern << endl;
+            cout << "  use sparsity pattern learner? " << std::boolalpha << use_sparsity_pattern_learner << endl;
+            break;
+        case ChSolver::Type::BARZILAIBORWEIN:
+        case ChSolver::Type::APGD:
+        case ChSolver::Type::PSOR:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  overrelaxation factor:        " << overrelaxation_factor << endl;
+            cout << "  sharpness factor:             " << sharpness_factor << endl;
+            break;
+        case ChSolver::Type::BICGSTAB:
+        case ChSolver::Type::MINRES:
+        case ChSolver::Type::GMRES:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  tolerance:                    " << tolerance << endl;
+            cout << "  use diagonal preconditioner?  " << std::boolalpha << enable_diagonal_preconditioner << endl;
+            break;
+        case ChSolver::Type::PARDISO_MKL:
+        case ChSolver::Type::MUMPS:
+            cout << "  lock sparsity pattern?        " << std::boolalpha << lock_sparsity_pattern << endl;
+            break;
+    }
+}
+
+void ChParserYAML::IntegratorParams::PrintInfo() {
+    cout << "integrator" << endl;
+    cout << "  type:                         " << ChTimestepper::GetTypeAsString(type) << endl;
+    switch (type) {
+        case ChTimestepper::Type::HHT:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  rel tolerance:                " << rtol << endl;
+            cout << "  abs tolerance (states):       " << atol_states << endl;
+            cout << "  abs tolerance (multipliers):  " << atol_multipliers << endl;
+            cout << "  use step-size control?        " << std::boolalpha << use_stepsize_control << endl;
+            cout << "  use modified Newton?          " << std::boolalpha << use_modified_newton << endl;
+            break;
+
+        case ChTimestepper::Type::EULER_IMPLICIT:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  rel tolerance:                " << rtol << endl;
+            cout << "  abs tolerance (states):       " << atol_states << endl;
+            cout << "  abs tolerance (multipliers):  " << atol_multipliers << endl;
+            break;
+    }
+}
 
 void ChParserYAML::SimParams::PrintInfo() {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
@@ -790,17 +899,20 @@ void ChParserYAML::SimParams::PrintInfo() {
     cout << "num threads Eigen:      " << num_threads_eigen << endl;
     cout << "num threads Pardiso:    " << num_threads_pardiso << endl;
     cout << endl;
-    cout << "integrator type:        " << ChTimestepper::GetTypeAsString(integrator_type) << endl;
-    cout << "solver type:            " << ChSolver::GetTypeAsString(solver_type) << endl;
+    solver.PrintInfo();
+    cout << endl;
+    integrator.PrintInfo();
+    cout << endl;
+    visualization.PrintInfo();
 }
 
 void ChParserYAML::VisParams::PrintInfo() {
     if (!render) {
-        cout << "no run-time visualization  " << endl;
+        cout << "no run-time visualization" << endl;
         return;
     }
 
-    cout << "run-time visualization  " << endl;
+    cout << "run-time visualization" << endl;
     cout << "  render FPS:           " << render_fps << endl;
     cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
     cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
