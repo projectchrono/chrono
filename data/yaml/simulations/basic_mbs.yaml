@@ -1,24 +1,29 @@
-# Basic MBS simulation
+# ------------------------------------------------------------------------------
+# Basic rigid MBS simulation
+# ------------------------------------------------------------------------------
 
-contact_method: SMC
+chrono-version: 9.0
 
-time_step: 1e-4
-end_time: 100
-enforce_realtime: true
-
-integrator:
-    type: Euler_implicit_linearized
-
-solver:
-    type: Barzilai_Borwein
-    max_iterations: 100
-    overrelaxation_factor: 1.0
-    sharpness_factor: 1.0
-
-visualization:
-    render_fps: 120
-    enable_shadows: true
-    camera:
-        vertical: Z
-        location: [9, -4, 1]
-        target: [2, 0, 0]
+simulation:
+  contact_method: SMC
+  
+  time_step: 1e-4
+  end_time: 100
+  enforce_realtime: true
+  
+  integrator:
+      type: Euler_implicit_linearized
+  
+  solver:
+      type: Barzilai_Borwein
+      max_iterations: 100
+      overrelaxation_factor: 1.0
+      sharpness_factor: 1.0
+  
+  visualization:
+      render_fps: 120
+      enable_shadows: true
+      camera:
+          vertical: Z
+          location: [9, -4, 1]
+          target: [2, 0, 0]

@@ -1,369 +1,401 @@
-type: object
-required: [bodies]
-properties:
-  name:
-    type: string
-    description: Name of the model
-  angle_degrees:
-    type: boolean
-    description: Whether angles are specified in degrees (true) or radians (false)
-    default: true
-  bodies:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono YAML model specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+# The `model` object contains the schema for the model YAML specification.
+#
+# Notes:
+# - Chrono is unit-independent.
+#   While any consistent set of units is acceptable, most models are specified
+#   in SI units. For convenience, the Chrono YAML specification allows definition
+#   of angles in radians or degrees.
+#
+# =============================================================================
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML model specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+# -----------------------------------------------------------------------------
+
+# Specification of a ChVector3d
+vector3d: &VECTOR3D
     type: array
-    description: List of bodies in the system
     items:
-      type: object
-      required: [name, location]
-      properties:
-        name:
-          type: string
-          description: Unique identifier for the body
-        fixed:
-          type: boolean
-          description: Whether the body is fixed to ground
-          default: false
-        location:
-          type: array
-          description: Initial position [x, y, z] in meters
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        orientation:
-          type: array
-          description: Initial orientation [roll, pitch, yaw] in radians or degrees
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        mass:
+        type: number
+    minItems: 3
+    maxItems: 3
+
+# Specification of a 3D rotation
+# A rotation can be provided as:
+# - an Euler angle sequence [roll, pitch, yaw], with angles assumed in radians or degrees, or
+# - a unit quaternion [e0, e1, e2, e3]
+orientation3d: &ORIENTATION3D
+    type: array
+    description: Frame orientation as Euler angles or as quaternion
+    items:
+      type: number
+    minItems: 3
+    maxItems: 4
+
+# Specification of a color
+color: &COLOR
+  type: array
+  description: RGB color [r, g, b]
+  items:
+    type: number
+    minimum: 0
+    maximum: 1
+  minItems: 3
+  maxItems: 3
+
+# Specification of an inertia matrix
+inertia33: &INERTIA33
+    type: object
+    description: Inertia moments and products
+    properties:
+      moments:
+        type: array
+        description: Moments of inertia [Ixx, Iyy, Izz]
+        items:
           type: number
-          description: Mass of the body in kg
           minimum: 0
-        com:
-          type: object
-          description: Center of mass frame
-          properties:
-            location:
-              type: array
-              description: Center of mass position [x, y, z] in meters
-              items:
-                type: number
-              minItems: 3
-              maxItems: 3
-            orientation:
-              type: array
-              description: Center of mass orientation [roll, pitch, yaw] in radians or degrees
-              items:
-                type: number
-              minItems: 3
-              maxItems: 3
-        inertia:
-          type: object
-          description: Inertia properties
-          properties:
-            moments:
-              type: array
-              description: Principal moments of inertia [Ixx, Iyy, Izz] in kg⋅m²
-              items:
-                type: number
-                minimum: 0
-              minItems: 3
-              maxItems: 3
-            products:
-              type: array
-              description: Products of inertia [Ixy, Ixz, Iyz] in kg⋅m²
-              items:
-                type: number
-              minItems: 3
-              maxItems: 3
+        minItems: 3
+        maxItems: 3
+      products:
+        type: array
+        description: Products of inertia [Ixy, Ixz, Iyz]
+        items:
+          type: number
+          default: 0
+        minItems: 3
+        maxItems: 3
 
-  joints:
-    type: array
-    description: List of joints connecting bodies
-    items:
-      type: object
-      required: [name, type, body1, body2, location]
-      properties:
-        name:
-          type: string
-          description: Unique identifier for the joint
-        type:
-          type: string
-          description: Type of joint
-          enum: [lock, pointline, pointplane, revolute, spherical, prismatic, universal]
-        body1:
-          type: string
-          description: Name of the first body to connect
-        body2:
-          type: string
-          description: Name of the second body to connect
-        location:
-          type: array
-          description: Joint location [x, y, z] in meters
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        axis:
-          type: array
-          description: Axis of motion [x, y, z] for revolute/prismatic joints (unit vector)
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        axis1:
-          type: array
-          description: First axis [x, y, z] for universal joint (unit vector)
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        axis2:
-          type: array
-          description: Second axis [x, y, z] for universal joint (unit vector)
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        bushing_data:
-          type: object
-          description: Bushing properties
-          properties:
-            stiffness_linear:
-              type: number
-              description: Linear stiffness
-            damping_linear:
-              type: number
-              description: Linear damping
-            stiffness_rotational:
-              type: number
-              description: Rotational stiffness
-            damping_rotational:
-              type: number
-              description: Rotational damping
-            DOF:
-              type: object
-              description: Degree of freedom specific properties
-              properties:
-                stiffness_linear:
-                  type: number
-                  description: Linear stiffness
-                damping_linear:
-                  type: number
-                  description: Linear damping
-                stiffness_rotational:
-                  type: number
-                  description: Rotational stiffness
-                damping_rotational:
-                  type: number
-                  description: Rotational damping
+# Specification of a function of one variable
+function: &FUNCTION
+    type: object
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [CONSTANT, SINE]
+        description: Function type
+      value:
+        type: number
+        description: Constant value for CONSTANT type
+      amplitude:
+        type: number
+        description: Amplitude for SINE type
+      frequency:
+        type: number
+        description: Frequency for SINE type
+      phase:
+        type: number
+        description: Phase for SINE type
+    description: Function of one variable
 
-  constraints:
+# Specification of a data array with 2 columns
+data_array_2: &DATA_ARRAY_2
     type: array
-    description: List of constraints in the system
+    description: Array of number pairs
     items:
-      type: object
-      required: [name, type]
-      properties:
-        name:
-          type: string
-          description: Unique identifier for the constraint
-        type:
-          type: string
-          enum: [DISTANCE, REVOLUTE-SPHERICAL, REVOLUTE-TRANSLATIONAL]
-          description: Type of constraint
-        body1:
-          type: string
-          description: Name of the first body to connect
-        body2:
-          type: string
-          description: Name of the second body to connect
-        point1:
-          type: array
-          description: First point [x, y, z] in meters
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        point2:
-          type: array
-          description: Second point [x, y, z] in meters
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
 
-  spring_dampers:
+# Specification of a data array with 3 columns
+data_array_3: &DATA_ARRAY_3
     type: array
-    description: List of spring-damper elements
+    description: Array of number 3-tuples
     items:
-      type: object
-      required: [name, type, body1, body2]
-      properties:
-        name:
-          type: string
-          description: Unique identifier for the element
-        type:
-          type: string
-          enum: [tsda, rsda]
-          description: Type of element
-        body1:
-          type: string
-          description: Name of the first body to connect
-        body2:
-          type: string
-          description: Name of the second body to connect
-        point1:
-          type: array
-          description: First point [x, y, z] in meters for TSDA
-          items:
+      type: array
+      items:
+        type: number
+      minItems: 3
+      maxItems: 3
+
+# -----------------------------------------------------------------------------
+# Definition of a Chrono multibody model
+# -----------------------------------------------------------------------------
+
+model:
+  type: object
+  description: Definition of a Chrono multibody model
+  required: [bodies]
+  
+  properties:
+
+    name:
+      type: string
+      description: Name of the model
+      default: ''
+
+    angle_degrees:
+      type: boolean
+      description: Whether angles are specified in degrees (true) or radians (false)
+      default: true
+    
+    bodies:
+      type: array
+      description: List of bodies in the system
+      items:
+        type: object
+        required: [name, location]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the body
+          fixed:
+            type: boolean
+            description: Whether the body is fixed to ground
+            default: false
+          location:
+            <<: *VECTOR3D
+            description: Initial body reference frame origin relative to global frame
+          orientation:
+            <<: *ORIENTATION3D
+            description: Initial body reference frame orientation relative to global frame
+            default: [0, 0, 0]
+          mass:
             type: number
-          minItems: 3
-          maxItems: 3
-        point2:
-          type: array
-          description: Second point [x, y, z] in meters for TSDA
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        location:
-          type: array
-          description: Location [x, y, z] in meters for RSDA
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        axis:
-          type: array
-          description: Axis [x, y, z] for RSDA (unit vector)
-          items:
-            type: number
-          minItems: 3
-          maxItems: 3
-        free_length:
-          type: number
-          description: Free length for TSDA
-        free_angle:
-          type: number
-          description: Free angle for RSDA
-        spring_coefficient:
-          type: number
-          description: Linear spring coefficient
-        damping_coefficient:
-          type: number
-          description: Linear damping coefficient
-        spring_curve_data:
-          type: array
-          description: Nonlinear spring curve data [[displacement, force], ...]
-          items:
+            description: Mass of the body
+            minimum: 0
+          com:
+            type: object
+            description: Center of mass (COM) frame
+            properties:
+              location:
+                <<: *VECTOR3D
+                description: COM frame origin relative to body reference frame
+                default: [0, 0, 0]
+              orientation:
+                <<: *ORIENTATION3D
+                description: COM frame orientation relative to body reference frame
+                default: [1, 0, 0, 0]
+          inertia:
+            <<: *INERTIA33
+            description: Body inertia properties
+  
+    joints:
+      type: array
+      description: List of joints connecting bodies
+      items:
+        type: object
+        required: [name, type, body1, body2, location]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the joint
+          type:
+            type: string
+            description: Type of joint
+            enum: [lock, pointline, pointplane, revolute, spherical, prismatic, universal]
+          body1:
+            type: string
+            description: Name of the first body to connect
+          body2:
+            type: string
+            description: Name of the second body to connect
+          location:
             type: array
+            description: Joint location
             items:
               type: number
-            minItems: 2
-            maxItems: 2
-        damping_curve_data:
-          type: array
-          description: Nonlinear damping curve data [[velocity, force], ...]
-          items:
-            type: array
-            items:
-              type: number
-            minItems: 2
-            maxItems: 2
-        preload:
-          type: number
-          description: Preload force/torque
-        minimum_length:
-          type: number
-          description: Minimum length for TSDA
-        maximum_length:
-          type: number
-          description: Maximum length for TSDA
-        visualization:
-          type: object
-          description: Visualization settings for the element
-          properties:
-            type:
-              type: string
-              enum: [segment, spring]
-              description: Type of visualization
-            radius:
-              type: number
-              description: Radius of the visualization element
-            color:
-              type: array
-              description: RGB color [r, g, b] in range [0, 1]
-              items:
+            minItems: 3
+            maxItems: 3
+          axis:
+            <<: *VECTOR3D
+            description: Axis of motion for revolute/prismatic joints
+          axis1:
+            <<: *VECTOR3D
+            description: First axis for universal joint
+          axis2:
+            <<: *VECTOR3D
+            description: Second axis for universal joint
+          bushing_data:
+            type: object
+            description: Bushing properties
+            properties:
+              stiffness_linear:
                 type: number
-              minItems: 3
-              maxItems: 3
+                description: Linear stiffness coefficient for "constrained" translational DOFs
+              damping_linear:
+                type: number
+                description: Linear damping coefficient for "constrained" translational DOFs
+              stiffness_rotational:
+                type: number
+                description: Rotational stiffness coefficient for "constrained" rotational DOFs
+              damping_rotational:
+                type: number
+                description: Rotational damping coefficient for "constrained" rotational DOFs
+              DOF:
+                type: object
+                description: Degree of freedom specific properties
+                properties:
+                  stiffness_linear:
+                    type: number
+                    description: Linear stiffness coefficient for "unconstrained" translational DOF
+                  damping_linear:
+                    type: number
+                    description: Linear damping coefficient for "unconstrained" translational DOF
+                  stiffness_rotational:
+                    type: number
+                    description: Rotational stiffness coefficient for "unconstrained" rotational DOF
+                  damping_rotational:
+                    type: number
+                    description: Rotational damping coefficient for "unconstrained" rotational DOF
+  
+    constraints:
+      type: array
+      description: List of constraints in the system
+      items:
+        type: object
+        required: [name, type, body1, body2]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the constraint
+          type:
+            type: string
+            enum: [DISTANCE, REVOLUTE-SPHERICAL, REVOLUTE-TRANSLATIONAL]
+            description: Type of constraint
+          body1:
+            type: string
+            description: Name of the first body to connect
+          body2:
+            type: string
+            description: Name of the second body to connect
+          point1:
+            <<: *VECTOR3D
+            description: Point on body1 expressed in global frame
+          point2:
+            <<: *VECTOR3D
+            description: Point on body2 expressed in global frame
 
-  motors:
-    type: array
-    description: List of motors in the system
-    items:
-      type: object
-      required: [name, type, body1, body2, location, axis, actuation_type, actuation_function]
-      properties:
-        name:
-          type: string
-          description: Unique identifier for the motor
-        type:
-          type: string
-          enum: [LINEAR, ROTATION]
-          description: Type of motor
-        body1:
-          type: string
-          description: Name of the first body to connect
-        body2:
-          type: string
-          description: Name of the second body to connect
-        location:
-          type: array
-          description: Motor location [x, y, z] in meters
-          items:
+    spring_dampers:
+      type: array
+      description: List of spring-damper elements
+      items:
+        type: object
+        required: [name, type, body1, body2]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the element
+          type:
+            type: string
+            enum: [tsda, rsda]
+            description: Type of element
+          body1:
+            type: string
+            description: Name of the first body to connect
+          body2:
+            type: string
+            description: Name of the second body to connect
+          point1:
+            <<: *VECTOR3D
+            description: TSDA point on body1 expressed in global frame
+          point2:
+            <<: *VECTOR3D
+            description: TSDA point on body2 expressed in global frame
+          location:
+            <<: *VECTOR3D
+            description: RSDA location expressed in global frame
+          axis:
+            <<: *VECTOR3D
+            description: RSDA axis expressed in global frame
+          free_length:
             type: number
-          minItems: 3
-          maxItems: 3
-        axis:
-          type: array
-          description: Motor axis [x, y, z] (unit vector)
-          items:
+            description: Free length for TSDA
+          free_angle:
             type: number
-          minItems: 3
-          maxItems: 3
-        actuation_type:
-          type: string
-          enum: [POSITION, SPEED, FORCE]
-          description: Type of actuation
-        actuation_function:
-          type: object
-          required: [type]
-          description: Function defining actuation
-          properties:
-            type:
-              type: string
-              enum: [CONSTANT, SINE]
-              description: Function type
-            value:
-              type: number
-              description: Constant value for CONSTANT type
-            amplitude:
-              type: number
-              description: Amplitude for SINE type
-            frequency:
-              type: number
-              description: Frequency for SINE type
-            phase:
-              type: number
-              description: Phase for SINE type
-        guide:
-          type: string
-          enum: [FREE, PRISMATIC, SPHERICAL]
-          description: Guide constraint for linear motor
-        spindle:
-          type: string
-          enum: [FREE, REVOLUTE, CYLINDRICAL]
-          description: Spindle constraint for rotation motor
+            description: Free angle for RSDA
+          spring_coefficient:
+            type: number
+            description: Linear spring coefficient
+          damping_coefficient:
+            type: number
+            description: Linear damping coefficient
+          spring_curve_data:
+            <<: *DATA_ARRAY_2
+            description: Nonlinear spring curve data [[displacement, force], ...]
+          damping_curve_data:
+            <<: *DATA_ARRAY_2
+            description: Nonlinear damping curve data [[velocity, force], ...]
+          preload:
+            type: number
+            description: Preload force/torque
+          minimum_length:
+            type: number
+            description: Minimum length for TSDA
+          maximum_length:
+            type: number
+            description: Maximum length for TSDA
+          visualization:
+            type: object
+            description: Visualization settings for the element
+            properties:
+              type:
+                type: string
+                enum: [segment, spring]
+                description: Type of visualization
+              radius:
+                type: number
+                description: Radius of the visualization element
+              color:
+                <<: *COLOR
+  
+    motors:
+      type: array
+      description: List of motors in the system
+      items:
+        type: object
+        required: [name, type, body1, body2, location, axis, actuation_type, actuation_function]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the motor
+          type:
+            type: string
+            enum: [LINEAR, ROTATION]
+            description: Type of motor
+          body1:
+            type: string
+            description: Name of the first body to connect
+          body2:
+            type: string
+            description: Name of the second body to connect
+          location:
+            <<: *VECTOR3D
+            description: Motor location expressed in global frame
+          axis:
+            <<: *VECTOR3D
+            description: Motor axis expressed in global frame
+          actuation_type:
+            type: string
+            enum: [POSITION, SPEED, FORCE]
+            description: Type of actuation
+          actuation_function:
+            <<: *FUNCTION
+            description: Function of time defining actuation
+          guide:
+            type: string
+            enum: [FREE, PRISMATIC, SPHERICAL]
+            description: Guide constraint for linear motor
+          spindle:
+            type: string
+            enum: [FREE, REVOLUTE, CYLINDRICAL]
+            description: Spindle constraint for rotation motor

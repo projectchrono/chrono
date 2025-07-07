@@ -1,180 +1,183 @@
-name: Slider-crank
-angle_degrees: true
+chrono-version: 9.0
 
-bodies:
-  - name: ground
-    location: [0, 0, 0]
-    fixed: true
-
-  - name: crank
-    location: [-1, 0, 0]
-    mass: 1.0
-    com:
-      location: [0, 0, 0]
-      orientation: [0, 0, 0]
-    inertia:
-      moments: [0.005, 0.1, 0.1]
-      products: [0, 0, 0]
-    visualization:
-      shapes:
-        - type: BOX
-          dimensions: [2, 0.14, 0.14]
-          location: [0, 0, 0]
-          orientation: [0, 0, 0]
-          color: [0.6, 0.2, 0.2]
-        - type: CYLINDER
-          radius: 0.07
-          length: 0.4
-          location: [1, 0, 0]
-          axis: [0, 1, 0]
-          color: [0.6, 0.2, 0.2]
-
-  - name: slider
-    location: [2, 0, 0]
-    mass: 1
-    com:
-      location: [0, 0, 0]
-      orientation: [0, 0, 0]
-    inertia:
-      moments: [0.05, 0.05, 0.05]
-      products: [0, 0, 0]
-    contact:
-      materials:
-        - name: slider_material
-          coefficient_of_friction: 0.4
-      shapes:
-        - type: BOX
-          material: slider_material
-          dimensions: [0.5, 0.3, 0.3]
-          location: [0, 0, 0]
-          orientation: [0, 0, 0]
-      collision_family: 0
-    visualization:
-      shapes:
-        - type: BOX
-          dimensions: [0.5, 0.3, 0.3]
-          location: [0, 0, 0]
-          orientation: [0, 0, 0]
-          color: [0.2, 0.2, 0.6]
-
-  - name: rod
-    location: [0, 0, 0]
-    mass: 0.5
-    com:
-      location: [0, 0, 0]
-      orientation: [0, 0, 0]
-    inertia: 
-      moments: [0.005, 0.1, 0.1]
-      products: [0, 0, 0]
-    visualization:
-      shapes:
-        - type: CYLINDER
-          radius: 0.1
-          length: 4
-          location: [0, 0, 0]
-          axis: [1, 0, 0]
-          color: [0.2, 0.6, 0.2]
-        - type: SPHERE
-          radius: 0.1
-          location: [-2, 0, 0]
-          color: [0.2, 0.6, 0.2]
-        - type: CYLINDER
-          radius: 0.05
-          length: 0.4
-          location: [2, 0, 0]
-          axis: [0, 1, 0]
-          color: [0.2, 0.6, 0.2]
-
-  - name: ball
-    location: [5.5, 0, 0]
-    mass: 1
-    com:
-      location: [0, 0, 0]
-      orientation: [0, 0, 0]
-    inertia: 
-      moments: [0.02, 0.02, 0.02]
-      products: [0, 0, 0]
-    contact:
-      materials:
-        - name: ball_material
-          coefficient_of_friction: 0.6
-          coefficient_of_restitution: 0.4
-      shapes:
-        - type: SPHERE
-          material: ball_material
-          radius: 0.2
-          location: [0, 0, 0]
-      collision_family: 0
-    visualization:
-      shapes:
-        - type: SPHERE
-          radius: 0.2
-          location: [0, 0, 0]
-          color: [0.6, 0.6, 1.0]
-
-joints:
-# Crank connected to ground with (passive) revolute joint
-##  - name: ground_crank
-##    type: REVOLUTE
-##    body1: ground
-##    body2: crank
-##    location: [0, 0, 0]
-##    axis: [0, 1, 0]
+model:
+  name: Slider-crank
+  angle_degrees: true
   
-  - name: ground_slider
-    type: PRISMATIC
-    body1: ground
-    body2: slider
-    location: [2, 0, 0]
-    axis: [1, 0, 0]
-
-  - name: crank_rod
-    type: SPHERICAL
-    body1: crank
-    body2: rod
-    location: [-2, 0, 0]
-
-  - name: rod_slider
-    type: UNIVERSAL
-    body1: rod
-    body2: slider
-    location: [2, 0, 0]
-    axis1: [0, 1, 0]
-    axis2: [0, 0, 1]
-
-  - name: ground_ball
-    type: PRISMATIC
-    body1: ground
-    body2: ball
-    location: [5.5, 0, 0]
-    axis: [1, 0, 0]
-
-# Crank connected to ground with speed rotational motor
-motors:
-  - name: ground_crank
-    type: ROTATION
-    spindle: REVOLUTE
-    body1: ground
-    body2: crank
-    location: [0, 0, 0]
-    axis: [0, 1, 0]
-    actuation_type: SPEED
-    actuation_function:
-      type: CONSTANT
-      value: 3.14
-
-spring_dampers:
-  - name: spring
-    type: TSDA
-    body1: ground
-    body2: ball
-    point1: [6.5, 0, 0]
-    point2: [5.5, 0, 0]
-    spring_coefficient: 50.0
-    damping_coefficient: 5.0
-    free_length: 1.0
-    visualization:
-      type: SPRING
-      radius: 0.05
-      resolution: 80
-      turns: 15
+  bodies:
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+  
+    - name: crank
+      location: [-1, 0, 0]
+      mass: 1.0
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [0.005, 0.1, 0.1]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [2, 0.14, 0.14]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.2, 0.2]
+          - type: CYLINDER
+            radius: 0.07
+            length: 0.4
+            location: [1, 0, 0]
+            axis: [0, 1, 0]
+            color: [0.6, 0.2, 0.2]
+  
+    - name: slider
+      location: [2, 0, 0]
+      mass: 1
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [0.05, 0.05, 0.05]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: slider_material
+            coefficient_of_friction: 0.4
+        shapes:
+          - type: BOX
+            material: slider_material
+            dimensions: [0.5, 0.3, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.5, 0.3, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.2, 0.2, 0.6]
+  
+    - name: rod
+      location: [0, 0, 0]
+      mass: 0.5
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia: 
+        moments: [0.005, 0.1, 0.1]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: CYLINDER
+            radius: 0.1
+            length: 4
+            location: [0, 0, 0]
+            axis: [1, 0, 0]
+            color: [0.2, 0.6, 0.2]
+          - type: SPHERE
+            radius: 0.1
+            location: [-2, 0, 0]
+            color: [0.2, 0.6, 0.2]
+          - type: CYLINDER
+            radius: 0.05
+            length: 0.4
+            location: [2, 0, 0]
+            axis: [0, 1, 0]
+            color: [0.2, 0.6, 0.2]
+  
+    - name: ball
+      location: [5.5, 0, 0]
+      mass: 1
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia: 
+        moments: [0.02, 0.02, 0.02]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: ball_material
+            coefficient_of_friction: 0.6
+            coefficient_of_restitution: 0.4
+        shapes:
+          - type: SPHERE
+            material: ball_material
+            radius: 0.2
+            location: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: SPHERE
+            radius: 0.2
+            location: [0, 0, 0]
+            color: [0.6, 0.6, 1.0]
+  
+  joints:
+  # Crank connected to ground with (passive) revolute joint
+  ##  - name: ground_crank
+  ##    type: REVOLUTE
+  ##    body1: ground
+  ##    body2: crank
+  ##    location: [0, 0, 0]
+  ##    axis: [0, 1, 0]
+    
+    - name: ground_slider
+      type: PRISMATIC
+      body1: ground
+      body2: slider
+      location: [2, 0, 0]
+      axis: [1, 0, 0]
+  
+    - name: crank_rod
+      type: SPHERICAL
+      body1: crank
+      body2: rod
+      location: [-2, 0, 0]
+  
+    - name: rod_slider
+      type: UNIVERSAL
+      body1: rod
+      body2: slider
+      location: [2, 0, 0]
+      axis1: [0, 1, 0]
+      axis2: [0, 0, 1]
+  
+    - name: ground_ball
+      type: PRISMATIC
+      body1: ground
+      body2: ball
+      location: [5.5, 0, 0]
+      axis: [1, 0, 0]
+  
+  # Crank connected to ground with speed rotational motor
+  motors:
+    - name: ground_crank
+      type: ROTATION
+      spindle: REVOLUTE
+      body1: ground
+      body2: crank
+      location: [0, 0, 0]
+      axis: [0, 1, 0]
+      actuation_type: SPEED
+      actuation_function:
+        type: CONSTANT
+        value: 3.14
+  
+  spring_dampers:
+    - name: spring
+      type: TSDA
+      body1: ground
+      body2: ball
+      point1: [6.5, 0, 0]
+      point2: [5.5, 0, 0]
+      spring_coefficient: 50.0
+      damping_coefficient: 5.0
+      free_length: 1.0
+      visualization:
+        type: SPRING
+        radius: 0.05
+        resolution: 80
+        turns: 15

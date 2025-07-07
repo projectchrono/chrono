@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
+#include "chrono/ChVersion.h"
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
@@ -94,6 +95,25 @@ std::string ToUpper(std::string in) {
     return in;
 }
 
+void CheckVersion(const YAML::Node& a) {
+    std::string chrono_version = a.as<std::string>();
+
+    auto first = chrono_version.find(".");
+    ChAssertAlways(first != std::string::npos);
+    std::string chrono_major = chrono_version.substr(0, first);
+    
+    ChAssertAlways(first < chrono_version.size() - 1);
+    chrono_version = &chrono_version[first + 1];
+    
+    auto second = chrono_version.find(".");
+    if (second == std::string::npos)
+        second = chrono_version.size();
+    std::string chrono_minor = chrono_version.substr(0, second);
+
+    ChAssertAlways(chrono_major == CHRONO_VERSION_MAJOR);
+    ChAssertAlways(chrono_minor == CHRONO_VERSION_MINOR);
+}
+
 void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     auto path = filesystem::path(yaml_filename);
     if (!path.exists() || !path.is_file()) {
@@ -103,36 +123,44 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
+    // Check version compatibility
+    ChAssertAlways(yaml["chrono-version"]);
+    CheckVersion(yaml["chrono-version"]);
+
+    // Check a simulation object exists
+    ChAssertAlways(yaml["simulation"]);
+    auto sim = yaml["simulation"];
+
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\nLoading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
     }
 
     // Mandatory
-    ChAssertAlways(yaml["time_step"]);
-    ChAssertAlways(yaml["contact_method"]);
-    m_sim.time_step = yaml["time_step"].as<double>();
-    auto contact_method = ToUpper(yaml["contact_method"].as<std::string>());
+    ChAssertAlways(sim["time_step"]);
+    ChAssertAlways(sim["contact_method"]);
+    m_sim.time_step = sim["time_step"].as<double>();
+    auto contact_method = ToUpper(sim["contact_method"].as<std::string>());
     if (contact_method == "SMC") {
         m_sim.contact_method = ChContactMethod::SMC;
     } else if (contact_method == "NSC") {
         m_sim.contact_method = ChContactMethod::NSC;
     } else {
-        cerr << "Incorrect contact method: " << yaml["contact_method"].as<std::string>() << endl;
+        cerr << "Incorrect contact method: " << sim["contact_method"].as<std::string>() << endl;
         throw std::runtime_error("Incorrect contact method");
     }
 
     // Optional
-    if (yaml["end_time"])
-        m_sim.end_time = yaml["end_time"].as<double>();
-    if (yaml["enforce_realtime"])
-        m_sim.enforce_realtime = yaml["enforce_realtime"].as<bool>();
-    if (yaml["gravity"])
-        m_sim.gravity = ReadVector(yaml["gravity"]);
+    if (sim["end_time"])
+        m_sim.end_time = sim["end_time"].as<double>();
+    if (sim["enforce_realtime"])
+        m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
+    if (sim["gravity"])
+        m_sim.gravity = ReadVector(sim["gravity"]);
 
     // Integrator parameters (optional)
-    if (yaml["integrator"]) {
-        auto intgr = yaml["integrator"];
+    if (sim["integrator"]) {
+        auto intgr = sim["integrator"];
         m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
         switch (m_sim.integrator.type) {
             case ChTimestepper::Type::HHT:
@@ -153,8 +181,8 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Solver parameters (optional)
-    if (yaml["solver"]) {
-        auto slvr = yaml["solver"];
+    if (sim["solver"]) {
+        auto slvr = sim["solver"];
         m_sim.solver.type = ReadSolverType(slvr["type"]);
         switch (m_sim.solver.type) {
             case ChSolver::Type::SPARSE_LU:
@@ -180,9 +208,9 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     }
 
     // Run-time visualization (optional)
-    if (yaml["visualization"]) {
+    if (sim["visualization"]) {
         m_sim.visualization.render = true;
-        auto vis = yaml["visualization"];
+        auto vis = sim["visualization"];
         if (vis["render_fps"])
             m_sim.visualization.render_fps = vis["render_fps"].as<double>();
         if (vis["enable_shadows"])
@@ -223,69 +251,78 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
-    if (yaml["name"])
-        m_name = yaml["name"].as<std::string>();
+    // Check version compatibility
+    ChAssertAlways(yaml["chrono-version"]);
+    CheckVersion(yaml["chrono-version"]);
+    
+    // Check a model object exists
+    ChAssertAlways(yaml["model"]);
+    auto model = yaml["model"];
 
-    if (yaml["angle_degrees"])
-        m_use_degrees = yaml["angle_degrees"].as<bool>();
+    if (model["name"])
+        m_name = model["name"].as<std::string>();
+
+    if (model["angle_degrees"])
+        m_use_degrees = model["angle_degrees"].as<bool>();
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\nLoading Chrono model specification from: " << yaml_filename << "\n" << endl;
+        cout << "model name:        " << m_name << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
     }
 
     // Read bodies
-    if (yaml["bodies"]) {
-        auto bodies = yaml["bodies"];
-        ChAssertAlways(bodies.IsSequence());
-        if (m_verbose) {
-            cout << "\nbodies: " << bodies.size() << endl;
+    ChAssertAlways(model["bodies"]);
+    auto bodies = model["bodies"];
+    ChAssertAlways(bodies.IsSequence());
+    if (m_verbose) {
+        cout << "\nbodies: " << bodies.size() << endl;
+    }
+
+    for (size_t i = 0; i < bodies.size(); i++) {
+        ChAssertAlways(bodies[i]["name"]);
+        auto name = bodies[i]["name"].as<std::string>();
+
+        Body body;
+
+        if (bodies[i]["fixed"])
+            body.is_fixed = bodies[i]["fixed"].as<bool>();
+
+        ChAssertAlways(bodies[i]["location"]);
+        ChAssertAlways(body.is_fixed || bodies[i]["mass"]);
+        ChAssertAlways(body.is_fixed || bodies[i]["inertia"]);
+        ChAssertAlways(body.is_fixed || bodies[i]["inertia"]["moments"]);
+
+        body.pos = ReadVector(bodies[i]["location"]);
+        if (bodies[i]["orientation"])
+            body.rot = ReadRotation(bodies[i]["orientation"]);
+        if (!body.is_fixed)
+            body.mass = bodies[i]["mass"].as<double>();
+        if (bodies[i]["com"]) {
+            ChVector3d com_pos = VNULL;
+            ChQuaterniond com_rot = QUNIT;
+            if (bodies[i]["com"]["location"])
+                com_pos = ReadVector(bodies[i]["com"]["location"]);
+            if (bodies[i]["com"]["orientation"])
+                com_rot = ReadRotation(bodies[i]["com"]["orientation"]);
+            body.com = ChFramed(com_pos, com_rot);
         }
-        for (size_t i = 0; i < bodies.size(); i++) {
-            ChAssertAlways(bodies[i]["name"]);
-            auto name = bodies[i]["name"].as<std::string>();
+        if (!body.is_fixed)
+            body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
+        if (bodies[i]["inertia"]["products"])
+            body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
+        body.geometry = ReadGeometry(bodies[i]);
 
-            Body body;
+        if (m_verbose)
+            body.PrintInfo(name);
 
-            if (bodies[i]["fixed"])
-                body.is_fixed = bodies[i]["fixed"].as<bool>();
-
-            ChAssertAlways(bodies[i]["location"]);
-            ChAssertAlways(body.is_fixed || bodies[i]["mass"]);
-            ChAssertAlways(body.is_fixed || bodies[i]["inertia"]);
-            ChAssertAlways(body.is_fixed || bodies[i]["inertia"]["moments"]);
-
-            body.pos = ReadVector(bodies[i]["location"]);
-            if (bodies[i]["orientation"])
-                body.rot = ReadRotation(bodies[i]["orientation"]);
-            if (!body.is_fixed)
-                body.mass = bodies[i]["mass"].as<double>();
-            if (bodies[i]["com"]) {
-                ChVector3d com_pos = VNULL;
-                ChQuaterniond com_rot = QUNIT;
-                if (bodies[i]["com"]["location"])
-                    com_pos = ReadVector(bodies[i]["com"]["location"]);
-                if (bodies[i]["com"]["orientation"])
-                    com_rot = ReadRotation(bodies[i]["com"]["orientation"]);
-                body.com = ChFramed(com_pos, com_rot);
-            }
-            if (!body.is_fixed)
-                body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
-            if (bodies[i]["inertia"]["products"])
-                body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
-            body.geometry = ReadGeometry(bodies[i]);
-
-            if (m_verbose)
-                body.PrintInfo(name);
-
-            m_bodies.insert({name, body});
-        }
+        m_bodies.insert({name, body});
     }
 
     // Read joints
-    if (yaml["joints"]) {
-        auto joints = yaml["joints"];
+    if (model["joints"]) {
+        auto joints = model["joints"];
         ChAssertAlways(joints.IsSequence());
         if (m_verbose) {
             cout << "\njoints: " << joints.size() << endl;
@@ -318,8 +355,8 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     // Read constraints
-    if (yaml["constraints"]) {
-        auto constraints = yaml["constraints"];
+    if (model["constraints"]) {
+        auto constraints = model["constraints"];
         ChAssertAlways(constraints.IsSequence());
         if (m_verbose) {
             cout << "\nconstraints: " << constraints.size() << endl;
@@ -327,13 +364,13 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         for (size_t i = 0; i < constraints.size(); i++) {
             ChAssertAlways(constraints[i]["name"]);
             ChAssertAlways(constraints[i]["type"]);
+            ChAssertAlways(constraints[i]["body1"]);
+            ChAssertAlways(constraints[i]["body2"]);
             auto name = constraints[i]["name"].as<std::string>();
             auto type = ToUpper(constraints[i]["type"].as<std::string>());
 
             if (type == "DISTANCE") {
                 DistanceConstraint dist;
-                ChAssertAlways(constraints[i]["body1"]);
-                ChAssertAlways(constraints[i]["body2"]);
                 ChAssertAlways(constraints[i]["point1"]);
                 ChAssertAlways(constraints[i]["point2"]);
                 dist.body1 = constraints[i]["body1"].as<std::string>();
@@ -355,8 +392,8 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     // Read spring damper force elements elements
-    if (yaml["spring_dampers"]) {
-        auto spring_dampers = yaml["spring_dampers"];
+    if (model["spring_dampers"]) {
+        auto spring_dampers = model["spring_dampers"];
         ChAssertAlways(spring_dampers.IsSequence());
         if (m_verbose) {
             cout << "\nspring dampers: " << spring_dampers.size() << endl;
@@ -364,13 +401,13 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         for (size_t i = 0; i < spring_dampers.size(); i++) {
             ChAssertAlways(spring_dampers[i]["name"]);
             ChAssertAlways(spring_dampers[i]["type"]);
+            ChAssertAlways(spring_dampers[i]["body1"]);
+            ChAssertAlways(spring_dampers[i]["body2"]);
             auto name = spring_dampers[i]["name"].as<std::string>();
             auto type = ToUpper(spring_dampers[i]["type"].as<std::string>());
 
             if (type == "TSDA") {
                 TSDA tsda;
-                ChAssertAlways(spring_dampers[i]["body1"]);
-                ChAssertAlways(spring_dampers[i]["body2"]);
                 ChAssertAlways(spring_dampers[i]["point1"]);
                 ChAssertAlways(spring_dampers[i]["point2"]);
                 tsda.body1 = spring_dampers[i]["body1"].as<std::string>();
@@ -387,8 +424,6 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
 
             } else if (type == "RSDA") {
                 RSDA rsda;
-                ChAssertAlways(spring_dampers[i]["body1"]);
-                ChAssertAlways(spring_dampers[i]["body2"]);
                 ChAssertAlways(spring_dampers[i]["axis"]);
                 rsda.body1 = spring_dampers[i]["body1"].as<std::string>();
                 rsda.body2 = spring_dampers[i]["body2"].as<std::string>();
@@ -409,8 +444,8 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     // Read motors
-    if (yaml["motors"]) {
-        auto motors = yaml["motors"];
+    if (model["motors"]) {
+        auto motors = model["motors"];
         ChAssertAlways(motors.IsSequence());
         if (m_verbose) {
             cout << "\nmotors: " << motors.size() << endl;

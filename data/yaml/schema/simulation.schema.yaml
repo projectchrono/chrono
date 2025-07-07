@@ -1,152 +1,177 @@
-description: |
-  Schema for simulation parameters.
-  This schema defines the numerical integration, solver, and visualization settings.
-type: object
-required: [time_step, contact_method]
-properties:
-  time_step:
-    type: number
-    description: Time step size in seconds.
-    minimum: 0
-  
-  contact_method:
-    type: string
-    description: Contact method for collision detection and response.
-    enum: [SMC, NSC]
-  
-  end_time:
-    type: number
-    description: |
-      Total simulation duration in seconds.
-      The simulation will run from t=0 to t=end_time.
-    minimum: 0
-  
-  enforce_realtime:
-    type: boolean
-    description: Whether to enforce real-time simulation.
-    default: false
-  
-  gravity:
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2025 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a Chrono YAML simulation specification file.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+# The `simulation` object contains the schema for the simulation YAML specification.
+#
+# =============================================================================
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML simulation specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Definitions of common Chrono types
+
+vector3d: &VECTOR3D   # Specification of a ChVector3d
     type: array
-    description: Gravitational acceleration vector [x, y, z].
     items:
-      type: number
+        type: number
     minItems: 3
     maxItems: 3
-    default: [0, 0, -9.8]
+
+# -----------------------------------------------------------------------------
+# Definition of a Chrono simulation
+
+simulation:
+  description: |
+    Schema for simulation parameters.
+    This schema defines the numerical integration, solver, and visualization settings.
+  type: object
+  required: [time_step, contact_method]
+  properties:
+    time_step:
+      type: number
+      description: Time step size in seconds.
+      minimum: 0
+    
+    contact_method:
+      type: string
+      description: Contact method for collision detection and response.
+      enum: [SMC, NSC]
+    
+    end_time:
+      type: number
+      description: |
+        Total simulation duration in seconds.
+        The simulation will run from t=0 to t=end_time.
+      minimum: 0
+    
+    enforce_realtime:
+      type: boolean
+      description: Whether to enforce real-time simulation.
+      default: false
+    
+    gravity:
+      type: array
+      <<: *VECTOR3D
+      description: Gravitational acceleration vector [x, y, z].
+      default: [0, 0, -9.8]
+    
+    integrator:
+      type: object
+      description: Integrator type and parameters.
+      required: [type]
+      properties:
+          type:
+              type: string
+              description: Type of numerical integrator.
+              enum: [EULER_IMPLICIT_LINEARIZED, EULER_IMPLICIT_PROJECTED, EULER_IMPLICIT, HHT]
+          rel_tolerance:
+              type: number
+              description: Relative tolerance (HHT and implicit Euler).
+              minimum: 0
+              default: 1e-4
+          abs_tolerance_states:
+              type: number
+              description: Absolute tolerance for state variables (HHT and implicit Euler).
+              minimum: 0
+              default: 1e-4
+          abs_tolerance_multipliers:
+              type: number
+              description: Absolute tolerance for Lagrange multipliers (HHT and implicit Euler).
+              minimum: 0
+              default: 1e2
+          max_iterations:
+              type: number
+              description: Maximum number of non-linear iteration for implicit integrators.
+              minimum: 0
+              default: 50
+          use_stepsize_control:
+              type: boolean
+              description: Whether to use internal step-size control 
+              default: false
+          use_modified_newton:
+              type: boolean
+              description: Whether to use a modified Newton iteration.
+              default: false
+    
+    solver:
+      type: object
+      description: Solver type and parameters.
+      required: [type]
+      properties:
+          type:
+              type: string
+              description: Type of linear solver.
+              enum: [BARZILAI_BORWEIN, PSOR, APGD, MINRES, GMRES, BICGSTAB, PARDISO, MUMPS, SPARSE_LU, SPARSE_QR]
+          max_iterations:
+              type: number
+              description: Maximum number of iteration for iterative DVI and linear solvers.
+              minimum: 0
+              default: 100
+          overrelaxation_factor:
+              type: number
+              description: Overrelaxation factor for iterative DVI solvers.
+              minimum: 0
+              default: 1.0
+          sharpness_factor:
+              type: number
+              description: Sharpness factor for iterative DVI solvers.
+              minimum: 0
+              default: 1.0
+          tolerance:
+              type: number
+              description: Tolerance for iterative Krylov linear solvers.
+              minimum: 0
+              default: 0.0
+          enable_diagonal_preconditioner:
+              type: boolean
+              description: Whether to use a diagonal preconditioner for iterative Krylov linear solvers.
+              default: false
+          lock_sparsity_pattern:
+              type: boolean
+              description: Keep matrix sparsity pattern unchanged (direct sparse linear solvers).
+              default: false
+          use_sparsity_pattern_learner:
+              type: boolean
+              description: Evaluate matrix sparsity pattern in a pre-processing stage (direct sparse linear solvers).
+              default: true
+    
+    visualization:
+      type: object
+      properties:
+          render_fps:
+              type: number
+              description: Target frames per second for visualization.
+              minimum: 0
+          enable_shadows:
+              type: boolean
+              description: Whether to enable shadows in run-time visualization system.
+              default: true
+          camera:
+              type: object
+              properties:
+                  vertical:
+                      type: string
+                      description: Vertical axis for camera orientation.
+                      enum: [Y, Z]
+                      default: Z
+                  location:
+                      <<: *VECTOR3D
+                      description: Initial camera location (x, y, z)
+                      default: [0, -1, 0]
+                  target:
+                      <<: *VECTOR3D
+                      description: Initial camera look-at point
+                      default: [0, 0, 0]
   
-  integrator:
-    type: object
-    description: Integrator type and parameters.
-    required: [type]
-    properties:
-        type:
-            type: string
-            description: Type of numerical integrator.
-            enum: [EULER_IMPLICIT_LINEARIZED, EULER_IMPLICIT_PROJECTED, EULER_IMPLICIT, HHT]
-        rel_tolerance:
-            type: number
-            description: Relative tolerance (HHT and implicit Euler).
-            minimum: 0
-            default: 1e-4
-        abs_tolerance_states:
-            type: number
-            description: Absolute tolerance for state variables (HHT and implicit Euler).
-            minimum: 0
-            default: 1e-4
-        abs_tolerance_multipliers:
-            type: number
-            description: Absolute tolerance for Lagrange multipliers (HHT and implicit Euler).
-            minimum: 0
-            default: 1e2
-        max_iterations:
-            type: number
-            description: Maximum number of non-linear iteration for implicit integrators.
-            minimum: 0
-            default: 50
-        use_stepsize_control:
-            type: boolean
-            description: Whether to use internal step-size control 
-            default: false
-        use_modified_newton:
-            type: boolean
-            description: Whether to use a modified Newton iteration.
-            default: false
-  
-  solver:
-    type: object
-    description: Solver type and parameters.
-    required: [type]
-    properties:
-        type:
-            type: string
-            description: Type of linear solver.
-            enum: [BARZILAI_BORWEIN, PSOR, APGD, MINRES, GMRES, BICGSTAB, PARDISO, MUMPS, SPARSE_LU, SPARSE_QR]
-        max_iterations:
-            type: number
-            description: Maximum number of iteration for iterative DVI and linear solvers.
-            minimum: 0
-            default: 100
-        overrelaxation_factor:
-            type: number
-            description: Overrelaxation factor for iterative DVI solvers.
-            minimum: 0
-            default: 1.0
-        sharpness_factor:
-            type: number
-            description: Sharpness factor for iterative DVI solvers.
-            minimum: 0
-            default: 1.0
-        tolerance:
-            type: number
-            description: Tolerance for iterative Krylov linear solvers.
-            minimum: 0
-            default: 0.0
-        enable_diagonal_preconditioner:
-            type: boolean
-            description: Whether to use a diagonal preconditioner for iterative Krylov linear solvers.
-            default: false
-        lock_sparsity_pattern:
-            type: boolean
-            description: Keep matrix sparsity pattern unchanged (direct sparse linear solvers).
-            default: false
-        use_sparsity_pattern_learner:
-            type: boolean
-            description: Evaluate matrix sparsity pattern in a pre-processing stage (direct sparse linear solvers).
-            default: true
-  
-  visualization:
-    type: object
-    properties:
-        render_fps:
-            type: number
-            description: Target frames per second for visualization.
-            minimum: 0
-        enable_shadows:
-            type: boolean
-            description: Whether to enable shadows in run-time visualization system.
-            default: true
-        camera:
-            type: object
-            properties:
-                vertical:
-                    type: string
-                    description: Vertical axis for camera orientation.
-                    enum: [Y, Z]
-                    default: Z
-                location:
-                    type: array
-                    description: Initial camera location (x, y, z)
-                    items:
-                        type: number
-                    minItems: 3
-                    maxItems: 3
-                    default: [0, -1, 0]
-                target:
-                    type: array
-                    description: Initial camera look-at point (x, y, z)
-                    items:
-                        type: number
-                    minItems: 3
-                    maxItems: 3
-                    default: [0, 0, 0]
