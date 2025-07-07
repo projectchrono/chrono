@@ -166,7 +166,7 @@ model:
         type: CONSTANT
         value: 3.14
   
-  spring_dampers:
+  tsdas:
     - name: spring
       type: TSDA
       body1: ground

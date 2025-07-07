@@ -391,55 +391,69 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
-    // Read spring damper force elements elements
-    if (model["spring_dampers"]) {
-        auto spring_dampers = model["spring_dampers"];
-        ChAssertAlways(spring_dampers.IsSequence());
+    // Read TSDA force elements elements
+    if (model["tsdas"]) {
+        auto tsdas = model["tsdas"];
+        ChAssertAlways(tsdas.IsSequence());
         if (m_verbose) {
-            cout << "\nspring dampers: " << spring_dampers.size() << endl;
+            cout << "\nTSDA (translational spring dampers): " << tsdas.size() << endl;
         }
-        for (size_t i = 0; i < spring_dampers.size(); i++) {
-            ChAssertAlways(spring_dampers[i]["name"]);
-            ChAssertAlways(spring_dampers[i]["type"]);
-            ChAssertAlways(spring_dampers[i]["body1"]);
-            ChAssertAlways(spring_dampers[i]["body2"]);
-            auto name = spring_dampers[i]["name"].as<std::string>();
-            auto type = ToUpper(spring_dampers[i]["type"].as<std::string>());
 
-            if (type == "TSDA") {
-                TSDA tsda;
-                ChAssertAlways(spring_dampers[i]["point1"]);
-                ChAssertAlways(spring_dampers[i]["point2"]);
-                tsda.body1 = spring_dampers[i]["body1"].as<std::string>();
-                tsda.body2 = spring_dampers[i]["body2"].as<std::string>();
-                tsda.point1 = ReadVector(spring_dampers[i]["point1"]);
-                tsda.point2 = ReadVector(spring_dampers[i]["point2"]);
-                tsda.force = ReadTSDAFunctor(spring_dampers[i], tsda.free_length);
-                tsda.geometry = ReadTSDAGeometry(spring_dampers[i]);
+        for (size_t i = 0; i < tsdas.size(); i++) {
+            ChAssertAlways(tsdas[i]["name"]);
+            ChAssertAlways(tsdas[i]["body1"]);
+            ChAssertAlways(tsdas[i]["body2"]);
+            ChAssertAlways(tsdas[i]["point1"]);
+            ChAssertAlways(tsdas[i]["point2"]);
 
-                if (m_verbose)
-                    tsda.PrintInfo(name);
+            auto name = tsdas[i]["name"].as<std::string>();
 
-                m_tsdas.insert({name, tsda});
+            TSDA tsda;
+            tsda.body1 = tsdas[i]["body1"].as<std::string>();
+            tsda.body2 = tsdas[i]["body2"].as<std::string>();
+            tsda.point1 = ReadVector(tsdas[i]["point1"]);
+            tsda.point2 = ReadVector(tsdas[i]["point2"]);
+            tsda.force = ReadTSDAFunctor(tsdas[i], tsda.free_length);
+            tsda.geometry = ReadTSDAGeometry(tsdas[i]);
 
-            } else if (type == "RSDA") {
-                RSDA rsda;
-                ChAssertAlways(spring_dampers[i]["axis"]);
-                rsda.body1 = spring_dampers[i]["body1"].as<std::string>();
-                rsda.body2 = spring_dampers[i]["body2"].as<std::string>();
-                rsda.axis = ReadVector(spring_dampers[i]["axis"]);
-                rsda.axis.Normalize();
-                if (spring_dampers[i]["location"])
-                    rsda.pos = ReadVector(spring_dampers[i]["location"]);
-                rsda.torque = ReadRSDAFunctor(spring_dampers[i], rsda.free_angle);
-                if (m_use_degrees)
-                    rsda.free_angle *= CH_DEG_TO_RAD;
+            if (m_verbose)
+                tsda.PrintInfo(name);
 
-                if (m_verbose)
-                    rsda.PrintInfo(name);
+            m_tsdas.insert({name, tsda});
+        }
+    }
 
-                m_rsdas.insert({name, rsda});
-            }
+    // Read RSDA force elements elements
+    if (model["rsdas"]) {
+        auto rsdas = model["rsdas"];
+        ChAssertAlways(rsdas.IsSequence());
+        if (m_verbose) {
+            cout << "\nRSDA (rotational spring dampers): " << rsdas.size() << endl;
+        }
+
+        for (size_t i = 0; i < rsdas.size(); i++) {
+            ChAssertAlways(rsdas[i]["name"]);
+            ChAssertAlways(rsdas[i]["body1"]);
+            ChAssertAlways(rsdas[i]["body2"]);
+            ChAssertAlways(rsdas[i]["axis"]);
+
+            auto name = rsdas[i]["name"].as<std::string>();
+
+            RSDA rsda;
+            rsda.body1 = rsdas[i]["body1"].as<std::string>();
+            rsda.body2 = rsdas[i]["body2"].as<std::string>();
+            rsda.axis = ReadVector(rsdas[i]["axis"]);
+            rsda.axis.Normalize();
+            if (rsdas[i]["location"])
+                rsda.pos = ReadVector(rsdas[i]["location"]);
+            rsda.torque = ReadRSDAFunctor(rsdas[i], rsda.free_angle);
+            if (m_use_degrees)
+                rsda.free_angle *= CH_DEG_TO_RAD;
+
+            if (m_verbose)
+                rsda.PrintInfo(name);
+
+            m_rsdas.insert({name, rsda});
         }
     }
 

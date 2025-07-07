@@ -127,6 +127,16 @@ data_array_3: &DATA_ARRAY_3
       minItems: 3
       maxItems: 3
 
+# Specification of a data array with N columns
+data_array_N: &DATA_ARRAY_N
+    type: array
+    description: Array of N-tuples
+    items:
+      type: array
+      items:
+        type: number
+      minItems: 1
+
 # -----------------------------------------------------------------------------
 # Definition of a Chrono multibody model
 # -----------------------------------------------------------------------------
@@ -285,20 +295,16 @@ model:
             <<: *VECTOR3D
             description: Point on body2 expressed in global frame
 
-    spring_dampers:
+    tsdas:
       type: array
-      description: List of spring-damper elements
+      description: List of translational spring-damper (TSDA) elements
       items:
         type: object
-        required: [name, type, body1, body2]
+        required: [name, body1, body2, point1, point2]
         properties:
           name:
             type: string
             description: Unique identifier for the element
-          type:
-            type: string
-            enum: [tsda, rsda]
-            description: Type of element
           body1:
             type: string
             description: Name of the first body to connect
@@ -307,22 +313,13 @@ model:
             description: Name of the second body to connect
           point1:
             <<: *VECTOR3D
-            description: TSDA point on body1 expressed in global frame
+            description: Point on body1 expressed in global frame
           point2:
             <<: *VECTOR3D
-            description: TSDA point on body2 expressed in global frame
-          location:
-            <<: *VECTOR3D
-            description: RSDA location expressed in global frame
-          axis:
-            <<: *VECTOR3D
-            description: RSDA axis expressed in global frame
+            description: Point on body2 expressed in global frame
           free_length:
             type: number
-            description: Free length for TSDA
-          free_angle:
-            type: number
-            description: Free angle for RSDA
+            description: TSDA free length
           spring_coefficient:
             type: number
             description: Linear spring coefficient
@@ -335,15 +332,24 @@ model:
           damping_curve_data:
             <<: *DATA_ARRAY_2
             description: Nonlinear damping curve data [[velocity, force], ...]
+          deformation:
+            type: array
+            description: TSDA deformation values for full non-linear map TSDA (required if map_data present)
+            items:
+              type: number
+            minItems: 1
+          map_data:
+            <<: *DATA_ARRAY_N
+            description: TSDA full non-linear map [[velocity, forces[]], ...]
           preload:
             type: number
-            description: Preload force/torque
+            description: Preload force
           minimum_length:
             type: number
-            description: Minimum length for TSDA
+            description: Minimum TSDA length
           maximum_length:
             type: number
-            description: Maximum length for TSDA
+            description: Maximum TSDA length
           visualization:
             type: object
             description: Visualization settings for the element
@@ -358,6 +364,47 @@ model:
               color:
                 <<: *COLOR
   
+    rsdas:
+      type: array
+      description: List of rotational spring-damper (RSDA) elements
+      items:
+        type: object
+        required: [name, body1, body2, axis]
+        properties:
+          name:
+            type: string
+            description: Unique identifier for the element
+          body1:
+            type: string
+            description: Name of the first body to connect
+          body2:
+            type: string
+            description: Name of the second body to connect
+          location:
+            <<: *VECTOR3D
+            description: RSDA location expressed in global frame
+          axis:
+            <<: *VECTOR3D
+            description: RSDA axis expressed in global frame
+          free_angle:
+            type: number
+            description: RSDA free angle
+          spring_coefficient:
+            type: number
+            description: Linear spring coefficient
+          damping_coefficient:
+            type: number
+            description: Linear damping coefficient
+          spring_curve_data:
+            <<: *DATA_ARRAY_2
+            description: Nonlinear spring curve data [[displacement, force], ...]
+          damping_curve_data:
+            <<: *DATA_ARRAY_2
+            description: Nonlinear damping curve data [[velocity, force], ...]
+          preload:
+            type: number
+            description: Preload torque
+
     motors:
       type: array
       description: List of motors in the system
