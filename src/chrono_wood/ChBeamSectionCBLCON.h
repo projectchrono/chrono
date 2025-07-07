@@ -92,7 +92,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     StateVarVector  Get_StateVar() const { return m_state; };
     void Set_StateVar(StateVarVector  state) { m_state=state; }
     
-    enum ConSectionType { transverse_generic, transverse_top, transverse_bot, longitudinal, tangential_fibers_bot, tangential_fibers_top, tangential_fibers_generic, radial_fibers_top, radial_fibers_bot, radial_fibers_generic};
+    enum ConSectionType { transverse_regular_bot, transverse_regular_gen, transverse_regular_top, longitudinal, tangential_ray_bot, tangential_ray_gen, tangential_ray_top, radial_ray_bot, radial_ray_gen, radial_ray_top};
     
     ConSectionType GetSectionType() const { return mysectype; }
     void SetSectionType(ConSectionType sectype) { mysectype=sectype; }

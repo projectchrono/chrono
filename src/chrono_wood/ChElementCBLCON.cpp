@@ -339,15 +339,15 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
         block_LR_local.setZero();
 
         auto type = this->section->GetSectionType();
-        if (type == this->section->transverse_generic ||
-            type == this->section->tangential_fibers_generic ||
-            type == this->section->radial_fibers_generic) {
+        if (type == this->section->transverse_regular_gen ||
+            type == this->section->tangential_ray_gen ||
+            type == this->section->radial_ray_gen) {
 
         MJzz *= 0.25; // TODO JBC: For some reason this is 12 for the default (transverse generic?) connector
         } else {
-        double sign = (type == this->section->transverse_top ||
-                   type == this->section->tangential_fibers_top ||
-                   type == this->section->radial_fibers_top) ? 1.0 : -1.0;
+        double sign = (type == this->section->transverse_regular_top ||
+                   type == this->section->tangential_ray_top ||
+                   type == this->section->radial_ray_top) ? 1.0 : -1.0;
             block_UR_local(0, 2) = sign * 0.5 * mass * h;
             block_UR_local(2, 0) = -sign * 0.5 * mass * h;
 
