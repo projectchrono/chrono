@@ -101,10 +101,10 @@ void CheckVersion(const YAML::Node& a) {
     auto first = chrono_version.find(".");
     ChAssertAlways(first != std::string::npos);
     std::string chrono_major = chrono_version.substr(0, first);
-    
+
     ChAssertAlways(first < chrono_version.size() - 1);
     chrono_version = &chrono_version[first + 1];
-    
+
     auto second = chrono_version.find(".");
     if (second == std::string::npos)
         second = chrono_version.size();
@@ -254,7 +254,7 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
     // Check version compatibility
     ChAssertAlways(yaml["chrono-version"]);
     CheckVersion(yaml["chrono-version"]);
-    
+
     // Check a model object exists
     ChAssertAlways(yaml["model"]);
     auto model = yaml["model"];
@@ -1857,32 +1857,80 @@ ChLinkMotorRotation::SpindleConstraint ChParserYAML::ReadMotorSpindleType(const 
 }
 
 std::shared_ptr<ChFunction> ChParserYAML::ReadFunction(const YAML::Node& a) {
-    std::shared_ptr<ChFunction> function = nullptr;
-
     ChAssertAlways(a["type"]);
     auto type = ToUpper(a["type"].as<std::string>());
+
+    bool repeat = false;
+    double repeat_start = 0;
+    double repeat_width = 0;
+    double repeat_shift = 0;
+    if (a["repeat"]) {
+        repeat = true;
+        repeat_start = a["repeat"]["start"].as<double>();
+        repeat_width = a["repeat"]["width"].as<double>();
+        repeat_shift = a["repeat"]["shift"].as<double>();
+    }
+
+    std::shared_ptr<ChFunction> f_base = nullptr;
     if (type == "CONSTANT") {
         ChAssertAlways(a["value"]);
         auto value = a["value"].as<double>();
-        function = chrono_types::make_shared<ChFunctionConst>(value);
+        f_base = chrono_types::make_shared<ChFunctionConst>(value);
+    } else if (type == "POLYNOMIAL") {
+        ChAssertAlways(a["coefficients"]);
+        ChAssertAlways(a["coefficients"].IsSequence());
+        auto num_coeffs = a["coefficients"].size();
+        std::vector<double> coeffs;
+        for (size_t i = 0; i < num_coeffs; i++)
+            coeffs.push_back(a["coefficients"][i].as<double>());
+        auto f_poly = chrono_types::make_shared<ChFunctionPoly>();
+        f_poly->SetCoefficients(coeffs);
+        f_base = f_poly;
     } else if (type == "SINE") {
         ChAssertAlways(a["amplitude"]);
         ChAssertAlways(a["frequency"]);
-        ChAssertAlways(a["phase"]);
-        auto amplitude = a["amplitude"].as<double>();
-        auto frequency = a["frequency"].as<double>();
-        auto phase = a["phase"].as<double>();
+        double amplitude = a["amplitude"].as<double>();
+        double frequency = a["frequency"].as<double>();
+        double phase = 0;
+        if (a["phase"])
+            phase = a["phase"].as<double>();
         if (m_use_degrees)
             phase *= CH_DEG_TO_RAD;
-        function = chrono_types::make_shared<ChFunctionSine>(amplitude, frequency, phase);
+        f_base = chrono_types::make_shared<ChFunctionSine>(amplitude, frequency, phase);
+    } else if (type == "RAMP") {
+        ChAssertAlways(a["slope"]);
+        auto slope = a["slope"].as<double>();
+        double intercept = 0;
+        if (a["intercept"])
+            intercept = a["intercept"].as<double>();
+        f_base = chrono_types::make_shared<ChFunctionRamp>(intercept, slope);
+    } else if (type == "DATA") {
+        ChAssertAlways(a["data"]);                 // key 'data' must exist
+        ChAssertAlways(a["data"].IsSequence());    // 'data' must be an array
+        ChAssertAlways(a["data"][0].size() == 2);  // each entry in 'data' must have size 2
+        auto num_points = a["data"].size();
+        auto f_interp = chrono_types::make_shared<ChFunctionInterp>();
+        for (size_t i = 0; i < num_points; i++) {
+            double t = a["data"][i][0].as<double>();
+            double f = a["data"][i][1].as<double>();
+            f_interp->AddPoint(t, f);
+        }
+        f_base = f_interp;
     } else {
         cerr << "Incorrect function type: " << a["type"] << endl;
         throw std::runtime_error("Incorrect function type");
     }
-
     //// TODO - more function types
 
-    return function;
+    // Check if base function must be repeated
+    if (repeat) {
+        // Yes: construct and return repeated function
+        auto f_repeat = chrono_types::make_shared<ChFunctionRepeat>(f_base, repeat_start, repeat_width, repeat_shift);
+        return f_repeat;
+    } else {
+        // No: return base underlying function
+        return f_base;
+    }
 }
 
 }  // namespace parsers

@@ -85,15 +85,34 @@ inertia33: &INERTIA33
 # Specification of a function of one variable
 function: &FUNCTION
     type: object
+    description: Function of one variable
     required: [type]
     properties:
       type:
         type: string
-        enum: [CONSTANT, SINE]
+        enum: [CONSTANT, POLYNOMIAL, SINE, DATA]
         description: Function type
+      repeat:
+        type: object
+        description: Periodic replication of the underlying function
+        start:
+          type: number
+          description: Slice start position
+        width:
+          type: number
+          description: Slice width
+        shift:
+          type: number
+          description: Slice shift
       value:
         type: number
         description: Constant value for CONSTANT type
+      coefficients:
+        type: array
+        description: Coefficents for POLYNOMIAL type
+        items:
+          type: number
+        minItems: 2
       amplitude:
         type: number
         description: Amplitude for SINE type
@@ -103,7 +122,17 @@ function: &FUNCTION
       phase:
         type: number
         description: Phase for SINE type
-    description: Function of one variable
+        default: 0.0
+      slope:
+        type: number
+        description: Slopr for RAMP type
+      intercept:
+        type: number
+        description: Intercept value for RAMP type
+        default: 0.0
+      data:
+        <<: *DATA_ARRAY_2
+        description: Interpolation data points for DATA type [[x, f(x)], ...]  
 
 # Specification of a data array with 2 columns
 data_array_2: &DATA_ARRAY_2
