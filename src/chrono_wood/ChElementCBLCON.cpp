@@ -540,97 +540,10 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
     if (Kfactor || Rfactor) {
 
         if (use_numerical_diff_for_KR) {
-        //std::cout<<"////////////////////////////////////////////////////////\n";
-            // numerical evaluation of the K R  matrices
-            double delta_p = 1e-5;
-            double delta_r = 1e-3;
-
-            ChVectorDynamic<> Fi0(12);
-            ChVectorDynamic<> FiD(12);
-            this->ComputeInternalForces(Fi0);
-            ChMatrixDynamic<> H_num(12, 12);
-
-            // K
-            ChVector3d     pa0 = this->GetNodeA()->GetPos();
-            ChQuaternion<> qa0 = this->GetNodeA()->GetRot();
-            ChVector3d     pb0 = this->GetNodeB()->GetPos();
-            ChQuaternion<> qb0 = this->GetNodeB()->GetRot();
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d paD = pa0;
-                paD[i] += delta_p;
-                this->GetNodeA()->SetPos(paD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i) = (FiD - Fi0) / delta_p;
-                this->GetNodeA()->SetPos(pa0);
-            }
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d rotator(VNULL);  rotator[i] = delta_r;
-                ChQuaternion<> mdeltarotL;  mdeltarotL.SetFromRotVec(rotator); // rot.in local basis - as in system wide vectors
-                ChQuaternion<> qaD = qa0 * mdeltarotL;
-                this->GetNodeA()->SetRot(qaD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+3) = (FiD - Fi0) / delta_r;
-                this->GetNodeA()->SetRot(qa0);
-            }
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d pbD = pb0;
-                pbD[i] += delta_p;
-                this->GetNodeB()->SetPos(pbD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+6) = (FiD - Fi0) / delta_p;
-                this->GetNodeB()->SetPos(pb0);
-            }
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d rotator(VNULL);  rotator[i] = delta_r;
-                ChQuaternion<> mdeltarotL;  mdeltarotL.SetFromRotVec(rotator); // rot.in local basis - as in system wide vectors
-                ChQuaternion<> qbD = qb0 * mdeltarotL;
-                this->GetNodeB()->SetRot(qbD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+9) = (FiD - Fi0) / delta_r;
-                this->GetNodeB()->SetRot(qb0);
-            }
-            H.block(0, 0, 12, 12) =  -H_num * Kfactor;
-            //exit(2);
-            /*
-            // R
-            ChVector3d va0 = this->GetNodeA()->GetPosDt();
-            ChVector3d wa0 = this->GetNodeA()->GetAngVelLocal();
-            ChVector3d vb0 = this->GetNodeB()->GetPosDt();
-            ChVector3d wb0 = this->GetNodeB()->GetAngVelLocal();
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d vaD = va0;
-                vaD[i] += delta_p;
-                this->GetNodeA()->SetPos_dt(vaD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i) = (FiD - Fi0) / delta_p;
-                this->GetNodeA()->SetPos_dt(va0);
-            }
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d waD = wa0;
-                waD[i] += delta_r;
-                this->GetNodeA()->SetWvel_loc(waD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+3) = (FiD - Fi0) / delta_r;
-                this->GetNodeA()->SetWvel_loc(wa0);
-            }
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d vbD = vb0;
-                vbD[i] += delta_p;
-                this->GetNodeB()->SetPos_dt(vbD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+6) = (FiD - Fi0) / delta_p;
-                this->GetNodeB()->SetPos_dt(vb0);
-            }
-            for (int i = 0; i < 3; ++i) {
-                ChVector3d wbD = wb0;
-                wbD[i] += delta_r;
-                this->GetNodeB()->SetWvel_loc(wbD);
-                this->ComputeInternalForces(FiD);
-                H_num.block<12,1>(0, i+9) = (FiD - Fi0) / delta_r;
-                this->GetNodeB()->SetWvel_loc(wb0);
-            }
-            H.block(0, 0, 12, 12) += - H_num * Rfactor;
-        */
+            // TODO JBC: numerical differentiation not used for this elements / material
+            //           I think the previous code that was copy-pasted here was wrong
+            //           with the current implementation of CBL due to displacement update
+            //           not being reset when calling this->ComputeInternalForces
         }
         else {
 
