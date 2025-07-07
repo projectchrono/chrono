@@ -527,20 +527,44 @@ void ChVisualShapeWOOD::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> e
 	    }else if(auto conn=std::dynamic_pointer_cast<ChElementCBLCON>(beam)){
 	    	auto typeFlag=conn->GetSection()->GetSectionType();
 	    	switch(typeFlag) {
-        		case ChBeamSectionCBLCON::ConSectionType::transverse_bot: 
+        		case ChBeamSectionCBLCON::ConSectionType::transverse_regular_bot: 
         			mcol=ChColor(0.0f, 0.0f, 1.0f);       
         			//continue;  			      			
         			break;
-        		case ChBeamSectionCBLCON::ConSectionType::transverse_generic:    
+        		case ChBeamSectionCBLCON::ConSectionType::transverse_regular_gen:    
         			mcol=ChColor(0.0f, 1.0f, 0.0f);   
         			//continue;   			
         			break;
-        		case ChBeamSectionCBLCON::ConSectionType::transverse_top:     
+        		case ChBeamSectionCBLCON::ConSectionType::transverse_regular_top:     
         			mcol=ChColor(160.0f/250.f, 32.0f/250.f, 240.0f/250.f);   
         			//continue;          						
         			break;
         		case ChBeamSectionCBLCON::ConSectionType::longitudinal:   
         			mcol=ChColor(1.0f, 1.0f, 0.0f);  
+        			//continue;    			
+        			break;
+                case ChBeamSectionCBLCON::ConSectionType::tangential_ray_bot:   
+        			mcol=ChColor(0.0f, 0.0f, 1.0f);  
+        			//continue;    			
+        			break;
+                case ChBeamSectionCBLCON::ConSectionType::tangential_ray_gen:   
+        			mcol=ChColor(0.0f, 1.0f, 0.0f);  
+        			//continue;    			
+        			break;
+                case ChBeamSectionCBLCON::ConSectionType::tangential_ray_top:   
+        			mcol=ChColor(160.0f/250.f, 32.0f/250.f, 240.0f/250.f);  
+        			//continue;    			
+        			break;
+                case ChBeamSectionCBLCON::ConSectionType::radial_ray_bot:   
+        			mcol=ChColor(0.0f, 0.0f, 1.0f);;  
+        			//continue;    			
+        			break;
+                case ChBeamSectionCBLCON::ConSectionType::radial_ray_gen:   
+        			mcol=ChColor(0.0f, 1.0f, 0.0f);  
+        			//continue;    			
+        			break;
+                case ChBeamSectionCBLCON::ConSectionType::radial_ray_top:   
+        			mcol=ChColor(160.0f/250.f, 32.0f/250.f, 240.0f/250.f);  
         			//continue;    			
         			break;
         	}

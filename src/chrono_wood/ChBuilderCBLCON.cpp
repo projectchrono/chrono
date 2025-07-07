@@ -10,7 +10,7 @@
 //
 //
 // =============================================================================
-// Authors: Erol Lale
+// Authors: Erol Lale, Wisdom Akpan
 // =============================================================================
 // Builder class for CBLCON 
 //
@@ -29,6 +29,19 @@ namespace wood {
 // ------------------------------------------------------------------
 // ChBuilderCBLCON
 // ------------------------------------------------------------------
+//
+// Connector Types by flag:
+//  1  - transverse_regular_bot
+//  2  - transverse_regular_gen
+//  3  - transverse_regular_top
+//  4  - longitudinal
+// 11  - tangential_ray_bot
+// 12  - tangential_ray_gen
+// 13  - tangential_ray_top
+// 21  - radial_ray_bot
+// 22  - radial_ray_gen
+// 23  - radial_ray_top
+
 struct ConnectorData {
     int inode;
     int jnode;
@@ -287,8 +300,8 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 		//
 		// Get connector nodes which previously stored as pointers in mesh object	
 		//
-		if(connector.preCrack)
-			continue;   //if precrack skip inserting connector into mesh
+		if (connector.preCrack  || connector.conType == 11 || connector.conType == 12 || connector.conType == 13)
+			continue;   //if precrack and tangential_ray connectors, skip inserting  into mesh
 		//
 		auto nodeA = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.inode-1));
 		auto nodeB = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.jnode-1));
@@ -364,16 +377,34 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 		//msection->SetDrawThickness(0.1, 0.25);
 		switch(typeFlag) {
         		case 1: 
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_bot);  
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_bot);  
         			break;
         		case 2:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_generic); 
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_gen); 
         			break;
         		case 3:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_top); 
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_top); 
         			break;
         		case 4: 
         			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);        			
+        			break;
+				case 11:
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_ray_bot);        			
+        			break;
+				case 12: 
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_ray_gen);        			
+        			break;
+				case 13: 
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_ray_top);       			
+        			break;		
+				case 21: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_bot);       			
+        			break;
+				case 22: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_gen);        			
+        			break;
+				case 23: 
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_top);        			
         			break;
         	}
 		//		
@@ -475,8 +506,8 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
 		//
 		// Get connector nodes which previously stored as pointers in mesh object	
 		//
-		if(connector.preCrack)
-			continue;   //if precrack skip inserting connector into mesh
+		if (connector.preCrack || connector.conType == 11 || connector.conType == 12 || connector.conType == 13)
+			continue;   //if precrack and tangential_ray connectors, skip inserting  into mesh
 		//
 		auto nodeA = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.inode-1));
 		auto nodeB = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(my_mesh->GetNode(connector.jnode-1));
@@ -561,40 +592,35 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::ve
     	msection->SetDrawShape(msection_drawshape);		
 		//msection->SetDrawThickness(0.1, 0.25);
 		switch(typeFlag) {
-        		case 1: 
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_bot);
-        			if (vect_mat.size()==4){  
-        				msection->Set_material(vect_mat[typeFlag-1]); 
-        			}else{
-        				msection->Set_material(vect_mat[0]);
-        			}
-        			       			
-        			break;
-        		case 2:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_generic); 
-        			if (vect_mat.size()==4){  
-        				msection->Set_material(vect_mat[typeFlag-1]); 
-        			}else{
-        				msection->Set_material(vect_mat[0]);
-        			}
-        			break;
-        		case 3:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_top); 
-        			if (vect_mat.size()==4){  
-        				msection->Set_material(vect_mat[typeFlag-1]); 
-        			}else{
-        				msection->Set_material(vect_mat[0]);
-        			}
-        			break;
-        		case 4: 
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);     
-        			if (vect_mat.size()==4){  
-        				msection->Set_material(vect_mat[typeFlag-1]); 
-        			}else{
-        				msection->Set_material(vect_mat[1]);
-        			}   			
-        			break;
-        	}
+    		case 1: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_bot);
+				msection->Set_material(vect_mat[0]);
+				break;
+			case 2:
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_gen);
+				msection->Set_material(vect_mat[0]);
+				break;
+			case 3:
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_top);
+				msection->Set_material(vect_mat[0]);
+				break;
+			case 4: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);
+				msection->Set_material(vect_mat[1]);
+				break;
+			case 21: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_bot);
+				msection->Set_material(vect_mat[2]);
+				break;
+			case 22: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_gen);
+				msection->Set_material(vect_mat[2]);
+				break;
+			case 23: 
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_top);
+				msection->Set_material(vect_mat[2]);
+				break;
+        }
 		//		
 		auto mel = chrono_types::make_shared<ChElementCBLCON>();
 		mel->SetNodes(nodeA, nodeB);
