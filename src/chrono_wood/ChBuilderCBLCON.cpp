@@ -377,34 +377,34 @@ void ChBuilderCBLCON::read_CBLCON_info(std::shared_ptr<ChMesh> my_mesh,  std::sh
 		//msection->SetDrawThickness(0.1, 0.25);
 		switch(typeFlag) {
         		case 1: 
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_bot);  
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_bot);  
         			break;
         		case 2:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_generic); 
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_gen); 
         			break;
         		case 3:
-        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_top); 
+        			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::transverse_regular_top); 
         			break;
         		case 4: 
         			msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::longitudinal);        			
         			break;
 				case 11:
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_bot);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_ray_bot);        			
         			break;
 				case 12: 
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_generic);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_ray_gen);        			
         			break;
 				case 13: 
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_fibers_top);       			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::tangential_ray_top);       			
         			break;		
 				case 21: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_bot);       			
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_bot);       			
         			break;
 				case 22: 
-				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_generic);        			
+				msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_gen);        			
         			break;
 				case 23: 
-					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_fibers_top);        			
+					msection->SetSectionType(ChBeamSectionCBLCON::ConSectionType::radial_ray_top);        			
         			break;
         	}
 		//		
