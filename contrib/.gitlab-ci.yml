@@ -415,7 +415,7 @@ windows:deploy-python3.10:
     paths:
       - ./logs/
 
-windows:deploy-installer:
+windows:vs2022:deploy-installer:
   stage: deploy
   needs: 
     - job: windows:vs2022:build
