@@ -51,9 +51,6 @@ ChElementCBLCON::ChElementCBLCON()
       use_geometric_stiffness(false)
 {
     nodes.resize(2);
-
-    Km.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
-    Kg.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
 }
 
 void ChElementCBLCON::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
@@ -383,9 +380,8 @@ void ChElementCBLCON::ComputeMmatrixGlobal(ChMatrixRef M) {
 
 
 
-void ChElementCBLCON::ComputeStiffnessMatrix() {
+void ChElementCBLCON::ComputeStiffnessMatrixGlobal(ChMatrixRef Km) {
         assert(section);
-        Km.resize(12,12);
 
         double normal_stiff = this->section->Get_material()->Get_E0() * this->section->Get_area() / this->length;
         double tangent_stiff = normal_stiff * this->section->Get_material()->Get_alpha();
@@ -478,8 +474,9 @@ void ChElementCBLCON::ComputeStiffnessMatrix() {
 }
 
 
-void ChElementCBLCON::ComputeGeometricStiffnessMatrix() {
+void ChElementCBLCON::ComputeGeometricStiffnessMatrixGlobal(ChMatrixRef Kg) {
     assert(section);
+    // Geometric stiffness matrix not implemented
 
 }
 
@@ -519,15 +516,6 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
             this->section->ComputeProjectionMatrix();
             this->section->ComputeEigenStrain(this->macro_strain);
     }
-
-    //
-    // Compute local stiffness matrix:
-    //
-    ComputeStiffnessMatrix();
-    //
-    // Compute local geometric stiffness matrix normalized by pull force P: Kg/P
-    //
-    ComputeGeometricStiffnessMatrix();
 }
 
 void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -546,39 +534,17 @@ void ChElementCBLCON::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
             //           not being reset when calling this->ComputeInternalForces
         }
         else {
-
-            // K stiffness:
-
-
-
-            ChMatrixDynamic<> H_local;
-
+            // CBL currently uses the initial elastic stiffness matrix
+            ChMatrixNM<double, 12, 12> Km;
+            ComputeStiffnessMatrixGlobal(Km);
 
             if (this->use_geometric_stiffness) {
-                // K = Km+Kg
-
-                // For Kg, compute Px tension of the beam along centerline, using temporary but fast data structures:
-                ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
-                this->GetStateBlock(displ);
-                double Px = -this->Km.row(0) * displ;
-
-                // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] = (kf+rf*beta)*[Km] + kf*Kg
-                //H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta()) + this->Kg * Px * Kfactor;
-        H_local = this->Km * ( Kfactor ) + this->Kg * Px * Kfactor;
+                ChMatrixNM<double, 12, 12> Kg;
+                ComputeGeometricStiffnessMatrixGlobal(Kg); // TODO: not currently implemented
+                H.block(0, 0, 12, 12) = (Km + Kg) * Kfactor;
+            } else {
+                H.block(0, 0, 12, 12) = Km * Kfactor;
             }
-            else {
-                // K = Km
-
-                // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] = (kf+rf*beta)*[K]
-                //H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta());
-        H_local = this->Km * Kfactor;
-
-            }
-
-            //H.block(0, 0, 12, 12) = CKCt;
-
-        H.block(0, 0, 12, 12) = H_local;
-
         }
 
     }
