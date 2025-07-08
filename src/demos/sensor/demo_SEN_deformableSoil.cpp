@@ -311,6 +311,7 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->AttachVehicle(&my_hmmwv.GetVehicle());
+    vis->AddGuiColorbar("Sinkage", {0, 0.1}, ChColormap::Type::JET, false);
 
     // -----------------
     // Initialize output
@@ -392,7 +393,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         vis->BeginScene();
         vis->Render();
-        tools::drawColorbar(vis.get(), 0, 0.1, "Sinkage", 30);
         vis->EndScene();
 
         if (img_output && step_number % render_steps == 0) {

@@ -45,20 +45,23 @@ sys.Add(mesh)
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-visualizebeamA = chrono.ChVisualShapeFEA()
-visualizebeamA.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
-visualizebeamA.SetColorscaleMinMax(-0.4, 0.4)
-visualizebeamA.SetSmoothFaces(True)
-visualizebeamA.SetWireframe(False)
-mesh.AddVisualShapeFEA(visualizebeamA)
+colormap_type = chrono.ChColormap.Type_JET
+colormap_range = chrono.ChVector2d(-0.01, 0.01)
 
-visualizebeamB = chrono.ChVisualShapeFEA()
-visualizebeamB.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS) # NODE_CSYS
-visualizebeamB.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
-visualizebeamB.SetSymbolsThickness(0.006)
-visualizebeamB.SetSymbolsScale(0.01)
-visualizebeamB.SetZbufferHide(False)
-mesh.AddVisualShapeFEA(visualizebeamB)
+vis_beam_A = chrono.ChVisualShapeFEA()
+vis_beam_A.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_ELEM_BEAM_MZ)
+vis_beam_A.SetColormapRange(colormap_range)
+vis_beam_A.SetSmoothFaces(True)
+vis_beam_A.SetWireframe(False)
+mesh.AddVisualShapeFEA(vis_beam_A)
+
+vis_beam_B = chrono.ChVisualShapeFEA()
+vis_beam_B.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS) # NODE_CSYS
+vis_beam_B.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
+vis_beam_B.SetSymbolsThickness(0.006)
+vis_beam_B.SetSymbolsScale(0.01)
+vis_beam_B.SetZbufferHide(False)
+mesh.AddVisualShapeFEA(vis_beam_B)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
@@ -66,10 +69,11 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('FEA cables')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 0.6, -1))
 vis.AddTypicalLights()
+vis.AddGuiColorbar('Mz (Nm)', colormap_range, colormap_type, False, chrono.ChVector2i(10, 100))
 
 # Set solver and solver settings
 

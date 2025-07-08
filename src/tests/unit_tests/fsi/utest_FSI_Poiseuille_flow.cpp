@@ -166,14 +166,14 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.num_bce_layers = 3;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
     sph_params.max_velocity = 0.1;
     sph_params.shifting_method = ShiftingMethod::NONE;
     sph_params.density_reinit_steps = 10000;
-    sph_params.viscosity_type = ViscosityType::LAMINAR;
+    sph_params.viscosity_method = ViscosityMethod::LAMINAR;
     sph_params.use_delta_sph = false;
     sph_params.eos_type = EosType::ISOTHERMAL;
     sph_params.consistent_gradient_discretization = true;  // consistent discretization only for laminar viscosity
@@ -192,10 +192,9 @@ int main(int argc, char* argv[]) {
     );
 
     // Explicitly set computational domain
-    ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -10.0 * initial_spacing);
-    ChVector3d c_max(+bxDim / 2 + initial_spacing / 2, +byDim / 2 + initial_spacing / 2,
-                     bzDim + 10.0 * initial_spacing);
-    fsi.SetComputationalDomain(ChAABB(c_min, c_max), PeriodicSide::ALL);
+    ChVector3d c_min(-bxDim / 2 - initial_spacing / 2, -byDim / 2 - initial_spacing / 2, -10 * initial_spacing);
+    ChVector3d c_max(+bxDim / 2 + initial_spacing / 2, +byDim / 2 + initial_spacing / 2, bzDim + 10 * initial_spacing);
+    fsi.SetComputationalDomain(ChAABB(c_min, c_max), BC_ALL_PERIODIC);
 
     // Set particle initial velocity
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<InitialVelocityCallback>(bzDim, t_start));

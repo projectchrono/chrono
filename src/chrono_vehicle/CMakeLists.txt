@@ -32,6 +32,7 @@ cmake_dependent_option(CH_ENABLE_IRRKLANG "Enable Irrklang library for sound" OF
 # ----------------------------------------------------------------------------
 # Find the OpenCRG library
 # ----------------------------------------------------------------------------
+
 if(CH_ENABLE_OPENCRG)
 
   find_package(OpenCRG)
@@ -93,7 +94,6 @@ if(CH_ENABLE_IRRKLANG)
 
   message(STATUS "IrrKlang include dir: ${IRRKLANG_INCLUDE_DIR}")
   message(STATUS "IrrKlang library:     ${IRRKLANG_LIBRARY}")
-    
 
   set(HAVE_IRRKLANG ${IRRKLANG_FOUND})
 
@@ -155,8 +155,6 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
-    ChVehicleJoint.h
-    ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
     ChPowertrainAssembly.h
@@ -204,7 +202,7 @@ set(CV_CHASSIS_FILES
     chassis/ChassisConnectorArticulated.h
     chassis/ChassisConnectorArticulated.cpp
     chassis/ChassisConnectorTorsion.h
-    chassis/ChassisConnectorTorsion.cpp    
+    chassis/ChassisConnectorTorsion.cpp
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
@@ -253,10 +251,10 @@ set(CV_POVERTRAIN_FILES
     powertrain/AutomaticTransmissionShafts.cpp
     powertrain/ManualTransmissionShafts.h
     powertrain/ManualTransmissionShafts.cpp
-        powertrain/ChAutomaticTransmissionSimpleCVT.cpp
-        powertrain/ChAutomaticTransmissionSimpleCVT.h
-        powertrain/AutomaticTransmissionSimpleCVT.cpp
-        powertrain/AutomaticTransmissionSimpleCVT.h
+    powertrain/ChAutomaticTransmissionSimpleCVT.cpp
+    powertrain/ChAutomaticTransmissionSimpleCVT.h
+    powertrain/AutomaticTransmissionSimpleCVT.cpp
+    powertrain/AutomaticTransmissionSimpleCVT.h
 )
 source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 
@@ -562,7 +560,6 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChPac02Tire.h
     wheeled_vehicle/tire/ChPac02Tire.cpp
 
-
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
     wheeled_vehicle/tire/Pac89Tire.h
@@ -585,7 +582,6 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ReissnerToroidalTire.cpp
     wheeled_vehicle/tire/Pac02Tire.h
     wheeled_vehicle/tire/Pac02Tire.cpp
-
 )
 source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
@@ -799,14 +795,14 @@ source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 if(CH_ENABLE_MODULE_IRRLICHT)
     set(CVIRR_FILES
-        ChVehicleVisualSystemIrrlicht.h
-        ChVehicleVisualSystemIrrlicht.cpp
+        visualization/ChVehicleVisualSystemIrrlicht.h
+        visualization/ChVehicleVisualSystemIrrlicht.cpp
     )
     set(CVIRR_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h
         wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.cpp
         wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.h
-        wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.cpp    
+        wheeled_vehicle/test_rig/ChSuspensionTestRigVisualSystemIRR.cpp
     )
     set(CVIRR_TV_FILES
         tracked_vehicle/ChTrackedVehicleVisualSystemIrrlicht.h
@@ -828,8 +824,10 @@ source_group("tracked_vehicle" FILES ${CVIRR_TV_FILES})
 
 if(CH_ENABLE_MODULE_VSG)
     set(CVVSG_FILES
-        ChVehicleVisualSystemVSG.h
-        ChVehicleVisualSystemVSG.cpp
+        visualization/ChVehicleVisualSystemVSG.h
+        visualization/ChVehicleVisualSystemVSG.cpp
+        visualization/ChScmVisualizationVSG.h
+        visualization/ChScmVisualizationVSG.cpp
     )
     set(CVVSG_WV_FILES
         wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h
@@ -917,6 +915,8 @@ add_library(Chrono_vehicle
 
 add_library(Chrono::vehicle ALIAS Chrono_vehicle)
 
+set_target_properties(Chrono_vehicle PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_vehicle PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_vehicle PROPERTIES LINK_FLAGS "/LTCG")
@@ -946,7 +946,6 @@ target_compile_definitions(Chrono_vehicle INTERFACE
 
 target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
-
 if(HDF5_FOUND)
     target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${HDF5_COMPILE_DEFS}>)
     target_include_directories(Chrono_vehicle PUBLIC ${HDF5_INCLUDE_DIRS})
@@ -959,7 +958,6 @@ install(TARGETS Chrono_vehicle
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_vehicle)
-
 
 #-------------------------------------------------------------------------------
 # Add the Chrono_vehicle_irrlicht library
@@ -975,6 +973,8 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     )
     add_library(Chrono::vehicle_irrlicht ALIAS Chrono_vehicle_irrlicht)
 
+    set_target_properties(Chrono_vehicle_irrlicht PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
     if(CH_WHOLE_PROG_OPT)
       set_target_properties(Chrono_vehicle_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
       set_target_properties(Chrono_vehicle_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
@@ -983,7 +983,7 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     if (CH_STATIC)
       set_target_properties(Chrono_vehicle_irrlicht PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
-    
+
     if(MSVC)
       set_target_properties(Chrono_vehicle_irrlicht PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()
@@ -1020,6 +1020,8 @@ if(CH_ENABLE_MODULE_VSG)
     )
     add_library(Chrono::vehicle_vsg ALIAS Chrono_vehicle_vsg)
 
+    set_target_properties(Chrono_vehicle_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
     if(CH_WHOLE_PROG_OPT)
       set_target_properties(Chrono_vehicle_vsg PROPERTIES COMPILE_FLAGS "/GL")
       set_target_properties(Chrono_vehicle_vsg PROPERTIES LINK_FLAGS "/LTCG")
@@ -1028,7 +1030,7 @@ if(CH_ENABLE_MODULE_VSG)
     if (CH_STATIC)
       set_target_properties(Chrono_vehicle_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
     endif()
-    
+
     if(MSVC)
       set_target_properties(Chrono_vehicle_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
     endif()

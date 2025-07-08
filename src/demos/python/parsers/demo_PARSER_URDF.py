@@ -77,7 +77,7 @@ def main():
     vis.SetWindowSize(1024, 768)
     vis.SetWindowTitle("URDF Parser Demo")
     vis.Initialize()
-    vis.AddLogo(chrono.GetChronoDataFile("logo_pychrono_alpha.png"))
+    vis.AddLogo(chrono.GetChronoDataFile("logo_chrono_alpha.png"))
     vis.AddSkyBox()
     vis.AddCamera(root_loc + chrono.ChVector3d(3, 3, 0), root_loc)
     vis.AddTypicalLights()

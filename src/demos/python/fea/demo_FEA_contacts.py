@@ -42,58 +42,58 @@ sphere_swept_thickness = 0.002
 # It is a SMC (penalty) material that we will assign to
 # all surfaces that might generate contacts.
 
-mysurfmaterial = chrono.ChContactMaterialSMC()
-mysurfmaterial.SetYoungModulus(1e5)
-mysurfmaterial.SetFriction(0.3)
-mysurfmaterial.SetRestitution(0.2)
-mysurfmaterial.SetAdhesion(0)
+contact_material = chrono.ChContactMaterialSMC()
+contact_material.SetYoungModulus(1e5)
+contact_material.SetFriction(0.3)
+contact_material.SetRestitution(0.2)
+contact_material.SetAdhesion(0)
 
 # Create a floor:
 
 do_mesh_collision_floor = False
 
-mmeshbox = chrono.ChTriangleMeshConnected()
-mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, True)
+box_mesh = chrono.ChTriangleMeshConnected()
+box_mesh.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, True)
 
 if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
-    mfloor = chrono.chronoChBody()
-    mfloor.SetPos(chrono.ChVector3d(0, -1, 0))
-    mfloor.SetFixed(True)
-    sys.Add(mfloor)
+    floor = chrono.chronoChBody()
+    floor.SetPos(chrono.ChVector3d(0, -1, 0))
+    floor.SetFixed(True)
+    sys.Add(floor)
     
-    mfloor.GetCollisionModel().Clear()
-    mfloor_ct_shape = chrono.ChCollisionShapeTriangleMesh(mysurfmaterial, mmeshbox, False, False, sphere_swept_thickness)
-    mfloor.GetCollisionModel().AddShape(mfloor_ct_shape)
-    mfloor.GetCollisionModel().Build()
-    mfloor.EnableCollision(True)
+    floor.GetCollisionModel().Clear()
+    mfloor_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, box_mesh, False, False, sphere_swept_thickness)
+    floor.GetCollisionModel().AddShape(mfloor_ct_shape)
+    floor.GetCollisionModel().Build()
+    floor.EnableCollision(True)
     
-    masset_meshbox = chrono.ChVisualShapeTriangleMesh()
-    masset_meshbox.SetMesh(mmeshbox)
-    mfloor.AddVisualShape(masset_meshbox)
+    box_mesh_shape = chrono.ChVisualShapeTriangleMesh()
+    box_mesh_shape.SetMesh(box_mesh)
+    floor.AddVisualShape(box_mesh_shape)
     
-    masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
-    mfloor.AddVisualShapeFEA(masset_texture)
+    box_texture = chrono.ChTexture()
+    box_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
+    floor.AddVisualShapeFEA(box_texture)
 
 else :
     # floor as a simple collision primitive:
     
-    mfloor = chrono.ChBodyEasyBox(2, 0.1, 2, 2700, True, True, mysurfmaterial)
-    mfloor.SetFixed(True)
-    mfloor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
-    sys.Add(mfloor)
+    floor = chrono.ChBodyEasyBox(2, 0.1, 2, 2700, True, True, contact_material)
+    floor.SetFixed(True)
+    floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
+    sys.Add(floor)
 
 
 # two falling objects:
 
-mcube = chrono.ChBodyEasyBox(0.1, 0.1, 0.1, 2700, True, True, mysurfmaterial)
-mcube.SetPos(chrono.ChVector3d(0.6, 0.5, 0.6))
-sys.Add(mcube)
+cube = chrono.ChBodyEasyBox(0.1, 0.1, 0.1, 2700, True, True, contact_material)
+cube.SetPos(chrono.ChVector3d(0.6, 0.5, 0.6))
+sys.Add(cube)
 
-msphere = chrono.ChBodyEasySphere(0.1, 2700, True, True, mysurfmaterial)
-msphere.SetPos(chrono.ChVector3d(0.8, 0.5, 0.6))
-sys.Add(msphere)
+sphere = chrono.ChBodyEasySphere(0.1, 2700, True, True, contact_material)
+sphere.SetPos(chrono.ChVector3d(0.8, 0.5, 0.6))
+sys.Add(sphere)
 
 #
 # Example 1: tetrahedrons, with collisions
@@ -107,31 +107,30 @@ mesh = fea.ChMesh()
 
 # Create a material, that must be assigned to each solid element in the mesh,
 # and set its parameters
-mmaterial = fea.ChContinuumElastic()
-mmaterial.SetYoungModulus(0.01e9)  # rubber 0.01e9, steel 200e9
-mmaterial.SetPoissonRatio(0.3)
-mmaterial.SetRayleighDampingBeta(0.003)
-mmaterial.SetDensity(1000)
+material = fea.ChContinuumElastic()
+material.SetYoungModulus(0.01e9)  # rubber 0.01e9, steel 200e9
+material.SetPoissonRatio(0.3)
+material.SetRayleighDampingBeta(0.003)
+material.SetDensity(1000)
 
 for i in range(4) :
     try :
         cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
-        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
-                                                chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X))
+        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_2PI * chrono.ChRandom.Get()) * chrono.QuatFromAngleX(chrono.CH_PI_2))
         cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
-        mrot = chrono.ChMatrix33d(ctot.rot)
+        rot = chrono.ChMatrix33d(ctot.rot)
         fea.ChMeshFileLoader.FromTetGenFile(mesh, chrono.GetChronoDataFile("fea/beam.node"),
-                                     chrono.GetChronoDataFile("fea/beam.ele"), mmaterial, ctot.pos, mrot)
+                                     chrono.GetChronoDataFile("fea/beam.ele"), material, ctot.pos, rot)
     except :
         print('Error Loading meshes')
         break
     
 # Create the contact surface(s).
 # In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
-mcontactsurf = fea.ChContactSurfaceMesh(mysurfmaterial)
-mcontactsurf.AddFacesFromBoundary(mesh, sphere_swept_thickness)
-mesh.AddContactSurface(mcontactsurf)
+contact_surface = fea.ChContactSurfaceMesh(contact_material)
+contact_surface.AddFacesFromBoundary(mesh, sphere_swept_thickness)
+mesh.AddContactSurface(contact_surface)
 
 # Add the mesh to the system
 sys.Add(mesh)
@@ -141,33 +140,31 @@ sys.Add(mesh)
 #
 
 # Create a mesh. We will use it for beams only.
-
-my_mesh_beams = fea.ChMesh()
+mesh_beam = fea.ChMesh()
 
 # 2) an ANCF cable:
 
-msection_cable2 = fea.ChBeamSectionCable()
-msection_cable2.SetDiameter(0.05)
-msection_cable2.SetYoungModulus(0.01e9)
-msection_cable2.SetRayleighDamping(0.05)
+section_cable = fea.ChBeamSectionCable()
+section_cable.SetDiameter(0.05)
+section_cable.SetYoungModulus(0.01e9)
+section_cable.SetRayleighDamping(0.05)
 
 builder = fea.ChBuilderCableANCF()
 
-builder.BuildBeam(my_mesh_beams,             # the mesh where to put the created nodes and elements
-  msection_cable2,           # the ChBeamSectionCable to use for the ChElementCableANCF elements
-  10,                        # the number of ChElementCableANCF to create
-  chrono.ChVector3d(0, 0.1, -0.1),  # the 'A' poin space (beginning of beam)
+builder.BuildBeam(mesh_beam,           # the mesh where to put the created nodes and elements
+  section_cable,                       # the ChBeamSectionCable to use for the ChElementCableANCF elements
+  10,                                  # the number of ChElementCableANCF to create
+  chrono.ChVector3d(0, 0.1, -0.1),     # the 'A' poin space (beginning of beam)
   chrono.ChVector3d(0.5, 0.13, -0.1))  # the 'B' poin space (end of beam)
 
 # Create the contact surface(s).
-# In this case it is a ChContactSurfaceNodeCloud, so just pass
-# all nodes to it.
-mcontactcloud = fea.ChContactSurfaceNodeCloud(mysurfmaterial)
-mcontactcloud.AddAllNodes(my_mesh_beams, 0.025)  # match beam section radius
-my_mesh_beams.AddContactSurface(mcontactcloud)
+# In this case it is a ChContactSurfaceNodeCloud, so just pass all nodes to it.
+contact_nodecloud = fea.ChContactSurfaceNodeCloud(contact_material)
+contact_nodecloud.AddAllNodes(mesh_beam, 0.025)  # match beam section radius
+mesh_beam.AddContactSurface(contact_nodecloud)
 
 # Add the mesh to the system
-sys.Add(my_mesh_beams)
+sys.Add(mesh_beam)
 
 #
 # Optional...  visualization
@@ -180,29 +177,32 @@ sys.Add(my_mesh_beams)
 # Such triangle mesh can be rendered by Irrlicht or POVray or whatever
 # postprocessor that can handle a colored ChVisualShapeTriangleMesh).
 
-mvisualizemesh = chrono.ChVisualShapeFEA()
-mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
-mvisualizemesh.SetColorscaleMinMax(0.0, 5.50)
-mvisualizemesh.SetSmoothFaces(True)
-mesh.AddVisualShapeFEA(mvisualizemesh)
+colormap_type = chrono.ChColormap.Type_FAST
+colormap_range = chrono.ChVector2d(0.0, 2.5)
 
-mvisualizemeshcoll = chrono.ChVisualShapeFEA()
-mvisualizemeshcoll.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_CONTACTSURFACES)
-mvisualizemeshcoll.SetWireframe(True)
-mvisualizemeshcoll.SetDefaultMeshColor(chrono.ChColor(1, 0.5, 0))
-mesh.AddVisualShapeFEA(mvisualizemeshcoll)
+vis_mesh_A = chrono.ChVisualShapeFEA()
+vis_mesh_A.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
+vis_mesh_A.SetColormapRange(colormap_range)
+vis_mesh_A.SetSmoothFaces(True)
+mesh.AddVisualShapeFEA(vis_mesh_A)
 
-mvisualizemeshbeam = chrono.ChVisualShapeFEA()
-mvisualizemeshbeam.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
-mvisualizemeshbeam.SetColorscaleMinMax(0.0, 5.50)
-mvisualizemeshbeam.SetSmoothFaces(True)
-my_mesh_beams.AddVisualShapeFEA(mvisualizemeshbeam)
+vis_mesh_B = chrono.ChVisualShapeFEA()
+vis_mesh_B.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_CONTACTSURFACES)
+vis_mesh_B.SetWireframe(True)
+vis_mesh_B.SetDefaultMeshColor(chrono.ChColor(1, 0.5, 0))
+mesh.AddVisualShapeFEA(vis_mesh_B)
 
-mvisualizemeshbeamnodes = chrono.ChVisualShapeFEA()
-mvisualizemeshbeamnodes.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
-mvisualizemeshbeamnodes.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
-mvisualizemeshbeamnodes.SetSymbolsThickness(0.008)
-my_mesh_beams.AddVisualShapeFEA(mvisualizemeshbeamnodes)
+vis_beam_A = chrono.ChVisualShapeFEA()
+vis_beam_A.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_SPEED_NORM)
+vis_beam_A.SetColormapRange(colormap_range)
+vis_beam_A.SetSmoothFaces(True)
+mesh_beam.AddVisualShapeFEA(vis_beam_A)
+
+vis_beam_B = chrono.ChVisualShapeFEA()
+vis_beam_B.SetFEMglyphType(chrono.ChVisualShapeFEA.GlyphType_NODE_DOT_POS)
+vis_beam_B.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NONE)
+vis_beam_B.SetSymbolsThickness(0.008)
+mesh_beam.AddVisualShapeFEA(vis_beam_B)
 
 # Create the Irrlicht visualization
 vis = chronoirr.ChVisualSystemIrrlicht()
@@ -210,11 +210,11 @@ vis.AttachSystem(sys)
 vis.SetWindowSize(1024,768)
 vis.SetWindowTitle('FEA contacts')
 vis.Initialize()
-vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+vis.AddLogo(chrono.GetChronoDataFile('logo_chrono_alpha.png'))
 vis.AddSkyBox()
 vis.AddCamera(chrono.ChVector3d(0, 0.6, -1))
 vis.AddTypicalLights()
-
+vis.AddGuiColorbar('Mz (Nm)', colormap_range, colormap_type, False, chrono.ChVector2i(10, 100))
 vis.EnableContactDrawing(chronoirr.ContactsDrawMode_CONTACT_DISTANCES)
 
 # SIMULATION LOOP

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Base class for processing proximity in an FSI system.
@@ -34,19 +34,20 @@ class CollisionSystem {
     CollisionSystem(FsiDataManager& data_mgr);
     ~CollisionSystem();
 
-    /// Encapsulate calcHash, findCellStartEndD, and reorderDataD
-    void ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD);
-
     /// Complete construction.
     void Initialize();
+
+    /// Sort particles based on their bins (broad phase proximity search).
+    /// This function encapsulates calcHash, findCellStartEndD, and reorderDataD.
+    void ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+
+    /// Construct neighbor lists (narrow phase proximity search).
+    void NeighborSearch(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
     // Note: this is cached on every call to ArrangeData()
     std::shared_ptr<SphMarkerDataD> m_sphMarkersD;  ///< Information of the particles in the original array
-
-    /// Smart resize that handles both initial allocation and subsequent resizes efficiently
-    void ResizeArrays(uint numExtended);
 };
 
 /// @} fsisph_physics

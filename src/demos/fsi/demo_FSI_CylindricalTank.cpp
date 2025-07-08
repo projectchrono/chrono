@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.num_bce_layers = 3;
     sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1;
@@ -129,8 +129,8 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
     sph_params.num_proximity_search_steps = 1;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
     sph_params.artificial_viscosity = 0.1;
     sph_params.eos_type = EosType::TAIT;
     sph_params.use_delta_sph = true;
@@ -140,8 +140,8 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body
     double radius = 0.12;
-    auto mass = density * ChSphere::GetVolume(radius);
-    auto inertia = mass * ChSphere::GetGyration(radius);
+    double mass = density * ChSphere::GetVolume(radius);
+    ChMatrix33d inertia = mass * ChSphere::GetGyration(radius);
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetName("ball");
@@ -153,13 +153,13 @@ int main(int argc, char* argv[]) {
     body->EnableCollision(false);
     sysMBS.AddBody(body);
 
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
+    geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
-    // Add as an FSI body (create BCE markers on a grid)
+    // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable depth-based initial pressure for SPH particles
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + fsi.GetPhysicsProblemString() + "_" + fsi.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::FAST);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 

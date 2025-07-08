@@ -34,15 +34,12 @@
 namespace chrono {
 namespace utils {
 
-// -----------------------------------------------------------------------------
 // Static variables
-// -----------------------------------------------------------------------------
-
 const double ChChaseCamera::m_maxTrackDist2 = 100 * 100;
-const std::string ChChaseCamera::m_stateNames[] = {"Chase", "Follow", "Track", "Inside", "Free"};
+const std::string ChChaseCamera::m_stateNames[] = {"Chase", "Follow", "Track", "Inside", "Free", "Fixed"};
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 ChChaseCamera::ChChaseCamera(std::shared_ptr<ChBody> chassis)
     : m_chassis(chassis),
       m_mult(1),
@@ -54,8 +51,6 @@ ChChaseCamera::ChChaseCamera(std::shared_ptr<ChBody> chassis)
     Initialize(ChVector3d(0, 0, 0), ChCoordsys<>(), 5, 1);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChChaseCamera::Initialize(const ChVector3d& ptOnChassis,
                                const ChCoordsys<>& driverCoordsys,
                                double chaseDist,
@@ -79,7 +74,7 @@ void ChChaseCamera::Initialize(const ChVector3d& ptOnChassis,
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChChaseCamera::SetState(State s) {
     if (m_state == Free) {
         m_mult = 1;
@@ -99,8 +94,6 @@ void ChChaseCamera::SetState(State s) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChChaseCamera::Zoom(int val) {
     if (val == 0 || m_state == Track)
         return;
@@ -139,8 +132,6 @@ void ChChaseCamera::Raise(int val) {
         m_loc -= 0.01 * m_up;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChChaseCamera::Turn(int val) {
     if (val == 0 || m_state == Follow || m_state == Track)
         return;
@@ -160,19 +151,24 @@ void ChChaseCamera::Turn(int val) {
         m_angle += CH_PI / 100;
 }
 
-// -----------------------------------------------------------------------------
 // Set fixed camera position.
 // Note that this also forces the state to 'Track'
-// -----------------------------------------------------------------------------
 void ChChaseCamera::SetCameraPos(const ChVector3d& pos) {
     m_loc = pos;
     m_lastLoc = pos;
     m_state = Track;
 }
 
-// -----------------------------------------------------------------------------
+// Set fixed camera and target positions.
+// Nota that this also forces the state to 'Fixed'.
+void ChChaseCamera::SetCameraPos(const ChVector3d& camera_pos, const ChVector3d& camera_target) {
+    m_loc = camera_pos;
+    m_lastLoc = camera_pos;
+    m_target_loc = camera_target;
+    m_state = Fixed;
+}
+
 // Set the camera angle
-// -----------------------------------------------------------------------------
 void ChChaseCamera::SetCameraAngle(double angle) {
     m_angle = angle;
 }
@@ -185,13 +181,9 @@ void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
     m_lastLoc = m_loc;
 }
 
-// -----------------------------------------------------------------------------
-// Return the camera location and the camera target (look at) location,
-// respectively.
-// Note that in Inside mode, in order to accommodate a narrow field of view, we
-// set the target location to be at the current driver location and move back
-// the camera position.
-// -----------------------------------------------------------------------------
+// Return the camera location and the camera target (look at) location, respectively.
+// Note that in Inside mode, in order to accommodate a narrow field of view, we set the target location to be at the
+// current driver location and move back the camera position.
 ChVector3d ChChaseCamera::GetCameraPos() const {
     if (m_state == Inside) {
         ChVector3d driverPos = m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_driverCsys.pos);
@@ -207,6 +199,10 @@ ChVector3d ChChaseCamera::GetCameraPos() const {
 }
 
 ChVector3d ChChaseCamera::GetTargetPos() const {
+    if (m_state == Fixed) {
+        return m_target_loc;
+    }
+
     if (m_state == Inside) {
         return m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_driverCsys.pos);
     }
@@ -219,16 +215,17 @@ ChVector3d ChChaseCamera::GetTargetPos() const {
     return m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_ptOnChassis);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChChaseCamera::SetMultLimits(double minMult, double maxMult) {
     m_minMult = minMult;
     m_maxMult = maxMult;
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChChaseCamera::Update(double step) {
+    if (m_state == Fixed)
+        return;
+
     // Perform a simple Euler integration step (derivative controller).
     m_loc += step * calcDeriv(m_loc);
 
@@ -241,8 +238,6 @@ void ChChaseCamera::Update(double step) {
         SetState(Chase);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChVector3d ChChaseCamera::calcDeriv(const ChVector3d& loc) {
     if (m_state == Free) {
         ChVector3d targetLoc = GetTargetPos();

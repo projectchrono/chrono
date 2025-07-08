@@ -199,6 +199,7 @@ set(Chrono_physics_links_SOURCES
     physics/ChLinkMotorLinearForce.cpp
     physics/ChLinkMotorLinearDriveline.cpp
     physics/ChLinkMotionImposed.cpp
+    physics/ChJoint.cpp
     )
 set(Chrono_physics_links_HEADERS
     physics/ChLinkLimit.h
@@ -239,6 +240,7 @@ set(Chrono_physics_links_HEADERS
     physics/ChLinkMotorLinearDriveline.h
     physics/ChLinkMotionImposed.h
     physics/ChLinkMotorAll.h
+    physics/ChJoint.h
     )
 source_group(physics\\links FILES ${Chrono_physics_links_SOURCES} ${Chrono_physics_links_HEADERS})
 
@@ -566,6 +568,7 @@ set(Chrono_assets_SOURCES
     assets/ChTexture.cpp
     assets/ChCamera.cpp
     assets/ChColor.cpp
+    assets/ChColormap.cpp
     assets/ChGlyphs.cpp
     assets/ChVisualSystem.cpp
     assets/ChVisualModel.cpp
@@ -592,6 +595,7 @@ set(Chrono_assets_HEADERS
     assets/ChTexture.h
     assets/ChCamera.h
     assets/ChColor.h
+    assets/ChColormap.h
     assets/ChGlyphs.h
     assets/ChVisualSystem.h
     assets/ChVisualModel.h
@@ -1081,6 +1085,7 @@ set(Chrono_utils_SOURCES
     utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
     utils/ChBodyGeometry.cpp
+    utils/ChForceFunctors.cpp
     utils/ChSocket.cpp
     utils/ChSocketCommunication.cpp
     )
@@ -1101,6 +1106,7 @@ set(Chrono_utils_HEADERS
     utils/ChCompositeInertia.h
     utils/ChConvexHull.h
     utils/ChBodyGeometry.h
+    utils/ChForceFunctors.h
     utils/ChSocket.h
     utils/ChSocketCommunication.h
 )
@@ -1332,6 +1338,8 @@ endif()
 
 add_library(Chrono_core ${Chrono_FILES})
 add_library(Chrono::core ALIAS Chrono_core)
+
+set_target_properties(Chrono_core PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_core PROPERTIES COMPILE_FLAGS "/GL")

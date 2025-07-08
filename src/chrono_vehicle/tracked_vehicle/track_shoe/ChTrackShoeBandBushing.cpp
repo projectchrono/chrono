@@ -37,6 +37,9 @@ ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {}
 void ChTrackShoeBandBushing::Construct(std::shared_ptr<ChChassis> chassis,
                                        const ChVector3d& location,
                                        const ChQuaternion<>& rotation) {
+    // Invoke base class (construct m_shoe body)
+    ChTrackShoeBand::Construct(chassis, location, rotation);
+
     // Cache values calculated from template parameters.
     m_seg_length = GetWebLength() / GetNumWebSegments();
     m_seg_mass = GetWebMass() / GetNumWebSegments();
@@ -162,8 +165,8 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
     {
         ChVector3d loc = m_shoe->TransformPointLocalToParent(ChVector3d(GetToothBaseLength() / 2, 0, 0));
         ChQuaternion<> rot = m_shoe->GetRot() * z2y;
-        auto bushing = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[0], m_shoe,
+        auto bushing = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[0], m_shoe,
             ChFrame<>(loc, rot), GetBushingData());
         bushing->SetTag(m_obj_tag);
         chassis->AddJoint(bushing);
@@ -174,8 +177,8 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
         ChVector3d loc = m_web_segments[is]->TransformPointLocalToParent(ChVector3d(m_seg_length / 2, 0, 0));
         ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
-        auto bushing = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is + 1],
+        auto bushing = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), m_web_segments[is + 1],
             m_web_segments[is], ChFrame<>(loc, rot), GetBushingData());
         bushing->SetTag(m_obj_tag);
         chassis->AddJoint(bushing);
@@ -187,8 +190,8 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
         int is = GetNumWebSegments() - 1;
         ChVector3d loc = m_web_segments[is]->TransformPointLocalToParent(ChVector3d(m_seg_length / 2, 0, 0));
         ChQuaternion<> rot = m_web_segments[is]->GetRot() * z2y;
-        auto bushing = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), next->GetShoeBody(),
+        auto bushing = chrono_types::make_shared<ChJoint>(
+            ChJoint::Type::REVOLUTE, m_name + "_bushing_" + std::to_string(index++), next->GetShoeBody(),
             m_web_segments[is], ChFrame<>(loc, rot), GetBushingData());
         bushing->SetTag(m_obj_tag);
         chassis->AddJoint(bushing);

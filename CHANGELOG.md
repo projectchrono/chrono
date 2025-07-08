@@ -5,6 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
+  - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
+  - [\[Added\] New Chrono::VSG features and capabilities](#added-new-chronovsg-features-and-capabilities)
   - [\[Changed\] Refactoring of Chrono CMake build system](#changed-refactoring-of-chrono-cmake-build-system) 
   - [\[Added\] Support for modeling components with internal dynamics (DAE)](#added-support-for-modeling-components-with-internal-dynamics-dae)
   - [\[Changed\] Eigensolvers refactoring](#eigensolvers-refactoring)
@@ -113,6 +116,29 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
+
+## [Added] Chrono::Peridynamics module
+
+The new Chrono::Peridynamics module allows the simulation of meshless materials within the peridynamics approach. The peridynamics formulation is especially useful when simulating fractures in brittle materials. 
+
+This initial release of the peridyamics module offers the following types of materials: 
+- bond-based:
+  - the ChMatterPeriBB material: computational efficient, elasticity but with fixed Poisson (0.25), supports fracturing. 
+  - the ChMatterPeriBBimplicit material: as ChMatterPeriBB but more efficient for quasi static analysis.
+- state-based:
+  - the ChMatterPeriLinearElastic material: elasticity with generic Poisson, supports fracturing.
+  
+In the future more material models might be added, for instance the implicit version of ChMatterPeriLinearElastic, the correspondence material class, fluids, plasticity etc.  
+
+
+
+## [Added] Chrono::VSG plugins for FSI and granular dynamics visualization
+
+**TODO**
+
+## [Added] New Chrono::VSG features and capabilities
+
+**TODO**
 
 ## [Changed] Refactoring of Chrono CMake build system
 

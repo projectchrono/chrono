@@ -44,6 +44,7 @@ if(CH_ENABLE_MODULE_FSI AND CH_ENABLE_MODULE_VSG)
     set(DEMOS ${DEMOS}
         demo_VEH_CRMTerrain_WheeledVehicle
         demo_VEH_CRMTerrain_TrackedVehicle
+        demo_VEH_CRMTerrain_MovingPatch
     )
 endif()
 
@@ -114,5 +115,5 @@ foreach(PROGRAM ${DEMOS})
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
 
-    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+    install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

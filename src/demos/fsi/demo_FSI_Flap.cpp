@@ -70,14 +70,14 @@ double pto_damping = 0;
 double depth = 0.4;
 
 // Output frequency
-bool output = true;
+bool output = false;
 double output_fps = 10;
 
 // write info frequency
 double csv_fps = 200;
 
 // Enable/disable run-time visualization
-bool render = false;
+bool render = true;
 float render_fps = 200;
 
 // Enable saving snapshots
@@ -245,9 +245,9 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
 
     // TODO: use multiple chbodies
 
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(cmat);
-    // geometry.coll_boxes.push_back(
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(cmat);
+    // geometry->coll_boxes.push_back(
     //     utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0.5 * wec_size.z()), QUNIT, wec_size, 0));
 
     double door_thickness = 0.076;
@@ -296,20 +296,21 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     //  **  mini_window_0    **
     //  ***********************
 
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(front_box_pos, QUNIT, thin_plate_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(front_box_pos, QUNIT, thin_plate_size, 0));
     std::cout << "Add front box at location " << front_box_pos << ", size of : " << thin_plate_size
               << " and initial spacing of: " << initial_spacing << std::endl;
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(back_box_pos, QUNIT, thin_plate_size, 0));
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(top_panel_pos, QUNIT, top_panel_size, 0));
-    geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(bottom_panel_pos, QUNIT, bottom_panel_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(back_box_pos, QUNIT, thin_plate_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(top_panel_pos, QUNIT, top_panel_size, 0));
+    geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(bottom_panel_pos, QUNIT, bottom_panel_size, 0));
 
     for (int i = 0; i < num_windows; i++) {
-        geometry.coll_boxes.push_back(
+        geometry->coll_boxes.push_back(
             utils::ChBodyGeometry::BoxShape(mini_window_pos, QuatFromAngleY(mini_window_angle), mini_window_size, 0));
         mini_window_pos.z() += mini_window_height;
     }
 
     auto flap = chrono_types::make_shared<ChBody>();
+    flap->SetName("WEC flap");
     flap->SetPos(wec_pos);
     flap->SetRot(QUNIT);
     flap->SetFixed(false);
@@ -328,7 +329,7 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     std::cout << "wec_inertia: " << std::endl << flap->GetInertiaXX() << std::endl;
     sysMBS.AddBody(flap);
     if (show_rigid)
-        geometry.CreateVisualizationAssets(flap, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(flap, VisualizationType::COLLISION);
 
     // TODO: do the class thing, so it initialize mass and inertia as well
     fsi.AddRigidBody(flap, geometry, true, true);
@@ -336,8 +337,6 @@ std::shared_ptr<ChLinkLockRevolute> CreateFlap(ChFsiProblemSPH& fsi, double mini
     // add ground
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
-    ground->SetMass(2 * wec_mass);
-    ground->SetInertiaXX(flap->GetInertiaXX());
     sysMBS.AddBody(ground);
 
     // Add revolute joint
@@ -395,7 +394,7 @@ int main(int argc, char* argv[]) {
 
     // Set SPH solution parameters
     ChFsiFluidSystemSPH::SPHParameters sph_params;
-    sph_params.sph_method = SPHMethod::WCSPH;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = initial_spacing;
     sph_params.num_bce_layers = 5;
     sph_params.d0_multiplier = 1;
@@ -404,8 +403,8 @@ int main(int argc, char* argv[]) {
     sph_params.shifting_xsph_eps = 0.5;
     sph_params.consistent_gradient_discretization = false;
     sph_params.consistent_laplacian_discretization = false;
-    sph_params.viscosity_type = ViscosityType::ARTIFICIAL_UNILATERAL;
-    sph_params.boundary_type = BoundaryType::ADAMI;
+    sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_UNILATERAL;
+    sph_params.boundary_method = BoundaryMethod::ADAMI;
     sph_params.artificial_viscosity = 0.02;
     sph_params.eos_type = EosType::TAIT;
     sph_params.use_delta_sph = true;
@@ -448,7 +447,7 @@ int main(int argc, char* argv[]) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
-    out_dir = out_dir + fsi.GetSphMethodTypeString();
+    out_dir = out_dir + fsi.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
@@ -489,14 +488,13 @@ int main(int argc, char* argv[]) {
     if (render) {
         // FSI plugin
         ////auto col_callback = chrono_types::make_shared<ParticleVelocityColorCallback>(0, 2.0);
-        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(
-            ChColor(1, 0, 0), ChColor(0.14f, 0.44f, 0.7f), -1000, 12000);
+        auto col_callback = chrono_types::make_shared<ParticlePressureColorCallback>(-1000, 12000, true);
 
         auto visFSI = chrono_types::make_shared<ChFsiVisualizationVSG>(&sysFSI);
         visFSI->EnableFluidMarkers(show_particles_sph);
         visFSI->EnableBoundaryMarkers(show_boundary_bce);
         visFSI->EnableRigidBodyMarkers(show_rigid_bce);
-        visFSI->SetSPHColorCallback(col_callback);
+        visFSI->SetSPHColorCallback(col_callback, ChColormap::Type::RED_BLUE);
         visFSI->SetSPHVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
         visFSI->SetBCEVisibilityCallback(chrono_types::make_shared<MarkerPositionVisibilityCallback>());
 
@@ -532,7 +530,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer timer;
     timer.start();
-    ChVector3 reaction_force;
+    ChVector3d reaction_force;
     double flap_angular_velo;  // pitch velo
     double pto_power;
 

@@ -32,6 +32,7 @@ namespace chrono {
 class ChApi ChVisualShapeTriangleMesh : public ChVisualShape {
   public:
     ChVisualShapeTriangleMesh();
+    ChVisualShapeTriangleMesh(std::shared_ptr<ChTriangleMeshConnected> mesh, bool load_materials = true);
     ~ChVisualShapeTriangleMesh() {}
 
     std::shared_ptr<ChTriangleMeshConnected> GetMesh() { return trimesh; }

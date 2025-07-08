@@ -61,9 +61,10 @@ endif()
 
 set(CE_VSG_BASE_FILES
     ChApiVSG.h
-    ChVisualSystemVSG.cpp
     ChVisualSystemVSG.h
+    ChVisualSystemVSG.cpp
     ChGuiComponentVSG.h
+    ChGuiComponentVSG.cpp
     ChEventHandlerVSG.h
 )
 
@@ -120,6 +121,8 @@ add_library(Chrono_vsg
             ${CE_VSG_UTILS_FILES}
             ${CE_VSG_STB_FILES})
 add_library(Chrono::vsg ALIAS Chrono_vsg)
+
+set_target_properties(Chrono_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_vsg PROPERTIES COMPILE_FLAGS "/GL")

@@ -289,7 +289,7 @@ void CreateCantilever(ChSystem& sys,
 
     auto visualizeInternalA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizeInternalA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_MY);
-    visualizeInternalA->SetColorscaleMinMax(-600, 600);
+    visualizeInternalA->SetColormapRange(-600, 600);
     visualizeInternalA->SetSmoothFaces(true);
     visualizeInternalA->SetWireframe(false);
     mesh_internal->AddVisualShapeFEA(visualizeInternalA);

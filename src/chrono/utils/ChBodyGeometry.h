@@ -71,6 +71,7 @@ class ChApi ChBodyGeometry {
         ChQuaternion<> rot;  ///< orientation relative to body
         ChVector3d dims;     ///< box dimensions
         int matID;           ///< index in contact material list
+        ChColor color;       ///< visualization color
     };
 
     /// Sphere shape for visualization and/or collision.
@@ -80,6 +81,7 @@ class ChApi ChBodyGeometry {
         ChVector3d pos;  ///< center position relative to body
         double radius;   ///< sphere radius
         int matID;       ///< index in contact material list
+        ChColor color;   ///< visualization color
     };
 
     /// Cylinder shape for visualization and/or collision.
@@ -92,6 +94,20 @@ class ChApi ChBodyGeometry {
         double radius;       ///< cylinder radius
         double length;       ///< cylinder length
         int matID;           ///< index in contact material list
+        ChColor color;       ///< visualization color
+    };
+
+    /// Cone shape for visualization and/or collision.
+    struct ChApi ConeShape {
+        ConeShape(const ChVector3d& pos, const ChVector3d& axis, double radius, double length, int matID = -1);
+        ConeShape(const ChVector3d& pos, const ChQuaternion<>& rot, double radius, double length, int matID = -1);
+        ConeShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChCone& cone, int matID = -1);
+        ChVector3d pos;      ///< center position relative to body
+        ChQuaternion<> rot;  ///< orientation relative to body
+        double radius;       ///< cone radius
+        double length;       ///< cone length
+        int matID;           ///< index in contact material list
+        ChColor color;       ///< visualization color
     };
 
     /// Line shape for visualization.
@@ -166,17 +182,20 @@ class ChApi ChBodyGeometry {
     std::vector<BoxShape> coll_boxes;              ///< list of collision boxes
     std::vector<SphereShape> coll_spheres;         ///< list of collision spheres
     std::vector<CylinderShape> coll_cylinders;     ///< list of collision cylinders
+    std::vector<ConeShape> coll_cones;             ///< list of cone cylinders
     std::vector<ConvexHullsShape> coll_hulls;      ///< list of collision convex hulls
     std::vector<TrimeshShape> coll_meshes;         ///< list of collision trimeshes
 
     std::vector<BoxShape> vis_boxes;           ///< list of visualization boxes
     std::vector<SphereShape> vis_spheres;      ///< list of visualization spheres
     std::vector<CylinderShape> vis_cylinders;  ///< list of visualization cylinders
+    std::vector<ConeShape> vis_cones;          ///< list of visualization cones
     std::vector<LineShape> vis_lines;          ///< list of visualization lines
 
-    ChColor color_boxes;      ///< visualization color
-    ChColor color_spheres;    ///< visualization color
-    ChColor color_cylinders;  ///< visualization color
+    ChColor color_boxes;      ///< default visualization color for box primitives
+    ChColor color_spheres;    ///< default visualization color for sphere primitives
+    ChColor color_cylinders;  ///< default visualization color for cylinder primitives
+    ChColor color_cones;      ///< default visualization color for cone primitives
 
     std::string vis_mesh_file;  ///< name of Wavefront OBJ file with visualization mesh
 };
@@ -188,9 +207,7 @@ class ChApi ChTSDAGeometry {
     ChTSDAGeometry();
 
     /// Segment shape for TSDA visualization.
-    struct ChApi SegmentShape {
-        SegmentShape() {}
-    };
+    struct ChApi SegmentShape{SegmentShape(){}};
 
     /// Spring shape for TSDA visualization.
     struct ChApi SpringShape {

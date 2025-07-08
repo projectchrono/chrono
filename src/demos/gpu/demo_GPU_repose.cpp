@@ -23,9 +23,8 @@
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 
-#include "chrono_gpu/visualization/ChGpuVisualization.h"
-#ifdef CHRONO_OPENGL
-    #include "chrono_gpu/visualization/ChGpuVisualizationGL.h"
+#ifdef CHRONO_VSG
+    #include "chrono_gpu/visualization/ChGpuVisualizationVSG.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -33,9 +32,9 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-// Enable/disable run-time visualization (if Chrono::OpenGL is available)
+// Enable/disable run-time visualization
 bool render = true;
-double render_fps = 100;
+double render_fps = 2000;
 
 int main(int argc, char* argv[]) {
     std::string inputJson = GetChronoDataFile("gpu/repose.json");
@@ -157,20 +156,28 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.Initialize();
 
-#if !defined(CHRONO_OPENGL)
+    // Create a run-time visualizer
+    std::shared_ptr<ChVisualSystem> vis;
+
+#ifdef CHRONO_VSG
+    // GPU plugin
+    auto visGPU = chrono_types::make_shared<ChGpuVisualizationVSG>(&gpu_sys);
+
+    // VSG visual system (attach visGPU as plugin)
+    auto visVSG = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
+    visVSG->AttachPlugin(visGPU);
+    visVSG->SetWindowTitle("Chrono::Gpu repose demo");
+    visVSG->SetWindowSize(1280, 800);
+    visVSG->SetWindowPosition(100, 100);
+    visVSG->AddCamera(ChVector3d(0, -30, -10), ChVector3d(0, 0, -20));
+    visVSG->SetLightIntensity(0.9f);
+    visVSG->SetLightDirection(CH_PI_2, CH_PI / 6);
+
+    visVSG->Initialize();
+    vis = visVSG;
+#else
     render = false;
 #endif
-
-    std::shared_ptr<ChGpuVisualization> visGPU;
-    if (render) {
-#ifdef CHRONO_OPENGL
-        visGPU = chrono_types::make_shared<ChGpuVisualizationGL>(&gpu_sys);
-        visGPU->SetTitle("Chrono::Gpu repose demo");
-        visGPU->AddCamera(ChVector3d(0, -30, -10), ChVector3d(0, 0, -20));
-        visGPU->SetCameraMoveScale(1.0f);
-        visGPU->Initialize();
-#endif
-    }
 
     float step = 1e-3f;
     float time = 0.f;
@@ -192,8 +199,9 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(step);
 
         if (render && time >= render_frame / render_fps) {
-            if (!visGPU->Render())
+            if (!vis->Run())
                 break;
+            vis->Render();
             render_frame++;
         }
 

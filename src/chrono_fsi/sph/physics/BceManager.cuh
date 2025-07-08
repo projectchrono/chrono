@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu, Radu Serban
 // =============================================================================
 //
 // Base class for processing boundary condition enforcing (BCE) particles forces
@@ -37,42 +37,49 @@ namespace sph {
 class BceManager {
   public:
     BceManager(FsiDataManager& data_mgr,  ///< FSI data
-               bool verbose               ///< verbose terminal output
+               bool use_node_directions,  ///< use higher-order interpolation for flex solid BCEs
+               bool verbose,              ///< verbose terminal output
+               bool check_errors          ///< check CUDA errors
     );
 
     ~BceManager();
 
-    /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
+    // Update position and velocity of BCE markers on rigid solids
     void UpdateBodyMarkerState();
-
-    /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
-    void UpdateMeshMarker1DState();
-    void UpdateMeshMarker2DState();
-
-    /// Updates the position and velocity of the particles on the rigid bodies based on the state of the body.
     void UpdateBodyMarkerStateInitial();
 
-    /// Updates the position and velocity of the particles on the flexible solids based on the state of the mesh.
+    // Update position and velocity of BCE markers on flex 1-D solids
+    void CalcNodeDirections1D(thrust::device_vector<Real3>& dirs);
+    void UpdateMeshMarker1DState();
     void UpdateMeshMarker1DStateInitial();
+
+    // Update position and velocity of BCE markers on flex 2-D solids
+    void CalcNodeDirections2D(thrust::device_vector<Real3>& dirs);
+    void UpdateMeshMarker2DState();
     void UpdateMeshMarker2DStateInitial();
 
-    /// Calculates the forces from the fluid/granular dynamics system to the FSI system on rigid bodies.
+    /// Calculate fluid forces on rigid bodies.
     void Rigid_Forces_Torques();
 
-    /// Calculates the forces from the fluid/granular dynamics system to the FSI system on flexible bodies.
+    /// Calculates fluid forces on nodes of 1-D flexible solids.
     void Flex1D_Forces();
+
+    /// Calculates fluid forces on nodes of 2-D flexible solids.
     void Flex2D_Forces();
 
     void updateBCEAcc();
 
-    /// Populates the BCE particles on the rigid bodies at the initial configuration of the system.
-    /// The local coordinates w.r.t to the coordinate system of the rigid bodies is saved and is used
-    /// during the update stage. In such a condition the position and orientation of the body is
-    /// enough to update the position of all the particles attached to it.
-    void Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum);
-
     /// Complete construction of the BCE at the intial configuration of the system.
     void Initialize(std::vector<int> fsiBodyBceNum);
+
+  private:
+    /// Set up block sizes for rigid body force accumulation.
+    void SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum);
+
+    // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
+    void CalcRigidBceAcceleration();
+    void CalcFlex1DBceAcceleration();
+    void CalcFlex2DBceAcceleration();
 
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
@@ -80,20 +87,14 @@ class BceManager {
     thrust::device_vector<Real3> m_totalForceRigid;   ///< Total forces from fluid to bodies
     thrust::device_vector<Real3> m_totalTorqueRigid;  ///< Total torques from fluid to bodies
 
-    uint m_rigidBodyBlockSize;  ///< Block size used for kernel that accumulates force from Rigid BCE markers
-    uint m_rigidBodyGridSize;   ///< Grid size used for kernel that accumulates force from Rigid BCE markers
-    thrust::device_vector<uint> m_rigidBodyBlockValidThreads;  ///< Vector of size number of blocks that holds the
-                                                               ///< number of valid (non-padding) threads in the block
-    thrust::device_vector<uint>
-        m_rigidBodyAccumulatedPaddedThreads;  ///< Vector of size number of blocks that holds the accumulated number of
-                                              ///< padded threads uptill that block
+    uint m_rigid_block_size;                                  ///< Block size for the rigid force accumulator kernel
+    uint m_rigid_grid_size;                                   ///< Grid size for the rigid force accumulator kernel
+    thrust::device_vector<uint> m_rigid_valid_threads;        ///< numbers of valid (non-padding) threads in the block
+    thrust::device_vector<uint> m_rigid_accumulated_threads;  ///< accumulated numbers of padded threads before a block
 
+    bool m_use_node_directions;
     bool m_verbose;
-
-    // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
-    void CalcRigidBceAcceleration();
-    void CalcFlex1DBceAcceleration();
-    void CalcFlex2DBceAcceleration();
+    bool m_check_errors;
 };
 
 /// @} fsisph_physics

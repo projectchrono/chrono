@@ -770,9 +770,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    auto nt = m_geometry[i_shape].coll_meshes[0].trimesh->GetNumTriangles();
-    auto i_mat = m_geometry[i_shape].coll_meshes[0].matID;
-    auto material = m_geometry[i_shape].materials[i_mat].CreateMaterial(m_method);
+    auto nt = m_geometry[i_shape]->coll_meshes[0].trimesh->GetNumTriangles();
+    auto i_mat = m_geometry[i_shape]->coll_meshes[0].matID;
+    auto material = m_geometry[i_shape]->materials[i_mat].CreateMaterial(m_method);
 
     //// RADU TODO:  better approximation of mass / inertia?
     double mass_p = m_load_mass[i_shape] / nt;
@@ -820,12 +820,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(true);
 
     // Create visualization assets (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
+    m_geometry[i_shape]->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes
-    for (auto& mesh : m_geometry[i_shape].coll_meshes)
+    for (auto& mesh : m_geometry[i_shape]->coll_meshes)
         mesh.radius = m_radius_p;
-    m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
+    m_geometry[i_shape]->CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->DisallowCollisionsWith(1);
 
@@ -876,7 +876,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
 
     // Note: it is assumed that there is one and only one mesh defined!
-    const auto& trimesh = m_geometry[i_shape].coll_meshes[0].trimesh;
+    const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
     const auto& idx_verts = trimesh->GetIndicesVertexes();
     int nt = trimesh->GetNumTriangles();
 
@@ -965,7 +965,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
 
     // Note: it is assumed that there is one and only one mesh defined!
-    const auto& trimesh = m_geometry[i_shape].coll_meshes[0].trimesh;
+    const auto& trimesh = m_geometry[i_shape]->coll_meshes[0].trimesh;
     const auto& idx_verts = trimesh->GetIndicesVertexes();
     int nt = trimesh->GetNumTriangles();
 

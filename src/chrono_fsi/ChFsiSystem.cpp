@@ -70,6 +70,7 @@ ChFsiInterface& ChFsiSystem::GetFsiInterface() const {
 
 void ChFsiSystem::SetVerbose(bool verbose) {
     ChAssertAlways(m_fsi_interface);
+    m_sysCFD.SetVerbose(verbose);
     m_fsi_interface->SetVerbose(verbose);
     m_verbose = verbose;
 }
@@ -87,73 +88,66 @@ void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_sysMBS.SetGravitationalAcceleration(gravity);
 }
 
-void ChFsiSystem::EnableNodeDirections(bool val) {
+void ChFsiSystem::UseNodeDirections(bool val) {
     ChAssertAlways(m_fsi_interface);
     ChDebugLog("uses direction data? " << val);
-    m_fsi_interface->EnableNodeDirections(val);
+    m_fsi_interface->UseNodeDirections(val);
+    m_sysCFD.UseNodeDirections(val);
 }
 
-size_t ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body) {
+std::shared_ptr<FsiBody> ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body,
+                                                 std::shared_ptr<ChBodyGeometry> geometry,
+                                                 bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
-
-    unsigned int index = m_fsi_interface->GetNumBodies();
-    auto& fsi_body = m_fsi_interface->AddFsiBody(body);
-    m_sysCFD.OnAddFsiBody(index, fsi_body);
-    return index;
+    return m_fsi_interface->AddFsiBody(body, geometry, check_embedded);
 }
 
-void ChFsiSystem::AddFsiMesh(std::shared_ptr<fea::ChMesh> mesh) {
+std::shared_ptr<FsiMesh1D> ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
     ChAssertAlways(m_fsi_interface);
-
-    bool has_contact1D = false;
-    bool has_contact2D = false;
 
     // Search for contact surfaces associated with the FEA mesh
     for (const auto& surface : mesh->GetContactSurfaces()) {
         if (auto surface_segs = std::dynamic_pointer_cast<fea::ChContactSurfaceSegmentSet>(surface)) {
             if (surface_segs->GetNumSegments() > 0)
-                AddFsiMesh1D(surface_segs);
-            has_contact1D = true;
-        } else if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
-            if (surface_mesh->GetNumTriangles() > 0)
-                AddFsiMesh2D(surface_mesh);
-            has_contact2D = true;
+                return m_fsi_interface->AddFsiMesh1D(surface_segs, check_embedded);
         }
     }
 
     // If no 1D surface contact found, create one with a default contact material and add segments from cable and beam
     // elements in the FEA mesh. Do not add the new contact surface to the mesh.
-    if (!has_contact1D) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        surface_segs->AddAllSegments(*mesh, 0);
-        if (surface_segs->GetNumSegments() > 0)
-            AddFsiMesh1D(surface_segs);
+    ChContactMaterialData contact_material_data;
+    auto surface_segs = chrono_types::make_shared<fea::ChContactSurfaceSegmentSet>(
+        contact_material_data.CreateMaterial(ChContactMethod::SMC));
+    surface_segs->AddAllSegments(*mesh, 0);
+    if (surface_segs->GetNumSegments() > 0)
+        return m_fsi_interface->AddFsiMesh1D(surface_segs, check_embedded);
+
+    // The FEA mesh contains no 1D elements (cable or beam)
+    return nullptr;
+}
+
+std::shared_ptr<FsiMesh2D> ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded) {
+    ChAssertAlways(m_fsi_interface);
+
+    // Search for contact surfaces associated with the FEA mesh
+    for (const auto& surface : mesh->GetContactSurfaces()) {
+        if (auto surface_mesh = std::dynamic_pointer_cast<fea::ChContactSurfaceMesh>(surface)) {
+            if (surface_mesh->GetNumTriangles() > 0)
+                return m_fsi_interface->AddFsiMesh2D(surface_mesh, check_embedded);
+        }
     }
 
     // If no 2D surface contact found, create one with a default contact material and extract the boundary faces of the
     // FEA mesh. Do not add the new contact surface to the mesh.
-    if (!has_contact2D) {
-        ChContactMaterialData contact_material_data;  // default contact material
-        auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
-            contact_material_data.CreateMaterial(ChContactMethod::SMC));
-        surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
-        if (surface_mesh->GetNumTriangles() > 0)
-            AddFsiMesh2D(surface_mesh);
-    }
-}
+    ChContactMaterialData contact_material_data;
+    auto surface_mesh = chrono_types::make_shared<fea::ChContactSurfaceMesh>(
+        contact_material_data.CreateMaterial(ChContactMethod::SMC));
+    surface_mesh->AddFacesFromBoundary(*mesh, 0, true, false, false);  // do not include cable and beam elements
+    if (surface_mesh->GetNumTriangles() > 0)
+        return m_fsi_interface->AddFsiMesh2D(surface_mesh, check_embedded);
 
-void ChFsiSystem::AddFsiMesh1D(std::shared_ptr<fea::ChContactSurfaceSegmentSet> surface) {
-    unsigned int index = m_fsi_interface->GetNumMeshes1D();
-    auto& fsi_mesh = m_fsi_interface->AddFsiMesh1D(surface);
-    m_sysCFD.OnAddFsiMesh1D(index, fsi_mesh);
-}
-
-void ChFsiSystem::AddFsiMesh2D(std::shared_ptr<fea::ChContactSurfaceMesh> surface) {
-    unsigned int index = m_fsi_interface->GetNumMeshes2D();
-    auto& fsi_mesh = m_fsi_interface->AddFsiMesh2D(surface);
-    m_sysCFD.OnAddFsiMesh2D(index, fsi_mesh);
+    // The FEA mesh contains no 2D elements (shell or solid)
+    return nullptr;
 }
 
 void ChFsiSystem::Initialize() {
@@ -185,13 +179,10 @@ void ChFsiSystem::Initialize() {
 
     // Initialize fluid system with initial solid states
     m_sysCFD.SetStepSize(m_step_CFD);
-    m_sysCFD.Initialize(m_fsi_interface->GetNumBodies(),                                        //
-                        m_fsi_interface->GetNumNodes1D(), m_fsi_interface->GetNumElements1D(),  //
-                        m_fsi_interface->GetNumNodes2D(), m_fsi_interface->GetNumElements2D(),  //
-                        body_states, mesh1D_states, mesh2D_states,                              //
-                        m_fsi_interface->UseNodeDirections());                                  //
+    m_sysCFD.Initialize(body_states, mesh1D_states, mesh2D_states);
 
-    // Mark system as initialized
+    // Mark systems as initialized
+    m_sysCFD.m_is_initialized = true;
     m_is_initialized = true;
 }
 
@@ -241,14 +232,8 @@ void ChFsiSystem::DoStepDynamics(double step) {
     double threshold_CFD = factor * m_step_CFD;
     double threshold_MBD = factor * m_step_MBD;
 
-    m_timer_setup.reset();
     m_timer_step.reset();
     m_timer_FSI.reset();
-
-    // Allow fluid solver to perform setup operations (if any)
-    m_timer_setup.start();
-    m_sysCFD.OnSetupStepDynamics();
-    m_timer_setup.stop();
 
     // Advance dynamics of the two phases.
     //   1. Advance the dynamics of the multibody system in a concurrent thread (does not block execution)

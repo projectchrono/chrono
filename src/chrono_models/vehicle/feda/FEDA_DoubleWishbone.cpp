@@ -358,8 +358,8 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
             const double degr_compression = 2.45786;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
         case 3: {
             // passive damper with high damping effect
@@ -368,8 +368,8 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
             const double degr_compression = 11.579;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
     }
 }
@@ -395,8 +395,8 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
             const double degr_expansion = 2.83566;
             const double c_compression = 38097.1;
             const double degr_compression = 2.45786;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
         case 3: {
             // passive damper with high damping effect
@@ -405,8 +405,8 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
             const double degr_expansion = 7.46883;
             const double c_compression = 160650;
             const double degr_compression = 11.579;
-            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(c_compression, degr_compression,
-                                                                              c_expansion, degr_expansion);
+            m_shockForceCB = chrono_types::make_shared<utils::DegressiveDamperForce>(c_compression, degr_compression,
+                                                                                     c_expansion, degr_expansion);
         } break;
     }
 }

@@ -81,9 +81,9 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = sysSPH.GetInitialSpacing();
-    ChVector3d cMin = ChVector3d(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5.0 * initSpace0);
-    ChVector3d cMax = ChVector3d(bxDim / 2 + initSpace0 / 2, byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
-    sysSPH.SetComputationalBoundaries(cMin, cMax, PeriodicSide::ALL);
+    ChVector3d cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, -5 * initSpace0);
+    ChVector3d cMax(+bxDim / 2 + initSpace0 / 2, +byDim / 2 + initSpace0 / 2, bzDim + 5 * initSpace0);
+    sysSPH.SetComputationalDomain(ChAABB(cMin, cMax), BC_ALL_PERIODIC);
 
     // Create Fluid region and discretize with SPH particles
     ChVector3d boxCenter(0.0, 0.0, bzDim / 2);
@@ -105,10 +105,8 @@ int main(int argc, char* argv[]) {
     ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
-    sysSPH.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(0, 0, 2));
+    auto ground_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {0, 0, 2});
+    sysFSI.AddFsiBody(ground, ground_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT), false);
 
     // Complete construction of the fluid system
     sysFSI.Initialize();
@@ -118,7 +116,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphMethodTypeString();
+    out_dir = out_dir + "/" + sysSPH.GetPhysicsProblemString() + "_" + sysSPH.GetSphIntegrationSchemeString();
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cerr << "Error creating directory " << out_dir << std::endl;
         return 1;

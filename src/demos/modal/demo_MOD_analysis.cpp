@@ -118,7 +118,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, bool base_fixed) {
 
     auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
+    visualizebeamA->SetColormapRange(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);
@@ -210,7 +210,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, bool body1fixed, bool body2fixed) {
 
     auto visualizebeamA = chrono_types::make_shared<ChVisualShapeFEA>();
     visualizebeamA->SetFEMdataType(ChVisualShapeFEA::DataType::ELEM_BEAM_TX);
-    visualizebeamA->SetColorscaleMinMax(-0.001, 1200);
+    visualizebeamA->SetColormapRange(-0.001, 1200);
     visualizebeamA->SetSmoothFaces(true);
     visualizebeamA->SetWireframe(false);
     mesh->AddVisualShapeFEA(visualizebeamA);

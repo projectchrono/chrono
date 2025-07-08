@@ -47,6 +47,9 @@ class ChApi ChVisualSystem {
     /// Enable/disable information terminal output during initialization (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
+    /// Indicate whether the visual system was initialized or not.
+    bool IsInitialized() const { return m_initialized; }
+
     /// Attach a Chrono system to this visualization system.
     virtual void AttachSystem(ChSystem* sys);
 
@@ -153,7 +156,7 @@ class ChApi ChVisualSystem {
     virtual void EndScene() {}
 
     /// Get the list of associated Chrono systems.
-    std::vector<ChSystem*> GetSystems() const { return m_systems; }
+    std::vector<ChSystem*>& GetSystems() { return m_systems; }
 
     /// Get the specified associated Chrono system.
     ChSystem& GetSystem(int i) const { return *m_systems[i]; }

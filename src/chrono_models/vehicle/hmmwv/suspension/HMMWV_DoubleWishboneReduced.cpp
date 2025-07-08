@@ -78,12 +78,14 @@ const double HMMWV_DoubleWishboneReducedRear::m_springRestLength = in2m * 15.03;
 // -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneReducedFront::HMMWV_DoubleWishboneReducedFront(const std::string& name)
     : ChDoubleWishboneReduced(name) {
-    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB =
+        chrono_types::make_shared<utils::LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::string& name)
     : ChDoubleWishboneReduced(name) {
-    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB =
+        chrono_types::make_shared<utils::LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------

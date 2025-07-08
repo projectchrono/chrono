@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
-
+     
     // ------------------
     // Create the vehicle
     // ------------------

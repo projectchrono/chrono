@@ -245,7 +245,7 @@ void FEATerrain::Initialize(const ChVector3d& start_point,
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.995);
     mvisualizemesh->SetSmoothFaces(false);
     m_mesh->AddVisualShapeFEA(mvisualizemesh);

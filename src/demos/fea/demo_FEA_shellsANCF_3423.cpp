@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
     auto shapeA = chrono_types::make_shared<ChVisualShapeFEA>();
     shapeA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    shapeA->SetColorscaleMinMax(0.0, 5.50);
+    shapeA->SetColormapRange(0.0, 5.50);
     shapeA->SetShrinkElements(true, 0.85);
     shapeA->SetSmoothFaces(true);
     mesh->AddVisualShapeFEA(shapeA);
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     shapeD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     shapeD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     shapeD->SetSymbolsScale(1);
-    shapeD->SetColorscaleMinMax(-0.5, 5);
+    shapeD->SetColormapRange(-0.5, 5);
     shapeD->SetZbufferHide(false);
     mesh->AddVisualShapeFEA(shapeD);
 

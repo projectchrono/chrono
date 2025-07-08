@@ -290,7 +290,7 @@ void DPCapPress(const std::string& out_dir) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -312,7 +312,7 @@ void DPCapPress(const std::string& out_dir) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -628,7 +628,7 @@ void ShellBrickContact(const std::string& out_dir) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -650,7 +650,7 @@ void ShellBrickContact(const std::string& out_dir) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -664,7 +664,7 @@ void ShellBrickContact(const std::string& out_dir) {
 
     auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh_shell->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh_shell->SetColormapRange(0.0, 5.50);
     mvisualizemesh_shell->SetShrinkElements(true, 0.85);
     mvisualizemesh_shell->SetSmoothFaces(true);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemesh_shell);
@@ -686,7 +686,7 @@ void ShellBrickContact(const std::string& out_dir) {
     mvisualizemeshD_shell->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD_shell->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD_shell->SetSymbolsScale(1);
-    mvisualizemeshD_shell->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD_shell->SetColormapRange(-0.5, 5);
     mvisualizemeshD_shell->SetZbufferHide(false);
     my_shell_mesh->AddVisualShapeFEA(mvisualizemeshD_shell);
 
@@ -957,7 +957,7 @@ void SimpleBoxContact(const std::string& out_dir) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.99);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -979,7 +979,7 @@ void SimpleBoxContact(const std::string& out_dir) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -1272,7 +1272,7 @@ void SoilBin(const std::string& out_dir) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -1294,7 +1294,7 @@ void SoilBin(const std::string& out_dir) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -1547,7 +1547,7 @@ void AxialDynamics(const std::string& out_dir) {
 
     // auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     // mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    // mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    // mvisualizemesh->SetColormapRange(0.0, 5.50);
     // mvisualizemesh->SetShrinkElements(true, 0.85);
     // mvisualizemesh->SetSmoothFaces(true);
     // my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -1569,7 +1569,7 @@ void AxialDynamics(const std::string& out_dir) {
     // mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     // mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     // mvisualizemeshD->SetSymbolsScale(1);
-    // mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    // mvisualizemeshD->SetColormapRange(-0.5, 5);
     // mvisualizemeshD->SetZbufferHide(false);
     // my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -1763,7 +1763,7 @@ void BendingQuasiStatic(const std::string& out_dir) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -1785,7 +1785,7 @@ void BendingQuasiStatic(const std::string& out_dir) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 
@@ -1983,7 +1983,7 @@ void SwingingShell(const std::string& out_dir) {
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>();
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh->SetColormapRange(0.0, 5.50);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -2005,7 +2005,7 @@ void SwingingShell(const std::string& out_dir) {
     mvisualizemeshD->SetFEMglyphType(ChVisualShapeFEA::GlyphType::ELEM_TENS_STRAIN);
     mvisualizemeshD->SetFEMdataType(ChVisualShapeFEA::DataType::NONE);
     mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD->SetColormapRange(-0.5, 5);
     mvisualizemeshD->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizemeshD);
 

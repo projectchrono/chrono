@@ -23,6 +23,11 @@ if(POLICY CMP0104)
 endif()
 
 #-----------------------------------------------------------------------------
+# Set configuration-specific postfixes
+#-----------------------------------------------------------------------------
+set(CH_DEBUG_POSTFIX "_d")
+
+#-----------------------------------------------------------------------------
 # Choose to build either shared or static libraries as default
 #-----------------------------------------------------------------------------
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)

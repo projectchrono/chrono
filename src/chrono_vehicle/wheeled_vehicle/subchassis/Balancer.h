@@ -42,7 +42,7 @@ class CH_VEHICLE_API Balancer : public ChBalancer {
     virtual const double GetBalancerMaxPitch() const override { return m_beam_max_pitch; }
     virtual const ChVector3d& GetBalancerBeamDimensions() const override { return m_beam_dimensions; }
 
-    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const override { return m_bushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> GetBushingData() const override { return m_bushingData; }
 
   private:
     virtual const ChVector3d GetLocation(PointId which) override { return m_points[which]; }
@@ -57,7 +57,7 @@ class CH_VEHICLE_API Balancer : public ChBalancer {
     ChVector3d m_beam_inertia;
     ChVector3d m_beam_dimensions;
 
-    std::shared_ptr<ChVehicleBushingData> m_bushingData;
+    std::shared_ptr<ChJoint::BushingData> m_bushingData;
 };
 
 /// @} vehicle_wheeled_subchassis

@@ -43,11 +43,12 @@ namespace chrono {
 
 // Forward references
 class ChVisualSystem;
+
 namespace modal {
 class ChModalAssembly;
 }
 
-/// Chrono Simulation System.
+/// Chrono simulation system.
 ///
 /// This class is the main simulation object used to collect:
 /// - the simulation model itself, through the ChAssembly object;
@@ -57,7 +58,7 @@ class ChModalAssembly;
 /// - counters and timers;
 /// as well as other secondary features.
 ///
-/// This class is in charge of managing dynamic, kinematic and static simulations.
+/// This class is in charge of managing dynamic, kinematic, and static simulations.
 ///
 /// Consult the @ref simulation_system manual page for additional details.
 ///
@@ -75,6 +76,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// "Virtual" copy constructor.
     /// Concrete derived classes must implement this.
     virtual ChSystem* Clone() const = 0;
+
+    static std::shared_ptr<ChSystem> Create(ChContactMethod contact_method);
 
     /// Set the system name.
     void SetName(const std::string& name) { m_name = name; }
