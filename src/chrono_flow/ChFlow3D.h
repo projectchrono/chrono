@@ -37,13 +37,15 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
     double c_mass_specific_heat_capacity;
 
   public:
-    ChFlow3D() : k_thermal_conductivity(1), h_permeability(1), third_field_conductivity(1), c_mass_specific_heat_capacity(1000) { ConstitutiveMatrixM.setIdentity(3, 3); ConstitutiveVectorS.setZero(3);}
+    ChFlow3D() : k_thermal_conductivity(1), h_permeability(1), third_field_conductivity(1), c_mass_specific_heat_capacity(1000) 
+                 { ConstitutiveMatrixM.setIdentity(3, 3); ConstitutiveVectorS.setZero(3);}
     ChFlow3D(const ChFlow3D& other) : ChContinuumPoissonFlow3D(other) {
         k_thermal_conductivity = other.k_thermal_conductivity;
         h_permeability = other.h_permeability;
         third_field_conductivity = other.third_field_conductivity;
         c_mass_specific_heat_capacity = other.c_mass_specific_heat_capacity;
         ConstitutiveMatrixM = other.ConstitutiveMatrixM;
+
     }
     virtual ~ChFlow3D() {}
 
@@ -66,18 +68,20 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
 
     /// Sets the c mass-specific heat capacity of the material,
     /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    void SetSpecificHeatCapacity(double mc) { c_mass_specific_heat_capacity = mc; }
+    //void SetSpecificHeatCapacity(double mc) { c_mass_specific_heat_capacity = mc; }
 
     /// Sets the c mass-specific heat capacity of the material,
     /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    double GetSpecificHeatCapacity() const { return c_mass_specific_heat_capacity; }
+    //double GetSpecificHeatCapacity() const { return c_mass_specific_heat_capacity; }
 
     /// Get the k conductivity matrix
     ChMatrixDynamic<> GetConductivityMatrix() { return ConstitutiveMatrix; }
 
     /// override base: (the dT/dt term has multiplier rho*c with rho=density, c=heat capacity)
-    virtual double Get_DtMultiplier() override { return m_density * c_mass_specific_heat_capacity; }
-
+    //virtual double Get_DtMultiplier() override { return m_density * c_mass_specific_heat_capacity; }
+    virtual double Get_DtMultiplier() override { return m_density * ct; }
+  
+    
     /// Compute the k conductivity matrix
     ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixK(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP) override {
       // Retrieve element interpolated nodal values 
@@ -91,6 +95,16 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       double thirdVarDtp = NValDtP(2);
 
       // define f(h, T, ...) (currently equal to 1.0)
+      // ConstitutiveMatrix(0,0) *= 1.0;
+      // ConstitutiveMatrix(0,1) = 0.0;
+      // ConstitutiveMatrix(0,2) = 0.0; 
+      // ConstitutiveMatrix(1,0) = 0.0;    
+      // ConstitutiveMatrix(1,1) *= 1.0;
+      // ConstitutiveMatrix(1,2) = 0.0;
+      // ConstitutiveMatrix(2,0) = 0.0;
+      // ConstitutiveMatrix(2,1) = 0.0;      
+      // ConstitutiveMatrix(2,2) *= 1.0;
+
       ConstitutiveMatrix(0,0) *= 1.0;
       ConstitutiveMatrix(0,1) = 0.0;
       ConstitutiveMatrix(0,2) = 0.0; 
@@ -105,7 +119,7 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
     }
 
     /// Compute the mass matrix
-    ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP) override {
+    ChMatrixDynamic<> ComputeUpdatedConstitutiveMatrixM(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP, double m_cap) override {
       // Retrieve element interpolated nodal values 
       double tp = NValP(0);
       double hp = NValP(1);
@@ -117,22 +131,37 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       double thirdVarDtp = NValDtP(2);
     
       // define M(h, T, ...) 
-      ConstitutiveMatrixM(0,0) = 1.0 * m_density * c_mass_specific_heat_capacity;
-      ConstitutiveMatrixM(0,1) *= 1.0;
-      ConstitutiveMatrixM(0,2) *= 1.0;
-      ConstitutiveMatrixM(1,0) *= 1.0;
-      ConstitutiveMatrixM(1,1) = 1.0 * m_density * c_mass_specific_heat_capacity;
-      ConstitutiveMatrixM(1,2) *= 1.0;
-      ConstitutiveMatrixM(2,0) *= 1.0;
-      ConstitutiveMatrixM(2,1) *= 1.0;
-      ConstitutiveMatrixM(2,2) = 1.0 * m_density * c_mass_specific_heat_capacity;
+      // ConstitutiveMatrixM(0,0) = 1.0 * m_density * c_mass_specific_heat_capacity ;
+      // ConstitutiveMatrixM(0,1) *= 1.0;
+      // ConstitutiveMatrixM(0,2) *= 1.0;
+      // ConstitutiveMatrixM(1,0) *= 1.0;
+      // ConstitutiveMatrixM(1,1) = 1.0 * m_density * c_mass_specific_heat_capacity;
+      // ConstitutiveMatrixM(1,2) *= 1.0;
+      // ConstitutiveMatrixM(2,0) *= 1.0;
+      // ConstitutiveMatrixM(2,1) *= 1.0;
+      // ConstitutiveMatrixM(2,2) = 1.0 * m_density * c_mass_specific_heat_capacity;
+
+      ConstitutiveMatrixM(0,0) = 1.0 * m_density * ct ;
+      ConstitutiveMatrixM(0,1) *= 0.0;
+      ConstitutiveMatrixM(0,2) *= 0.0;
+      ConstitutiveMatrixM(1,0) *= 0.0;
+      ConstitutiveMatrixM(1,1) = 1.0 * m_cap / CEMENT;
+      ConstitutiveMatrixM(1,2) *= 0.0;
+      ConstitutiveMatrixM(2,0) *= 0.0;
+      ConstitutiveMatrixM(2,1) *= 0.0;
+      ConstitutiveMatrixM(2,2) = 1.0 * m_density * ct;
+
+      //std::cout << "m_cap = " << m_cap;
           
       return ConstitutiveMatrixM; 
     }
 
     /// Compute source term vector
-    ChMatrixDynamic<> ComputeUpdatedConstitutiveVectorS(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP) override {
+    ChMatrixDynamic<> ComputeUpdatedConstitutiveVectorS(ChVectorDynamic<>& NValP, ChVectorDynamic<>& NValDtP, double dalpha_dt) override {
       // Retrieve element interpolated nodal values 
+      // ChVectorDynamic<> ElStateTemp(4);
+      // ElStateTemp = this->GetElementStateVariable();
+
       double tp = NValP(0);
       double hp = NValP(1);
       double thirdVarp = NValP(2);
@@ -143,9 +172,20 @@ class ChFlow3D : public ChContinuumPoissonFlow3D {
       double thirdVarDtp = NValDtP(2);
     
       // define S(h, T, ...) (currently equal to 0.0)
-      ConstitutiveVectorS(0) = 0.0;
-      ConstitutiveVectorS(1) = 0.0;
+      // ConstitutiveVectorS(0) = 0.0;
+      // ConstitutiveVectorS(1) = 0.0;
+      // ConstitutiveVectorS(2) = 0.0;
+
+      ConstitutiveVectorS(0) = -CEMENT * Q_hydr_inf * dalpha_dt;
+      ConstitutiveVectorS(1) = k_c * CEMENT * dalpha_dt / CEMENT;
       ConstitutiveVectorS(2) = 0.0;
+
+      //std::cout << "Q_hydr = " << ConstitutiveVectorS(0) << " dalpha_dt_2=" << dalpha_dt;
+
+      // printf("CEMENT:      %1.6E\n", CEMENT);
+      // printf("Q_hydr_inf:      %1.6E\n", Q_hydr_inf);
+      // printf("k_c:      %1.6E\n", k_c);
+      // printf("dalpha_dt:      %1.6E\n", dalpha_dt);
           
       return ConstitutiveVectorS; 
     }    

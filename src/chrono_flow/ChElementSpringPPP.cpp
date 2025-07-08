@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono_flow/ChElementSpringPPP.h"
+#include "chrono_flow/ChFlow3D.h"
 
 using namespace chrono::fea;
 
@@ -25,6 +26,9 @@ ChElementSpringPPP::ChElementSpringPPP() : Volume(0) {
     this->StiffnessMatrix.setZero(6, 6);
     this->MassMatrix.setZero(6, 6);
     this->ElementSourceTerm.setZero(6);
+    //this->ElementState.setZero(4);
+
+    
 }
 
 ChElementSpringPPP::~ChElementSpringPPP() {}
@@ -40,12 +44,17 @@ void ChElementSpringPPP::SetNodes(std::shared_ptr<ChNodeFEAxyzPPP> nodeA,
 }
 
 void ChElementSpringPPP::SetupInitial(ChSystem* system) {
-    ElementState.resize(4);      // 4 is the number of element internal variables 
+    ElementState.resize(8);      // 4 is the number of element internal variables 
     ElementSourceTerm.resize(6); // 6 is the size of the source term vector
     ComputeStiffnessMatrix();
     ComputeMassMatrix();
     ComputeSourceTerm();
-}
+
+    /*double alpha_inf = Material->GetAlphaInfinity();
+    Alpha(0) = alpha_inf;
+    Alpha(1) = alpha_inf;
+    Alpha0 = Alpha;*/
+}   
 
 void ChElementSpringPPP::Update() {
     // parent class update:
@@ -54,6 +63,152 @@ void ChElementSpringPPP::Update() {
     ComputeStiffnessMatrix();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
+
+    //double T0 = 293.0;  // [K] reference temperature
+    //double dt = 1.0;    // can be got dynamically
+    //this->UpdateHydration(dt, T0);
+    //Alpha0 = Alpha;
+    this->ComputeElementVar(dt_current);
+}
+
+// void ChElementSpringPPP::UpdateHydration(double dt, double T0) {
+//     double patm = 0.1;        // [MPa]
+//     double rhol0 = 1.0e-6;    // [kg/mm^3]
+//     double Mw = 0.018015;     // [kg/mol]
+//     double R = 8.314;         // [J/(mol·K)]
+//     double Gl = 2.2e3;        // [N/mm^2]
+//     double alphavT = 2.07e-4; // [-]
+
+//     double Wmct = Material->Getwmct();
+//     double A1c = Material->GetA1c();
+//     double A2c = Material->GetA2c();
+//     double etac = Material->GetEtac();
+//     double af = Material->GetAf();
+//     double bf = Material->GetBf();
+//     double Eac_over_R = Material->GetEacOverR();
+//     double alpha_inf = Material->GetAlphaInfinity();
+
+//     for (int i = 0; i < 2; ++i) {
+//         double T = nodes[i]->GetFieldVal()[0]; // Temperature
+//         double h = nodes[i]->GetFieldVal()[1]; // Humidity
+//         //double p = 
+//         double alpha_old = Alpha0(i);
+
+//         double psat = patm * std::exp((11.9515 * (T - 373.15)) / (T - 39.724));
+//         double rhol = rhol0 * (1.0 - alphavT * (T - T0) + (p - patm) / Gl);
+//         double Hmed = std::exp((p - psat) * Mw / (R * T * rhol));
+//         Hmed = std::min(1.0, Hmed);
+
+//         double affinity = A1c * (A2c / alpha_inf + alpha_old) * (alpha_inf - alpha_old) * std::exp(-alpha_old * etac / alpha_inf);
+//         double beta_f = 1.0 / std::pow((1.0 + std::pow((af - af * Hmed), bf)), 1.0);
+//         double delta_alpha = dt * affinity * beta_f * std::exp(-Eac_over_R / T);
+//         Alpha(i) = std::min(alpha_inf, alpha_old + delta_alpha);
+//     }
+// }
+
+void ChElementSpringPPP::ComputeElementVar(double dt) {
+
+    // double patm = 0.1;        // [MPa]
+    // double rhol0 = 1.0e-6;    // [kg/mm^3]
+    // double Mw = 0.018015;     // [kg/mol]
+    // double R = 8.314;         // [J/(mol·K)]
+    // double Gl = 2.2e3;        // [N/mm^2]
+    // double alphavT = 2.07e-4; // [-]
+    
+
+    double Wmct = Material->Getwmct();
+    double A1c = Material->GetA1c();
+    double A2c = Material->GetA2c();
+    double etac = Material->GetEtac();
+    double af = Material->GetAf();
+    double bf = Material->GetBf();
+    double Eac_over_R = Material->GetEacOverR();
+    double alpha_inf = Material->GetAlphaInfinity();
+
+    double ct = Material->Getct_1();
+    double Lampda= Material->GetLampda_1();
+    double Q_hydr_inf = Material->GetQ_hydr_inf_1();
+    double Q_S_inf = Material->GetQ_S_inf_1();
+    
+    double rho= Material->Getrho_1();
+    double CEMENT = Material->GetCEMENT_1();
+    double SILICA = Material->GetSILICA_1();
+    double AGGREGATE = Material->GetAGGREGATE_1();
+    double k_c = Material->Getk_c_1();
+    double g_1 = Material->Getg_1_1();
+    double k_vg_c = Material->Getk_vg_c_1();
+    double k_vg_s = Material->Getk_vg_s_1();
+    double Q_over_R = Material->GetQ_over_R_1();
+
+    double T0 = 273.0;
+    double W0 = Wmct*CEMENT;
+
+    // Obtain the element state variable of last step
+    ChVectorDynamic<> ElStateTemp(8);
+    ElStateTemp = this->GetElementStateVariable();
+    
+    double ALPHA = ElStateTemp(0);    // alpha of last step
+
+    // Current T, h of the element
+    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+    double L1 = 0.5 * L;
+    double L2 = 0.5 * L;
+    double g1 = L1 / L;
+    double g2 = L2 / L;
+    
+    ChVectorDynamic<> NodeVal(6);
+    this->GetStateBlock(NodeVal);
+    double tp = 293; //g2 * NodeVal(0) + g1 * NodeVal(3); //293;  // T
+    double hp = 1.0; // g2 * NodeVal(1) + g1 * NodeVal(4); //0.9999; // P or RH
+
+    double Affinity = A1c * (A2c / alpha_inf + ALPHA)
+                            * (alpha_inf - ALPHA)
+                            * std::exp(-ALPHA * etac / alpha_inf);
+
+    double xx = std::pow(std::min(hp, 1.0), bf);
+    double beta_f = std::pow(1.0 + (af - af * xx), -1.0);
+
+    double Arrhenius = std::exp(-Eac_over_R / tp);
+
+    double dalpha_dt = Affinity * beta_f * Arrhenius;
+    double ALPHA_new = ALPHA + dt * dalpha_dt;
+    ALPHA_new = std::max(0.0, std::min(ALPHA_new, alpha_inf));
+
+    // if (std::isnan(ALPHA_new) || std::isinf(ALPHA_new) || ALPHA_new > 2.0) {
+    // std::cout << "[Debug] iele=" << iele
+    //           << " alpha=" << ALPHA_new
+    //           << " alpha_old=" << ALPHA
+    //           << " dalpha_dt=" << dalpha_dt
+    //           << " dt=" << dt << std::endl;
+    // }
+    double dalphas_dt = 0.0;
+    double ALPHAs_new = 0.0;
+
+    ElStateTemp(0) = ALPHA_new;
+    ElStateTemp(1) = dalpha_dt;
+    ElStateTemp(2) = ALPHAs_new;
+    ElStateTemp(3) = dalphas_dt;
+
+    
+    double b_11 = g_1*10.0*alpha_inf; 
+    double gixs = std::exp(b_11-10.0*ALPHA_new);
+    double psi = std::exp(Q_over_R*(1/tp-1/T0));
+    double G_11 = k_vg_c*CEMENT*ALPHA_new; // % +  k_vg_s*SILICA*ALPHA2_S
+    double gK_1 = (W0 - 0.188*CEMENT*ALPHA_new - G_11*(1.0-1.0/gixs))/(gixs-1.0); // %+ 0.22*SILICA*ALPHA2_S
+    double m_cap = (G_11*std::exp(-(b_11-10.0*ALPHA_new)*hp)*psi + gK_1*std::exp((b_11-10.0*ALPHA_new)*hp))*(b_11-10.0*ALPHA_new);  //% dev_we_h
+    double dev_we_T = (-Q_over_R/tp/tp)*G_11*((1-std::exp(-(b_11-10.0*ALPHA_new)*hp)))*psi; // % - (1.0-1.0/gixs)/(gixs-1.0)*(exp((b_11-10.0*ALPHA_med)*Hmed)-1));
+    double we_sat = G_11*(1-std::exp(-(b_11-10.0*ALPHA_new)))*psi+gK_1*(std::exp((b_11-10.0*ALPHA_new))-1);
+    double we = G_11*(1-std::exp(-(b_11-10.0*ALPHA_new)*hp))*psi+gK_1*(std::exp((b_11-10.0*ALPHA_new)*hp)-1);
+    double Sl = we/we_sat;
+    double np = we_sat/rho;
+
+    ElStateTemp(4) = m_cap;
+    ElStateTemp(5) = we;
+    ElStateTemp(6) = Sl;
+    ElStateTemp(7) = np;
+    std::cout << "m_cap = " << ElStateTemp(4);
+
+    this->SetElementStateVariable(ElStateTemp);
 }
 
 void ChElementSpringPPP::ShapeFunctions(ShapeVector& N, double z0) {
@@ -72,6 +227,8 @@ void ChElementSpringPPP::GetStateBlockDt(ChVectorDynamic<>& D) {
     D.segment(0, 3) = nodes[0]->GetFieldValDt().eigen();
     D.segment(3, 3) = nodes[1]->GetFieldValDt().eigen();
 }
+
+
 
 void ChElementSpringPPP::ComputeStiffnessMatrix() {
     MatrB(0, 0) =  1;
@@ -144,8 +301,11 @@ void ChElementSpringPPP::ComputeMassMatrix() {
     NodeValDttemp(2) = NodeValDt(2);
 
     // compute mass matrix of the element node 1
+    ElementState = this->GetElementStateVariable();
+    double m_cap = ElementState(4);
+    //std::cout << "m_cap = " << m_cap;
     ChMatrixDynamic<> temp;
-    temp = this->GetMaterial()->ComputeUpdatedConstitutiveMatrixM(NodeValtemp, NodeValDttemp);
+    temp = this->GetMaterial()->ComputeUpdatedConstitutiveMatrixM(NodeValtemp, NodeValDttemp, m_cap);
     
     // assemble node 1 mass matrix to element mass matrix
     MassMatrix(0, 0) = g1 * temp(0,0);
@@ -170,7 +330,7 @@ void ChElementSpringPPP::ComputeMassMatrix() {
     NodeValDttemp(2) = NodeValDt(5);
 
     // Compute mass matrix of the element node 2
-    temp = this->GetMaterial()->ComputeUpdatedConstitutiveMatrixM(NodeValtemp, NodeValDttemp);
+    temp = this->GetMaterial()->ComputeUpdatedConstitutiveMatrixM(NodeValtemp, NodeValDttemp, m_cap);
 
     // Assemble second node mass matrix to element mass matrix
     MassMatrix(0+3, 0+3) = g2 * temp(0,0);
@@ -238,8 +398,12 @@ void ChElementSpringPPP::ComputeSourceTerm() {
     NodeValDttemp(2) = NodeValDt(2);
 
     // compute source vector of the first element node 
+    double dalpha_dt = ElementState(1);
+    //double dalpha_dt = 1.0; 
+    //std::cout << " dalpha_dt=" << dalpha_dt;
+
     ChMatrixDynamic<> temp;
-    temp = this->GetMaterial()->ComputeUpdatedConstitutiveVectorS(NodeValtemp, NodeValDttemp);
+    temp = this->GetMaterial()->ComputeUpdatedConstitutiveVectorS(NodeValtemp, NodeValDttemp, dalpha_dt);
     
     // Assemble first node source vector to element source vector
     ElementSourceTerm(0) = temp(0);
@@ -255,7 +419,8 @@ void ChElementSpringPPP::ComputeSourceTerm() {
     NodeValDttemp(2) = NodeValDt(5);
 
     // Compute source vector of the second element node 
-    temp = this->GetMaterial()->ComputeUpdatedConstitutiveVectorS(NodeValtemp, NodeValDttemp);
+    //double dalpha_dt_2 = ElementState(1); 
+    temp = this->GetMaterial()->ComputeUpdatedConstitutiveVectorS(NodeValtemp, NodeValDttemp, dalpha_dt);
 
     // Assemble second node source vector to element source vector
     ElementSourceTerm(3) = temp(0);

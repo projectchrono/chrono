@@ -104,6 +104,8 @@ class ChFlowApi ChElementSpringPPP : public ChElementGeneric,
     const ChMatrixDynamic<>& GetMatrB() const { return MatrB; }
     const ChMatrixDynamic<>& GetStiffnessMatrix() const { return StiffnessMatrix; }
 
+
+
     /// Returns the gradient of P (note that the tetrahedron 4 nodes is a linear
     /// element, thus the gradient is constant in the entire volume).
     /// It is in the original undeformed unrotated reference.
@@ -207,10 +209,16 @@ class ChFlowApi ChElementSpringPPP : public ChElementGeneric,
     ChMatrixDynamic<> StiffnessMatrix;     // local stiffness matrix
     ChMatrixDynamic<> MassMatrix;          // local mass matrix
     ChMatrixDynamic<> UpdatedConstitutiveMatrix;  // local stiffness matrix
+
     //ChMatrixNM<double, 4, 4> mM;         // for speeding up corotational approach
     double Volume;
     ChVectorDynamic<> ElementState;        // Vector to store element state variables  
-    ChVectorDynamic<> ElementSourceTerm;   // Vector to store element source term  
+    ChVectorDynamic<> ElementSourceTerm;   // Vector to store element source term
+    double dt_current;   // To store the timestep of current step
+    
+    //ChVectorDynamic<> Alpha;    // Vector to store current hydration degree
+    //ChVectorDynamic<> Alpha0;   // Vector to store hydration degree of last step (for increment caluculation)
+
     // Element FreeCAD geometry inputs                       
     double elL1;                            
     double elL2;
@@ -220,6 +228,25 @@ class ChFlowApi ChElementSpringPPP : public ChElementGeneric,
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    // Hydration function
+    //void UpdateHydration(double dt, double T0);
+    //ChVectorDynamic<> GetAlpha() const { return Alpha; }
+    void SetDt(double dt) { dt_current = dt; }
+    double GetDt() const { return dt_current; }
+    
+    void ComputeElementVar(double dt);
+    double GetAlpha() const { return ElementState.size() > 0 ? ElementState(0) : 0.0; }
+    double GetAlpha_dt() const { return ElementState.size() > 0 ? ElementState(1) : 0.0; }
+    double GetAlphas() const { return ElementState.size() > 0 ? ElementState(2) : 0.0; }
+    double GetAlphas_dt() const { return ElementState.size() > 0 ? ElementState(3) : 0.0; }
+
+    double Getmoisture_cap() const { return ElementState.size() > 0 ? ElementState(4) : 3.4E-7; }
+    double Getwe() const { return ElementState.size() > 0 ? ElementState(5) : 312.2e-9; }
+    double GetmSaturation() const { return ElementState.size() > 0 ? ElementState(6) : 1.0; }
+    double GetPorosity() const { return ElementState.size() > 0 ? ElementState(7) : 0.0; }
+
+
 };
 
 /// @} fea_elements
