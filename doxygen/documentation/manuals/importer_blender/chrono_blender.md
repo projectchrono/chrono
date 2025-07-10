@@ -68,7 +68,7 @@ You can enable this type of postprocessing also in your own projects: if you loo
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_40.jpg)
   
 - useful hint: the default renderer in Blender is *Evee*, which is very fast but not photorealistic, i.e. you can use for large scale simulations like you
-  could do with Paraview etc., but if you aim at the maximum photorealism, we suggest to enable the *Cycles* renderer, whic can be done as in the following
+  could do with Paraview etc., but if you aim at the maximum photorealism, we suggest to enable the *Cycles* renderer, which can be done as in the following
   figure:
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_50.jpg)
 
@@ -133,8 +133,8 @@ the Blender GUI, in many cases.
   - you see that you can change many properties of the arrow glyphs: 
     ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_110.jpg)
 	For example we set *width* as constant, 0.04, and *length* as *Property*, where the property is the vector set *F* that is, the contact force (with 
-	some scaling factor). This doing, we have arrows of same thickness, but whose lenght depends on how strong is the contact force. 
-	Note that we could have preferred an alternative way, that is setting all contact arrows with the same lenght, but with width depending on the *F* property. Or both. 
+	some scaling factor). This doing, we have arrows of same thickness, but whose length depends on how strong is the contact force. 
+	Note that we could have preferred an alternative way, that is setting all contact arrows with the same length, but with width depending on the *F* property. Or both. 
 	
   - an interesting possibility is about controlling the color of the arrow glyphs, according to some property. There is a predefined set of falsecolor colormaps,
     use the *Min*, *Max* and *colormap* settings to see the effects. 
@@ -158,7 +158,7 @@ the Blender GUI, in many cases.
 - ChGlyphs are fully supported, in the sub types: points, coordsystems, vectors, tensors.
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_150.jpg)
   
-- ChTriangleMeshConnected that have some vecotr/scalar/tensorial property attached, can be optionally rendered
+- ChTriangleMeshConnected that have some vector/scalar/tensorial property attached, can be optionally rendered
   with falsecolor colormaps for the desired property:
   ![](http://projectchrono.org/assets/manual/blender_addin_tutorial_160.jpg)
 

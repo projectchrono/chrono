@@ -92,7 +92,7 @@ my_vect1.y=2
 my_vect1.z=3
 ~~~~~~~~~~~~~~~
 
--   Some classes have build parameters, for example anothe vector can be
+-   Some classes have build parameters, for example another vector can be
     built by passing the 3 coordinates for quick initialization:
 
 ~~~~~~~~~~~~~{.py}

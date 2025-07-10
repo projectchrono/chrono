@@ -2,7 +2,7 @@ Building a project that uses Chrono {#tutorial_install_project}
 ==========================
 
 An external C++ project that uses Chrono requires:
-- acces to the Chrono headers (at compile time)
+- access to the Chrono headers (at compile time)
 - access to the Chrono libraries (at link time)
 - access to shared libraries, `.dll` on Windows and `.so` on Linux (at run time)  
 
