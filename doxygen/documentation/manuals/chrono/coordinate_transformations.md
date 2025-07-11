@@ -39,7 +39,7 @@ In mathematical notation:
 
 ### Construction
 
-The general consruction of @ref chrono::ChVector3<> "ChVector3"s is through its constructor
+The general construction of @ref chrono::ChVector3<> "ChVector3"s is through its constructor
 
 ~~~{.cpp}
 ChVector3d vect1(1, 2, 3); // equivalent to: ChVector3<double> vect1(1, 2, 3);
@@ -215,7 +215,7 @@ One of the most important features of the ChFrame class is the ability to apply 
 	\mathbf{d}_{P,a(a)}=\mathbf{R}_{ba} \mathbf{d}_{P,b(b)}
   \f]
   The related methods are @ref chrono::ChFrame<>::TransformDirectionLocalToParent() "ChFrame<>::TransformDirectionLocalToParent()" and @ref chrono::ChFrame<>::TransformDirectionParentToLocal() "ChFrame<>::TransformDirectionParentToLocal()";
-- *loactions*: the transformation is applied to a vector describing a _location_:
+- *locations*: the transformation is applied to a vector describing a _location_:
   when transformed, the vector is rotated and the different location of the new reference system is taken into consideration
   \f[
 	\mathbf{d}_{P,a(a)}=\mathbf{d}_{b,a(a)} + \mathbf{R}_{ba} \mathbf{d}_{P,b(b)}

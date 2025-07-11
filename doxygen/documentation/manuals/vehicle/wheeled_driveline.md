@@ -6,7 +6,7 @@ Driveline models {#wheeled_driveline}
 The driveline subsystem (aka drivetrain) is the set of components that deliver power to the vehicle's driven wheels.
 Currently, Chrono::Vehicle provides templates for traditional drivelines connected to a single motor (in the powertrain subsystem) and delivering power to one, two, or more of the vehicle's axles.
 
-The interfaces between the driveline and powertrain and between the driveline and the driven wheels are force-displacement connections. In particular, the powertrain supplies torque to the driveline's driveshaft and the driveline setts the driveshaft's angular velocity.  Similarly, the driveline transmits and applies torques to the axles of the driven wheels and receives the current angular velocity of the wheel axles. Depending on the type of driveline and powertrain, the driveline-powertrain and driveline-wheel connections can be enforced through constraints or purely kinematically.
+The interfaces between the driveline and powertrain and between the driveline and the driven wheels are force-displacement connections. In particular, the powertrain supplies torque to the driveline's driveshaft and the driveline sets the driveshaft's angular velocity.  Similarly, the driveline transmits and applies torques to the axles of the driven wheels and receives the current angular velocity of the wheel axles. Depending on the type of driveline and powertrain, the driveline-powertrain and driveline-wheel connections can be enforced through constraints or purely kinematically.
 
 
 ## Four-wheel shafts-based drivetrain {#wheeled_driveline_4WD_shafts}

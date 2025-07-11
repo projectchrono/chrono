@@ -7,7 +7,7 @@ Chrono::SolidWorks is an add-in for [SolidWorks](http://www.solidworks.com) that
 
 The tool allows to:
 - export entire *Assemblies*, nested *SubAssemblies* and *Parts*, together with their material and appearance properties;
-- export *Mates* of the *Standard* type plus *Mehcanical>Hinge*;
+- export *Mates* of the *Standard* type plus *Mechanical>Hinge*;
 - specify *collision shapes*, both through primitives or by automatic generating a contact mesh shape from the objects;
 - add [Chrono motors](@ref motors), together with their control functions;
 
