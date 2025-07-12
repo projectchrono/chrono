@@ -27,13 +27,19 @@ namespace chrono {
 // CLASS FOR A PARTICLE
 // -----------------------------------------------------------------------------
 
-ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
+ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+}
 
 ChParticle::ChParticle(const ChParticle& other) : ChParticleBase(other) {
     container = other.container;
     UserForce = other.UserForce;
     UserTorque = other.UserTorque;
     variables = other.variables;
+
+    m_contactable_variables.clear();
+    m_contactable_variables.push_back(GetVariables1());
 }
 
 ChParticle::~ChParticle() {}

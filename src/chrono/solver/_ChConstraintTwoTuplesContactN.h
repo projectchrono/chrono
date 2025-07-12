@@ -17,25 +17,6 @@
 
 namespace chrono {
 
-class ChApi ChConstraintTwoTuplesContactNall {
-  public:
-    /// Get the friction coefficient.
-    double GetFrictionCoefficient() const { return friction; }
-
-    /// Set the friction coefficient.
-    void SetFrictionCoefficient(double mcoeff) { friction = mcoeff; }
-
-    /// Get the cohesion.
-    double GetCohesion() const { return cohesion; }
-
-    /// Set the cohesion.
-    void SetCohesion(double mcoh) { cohesion = mcoh; }
-
-  protected:
-    double friction;  ///< friction coefficient 'f', for sqrt(Tx^2+Ty^2)<f*Nz
-    double cohesion;  ///< cohesion 'c', non-negative, for sqrt(Tx^2+Ty^2)<f*(Nz+c)
-};
-
 /// Normal reaction between two objects, each represented by a tuple of ChVariables objects.
 /// Used ONLY when also two ChConstraintTwoTuplesFrictionT objects are used to represent friction. If these two tangent
 /// constraint are not used, for frictionless case, use a simple ChConstraintTwo with the ChConstraint::Mode::UNILATERAL
@@ -47,11 +28,13 @@ class ChApi ChConstraintTwoTuplesContactNall {
 ///
 /// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
 template <class Ta, class Tb>
-class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>,
-                                            public ChConstraintTwoTuplesContactNall {
+class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb> {
   protected:
     ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_U;  ///< U tangential component
     ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_V;  ///< V tangential component
+
+    double friction;  ///< friction coefficient 'f', for sqrt(Tx^2+Ty^2)<f*Nz
+    double cohesion;  ///< cohesion 'c', non-negative, for sqrt(Tx^2+Ty^2)<f*(Nz+c)
 
   public:
     ChConstraintTwoTuplesContactN() {
@@ -87,13 +70,27 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
         return *this;
     }
 
+    /// Get the friction coefficient.
+    double GetFrictionCoefficient() const { return friction; }
+
+    /// Set the friction coefficient.
+    void SetFrictionCoefficient(double mcoeff) { friction = mcoeff; }
+
+    /// Get the cohesion.
+    double GetCohesion() const { return cohesion; }
+
+    /// Set the cohesion.
+    void SetCohesion(double mcoh) { cohesion = mcoh; }
+
     /// Get pointer to U tangential component
     ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintU() const { return constraint_U; }
+
     /// Get pointer to V tangential component
     ChConstraintTwoTuplesFrictionT<Ta, Tb>* GetTangentialConstraintV() const { return constraint_V; }
 
     /// Set pointer to U tangential component
     void SetTangentialConstraintU(ChConstraintTwoTuplesFrictionT<Ta, Tb>* mconstr) { constraint_U = mconstr; }
+
     /// Set pointer to V tangential component
     void SetTangentialConstraintV(ChConstraintTwoTuplesFrictionT<Ta, Tb>* mconstr) { constraint_V = mconstr; }
 

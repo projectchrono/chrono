@@ -140,12 +140,11 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     std::shared_ptr<AddContactCallback> add_contact_callback;
     ReportContactCallback* report_contact_callback;
 
-    /// Utility function to accumulate contact forces from a specified list of contacts.
-    /// This function is templated by the contact type (assumed to be derived from ChContactTuple).
+    /// Accumulate contact forces from a specified list of contacts.
+    /// This function is templated by the contact type (assumed to be derived from ChContact).
     /// Contact forces are accumulated in a map keyed by the contactable objects.
-    /// Derived ChContactContainer classes can use this utility (processing their various lists
-    /// of contacts) to cache information used for reporting through GetContactableForce and
-    /// GetContactableTorque.
+    /// Derived ChContactContainer classes can use this utility (processing their various lists of contacts) to cache
+    /// information used for reporting through GetContactableForce and GetContactableTorque.
     template <class Tcont>
     void SumAllContactForces(std::list<Tcont*>& contactlist,
                              std::unordered_map<ChContactable*, ForceTorque>& contactforces) {

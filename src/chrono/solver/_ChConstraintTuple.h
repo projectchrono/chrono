@@ -31,20 +31,20 @@ namespace chrono {
 template <class T>
 class ChConstraintTuple_1vars {
   protected:
-    ChVariables* variables;              ///< The constrained object
+    ChVariables* variables_1;              ///< The constrained object
     ChRowVectorN<double, T::nvars1> Cq;  ///< The [Cq] jacobian of the constraint
     ChVectorN<double, T::nvars1> Eq;     ///< The [Eq] product [Eq]=[invM]*[Cq]'
 
   public:
     /// Default constructor
-    ChConstraintTuple_1vars() : variables(nullptr) {
+    ChConstraintTuple_1vars() : variables_1(nullptr) {
         Cq.setZero();
         Eq.setZero();
     }
 
     /// Copy constructor
     ChConstraintTuple_1vars(const ChConstraintTuple_1vars& other) {
-        variables = other.variables;
+        variables_1 = other.variables_1;
         Cq = other.Cq;
         Eq = other.Eq;
     }
@@ -53,7 +53,7 @@ class ChConstraintTuple_1vars {
 
     /// Assignment operator: copy from other object
     ChConstraintTuple_1vars& operator=(const ChConstraintTuple_1vars& other) {
-        variables = other.variables;
+        variables_1 = other.variables_1;
         Cq = other.Cq;
         Eq = other.Eq;
         return *this;
@@ -63,24 +63,24 @@ class ChConstraintTuple_1vars {
 
     ChVectorRef Get_Eq() { return Eq; }
 
-    ChVariables* GetVariables() { return variables; }
+    ChVariables* GetVariables() { return variables_1; }
 
     void SetVariables(T& m_tuple_carrier) {
         if (!m_tuple_carrier.GetVariables1()) {
             throw std::runtime_error("ERROR: SetVariables() getting null pointer.");
         }
-        variables = m_tuple_carrier.GetVariables1();
+        variables_1 = m_tuple_carrier.GetVariables1();
     }
 
     void Update_auxiliary(double& g_i) {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
-        if (variables->IsActive()) {
-            variables->ComputeMassInverseTimesVector(Eq, Cq.transpose());
+        if (variables_1->IsActive()) {
+            variables_1->ComputeMassInverseTimesVector(Eq, Cq.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
-        if (variables->IsActive()) {
+        if (variables_1->IsActive()) {
             g_i += Cq * Eq;
         }
     }
@@ -88,39 +88,39 @@ class ChConstraintTuple_1vars {
     double ComputeJacobianTimesState() {
         double ret = 0;
 
-        if (variables->IsActive()) {
-            ret += Cq * variables->State();
+        if (variables_1->IsActive()) {
+            ret += Cq * variables_1->State();
         }
 
         return ret;
     }
 
     void IncrementState(double deltal) {
-        if (variables->IsActive()) {
-            variables->State() += Eq * deltal;
+        if (variables_1->IsActive()) {
+            variables_1->State() += Eq * deltal;
         }
     }
 
     void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
-        if (variables->IsActive()) {
-            result += Cq * vect.segment(variables->GetOffset(), T::nvars1);
+        if (variables_1->IsActive()) {
+            result += Cq * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
     }
 
     void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
-        if (variables->IsActive()) {
-            result.segment(variables->GetOffset(), T::nvars1) += Cq.transpose() * l;
+        if (variables_1->IsActive()) {
+            result.segment(variables_1->GetOffset(), T::nvars1) += Cq.transpose() * l;
         }
     }
 
     void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
-        if (variables->IsActive())
-            PasteMatrix(mat, Cq, start_row, variables->GetOffset() + start_col);
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq, start_row, variables_1->GetOffset() + start_col);
     }
 
     void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
-        if (variables->IsActive())
-            PasteMatrix(mat, Cq.transpose(), variables->GetOffset() + start_row, start_col);
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq.transpose(), variables_1->GetOffset() + start_row, start_col);
     }
 };
 

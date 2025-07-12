@@ -30,11 +30,19 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZ::ChContactSegmentXYZ() : m_owns_node({true, true}), m_container(nullptr) {}
+ChContactSegmentXYZ::ChContactSegmentXYZ() : m_owns_node({true, true}), m_container(nullptr) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+}
 
 ChContactSegmentXYZ::ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes,
                                          ChContactSurface* container)
-    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {}
+    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+}
 
 void ChContactSegmentXYZ::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = m_nodes[0]->pos.eigen();
@@ -151,11 +159,19 @@ double ChContactSegmentXYZ::ComputeUfromP(const ChVector3d& P) {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZRot::ChContactSegmentXYZRot() : m_owns_node({true, true}), m_container(nullptr) {}
+ChContactSegmentXYZRot::ChContactSegmentXYZRot() : m_owns_node({true, true}), m_container(nullptr) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+}
 
 ChContactSegmentXYZRot::ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
                                                ChContactSurface* container)
-    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {}
+    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+}
 
 void ChContactSegmentXYZRot::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = m_nodes[0]->GetPos().eigen();

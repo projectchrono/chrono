@@ -152,7 +152,7 @@ set(Chrono_physics_contact_HEADERS
     physics/ChContactContainerNSC.h
     physics/ChContactContainerSMC.h
     physics/ChContactable.h
-    physics/ChContactTuple.h
+    physics/ChContact.h
     physics/ChContactSMC.h
     physics/ChContactNSC.h
     physics/ChContactNSCrolling.h
@@ -1057,15 +1057,30 @@ set(Chrono_solver_constraints_HEADERS
     solver/ChConstraintTwoBodies.h
     solver/ChConstraintTwoGeneric.h
     solver/ChConstraintTwoGenericBoxed.h
-    solver/ChConstraintTuple.h
-    solver/ChConstraintTwoTuples.h
-    solver/ChConstraintTwoTuplesContactN.h
-    solver/ChConstraintTwoTuplesFrictionT.h
-    solver/ChConstraintTwoTuplesRollingN.h
-    solver/ChConstraintTwoTuplesRollingT.h
+#    solver/ChConstraintTuple.h
+#    solver/ChConstraintTwoTuples.h
+#    solver/ChConstraintTwoTuplesContactN.h
+#    solver/ChConstraintTwoTuplesFrictionT.h
+#    solver/ChConstraintTwoTuplesRollingN.h
+#    solver/ChConstraintTwoTuplesRollingT.h
     solver/ChConstraintNgeneric.h
 )
 source_group(solver\\constraints FILES ${Chrono_solver_constraints_SOURCES} ${Chrono_solver_constraints_HEADERS})
+
+set(Chrono_solver_constraints_contact_SOURCES
+
+)
+set(Chrono_solver_constraints_contact_HEADERS
+    solver/constraints_contact/ChConstraintTuple.h
+    solver/constraints_contact/ChConstraintTwoTuples.h
+    solver/constraints_contact/ChConstraintContactNormal.h
+    solver/constraints_contact/ChConstraintContactTangential.h
+    solver/constraints_contact/ChConstraintContactNormal.h
+    solver/constraints_contact/ChConstraintContactTangential.h
+    solver/constraints_contact/ChConstraintRollingNormal.h
+    solver/constraints_contact/ChConstraintRollingTangential.h
+)
+source_group(solver\\constraints_contact FILES ${Chrono_solver_constraints_contact_SOURCES} ${Chrono_solver_constraints_contact_HEADERS})
 
 # Utility group
 
@@ -1245,6 +1260,7 @@ set(Chrono_SOURCES
     ${Chrono_fea_sections_SOURCES}
     ${Chrono_solver_SOURCES}
     ${Chrono_solver_constraints_SOURCES}
+    ${Chrono_solver_constraints_contact_SOURCES}
     ${Chrono_solver_variables_SOURCES}
     ${Chrono_MulticoreMath_SOURCES}
     ${Chrono_collision_SOURCES}
@@ -1276,6 +1292,7 @@ set(Chrono_HEADERS
     ${Chrono_fea_constraints_HEADERS}
     ${Chrono_solver_HEADERS}
     ${Chrono_solver_constraints_HEADERS}
+    ${Chrono_solver_constraints_contact_HEADERS}
     ${Chrono_solver_variables_HEADERS}
     ${Chrono_MulticoreMath_HEADERS}
     ${Chrono_collision_HEADERS}

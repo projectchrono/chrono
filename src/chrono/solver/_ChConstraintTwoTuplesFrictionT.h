@@ -19,18 +19,13 @@
 
 namespace chrono {
 
-/// This is enough to use dynamic_casting<> to detect all template types
-/// from ChConstraintTwoTuplesFrictionT
-class ChApi ChConstraintTwoTuplesFrictionTall {};
-
 /// Base class for friction constraints between two objects,
 /// each represented by a tuple of ChVariables objects.
 /// This constraint cannot be used alone. It must be used together with
 /// a ChConstraintTwoTuplesContactN
 
 template <class Ta, class Tb>
-class ChApi ChConstraintTwoTuplesFrictionT : public ChConstraintTwoTuples<Ta, Tb>,
-                                             public ChConstraintTwoTuplesFrictionTall {
+class ChApi ChConstraintTwoTuplesFrictionT : public ChConstraintTwoTuples<Ta, Tb> {
   public:
     /// Default constructor
     ChConstraintTwoTuplesFrictionT() { this->mode = ChConstraint::Mode::FRICTION; }

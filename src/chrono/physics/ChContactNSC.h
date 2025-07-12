@@ -15,33 +15,25 @@
 #ifndef CH_CONTACT_NSC_H
 #define CH_CONTACT_NSC_H
 
-#include "chrono/core/ChFrame.h"
-#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
-#include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/collision/ChCollisionModel.h"
-#include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChContactContainer.h"
+#include "chrono/physics/ChContact.h"
+#include "chrono/solver/constraints_contact/ChConstraintContactNormal.h"
+#include "chrono/solver/constraints_contact/ChConstraintContactTangential.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
 
 /// Class for non-smooth contact between two generic ChContactable objects.
-/// Ta and Tb are of ChContactable sub classes.
-
-template <class Ta, class Tb>
-class ChContactNSC : public ChContactTuple<Ta, Tb> {
-  public:
-    typedef typename ChContactTuple<Ta, Tb>::typecarr_a typecarr_a;
-    typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
-
+class ChContactNSC : public ChContact {
   protected:
     float* reactions_cache;  ///< N,U,V reactions which might be stored in a persistent contact manifold
 
     /// The three scalar constraints, to be fed into the system solver.
     /// They contain jacobians data and special functions.
-    ChConstraintTwoTuplesContactN<typecarr_a, typecarr_b> Nx;
-    ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tu;
-    ChConstraintTwoTuplesFrictionT<typecarr_a, typecarr_b> Tv;
+    ChConstraintContactNormal Nx;
+    ChConstraintContactTangential Tu;
+    ChConstraintContactTangential Tv;
 
     ChVector3d react_force;
 
@@ -59,13 +51,13 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     }
 
     ChContactNSC(ChContactContainer* contact_container,     ///< contact container
-                 Ta* obj_A,                                 ///< contactable object A
-                 Tb* obj_B,                                 ///< contactable object B
+                 ChContactable* obj_A,                      ///< contactable object A
+                 ChContactable* obj_B,                      ///< contactable object B
                  const ChCollisionInfo& cinfo,              ///< data for the collision pair
                  const ChContactMaterialCompositeNSC& mat,  ///< composite material
                  double min_speed                           ///< minimum speed for rebounce
                  )
-        : ChContactTuple<Ta, Tb>(contact_container, obj_A, obj_B) {
+        : ChContact(contact_container, obj_A, obj_B) {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
@@ -75,21 +67,19 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     ~ChContactNSC() {}
 
     /// Reinitialize this contact for reuse.
-    virtual void Reset(Ta* obj_A,                                 ///< contactable object A
-                       Tb* obj_B,                                 ///< contactable object B
+    virtual void Reset(ChContactable* obj_A,                      ///< contactable object A
+                       ChContactable* obj_B,                      ///< contactable object B
                        const ChCollisionInfo& cinfo,              ///< data for the collision pair
                        const ChContactMaterialCompositeNSC& mat,  ///< composite material
                        double min_speed                           ///< minimum speed for rebounce
     ) {
         // Reset geometric information
-        this->Reset_cinfo(obj_A, obj_B, cinfo);
+        Reset_cinfo(obj_A, obj_B, cinfo);
 
-        Nx.Get_tuple_a().SetVariables(*this->objA);
-        Nx.Get_tuple_b().SetVariables(*this->objB);
-        Tu.Get_tuple_a().SetVariables(*this->objA);
-        Tu.Get_tuple_b().SetVariables(*this->objB);
-        Tv.Get_tuple_a().SetVariables(*this->objA);
-        Tv.Get_tuple_b().SetVariables(*this->objB);
+        // Set variables for the constraint tuples
+        Nx.SetVariables(objA, objB);
+        Tu.SetVariables(objA, objB);
+        Tv.SetVariables(objA, objB);
 
         // Cache composite material properties
         Nx.SetFrictionCoefficient(mat.static_friction);
@@ -107,11 +97,11 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         // COMPUTE JACOBIANS
 
         // delegate objA to compute its half of jacobian
-        this->objA->ComputeJacobianForContactPart(this->p1, this->contact_plane, Nx.Get_tuple_a(), Tu.Get_tuple_a(),
+        objA->ComputeJacobianForContactPart(this->p1, this->contact_plane, Nx.Get_tuple_a(), Tu.Get_tuple_a(),
                                                   Tv.Get_tuple_a(), false);
 
         // delegate objB to compute its half of jacobian
-        this->objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
+        objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
                                                   Tv.Get_tuple_b(), true);
 
         if (reactions_cache) {

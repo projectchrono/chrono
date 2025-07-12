@@ -43,11 +43,21 @@ namespace fea {
 // -----------------------------------------------------------------------------
 // ChContactTriangleXYZ
 
-ChContactTriangleXYZ::ChContactTriangleXYZ() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {}
+ChContactTriangleXYZ::ChContactTriangleXYZ() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(GetVariables3());
+}
 
 ChContactTriangleXYZ::ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                                            ChContactSurface* container)
-    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {}
+    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(GetVariables3());
+}
 
 ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
     return m_container->GetPhysicsItem();
@@ -282,11 +292,21 @@ void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d& P, double& u, double
 // -----------------------------------------------------------------------------
 // ChContactTriangleXYZRot
 
-ChContactTriangleXYZRot::ChContactTriangleXYZRot() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {}
+ChContactTriangleXYZRot::ChContactTriangleXYZRot() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(GetVariables3());
+}
 
 ChContactTriangleXYZRot::ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                                                  ChContactSurface* container)
-    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {}
+    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
+    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(GetVariables3());
+}
 
 ChPhysicsItem* ChContactTriangleXYZRot::GetPhysicsItem() {
     return m_container->GetPhysicsItem();

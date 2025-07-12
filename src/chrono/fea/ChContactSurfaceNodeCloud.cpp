@@ -25,6 +25,9 @@ namespace fea {
 ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
 }
 
 void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -65,6 +68,9 @@ ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* node, ChContactSurf
 ChContactNodeXYZRot::ChContactNodeXYZRot(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
 }
 
 void ChContactNodeXYZRot::ContactForceLoadResidual_F(const ChVector3d& F,

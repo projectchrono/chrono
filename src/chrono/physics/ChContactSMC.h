@@ -29,7 +29,7 @@
 #include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainer.h"
-#include "chrono/physics/ChContactTuple.h"
+#include "chrono/physics/ChContact.h"
 #include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/timestepper/ChState.h"
@@ -224,13 +224,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
 };
 
 /// Class for smooth (penalty-based) contact between two generic contactable objects.
-/// Ta and Tb are of ChContactable sub classes.
-template <class Ta, class Tb>
-class ChContactSMC : public ChContactTuple<Ta, Tb> {
-  public:
-    typedef typename ChContactTuple<Ta, Tb>::typecarr_a typecarr_a;
-    typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
-
+class ChContactSMC : public ChContact {
   private:
     struct ChContactJacobian {
         ChKRMBlock m_KRM;        ///< sum of scaled K and R, with pointers to sparse variables
@@ -243,15 +237,15 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     ChContactJacobian* m_Jac;  ///< contact Jacobian data
 
   public:
-    ChContactSMC() : m_Jac(NULL) {}
+    ChContactSMC() : m_Jac(nullptr) {}
 
     ChContactSMC(ChContactContainer* contact_container,    ///< contact container
-                 Ta* obj_A,                                ///< contactable object A
-                 Tb* obj_B,                                ///< contactable object B
+                 ChContactable* obj_A,                     ///< contactable object A
+                 ChContactable* obj_B,                     ///< contactable object B
                  const ChCollisionInfo& cinfo,             ///< data for the collision pair
                  const ChContactMaterialCompositeSMC& mat  ///< composite material
                  )
-        : ChContactTuple<Ta, Tb>(contact_container, obj_A, obj_B), m_Jac(NULL) {
+        : ChContact(contact_container, obj_A, obj_B), m_Jac(nullptr) {
         Reset(obj_A, obj_B, cinfo, mat);
     }
 
@@ -278,13 +272,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     const ChMatrixDynamic<double>* GetJacobianR() const { return m_Jac ? &(m_Jac->m_R) : NULL; }
 
     /// Reinitialize this contact for reuse.
-    void Reset(Ta* obj_A,                                ///< contactable object A
-               Tb* obj_B,                                ///< contactable object B
+    void Reset(ChContactable* obj_A,                     ///< contactable object A
+               ChContactable* obj_B,                     ///< contactable object B
                const ChCollisionInfo& cinfo,             ///< data for the collision pair
                const ChContactMaterialCompositeSMC& mat  ///< composite material
     ) {
         // Reset geometric information
-        this->Reset_cinfo(obj_A, obj_B, cinfo);
+        Reset_cinfo(obj_A, obj_B, cinfo);
 
         // Note: cinfo.distance is the same as this->norm_dist.
         assert(cinfo.distance < 0);
@@ -387,22 +381,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // Set variables and resize Jacobian matrices.
         // NOTE: currently, only contactable objects derived from ChContactable_1vars<6>,
         //       ChContactable_1vars<3>, and ChContactable_3vars<3,3,3> are supported.
-        int ndof_w = 0;
+        int ndof_w = objA->GetContactableNumCoordsVelLevel() + objB->GetContactableNumCoordsVelLevel();
         std::vector<ChVariables*> vars;
-
-        vars.push_back(this->objA->GetVariables1());
-        if (auto objA_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objA)) {
-            vars.push_back(objA_333->GetVariables2());
-            vars.push_back(objA_333->GetVariables3());
-        }
-        ndof_w += this->objA->GetContactableNumCoordsVelLevel();
-
-        vars.push_back(this->objB->GetVariables1());
-        if (auto objB_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objB)) {
-            vars.push_back(objB_333->GetVariables2());
-            vars.push_back(objB_333->GetVariables3());
-        }
-        ndof_w += this->objB->GetContactableNumCoordsVelLevel();
+        vars.insert(vars.end(), objA->m_contactable_variables.begin(), objA->m_contactable_variables.end());
+        vars.insert(vars.end(), objB->m_contactable_variables.begin(), objB->m_contactable_variables.end());
 
         m_Jac->m_KRM.SetVariables(vars);
         m_Jac->m_K.setZero(ndof_w, ndof_w);
@@ -412,6 +394,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
     /// Calculate Jacobian of generalized contact forces.
     void CalculateJacobians(const ChContactMaterialCompositeSMC& mat) {
+        /*
         // Compute a finite-difference approximations to the Jacobians of the contact forces and
         // load dQ/dx into m_Jac->m_K and dQ/dw into m_Jac->m_R.
         // Note that we only calculate these Jacobians whenever the contact force itself is calculated,
@@ -481,6 +464,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
             m_Jac->m_R.col(ndofA_w + i) = (Q1 - Q0) * (-1 / perturbation);  // note sign change
         }
+        */
     }
 
     /// Apply contact forces to the two objects.
@@ -506,12 +490,14 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
     /// Compute Jacobian of contact forces.
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) override {
+        /*
         if (m_Jac) {
             m_Jac->m_KRM.GetMatrix().setZero();
 
             m_Jac->m_KRM.GetMatrix() += m_Jac->m_K * Kfactor;
             m_Jac->m_KRM.GetMatrix() += m_Jac->m_R * Rfactor;
         }
+        */
     }
 };
 

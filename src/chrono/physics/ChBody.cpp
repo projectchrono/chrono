@@ -53,6 +53,9 @@ ChBody::ChBody()
     sleep_minwvel = 0.04f;
 
     variables.SetUserData((void*)this);
+
+    // Load contactable variables list
+    m_contactable_variables.push_back(GetVariables1());
 }
 
 ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
@@ -66,6 +69,9 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 
     variables = other.variables;
     variables.SetUserData((void*)this);
+
+    m_contactable_variables.clear();
+    m_contactable_variables.push_back(GetVariables1());
 
     gyro = other.gyro;
 

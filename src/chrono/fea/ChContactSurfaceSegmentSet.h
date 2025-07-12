@@ -64,7 +64,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
     // Interface to ChContactable
 
     /// Return the type of contactable (here, a contactable with 2 variables, each with 3 DOFs).
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_33; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_33; }
 
     /// Access variables for node 1.
     virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
@@ -160,7 +160,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
 
 /// Contact segment for FEA elements that use XYZRot nodes.
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
-class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<3, 3> /*, public ChLoadableU*/ {
+class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<6, 6> /*, public ChLoadableU*/ {
   public:
     ChContactSegmentXYZRot();
     ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
@@ -193,7 +193,7 @@ class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<3, 3> /*, public
     // Interface to ChContactable
 
     /// Return the type of contactable (here, a contactable with 2 variables, each with 6 DOFs).
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_66; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_66; }
 
     /// Access variables for node 1.
     virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }

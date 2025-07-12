@@ -20,10 +20,6 @@
 
 namespace chrono {
 
-/// This is enough to use dynamic_casting<> to detect all template types
-/// from ChConstraintTwoTuplesRollingN
-class ChApi ChConstraintTwoTuplesRollingNall {};
-
 /// Normal reaction between two objects, each represented by a tuple of ChVariables objects.
 /// Used ONLY when also two ChConstraintTwoTuplesFrictionT objects are used to represent friction. If these two tangent
 /// constraint are not used, for frictionless case, use a simple ChConstraintTwo with the ChConstraint::Mode::UNILATERAL
@@ -35,8 +31,7 @@ class ChApi ChConstraintTwoTuplesRollingNall {};
 ///
 /// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes.
 template <class Ta, class Tb>
-class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>,
-                                            public ChConstraintTwoTuplesRollingNall {
+class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb> {
   protected:
     float rollingfriction;   ///< the rolling friction coefficient
     float spinningfriction;  ///< the spinning friction coefficient
