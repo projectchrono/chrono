@@ -209,7 +209,7 @@ void ShowHelp() {
     if (ImGui::CollapsingHeader("Vehicle controls", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BulletText("Drive and steering controls");
         ImGui::Indent();
-        ImGui::TextUnformatted("W/S: acceleartion/decceleration (combined throttle/brake controls)");
+        ImGui::TextUnformatted("W/S: acceleration/deceleration (combined throttle/brake controls)");
         ImGui::TextUnformatted("A/D: steering (left/right)");
         ImGui::TextUnformatted("C: center steering wheel (set steering=0)");
         ImGui::TextUnformatted("R: release pedals (set throttle=brake=clutch=0)");

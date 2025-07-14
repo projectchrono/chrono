@@ -144,7 +144,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&init_yaw, "init_yaw", FmuVariable::Type::Real, "rad", "orientation of first path segment",  //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::constant);                 //
 
-    // Set CONTINOUS INPUTS for this FMU
+    // Set CONTINUOUS INPUTS for this FMU
     AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                         //
                               FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
     AddFmuVariable(&target_speed, "target_speed", FmuVariable::Type::Real, "m/s", "target speed",            //
@@ -154,7 +154,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable((int*)(&save_img), "save_img", FmuVariable::Type::Boolean, "1", "trigger saving images",  //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::discrete);               //
 
-    // Set CONTINOUS OUTPUTS for this FMU
+    // Set CONTINUOUS OUTPUTS for this FMU
     AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",       //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
                    FmuVariable::InitialType::exact);                                              //

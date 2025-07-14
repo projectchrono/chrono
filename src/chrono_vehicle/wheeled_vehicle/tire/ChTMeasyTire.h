@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Template for the "Tire Model made Easy". Our implementation is a basic version
-// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// of the algorithms in http://www.tmeasy.de/, a commercial tire simulation code
 // developed by Prof. Dr. Georg Rill.
 //
 //
@@ -249,7 +249,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
         double q;                // Fz/Fz_nom
         double gamma;            // Inclination Angle
         double muscale;          // Scaling factor for Tire/Road friction
-        double vta;              // absolut transport velocity
+        double vta;              // absolute transport velocity
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis, filtered by running avg,
