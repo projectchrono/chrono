@@ -243,7 +243,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
         float& mu                       ///< [out] coefficient of friction at contact
     );
 
-    /// Collsion algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
+    /// Collision algorithm based on a paper of J. Shane Sui and John A. Hirshey II:
     /// "A New Analytical Tire Model for Vehicle Dynamic Analysis" presented at 2001 MSC User Meeting
     static bool DiscTerrainCollisionEnvelope(
         const ChTerrain& terrain,         ///< [in] reference to terrain system

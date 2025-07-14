@@ -79,7 +79,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&out_path, "out_path", FmuVariable::Type::String, "1", "output directory",    //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
-    // Set CONTINOUS INPUTS for this FMU (wheel state)
+    // Set CONTINUOUS INPUTS for this FMU (wheel state)
     AddFmuVecVariable(wheel_state.pos, "wheel_state.pos", "m", "wheel position",                      //
                       FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);   //
     AddFmuQuatVariable(wheel_state.rot, "wheel_state.rot", "1", "wheel rotation",                     //

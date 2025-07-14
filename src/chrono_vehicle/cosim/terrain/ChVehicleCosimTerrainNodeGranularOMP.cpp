@@ -909,7 +909,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         //// RADU TODO: angular velocity
         proxy->bodies[it]->SetAngVelLocal(ChVector3d(0, 0, 0));
 
-        // Update triangle contact shape (expressed in local frame) by writting directly
+        // Update triangle contact shape (expressed in local frame) by writing directly
         // into the Chrono::Multicore data structures.
         // ATTENTION: It is assumed that no other triangle contact shapes have been added
         // to the system BEFORE those corresponding to the object mesh faces!

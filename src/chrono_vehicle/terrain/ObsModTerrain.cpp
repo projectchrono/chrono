@@ -16,7 +16,7 @@
 //  The obstacle is defined by three parameters
 //  - aa:        approach angle 180 deg = flat, aa < 180 deg = mound, aa > 180 deg = trench
 //  - length:    obstacle length for mound, base length for trench
-//  - obsheight: allways >= 0, obstacle height for mound, obstacle depth for trench
+//  - obsheight: always >= 0, obstacle height for mound, obstacle depth for trench
 //
 // =============================================================================
 
@@ -135,7 +135,7 @@ double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
             }
         }
         if (ix1 == -1) {
-            std::cerr << "x intervall?\n";
+            std::cerr << "x interval?\n";
         }
         int jy1 = -1;
         int jy2 = -1;
@@ -147,7 +147,7 @@ double ObsModTerrain::GetHeight(const ChVector3d& loc) const {
             }
         }
         if (jy1 == -1) {
-            std::cerr << "y intervall?\n";
+            std::cerr << "y interval?\n";
         }
         double x = loc_ISO.x();
         double y = loc_ISO.y();

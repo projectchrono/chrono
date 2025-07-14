@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     void SetElementStructuralDamping(double alpha);
 
     /// Set fiber angle for the three layers.
-    void SetLayerFiberAngles(double angle_1,  ///< fiber angle for bottom (outter) rubber layer (default: 0 rad)
+    void SetLayerFiberAngles(double angle_1,  ///< fiber angle for bottom (outer) rubber layer (default: 0 rad)
                              double angle_2,  ///< fiber angle for middle steel layer (default: 0 rad)
                              double angle_3   ///< fiber angle for top (inner) rubber layer (default: 0 rad)
     );

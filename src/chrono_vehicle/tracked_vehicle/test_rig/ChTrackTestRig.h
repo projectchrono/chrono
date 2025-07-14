@@ -221,7 +221,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::shared_ptr<ChTrackTestRigDriver> m_driver;  ///< driver system
     double m_throttle_input;                         ///< current driver throttle input
     std::vector<double> m_displ_input;               ///< current post displacement inputs
-    std::string m_driver_logfile;                    ///< name of optioinal driver log file
+    std::string m_driver_logfile;                    ///< name of optional driver log file
 
     double m_ride_height;   ///< ride height
     double m_displ_offset;  ///< post displacement offset (to set reference position)

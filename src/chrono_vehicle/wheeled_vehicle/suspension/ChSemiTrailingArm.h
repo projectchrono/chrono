@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     enum PointId {
         SPINDLE,   ///< spindle location (center of mass)
         TA_CM,     ///< trailing arm, center of mass
-        TA_O,      ///< trailing arm, chassis connection outter
+        TA_O,      ///< trailing arm, chassis connection outer
         TA_I,      ///< trailing arm, chassis connection inner
         TA_S,      ///< trailing arm, connection to spindle
         SHOCK_C,   ///< shock, chassis

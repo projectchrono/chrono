@@ -122,13 +122,13 @@ class CH_VEHICLE_API ChVehicle {
     ChQuaternion<> GetRot() const { return m_chassis->GetRot(); }
 
     /// Get vehicle roll angle.
-    /// This version returns the roll angle with respect to the absolte frame; as such, this is a proper representation
+    /// This version returns the roll angle with respect to the absolute frame; as such, this is a proper representation
     /// of vehicle roll only on flat horizontal terrain. In the ISO frame convention, a positive roll angle corresponds
     /// to the vehicle left side lifting (e.g., in a turn to the left).
     double GetRoll() const;
 
     /// Get vehicle pitch angle.
-    /// This version returns the pitch angle with respect to the absolte frame; as such, this is a proper representation
+    /// This version returns the pitch angle with respect to the absolute frame; as such, this is a proper representation
     /// of vehicle pitch only on flat horizontal terrain. In the ISO frame convention, a positive pitch angle
     /// corresponds to the vehicle front dipping (e.g., during braking).
     double GetPitch() const;
@@ -152,7 +152,7 @@ class CH_VEHICLE_API ChVehicle {
     double GetSpeed() const { return m_chassis->GetSpeed(); }
 
     /// Get the vehicle slip angle.
-    /// This represents the angle betwwen the forward vehicle X axis and the vehicle velocity vector (calculated at the
+    /// This represents the angle between the forward vehicle X axis and the vehicle velocity vector (calculated at the
     /// origin of the vehicle frame). The return value is in radians with a positive sign for a left turn and a negative
     /// sign for a right turn.
     double GetSlipAngle() const;
@@ -265,7 +265,7 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Advance the state of this vehicle by the specified time step.
     /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
-    /// Otherwise, the caller is responsible for advancing the sate of the entire system.
+    /// Otherwise, the caller is responsible for advancing the state of the entire system.
     virtual void Advance(double step);
 
     /// Log current constraint violations.
@@ -317,7 +317,7 @@ class CH_VEHICLE_API ChVehicle {
     ChFrame<> m_com;         ///< current vehicle COM (relative to the vehicle reference frame)
     ChMatrix33<> m_inertia;  ///< current total vehicle inertia (Relative to the vehicle COM frame)
 
-    bool m_output;                 ///< generate ouput for this vehicle system
+    bool m_output;                 ///< generate output for this vehicle system
     ChVehicleOutput* m_output_db;  ///< vehicle output database
     double m_output_step;          ///< output time step
     double m_next_output_time;     ///< time for next output

@@ -113,7 +113,7 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     bool save_img;         ///< enable/disable saving of visualization snapshots
     double fps;            ///< snapshot saving frequency (in FPS)
 
-    // Vehicle driver commands (FMU countinuous outputs)
+    // Vehicle driver commands (FMU continuous outputs)
     double steering;  ///< steering command, in [-1,1]
     double throttle;  ///< throttle command, in [0,1]
     double braking;   ///< braking command, in [0,1]

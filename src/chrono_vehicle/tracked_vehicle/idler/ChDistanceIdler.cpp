@@ -16,7 +16,7 @@
 // An idler consists of the idler wheel and a carrier body. The carrier body is
 // connected to the chassis and the idler wheel to the carrier. A linear
 // actuator connects the carrier body and a link body (the chassis or a
-// supsension arm).
+// suspension arm).
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.

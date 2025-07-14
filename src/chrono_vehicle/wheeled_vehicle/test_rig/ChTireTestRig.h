@@ -124,7 +124,7 @@ class CH_VEHICLE_API ChTireTestRig {
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
 
     /// Specify a constant given longitudinal slip. This version overrides the motion functions for the carrier
-    /// longitudinal slip and for the wheel angular speed to enfore the specified longitudinalslip value. A positive
+    /// longitudinal slip and for the wheel angular speed to enforce the specified longitudinalslip value. A positive
     /// slip value indicates that the wheel is spinning. A negative slip value indicates that the wheel is sliding
     /// (skidding); in particular, s=-1 indicates sliding without rotation.
     void SetConstantLongitudinalSlip(double long_slip, double base_speed = 1);
@@ -270,7 +270,7 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChBody> m_slip_body;     ///< intermediate body for controlling slip angle
     std::shared_ptr<ChSpindle> m_spindle;    ///< wheel spindle
 
-    bool m_ls_actuated;                    ///< is linear spped actuated?
+    bool m_ls_actuated;                    ///< is linear speed actuated?
     bool m_rs_actuated;                    ///< is angular speed actuated?
     std::shared_ptr<ChFunction> m_ls_fun;  ///< longitudinal speed function of time
     std::shared_ptr<ChFunction> m_rs_fun;  ///< angular speed function of time

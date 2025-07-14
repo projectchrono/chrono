@@ -16,7 +16,7 @@
 // An idler consists of the idler wheel and a carrier body. The carrier body is
 // connected to the chassis and the idler wheel to the carrier. A linear
 // actuator connects the carrier body and a link body (the chassis or a
-// supsension arm).
+// suspension arm).
 //
 // An idler subsystem is defined with respect to a frame centered at the origin
 // of the idler wheel.
@@ -47,7 +47,7 @@ class ChTrackAssembly;
 
 /// Base class for an idler subsystem with a fixed distance tensioner.
 /// An idler consists of the idler wheel and a carrier body. The carrier body is connected to the chassis and the idler
-/// wheel to the carrier. A linear actuator connects the carrier body and a link body (the chassis or a supsension arm).
+/// wheel to the carrier. A linear actuator connects the carrier body and a link body (the chassis or a suspension arm).
 class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
   public:
     ChDistanceIdler(const std::string& name);
