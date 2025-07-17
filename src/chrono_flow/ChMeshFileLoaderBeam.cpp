@@ -223,14 +223,15 @@ void ChMeshFileLoaderBeam::FromFreeCADFile(std::shared_ptr<ChMesh> mesh,
     }
 }
 
-void ChMeshFileLoaderBeam::FromFreeCADFileMultiMat(std::shared_ptr<ChMesh> mesh,
-                                      const char* filename,
-                                      std::shared_ptr<ChContinuumMaterial> matLong,
-                                      std::shared_ptr<ChContinuumMaterial> matLat,
-                                      std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
-                                      ChVector3d pos_transform,
-                                      ChMatrix33<> rot_transform,
-                                      bool discard_unused_nodes) {
+void ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(
+    std::shared_ptr<ChMesh> mesh,
+    const char* filename,
+    std::shared_ptr<ChContinuumMaterial> matLong,
+    std::shared_ptr<ChContinuumMaterial> matLat,
+    std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
+    ChVector3d pos_transform,
+    ChMatrix33<> rot_transform,
+    bool discard_unused_nodes) {
     std::map<unsigned int, std::pair<std::shared_ptr<ChNodeFEAbase>, bool>> parsed_nodes;
     std::vector<std::shared_ptr<ChNodeFEAbase>>* current_nodeset_vector = nullptr;
 

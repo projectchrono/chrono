@@ -230,8 +230,7 @@ int main(int argc, char** argv) {
 
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
     try {
-        ChMeshFileLoaderBeam::FromFreeCADFileMultiMat(my_mesh, mesh_string.c_str(), matLong, matLat,
-                                            node_sets);
+        ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(my_mesh, mesh_string.c_str(), matLong, matLat, node_sets);
     } 
     catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
