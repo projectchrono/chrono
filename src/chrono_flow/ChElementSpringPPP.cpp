@@ -83,14 +83,10 @@ void ChElementSpringPPP::ComputeStiffnessMatrix() {
 
     // RR: here are the element geometry parameters created by FreeCAD
     //std::cout << elL1 << " " << elL2 << " " << elA << " " << elVol << " " << elType << std::endl;
+    double invL = 1.0 / (elL1 + elL2);
+    double g1 = elL1 * invL;
+    double g2 = elL2 * invL;
 
-    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    // RR: L1 and L2 needs to be read from mesh file
-    double L1 = 0.5 * L; 
-    double L2 = 0.5 * L;
-    double g1 = L1/L;
-    double g2 = L2/L;
-    
     // Retrievce Current Nodal Variables (RR: needs to be checked)
     ChVectorDynamic<> NodeVal(6);
     this->GetStateBlock(NodeVal);
@@ -111,19 +107,14 @@ void ChElementSpringPPP::ComputeStiffnessMatrix() {
     temp = this->GetMaterial()->ComputeUpdatedConstitutiveMatrixK(NodeValP, NodeValDtP);
     UpdatedConstitutiveMatrix = temp;
 
-    // RR: A needs to be read from mesh file
-    double A = elA;
-    StiffnessMatrix = (A/L) * MatrB.transpose() * UpdatedConstitutiveMatrix * MatrB;
+    StiffnessMatrix = (elA * invL) * MatrB.transpose() * UpdatedConstitutiveMatrix * MatrB;
 }
 
 void ChElementSpringPPP::ComputeMassMatrix() {
-    double L = elL1 + elL2;//(nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    // RR: L1 and L2 needs to be read from mesh file
-    double L1 = elL1;
-    double L2 = elL2;
-    double g1 = L1/L;
-    double g2 = L2/L;
-    // RR nodal volume should be read from mesh file
+
+    double invL = 1.0 / (elL1 + elL2);
+    double g1 = elL1 * invL;
+    double g2 = elL2 * invL;
     double vol = elVol; 
 
     // Compute mass matrix for node 2 and assemble
@@ -184,7 +175,7 @@ void ChElementSpringPPP::ComputeMassMatrix() {
     MassMatrix(2+3, 2+3) = g2 * temp(2,2);
 
     // Take element volume into account
-    MassMatrix *= vol;
+    MassMatrix *= elVol;
 
     //temp = MassMatrix;
     //std::cout << temp(0,0) << " " << temp(0,1) << " " << temp(0,2) << " " << temp(0,3) << " " << temp(0,4) << " " << temp(0,5) << std::endl;
@@ -213,15 +204,6 @@ void ChElementSpringPPP::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 void ChElementSpringPPP::ComputeSourceTerm() {
     // Get element state variables
     ElementState = this->GetElementStateVariable();
-
-    double L = elL1 + elL2;  //(nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    // RR: L1 and L2 needs to be read from mesh file
-    double L1 = elL1;
-    double L2 = elL2;
-    double g1 = L1 / L;
-    double g2 = L2 / L;
-    // RR nodal volume should be read from mesh file
-    double vol = elVol;
 
     ChVectorDynamic<> NodeVal(6);
     this->GetStateBlock(NodeVal);
