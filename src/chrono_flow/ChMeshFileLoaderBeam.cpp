@@ -227,7 +227,7 @@ void ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(
     std::shared_ptr<ChMesh> mesh,
     const char* filename,
     std::shared_ptr<ChContinuumMaterial> matLong,
-    std::shared_ptr<ChContinuumMaterial> matLat,
+    std::shared_ptr<ChContinuumMaterial> matTrans,
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
     ChVector3d pos_transform,
     ChMatrix33<> rot_transform,
@@ -381,7 +381,7 @@ void ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(
                 mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[1]),
                                 std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[0]));
                 if (tokenvalsdouble[4] == 2) {
-                    mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(matLat));
+                    mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(matTrans));
                 } else { 
                     mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(matLong));
                 }

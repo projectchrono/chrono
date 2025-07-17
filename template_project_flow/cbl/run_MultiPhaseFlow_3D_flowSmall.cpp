@@ -217,10 +217,10 @@ int main(int argc, char** argv) {
     matLong->SetDensity(2400);
 
     // Create a material for latreral flow elements
-    auto matLat = chrono_types::make_shared<ChFlow3D>();
-    matLat->SetSpecificHeatCapacity(2200);
-    matLat->SetDiffusivityConstants(5, 1e3, 0);  // temp, rh, n/a
-    matLat->SetDensity(2400);
+    auto matTrans = chrono_types::make_shared<ChFlow3D>();
+    matTrans->SetSpecificHeatCapacity(2200);
+    matTrans->SetDiffusivityConstants(5, 1e3, 0);  // temp, rh, n/a
+    matTrans->SetDensity(2400);
 
     // Create mesh
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -230,7 +230,7 @@ int main(int argc, char** argv) {
 
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
     try {
-        ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(my_mesh, mesh_string.c_str(), matLong, matLat, node_sets);
+        ChMeshFileLoaderBeam::FromFreeCADFileCBLMultiMat(my_mesh, mesh_string.c_str(), matLong, matTrans, node_sets);
     } 
     catch (std::exception myerr) {
         std::cerr << myerr.what() << std::endl;
