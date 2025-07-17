@@ -112,19 +112,19 @@ void ChElementSpringPPP::ComputeStiffnessMatrix() {
     UpdatedConstitutiveMatrix = temp;
 
     // RR: A needs to be read from mesh file
-    double A = 1.0;
+    double A = elA;
     StiffnessMatrix = (A/L) * MatrB.transpose() * UpdatedConstitutiveMatrix * MatrB;
 }
 
 void ChElementSpringPPP::ComputeMassMatrix() {
-    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+    double L = elL1 + elL2;//(nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
     // RR: L1 and L2 needs to be read from mesh file
-    double L1 = 0.5 * L; 
-    double L2 = 0.5 * L;
+    double L1 = elL1;
+    double L2 = elL2;
     double g1 = L1/L;
     double g2 = L2/L;
     // RR nodal volume should be read from mesh file
-    double vol = 1.0; 
+    double vol = elVol; 
 
     // Compute mass matrix for node 2 and assemble
     // Retrievce Current Nodal Variables for Node 1 (RR: needs to be checked) 
@@ -214,14 +214,14 @@ void ChElementSpringPPP::ComputeSourceTerm() {
     // Get element state variables
     ElementState = this->GetElementStateVariable();
 
-    double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+    double L = elL1 + elL2;  //(nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
     // RR: L1 and L2 needs to be read from mesh file
-    double L1 = 0.5 * L; 
-    double L2 = 0.5 * L;
-    double g1 = L1/L;
-    double g2 = L2/L;
+    double L1 = elL1;
+    double L2 = elL2;
+    double g1 = L1 / L;
+    double g2 = L2 / L;
     // RR nodal volume should be read from mesh file
-    double vol = 1.0; 
+    double vol = elVol;
 
     ChVectorDynamic<> NodeVal(6);
     this->GetStateBlock(NodeVal);

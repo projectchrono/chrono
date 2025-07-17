@@ -181,7 +181,7 @@ void ChMeshFileLoaderBeam::FromFreeCADFile(std::shared_ptr<ChMesh> mesh,
 
                 for (int in = 0; in < 2; ++in)
                     if (tokenvals[in + 1] == -10e30)
-                        throw std::invalid_argument("ERROR in in .inp file: in parsing IDs of beam: \n" + line + "\n");
+                        throw std::invalid_argument("ERROR in .inp file: in parsing IDs of beam: \n" + line + "\n");
             }
             
             if (std::dynamic_pointer_cast<ChFlow3D>(my_material)) {
@@ -207,6 +207,189 @@ void ChMeshFileLoaderBeam::FromFreeCADFile(std::shared_ptr<ChMesh> mesh,
                     mel->SetElementType(tokenvalsdouble[4]);             
                     mesh->AddElement(mel);
                 } 
+
+            } else
+                throw std::invalid_argument("ERROR in .inp generation. Material type not supported.\n");
+        }
+
+    }  // end while
+
+    // only used nodes have been saved in 'parsed_nodes_used' and are now inserted in the mesh node list
+    if (discard_unused_nodes) {
+        for (auto node_it = parsed_nodes.begin(); node_it != parsed_nodes.end(); ++node_it) {
+            if (node_it->second.second)
+                mesh->AddNode(node_it->second.first);
+        }
+    }
+}
+
+void ChMeshFileLoaderBeam::FromFreeCADFileMultiMat(std::shared_ptr<ChMesh> mesh,
+                                      const char* filename,
+                                      std::shared_ptr<ChContinuumMaterial> matLong,
+                                      std::shared_ptr<ChContinuumMaterial> matLat,
+                                      std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>>& node_sets,
+                                      ChVector3d pos_transform,
+                                      ChMatrix33<> rot_transform,
+                                      bool discard_unused_nodes) {
+    std::map<unsigned int, std::pair<std::shared_ptr<ChNodeFEAbase>, bool>> parsed_nodes;
+    std::vector<std::shared_ptr<ChNodeFEAbase>>* current_nodeset_vector = nullptr;
+
+    enum eChFreeCADParserSection {
+        E_PARSE_UNKNOWN = 0,
+        E_PARSE_NODES_XYZ,
+        E_PARSE_BEAMS,
+        E_PARSE_TETS_4,
+        E_PARSE_TETS_10,
+        E_PARSE_NODESET
+    } e_parse_section = E_PARSE_UNKNOWN;
+
+    std::ifstream fin(filename);
+    if (fin.good())
+        std::cout << "Parsing FreeCAD mesh file: " << filename << std::endl;
+    else
+        throw std::invalid_argument("ERROR opening FreeCAD mesh file: " + std::string(filename) + "\n");
+
+    std::string line;
+    while (std::getline(fin, line)) {
+        // print the line read
+        //std::cout << line << std::endl;
+
+        // trims white space from the beginning of the string
+        line.erase(line.begin(),
+                   std::find_if(line.begin(), line.end(), [](unsigned char c) { return !std::isspace(c); }));
+
+        // convert parsed line to uppercase (since string::find is case sensitive and Abaqus INP is not)
+        std::for_each(line.begin(), line.end(), [](char& c) { c = toupper(static_cast<unsigned char>(c)); });
+
+        // skip empty lines
+        if (line[0] == 0)
+            continue;
+
+        // check if the current line opens a new section
+        if (line[0] == '*') {
+            e_parse_section = E_PARSE_UNKNOWN;
+
+            if (line.find("*NODES") == 0) {
+                std::cout << "Parsing node section!" << std::endl;
+                e_parse_section = E_PARSE_NODES_XYZ;
+            }
+
+            if (line.find("*ELEMENT") == 0) {
+                std::cout << "Parsing element section!" << std::endl;
+                e_parse_section = E_PARSE_BEAMS;
+            }
+
+            continue;
+        }
+
+        // node parsing
+        if (e_parse_section == E_PARSE_NODES_XYZ) {
+            int idnode = 0;
+            double x = -10e30;
+            double y = -10e30;
+            double z = -10e30;
+            double tokenvals[20];
+            int ntoken = 0;
+
+            std::string token;
+            std::istringstream ss(line);
+            while (std::getline(ss, token, ',') && ntoken < 20) {
+                std::istringstream stoken(token);
+                stoken >> tokenvals[ntoken];
+                ++ntoken;
+            }
+
+            if (ntoken != 4)
+                throw std::invalid_argument("ERROR in .inp file: nodes require ID and three x y z coords, see line:\n" +
+                                            line + "\n");
+            x = tokenvals[1];
+            y = tokenvals[2];
+            z = tokenvals[3];
+            if (x == -10e30 || y == -10e30 || z == -10e30)
+                throw std::invalid_argument("ERROR in .inp file: in parsing x,y,z coordinates of node: \n" + line +
+                                            "\n");
+
+            // TODO: is it worth to keep a so specific routine inside this function?
+            // especially considering that is affecting only some types of elements...
+            ChVector3d node_position(x, y, z);
+            node_position = rot_transform * node_position;  // rotate/scale, if needed
+            node_position = pos_transform + node_position;  // move, if needed
+
+            idnode = static_cast<unsigned int>(tokenvals[0]);
+            if (std::dynamic_pointer_cast<ChContinuumElastic>(matLong)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(node_position);
+                mnode->SetIndex(idnode);
+                parsed_nodes[idnode] = std::make_pair(mnode, false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
+            } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(matLong)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzP>(ChVector3d(x, y, z));
+                mnode->SetIndex(idnode);
+                parsed_nodes[idnode] = std::make_pair(mnode, false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
+            } else if (std::dynamic_pointer_cast<ChFlow3D>(matLong)) {
+                auto mnode = chrono_types::make_shared<ChNodeFEAxyzPPP>(ChVector3d(x, y, z));
+                mnode->SetIndex(idnode);
+                parsed_nodes[idnode] = std::make_pair(mnode, false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
+            } else
+                throw std::invalid_argument("ERROR in .inp generation. Material type not supported. \n");
+        }
+
+        // element parsing
+        if (e_parse_section == E_PARSE_BEAMS) {
+            unsigned int tokenvals[3];
+            double tokenvalsdouble[18];
+            int ntoken = 0;
+
+            std::string token;
+            std::istringstream ss(line);
+            while (std::getline(ss, token, ',') && ntoken < 25) {
+                std::istringstream stoken(token);
+                if (ntoken < 3)
+                    stoken >> tokenvals[ntoken];
+                else
+                    stoken >> tokenvalsdouble[ntoken-3];
+                ++ntoken;
+            }
+
+            if (e_parse_section == E_PARSE_BEAMS) {
+                if (ntoken != 21)
+                    throw std::invalid_argument(
+                        "ERROR in .inp file: each flow element require node ID and 20 inputs, see line:\n" + line + "\n");
+
+                for (int in = 0; in < 2; ++in)
+                    if (tokenvals[in + 1] == -10e30)
+                        throw std::invalid_argument("ERROR in .inp file: in parsing IDs of beam: \n" + line + "\n");
+            }
+            
+            if (std::dynamic_pointer_cast<ChFlow3D>(matLong)) {
+                std::array<std::shared_ptr<ChNodeFEAbase>, 2> element_nodes;
+                for (auto node_sel = 0; node_sel < 2; ++node_sel) {
+                    // check if the nodes required by the current element exist
+                    std::pair<std::shared_ptr<ChNodeFEAbase>, bool>& node_found =
+                        parsed_nodes.at(static_cast<unsigned int>(tokenvals[node_sel + 1]));
+
+                    element_nodes[node_sel] = node_found.first;
+                    node_found.second = true;
+                }
+
+                auto mel = chrono_types::make_shared<ChElementSpringPPP>();
+                mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[1]),
+                                std::static_pointer_cast<ChNodeFEAxyzPPP>(element_nodes[0]));
+                if (tokenvalsdouble[4] == 2) {
+                    mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(matLat));
+                } else { 
+                    mel->SetMaterial(std::static_pointer_cast<ChFlow3D>(matLong));
+                }
+                mel->SetElementL1(tokenvalsdouble[0]);
+                mel->SetElementL2(tokenvalsdouble[1]);
+                mel->SetElementA(tokenvalsdouble[2]);
+                mel->SetElementVol(tokenvalsdouble[3]);         
+                mel->SetElementType(tokenvalsdouble[4]);             
+                mesh->AddElement(mel);
 
             } else
                 throw std::invalid_argument("ERROR in .inp generation. Material type not supported.\n");

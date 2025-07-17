@@ -52,13 +52,26 @@ class ChFlowApi ChMeshFileLoaderBeam {
     /// electrostatics, etc)
     /// Load tetrahedrons, if any, saved in a .inp file for Abaqus.
     static void FromFreeCADFile(
-        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename,                              ///< input file name
-        std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
+        std::shared_ptr<ChMesh> mesh,                      /// destination mesh
+        const char* filename,                              /// input file name
+        std::shared_ptr<ChContinuumMaterial> my_material,  /// material for the created tetahedrons
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
-            node_sets,                                 ///< vect of vectors of 'marked'nodes
-        ChVector3d pos_transform = VNULL,              ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
+            node_sets,                                     /// vect of vectors of 'marked'nodes
+        ChVector3d pos_transform = VNULL,                  /// optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),      /// optional rotation/scaling of imported mesh
+        bool discard_unused_nodes =
+            true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
+    );
+
+    static void FromFreeCADFileMultiMat(
+        std::shared_ptr<ChMesh> mesh,                       /// destination mesh
+        const char* filename,                               /// input file name
+        std::shared_ptr<ChContinuumMaterial> matLong,       /// material for longitudinal elements
+        std::shared_ptr<ChContinuumMaterial> matLat,        /// material for lateral elements
+        std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
+            node_sets,                                      /// vect of vectors of 'marked'nodes
+        ChVector3d pos_transform = VNULL,                   /// optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),       /// optional rotation/scaling of imported mesh
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
     );
