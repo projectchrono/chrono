@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include "chrono/ChConfig.h"
+#include "chrono/ChVersion.h"
 
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapePointPoint.h"
@@ -94,6 +95,25 @@ std::string ToUpper(std::string in) {
     return in;
 }
 
+void CheckVersion(const YAML::Node& a) {
+    std::string chrono_version = a.as<std::string>();
+
+    auto first = chrono_version.find(".");
+    ChAssertAlways(first != std::string::npos);
+    std::string chrono_major = chrono_version.substr(0, first);
+
+    ChAssertAlways(first < chrono_version.size() - 1);
+    chrono_version = &chrono_version[first + 1];
+
+    auto second = chrono_version.find(".");
+    if (second == std::string::npos)
+        second = chrono_version.size();
+    std::string chrono_minor = chrono_version.substr(0, second);
+
+    ChAssertAlways(chrono_major == CHRONO_VERSION_MAJOR);
+    ChAssertAlways(chrono_minor == CHRONO_VERSION_MINOR);
+}
+
 void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     auto path = filesystem::path(yaml_filename);
     if (!path.exists() || !path.is_file()) {
@@ -103,52 +123,117 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
+    // Check version compatibility
+    ChAssertAlways(yaml["chrono-version"]);
+    CheckVersion(yaml["chrono-version"]);
+
+    // Check a simulation object exists
+    ChAssertAlways(yaml["simulation"]);
+    auto sim = yaml["simulation"];
+
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\nLoading Chrono simulation specification from: " << yaml_filename << "\n" << endl;
     }
 
-    SimParams sim;
-
     // Mandatory
-    ChAssertAlways(yaml["time_step"]);
-    ChAssertAlways(yaml["contact_method"]);
-    m_sim.time_step = yaml["time_step"].as<double>();
-    auto contact_method = ToUpper(yaml["contact_method"].as<std::string>());
+    ChAssertAlways(sim["time_step"]);
+    ChAssertAlways(sim["contact_method"]);
+    m_sim.time_step = sim["time_step"].as<double>();
+    auto contact_method = ToUpper(sim["contact_method"].as<std::string>());
     if (contact_method == "SMC") {
         m_sim.contact_method = ChContactMethod::SMC;
     } else if (contact_method == "NSC") {
         m_sim.contact_method = ChContactMethod::NSC;
     } else {
-        cerr << "Incorrect contact method: " << yaml["contact_method"].as<std::string>() << endl;
+        cerr << "Incorrect contact method: " << sim["contact_method"].as<std::string>() << endl;
         throw std::runtime_error("Incorrect contact method");
     }
 
     // Optional
-    if (yaml["end_time"])
-        m_sim.end_time = yaml["end_time"].as<double>();
-    if (yaml["enforce_realtime"])
-        m_sim.enforce_realtime = yaml["enforce_realtime"].as<bool>();
-    if (yaml["gravity"])
-        m_sim.gravity = ReadVector(yaml["gravity"]);
-    if (yaml["integrator_type"])
-        m_sim.integrator_type = ReadIntegratorType(yaml["integrator_type"]);
-    if (yaml["solver_type"])
-        m_sim.solver_type = ReadSolverType(yaml["solver_type"]);
-    if (yaml["render"])
-        m_sim.render = yaml["render"].as<bool>();
-    if (yaml["render_fps"])
-        m_sim.render_fps = yaml["render_fps"].as<double>();
-    if (yaml["camera_vertical"]) {
-        auto camera_vertical = ToUpper(yaml["camera_vertical"].as<std::string>());
-        if (camera_vertical == "Y")
-            m_sim.camera_vertical = CameraVerticalDir::Y;
-        else if (camera_vertical == "Z")
-            m_sim.camera_vertical = CameraVerticalDir::Z;
-        else {
-            cerr << "Incorrect camera vertical " << yaml["camera_vertical"].as<std::string>() << endl;
-            throw std::runtime_error("Incorrect camera vertical");
+    if (sim["end_time"])
+        m_sim.end_time = sim["end_time"].as<double>();
+    if (sim["enforce_realtime"])
+        m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
+    if (sim["gravity"])
+        m_sim.gravity = ReadVector(sim["gravity"]);
+
+    // Integrator parameters (optional)
+    if (sim["integrator"]) {
+        auto intgr = sim["integrator"];
+        m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
+        switch (m_sim.integrator.type) {
+            case ChTimestepper::Type::HHT:
+                m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
+                m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
+                m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
+                m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
+                m_sim.integrator.use_stepsize_control = intgr["use_stepsize_control"].as<bool>();
+                m_sim.integrator.use_modified_newton = intgr["use_modified_newton"].as<bool>();
+                break;
+            case ChTimestepper::Type::EULER_IMPLICIT:
+                m_sim.integrator.rtol = intgr["rel tolerance"].as<double>();
+                m_sim.integrator.atol_states = intgr["abs tolerance states"].as<double>();
+                m_sim.integrator.atol_multipliers = intgr["abs tolerance multipliers"].as<double>();
+                m_sim.integrator.max_iterations = intgr["max iterations"].as<double>();
+                break;
         }
+    }
+
+    // Solver parameters (optional)
+    if (sim["solver"]) {
+        auto slvr = sim["solver"];
+        m_sim.solver.type = ReadSolverType(slvr["type"]);
+        switch (m_sim.solver.type) {
+            case ChSolver::Type::SPARSE_LU:
+            case ChSolver::Type::SPARSE_QR:
+                m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
+                m_sim.solver.use_sparsity_pattern_learner = slvr["use_sparsity_pattern_learner"].as<bool>();
+                break;
+            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
+            case ChSolver::Type::PSOR:
+                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
+                m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
+                break;
+            case ChSolver::Type::BICGSTAB:
+            case ChSolver::Type::MINRES:
+            case ChSolver::Type::GMRES:
+                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                m_sim.solver.tolerance = slvr["tolerance"].as<double>();
+                m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
+                break;
+        }
+    }
+
+    // Run-time visualization (optional)
+    if (sim["visualization"]) {
+        m_sim.visualization.render = true;
+        auto vis = sim["visualization"];
+        if (vis["render_fps"])
+            m_sim.visualization.render_fps = vis["render_fps"].as<double>();
+        if (vis["enable_shadows"])
+            m_sim.visualization.enable_shadows = vis["enable_shadows"].as<bool>();
+        if (vis["camera"]) {
+            if (vis["camera"]["vertical"]) {
+                auto camera_vertical = ToUpper(vis["camera"]["vertical"].as<std::string>());
+                if (camera_vertical == "Y")
+                    m_sim.visualization.camera_vertical = CameraVerticalDir::Y;
+                else if (camera_vertical == "Z")
+                    m_sim.visualization.camera_vertical = CameraVerticalDir::Z;
+                else {
+                    cerr << "Incorrect camera vertical " << vis["camera"]["vertical"].as<std::string>() << endl;
+                    throw std::runtime_error("Incorrect camera vertical");
+                }
+            }
+            if (vis["camera"]["location"])
+                m_sim.visualization.camera_location = ReadVector(vis["camera"]["location"]);
+            if (vis["camera"]["target"])
+                m_sim.visualization.camera_target = ReadVector(vis["camera"]["target"]);
+        }
+    } else {
+        m_sim.visualization.render = false;
     }
 
     if (m_verbose)
@@ -166,69 +251,78 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
 
     YAML::Node yaml = YAML::LoadFile(yaml_filename);
 
-    if (yaml["name"])
-        m_name = yaml["name"].as<std::string>();
+    // Check version compatibility
+    ChAssertAlways(yaml["chrono-version"]);
+    CheckVersion(yaml["chrono-version"]);
 
-    if (yaml["angle_degrees"])
-        m_use_degrees = yaml["angle_degrees"].as<bool>();
+    // Check a model object exists
+    ChAssertAlways(yaml["model"]);
+    auto model = yaml["model"];
+
+    if (model["name"])
+        m_name = model["name"].as<std::string>();
+
+    if (model["angle_degrees"])
+        m_use_degrees = model["angle_degrees"].as<bool>();
 
     if (m_verbose) {
         cout << "\n-------------------------------------------------" << endl;
         cout << "\nLoading Chrono model specification from: " << yaml_filename << "\n" << endl;
+        cout << "model name:        " << m_name << endl;
         cout << "angles in degrees? " << (m_use_degrees ? "true" : "false") << endl;
     }
 
     // Read bodies
-    if (yaml["bodies"]) {
-        auto bodies = yaml["bodies"];
-        ChAssertAlways(bodies.IsSequence());
-        if (m_verbose) {
-            cout << "\nbodies: " << bodies.size() << endl;
+    ChAssertAlways(model["bodies"]);
+    auto bodies = model["bodies"];
+    ChAssertAlways(bodies.IsSequence());
+    if (m_verbose) {
+        cout << "\nbodies: " << bodies.size() << endl;
+    }
+
+    for (size_t i = 0; i < bodies.size(); i++) {
+        ChAssertAlways(bodies[i]["name"]);
+        auto name = bodies[i]["name"].as<std::string>();
+
+        Body body;
+
+        if (bodies[i]["fixed"])
+            body.is_fixed = bodies[i]["fixed"].as<bool>();
+
+        ChAssertAlways(bodies[i]["location"]);
+        ChAssertAlways(body.is_fixed || bodies[i]["mass"]);
+        ChAssertAlways(body.is_fixed || bodies[i]["inertia"]);
+        ChAssertAlways(body.is_fixed || bodies[i]["inertia"]["moments"]);
+
+        body.pos = ReadVector(bodies[i]["location"]);
+        if (bodies[i]["orientation"])
+            body.rot = ReadRotation(bodies[i]["orientation"]);
+        if (!body.is_fixed)
+            body.mass = bodies[i]["mass"].as<double>();
+        if (bodies[i]["com"]) {
+            ChVector3d com_pos = VNULL;
+            ChQuaterniond com_rot = QUNIT;
+            if (bodies[i]["com"]["location"])
+                com_pos = ReadVector(bodies[i]["com"]["location"]);
+            if (bodies[i]["com"]["orientation"])
+                com_rot = ReadRotation(bodies[i]["com"]["orientation"]);
+            body.com = ChFramed(com_pos, com_rot);
         }
-        for (size_t i = 0; i < bodies.size(); i++) {
-            ChAssertAlways(bodies[i]["name"]);
-            auto name = bodies[i]["name"].as<std::string>();
+        if (!body.is_fixed)
+            body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
+        if (bodies[i]["inertia"]["products"])
+            body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
+        body.geometry = ReadGeometry(bodies[i]);
 
-            Body body;
+        if (m_verbose)
+            body.PrintInfo(name);
 
-            if (bodies[i]["fixed"])
-                body.is_fixed = bodies[i]["fixed"].as<bool>();
-
-            ChAssertAlways(bodies[i]["location"]);
-            ChAssertAlways(body.is_fixed || bodies[i]["mass"]);
-            ChAssertAlways(body.is_fixed || bodies[i]["inertia"]);
-            ChAssertAlways(body.is_fixed || bodies[i]["inertia"]["moments"]);
-
-            body.pos = ReadVector(bodies[i]["location"]);
-            if (bodies[i]["orientation"])
-                body.rot = ReadRotation(bodies[i]["orientation"]);
-            if (!body.is_fixed)
-                body.mass = bodies[i]["mass"].as<double>();
-            if (bodies[i]["com"]) {
-                ChVector3d com_pos = VNULL;
-                ChQuaterniond com_rot = QUNIT;
-                if (bodies[i]["com"]["location"])
-                    com_pos = ReadVector(bodies[i]["com"]["location"]);
-                if (bodies[i]["com"]["orientation"])
-                    com_rot = ReadRotation(bodies[i]["com"]["orientation"]);
-                body.com = ChFramed(com_pos, com_rot);
-            }
-            if (!body.is_fixed)
-                body.inertia_moments = ReadVector(bodies[i]["inertia"]["moments"]);
-            if (bodies[i]["inertia"]["products"])
-                body.inertia_products = ReadVector(bodies[i]["inertia"]["products"]);
-            body.geometry = ReadGeometry(bodies[i]);
-
-            if (m_verbose)
-                body.PrintInfo(name);
-
-            m_bodies.insert({name, body});
-        }
+        m_bodies.insert({name, body});
     }
 
     // Read joints
-    if (yaml["joints"]) {
-        auto joints = yaml["joints"];
+    if (model["joints"]) {
+        auto joints = model["joints"];
         ChAssertAlways(joints.IsSequence());
         if (m_verbose) {
             cout << "\njoints: " << joints.size() << endl;
@@ -261,8 +355,8 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
     }
 
     // Read constraints
-    if (yaml["constraints"]) {
-        auto constraints = yaml["constraints"];
+    if (model["constraints"]) {
+        auto constraints = model["constraints"];
         ChAssertAlways(constraints.IsSequence());
         if (m_verbose) {
             cout << "\nconstraints: " << constraints.size() << endl;
@@ -270,13 +364,13 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         for (size_t i = 0; i < constraints.size(); i++) {
             ChAssertAlways(constraints[i]["name"]);
             ChAssertAlways(constraints[i]["type"]);
+            ChAssertAlways(constraints[i]["body1"]);
+            ChAssertAlways(constraints[i]["body2"]);
             auto name = constraints[i]["name"].as<std::string>();
             auto type = ToUpper(constraints[i]["type"].as<std::string>());
 
             if (type == "DISTANCE") {
                 DistanceConstraint dist;
-                ChAssertAlways(constraints[i]["body1"]);
-                ChAssertAlways(constraints[i]["body2"]);
                 ChAssertAlways(constraints[i]["point1"]);
                 ChAssertAlways(constraints[i]["point2"]);
                 dist.body1 = constraints[i]["body1"].as<std::string>();
@@ -297,63 +391,75 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
-    // Read spring damper force elements elements
-    if (yaml["spring_dampers"]) {
-        auto spring_dampers = yaml["spring_dampers"];
-        ChAssertAlways(spring_dampers.IsSequence());
+    // Read TSDA force elements elements
+    if (model["tsdas"]) {
+        auto tsdas = model["tsdas"];
+        ChAssertAlways(tsdas.IsSequence());
         if (m_verbose) {
-            cout << "\nspring dampers: " << spring_dampers.size() << endl;
+            cout << "\nTSDA (translational spring dampers): " << tsdas.size() << endl;
         }
-        for (size_t i = 0; i < spring_dampers.size(); i++) {
-            ChAssertAlways(spring_dampers[i]["name"]);
-            ChAssertAlways(spring_dampers[i]["type"]);
-            auto name = spring_dampers[i]["name"].as<std::string>();
-            auto type = ToUpper(spring_dampers[i]["type"].as<std::string>());
 
-            if (type == "TSDA") {
-                TSDA tsda;
-                ChAssertAlways(spring_dampers[i]["body1"]);
-                ChAssertAlways(spring_dampers[i]["body2"]);
-                ChAssertAlways(spring_dampers[i]["point1"]);
-                ChAssertAlways(spring_dampers[i]["point2"]);
-                tsda.body1 = spring_dampers[i]["body1"].as<std::string>();
-                tsda.body2 = spring_dampers[i]["body2"].as<std::string>();
-                tsda.point1 = ReadVector(spring_dampers[i]["point1"]);
-                tsda.point2 = ReadVector(spring_dampers[i]["point2"]);
-                tsda.force = ReadTSDAFunctor(spring_dampers[i], tsda.free_length);
-                tsda.geometry = ReadTSDAGeometry(spring_dampers[i]);
+        for (size_t i = 0; i < tsdas.size(); i++) {
+            ChAssertAlways(tsdas[i]["name"]);
+            ChAssertAlways(tsdas[i]["body1"]);
+            ChAssertAlways(tsdas[i]["body2"]);
+            ChAssertAlways(tsdas[i]["point1"]);
+            ChAssertAlways(tsdas[i]["point2"]);
 
-                if (m_verbose)
-                    tsda.PrintInfo(name);
+            auto name = tsdas[i]["name"].as<std::string>();
 
-                m_tsdas.insert({name, tsda});
+            TSDA tsda;
+            tsda.body1 = tsdas[i]["body1"].as<std::string>();
+            tsda.body2 = tsdas[i]["body2"].as<std::string>();
+            tsda.point1 = ReadVector(tsdas[i]["point1"]);
+            tsda.point2 = ReadVector(tsdas[i]["point2"]);
+            tsda.force = ReadTSDAFunctor(tsdas[i], tsda.free_length);
+            tsda.geometry = ReadTSDAGeometry(tsdas[i]);
 
-            } else if (type == "RSDA") {
-                RSDA rsda;
-                ChAssertAlways(spring_dampers[i]["body1"]);
-                ChAssertAlways(spring_dampers[i]["body2"]);
-                ChAssertAlways(spring_dampers[i]["axis"]);
-                rsda.body1 = spring_dampers[i]["body1"].as<std::string>();
-                rsda.body2 = spring_dampers[i]["body2"].as<std::string>();
-                rsda.axis = ReadVector(spring_dampers[i]["axis"]);
-                rsda.axis.Normalize();
-                if (spring_dampers[i]["location"])
-                    rsda.pos = ReadVector(spring_dampers[i]["location"]);
-                rsda.torque = ReadRSDAFunctor(spring_dampers[i], rsda.free_angle);
-                if (m_use_degrees)
-                    rsda.free_angle *= CH_DEG_TO_RAD;
+            if (m_verbose)
+                tsda.PrintInfo(name);
 
-                if (m_verbose)
-                    rsda.PrintInfo(name);
+            m_tsdas.insert({name, tsda});
+        }
+    }
 
-                m_rsdas.insert({name, rsda});
-            }
+    // Read RSDA force elements elements
+    if (model["rsdas"]) {
+        auto rsdas = model["rsdas"];
+        ChAssertAlways(rsdas.IsSequence());
+        if (m_verbose) {
+            cout << "\nRSDA (rotational spring dampers): " << rsdas.size() << endl;
+        }
+
+        for (size_t i = 0; i < rsdas.size(); i++) {
+            ChAssertAlways(rsdas[i]["name"]);
+            ChAssertAlways(rsdas[i]["body1"]);
+            ChAssertAlways(rsdas[i]["body2"]);
+            ChAssertAlways(rsdas[i]["axis"]);
+
+            auto name = rsdas[i]["name"].as<std::string>();
+
+            RSDA rsda;
+            rsda.body1 = rsdas[i]["body1"].as<std::string>();
+            rsda.body2 = rsdas[i]["body2"].as<std::string>();
+            rsda.axis = ReadVector(rsdas[i]["axis"]);
+            rsda.axis.Normalize();
+            if (rsdas[i]["location"])
+                rsda.pos = ReadVector(rsdas[i]["location"]);
+            rsda.torque = ReadRSDAFunctor(rsdas[i], rsda.free_angle);
+            if (m_use_degrees)
+                rsda.free_angle *= CH_DEG_TO_RAD;
+
+            if (m_verbose)
+                rsda.PrintInfo(name);
+
+            m_rsdas.insert({name, rsda});
         }
     }
 
     // Read motors
-    if (yaml["motors"]) {
-        auto motors = yaml["motors"];
+    if (model["motors"]) {
+        auto motors = model["motors"];
         ChAssertAlways(motors.IsSequence());
         if (m_verbose) {
             cout << "\nmotors: " << motors.size() << endl;
@@ -417,20 +523,20 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
 
 // -----------------------------------------------------------------------------
 
-void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
-    if (type == chrono::ChSolver::Type::PARDISO_MKL) {
+void ChParserYAML::SetSolver(ChSystem& sys, const SolverParams& params, int num_threads_pardiso) {
+    if (params.type == ChSolver::Type::PARDISO_MKL) {
 #ifdef CHRONO_PARDISO_MKL
-        auto solver = chrono_types::make_shared<chrono::ChSolverPardisoMKL>(num_threads_pardiso);
-        solver->LockSparsityPattern(true);
+        auto solver = chrono_types::make_shared<ChSolverPardisoMKL>(num_threads_pardiso);
+        solver->LockSparsityPattern(params.lock_sparsity_pattern);
         sys.SetSolver(solver);
 #else
         cerr << "Chrono::PardisoMKL module not enabled. PARDISO_MKL solver not available." << endl;
         throw std::runtime_error("Chrono::PardisoMKL module not enabled");
 #endif
-    } else if (type == chrono::ChSolver::Type::MUMPS) {
+    } else if (params.type == ChSolver::Type::MUMPS) {
 #ifdef CHRONO_MUMPS
-        auto solver = chrono_types::make_shared<chrono::ChSolverMumps>();
-        solver->LockSparsityPattern(true);
+        auto solver = chrono_types::make_shared<ChSolverMumps>();
+        solver->LockSparsityPattern(params.lock_sparsity_pattern);
         solver->EnableNullPivotDetection(true);
         solver->GetMumpsEngine().SetICNTL(14, 50);
         sys.SetSolver(solver);
@@ -439,31 +545,31 @@ void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
         throw std::runtime_error("Chrono::MUMPS module not enabled");
 #endif
     } else {
-        sys.SetSolverType(type);
-        switch (type) {
-            case chrono::ChSolver::Type::SPARSE_LU:
-            case chrono::ChSolver::Type::SPARSE_QR: {
-                auto solver = std::static_pointer_cast<chrono::ChDirectSolverLS>(sys.GetSolver());
-                solver->LockSparsityPattern(false);
-                solver->UseSparsityPatternLearner(false);
+        sys.SetSolverType(params.type);
+        switch (params.type) {
+            case ChSolver::Type::SPARSE_LU:
+            case ChSolver::Type::SPARSE_QR: {
+                auto solver = std::static_pointer_cast<ChDirectSolverLS>(sys.GetSolver());
+                solver->LockSparsityPattern(params.lock_sparsity_pattern);
+                solver->UseSparsityPatternLearner(params.use_sparsity_pattern_learner);
                 break;
             }
-            case chrono::ChSolver::Type::BARZILAIBORWEIN:
-            case chrono::ChSolver::Type::APGD:
-            case chrono::ChSolver::Type::PSOR: {
-                auto solver = std::static_pointer_cast<chrono::ChIterativeSolverVI>(sys.GetSolver());
-                solver->SetMaxIterations(100);
-                solver->SetOmega(0.8);
-                solver->SetSharpnessLambda(1.0);
+            case ChSolver::Type::BARZILAIBORWEIN:
+            case ChSolver::Type::APGD:
+            case ChSolver::Type::PSOR: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverVI>(sys.GetSolver());
+                solver->SetMaxIterations(params.max_iterations);
+                solver->SetOmega(params.overrelaxation_factor);
+                solver->SetSharpnessLambda(params.sharpness_factor);
                 break;
             }
-            case chrono::ChSolver::Type::BICGSTAB:
-            case chrono::ChSolver::Type::MINRES:
-            case chrono::ChSolver::Type::GMRES: {
-                auto solver = std::static_pointer_cast<chrono::ChIterativeSolverLS>(sys.GetSolver());
-                solver->SetMaxIterations(200);
-                solver->SetTolerance(1e-10);
-                solver->EnableDiagonalPreconditioner(true);
+            case ChSolver::Type::BICGSTAB:
+            case ChSolver::Type::MINRES:
+            case ChSolver::Type::GMRES: {
+                auto solver = std::static_pointer_cast<ChIterativeSolverLS>(sys.GetSolver());
+                solver->SetMaxIterations(params.max_iterations);
+                solver->SetTolerance(params.tolerance);
+                solver->EnableDiagonalPreconditioner(params.enable_diagonal_preconditioner);
                 break;
             }
             default:
@@ -472,26 +578,29 @@ void SetSolver(ChSystem& sys, ChSolver::Type type, int num_threads_pardiso) {
     }
 }
 
-void SetIntegrator(ChSystem& sys, ChTimestepper::Type type) {
-    sys.SetTimestepperType(type);
-    switch (type) {
-        case chrono::ChTimestepper::Type::HHT: {
-            auto integrator = std::static_pointer_cast<chrono::ChTimestepperHHT>(sys.GetTimestepper());
+void ChParserYAML::SetIntegrator(ChSystem& sys, const IntegratorParams& params) {
+    sys.SetTimestepperType(params.type);
+
+    switch (params.type) {
+        case ChTimestepper::Type::HHT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
             integrator->SetAlpha(-0.2);
-            integrator->SetMaxIters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
-            integrator->SetStepControl(false);
-            integrator->SetModifiedNewton(false);
+            integrator->SetMaxIters(params.max_iterations);
+            integrator->SetRelTolerance(params.rtol);
+            integrator->SetAbsTolerances(params.atol_states, params.atol_multipliers);
+            integrator->SetStepControl(params.use_stepsize_control);
+            integrator->SetModifiedNewton(params.use_modified_newton);
             break;
         }
-        case chrono::ChTimestepper::Type::EULER_IMPLICIT: {
-            auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-            integrator->SetMaxIters(50);
-            integrator->SetAbsTolerances(1e-4, 1e2);
+        case ChTimestepper::Type::EULER_IMPLICIT: {
+            auto integrator = std::static_pointer_cast<ChTimestepperEulerImplicit>(sys.GetTimestepper());
+            integrator->SetMaxIters(params.max_iterations);
+            integrator->SetRelTolerance(params.rtol);
+            integrator->SetAbsTolerances(params.atol_states, params.atol_multipliers);
             break;
         }
-        case chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
-        case chrono::ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
+        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
         default:
             break;
     }
@@ -506,14 +615,9 @@ std::shared_ptr<ChSystem> ChParserYAML::CreateSystem() {
 
     auto sys = ChSystem::Create(m_sim.contact_method);
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-
-    sys->SetGravitationalAcceleration(m_sim.gravity);
-    sys->SetNumThreads(m_sim.num_threads_chrono, m_sim.num_threads_collision, m_sim.num_threads_eigen);
-
-    SetIntegrator(*sys, m_sim.integrator_type);
-    SetSolver(*sys, m_sim.solver_type, m_sim.num_threads_pardiso);
-
     ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(0.2);
+
+    SetSimulationParameters(*sys);
 
     return sys;
 }
@@ -532,8 +636,8 @@ void ChParserYAML::SetSimulationParameters(ChSystem& sys) {
     sys.SetGravitationalAcceleration(m_sim.gravity);
     sys.SetNumThreads(m_sim.num_threads_chrono, m_sim.num_threads_collision, m_sim.num_threads_eigen);
 
-    SetIntegrator(sys, m_sim.integrator_type);
-    SetSolver(sys, m_sim.solver_type, m_sim.num_threads_pardiso);
+    SetSolver(sys, m_sim.solver, m_sim.num_threads_pardiso);
+    SetIntegrator(sys, m_sim.integrator);
 }
 
 // -----------------------------------------------------------------------------
@@ -742,21 +846,95 @@ void ChParserYAML::Depopulate(ChSystem& sys, int instance_index) {
 
 // -----------------------------------------------------------------------------
 
+ChParserYAML::SolverParams::SolverParams()
+    : type(ChSolver::Type::BARZILAIBORWEIN),
+      lock_sparsity_pattern(false),
+      use_sparsity_pattern_learner(true),
+      tolerance(0.0),
+      max_iterations(100),
+      enable_diagonal_preconditioner(false),
+      overrelaxation_factor(1.0),
+      sharpness_factor(1.0) {}
+
+ChParserYAML::IntegratorParams::IntegratorParams()
+    : type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
+      rtol(1e-4),
+      atol_states(1e-4),
+      atol_multipliers(1e2),
+      max_iterations(50),
+      use_stepsize_control(false),
+      use_modified_newton(false) {}
+
+ChParserYAML::VisParams::VisParams()
+    : render(false),
+      render_fps(120),
+      camera_vertical(CameraVerticalDir::Z),
+      camera_location({0, -1, 0}),
+      camera_target({0, 0, 0}),
+      enable_shadows(true) {}
+
 ChParserYAML::SimParams::SimParams()
     : gravity({0, 0, -9.8}),
       contact_method(ChContactMethod::NSC),
-      integrator_type(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED),
-      solver_type(ChSolver::Type::BARZILAIBORWEIN),
       num_threads_chrono(1),
       num_threads_collision(1),
       num_threads_eigen(1),
       num_threads_pardiso(1),
       time_step(1e-3),
       end_time(-1),
-      enforce_realtime(false),
-      render(false),
-      render_fps(120),
-      camera_vertical(CameraVerticalDir::Z) {}
+      enforce_realtime(false) {}
+
+void ChParserYAML::SolverParams::PrintInfo() {
+    cout << "solver" << endl;
+    cout << "  type:                         " << ChSolver::GetTypeAsString(type) << endl;
+    switch (type) {
+        case ChSolver::Type::SPARSE_LU:
+        case ChSolver::Type::SPARSE_QR:
+            cout << "  lock sparsity pattern?        " << std::boolalpha << lock_sparsity_pattern << endl;
+            cout << "  use sparsity pattern learner? " << std::boolalpha << use_sparsity_pattern_learner << endl;
+            break;
+        case ChSolver::Type::BARZILAIBORWEIN:
+        case ChSolver::Type::APGD:
+        case ChSolver::Type::PSOR:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  overrelaxation factor:        " << overrelaxation_factor << endl;
+            cout << "  sharpness factor:             " << sharpness_factor << endl;
+            break;
+        case ChSolver::Type::BICGSTAB:
+        case ChSolver::Type::MINRES:
+        case ChSolver::Type::GMRES:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  tolerance:                    " << tolerance << endl;
+            cout << "  use diagonal preconditioner?  " << std::boolalpha << enable_diagonal_preconditioner << endl;
+            break;
+        case ChSolver::Type::PARDISO_MKL:
+        case ChSolver::Type::MUMPS:
+            cout << "  lock sparsity pattern?        " << std::boolalpha << lock_sparsity_pattern << endl;
+            break;
+    }
+}
+
+void ChParserYAML::IntegratorParams::PrintInfo() {
+    cout << "integrator" << endl;
+    cout << "  type:                         " << ChTimestepper::GetTypeAsString(type) << endl;
+    switch (type) {
+        case ChTimestepper::Type::HHT:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  rel tolerance:                " << rtol << endl;
+            cout << "  abs tolerance (states):       " << atol_states << endl;
+            cout << "  abs tolerance (multipliers):  " << atol_multipliers << endl;
+            cout << "  use step-size control?        " << std::boolalpha << use_stepsize_control << endl;
+            cout << "  use modified Newton?          " << std::boolalpha << use_modified_newton << endl;
+            break;
+
+        case ChTimestepper::Type::EULER_IMPLICIT:
+            cout << "  max iterations:               " << max_iterations << endl;
+            cout << "  rel tolerance:                " << rtol << endl;
+            cout << "  abs tolerance (states):       " << atol_states << endl;
+            cout << "  abs tolerance (multipliers):  " << atol_multipliers << endl;
+            break;
+    }
+}
 
 void ChParserYAML::SimParams::PrintInfo() {
     cout << "contact method:         " << (contact_method == ChContactMethod::NSC ? "NSC" : "SMC") << endl;
@@ -770,12 +948,25 @@ void ChParserYAML::SimParams::PrintInfo() {
     cout << "num threads Eigen:      " << num_threads_eigen << endl;
     cout << "num threads Pardiso:    " << num_threads_pardiso << endl;
     cout << endl;
-    cout << "integrator type:        " << ChTimestepper::GetTypeAsString(integrator_type) << endl;
-    cout << "solver type:            " << ChSolver::GetTypeAsString(solver_type) << endl;
+    solver.PrintInfo();
     cout << endl;
-    cout << "run-time visualization? " << std::boolalpha << render << endl;
-    cout << "render FPS:             " << render_fps << endl;
-    cout << "camera vertical dir:    " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+    integrator.PrintInfo();
+    cout << endl;
+    visualization.PrintInfo();
+}
+
+void ChParserYAML::VisParams::PrintInfo() {
+    if (!render) {
+        cout << "no run-time visualization" << endl;
+        return;
+    }
+
+    cout << "run-time visualization" << endl;
+    cout << "  render FPS:           " << render_fps << endl;
+    cout << "  enable shadows?       " << std::boolalpha << enable_shadows << endl;
+    cout << "  camera vertical dir:  " << (camera_vertical == CameraVerticalDir::Y ? "Y" : "Z") << endl;
+    cout << "  camera location:      " << camera_location << endl;
+    cout << "  camera target:        " << camera_target << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -1666,32 +1857,80 @@ ChLinkMotorRotation::SpindleConstraint ChParserYAML::ReadMotorSpindleType(const 
 }
 
 std::shared_ptr<ChFunction> ChParserYAML::ReadFunction(const YAML::Node& a) {
-    std::shared_ptr<ChFunction> function = nullptr;
-
     ChAssertAlways(a["type"]);
     auto type = ToUpper(a["type"].as<std::string>());
+
+    bool repeat = false;
+    double repeat_start = 0;
+    double repeat_width = 0;
+    double repeat_shift = 0;
+    if (a["repeat"]) {
+        repeat = true;
+        repeat_start = a["repeat"]["start"].as<double>();
+        repeat_width = a["repeat"]["width"].as<double>();
+        repeat_shift = a["repeat"]["shift"].as<double>();
+    }
+
+    std::shared_ptr<ChFunction> f_base = nullptr;
     if (type == "CONSTANT") {
         ChAssertAlways(a["value"]);
         auto value = a["value"].as<double>();
-        function = chrono_types::make_shared<ChFunctionConst>(value);
+        f_base = chrono_types::make_shared<ChFunctionConst>(value);
+    } else if (type == "POLYNOMIAL") {
+        ChAssertAlways(a["coefficients"]);
+        ChAssertAlways(a["coefficients"].IsSequence());
+        auto num_coeffs = a["coefficients"].size();
+        std::vector<double> coeffs;
+        for (size_t i = 0; i < num_coeffs; i++)
+            coeffs.push_back(a["coefficients"][i].as<double>());
+        auto f_poly = chrono_types::make_shared<ChFunctionPoly>();
+        f_poly->SetCoefficients(coeffs);
+        f_base = f_poly;
     } else if (type == "SINE") {
         ChAssertAlways(a["amplitude"]);
         ChAssertAlways(a["frequency"]);
-        ChAssertAlways(a["phase"]);
-        auto amplitude = a["amplitude"].as<double>();
-        auto frequency = a["frequency"].as<double>();
-        auto phase = a["phase"].as<double>();
+        double amplitude = a["amplitude"].as<double>();
+        double frequency = a["frequency"].as<double>();
+        double phase = 0;
+        if (a["phase"])
+            phase = a["phase"].as<double>();
         if (m_use_degrees)
             phase *= CH_DEG_TO_RAD;
-        function = chrono_types::make_shared<ChFunctionSine>(amplitude, frequency, phase);
+        f_base = chrono_types::make_shared<ChFunctionSine>(amplitude, frequency, phase);
+    } else if (type == "RAMP") {
+        ChAssertAlways(a["slope"]);
+        auto slope = a["slope"].as<double>();
+        double intercept = 0;
+        if (a["intercept"])
+            intercept = a["intercept"].as<double>();
+        f_base = chrono_types::make_shared<ChFunctionRamp>(intercept, slope);
+    } else if (type == "DATA") {
+        ChAssertAlways(a["data"]);                 // key 'data' must exist
+        ChAssertAlways(a["data"].IsSequence());    // 'data' must be an array
+        ChAssertAlways(a["data"][0].size() == 2);  // each entry in 'data' must have size 2
+        auto num_points = a["data"].size();
+        auto f_interp = chrono_types::make_shared<ChFunctionInterp>();
+        for (size_t i = 0; i < num_points; i++) {
+            double t = a["data"][i][0].as<double>();
+            double f = a["data"][i][1].as<double>();
+            f_interp->AddPoint(t, f);
+        }
+        f_base = f_interp;
     } else {
         cerr << "Incorrect function type: " << a["type"] << endl;
         throw std::runtime_error("Incorrect function type");
     }
-
     //// TODO - more function types
 
-    return function;
+    // Check if base function must be repeated
+    if (repeat) {
+        // Yes: construct and return repeated function
+        auto f_repeat = chrono_types::make_shared<ChFunctionRepeat>(f_base, repeat_start, repeat_width, repeat_shift);
+        return f_repeat;
+    } else {
+        // No: return base underlying function
+        return f_base;
+    }
 }
 
 }  // namespace parsers

@@ -94,3 +94,7 @@ spring_dampers:
 
 
 ## YAML schema
+
+The YAML model specification file must follow the ``data/yaml/schema/model.schema.yaml`` provided in the Chrono data directory: 
+
+\include data/yaml/schema/model.schema.yaml
