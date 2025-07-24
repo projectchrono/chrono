@@ -32,30 +32,28 @@ ChLinkNodeFace::ChLinkNodeFace(const ChLinkNodeFace& other) : ChLinkBase(other) 
     d = other.d;
 }
 
-int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
-                               std::shared_ptr<ChNodeFEAxyz> anodeB1,
-                               std::shared_ptr<ChNodeFEAxyz> anodeB2,
-                               std::shared_ptr<ChNodeFEAxyz> anodeB3) {
-    assert(anodeA && anodeB1 && anodeB2 && anodeB3);
+int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                               std::shared_ptr<ChNodeFEAxyz> nodeB1,
+                               std::shared_ptr<ChNodeFEAxyz> nodeB2,
+                               std::shared_ptr<ChNodeFEAxyz> nodeB3) {
+    assert(nodeA && nodeB1 && nodeB2 && nodeB3);
 
-    m_node = anodeA;
-    m_triangle.node1 = anodeB1;
-    m_triangle.node2 = anodeB2;
-    m_triangle.node3 = anodeB3;
+    m_point.node = nodeA;
+    m_triangle.node1 = nodeB1;
+    m_triangle.node2 = nodeB2;
+    m_triangle.node3 = nodeB3;
 
-    constraint1.Get_tuple_a().SetVariables(*m_node);
-    constraint1.Get_tuple_b().SetVariables(m_triangle);
-
-    constraint2.Get_tuple_a().SetVariables(*m_node);
-    constraint2.Get_tuple_b().SetVariables(m_triangle);
-
-    constraint3.Get_tuple_a().SetVariables(*m_node);
-    constraint3.Get_tuple_b().SetVariables(m_triangle);
+    // Create and set the two tuples for the 3 embedded constraints
+    auto tupleA = m_point.CreateConstraintTuple();
+    auto tupleB = m_triangle.CreateConstraintTuple();
+    constraint1.SetTuples(tupleA, tupleB);
+    constraint2.SetTuples(tupleA, tupleB);
+    constraint3.SetTuples(tupleA, tupleB);
 
     bool is_into;
     ChVector3d p_projected;
-    this->d = utils::PointTriangleDistance(m_node->pos, m_triangle.node1->pos, m_triangle.node2->pos,
-                                           m_triangle.node3->pos, s2, s3, is_into, p_projected);
+    d = utils::PointTriangleDistance(m_point.node->GetPos(), m_triangle.node1->GetPos(), m_triangle.node2->GetPos(),
+                                     m_triangle.node3->GetPos(), s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
 
@@ -112,12 +110,13 @@ void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N = Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
+    ChVector3d N = Vcross(m_triangle.node2->GetPos() - m_triangle.node1->GetPos(),
+                          m_triangle.node3->GetPos() - m_triangle.node1->GetPos());
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res =
-        m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
+    ChVector3d res = m_point.node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
+                     s3 * m_triangle.node3->GetPos() - N * d;
 
     ChVector3d cres = res * c;
 
@@ -186,12 +185,13 @@ void ChLinkNodeFace::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N = Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
+    ChVector3d N =
+        Vcross(m_triangle.node2->GetPos() - m_triangle.node1->GetPos(), m_triangle.node3->GetPos() - m_triangle.node1->GetPos());
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
     ChVector3d res =
-        m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
+        m_point.node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() - s3 * m_triangle.node3->GetPos() - N * d;
 
     constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
     constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.y());
@@ -222,16 +222,16 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
     ChMatrix33<> Jxb3;
 
     if (d != 0) {
-        double t2 = m_triangle.node1->pos.x() - m_triangle.node2->pos.x();
-        double t3 = m_triangle.node1->pos.y() - m_triangle.node3->pos.y();
+        double t2 = m_triangle.node1->GetPos().x() - m_triangle.node2->GetPos().x();
+        double t3 = m_triangle.node1->GetPos().y() - m_triangle.node3->GetPos().y();
         double t4 = t2 * t3;
-        double t5 = m_triangle.node1->pos.y() - m_triangle.node2->pos.y();
-        double t6 = m_triangle.node1->pos.x() - m_triangle.node3->pos.x();
+        double t5 = m_triangle.node1->GetPos().y() - m_triangle.node2->GetPos().y();
+        double t6 = m_triangle.node1->GetPos().x() - m_triangle.node3->GetPos().x();
         double t12 = t5 * t6;
         double t7 = t4 - t12;
-        double t8 = m_triangle.node1->pos.z() - m_triangle.node3->pos.z();
+        double t8 = m_triangle.node1->GetPos().z() - m_triangle.node3->GetPos().z();
         double t9 = t2 * t8;
-        double t10 = m_triangle.node1->pos.z() - m_triangle.node2->pos.z();
+        double t10 = m_triangle.node1->GetPos().z() - m_triangle.node2->GetPos().z();
         double t14 = t6 * t10;
         double t11 = t9 - t14;
         double t13 = std::abs(t7);
@@ -240,17 +240,17 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
         double t22 = t3 * t10;
         double t17 = t16 - t22;
         double t18 = std::abs(t17);
-        double t19 = m_triangle.node2->pos.z() - m_triangle.node3->pos.z();
+        double t19 = m_triangle.node2->GetPos().z() - m_triangle.node3->GetPos().z();
         double t20 = std::pow(t13, 2);
         double t21 = std::pow(t15, 2);
         double t23 = std::pow(t18, 2);
         double t24 = t20 + t21 + t23;
         double t25 = mysgn(t7);
         double t26 = 1.0 / std::pow(t24, (3.0 / 2.0));
-        double t27 = m_triangle.node2->pos.y() - m_triangle.node3->pos.y();
+        double t27 = m_triangle.node2->GetPos().y() - m_triangle.node3->GetPos().y();
         double t28 = 1.0 / std::sqrt(t24);
         double t29 = mysgn(t11);
-        double t30 = m_triangle.node2->pos.x() - m_triangle.node3->pos.x();
+        double t30 = m_triangle.node2->GetPos().x() - m_triangle.node3->GetPos().x();
         double t31 = mysgn(t17);
         double t32 = d * t19 * t28;
         double t33 = t13 * t25 * t27 * 2.0;
@@ -323,21 +323,29 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
         Jxb3.fillDiagonal(-s3);
     }
 
-    constraint1.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(0);
-    constraint2.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(1);
-    constraint3.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(2);
+    auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.Get_tuple_a());
+    auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.Get_tuple_a());
+    auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.Get_tuple_a());
 
-    constraint1.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(0);
-    constraint2.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(1);
-    constraint3.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(2);
+    tuple1_a->Cq1().segment(0, 3) = Jxa.row(0);
+    tuple2_a->Cq1().segment(0, 3) = Jxa.row(1);
+    tuple3_a->Cq1().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(0);
-    constraint2.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(1);
-    constraint3.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(2);
+    auto tuple1_b = static_cast<ChConstraintTuple_333*>(constraint1.Get_tuple_b());
+    auto tuple2_b = static_cast<ChConstraintTuple_333*>(constraint2.Get_tuple_b());
+    auto tuple3_b = static_cast<ChConstraintTuple_333*>(constraint3.Get_tuple_b());
 
-    constraint1.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(0);
-    constraint2.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(1);
-    constraint3.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(2);
+    tuple1_b->Cq1().segment(0, 3) = Jxb1.row(0);
+    tuple2_b->Cq1().segment(0, 3) = Jxb1.row(1);
+    tuple3_b->Cq1().segment(0, 3) = Jxb1.row(2);
+
+    tuple1_b->Cq2().segment(0, 3) = Jxb2.row(0);
+    tuple2_b->Cq2().segment(0, 3) = Jxb2.row(1);
+    tuple3_b->Cq2().segment(0, 3) = Jxb2.row(2);
+
+    tuple1_b->Cq3().segment(0, 3) = Jxb3.row(0);
+    tuple2_b->Cq3().segment(0, 3) = Jxb3.row(1);
+    tuple3_b->Cq3().segment(0, 3) = Jxb3.row(2);
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
@@ -381,23 +389,21 @@ int ChLinkNodeFaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
                                   std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
     assert(nodeA && nodeB1 && nodeB2 && nodeB3);
 
-    m_node = nodeA;
+    m_point.node = nodeA;
     m_triangle.node1 = nodeB1;
     m_triangle.node2 = nodeB2;
     m_triangle.node3 = nodeB3;
 
-    constraint1.Get_tuple_a().SetVariables(*m_node);
-    constraint1.Get_tuple_b().SetVariables(m_triangle);
-
-    constraint2.Get_tuple_a().SetVariables(*m_node);
-    constraint2.Get_tuple_b().SetVariables(m_triangle);
-
-    constraint3.Get_tuple_a().SetVariables(*m_node);
-    constraint3.Get_tuple_b().SetVariables(m_triangle);
+    // Create and set the two tuples for the 3 embedded constraints
+    auto tupleA = m_point.CreateConstraintTuple();
+    auto tupleB = m_triangle.CreateConstraintTuple();
+    constraint1.SetTuples(tupleA, tupleB);
+    constraint2.SetTuples(tupleA, tupleB);
+    constraint3.SetTuples(tupleA, tupleB);
 
     bool is_into;
     ChVector3d p_projected;
-    this->d = utils::PointTriangleDistance(m_node->pos, m_triangle.node1->GetPos(), m_triangle.node2->GetPos(),
+    d = utils::PointTriangleDistance(m_point.node->GetPos(), m_triangle.node1->GetPos(), m_triangle.node2->GetPos(),
                                            m_triangle.node3->GetPos(), s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
@@ -460,7 +466,7 @@ void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
+    ChVector3d res = m_point.node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
                      s3 * m_triangle.node3->GetPos() - N * d;
 
     ChVector3d cres = res * c;
@@ -535,7 +541,7 @@ void ChLinkNodeFaceRot::ConstraintsBiLoad_C(double factor, double recovery_clamp
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
+    ChVector3d res = m_point.node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
                      s3 * m_triangle.node3->GetPos() - N * d;
 
     constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
@@ -664,21 +670,30 @@ void ChLinkNodeFaceRot::LoadConstraintJacobians() {
         Jxb3.fillDiagonal(-s3);
     }
 
-    constraint1.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(0);
-    constraint2.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(1);
-    constraint3.Get_tuple_a().Get_Cq().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(0);
-    constraint2.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(1);
-    constraint3.Get_tuple_b().Get_Cq_1().segment(0, 3) = Jxb1.row(2);
+    auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.Get_tuple_a());
+    auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.Get_tuple_a());
+    auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.Get_tuple_a());
 
-    constraint1.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(0);
-    constraint2.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(1);
-    constraint3.Get_tuple_b().Get_Cq_2().segment(0, 3) = Jxb2.row(2);
+    tuple1_a->Cq1().segment(0, 3) = Jxa.row(0);
+    tuple2_a->Cq1().segment(0, 3) = Jxa.row(1);
+    tuple3_a->Cq1().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(0);
-    constraint2.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(1);
-    constraint3.Get_tuple_b().Get_Cq_3().segment(0, 3) = Jxb3.row(2);
+    auto tuple1_b = static_cast<ChConstraintTuple_666*>(constraint1.Get_tuple_b());
+    auto tuple2_b = static_cast<ChConstraintTuple_666*>(constraint2.Get_tuple_b());
+    auto tuple3_b = static_cast<ChConstraintTuple_666*>(constraint3.Get_tuple_b());
+
+    tuple1_b->Cq1().segment(0, 3) = Jxb1.row(0);
+    tuple2_b->Cq1().segment(0, 3) = Jxb1.row(1);
+    tuple3_b->Cq1().segment(0, 3) = Jxb1.row(2);
+
+    tuple1_b->Cq2().segment(0, 3) = Jxb2.row(0);
+    tuple2_b->Cq2().segment(0, 3) = Jxb2.row(1);
+    tuple3_b->Cq2().segment(0, 3) = Jxb2.row(2);
+
+    tuple1_b->Cq3().segment(0, 3) = Jxb3.row(0);
+    tuple2_b->Cq3().segment(0, 3) = Jxb3.row(1);
+    tuple3_b->Cq3().segment(0, 3) = Jxb3.row(2);
 }
 
 //// OBSOLETE will be removed in favor of Int... functions

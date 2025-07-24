@@ -32,21 +32,51 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Utility class for using the ChLinkNodeFace constraint.
-class ChApi ChTriangleNodesXYZ : public ChVariableTupleCarrier_3vars<3, 3, 3> {
-  public:
-    std::shared_ptr<fea::ChNodeFEAxyz> node1;
-    std::shared_ptr<fea::ChNodeFEAxyz> node2;
-    std::shared_ptr<fea::ChNodeFEAxyz> node3;
+// -----------------------------------------------------------------------------
+// TODO:
+// Obsolete ChTriangleNodesXYZrot when ChNodeFEAxyzrot is derived from ChNodeFEAxyz
 
-    virtual ChVariables* GetVariables1() override { return &node1->Variables(); }
-    virtual ChVariables* GetVariables2() override { return &node2->Variables(); }
-    virtual ChVariables* GetVariables3() override { return &node3->Variables(); }
+/// Utility class encapsulating a point given by an xyz FEA node.
+struct ChApi ChPointNodeXYZ {
+    std::shared_ptr<ChNodeFEAxyz> node;
+
+    ChVariables* GetVariables() { return &node->Variables(); }
+    ChConstraintTuple* CreateConstraintTuple() { return new ChConstraintTuple_3(&node->Variables()); }
 };
 
-/// Constraint between an xyz FEA node (point) and a triangular face given by three xyz FEA nodes
-/// The triangular face element is assumed to have linear shape function (e.g., the face of a tetrahedron or a
-/// triangular shell). The node can be offset respect to the face.
+/// Utility class encapsulating a triangle given by three xyz FEA nodes.
+struct ChApi ChTriangleNodesXYZ {
+    std::shared_ptr<ChNodeFEAxyz> node1;
+    std::shared_ptr<ChNodeFEAxyz> node2;
+    std::shared_ptr<ChNodeFEAxyz> node3;
+
+    ChVariables* GetVariables1() { return &node1->Variables(); }
+    ChVariables* GetVariables2() { return &node2->Variables(); }
+    ChVariables* GetVariables3() { return &node3->Variables(); }
+    ChConstraintTuple* CreateConstraintTuple() {
+        return new ChConstraintTuple_333(&node1->Variables(), &node2->Variables(), &node3->Variables());
+    }
+};
+
+/// Utility class encapsulating a triangle given by three xyzrot FEA nodes.
+struct ChApi ChTriangleNodesXYZrot {
+    std::shared_ptr<ChNodeFEAxyzrot> node1;
+    std::shared_ptr<ChNodeFEAxyzrot> node2;
+    std::shared_ptr<ChNodeFEAxyzrot> node3;
+
+    ChVariables* GetVariables1() { return &node1->Variables(); }
+    ChVariables* GetVariables2() { return &node2->Variables(); }
+    ChVariables* GetVariables3() { return &node3->Variables(); }
+    ChConstraintTuple* CreateConstraintTuple() {
+        return new ChConstraintTuple_666(&node1->Variables(), &node2->Variables(), &node3->Variables());
+    }
+};
+
+// -----------------------------------------------------------------------------
+
+/// Constraint between an xyz FEA node (point) and a triangular face given by three xyz FEA nodes.
+/// The triangular face element is assumed to have linear shape function.
+/// The node can be offset with respect to the face.
 class ChApi ChLinkNodeFace : public ChLinkBase {
   public:
     ChLinkNodeFace();
@@ -63,21 +93,20 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_point.node->GetPos(), QUNIT); }
 
     /// Initialize this constraint, given the node and the triangle to join.
     /// The attachment position is the actual position of the node.
     /// All nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,   ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyz> anodeB1,  ///< triangle: corner n.1
-                           std::shared_ptr<ChNodeFEAxyz> anodeB2,  ///< triangle: corner n.2
-                           std::shared_ptr<ChNodeFEAxyz> anodeB3   ///< triangle: corner n.3
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,   ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyz> nodeB1,  ///< triangle: corner n.1
+                           std::shared_ptr<ChNodeFEAxyz> nodeB2,  ///< triangle: corner n.2
+                           std::shared_ptr<ChNodeFEAxyz> nodeB3   ///< triangle: corner n.3
     );
 
     /// Set the area coordinates to specify where the point A is connected on triangle.
     /// These are 0..1 values, one respect to point B2, the other respect to B3
     /// (the third area coord follows automatically as 1-s2-s3).
-    /// The Initialize() function initialize this automatically.
     virtual void SetAreaCoords(const double ms2, const double ms3) {
         s2 = ms2;
         s3 = ms3;
@@ -92,19 +121,18 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
 
     /// Set an optional offset of the point with respect to triangle, along triangle normal.
     /// Note that it is better to avoid large offsets. Better if offset is zero.
-    /// The Initialize() function initialize this automatically.
     virtual void SetOffset(const double md) { d = md; }
 
     /// Get the imposed offset of the point with respect to triangle.
     virtual double GetOffset(double md) const { return d; }
 
     /// Get the connected xyz node (point).
-    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return this->m_node; }
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return m_point.node; }
 
     /// Get the connected triangle.
     std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3> GetTriangle() const {
         return std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3>{
-            {this->m_triangle.node1, this->m_triangle.node2, this->m_triangle.node3}};
+            {m_triangle.node1, m_triangle.node2, m_triangle.node3}};
     }
 
     /// Get the reaction force considered as applied to the node, in abs coords.
@@ -160,12 +188,12 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
   private:
     ChVector3d react;
 
-    // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint3;
+    // used as an interface to the solver
+    ChConstraintTwoTuples constraint1;
+    ChConstraintTwoTuples constraint2;
+    ChConstraintTwoTuples constraint3;
 
-    std::shared_ptr<ChNodeFEAxyz> m_node;
+    ChPointNodeXYZ m_point;
     ChTriangleNodesXYZ m_triangle;
 
     double s2, s3;
@@ -191,24 +219,9 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
 
 // ---------------------------------------------------------------------------------
 
-// The following classes might be removed if ChNodeFEAxyzrot were inherited from ChNodeFEAxys.
-// Planned for future
-
-/// Utility class for using the ChLinkNodeFaceRot constraint.
-class ChApi ChTriangleNodesXYZrot : public ChVariableTupleCarrier_3vars<6, 6, 6> {
-  public:
-    std::shared_ptr<fea::ChNodeFEAxyzrot> node1;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> node2;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> node3;
-
-    virtual ChVariables* GetVariables1() { return &node1->Variables(); };
-    virtual ChVariables* GetVariables2() { return &node2->Variables(); };
-    virtual ChVariables* GetVariables3() { return &node3->Variables(); };
-};
-
 /// Constraint between an xyz FEA node (point) and a triangular face given by three xyzrot FEA nodes.
 /// The triangular face element is assumed to have linear shape function.
-/// The node can be offset respect to the face.
+/// The node can be offset with respect to the face.
 class ChApi ChLinkNodeFaceRot : public ChLinkBase {
   public:
     ChLinkNodeFaceRot();
@@ -225,7 +238,7 @@ class ChApi ChLinkNodeFaceRot : public ChLinkBase {
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_point.node->GetPos(), QUNIT); }
 
     /// Initialize this constraint, given the node and the triangle to join.
     /// The attachment position is the actual position of the node.
@@ -261,12 +274,12 @@ class ChApi ChLinkNodeFaceRot : public ChLinkBase {
     virtual double GetOffset(double md) const { return d; }
 
     /// Get the connected xyz node (point).
-    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return this->m_node; }
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return m_point.node; }
 
     /// Get the connected triangle.
     std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3> GetTriangle() const {
         return std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3>{
-            {this->m_triangle.node1, this->m_triangle.node2, this->m_triangle.node3}};
+            {m_triangle.node1, m_triangle.node2, m_triangle.node3}};
     }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
@@ -321,15 +334,16 @@ class ChApi ChLinkNodeFaceRot : public ChLinkBase {
   private:
     ChVector3d react;
 
-    // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint3;
+    // used as an interface to the solver
+    ChConstraintTwoTuples constraint1;
+    ChConstraintTwoTuples constraint2;
+    ChConstraintTwoTuples constraint3;
 
-    std::shared_ptr<ChNodeFEAxyz> m_node;
+    ChPointNodeXYZ m_point;
     ChTriangleNodesXYZrot m_triangle;
 
-    double s2, s3;
+    double s2;
+    double s3;
     double d;
 
     /// Get the link frame 1, on the connected node, expressed in the absolute frame.
