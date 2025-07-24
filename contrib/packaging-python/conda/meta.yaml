@@ -15,6 +15,7 @@ build:
   
 requirements:
   build:
+    - {{ compiler('cxx') }}
     - python
     - cmake   # [not win]
     - ninja   # [linux or osx]
@@ -22,24 +23,31 @@ requirements:
     - libglvnd-glx-cos7-x86_64 # [linux]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
-    - swig
-    - mkl-devel ==2020.0.0 # [not arm64]
+    - swig ==4.0.2
+    - mkl-devel ==2023.2.0 # [not arm64]
     - irrlicht
-    - occt ==7.4.0 # [not arm64]
+    - opencascade ==7.4.0
     - numpy >=1.24.0
     - glew
     - glfw
     - eigen ==3.4.0
+    - cuda-toolkit ==12.8.0 # [not osx]
+    - urdfdom
+    - urdfdom_headers
+    - libgl-devel 
 
   run:
     - python
-    - pythonocc-core ==7.4.0 # [py<=39 and not arm64]
-    - mkl ==2020.0.0 # [not arm64]
+    - mkl ==2023.2.0 # [not arm64]
     - numpy >=1.24.0
     - irrlicht
+    - opencascade ==7.4.0
     - glew
     - glfw
     - eigen ==3.4.0
+    - cuda-toolkit ==12.8.0 # [not osx]
+    - urdfdom
+    - libgl
 
 about:
   home: https://github.com/projectchrono/chrono
