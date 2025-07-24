@@ -17,6 +17,7 @@
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/timestepper/ChState.h"
+#include "chrono/solver/constraints_contact/ChConstraintTuple.h"
 
 namespace chrono {
 
@@ -62,7 +63,11 @@ class ChApi ChContactable {
     /// Get the specified variables object.
     /// A contactable can have 1, 2, or 3 variable objects.
     /// Return nullptr if the contactable does not carry the specified set of variables.
-    virtual ChVariables* GetVariables(int set) = 0;
+    virtual ChVariables* GetContactableVariables(int set) = 0;
+
+    /// Create a constraint tuple with the appropriate number of variables for this contactable object.
+    /// Derived classes must also call ChConstraintTuple::SetVariables.
+    virtual ChConstraintTuple* CreateConstraintTuple() = 0;
 
     /// Get the number of DOFs affected by this object (position part).
     virtual int GetContactableNumCoordsPosLevel() = 0;
@@ -147,18 +152,18 @@ class ChApi ChContactable {
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               type_constraint_tuple& jacobian_tuple_N,
-                                               type_constraint_tuple& jacobian_tuple_U,
-                                               type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) = 0;
     
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
     /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
                                                       ChMatrix33<>& contact_plane,
-                                                      type_constraint_tuple& jacobian_tuple_N,
-                                                      type_constraint_tuple& jacobian_tuple_U,
-                                                      type_constraint_tuple& jacobian_tuple_V,
+                                                      ChConstraintTuple* jacobian_tuple_N,
+                                                      ChConstraintTuple* jacobian_tuple_U,
+                                                      ChConstraintTuple* jacobian_tuple_V,
                                                       bool second) {}
 
     /// Method to allow serialization of transient data to archives.
@@ -184,7 +189,8 @@ class ChApi ChContactable {
 class ChContactable_1vars : public ChContactable {
   public:
     ChContactable_1vars(ChVariables* variables_1) : vars_1(variables_1) {}
-    virtual ChVariables* GetVariables(int set) override {
+    ChContactable_1vars(const ChContactable_1vars& other) { vars_1 = other.vars_1; }
+    virtual ChVariables* GetContactableVariables(int set) override final {
         switch (set) {
             case 0:
                 return vars_1;
@@ -201,7 +207,7 @@ class ChContactable_2vars : public ChContactable {
   public:
     ChContactable_2vars(ChVariables* variables_1, ChVariables* variables_2)
         : vars_1(variables_1), vars_2(variables_2) {}
-    virtual ChVariables* GetVariables(int set) override {
+    virtual ChVariables* GetContactableVariables(int set) override final {
         switch (set) {
             case 0:
                 return vars_1;
@@ -221,7 +227,7 @@ class ChContactable_3vars : public ChContactable {
   public:
     ChContactable_3vars(ChVariables* variables_1, ChVariables* variables_2, ChVariables* variables_3)
         : vars_1(variables_1), vars_2(variables_2), vars_3(variables_3) {}
-    virtual ChVariables* GetVariables(int set) override {
+    virtual ChVariables* GetContactableVariables(int set) override final {
         switch (set) {
             case 0:
                 return vars_1;

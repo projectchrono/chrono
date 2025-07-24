@@ -15,11 +15,12 @@
 #ifndef CH_CONTACT_SURFACE_SEGMENT_SET_H
 #define CH_CONTACT_SURFACE_SEGMENT_SET_H
 
+#include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChLoaderU.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
-#include "chrono/physics/ChLoaderU.h"
 
 namespace chrono {
 namespace fea {
@@ -31,7 +32,7 @@ namespace fea {
 
 /// Contact segment for FEA elements that use XYZ nodes.
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
-class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
+class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
   public:
     ChContactSegmentXYZ();
     ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes,
@@ -66,11 +67,9 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
     /// Return the type of contactable (here, a contactable with 2 variables, each with 3 DOFs).
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_33; }
 
-    /// Access variables for node 1.
-    virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
-
-    /// Access variables for node 2.
-    virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_33(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
+    }
 
     /// Indicate if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -130,9 +129,9 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               type_constraint_tuple& jacobian_tuple_N,
-                                               type_constraint_tuple& jacobian_tuple_U,
-                                               type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     /// Return mass of contactable object.
@@ -160,7 +159,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars<3, 3> {
 
 /// Contact segment for FEA elements that use XYZRot nodes.
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
-class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<6, 6> /*, public ChLoadableU*/ {
+class ChApi ChContactSegmentXYZRot : public ChContactable_2vars /*, public ChLoadableU*/ {
   public:
     ChContactSegmentXYZRot();
     ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
@@ -195,11 +194,9 @@ class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<6, 6> /*, public
     /// Return the type of contactable (here, a contactable with 2 variables, each with 6 DOFs).
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_66; }
 
-    /// Access variables for node 1.
-    virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
-
-    /// Access variables for node 2.
-    virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_66(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
+    }
 
     /// Indicate if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -259,9 +256,9 @@ class ChApi ChContactSegmentXYZRot : public ChContactable_2vars<6, 6> /*, public
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               type_constraint_tuple& jacobian_tuple_N,
-                                               type_constraint_tuple& jacobian_tuple_U,
-                                               type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     /// Return mass of contactable object.

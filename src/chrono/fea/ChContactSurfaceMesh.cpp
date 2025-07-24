@@ -43,20 +43,27 @@ namespace fea {
 // -----------------------------------------------------------------------------
 // ChContactTriangleXYZ
 
-ChContactTriangleXYZ::ChContactTriangleXYZ() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+ChContactTriangleXYZ::ChContactTriangleXYZ()
+    : ChContactable_3vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables()),
+      m_owns_node({true, true, true}),
+      m_owns_edge({true, true, true}) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
-    m_contactable_variables.push_back(GetVariables3());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+    m_contactable_variables.push_back(&m_nodes[2]->Variables());
 }
 
 ChContactTriangleXYZ::ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                                            ChContactSurface* container)
-    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    : ChContactable_3vars(&nodes[0]->Variables(), &nodes[1]->Variables(), &nodes[2]->Variables()),
+      m_nodes(nodes),
+      m_container(container),
+      m_owns_node({true, true, true}),
+      m_owns_edge({true, true, true}) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
-    m_contactable_variables.push_back(GetVariables3());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+    m_contactable_variables.push_back(&m_nodes[2]->Variables());
 }
 
 ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
@@ -191,9 +198,9 @@ void ChContactTriangleXYZ::ContactComputeQ(const ChVector3d& F,
 
 void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                          ChMatrix33<>& contact_plane,
-                                                         type_constraint_tuple& jacobian_tuple_N,
-                                                         type_constraint_tuple& jacobian_tuple_U,
-                                                         type_constraint_tuple& jacobian_tuple_V,
+                                                         ChConstraintTuple* jacobian_tuple_N,
+                                                         ChConstraintTuple* jacobian_tuple_U,
+                                                         ChConstraintTuple* jacobian_tuple_V,
                                                          bool second) {
     // compute the triangular area-parameters s1 s2 s3:
     double s2, s3;
@@ -207,24 +214,30 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_p
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = Jx1.row(2);
-    jacobian_tuple_N.Get_Cq_1() *= s1;
-    jacobian_tuple_U.Get_Cq_1() *= s1;
-    jacobian_tuple_V.Get_Cq_1() *= s1;
-    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = Jx1.row(2);
-    jacobian_tuple_N.Get_Cq_2() *= s2;
-    jacobian_tuple_U.Get_Cq_2() *= s2;
-    jacobian_tuple_V.Get_Cq_2() *= s2;
-    jacobian_tuple_N.Get_Cq_3().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_3().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_3().segment(0, 3) = Jx1.row(2);
-    jacobian_tuple_N.Get_Cq_3() *= s3;
-    jacobian_tuple_U.Get_Cq_3() *= s3;
-    jacobian_tuple_V.Get_Cq_3() *= s3;
+    auto tuple_N = static_cast<ChConstraintTuple_333*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_333*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_333*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
+    tuple_N->Cq1() *= s1;
+    tuple_U->Cq1() *= s1;
+    tuple_V->Cq1() *= s1;
+
+    tuple_N->Cq2().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq2().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq2().segment(0, 3) = Jx1.row(2);
+    tuple_N->Cq2() *= s2;
+    tuple_U->Cq2() *= s2;
+    tuple_V->Cq2() *= s2;
+    
+    tuple_N->Cq3().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq3().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq3().segment(0, 3) = Jx1.row(2);
+    tuple_N->Cq3() *= s3;
+    tuple_U->Cq3() *= s3;
+    tuple_V->Cq3() *= s3;
 }
 
 unsigned int ChContactTriangleXYZ::GetSubBlockOffset(unsigned int nblock) {
@@ -292,20 +305,27 @@ void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d& P, double& u, double
 // -----------------------------------------------------------------------------
 // ChContactTriangleXYZRot
 
-ChContactTriangleXYZRot::ChContactTriangleXYZRot() : m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+ChContactTriangleXYZRot::ChContactTriangleXYZRot()
+    : ChContactable_3vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables()),
+      m_owns_node({true, true, true}),
+      m_owns_edge({true, true, true}) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
-    m_contactable_variables.push_back(GetVariables3());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+    m_contactable_variables.push_back(&m_nodes[2]->Variables());
 }
 
 ChContactTriangleXYZRot::ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                                                  ChContactSurface* container)
-    : m_nodes(nodes), m_container(container), m_owns_node({true, true, true}), m_owns_edge({true, true, true}) {
+    : ChContactable_3vars(&nodes[0]->Variables(), &nodes[1]->Variables(), &nodes[2]->Variables()),
+      m_nodes(nodes),
+      m_container(container),
+      m_owns_node({true, true, true}),
+      m_owns_edge({true, true, true}) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
-    m_contactable_variables.push_back(GetVariables3());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
+    m_contactable_variables.push_back(&m_nodes[2]->Variables());
 }
 
 ChPhysicsItem* ChContactTriangleXYZRot::GetPhysicsItem() {
@@ -481,9 +501,9 @@ void ChContactTriangleXYZRot::ContactComputeQ(const ChVector3d& F,
 
 void ChContactTriangleXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                             ChMatrix33<>& contact_plane,
-                                                            type_constraint_tuple& jacobian_tuple_N,
-                                                            type_constraint_tuple& jacobian_tuple_U,
-                                                            type_constraint_tuple& jacobian_tuple_V,
+                                                            ChConstraintTuple* jacobian_tuple_N,
+                                                            ChConstraintTuple* jacobian_tuple_U,
+                                                            ChConstraintTuple* jacobian_tuple_V,
                                                             bool second) {
     // compute the triangular area-parameters s1 s2 s3:
     double s2, s3;
@@ -497,24 +517,30 @@ void ChContactTriangleXYZRot::ComputeJacobianForContactPart(const ChVector3d& ab
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = Jx1.row(2);
-    jacobian_tuple_N.Get_Cq_1() *= s1;
-    jacobian_tuple_U.Get_Cq_1() *= s1;
-    jacobian_tuple_V.Get_Cq_1() *= s1;
-    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = Jx1.row(2);
-    jacobian_tuple_N.Get_Cq_2() *= s2;
-    jacobian_tuple_U.Get_Cq_2() *= s2;
-    jacobian_tuple_V.Get_Cq_2() *= s2;
-    jacobian_tuple_N.Get_Cq_3().segment(0, 3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_3().segment(0, 3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_3().segment(0, 3) = Jx1.row(2);
-    jacobian_tuple_N.Get_Cq_3() *= s3;
-    jacobian_tuple_U.Get_Cq_3() *= s3;
-    jacobian_tuple_V.Get_Cq_3() *= s3;
+    auto tuple_N = static_cast<ChConstraintTuple_333*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_333*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_333*>(jacobian_tuple_V);
+
+    tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = Jx1.row(2);
+    tuple_N->Cq1() *= s1;
+    tuple_U->Cq1() *= s1;
+    tuple_V->Cq1() *= s1;
+
+    tuple_N->Cq2().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq2().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq2().segment(0, 3) = Jx1.row(2);
+    tuple_N->Cq2() *= s2;
+    tuple_U->Cq2() *= s2;
+    tuple_V->Cq2() *= s2;
+    
+    tuple_N->Cq3().segment(0, 3) = Jx1.row(0);
+    tuple_U->Cq3().segment(0, 3) = Jx1.row(1);
+    tuple_V->Cq3().segment(0, 3) = Jx1.row(2);
+    tuple_N->Cq3() *= s3;
+    tuple_U->Cq3() *= s3;
+    tuple_V->Cq3() *= s3;
 }
 
 unsigned int ChContactTriangleXYZRot::GetSubBlockOffset(unsigned int nblock) {

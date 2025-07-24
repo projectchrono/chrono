@@ -1057,12 +1057,6 @@ set(Chrono_solver_constraints_HEADERS
     solver/ChConstraintTwoBodies.h
     solver/ChConstraintTwoGeneric.h
     solver/ChConstraintTwoGenericBoxed.h
-#    solver/ChConstraintTuple.h
-#    solver/ChConstraintTwoTuples.h
-#    solver/ChConstraintTwoTuplesContactN.h
-#    solver/ChConstraintTwoTuplesFrictionT.h
-#    solver/ChConstraintTwoTuplesRollingN.h
-#    solver/ChConstraintTwoTuplesRollingT.h
     solver/ChConstraintNgeneric.h
 )
 source_group(solver\\constraints FILES ${Chrono_solver_constraints_SOURCES} ${Chrono_solver_constraints_HEADERS})

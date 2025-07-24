@@ -17,17 +17,14 @@
 
 namespace chrono {
 
-/// Constraint combining two ChConstraintTuple objects, each referencing 1, 2, or 3 variable objects.
-/// This allows representing a (contact) constraint between two collision objects with different number of variable
-/// sets. For example, this could represent contact between an edge with 2 "xyz" variables and a triangle with 3 "xyz"
-/// variables; in this case, the contact constraint Jacobian is split in 2 + 3 chunks.
+/// Constraint combining two tuples, each referencing 1, 2, or 3 variable objects.
+/// This allows representing a constraint between two objects with different number of variable sets.
+/// Typically used for implementing unilateral contact constraints, this could represent for example a contact between
+/// an edge with 2 "xyz" variables and a triangle with 3 "xyz" variables; in this case, the contact constraint Jacobian
+/// is split in 2 + 3 chunks.
 class ChConstraintTwoTuples : public ChConstraint {
-  protected:
-    ChConstraintTuple tuple_a;
-    ChConstraintTuple tuple_b;
-
   public:
-    ChConstraintTwoTuples() {}
+    ChConstraintTwoTuples() : tuple_a(nullptr), tuple_b(nullptr) {}
     ChConstraintTwoTuples(const ChConstraintTwoTuples& other) : tuple_a(other.tuple_a), tuple_b(other.tuple_b) {}
     virtual ~ChConstraintTwoTuples() {}
 
@@ -42,21 +39,31 @@ class ChConstraintTwoTuples : public ChConstraint {
     }
 
     /// Access tuple a.
-    ChConstraintTuple& Get_tuple_a() { return tuple_a; }
+    ChConstraintTuple* Get_tuple_a() { return tuple_a; }
 
     /// Access tuple b.
-    ChConstraintTuple& Get_tuple_b() { return tuple_b; }
+    ChConstraintTuple* Get_tuple_b() { return tuple_b; }
 
-    /// Set the variable objects for the two tuples, associated with their corresponding contactables.
-    void SetVariables(ChContactable* objA, ChContactable* objB) {
-        tuple_a.SetVariables(objA);
-        tuple_b.SetVariables(objB);
+    /// Set the two tuples.
+    void SetTuples(ChConstraintTuple* tupleA, ChConstraintTuple* tupleB) {
+        delete tuple_a;
+        delete tuple_b;
+        tuple_a = tupleA;
+        tuple_b = tupleB;
+    }
+
+    /// Set the two tuples from two contactable objects.
+    void SetTuplesFromContactables(ChContactable* objA, ChContactable* objB) {
+        delete tuple_a;
+        delete tuple_b;
+        tuple_a = objA->CreateConstraintTuple();
+        tuple_b = objA->CreateConstraintTuple();
     }
 
     virtual void Update_auxiliary() override {
         g_i = 0;
-        tuple_a.Update_auxiliary(g_i);
-        tuple_b.Update_auxiliary(g_i);
+        tuple_a->Update_auxiliary(g_i);
+        tuple_b->Update_auxiliary(g_i);
         //  adds the constraint force mixing term (usually zero):
         if (cfm_i != 0)
             g_i += cfm_i;
@@ -69,8 +76,8 @@ class ChConstraintTwoTuples : public ChConstraint {
     /// </pre>
     virtual double ComputeJacobianTimesState() override {
         double ret = 0;
-        ret += tuple_a.ComputeJacobianTimesState();
-        ret += tuple_b.ComputeJacobianTimesState();
+        ret += tuple_a->ComputeJacobianTimesState();
+        ret += tuple_b->ComputeJacobianTimesState();
         return ret;
     }
 
@@ -82,30 +89,30 @@ class ChConstraintTwoTuples : public ChConstraint {
     ///    v+=[Eq_i] * deltal
     /// </pre>
     virtual void IncrementState(double deltal) override {
-        tuple_a.IncrementState(deltal);
-        tuple_b.IncrementState(deltal);
+        tuple_a->IncrementState(deltal);
+        tuple_b->IncrementState(deltal);
     }
 
     /// Add the product of the corresponding block in the system matrix by 'vect' and add to result.
     /// Note: 'vect' is assumed to be of proper size; the procedure uses the ChVariable offsets to index in 'vect'.
     virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const override {
-        tuple_a.AddJacobianTimesVectorInto(result, vect);
-        tuple_b.AddJacobianTimesVectorInto(result, vect);
+        tuple_a->AddJacobianTimesVectorInto(result, vect);
+        tuple_b->AddJacobianTimesVectorInto(result, vect);
     }
 
     /// Add the product of the corresponding transposed block in the system matrix by 'l' and add to result.
     /// Note: 'result' is assumed to be of proper size; the procedure uses the ChVariable offsets to index in 'result'.
     virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const override {
-        tuple_a.AddJacobianTransposedTimesScalarInto(result, l);
-        tuple_b.AddJacobianTransposedTimesScalarInto(result, l);
+        tuple_a->AddJacobianTransposedTimesScalarInto(result, l);
+        tuple_b->AddJacobianTransposedTimesScalarInto(result, l);
     }
 
     /// Write the constraint Jacobian into the specified global matrix at the offsets of the associated variables.
     /// The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian in the
     /// provided matrix.
     virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const override {
-        tuple_a.PasteJacobianInto(mat, start_row, start_col);
-        tuple_b.PasteJacobianInto(mat, start_row, start_col);
+        tuple_a->PasteJacobianInto(mat, start_row, start_col);
+        tuple_b->PasteJacobianInto(mat, start_row, start_col);
     }
 
     /// Write the transposed constraint Jacobian into the specified global matrix at the offsets of the associated
@@ -114,9 +121,13 @@ class ChConstraintTwoTuples : public ChConstraint {
     virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
                                              unsigned int start_row,
                                              unsigned int start_col) const override {
-        tuple_a.PasteJacobianTransposedInto(mat, start_row, start_col);
-        tuple_b.PasteJacobianTransposedInto(mat, start_row, start_col);
+        tuple_a->PasteJacobianTransposedInto(mat, start_row, start_col);
+        tuple_b->PasteJacobianTransposedInto(mat, start_row, start_col);
     }
+
+  protected:
+    ChConstraintTuple* tuple_a;
+    ChConstraintTuple* tuple_b;
 };
 
 }  // end namespace chrono

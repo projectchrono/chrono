@@ -30,18 +30,24 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZ::ChContactSegmentXYZ() : m_owns_node({true, true}), m_container(nullptr) {
+ChContactSegmentXYZ::ChContactSegmentXYZ()
+    : ChContactable_2vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables()),
+      m_owns_node({true, true}),
+      m_container(nullptr) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
 }
 
 ChContactSegmentXYZ::ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes,
                                          ChContactSurface* container)
-    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {
+    : ChContactable_2vars(&nodes[0]->Variables(), &nodes[1]->Variables()),
+      m_nodes(nodes),
+      m_owns_node({true, true}),
+      m_container(container) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
 }
 
 void ChContactSegmentXYZ::ContactableGetStateBlockPosLevel(ChState& x) {
@@ -123,9 +129,9 @@ void ChContactSegmentXYZ::ContactComputeQ(const ChVector3d& F,
 
 void ChContactSegmentXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                         ChMatrix33<>& contact_plane,
-                                                        type_constraint_tuple& jacobian_tuple_N,
-                                                        type_constraint_tuple& jacobian_tuple_U,
-                                                        type_constraint_tuple& jacobian_tuple_V,
+                                                        ChConstraintTuple* jacobian_tuple_N,
+                                                        ChConstraintTuple* jacobian_tuple_U,
+                                                        ChConstraintTuple* jacobian_tuple_V,
                                                         bool second) {
     double s2 = ComputeUfromP(abs_point);
     double s1 = 1 - s2;
@@ -134,13 +140,17 @@ void ChContactSegmentXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_po
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_33*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_33*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_33*>(jacobian_tuple_V);
 
-    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(2);
+    tuple_N->Cq1().segment(0, 3) = s1 * Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = s1 * Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = s1 * Jx1.row(2);
+
+    tuple_N->Cq2().segment(0, 3) = s2 * Jx1.row(0);
+    tuple_U->Cq2().segment(0, 3) = s2 * Jx1.row(1);
+    tuple_V->Cq2().segment(0, 3) = s2 * Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactSegmentXYZ::GetPhysicsItem() {
@@ -159,18 +169,24 @@ double ChContactSegmentXYZ::ComputeUfromP(const ChVector3d& P) {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZRot::ChContactSegmentXYZRot() : m_owns_node({true, true}), m_container(nullptr) {
+ChContactSegmentXYZRot::ChContactSegmentXYZRot()
+    : ChContactable_2vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables()),
+      m_owns_node({true, true}),
+      m_container(nullptr) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[1]->Variables());
 }
 
 ChContactSegmentXYZRot::ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
                                                ChContactSurface* container)
-    : m_nodes(nodes), m_owns_node({true, true}), m_container(container) {
+    : ChContactable_2vars(&nodes[0]->Variables(), &nodes[1]->Variables()),
+      m_nodes(nodes),
+      m_owns_node({true, true}),
+      m_container(container) {
     // Load contactable variables list
-    m_contactable_variables.push_back(GetVariables1());
-    m_contactable_variables.push_back(GetVariables2());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
+    m_contactable_variables.push_back(&m_nodes[0]->Variables());
 }
 
 void ChContactSegmentXYZRot::ContactableGetStateBlockPosLevel(ChState& x) {
@@ -272,9 +288,9 @@ void ChContactSegmentXYZRot::ContactComputeQ(const ChVector3d& F,
 
 void ChContactSegmentXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                            ChMatrix33<>& contact_plane,
-                                                           type_constraint_tuple& jacobian_tuple_N,
-                                                           type_constraint_tuple& jacobian_tuple_U,
-                                                           type_constraint_tuple& jacobian_tuple_V,
+                                                           ChConstraintTuple* jacobian_tuple_N,
+                                                           ChConstraintTuple* jacobian_tuple_U,
+                                                           ChConstraintTuple* jacobian_tuple_V,
                                                            bool second) {
     double s2 = ComputeUfromP(abs_point);
     double s1 = 1 - s2;
@@ -283,13 +299,17 @@ void ChContactSegmentXYZRot::ComputeJacobianForContactPart(const ChVector3d& abs
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = s1 * Jx1.row(2);
+    auto tuple_N = static_cast<ChConstraintTuple_33*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_33*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_33*>(jacobian_tuple_V);
 
-    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(0);
-    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(1);
-    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = s2 * Jx1.row(2);
+    tuple_N->Cq1().segment(0, 3) = s1 * Jx1.row(0);
+    tuple_U->Cq1().segment(0, 3) = s1 * Jx1.row(1);
+    tuple_V->Cq1().segment(0, 3) = s1 * Jx1.row(2);
+
+    tuple_N->Cq2().segment(0, 3) = s2 * Jx1.row(0);
+    tuple_U->Cq2().segment(0, 3) = s2 * Jx1.row(1);
+    tuple_V->Cq2().segment(0, 3) = s2 * Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactSegmentXYZRot::GetPhysicsItem() {

@@ -13,43 +13,40 @@
 #ifndef CH_CONSTRAINT_TUPLE_H
 #define CH_CONSTRAINT_TUPLE_H
 
-#include "chrono/physics/ChContactable.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
-/// Base class for a container representing "half" of a contact constraint.
-/// This object manages the Jacobian chunk for one collision object which uses 1, 2, or 3 variable objects.
+class ChContactable;
+
+/// Container representing "half" of a constraint between objects with different numbers of variable sets.
+/// Two such tuples, aggregated in a ChConstraintTwoTuples, form a full constraint.
+/// This object manages the Jacobian chunk for one object which uses 1, 2, or 3 variable objects.
 /// Derived classes specialize this for objects represented by 1, 2, or 3 variable objects of different sizes.
 class ChConstraintTuple {
   public:
     virtual ~ChConstraintTuple() {}
 
+    virtual ChRowVectorRef Cq(int i) = 0;
+    virtual ChVectorRef Eq(int i) = 0;
+
+    virtual void CalculateEq() = 0;
+
   protected:
     /// Construct the tuple, setting variables and Jacobian blocks to null.
-    /// Derived classes must set 1, 2, or 3 variable objects and the Jacobian blocks of appropriate size. 
+    /// Derived classes must set 1, 2, or 3 variable objects and the Jacobian blocks of appropriate size.
     ChConstraintTuple() {
         for (int i = 0; i < 3; i++) {
             variables[i] = nullptr;
-            Cq[i] = nullptr;
-            Eq[i] = nullptr;
         }
     }
 
-    /// Set the variable objects associated with the given contactable.
-    /// A contactable will only set the number of variable objects it uses (the rest are set to nullptr).
-    virtual void SetVariables(ChContactable* obj) {
-        variables[0] = obj->GetVariables(0);
-        variables[1] = obj->GetVariables(1);
-        variables[2] = obj->GetVariables(2);
-    }
-
     void Update_auxiliary(double& g_i) {
+        CalculateEq();
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                variables[i]->ComputeMassInverseTimesVector(*Eq[i], (*Cq[i]).transpose());
-                g_i += *Cq[i] * *Eq[i];
+                g_i += Cq(i) * Eq(i);
             }
         }
     }
@@ -58,7 +55,7 @@ class ChConstraintTuple {
         double result = 0;
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                result += *Cq[i] * variables[i]->State();
+                result += Cq(i) * variables[i]->State();
             }
         }
         return result;
@@ -67,47 +64,45 @@ class ChConstraintTuple {
     void IncrementState(double deltal) {
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                variables[i]->State() += *Eq[i] * deltal;
+                variables[i]->State() += Eq(i) * deltal;
             }
         }
     }
 
-    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) {
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                result += *Cq[i] * vect.segment(variables[i]->GetOffset(), variables[i]->GetDOF());
+                result += Cq(i) * vect.segment(variables[i]->GetOffset(), variables[i]->GetDOF());
             }
         }
     }
 
-    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) {
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                result.segment(variables[i]->GetOffset(), variables[i]->GetDOF()) += (*Cq[i]).transpose() * l;
+                result.segment(variables[i]->GetOffset(), variables[i]->GetDOF()) += Cq(i).transpose() * l;
             }
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) {
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                PasteMatrix(mat, *Cq[i], start_row, variables[i]->GetOffset() + start_col);
+                PasteMatrix(mat, Cq(i), start_row, variables[i]->GetOffset() + start_col);
             }
         }
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) {
         for (int i = 0; i < num_variables; i++) {
             if (variables[i]->IsActive()) {
-                PasteMatrix(mat, (*Cq[i]).transpose(), variables[i]->GetOffset() + start_row, start_col);
+                PasteMatrix(mat, Cq(i).transpose(), variables[i]->GetOffset() + start_row, start_col);
             }
         }
     }
 
     int num_variables;          ///< number of referenced variables
     ChVariables* variables[3];  ///< referenced variable objects
-    ChRowVectorRef* Cq[3];      ///< [Cq] Jacobian chunks of the constraint
-    ChVectorRef* Eq[3];         ///< [Eq] products [Eq]=[invM]*[Cq]'
 
     friend class ChConstraintTwoTuples;
 };
@@ -122,15 +117,29 @@ class ChConstraintTuple_1 : public ChConstraintTuple {
     ChVectorN<double, 1> Eq_1;
 
   public:
-    ChConstraintTuple_1() {
-        Cq_1.setZero();
-
+    ChConstraintTuple_1(ChVariables* variables1) {
+        assert(variables1->GetDOF() == 1);
         num_variables = 1;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChVectorRef Eq1 = Eq_1;
-        Cq[0] = &Cq1;
-        Eq[0] = &Eq1;
+        variables[0] = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
     }
+
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChVectorRef Eq1() { return Eq_1; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        assert(i == 0);
+        return Cq_1;
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        assert(i == 0);
+        return Eq_1;
+    }
+
+    virtual void CalculateEq() override { variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose()); }
 };
 
 /// Constraint tuple representing a collision object with 1 variable of size 2.
@@ -140,15 +149,29 @@ class ChConstraintTuple_2 : public ChConstraintTuple {
     ChVectorN<double, 2> Eq_1;
 
   public:
-    ChConstraintTuple_2() {
-        Cq_1.setZero();
-
+    ChConstraintTuple_2(ChVariables* variables1) {
+        assert(variables1->GetDOF() == 2);
         num_variables = 1;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChVectorRef Eq1 = Eq_1;
-        Cq[0] = &Cq1;
-        Eq[0] = &Eq1;
+        variables[0] = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
     }
+
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChVectorRef Eq1() { return Eq_1; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        assert(i == 0);
+        return Cq_1;
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        assert(i == 0);
+        return Eq_1;
+    }
+
+    virtual void CalculateEq() override { variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose()); }
 };
 
 /// Constraint tuple representing a collision object with 1 variable of size 3.
@@ -158,15 +181,29 @@ class ChConstraintTuple_3 : public ChConstraintTuple {
     ChVectorN<double, 3> Eq_1;
 
   public:
-    ChConstraintTuple_3() {
-        Cq_1.setZero();
-
+    ChConstraintTuple_3(ChVariables* variables1) {
+        assert(variables1->GetDOF() == 3);
         num_variables = 1;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChVectorRef Eq1 = Eq_1;
-        Cq[0] = &Cq1;
-        Eq[0] = &Eq1;
+        variables[0] = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
     }
+
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChVectorRef Eq1() { return Eq_1; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        assert(i == 0);
+        return Cq_1;
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        assert(i == 0);
+        return Eq_1;
+    }
+
+    virtual void CalculateEq() override { variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose()); }
 };
 
 /// Constraint tuple representing a collision object with 1 variable of size 4.
@@ -176,15 +213,29 @@ class ChConstraintTuple_4 : public ChConstraintTuple {
     ChVectorN<double, 4> Eq_1;
 
   public:
-    ChConstraintTuple_4() {
-        Cq_1.setZero();
-
+    ChConstraintTuple_4(ChVariables* variables1) {
+        assert(variables1->GetDOF() == 4);
         num_variables = 1;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChVectorRef Eq1 = Eq_1;
-        Cq[0] = &Cq1;
-        Eq[0] = &Eq1;
+        variables[0] = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
     }
+
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChVectorRef Eq1() { return Eq_1; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        assert(i == 0);
+        return Cq_1;
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        assert(i == 0);
+        return Eq_1;
+    }
+
+    virtual void CalculateEq() override { variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose()); }
 };
 
 /// Constraint tuple representing a collision object with 1 variable of size 5.
@@ -194,15 +245,29 @@ class ChConstraintTuple_5 : public ChConstraintTuple {
     ChVectorN<double, 5> Eq_1;
 
   public:
-    ChConstraintTuple_5() {
-        Cq_1.setZero();
-
+    ChConstraintTuple_5(ChVariables* variables1) {
+        assert(variables1->GetDOF() == 5);
         num_variables = 1;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChVectorRef Eq1 = Eq_1;
-        Cq[0] = &Cq1;
-        Eq[0] = &Eq1;
+        variables[0] = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
     }
+
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChVectorRef Eq1() { return Eq_1; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        assert(i == 0);
+        return Cq_1;
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        assert(i == 0);
+        return Eq_1;
+    }
+
+    virtual void CalculateEq() override { variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose()); }
 };
 
 /// Constraint tuple representing a collision object with 1 variable of size 6.
@@ -212,15 +277,29 @@ class ChConstraintTuple_6 : public ChConstraintTuple {
     ChVectorN<double, 6> Eq_1;
 
   public:
-    ChConstraintTuple_6() {
-        Cq_1.setZero();
-
+    ChConstraintTuple_6(ChVariables* variables1) {
+        assert(variables1->GetDOF() == 6);
         num_variables = 1;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChVectorRef Eq1 = Eq_1;
-        Cq[0] = &Cq1;
-        Eq[0] = &Eq1;
+        variables[0] = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
     }
+
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChVectorRef Eq1() { return Eq_1; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        assert(i == 0);
+        return Cq_1;
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        assert(i == 0);
+        return Eq_1;
+    }
+
+    virtual void CalculateEq() override { variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose()); }
 };
 
 // -----------------------------------------------------------------------------
@@ -235,19 +314,53 @@ class ChConstraintTuple_33 : public ChConstraintTuple {
     ChVectorN<double, 3> Eq_2;
 
   public:
-    ChConstraintTuple_33() {
+    ChConstraintTuple_33(ChVariables* variables1, ChVariables* variables2) {
+        assert(variables1->GetDOF() == 3);
+        assert(variables2->GetDOF() == 3);
+        num_variables = 2;
+        variables[0] = variables1;
+        variables[1] = variables2;
+
         Cq_1.setZero();
         Cq_2.setZero();
+        Eq_1.setZero();
+        Eq_2.setZero();
+    }
 
-        num_variables = 2;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChRowVectorRef Cq2 = Cq_2;
-        ChVectorRef Eq1 = Eq_1;
-        ChVectorRef Eq2 = Eq_2;
-        Cq[0] = &Cq1;
-        Cq[1] = &Cq2;
-        Eq[0] = &Eq1;
-        Eq[1] = &Eq2;
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChRowVectorRef Cq2() { return Cq_2; }
+    ChVectorRef Eq1() { return Eq_1; }
+    ChVectorRef Eq2() { return Eq_2; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        switch (i) {
+            case 0: {
+                return Cq_1;
+            }
+            case 1: {
+                return Cq_2;
+            }
+            default:
+                assert(false);
+        }
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        switch (i) {
+            case 0: {
+                return Eq_1;
+            }
+            case 1: {
+                return Eq_2;
+            }
+            default:
+                assert(false);
+        }
+    }
+
+    virtual void CalculateEq() override {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
     }
 };
 
@@ -260,22 +373,55 @@ class ChConstraintTuple_66 : public ChConstraintTuple {
     ChVectorN<double, 6> Eq_2;
 
   public:
-    ChConstraintTuple_66() {
+    ChConstraintTuple_66(ChVariables* variables1, ChVariables* variables2) {
+        assert(variables1->GetDOF() == 6);
+        assert(variables2->GetDOF() == 6);
+        num_variables = 2;
+        variables[0] = variables1;
+        variables[1] = variables2;
+
         Cq_1.setZero();
         Cq_2.setZero();
+        Eq_1.setZero();
+        Eq_2.setZero();
+    }
 
-        num_variables = 2;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChRowVectorRef Cq2 = Cq_2;
-        ChVectorRef Eq1 = Eq_1;
-        ChVectorRef Eq2 = Eq_2;
-        Cq[0] = &Cq1;
-        Cq[1] = &Cq2;
-        Eq[0] = &Eq1;
-        Eq[1] = &Eq2;
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChRowVectorRef Cq2() { return Cq_2; }
+    ChVectorRef Eq1() { return Eq_1; }
+    ChVectorRef Eq2() { return Eq_2; }
+
+    virtual ChRowVectorRef Cq(int i) override {
+        switch (i) {
+            case 0: {
+                return Cq_1;
+            }
+            case 1: {
+                return Cq_2;
+            }
+            default:
+                assert(false);
+        }
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        switch (i) {
+            case 0: {
+                return Eq_1;
+            }
+            case 1: {
+                return Eq_2;
+            }
+            default:
+                assert(false);
+        }
+    }
+
+    virtual void CalculateEq() override {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
     }
 };
-
 
 // -----------------------------------------------------------------------------
 // Constraint tuples for collision objects with 2 variable objects
@@ -291,25 +437,56 @@ class ChConstraintTuple_333 : public ChConstraintTuple {
     ChVectorN<double, 3> Eq_3;
 
   public:
-    ChConstraintTuple_333() {
+    ChConstraintTuple_333(ChVariables* variables1, ChVariables* variables2, ChVariables* variables3) {
+        assert(variables1->GetDOF() == 3);
+        assert(variables2->GetDOF() == 3);
+        assert(variables3->GetDOF() == 3);
+        num_variables = 3;
+        variables[0] = variables1;
+        variables[1] = variables2;
+        variables[2] = variables3;
+
         Cq_1.setZero();
         Cq_2.setZero();
         Cq_3.setZero();
+        Eq_1.setZero();
+        Eq_2.setZero();
+        Eq_3.setZero();
+    }
 
-        num_variables = 3;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChRowVectorRef Cq2 = Cq_2;
-        ChRowVectorRef Cq3 = Cq_3;
-        ChVectorRef Eq1 = Eq_1;
-        ChVectorRef Eq2 = Eq_2;
-        ChVectorRef Eq3 = Eq_3;
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChRowVectorRef Cq2() { return Cq_2; }
+    ChRowVectorRef Cq3() { return Cq_3; }
+    ChVectorRef Eq1() { return Eq_1; }
+    ChVectorRef Eq2() { return Eq_2; }
+    ChVectorRef Eq3() { return Eq_3; }
 
-        Cq[0] = &Cq1;
-        Cq[1] = &Cq2;
-        Cq[2] = &Cq3;
-        Eq[0] = &Eq1;
-        Eq[1] = &Eq2;
-        Eq[2] = &Eq3;
+    virtual ChRowVectorRef Cq(int i) override {
+        switch (i) {
+            case 0:
+                return Cq_1;
+            case 1:
+                return Cq_2;
+            case 2:
+                return Cq_3;
+        }
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        switch (i) {
+            case 0:
+                return Eq_1;
+            case 1:
+                return Eq_2;
+            case 2:
+                return Eq_3;
+        }
+    }
+
+    virtual void CalculateEq() override {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+        variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
     }
 };
 
@@ -324,25 +501,57 @@ class ChConstraintTuple_666 : public ChConstraintTuple {
     ChVectorN<double, 6> Eq_3;
 
   public:
-    ChConstraintTuple_666() {
+    ChConstraintTuple_666(ChVariables* variables1, ChVariables* variables2, ChVariables* variables3) {
+        assert(variables1->GetDOF() == 6);
+        assert(variables2->GetDOF() == 6);
+        assert(variables3->GetDOF() == 6);
+        num_variables = 3;
+        variables[0] = variables1;
+        variables[1] = variables2;
+        variables[2] = variables3;
+
         Cq_1.setZero();
         Cq_2.setZero();
         Cq_3.setZero();
+        Eq_1.setZero();
+        Eq_2.setZero();
+        Eq_3.setZero();
+    }
 
-        num_variables = 3;
-        ChRowVectorRef Cq1 = Cq_1;
-        ChRowVectorRef Cq2 = Cq_2;
-        ChRowVectorRef Cq3 = Cq_3;
-        ChVectorRef Eq1 = Eq_1;
-        ChVectorRef Eq2 = Eq_2;
-        ChVectorRef Eq3 = Eq_3;
+    ChRowVectorRef Cq1() { return Cq_1; }
+    ChRowVectorRef Cq2() { return Cq_2; }
+    ChRowVectorRef Cq3() { return Cq_3; }
+    ChVectorRef Eq1() { return Eq_1; }
+    ChVectorRef Eq2() { return Eq_2; }
+    ChVectorRef Eq3() { return Eq_3; }
 
-        Cq[0] = &Cq1;
-        Cq[1] = &Cq2;
-        Cq[2] = &Cq3;
-        Eq[0] = &Eq1;
-        Eq[1] = &Eq2;
-        Eq[2] = &Eq3;
+
+    virtual ChRowVectorRef Cq(int i) override {
+        switch (i) {
+            case 0:
+                return Cq_1;
+            case 1:
+                return Cq_2;
+            case 2:
+                return Cq_3;
+        }
+    }
+
+    virtual ChVectorRef Eq(int i) override {
+        switch (i) {
+            case 0:
+                return Eq_1;
+            case 1:
+                return Eq_2;
+            case 2:
+                return Eq_3;
+        }
+    }
+
+    virtual void CalculateEq() override {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+        variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
     }
 };
 

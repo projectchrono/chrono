@@ -15,6 +15,7 @@
 #ifndef CHCONTACTSURFACENODECLOUD_H
 #define CHCONTACTSURFACENODECLOUD_H
 
+#include "chrono/physics/ChContactable.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
@@ -27,7 +28,7 @@ namespace fea {
 /// @{
 
 /// Proxy to FEA nodes, to grant them the features needed for collision detection.
-class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
+class ChApi ChContactNodeXYZ : public ChContactable_1vars {
   public:
     ChContactNodeXYZ(ChNodeFEAxyz* node = nullptr, ChContactSurface* contact_surface = nullptr);
 
@@ -50,8 +51,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
 
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_3; }
 
-    /// Access variables.
-    virtual ChVariables* GetVariables1() override { return &m_node->Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_3(&m_node->Variables());
+    }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -120,9 +122,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// For example, if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               type_constraint_tuple& jacobian_tuple_N,
-                                               type_constraint_tuple& jacobian_tuple_U,
-                                               type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     virtual double GetContactableMass() override {
@@ -152,7 +154,7 @@ class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
 // currently not the case. As such, we need to also implement this ChContactNodeXYZRot as a proxy to ChNodeFEAxyzrot.
 
 /// Proxy to FEA nodes with 3 xyz + 3 rot coords, to grant them the features needed for collision detection.
-class ChApi ChContactNodeXYZRot : public ChContactable_1vars<6> {
+class ChApi ChContactNodeXYZRot : public ChContactable_1vars {
   public:
     ChContactNodeXYZRot(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
 
@@ -175,8 +177,9 @@ class ChApi ChContactNodeXYZRot : public ChContactable_1vars<6> {
 
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_6; }
 
-    /// Access variables.
-    virtual ChVariables* GetVariables1() override { return &m_node->Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_6(&m_node->Variables());
+    }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -245,9 +248,9 @@ class ChApi ChContactNodeXYZRot : public ChContactable_1vars<6> {
     /// For example, if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     virtual double GetContactableMass() override {

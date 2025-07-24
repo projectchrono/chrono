@@ -25,22 +25,21 @@ namespace chrono {
 /// It inherits ChContactNSC, which has three reaction forces (N,U,V) and adds three rolling reaction torques.
 class ChContactNSCrolling : public ChContactNSC {
   protected:
-    // The three scalar constraints, to be feed into the
-    // system solver. They contain jacobians data and special functions.
-    ChConstraintRollingNormal Rx;
-    ChConstraintRollingTangential Ru;
-    ChConstraintRollingTangential Rv;
+    // The three scalar constraints, to be fed into the system solver
+    ChConstraintRollingNormal Rx;      ///< normal rolling constraint
+    ChConstraintRollingTangential Ru;  ///< first tangential rolling constraint
+    ChConstraintRollingTangential Rv;  ///< second tangential rolling constraint
 
-    ChVector3d react_torque;
+    ChVector3d react_torque;  ///< constraint reaction torque
 
     float complianceRoll;
     float complianceSpin;
 
   public:
     ChContactNSCrolling() {
-        Rx.SetRollingConstraintU(&this->Ru);
-        Rx.SetRollingConstraintV(&this->Rv);
-        Rx.SetNormalConstraint(&this->Nx);
+        Rx.SetRollingConstraintU(&Ru);
+        Rx.SetRollingConstraintV(&Rv);
+        Rx.SetNormalConstraint(&Nx);
     }
 
     ChContactNSCrolling(ChContactContainer* contact_container,     ///< contact container
@@ -51,9 +50,9 @@ class ChContactNSCrolling : public ChContactNSC {
                         double min_speed                           ///< minimum speed for rebounce
                         )
         : ChContactNSC(contact_container, obj_A, obj_B, cinfo, mat, min_speed) {
-        Rx.SetRollingConstraintU(&this->Ru);
-        Rx.SetRollingConstraintV(&this->Rv);
-        Rx.SetNormalConstraint(&this->Nx);
+        Rx.SetRollingConstraintU(&Ru);
+        Rx.SetRollingConstraintV(&Rv);
+        Rx.SetNormalConstraint(&Nx);
 
         Reset(obj_A, obj_B, cinfo, mat, min_speed);
     }
@@ -70,28 +69,29 @@ class ChContactNSCrolling : public ChContactNSC {
         // Invoke base class method to reset normal and sliding constraints
         ChContactNSC::Reset(obj_A, obj_B, cinfo, mat, min_speed);
 
-        Rx.SetVariables(objA, objB);
-        Ru.SetVariables(objA, objB);
-        Rv.SetVariables(objA, objB);
+        // Create constraint tuples and set variables
+        Rx.SetTuplesFromContactables(objA, objB);
+        Ru.SetTuplesFromContactables(objA, objB);
+        Rv.SetTuplesFromContactables(objA, objB);
 
         // Cache composite material properties
         Rx.SetRollingFrictionCoefficient(mat.rolling_friction);
         Rx.SetSpinningFrictionCoefficient(mat.spinning_friction);
 
-        this->complianceRoll = mat.complianceRoll;
-        this->complianceSpin = mat.complianceSpin;
+        complianceRoll = mat.complianceRoll;
+        complianceSpin = mat.complianceSpin;
 
         // COMPUTE JACOBIANS
 
         // delegate objA to compute its half of jacobian
-        this->objA->ComputeJacobianForRollingContactPart(this->p1, this->contact_plane, Rx.Get_tuple_a(),
-                                                         Ru.Get_tuple_a(), Rv.Get_tuple_a(), false);
+        objA->ComputeJacobianForRollingContactPart(this->p1, this->contact_plane, Rx.Get_tuple_a(), Ru.Get_tuple_a(),
+                                                   Rv.Get_tuple_a(), false);
 
         // delegate objB to compute its half of jacobian
-        this->objB->ComputeJacobianForRollingContactPart(this->p2, this->contact_plane, Rx.Get_tuple_b(),
-                                                         Ru.Get_tuple_b(), Rv.Get_tuple_b(), true);
+        objB->ComputeJacobianForRollingContactPart(this->p2, this->contact_plane, Rx.Get_tuple_b(), Ru.Get_tuple_b(),
+                                                   Rv.Get_tuple_b(), true);
 
-        this->react_torque = VNULL;
+        react_torque = VNULL;
     }
 
     /// Get the contact force, if computed, in contact coordinate system
@@ -139,9 +139,9 @@ class ChContactNSCrolling : public ChContactNSC {
         // base behaviour too
         ChContactNSC::ContIntLoadResidual_CqL(off_L, R, L, c);
 
-        this->Rx.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
-        this->Ru.AddJacobianTransposedTimesScalarInto(R, L(off_L + 4) * c);
-        this->Rv.AddJacobianTransposedTimesScalarInto(R, L(off_L + 5) * c);
+        Rx.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
+        Ru.AddJacobianTransposedTimesScalarInto(R, L(off_L + 4) * c);
+        Rv.AddJacobianTransposedTimesScalarInto(R, L(off_L + 5) * c);
     }
 
     virtual void ContIntLoadConstraint_C(const unsigned int off_L,
@@ -153,15 +153,15 @@ class ChContactNSCrolling : public ChContactNSC {
         ChContactNSC::ContIntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
         // If rolling and spinning compliance, set the cfm terms
-        double h = this->container->GetSystem()->GetStep();
+        double h = container->GetSystem()->GetStep();
 
         //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
-        double alpha = this->dampingf;              // [R]=alpha*[K]
+        double alpha = dampingf;                    // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-        this->Ru.SetComplianceTerm((inv_hhpa) * this->complianceRoll);
-        this->Rv.SetComplianceTerm((inv_hhpa) * this->complianceRoll);
-        this->Rx.SetComplianceTerm((inv_hhpa) * this->complianceSpin);
+        Ru.SetComplianceTerm((inv_hhpa)*complianceRoll);
+        Rv.SetComplianceTerm((inv_hhpa)*complianceRoll);
+        Rx.SetComplianceTerm((inv_hhpa)*complianceSpin);
     }
 
     // virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c)  {
@@ -215,15 +215,15 @@ class ChContactNSCrolling : public ChContactNSC {
         ChContactNSC::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 
         // If rolling and spinning compliance, set the cfm terms
-        double h = this->container->GetSystem()->GetStep();
+        double h = container->GetSystem()->GetStep();
 
         //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
-        double alpha = this->dampingf;              // [R]=alpha*[K]
+        double alpha = dampingf;                    // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-        this->Ru.SetComplianceTerm((inv_hhpa) * this->complianceRoll);
-        this->Rv.SetComplianceTerm((inv_hhpa) * this->complianceRoll);
-        this->Rx.SetComplianceTerm((inv_hhpa) * this->complianceSpin);
+        Ru.SetComplianceTerm((inv_hhpa)*complianceRoll);
+        Rv.SetComplianceTerm((inv_hhpa)*complianceRoll);
+        Rx.SetComplianceTerm((inv_hhpa)*complianceSpin);
 
         // Assume no residual ever, do not load in C
     }

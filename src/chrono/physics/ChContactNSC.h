@@ -27,15 +27,13 @@ namespace chrono {
 /// Class for non-smooth contact between two generic ChContactable objects.
 class ChContactNSC : public ChContact {
   protected:
-    float* reactions_cache;  ///< N,U,V reactions which might be stored in a persistent contact manifold
+    // The three scalar constraints, to be fed into the system solver
+    ChConstraintContactNormal Nx;      ///< normal constraint
+    ChConstraintContactTangential Tu;  ///< first tangential sliding constraint
+    ChConstraintContactTangential Tv;  ///< second tangential sliding constraint
 
-    /// The three scalar constraints, to be fed into the system solver.
-    /// They contain jacobians data and special functions.
-    ChConstraintContactNormal Nx;
-    ChConstraintContactTangential Tu;
-    ChConstraintContactTangential Tv;
-
-    ChVector3d react_force;
+    float* reactions_cache;  ///< N,U,V reactions potentially stored in a persistent contact manifold
+    ChVector3d react_force;  ///< constraint reaction force
 
     double compliance;
     double complianceT;
@@ -76,40 +74,40 @@ class ChContactNSC : public ChContact {
         // Reset geometric information
         Reset_cinfo(obj_A, obj_B, cinfo);
 
-        // Set variables for the constraint tuples
-        Nx.SetVariables(objA, objB);
-        Tu.SetVariables(objA, objB);
-        Tv.SetVariables(objA, objB);
+        // Create constraint tuples and set variables
+        Nx.SetTuplesFromContactables(objA, objB);
+        Tu.SetTuplesFromContactables(objA, objB);
+        Tv.SetTuplesFromContactables(objA, objB);
 
         // Cache composite material properties
         Nx.SetFrictionCoefficient(mat.static_friction);
         Nx.SetCohesion(mat.cohesion);
 
-        this->restitution = mat.restitution;
-        this->dampingf = mat.dampingf;
-        this->compliance = mat.compliance;
-        this->complianceT = mat.complianceT;
+        restitution = mat.restitution;
+        dampingf = mat.dampingf;
+        compliance = mat.compliance;
+        complianceT = mat.complianceT;
 
-        this->reactions_cache = cinfo.reaction_cache;
+        reactions_cache = cinfo.reaction_cache;
 
-        this->min_rebounce_speed = min_speed;
+        min_rebounce_speed = min_speed;
 
         // COMPUTE JACOBIANS
 
         // delegate objA to compute its half of jacobian
-        objA->ComputeJacobianForContactPart(this->p1, this->contact_plane, Nx.Get_tuple_a(), Tu.Get_tuple_a(),
-                                                  Tv.Get_tuple_a(), false);
+        objA->ComputeJacobianForContactPart(p1, contact_plane, Nx.Get_tuple_a(), Tu.Get_tuple_a(), Tv.Get_tuple_a(),
+                                            false);
 
         // delegate objB to compute its half of jacobian
-        objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
-                                                  Tv.Get_tuple_b(), true);
+        objB->ComputeJacobianForContactPart(p2, contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(), Tv.Get_tuple_b(),
+                                            true);
 
         if (reactions_cache) {
             react_force.x() = reactions_cache[0];
             react_force.y() = reactions_cache[1];
             react_force.z() = reactions_cache[2];
             // std::cout << "Reset Fn=" << (double)reactions_cache[0] << "  at cache address:" <<
-            // (int)this->reactions_cache << std::endl;
+            // (int)reactions_cache << std::endl;
         } else {
             react_force = VNULL;
         }
@@ -153,9 +151,9 @@ class ChContactNSC : public ChContact {
                                          ChVectorDynamic<>& R,
                                          const ChVectorDynamic<>& L,
                                          const double c) override {
-        this->Nx.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
-        this->Tu.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
-        this->Tv.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
+        Nx.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
+        Tu.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+        Tv.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
     }
 
     virtual void ContIntLoadConstraint_C(const unsigned int off_L,
@@ -168,19 +166,19 @@ class ChContactNSC : public ChContact {
         // Elastic Restitution model (use simple Newton model with coefficient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
-        if (this->objA && this->objB) {
-            if (this->restitution) {
+        if (objA && objB) {
+            if (restitution) {
                 // compute normal rebounce speed
-                ChVector3d V1_w = this->objA->GetContactPointSpeed(this->p1);
-                ChVector3d V2_w = this->objB->GetContactPointSpeed(this->p2);
+                ChVector3d V1_w = objA->GetContactPointSpeed(p1);
+                ChVector3d V2_w = objB->GetContactPointSpeed(p2);
                 ChVector3d Vrel_w = V2_w - V1_w;
-                ChVector3d Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
+                ChVector3d Vrel_cplane = contact_plane.transpose() * Vrel_w;
 
-                double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
+                double h = container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
-                double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
+                double neg_rebounce_speed = Vrel_cplane.x() * restitution;
                 if (neg_rebounce_speed < -min_rebounce_speed)
-                    if (this->norm_dist + neg_rebounce_speed * h < 0) {
+                    if (norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
                         Qc(off_L) += neg_rebounce_speed;
@@ -191,19 +189,19 @@ class ChContactNSC : public ChContact {
         if (!bounced) {
             // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
-            if (this->compliance) {
-                double h = 1.0 / c;  // was: this->container->GetSystem()->GetStep(); note not all steppers have c = 1/h
+            if (compliance) {
+                double h = 1.0 / c;  // was: container->GetSystem()->GetStep(); note not all steppers have c = 1/h
 
-                double alpha = this->dampingf;              // [R]=alpha*[K]
+                double alpha = dampingf;                    // [R]=alpha*[K]
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
                 //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
-                Nx.SetComplianceTerm((inv_hhpa) * this->compliance);
-                Tu.SetComplianceTerm((inv_hhpa) * this->complianceT);
-                Tv.SetComplianceTerm((inv_hhpa) * this->complianceT);
+                Nx.SetComplianceTerm((inv_hhpa)*compliance);
+                Tu.SetComplianceTerm((inv_hhpa)*complianceT);
+                Tv.SetComplianceTerm((inv_hhpa)*complianceT);
 
-                double qc = inv_hpa * this->norm_dist;  //// TODO  see how to move this in LoadKRMMatrices()
+                double qc = inv_hpa * norm_dist;  //// TODO  see how to move this in LoadKRMMatrices()
 
                 // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
                 // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
@@ -217,12 +215,12 @@ class ChContactNSC : public ChContact {
 
             } else {
                 if (do_clamp)
-                    if (this->Nx.GetCohesion())
-                        Qc(off_L) += std::min(0.0, std::max(c * this->norm_dist, -recovery_clamp));
+                    if (Nx.GetCohesion())
+                        Qc(off_L) += std::min(0.0, std::max(c * norm_dist, -recovery_clamp));
                     else
-                        Qc(off_L) += std::max(c * this->norm_dist, -recovery_clamp);
+                        Qc(off_L) += std::max(c * norm_dist, -recovery_clamp);
                 else
-                    Qc(off_L) += c * this->norm_dist;
+                    Qc(off_L) += c * norm_dist;
             }
         }
     }
@@ -265,19 +263,19 @@ class ChContactNSC : public ChContact {
         // Elastic Restitution model (use simple Newton model with coefficient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
-        if (this->objA && this->objB) {
-            if (this->restitution) {
+        if (objA && objB) {
+            if (restitution) {
                 // compute normal rebounce speed
-                ChVector3d V1_w = this->objA->GetContactPointSpeed(this->p1);
-                ChVector3d V2_w = this->objB->GetContactPointSpeed(this->p2);
+                ChVector3d V1_w = objA->GetContactPointSpeed(p1);
+                ChVector3d V2_w = objB->GetContactPointSpeed(p2);
                 ChVector3d Vrel_w = V2_w - V1_w;
-                ChVector3d Vrel_cplane = this->contact_plane.transpose() * Vrel_w;
+                ChVector3d Vrel_cplane = contact_plane.transpose() * Vrel_w;
 
                 double h = 1.0 / factor;  // inverse timestep is factor
 
-                double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
+                double neg_rebounce_speed = Vrel_cplane.x() * restitution;
                 if (neg_rebounce_speed < -min_rebounce_speed)
-                    if (this->norm_dist + neg_rebounce_speed * h < 0) {
+                    if (norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
                         Nx.SetRightHandSide(Nx.GetRightHandSide() + neg_rebounce_speed);
@@ -288,19 +286,19 @@ class ChContactNSC : public ChContact {
         if (!bounced) {
             // CASE: SETTLE (most often, and also default if two colliding items are not two ChBody)
 
-            if (this->compliance) {
+            if (compliance) {
                 //  inverse timestep is factor
                 double h = 1.0 / factor;
 
-                double alpha = this->dampingf;              // [R]=alpha*[K]
+                double alpha = dampingf;                    // [R]=alpha*[K]
                 double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
                 double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
-                Nx.SetComplianceTerm((inv_hhpa) * this->compliance);  // was (inv_hh)* ...   //// TEST DAMPING
-                Tu.SetComplianceTerm((inv_hhpa) * this->complianceT);
-                Tv.SetComplianceTerm((inv_hhpa) * this->complianceT);
+                Nx.SetComplianceTerm((inv_hhpa)*compliance);  // was (inv_hh)* ...   //// TEST DAMPING
+                Tu.SetComplianceTerm((inv_hhpa)*complianceT);
+                Tv.SetComplianceTerm((inv_hhpa)*complianceT);
 
-                double qc = inv_hpa * this->norm_dist;
+                double qc = inv_hpa * norm_dist;
 
                 // If clamping kicks in(when using large timesteps and low compliance), it acts as a numerical damping.
                 if (do_clamp)
@@ -311,12 +309,13 @@ class ChContactNSC : public ChContact {
             } else {
                 // std::cout << "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << std::endl;
                 if (do_clamp)
-                    if (this->Nx.GetCohesion())
-                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::min(0.0, std::max(factor * this->norm_dist, -recovery_clamp)));
+                    if (Nx.GetCohesion())
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() +
+                                            std::min(0.0, std::max(factor * norm_dist, -recovery_clamp)));
                     else
-                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::max(factor * this->norm_dist, -recovery_clamp));
+                        Nx.SetRightHandSide(Nx.GetRightHandSide() + std::max(factor * norm_dist, -recovery_clamp));
                 else
-                    Nx.SetRightHandSide(Nx.GetRightHandSide() + factor * this->norm_dist);
+                    Nx.SetRightHandSide(Nx.GetRightHandSide() + factor * norm_dist);
             }
         }
     }
