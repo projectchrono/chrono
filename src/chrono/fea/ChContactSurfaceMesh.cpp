@@ -43,8 +43,13 @@ namespace fea {
 // -----------------------------------------------------------------------------
 // ChContactTriangleXYZ
 
-ChContactTriangleXYZ::ChContactTriangleXYZ()
-    : ChContactable_3vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables()),
+ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
+                                           std::shared_ptr<ChNodeFEAxyz> node2,
+                                           std::shared_ptr<ChNodeFEAxyz> node3,
+                                           ChContactSurface* container)
+    : ChContactable_3vars(&node1->Variables(), &node2->Variables(), &node3->Variables()),
+      m_nodes({node1, node2, node3}),
+      m_container(container),
       m_owns_node({true, true, true}),
       m_owns_edge({true, true, true}) {
     // Load contactable variables list
@@ -305,8 +310,13 @@ void ChContactTriangleXYZ::ComputeUVfromP(const ChVector3d& P, double& u, double
 // -----------------------------------------------------------------------------
 // ChContactTriangleXYZRot
 
-ChContactTriangleXYZRot::ChContactTriangleXYZRot()
-    : ChContactable_3vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables()),
+ChContactTriangleXYZRot::ChContactTriangleXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
+                                                 std::shared_ptr<ChNodeFEAxyzrot> node2,
+                                                 std::shared_ptr<ChNodeFEAxyzrot> node3,
+                                                 ChContactSurface* container)
+    : ChContactable_3vars(&node1->Variables(), &node2->Variables(), &node3->Variables()),
+      m_nodes({node1, node2, node3}),
+      m_container(container),
       m_owns_node({true, true, true}),
       m_owns_edge({true, true, true}) {
     // Load contactable variables list
@@ -633,11 +643,11 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyz> node1,
     assert(node2);
     assert(node3);
 
-    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
-    contact_triangle->SetNodes({{node1, node2, node3}});
+    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>(node1, node2, node3, this);
+    ////contact_triangle->SetNodes({{node1, node2, node3}});
     contact_triangle->SetNodeOwnership({owns_node1, owns_node2, owns_node3});
     contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
-    contact_triangle->SetContactSurface(this);
+    ////contact_triangle->SetContactSurface(this);
 
     auto tri_shape = chrono_types::make_shared<ChCollisionShapeMeshTriangle>(
         m_material,                                   // contact material
@@ -676,11 +686,11 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
     assert(node2);
     assert(node3);
 
-    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZRot>();
-    contact_triangle->SetNodes({{node1, node2, node3}});
+    auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZRot>(node1, node2, node3, this);
+    ////contact_triangle->SetNodes({{node1, node2, node3}});
     contact_triangle->SetNodeOwnership({owns_node1, owns_node2, owns_node3});
     contact_triangle->SetEdgeOwnership({owns_edge1, owns_edge2, owns_edge3});
-    contact_triangle->SetContactSurface(this);
+    ////contact_triangle->SetContactSurface(this);
 
     auto tri_shape = chrono_types::make_shared<ChCollisionShapeMeshTriangle>(
         m_material,                                             // contact material

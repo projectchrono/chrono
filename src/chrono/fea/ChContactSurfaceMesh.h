@@ -32,7 +32,10 @@ namespace fea {
 /// Used to 'tessellate' the surface of FEA meshes for collision purposes.
 class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadableUV {
   public:
-    ChContactTriangleXYZ();
+    ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
+                         std::shared_ptr<ChNodeFEAxyz> node2,
+                         std::shared_ptr<ChNodeFEAxyz> node3,
+                         ChContactSurface* container = nullptr);
     ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                          ChContactSurface* container = nullptr);
 
@@ -228,7 +231,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadable
 /// Used to 'tessellate' a generic surface like the outer of tetrahedral meshes.
 class ChApi ChContactTriangleXYZRot : public ChContactable_3vars, public ChLoadableUV {
   public:
-    ChContactTriangleXYZRot();
+    ChContactTriangleXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
+                            std::shared_ptr<ChNodeFEAxyzrot> node2,
+                            std::shared_ptr<ChNodeFEAxyzrot> node3,
+                            ChContactSurface* container = nullptr);
     ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                             ChContactSurface* container = nullptr);
 

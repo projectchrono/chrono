@@ -30,10 +30,13 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZ::ChContactSegmentXYZ()
-    : ChContactable_2vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables()),
+ChContactSegmentXYZ::ChContactSegmentXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
+                                         std::shared_ptr<ChNodeFEAxyz> node2,
+                                         ChContactSurface* container)
+    : ChContactable_2vars(&node1->Variables(), &node2->Variables()),
+      m_nodes({node1, node2}),
       m_owns_node({true, true}),
-      m_container(nullptr) {
+      m_container(container) {
     // Load contactable variables list
     m_contactable_variables.push_back(&m_nodes[0]->Variables());
     m_contactable_variables.push_back(&m_nodes[1]->Variables());
@@ -169,10 +172,13 @@ double ChContactSegmentXYZ::ComputeUfromP(const ChVector3d& P) {
 
 // -----------------------------------------------------------------------------
 
-ChContactSegmentXYZRot::ChContactSegmentXYZRot()
-    : ChContactable_2vars(&m_nodes[0]->Variables(), &m_nodes[1]->Variables()),
+ChContactSegmentXYZRot::ChContactSegmentXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
+                                               std::shared_ptr<ChNodeFEAxyzrot> node2,
+                                               ChContactSurface* container)
+    : ChContactable_2vars(&node1->Variables(), &node2->Variables()),
+      m_nodes({node1, node2}),
       m_owns_node({true, true}),
-      m_container(nullptr) {
+      m_container(container) {
     // Load contactable variables list
     m_contactable_variables.push_back(&m_nodes[0]->Variables());
     m_contactable_variables.push_back(&m_nodes[1]->Variables());
@@ -340,10 +346,10 @@ void ChContactSurfaceSegmentSet::AddSegment(std::shared_ptr<ChNodeFEAxyz> node1,
     assert(node1);
     assert(node2);
 
-    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZ>();
-    segment->SetNodes({{node1, node2}});
+    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZ>(node1, node2, this);
+    ////segment->SetNodes({{node1, node2}});
     segment->SetNodeOwnership({owns_node1, owns_node2});
-    segment->SetContactSurface(this);
+    ////segment->SetContactSurface(this);
 
     auto segment_shape = chrono_types::make_shared<ChCollisionShapeSegment>(
         m_material, &node1->GetPos(), &node2->GetPos(), owns_node1, owns_node2, sphere_swept);
@@ -361,10 +367,10 @@ void ChContactSurfaceSegmentSet::AddSegment(std::shared_ptr<ChNodeFEAxyzrot> nod
     assert(node1);
     assert(node2);
 
-    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZRot>();
-    segment->SetNodes({{node1, node2}});
+    auto segment = chrono_types::make_shared<fea::ChContactSegmentXYZRot>(node1, node2, this);
+    ////segment->SetNodes({{node1, node2}});
     segment->SetNodeOwnership({owns_node1, owns_node2});
-    segment->SetContactSurface(this);
+    ////segment->SetContactSurface(this);
 
     auto segment_shape = chrono_types::make_shared<ChCollisionShapeSegment>(
         m_material, &node1->GetPos(), &node2->GetPos(), owns_node1, owns_node2, sphere_swept);

@@ -34,7 +34,9 @@ namespace fea {
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
 class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
   public:
-    ChContactSegmentXYZ();
+    ChContactSegmentXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
+                        std::shared_ptr<ChNodeFEAxyz> node2,
+                        ChContactSurface* container = nullptr);
     ChContactSegmentXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes,
                         ChContactSurface* container = nullptr);
 
@@ -161,7 +163,9 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
 /// Used to 'tessellate' FEA meshes with 1-D elements for collision purposes.
 class ChApi ChContactSegmentXYZRot : public ChContactable_2vars /*, public ChLoadableU*/ {
   public:
-    ChContactSegmentXYZRot();
+    ChContactSegmentXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
+                           std::shared_ptr<ChNodeFEAxyzrot> node2,
+                           ChContactSurface* container = nullptr);
     ChContactSegmentXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 2>& nodes,
                            ChContactSurface* container = nullptr);
 

@@ -57,7 +57,7 @@ class ChConstraintTwoTuples : public ChConstraint {
         delete tuple_a;
         delete tuple_b;
         tuple_a = objA->CreateConstraintTuple();
-        tuple_b = objA->CreateConstraintTuple();
+        tuple_b = objB->CreateConstraintTuple();
     }
 
     virtual void Update_auxiliary() override {
