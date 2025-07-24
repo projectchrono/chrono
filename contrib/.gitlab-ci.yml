@@ -119,13 +119,15 @@ linux:ubuntu22.04-gcc:build:
     - export C_COMPILER="/usr/bin/gcc"
     - export CXX_COMPILER="/usr/bin/g++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
+    - cmake --install .
   artifacts:
     expire_in: 60m
     paths:
+      - chrono_install_linux64/
       - build/
 
 linux:ubuntu22.04-gcc:test:
@@ -151,13 +153,15 @@ linux:ubuntu22.04-clang:build:
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
+    - cmake --install .
   artifacts:
     expire_in: 60m
     paths:
+      - chrono_install_linux64/
       - build/
 
 linux:ubuntu22.04-clang:test:
@@ -279,9 +283,11 @@ windows:vs2022:build:
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
+  - cmake --install . --config Release
   artifacts:
     expire_in: 3 hours
     paths:
+      - chrono_install_win64/
       - build/
       - contrib/build-scripts/gl_build
 
@@ -441,14 +447,16 @@ windows:vs2022:deploy-installer:
   extends: .macos-monterey
   script:
   # Configuring chrono
-  - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=macosci
+  - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_macos" --preset=macosci
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
   - cd build
   # Building chrono
   - cmake --build . --config Release -j 7
+  - cmake --install . --config Release
   artifacts:
     expire_in: 60m
     paths:
+    - chrono_install_macos/
     - build/
 
 .macos-monterey-test:
