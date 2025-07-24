@@ -191,17 +191,17 @@ void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load
     m_container_external->Add(torque_load);
 }
 
-void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
-    if (joint->m_joint.index() == 0) {
-        m_body->GetSystem()->AddLink(mpark::get<ChVehicleJoint::Link>(joint->m_joint));
+void ChChassis::AddJoint(std::shared_ptr<ChJoint> joint) {
+    if (joint->IsKinematic()) {
+        m_body->GetSystem()->AddLink(joint->GetAsLink());
     } else {
-        m_container_bushings->Add(mpark::get<ChVehicleJoint::Bushing>(joint->m_joint));
+        m_container_bushings->Add(joint->GetAsBushing());
     }
 }
 
-void ChChassis::RemoveJoint(std::shared_ptr<ChVehicleJoint> joint) {
-    if (joint->m_joint.index() == 0) {
-        ChVehicleJoint::Link& link = mpark::get<ChVehicleJoint::Link>(joint->m_joint);
+void ChChassis::RemoveJoint(std::shared_ptr<ChJoint> joint) {
+    if (joint->IsKinematic()) {
+        auto link = joint->GetAsLink();
         auto sys = link->GetSystem();
         if (sys) {
             sys->Remove(link);

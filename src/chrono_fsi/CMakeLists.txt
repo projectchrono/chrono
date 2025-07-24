@@ -42,6 +42,8 @@ add_library(Chrono_fsi
 )
 add_library(Chrono::fsi ALIAS Chrono_fsi)
 
+set_target_properties(Chrono_fsi PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if (CH_STATIC)
   set_target_properties(Chrono_fsi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()

@@ -64,6 +64,7 @@ double density = 500;
 
 // Object initial height above floor (as a ratio of fluid height)
 double initial_height = 1.05;
+
 // Visibility flags
 bool show_rigid = true;
 bool show_rigid_bce = false;
@@ -230,8 +231,8 @@ int main(int argc, char* argv[]) {
     double bottom_offset = 0;
     double mass = 0;
     ChMatrix33d inertia;
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
     switch (object_shape) {
         case ObjectShape::SPHERE_PRIMITIVE: {
             double radius = 0.12;
@@ -239,7 +240,7 @@ int main(int argc, char* argv[]) {
             ChSphere sphere(radius);
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
-            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
+            geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
             break;
         }
         case ObjectShape::CYLINDER_PRIMITIVE: {
@@ -249,7 +250,7 @@ int main(int argc, char* argv[]) {
             ChCylinder cylinder(radius, length);
             mass = density * cylinder.GetVolume();
             inertia = mass * cylinder.GetGyration();
-            geometry.coll_cylinders.push_back(
+            geometry->coll_cylinders.push_back(
                 utils::ChBodyGeometry::CylinderShape(VNULL, Q_ROTATE_Z_TO_X, cylinder, 0));
             break;
         }
@@ -260,7 +261,7 @@ int main(int argc, char* argv[]) {
             mass *= density;
             inertia *= density;
             bottom_offset = mesh_bottom_offset;
-            geometry.coll_meshes.push_back(
+            geometry->coll_meshes.push_back(
                 utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_obj_filename, VNULL, mesh_scale, 0.01, 0));
             break;
         }
@@ -277,9 +278,9 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(body);
 
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
-    // Add as an FSI body (create BCE markers on a grid)
+    // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, true);
 
     std::cout << "Body mass = " << mass << std::endl;

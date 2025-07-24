@@ -80,4 +80,4 @@ target_link_libraries(vehicle_cosim PRIVATE MPI::MPI_CXX)
 #--------------------------------------------------------------
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-add_DLL_copy_command()
+add_CHRONO_DLLS_copy_command()

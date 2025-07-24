@@ -25,10 +25,6 @@ namespace chrono {
 /// Ramp function.
 /// `y = y0 + m * x`
 class ChApi ChFunctionRamp : public ChFunction {
-  private:
-    double m_y0;
-    double m_ang_coeff;
-
   public:
     ChFunctionRamp() : m_y0(0), m_ang_coeff(1) {}
     ChFunctionRamp(double y0, double ang_coeff) : m_y0(y0), m_ang_coeff(ang_coeff) {}
@@ -43,6 +39,7 @@ class ChApi ChFunctionRamp : public ChFunction {
     virtual double GetVal(double x) const override { return (m_y0 + (x * m_ang_coeff)); }
     virtual double GetDer(double x) const override { return (m_ang_coeff); }
     virtual double GetDer2(double x) const override { return 0; }
+    virtual double GetDer3(double x) const override { return 0; }
 
     /// Set the initial value.
     void SetStartVal(double y0) { m_y0 = y0; }
@@ -61,6 +58,10 @@ class ChApi ChFunctionRamp : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_y0;
+    double m_ang_coeff;
 };
 
 /// @} chrono_functions

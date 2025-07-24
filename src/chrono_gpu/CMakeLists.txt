@@ -125,6 +125,8 @@ add_library(Chrono_gpu
 
 add_library(Chrono::gpu ALIAS Chrono_gpu)
 
+set_target_properties(Chrono_gpu PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if (CH_STATIC)
   set_target_properties(Chrono_gpu PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()

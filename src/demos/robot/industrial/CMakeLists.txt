@@ -34,5 +34,5 @@ foreach(PROGRAM ${DEMOS})
                           Chrono_irrlicht
                           ChronoModels_robot)
 
-    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+    install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

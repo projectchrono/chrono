@@ -592,7 +592,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int
     //// RADU TODO
     //// Chrono::GPU is currently limited to a single material for an interacting object?!?
     //// For now, use the first one only
-    auto mat_props = m_geometry[i_shape].materials[0];
+    auto mat_props = m_geometry[i_shape]->materials[0];
 
     auto material_terrain = std::static_pointer_cast<ChContactMaterialSMC>(m_material_terrain);
     auto material = std::static_pointer_cast<ChContactMaterialSMC>(mat_props.CreateMaterial(m_method));
@@ -632,14 +632,14 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
-    m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::COLLISION);
+    m_geometry[i_shape]->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Create collision shapes (only if obstacles are present)
     auto num_obstacles = m_obstacles.size();
     if (num_obstacles > 0) {
-        for (auto& mesh : m_geometry[i_shape].coll_meshes)
+        for (auto& mesh : m_geometry[i_shape]->coll_meshes)
             mesh.radius = m_radius_g;
-        m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
+        m_geometry[i_shape]->CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->DisallowCollisionsWith(1);
     }
@@ -651,7 +651,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
 
     // Set mesh for granular system
     //// RADU TODO: what about other collision primitives?!?
-    for (auto& mesh : m_geometry[i_shape].coll_meshes) {
+    for (auto& mesh : m_geometry[i_shape]->coll_meshes) {
         auto imesh = m_systemGPU->AddMesh(mesh.trimesh, (float)m_load_mass[i]);
         if (imesh != i + num_obstacles) {
             throw std::runtime_error("Error adding GPU mesh for object " + std::to_string(i));

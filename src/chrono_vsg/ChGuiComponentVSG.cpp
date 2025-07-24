@@ -33,7 +33,7 @@ void ChGuiComponentVSG::DrawGauge(float val, float v_min, float v_max) {
 void TextCentered(const char* text, float offset) {
     auto text_width = ImGui::CalcTextSize(text).x;
     ImGui::SetCursorPosX(offset - text_width / 2);
-    ImGui::Text(text);
+    ImGui::TextUnformatted(text);
 }
 
 void ChGuiComponentVSG::Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,

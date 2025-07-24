@@ -110,10 +110,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Structure with surface reconstruction parameters.
     struct CH_FSI_API SplashsurfParameters {
-        double smoothing_length;    ///< smoothing length used for the SPH kernel (in multiplies of the particle radius)
+        double smoothing_length;   ///< smoothing length used for the SPH kernel (in multiplies of the particle radius)
         double cube_size;          ///< cube edge length used for marching cubes (in multiplies of the particle radius)
         double surface_threshold;  ///< iso-surface threshold for the density  (in multiplies of the rest density)
-    
+
         SplashsurfParameters();
     };
 
@@ -242,7 +242,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Set kernel type.
     void SetKernelType(KernelType kernel_type);
-    
+
     /// Return the SPH kernel length of kernel function.
     double GetKernelLength() const;
 
@@ -355,101 +355,14 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
     void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
 
-    // ----------- Functions for adding BCE markers for different shapes
+    // -----------
 
-    /// Add BCE markers for a rectangular plate of specified X-Y dimensions and associate them with the given body.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// X-Y BCE layers are created in the negative Z direction of the plate orientation frame.
-    /// Such a plate is assumed to be used as boundary.
-    void AddPlateBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d& size);
-
-    /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
-    /// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
-    /// axes. Such a container is assumed to be used as a boundary.
-    /// The 'faces' input vector specifies which faces of the container are to be created: for each direction, a value
-    /// of -1 indicates the face in the negative direction, a value of +1 indicates the face in the positive direction,
-    /// and a value of 2 indicates both faces. Setting a value of 0 does not create container faces in that direction.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// Such a container is assumed to be used as a fixed boundary and the associated body is not tracked in FSI.
-    void AddBoxContainerBCE(std::shared_ptr<ChBody> body,
-                            const ChFrame<>& frame,
-                            const ChVector3d& size,
-                            const ChVector3i faces);
-
-    /// Add BCE markers for a box of specified dimensions and associate them with the given body.
-    /// The box is assumed to be centered at the origin of the provided frame and aligned with its axes.
-    /// BCE markers are created inside the box if solid=true, and outside the box otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    size_t AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector3d& size, bool solid);
-
-    /// Add BCE markers for a sphere of specified radius and associate them with the given body.
-    /// The sphere is assumed to be centered at the origin of the provided frame.
-    /// BCE markers are created inside the sphere if solid=true, and outside the sphere otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using spherical coordinates (default), or else on a uniform Cartesian grid.
-    size_t AddSphereBCE(std::shared_ptr<ChBody> body,
-                        const ChFrame<>& frame,
-                        double radius,
-                        bool solid,
-                        bool polar = true);
-
-    /// Add BCE markers for a cylinder of specified radius and height and associate them with the given body.
-    /// The cylinder is assumed centered at the origin of the provided frame and aligned with its Z axis.
-    /// BCE markers are created inside the cylinder if solid=true, and outside the cylinder otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    size_t AddCylinderBCE(std::shared_ptr<ChBody> body,
-                          const ChFrame<>& frame,
-                          double radius,
-                          double height,
-                          bool solid,
-                          bool polar = true);
-
-    /// Add BCE markers for a cone of specified radius and height and associate them with the given body.
-    /// The cone is assumed centered at the origin of the provided frame and aligned with its Z axis.
-    /// BCE markers are created inside the cone if solid=true, and outside the cone otherwise.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    size_t AddConeBCE(std::shared_ptr<ChBody> body,
-                      const ChFrame<>& frame,
-                      double radius,
-                      double height,
-                      bool solid,
-                      bool polar = true);
-
-    /// Add BCE markers for a cylindrical annulus of specified radii and height and associate them with the given body.
-    /// The cylindrical annulus is assumed centered at the origin of the provided frame and aligned with its Z axis.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (default), or else on a uniform Cartesian grid.
-    /// Such a cylindrical annulus is assumed to be used on a solid body.
-    size_t AddCylinderAnnulusBCE(std::shared_ptr<ChBody> body,
-                                 const ChFrame<>& frame,
-                                 double radius_inner,
-                                 double radius_outer,
-                                 double height,
-                                 bool polar = true);
-
-    /// Add BCE markers from a set of points and associate them with the given body.
+    /// Add boundary BCE markers at the specified points.
     /// The points are assumed to be provided relative to the specified frame.
-    /// The BCE markers are created in the absolute coordinate frame.
-    size_t AddPointsBCE(std::shared_ptr<ChBody> body,
-                        const std::vector<ChVector3d>& points,
-                        const ChFrame<>& rel_frame,
-                        bool solid);
-
-    // ----------- Functions for adding FEA meshes and associated BCE markers
-
-    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh.
-    /// By default, a full set of BCE markers is used across each section, including a central marker.
-    void SetBcePattern1D(BcePatternMesh1D pattern,   ///< marker pattern in cross-section
-                         bool remove_center = false  ///< eliminate markers on center line
-    );
-
-    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh.
-    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
-    void SetBcePattern2D(BcePatternMesh2D pattern,   ///< pattern of marker locations along normal
-                         bool remove_center = false  ///< eliminate markers on surface
-    );
+    /// These BCE markers are not associated with a particular FSI body and, as such, cannot be used to extract fluid
+    /// forces and moments. If fluid reaction forces are needed, create an FSI body with the desirted geometry or list
+    /// of BCE points and add it through the contianing FSI system.
+    void AddBCEBoundary(const std::vector<ChVector3d>& points, const ChFramed& frame);
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
@@ -486,69 +399,73 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Extract forces applied to allmarkers (SPH and BCE) with indices in the provided array.
     std::vector<Real3> GetForces(const std::vector<int>& indices) const;
 
-    // ----------- Utility functions for creating BCE marker points in various volumes
-
-    /// Create BCE markers on a rectangular plate of specified X-Y dimensions, assumed centered at the origin.
-    /// BCE markers are created in a number of layers corresponding to system parameters.
-    /// BCE layers are created in the negative Z direction.
-    void CreateBCE_Plate(const ChVector2d& size, std::vector<ChVector3d>& bce);
-
-    /// Create BCE interior markers for a box of specified dimensions, assumed centered at the origin.
-    /// BCE markers are created inside the box, in a number of layers corresponding to system parameters.
-    void CreateBCE_BoxInterior(const ChVector3d& size, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE markers for a box of specified dimensions, assumed centered at the origin.
-    /// BCE markers are created outside the box, in a number of layers corresponding to system parameters.
-    void CreateBCE_BoxExterior(const ChVector3d& size, std::vector<ChVector3d>& bce);
-
-    /// Create interior BCE markers for a sphere of specified radius, assumed centered at the origin.
-    /// BCE markers are created inside the sphere, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_SphereInterior(double radius, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE markers for a sphere of specified radius, assumed centered at the origin.
-    /// BCE markers are created outside the sphere, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_SphereExterior(double radius, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create interior BCE markers for a cylinder of specified radius and height.
-    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created inside the cylinder, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_CylinderInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE markers for a cylinder of specified radius and height.
-    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created outside the cylinder, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_CylinderExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create interior BCE particles for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created inside the cone, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_ConeInterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
-    /// Create exterior BCE particles for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created outside the cone, in a number of layers corresponding to system parameters.
-    /// BCE markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
-    void CreateBCE_ConeExterior(double rad, double height, bool polar, std::vector<ChVector3d>& bce);
-
     // ----------- Utility functions for creating points in various volumes
 
-    /// Create points at suggested separation 'delta' filling a cylindrical annulus of specified radii and height.
-    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
-    /// BCE markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
-    static void CreatePoints_CylinderAnnulus(double rad_inner,
-                                             double rad_outer,
-                                             double height,
-                                             bool polar,
-                                             double delta,
-                                             std::vector<ChVector3d>& points);
+    /// Create marker points on a rectangular plate of specified X-Y dimensions, assumed centered at the origin.
+    /// Markers are created in a number of layers (in the negative Z direction) corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsPlate(const ChVector2d& size) const;
 
-    /// Create points at suggested separation 'delta' filling a closed mesh.
-    static void CreatePoints_Mesh(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& points);
+    /// Create marker points for a box container of specified dimensions.
+    /// The box volume is assumed to be centered at the origin. The 'faces' input vector specifies which faces of the
+    /// container are to be created: for each direction, a value of -1 indicates the face in the negative direction, a
+    /// value of +1 indicates the face in the positive direction, and a value of 2 indicates both faces. Setting a value
+    /// of 0 does not create container faces in that direction. Markers are created in a number of layers corresponding
+    /// to system parameters.
+    std::vector<ChVector3d> CreatePointsBoxContainer(const ChVector3d& size, const ChVector3i& faces) const;
+
+    /// Create interior marker points for a box of specified dimensions, assumed centered at the origin.
+    /// Markers are created inside the box, in a number of layers corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsBoxInterior(const ChVector3d& size) const;
+
+    /// Create exterior marker points for a box of specified dimensions, assumed centered at the origin.
+    /// Markers are created outside the box, in a number of layers corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsBoxExterior(const ChVector3d& size) const;
+
+    /// Create interior marker points for a sphere of specified radius, assumed centered at the origin.
+    /// Markers are created inside the sphere, in a number of layers corresponding to system parameters.
+    /// Markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsSphereInterior(double radius, bool polar) const;
+
+    /// Create exterior marker pointss for a sphere of specified radius, assumed centered at the origin.
+    /// Markers are created outside the sphere, in a number of layers corresponding to system parameters.
+    /// Markers are created using spherical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsSphereExterior(double radius, bool polar) const;
+
+    /// Create interior marker points for a cylinder of specified radius and height.
+    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created inside the cylinder, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsCylinderInterior(double rad, double height, bool polar) const;
+
+    /// Create exterior marker points for a cylinder of specified radius and height.
+    /// The cylinder is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created outside the cylinder, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsCylinderExterior(double rad, double height, bool polar) const;
+
+    /// Create interior marker points for a cone of specified radius and height.
+    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created inside the cone, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsConeInterior(double rad, double height, bool polar) const;
+
+    /// Create exterior marker points for a cone of specified radius and height.
+    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created outside the cone, in a number of layers corresponding to system parameters.
+    /// Markers are created using cylinderical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsConeExterior(double rad, double height, bool polar) const;
+
+    /// Create marker points filling a cylindrical annulus of specified radii and height.
+    /// The cylinder annulus is assumed centered at the origin and aligned with the Z axis.
+    /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
+    std::vector<ChVector3d> CreatePointsCylinderAnnulus(double rad_inner,
+                                                        double rad_outer,
+                                                        double height,
+                                                        bool polar) const;
+
+    /// Create marker points filling a closed mesh.
+    /// Markers are created on a Cartesian grid with a separation corresponding to system parameters.
+    std::vector<ChVector3d> CreatePointsMesh(ChTriangleMeshConnected& mesh) const;
 
   public:
     PhysicsProblem GetPhysicsProblem() const;
@@ -556,17 +473,104 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::string GetSphIntegrationSchemeString() const;
 
   private:
+    /// SPH specification of an FSI rigid solid.
+    struct FsiSphBody {
+        std::shared_ptr<FsiBody> fsi_body;   ///< underlying FSI solid
+        std::vector<ChVector3d> bce;         ///< BCE initial global positions
+        std::vector<ChVector3d> bce_coords;  ///< local BCE coordinates: (x, y, z) in body frame
+        std::vector<int> bce_ids;            ///< BCE identification (body ID)
+        bool check_embedded;                 ///< if true, check for overlapping SPH particles
+    };
+
+    /// SPH specification of a 1D FSI deformable solid surface.
+    struct FsiSphMesh1D {
+        std::shared_ptr<FsiMesh1D> fsi_mesh;  ///< underlying FSI solid
+        std::vector<ChVector3d> bce;          ///< BCE initial global positions
+        std::vector<ChVector3d> bce_coords;   ///< local BCE coordinates: (u, y, z) in segment frame
+        std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local segment ID, global segment ID)
+        bool check_embedded;                  ///< if true, check for overlapping SPH particles
+    };
+
+    /// SPH specification of a 2D FSI deformable solid surface.
+    struct FsiSphMesh2D {
+        std::shared_ptr<FsiMesh2D> fsi_mesh;  ///< underlying FSI solid
+        std::vector<ChVector3d> bce;          ///< BCE initial global positions
+        std::vector<ChVector3d> bce_coords;   ///< local BCE coordinates: (u, v, z) in triangle frame
+        std::vector<ChVector3i> bce_ids;      ///< BCE identification (mesh ID, local face ID, global face ID)
+        bool check_embedded;                  ///< if true, check for overlapping SPH particles
+    };
+
     /// Initialize simulation parameters with default values.
     void InitParams();
 
+    // ----------
+
+    /// SPH solver-specific actions taken when a rigid solid is added as an FSI object.
+    virtual void OnAddFsiBody(std::shared_ptr<FsiBody> fsi_body, bool check_embedded) override;
+
+    /// SPH solver-specific actions taken when a 1D deformable solid is added as an FSI object.
+    virtual void OnAddFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh, bool check_embedded) override;
+
+    /// SPH solver-specific actions taken when a 2D deformable solid is added as an FSI object.
+    virtual void OnAddFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bool check_embedded) override;
+
+    /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFsiMesh1D.
+    /// By default, a full set of BCE markers is used across each section, including a central marker.
+    void SetBcePattern1D(BcePatternMesh1D pattern,  ///< marker pattern in cross-section
+                         bool remove_center         ///< eliminate markers on center line
+    );
+
+    /// Set the BCE marker pattern for 2D flexible solids for subsequent calls to AddFsiMesh2D.
+    /// By default, BCE markers are created centered on the mesh surface, with a layer of BCEs on the surface.
+    void SetBcePattern2D(BcePatternMesh2D pattern,  ///< pattern of marker locations along normal
+                         bool remove_center         ///< eliminate markers on surface
+    );
+
+    /// Create the the local BCE coordinates, their body associations, and the initial global BCE positions for the
+    /// given FSI rigid body.
+    void CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
+                          std::vector<int>& bce_ids,
+                          std::vector<ChVector3d>& bce_coords,
+                          std::vector<ChVector3d>& bce);
+
+    /// Create the the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
+    /// given FSI 1D mesh.
+    void CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
+                            BcePatternMesh1D pattern,
+                            bool remove_center,
+                            std::vector<ChVector3i>& bce_ids,
+                            std::vector<ChVector3d>& bce_coords,
+                            std::vector<ChVector3d>& bce);
+
+    /// Create the the local BCE coordinates, their mesh associations, and the initial global BCE positions for the
+    /// given FSI 2D mesh.
+    void CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh,
+                            BcePatternMesh2D pattern,
+                            bool remove_center,
+                            std::vector<ChVector3i>& bce_ids,
+                            std::vector<ChVector3d>& bce_coords,
+                            std::vector<ChVector3d>& bce);
+
+    // ----------
+
     /// Initialize the SPH fluid system with FSI support.
-    virtual void Initialize(const std::vector<FsiBody>& fsi_bodies,
-                            const std::vector<FsiMesh1D>& fsi_meshes1D,
-                            const std::vector<FsiMesh2D>& fsi_meshes2D,
-                            const std::vector<FsiBodyState>& body_states,
+    virtual void Initialize(const std::vector<FsiBodyState>& body_states,
                             const std::vector<FsiMeshState>& mesh1D_states,
-                            const std::vector<FsiMeshState>& mesh2D_states,
-                            bool use_node_directions) override;
+                            const std::vector<FsiMeshState>& mesh2D_states) override;
+
+    /// Add the BCE markers for the given FSI rigid body to the underlying data manager.
+    /// Note: BCE markers are created with zero velocities.
+    void AddBCEFsiBody(const FsiSphBody& fsisph_body);
+
+    /// Add the BCE markers for the given FSI 1D mesh to the underlying data manager.
+    /// Note: BCE markers are created with zero velocities.
+    void AddBCEFsiMesh1D(const FsiSphMesh1D& fsisph_mesh);
+
+    /// Add the BCE markers for the given FSI 2D mesh to the underlying data manager.
+    /// Note: BCE markers are created with zero velocities.
+    void AddBCEFsiMesh2D(const FsiSphMesh2D& fsisph_mesh);
+
+    // ----------
 
     /// Load the given body and mesh node states in the SPH data manager structures.
     /// This function converts FEA mesh states from the provided AOS records to the SOA layout used by the SPH data
@@ -586,19 +590,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) override;
 
-    /// Add a flexible solid with segment set contact to the FSI system.
-    void AddFsiMesh1D(unsigned int index, const FsiMesh1D& fsi_mesh, bool use_node_directions);
-
-    /// Add a flexible solid with surface mesh contact to the FSI system.
-    void AddFsiMesh2D(unsigned int index, const FsiMesh2D& fsi_mesh, bool use_node_directions);
-
-    /// Create and add BCE markers associated with the given set of contact segments.
-    /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh1D(unsigned int meshID, const FsiMesh1D& fsi_mesh, bool use_node_directions);
-
-    /// Create and add BCE markers associated with the given mesh contact surface.
-    /// The BCE markers are created in the absolute coordinate frame.
-    unsigned int AddBCE_mesh2D(unsigned int meshID, const FsiMesh2D& fsi_mesh, bool use_node_directions);
+    // ----------
 
     /// Function to integrate the fluid system from `time` to `time + step`.
     virtual void OnDoStepDynamics(double time, double step) override;
@@ -608,6 +600,8 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Additional actions taken after loading new solid phase states.
     virtual void OnExchangeSolidStates() override;
+
+    // ----------
 
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
     bool m_force_proximity_search;
@@ -621,6 +615,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all meshes)
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all meshes)
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
+
+    std::vector<FsiSphBody> m_bodies;      ///< list of FSI rigid bodies
+    std::vector<FsiSphMesh1D> m_meshes1D;  ///< list of FSI FEA meshes
+    std::vector<FsiSphMesh2D> m_meshes2D;  ///< list of FSI FEA meshes
 
     std::vector<int> m_fsi_bodies_bce_num;  ///< number of BCE particles on each fsi body
 

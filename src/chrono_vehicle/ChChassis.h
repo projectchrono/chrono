@@ -153,10 +153,10 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual void Synchronize(double time);
 
     /// Utility function to add a joint (kinematic or bushing) to the vehicle system.
-    void AddJoint(std::shared_ptr<ChVehicleJoint> joint);
+    void AddJoint(std::shared_ptr<ChJoint> joint);
 
     /// Utility function to remove a joint (kinematic or bushing) from the vehicle system.
-    static void RemoveJoint(std::shared_ptr<ChVehicleJoint> joint);
+    static void RemoveJoint(std::shared_ptr<ChJoint> joint);
 
     /// Base class for a user-defined custom force/torque acting on the chassis body.
     class ExternalForceTorque {

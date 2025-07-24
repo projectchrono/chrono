@@ -34,4 +34,4 @@ source_group(Chrono FILES ${CHRONO_CSHARP_SOURCE}) # doesn't work
 # This has effect ONLY on Windows.
 #--------------------------------------------------------------
 
-add_DLL_copy_command()
+add_CHRONO_DLLS_copy_command()

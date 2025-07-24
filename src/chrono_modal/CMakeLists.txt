@@ -88,6 +88,8 @@ set(DEPENDENCIES_MODAL ${DEPENDENCIES_MODAL} PARENT_SCOPE)
 add_library(Chrono_modal ${Chrono_MODAL_SOURCES} ${Chrono_MODAL_HEADERS})
 add_library(Chrono::modal ALIAS Chrono_modal)
 
+set_target_properties(Chrono_modal PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_modal PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_modal PROPERTIES LINK_FLAGS "/LTCG")

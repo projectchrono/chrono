@@ -119,7 +119,18 @@ Change Log
 
 ## [Added] Chrono::Peridynamics module
 
-**TODO**
+The new Chrono::Peridynamics module allows the simulation of meshless materials within the peridynamics approach. The peridynamics formulation is especially useful when simulating fractures in brittle materials. 
+
+This initial release of the peridyamics module offers the following types of materials: 
+- bond-based:
+  - the ChMatterPeriBB material: computational efficient, elasticity but with fixed Poisson (0.25), supports fracturing. 
+  - the ChMatterPeriBBimplicit material: as ChMatterPeriBB but more efficient for quasi static analysis.
+- state-based:
+  - the ChMatterPeriLinearElastic material: elasticity with generic Poisson, supports fracturing.
+  
+In the future more material models might be added, for instance the implicit version of ChMatterPeriLinearElastic, the correspondence material class, fluids, plasticity etc.  
+
+
 
 ## [Added] Chrono::VSG plugins for FSI and granular dynamics visualization
 

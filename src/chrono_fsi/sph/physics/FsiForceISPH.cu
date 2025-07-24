@@ -1060,9 +1060,11 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     //    Real MaxVel = length(*iter);
     //
     //    uint FixedMarker = 0;
-    double V_star_Predictor = (clock() - LinearSystemClock_V) / (double)CLOCKS_PER_SEC;
-    printf("| V_star_Predictor Equation: %f (sec) - Final Residual=%.3e - #Iter=%d\n", V_star_Predictor, MaxRes,
-           Iteration);
+    if (m_verbose) {
+        double V_star_Predictor = (clock() - LinearSystemClock_V) / (double)CLOCKS_PER_SEC;
+        printf("| V_star_Predictor Equation: %f (sec) - Final Residual=%.3e - #Iter=%d\n", V_star_Predictor, MaxRes,
+               Iteration);
+    }
 
     // ----- Pressure_Equation
     Iteration = 0;
@@ -1119,8 +1121,10 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     my_Functor mf(Ave_RHS);
     if (pH->Pressure_Constraint) {
         thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-        Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), Real(0)) / numAllMarkers;
-        printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
+        if (m_verbose) {
+            Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), Real(0)) / numAllMarkers;
+            printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
+        }
     }
 
     if (pH->LinearSolver != SolverType::JACOBI) {
@@ -1242,8 +1246,10 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
     double updateComputation = (clock() - updateClock) / (double)CLOCKS_PER_SEC;
     Real Re = pH->L_Characteristic * pH->rho0 * MaxVel / pH->mu0;
 
-    printf("| Velocity_Correction_and_update: %f (sec), Ave_density_Err=%.3e, Re=%.1f\n", updateComputation,
-           Ave_density_Err, Re);
+    if (m_verbose) {
+        printf("| Velocity_Correction_and_update: %f (sec), Ave_density_Err=%.3e, Re=%.1f\n", updateComputation,
+               Ave_density_Err, Re);
+    }
 
     // post-processing for conservative formulation
     if (pH->Conservative_Form && pH->ClampPressure) {
@@ -1251,7 +1257,8 @@ void FsiForceISPH::ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, R
                                              Real4_y_min(), Real(1e9), thrust::minimum<Real>());
         my_Functor_real4y negate(minP);
         thrust::for_each(sortedSphMarkersD->rhoPresMuD.begin(), sortedSphMarkersD->rhoPresMuD.end(), negate);
-        printf("Shifting min pressure of %.3e to 0\n", minP);
+        if (m_verbose)
+            printf("Shifting min pressure of %.3e to 0\n", minP);
     }
 
     csrValGradient.clear();
@@ -1294,8 +1301,6 @@ void FsiForceISPH::PreProcessor(std::shared_ptr<SphMarkerDataD> sortedSphMarkers
     cudaCheckErrorFlag(m_errflagD, "calcNormalizedRho_Gi_fillInMatrixIndices");
 
     if (calcLaplacianOperator && !m_data_mgr.paramsH->Conservative_Form) {
-        printf("| calc_A_tensor+");
-
         calc_A_tensor<<<numBlocks, numThreads>>>(
             R1CAST(A_i), R1CAST(G_i), mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             R1CAST(_sumWij_inv), U1CAST(m_data_mgr.neighborList), U1CAST(m_data_mgr.numNeighborsPerPart), m_errflagD);

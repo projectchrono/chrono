@@ -63,6 +63,8 @@ set(CH_IRRLICHT_DLL "${IRRLICHT_DLL}" PARENT_SCOPE)
 add_library(Chrono_irrlicht ${IRR_SOURCE_FILES} ${IRR_HEADER_FILES})
 add_library(Chrono::irrlicht ALIAS Chrono_irrlicht)
 
+set_target_properties(Chrono_irrlicht PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
@@ -113,11 +115,3 @@ install(FILES ${IRR_HEADER_FILES}
 # Install files for chrono-config (in both build and install trees)
 file(COPY "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CMAKE_BINARY_DIR}/cmake/)
 install(FILES "${CMAKE_SOURCE_DIR}/cmake/FindIrrlicht.cmake" DESTINATION ${CH_CONFIG_INSTALL_PATH})
-
-# On Windows, extract DLLs from targets and install
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    get_target_property(IRRLICHT_DLL Irrlicht::Irrlicht IMPORTED_LOCATION)
-    if(EXISTS "${IRRLICHT_DLL}")
-      install(FILES "${IRRLICHT_DLL}" DESTINATION bin)
-    endif()
-endif()

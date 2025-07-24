@@ -140,8 +140,8 @@ int main(int argc, char* argv[]) {
 
     // Create a rigid body
     double radius = 0.12;
-    auto mass = density * ChSphere::GetVolume(radius);
-    auto inertia = mass * ChSphere::GetGyration(radius);
+    double mass = density * ChSphere::GetVolume(radius);
+    ChMatrix33d inertia = mass * ChSphere::GetGyration(radius);
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetName("ball");
@@ -153,13 +153,13 @@ int main(int argc, char* argv[]) {
     body->EnableCollision(false);
     sysMBS.AddBody(body);
 
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
+    geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, radius, 0));
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
-    // Add as an FSI body (create BCE markers on a grid)
+    // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, false);
 
     // Enable depth-based initial pressure for SPH particles

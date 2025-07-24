@@ -43,8 +43,6 @@ project(my_project)
 #       list of exported Chrono targets
 # CHRONO_DLL_NAMES
 #       list of Chrono DLLs (without path)
-# CHRONO_DEPENDENCY_DLLS
-#       list of Chrono dependency DLLs (with full path)
 # CHRONO_CSHARP_SOURCES
 #       list of all SWIG-generated C# scripts corresponding to the requested components
 #       (currently, only the core, postprocess, Irrlicht, and Vehicle Chrono modules are wrapped for C#)
@@ -125,4 +123,4 @@ target_link_libraries(custom_handler ${CHRONO_TARGETS})
 # This function has effect only on Windows.
 #--------------------------------------------------------------
 
-add_DLL_copy_command()
+add_CHRONO_DLLS_copy_command()

@@ -96,6 +96,19 @@ void ChLinkMotorLinear::Update(double time, bool update_assets) {
     this->mpos_dtdt = aframe12.GetPosDt2().z();
 }
 
+std::string ChLinkMotorLinear::GetGuideTypeString(GuideConstraint type) {
+    switch (type) {
+        case GuideConstraint::FREE:
+            return "free";
+        case GuideConstraint::PRISMATIC:
+            return "prismatic";
+        case GuideConstraint::SPHERICAL:
+            return "spherical";
+        default:
+            return "unknown";
+    }
+}
+
 void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChLinkMotorLinear>();
