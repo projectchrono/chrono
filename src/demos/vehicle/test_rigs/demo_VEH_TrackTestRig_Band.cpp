@@ -97,7 +97,8 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         m_num_contacts++;
 
         auto bodyA = dynamic_cast<ChBody*>(modA);

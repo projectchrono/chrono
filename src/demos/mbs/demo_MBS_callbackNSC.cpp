@@ -55,7 +55,8 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector3d& cforce,
                                  const ChVector3d& ctorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         // Check if contact involves box1
         if (modA == m_box1.get()) {
             printf("  A contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());

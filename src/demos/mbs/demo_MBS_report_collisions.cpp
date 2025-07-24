@@ -56,7 +56,8 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
                                  const ChVector3d& cforce,
                                  const ChVector3d& ctorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         auto bodyA = static_cast<ChBody*>(modA);
         auto searchA = m_bcontacts.find(bodyA);
         if (searchA == m_bcontacts.end())

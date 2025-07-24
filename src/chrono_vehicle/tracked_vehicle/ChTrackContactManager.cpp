@@ -324,7 +324,8 @@ bool ChTrackContactManager::OnReportContact(const ChVector3d& pA,
                                             const ChVector3d& react_forces,
                                             const ChVector3d& react_torques,
                                             ChContactable* modA,
-                                            ChContactable* modB) {
+                                            ChContactable* modB,
+                                            int constraint_offset) {
     ContactInfo info;
 
     // Ignore contacts with zero force or positive separation.

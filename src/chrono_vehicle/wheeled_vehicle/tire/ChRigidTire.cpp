@@ -168,7 +168,8 @@ class RigidTireContactReporter : public ChContactContainer::ReportContactCallbac
                                  const ChVector3d& rforce,
                                  const ChVector3d& rtorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         // Filter contacts that involve the tire body.
         if (modA == m_body.get() || modB == m_body.get()) {
             // Express current contact force and torque in global frame

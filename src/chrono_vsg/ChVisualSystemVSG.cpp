@@ -2781,7 +2781,8 @@ bool ChVisualSystemVSG::CreateContactsVSG::OnReportContact(const ChVector3d& pA,
                                                            const ChVector3d& react_forces,
                                                            const ChVector3d& react_torques,
                                                            ChContactable* modA,
-                                                           ChContactable* modB) {
+                                                           ChContactable* modB,
+                                                           int constraint_offset) {
     // If we reached the alloted number of contact nodes, return now and stop scanning contacts
     if (m_crt_contact >= m_app->m_max_num_contacts)
         return false;

@@ -172,7 +172,8 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
         ChVector3d v1 = pA;
         ChVector3d v2;
@@ -254,7 +255,8 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         char buffer[25];
         irr::core::vector3df mpos((irr::f32)pA.x(), (irr::f32)pA.y(), (irr::f32)pA.z());
         irr::core::position2d<s32> spos =

@@ -90,7 +90,8 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override;
+                                 ChContactable* modB,
+                                 int constraint_offset) override;
 
     bool m_initialized;  ///< true if the contact manager was initialized
     int m_flags;         ///< contact bit flags

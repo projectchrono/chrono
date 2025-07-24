@@ -436,7 +436,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
                                      const ChVector3d& react_forces,
                                      const ChVector3d& react_torques,
                                      ChContactable* modA,
-                                     ChContactable* modB) override;
+                                     ChContactable* modB,
+                                     int constraint_offset) override;
 
       private:
         ChVisualSystemVSG* m_app;
@@ -465,7 +466,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
                                      const ChVector3d& react_forces,
                                      const ChVector3d& react_torques,
                                      ChContactable* modA,
-                                     ChContactable* modB) override;
+                                     ChContactable* modB,
+                                     int constraint_offset) override;
 
       private:
         ChVisualSystemVSG* m_app;

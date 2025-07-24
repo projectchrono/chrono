@@ -39,7 +39,8 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
                                  const ChVector3d& cforce,
                                  const ChVector3d& ctorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override;
+                                 ChContactable* modB,
+                                 int constraint_offset) override;
 };
 
 // ====================================================================================
@@ -343,7 +344,8 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
                                      const ChVector3d& cforce,
                                      const ChVector3d& ctorque,
                                      ChContactable* modA,
-                                     ChContactable* modB) {
+                                     ChContactable* modB,
+                                     int constraint_offset) {
     auto bodyA = static_cast<ChBody*>(modA);
     auto bodyB = static_cast<ChBody*>(modB);
 
