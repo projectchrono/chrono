@@ -23,7 +23,7 @@
 // the lateral compliance of the leafspring. The leaves (front and rear) are connected
 // to clampA rsp. clampB via rotational joints around Y. The frontleaf also connects
 // to the chassis with a spherical joint, while the rearleaf connects to the shackle
-// body with a sperical joint. The shackle body connects to the chassis via a
+// body with a spherical joint. The shackle body connects to the chassis via a
 // rotational joint around Y.
 //
 // The vertical stiffnesses are simulated by the rotational springs of the frontleaf
@@ -31,8 +31,8 @@
 // joints of the clamp bodies.
 //
 // For the stiffness parameters the user can take the desired translatoric vertical
-// stiffness devided by two (we have two leaves). The preload can be set as a
-// vertical force devided by two. The conversion to the rotary setup is made
+// stiffness divided by two (we have two leaves). The preload can be set as a
+// vertical force divided by two. The conversion to the rotary setup is made
 // automatically.
 //
 // The SAE model allows to consider the correct axle movement due to wheel travel.

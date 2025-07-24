@@ -229,7 +229,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 #endif
 
     // Calculate domain size
-    //// TODO: For now, we need to hack in a larger dimZ to accomodate any wheels that will only show up later.
+    //// TODO: For now, we need to hack in a larger dimZ to accommodate any wheels that will only show up later.
     ////       This limitations needs to be removed in Chrono::Gpu!
     ////       Second, we are limited to creating this domain centered at the origin!?!
     float r = m_separation_factor * (float)m_radius_g;

@@ -80,7 +80,7 @@ class CH_VEHICLE_API ChAutomaticTransmissionShafts : public ChAutomaticTransmiss
     virtual double GetOutputDriveshaftTorque() const override;
 
     /// Return the transmission output speed of the motorshaft.
-    /// This represents the output from the transmision subsystem that is passed to the engine subsystem.
+    /// This represents the output from the transmission subsystem that is passed to the engine subsystem.
     virtual double GetOutputMotorshaftSpeed() const override;
 
     /// Return the reaction torque on the chassis body.

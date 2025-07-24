@@ -445,7 +445,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(std::shared_ptr<ChBezierC
       m_delta_max(max_wheel_turn_angle),
       m_umin(2),
       m_idx_curr(0) {
-    // retireve points
+    // retrieve points
     CalcPathPoints();
 }
 
@@ -461,7 +461,7 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
       m_delta_max(max_wheel_turn_angle),
       m_umin(1),
       m_idx_curr(0) {
-    // retireve points
+    // retrieve points
     CalcPathPoints();
 
     Document d;

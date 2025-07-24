@@ -37,7 +37,7 @@ DriverInputs ChDriver::GetInputs() const {
     return {m_steering, m_throttle, m_braking, m_clutch};
 }
 
-// Initialize output file for recording deriver inputs.
+// Initialize output file for recording driver inputs.
 bool ChDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 

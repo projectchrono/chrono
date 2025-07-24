@@ -111,13 +111,13 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    "integral gain, speed controller",                                            //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
-    // Set CONTINOUS INPUTS for this FMU
+    // Set CONTINUOUS INPUTS for this FMU
     AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                         //
                               FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
     AddFmuVariable(&target_speed, "target_speed", FmuVariable::Type::Real, "m/s", "target speed",            //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);             //
 
-    // Set CONTINOUS OUTPUTS for this FMU
+    // Set CONTINUOUS OUTPUTS for this FMU
     AddFmuVariable(&steering, "steering", FmuVariable::Type::Real, "1", "steering command",       //
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous,  //
                    FmuVariable::InitialType::exact);                                              //
