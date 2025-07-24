@@ -123,11 +123,9 @@ linux:ubuntu22.04-gcc:build:
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
-    - cmake --install .
   artifacts:
     expire_in: 60m
     paths:
-      - chrono_install_linux64/
       - build/
 
 linux:ubuntu22.04-gcc:test:
@@ -140,6 +138,7 @@ linux:ubuntu22.04-gcc:test:
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
+    - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-gcc:build"]
 
@@ -157,11 +156,9 @@ linux:ubuntu22.04-clang:build:
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
-    - cmake --install .
   artifacts:
     expire_in: 60m
     paths:
-      - chrono_install_linux64/
       - build/
 
 linux:ubuntu22.04-clang:test:
@@ -174,6 +171,7 @@ linux:ubuntu22.04-clang:test:
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1
+    - cmake --install .
     - ninja test
   dependencies: ["linux:ubuntu22.04-clang:build"]
 
@@ -283,11 +281,9 @@ windows:vs2022:build:
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
-  - cmake --install . --config Release
   artifacts:
     expire_in: 3 hours
     paths:
-      - chrono_install_win64/
       - build/
       - contrib/build-scripts/gl_build
 
@@ -300,6 +296,7 @@ windows:vs2022:test:
   # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
   - $env:PATH += ";C:\Packages\vsg\bin"
   - cd build
+  - cmake --install . --config Release
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
 
@@ -452,11 +449,9 @@ windows:vs2022:deploy-installer:
   - cd build
   # Building chrono
   - cmake --build . --config Release -j 7
-  - cmake --install . --config Release
   artifacts:
     expire_in: 60m
     paths:
-    - chrono_install_macos/
     - build/
 
 .macos-monterey-test:
@@ -468,6 +463,7 @@ windows:vs2022:deploy-installer:
   - cp -r bin/Release/* bin/
   - cp -r bin/data .
   - export CTEST_OUTPUT_ON_FAILURE=1
+  - cmake --install . --config Release
   - ninja test
 
 
