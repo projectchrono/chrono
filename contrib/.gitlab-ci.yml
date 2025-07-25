@@ -234,7 +234,7 @@ linux:ubuntu22.04:deploy-python3.12:
   script:
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.12
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
 linux:ubuntu22.04:deploy-python3.13:
@@ -244,7 +244,7 @@ linux:ubuntu22.04:deploy-python3.13:
   script:
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.13
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
 #------------------#
@@ -347,7 +347,7 @@ windows:deploy-python3.12:
     # Building pyChrono for python v3.12
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.12 --no-remove-work-dir
     - conda install --yes conda-build anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
     # Get rid of the build environment
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
@@ -370,7 +370,7 @@ windows:deploy-python3.13:
     # Building pyChrono for python v3.13
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.13 --no-remove-work-dir
     - conda install --yes conda-build anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
     # Get rid of the build environment
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
@@ -531,7 +531,7 @@ macos-apple:macos-deploy-python3.12:
     - echo "Build PyChrono 3.12 and deploy via Anaconda..."
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.12
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
     - macos
@@ -546,7 +546,7 @@ macos-apple:macos-deploy-python3.13:
     - echo "Build PyChrono 3.13 and deploy via Anaconda..."
     - conda build purge-all
     - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.13
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
     - macos
