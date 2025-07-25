@@ -530,7 +530,7 @@ macos-apple:macos-deploy-python3.12:
   script:
     - echo "Build PyChrono 3.12 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.12
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
   when: manual
   tags:
@@ -545,7 +545,7 @@ macos-apple:macos-deploy-python3.13:
   script:
     - echo "Build PyChrono 3.13 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.13
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
   when: manual
   tags:
