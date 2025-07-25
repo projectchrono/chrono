@@ -459,7 +459,7 @@ if(CH_USE_CUDA_NVRTC)
     set(CUDA_NVRTC_INCLUDE_LIST "${CUDA_NVRTC_INCLUDE_LIST} \\\n  0,")
 
     target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVRTC>)
-    target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/">)
+    target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_INSTALL_PREFIX}/include/chrono_sensor/optix/shaders/">)
 
   endif()
 else()
@@ -480,24 +480,13 @@ else()
     target_link_libraries(Chrono_sensor_ptx PRIVATE OpenVDB::nanovdb)
   endif()
 
-  # Copy PTX files to known location (under lib/sensor_ptx)
-  # Notes:
-  #   1. We cannot install the PTX files since these are "objects" not known at configuration time.
-  #   2. By design, CMake does not allow redirecting output of object files. So we cannot set output prperties on the Chrono_sensor_ptx target.
-  #   3. A POST_BUILD command cannot be associated with an OBJECT library target. So we cannot do this after Chrono_sensor_ptx.
-  # The solution is to do the copy in a PRE_BUILD command of the Chrono_sensor target (which depends on Chrono_sensor_ptx).
-  add_custom_command(TARGET Chrono_sensor
-    PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_OBJECTS:Chrono_sensor_ptx> "${CMAKE_BINARY_DIR}/lib/sensor_ptx"
-    COMMAND_EXPAND_LISTS
-    COMMENT "Copy Chrono::Sensor PTX files."
-  )
+  install(DIRECTORY $<TARGET_OBJECTS:Chrono_sensor_ptx>
+          DESTINATION lib/sensor_ptx)
 
   # Link PTX helper library, use NVCC, and set macro with location of PTX files
   target_link_libraries(Chrono_sensor PUBLIC ${Chrono_sensor_ptx})
   target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:USE_CUDA_NVCC>)
-  target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_BINARY_DIR}/lib/sensor_ptx/">)
+  target_compile_definitions(Chrono_sensor PRIVATE $<$<COMPILE_LANGUAGE:CXX>:SHADER_OUTPUT_PATH="${CMAKE_INSTALL_PREFIX}/lib/sensor_ptx/">)
 endif()
 
 
