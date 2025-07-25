@@ -1,0 +1,77 @@
+
+        // ================================================================================
+        // CHRONO CBL WORKBENCH - github.com/Cusatis-Computational-Services/CBL-preprocesser
+        //
+        // Copyright (c) 2025 
+        // All rights reserved. 
+        //
+        // Use of the code that generated this file is governed by a BSD-style license that
+        // can be found in the LICENSE file at the top level of the distribution and at
+        // github.com/Cusatis-Computational-Services/CBL-preprocesser/LICENSE
+        //
+        // ================================================================================
+        // CBL Workbench Parameter File
+        // ================================================================================
+        // 
+        // CBL Workbench developed by Cusatis Computational Services, Inc.
+        //
+        // ================================================================================
+        
+
+START
+current_time= 2025-05-09 14:30:40
+geoName=spruce1_0mm_cube3
+radial_growth_rule=binary_lloyd
+species=norwayspruce
+width_heart=0.15
+ring_width=2.0
+late_ratio=0.3
+cellsize_early=0.032
+cellsize_late=0.017
+cellwallthickness_early=0.0035
+cellwallthickness_late=0.011
+cell_length=3.0
+randomFlag=On
+dist_type=['TruncatedGaussian']
+dist_params=[[1.0, 0.01, 0.0]]
+corr_l=0.3
+sampling_type=MC
+box_shape=cube
+box_center=(5.75, 0.0)
+box_size=1.0
+box_height=1.0
+box_width=1.0000000001
+box_depth=1.0000000001
+x_notch_size=0
+y_notch_size=0
+precrackFlag=Off
+precrack_start=(5.5, 0)
+precrack_end=(5.65, 0)
+iter_max=2
+theta_min=0.0
+long_connector_ratio=0.05
+knotFlag=Off
+Uinf=1.0
+a1=0.4
+a2=0.1
+m1=0.05
+m2=0.05
+boundaryFlag=Off
+flowFlag=Off
+mergeFlag=Off
+rayFlag=Off
+inpType=all
+visFlag=On
+outDir=C:\Users\SusanAlexisBrown\woodWorkbench
+geoFile=
+
+END
+[assuming mm kg tonnes]
+net_area= 2.583e-01 [mm^2] 
+gross_area= 1.000e+00 [mm^2] 
+mass= 3.874e-10 [tonne] 
+bulk_volume= 1.000e+00 [mm^3] 
+bulk_density= 3.874e-10 [tonne/mm^3] 
+porosity= 74.2 [%] 
+current_time= 2025-05-09 14:31:05
+
