@@ -13,7 +13,7 @@
 #ifndef CH_CONSTRAINT_CONTACT_TANGENTIAL_H
 #define CH_CONSTRAINT_CONTACT_TANGENTIAL_H
 
-#include "chrono/solver/constraints_contact/ChConstraintTwoTuples.h"
+#include "chrono/solver/ChConstraintTwoTuples.h"
 
 namespace chrono {
 
@@ -21,24 +21,16 @@ namespace chrono {
 /// This constraint cannot be used alone, but only together with a ChConstraintContactNormal.
 class ChApi ChConstraintContactTangential : public ChConstraintTwoTuples {
   public:
-    ChConstraintContactTangential() { mode = ChConstraint::Mode::FRICTION; }
+    ChConstraintContactTangential();
 
-    ChConstraintContactTangential(const ChConstraintContactTangential& other) : ChConstraintTwoTuples(other) {}
+    ChConstraintContactTangential(const ChConstraintContactTangential& other);
 
     virtual ~ChConstraintContactTangential() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConstraintContactTangential* Clone() const override { return new ChConstraintContactTangential(*this); }
 
-    ChConstraintContactTangential& operator=(const ChConstraintContactTangential& other) {
-        if (&other == this)
-            return *this;
-
-        // copy parent class data
-        ChConstraintTwoTuples::operator=(other);
-
-        return *this;
-    }
+    ChConstraintContactTangential& operator=(const ChConstraintContactTangential& other);
 
     /// Indicate whether or not this constraint is linear.
     virtual bool IsLinear() const override { return false; }

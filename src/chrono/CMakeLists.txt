@@ -143,6 +143,10 @@ set(Chrono_physics_contact_SOURCES
     physics/ChContactContainerNSC.cpp
     physics/ChContactContainerSMC.cpp
     physics/ChContactable.cpp
+    physics/ChContact.cpp
+    physics/ChContactSMC.cpp
+    physics/ChContactNSC.cpp
+    physics/ChContactNSCrolling.cpp
     physics/ChContactMaterial.cpp
     physics/ChContactMaterialSMC.cpp
     physics/ChContactMaterialNSC.cpp
@@ -1049,6 +1053,12 @@ set(Chrono_solver_constraints_SOURCES
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
     solver/ChConstraintNgeneric.cpp
+    solver/ChConstraintTuple.cpp
+    solver/ChConstraintTwoTuples.cpp
+    solver/ChConstraintContactNormal.cpp
+    solver/ChConstraintContactTangential.cpp
+    solver/ChConstraintRollingNormal.cpp
+    solver/ChConstraintRollingTangential.cpp
 )
 set(Chrono_solver_constraints_HEADERS
     solver/ChConstraint.h
@@ -1060,23 +1070,14 @@ set(Chrono_solver_constraints_HEADERS
     solver/ChConstraintTwoGeneric.h
     solver/ChConstraintTwoGenericBoxed.h
     solver/ChConstraintNgeneric.h
+    solver/ChConstraintTuple.h
+    solver/ChConstraintTwoTuples.h
+    solver/ChConstraintContactNormal.h
+    solver/ChConstraintContactTangential.h
+    solver/ChConstraintRollingNormal.h
+    solver/ChConstraintRollingTangential.h
 )
 source_group(solver\\constraints FILES ${Chrono_solver_constraints_SOURCES} ${Chrono_solver_constraints_HEADERS})
-
-set(Chrono_solver_constraints_contact_SOURCES
-
-)
-set(Chrono_solver_constraints_contact_HEADERS
-    solver/constraints_contact/ChConstraintTuple.h
-    solver/constraints_contact/ChConstraintTwoTuples.h
-    solver/constraints_contact/ChConstraintContactNormal.h
-    solver/constraints_contact/ChConstraintContactTangential.h
-    solver/constraints_contact/ChConstraintContactNormal.h
-    solver/constraints_contact/ChConstraintContactTangential.h
-    solver/constraints_contact/ChConstraintRollingNormal.h
-    solver/constraints_contact/ChConstraintRollingTangential.h
-)
-source_group(solver\\constraints_contact FILES ${Chrono_solver_constraints_contact_SOURCES} ${Chrono_solver_constraints_contact_HEADERS})
 
 # Utility group
 
@@ -1258,7 +1259,6 @@ set(Chrono_SOURCES
     ${Chrono_fea_sections_SOURCES}
     ${Chrono_solver_SOURCES}
     ${Chrono_solver_constraints_SOURCES}
-    ${Chrono_solver_constraints_contact_SOURCES}
     ${Chrono_solver_variables_SOURCES}
     ${Chrono_MulticoreMath_SOURCES}
     ${Chrono_collision_SOURCES}
@@ -1290,7 +1290,6 @@ set(Chrono_HEADERS
     ${Chrono_fea_constraints_HEADERS}
     ${Chrono_solver_HEADERS}
     ${Chrono_solver_constraints_HEADERS}
-    ${Chrono_solver_constraints_contact_HEADERS}
     ${Chrono_solver_variables_HEADERS}
     ${Chrono_MulticoreMath_HEADERS}
     ${Chrono_collision_HEADERS}

@@ -13,7 +13,7 @@
 #ifndef CH_CONSTRAINT_ROLLING_TANGENTIAL_H
 #define CH_CONSTRAINT_ROLLING_TANGENTIAL_H
 
-#include "chrono/solver/constraints_contact/ChConstraintTwoTuples.h"
+#include "chrono/solver/ChConstraintTwoTuples.h"
 
 namespace chrono {
 
@@ -21,9 +21,9 @@ namespace chrono {
 /// This constraint cannot be used alone, but only together with a ChConstraintRollingNormal.
 class ChApi ChConstraintRollingTangential : public ChConstraintTwoTuples {
   public:
-    ChConstraintRollingTangential() { mode = ChConstraint::Mode::FRICTION; }
+    ChConstraintRollingTangential();
 
-    ChConstraintRollingTangential(const ChConstraintRollingTangential& other) : ChConstraintTwoTuples(other) {}
+    ChConstraintRollingTangential(const ChConstraintRollingTangential& other);
 
     virtual ~ChConstraintRollingTangential() {}
 
@@ -31,15 +31,7 @@ class ChApi ChConstraintRollingTangential : public ChConstraintTwoTuples {
     virtual ChConstraintRollingTangential* Clone() const override { return new ChConstraintRollingTangential(*this); }
 
     /// Assignment operator.
-    ChConstraintRollingTangential& operator=(const ChConstraintRollingTangential& other) {
-        if (&other == this)
-            return *this;
-
-        // copy parent class data
-        ChConstraintTwoTuples::operator=(other);
-
-        return *this;
-    }
+    ChConstraintRollingTangential& operator=(const ChConstraintRollingTangential& other);
 
     /// Indicate whether or not this constraint is linear.
     virtual bool IsLinear() const override { return false; }

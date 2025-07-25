@@ -24,7 +24,7 @@ namespace chrono {
 class ChContactContainer;
 
 /// Base class for contact between two generic ChContactable objects.
-class ChContact {
+class ChApi ChContact {
   public:
     ChContact() {}
 
@@ -34,22 +34,7 @@ class ChContact {
     void Reset_cinfo(ChContactable* obj_A,         ///< contactable object A
                      ChContactable* obj_B,         ///< contactable object B
                      const ChCollisionInfo& cinfo  ///< data for the contact pair
-    ) {
-        assert(obj_A);
-        assert(obj_B);
-
-        objA = obj_A;
-        objB = obj_B;
-
-        p1 = cinfo.vpA;
-        p2 = cinfo.vpB;
-        normal = cinfo.vN;
-        norm_dist = cinfo.distance;
-        eff_radius = cinfo.eff_radius;
-
-        // Contact plane
-        contact_plane.SetFromAxisX(normal, VECT_Y);
-    }
+    );
 
     /// Get the colliding object A, with point P1
     ChContactable* GetObjA() { return this->objA; }
@@ -61,13 +46,7 @@ class ChContact {
     /// This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system. Its origin is point P2.
     /// (It is the coordinate system of the contact plane and normal)
-    ChCoordsys<> GetContactCoords() const {
-        ChCoordsys<> mcsys;
-        ChQuaternion<> mrot = this->contact_plane.GetQuaternion();
-        mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
-        mcsys.pos = this->p2;
-        return mcsys;
-    }
+    ChCoordsys<> GetContactCoords() const;
 
     /// Returns the pointer to a contained 3x3 matrix representing the UV and normal
     /// directions of the contact. In detail, the X versor (the 1s column of the
@@ -138,12 +117,7 @@ class ChContact {
     virtual void ConstraintsFetch_react(double factor) {}
 
   protected:
-    ChContact(ChContactContainer* contact_container, ChContactable* obj_A, ChContactable* obj_B)
-        : container(contact_container), objA(obj_A), objB(obj_B) {
-        assert(contact_container);
-        assert(obj_A);
-        assert(obj_B);
-    }
+    ChContact(ChContactContainer* contact_container, ChContactable* obj_A, ChContactable* obj_B);
 
     ChContactContainer* container;  ///< associated contact container
 

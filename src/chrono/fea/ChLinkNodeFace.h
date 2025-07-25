@@ -18,7 +18,7 @@
 #include <array>
 
 #include "chrono/physics/ChLinkBase.h"
-#include "chrono/solver/constraints_contact/ChConstraintContactNormal.h"
+#include "chrono/solver/ChConstraintContactNormal.h"
 
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"

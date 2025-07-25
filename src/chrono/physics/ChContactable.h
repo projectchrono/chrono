@@ -17,7 +17,7 @@
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/timestepper/ChState.h"
-#include "chrono/solver/constraints_contact/ChConstraintTuple.h"
+#include "chrono/solver/ChConstraintTuple.h"
 
 namespace chrono {
 
