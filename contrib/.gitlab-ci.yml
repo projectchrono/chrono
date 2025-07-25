@@ -219,7 +219,7 @@ linux:ubuntu22.04-clang:test:
     - bash Miniconda3-latest-Linux-x86_64.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
     - conda config --set show_channel_urls true
-    - conda install anaconda-client --yes
+    - conda install conda-build anaconda-client --yes
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
@@ -326,7 +326,7 @@ windows:vs2022:test:
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install anaconda-client --yes
+    - conda install conda-build anaconda-client --yes
     - conda update conda --yes
     #- cd C:\Users\builder\miniconda3\pkgs\anaconda-client-1.10.0-py37*\Lib\site-packages\binstar_client\commands\
     #- $location=pwd
@@ -346,7 +346,7 @@ windows:deploy-python3.12:
   script:
     # Building pyChrono for python v3.12
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.12 --no-remove-work-dir
-    - conda install --yes anaconda-client
+    - conda install --yes conda-build anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
   after_script:
     # Get rid of the build environment
@@ -369,7 +369,7 @@ windows:deploy-python3.13:
   script:
     # Building pyChrono for python v3.13
     - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.13 --no-remove-work-dir
-    - conda install --yes anaconda-client
+    - conda install --yes conda-build anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
   after_script:
     # Get rid of the build environment
@@ -498,7 +498,7 @@ macos-apple:monterey:test:
     - source activate $HOME/miniconda/
     - conda install --yes jinja2
     - conda config --set show_channel_urls true
-    - conda install --yes anaconda-client
+    - conda install --yes conda-build anaconda-client
     - conda config --add channels conda-forge
     - conda config --add channels dlr-sc
     #- conda install -c dlr-sc opencascade --yes
