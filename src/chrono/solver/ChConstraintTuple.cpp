@@ -107,6 +107,24 @@ void ChConstraintTuple_1::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
+void ChConstraintTuple_1::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+}
+
+double ChConstraintTuple_1::ComputeJacobianTimesState() {
+    if (variables[0]->IsActive())
+        return Cq_1 * variables[0]->State();
+    return 0;
+}
+
+void ChConstraintTuple_1::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+}
+
 // Constraint tuple representing a collision object with 1 variable of size 2.
 ChConstraintTuple_2::ChConstraintTuple_2(ChVariables* variables1) {
     assert(variables1->GetDOF() == 2);
@@ -129,6 +147,24 @@ ChVectorRef ChConstraintTuple_2::Eq(int i) {
 
 void ChConstraintTuple_2::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+}
+
+void ChConstraintTuple_2::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+}
+
+double ChConstraintTuple_2::ComputeJacobianTimesState() {
+    if (variables[0]->IsActive())
+        return Cq_1 * variables[0]->State();
+    return 0;
+}
+
+void ChConstraintTuple_2::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
 }
 
 // Constraint tuple representing a collision object with 1 variable of size 3.
@@ -155,6 +191,24 @@ void ChConstraintTuple_3::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
+void ChConstraintTuple_3::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+}
+
+double ChConstraintTuple_3::ComputeJacobianTimesState() {
+    if (variables[0]->IsActive())
+        return Cq_1 * variables[0]->State();
+    return 0;
+}
+
+void ChConstraintTuple_3::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+}
+
 // Constraint tuple representing a collision object with 1 variable of size 4.
 ChConstraintTuple_4::ChConstraintTuple_4(ChVariables* variables1) {
     assert(variables1->GetDOF() == 4);
@@ -177,6 +231,24 @@ ChVectorRef ChConstraintTuple_4::Eq(int i) {
 
 void ChConstraintTuple_4::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+}
+
+void ChConstraintTuple_4::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+}
+
+double ChConstraintTuple_4::ComputeJacobianTimesState() {
+    if (variables[0]->IsActive())
+        return Cq_1 * variables[0]->State();
+    return 0;
+}
+
+void ChConstraintTuple_4::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
 }
 
 // Constraint tuple representing a collision object with 1 variable of size 5.
@@ -203,6 +275,24 @@ void ChConstraintTuple_5::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
+void ChConstraintTuple_5::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+}
+
+double ChConstraintTuple_5::ComputeJacobianTimesState() {
+    if (variables[0]->IsActive())
+        return Cq_1 * variables[0]->State();
+    return 0;
+}
+
+void ChConstraintTuple_5::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+}
+
 // Constraint tuple representing a collision object with 1 variable of size 6.
 ChConstraintTuple_6::ChConstraintTuple_6(ChVariables* variables1) {
     assert(variables1->GetDOF() == 6);
@@ -225,6 +315,24 @@ ChVectorRef ChConstraintTuple_6::Eq(int i) {
 
 void ChConstraintTuple_6::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+}
+
+void ChConstraintTuple_6::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+}
+
+double ChConstraintTuple_6::ComputeJacobianTimesState() {
+    if (variables[0]->IsActive())
+        return Cq_1 * variables[0]->State();
+    return 0;
+}
+
+void ChConstraintTuple_6::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
 }
 
 // -----------------------------------------------------------------------------
@@ -274,6 +382,33 @@ void ChConstraintTuple_33::CalculateEq() {
     variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
 }
 
+void ChConstraintTuple_33::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+    if (variables[1]->IsActive()) {
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+        g_i += Cq_2 * Eq_2;
+    }
+}
+
+double ChConstraintTuple_33::ComputeJacobianTimesState() {
+    double result = 0;
+    if (variables[0]->IsActive())
+        result += Cq_1 * variables[0]->State();
+    if (variables[1]->IsActive())
+        result += Cq_2 * variables[1]->State();
+    return result;
+}
+
+void ChConstraintTuple_33::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+    if (variables[1]->IsActive())
+        variables[1]->State() += Eq_2 * deltal;
+}
+
 // Constraint tuple representing a collision object with 2 variable, each of size 6.
 ChConstraintTuple_66::ChConstraintTuple_66(ChVariables* variables1, ChVariables* variables2) {
     assert(variables1->GetDOF() == 6);
@@ -317,6 +452,33 @@ ChVectorRef ChConstraintTuple_66::Eq(int i) {
 void ChConstraintTuple_66::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
     variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+}
+
+void ChConstraintTuple_66::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+    if (variables[1]->IsActive()) {
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+        g_i += Cq_2 * Eq_2;
+    }
+}
+
+double ChConstraintTuple_66::ComputeJacobianTimesState() {
+    double result = 0;
+    if (variables[0]->IsActive())
+        result += Cq_1 * variables[0]->State();
+    if (variables[1]->IsActive())
+        result += Cq_2 * variables[1]->State();
+    return result;
+}
+
+void ChConstraintTuple_66::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+    if (variables[1]->IsActive())
+        variables[1]->State() += Eq_2 * deltal;
 }
 
 // -----------------------------------------------------------------------------
@@ -369,6 +531,41 @@ void ChConstraintTuple_333::CalculateEq() {
     variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
 }
 
+void ChConstraintTuple_333::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+    if (variables[1]->IsActive()) {
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+        g_i += Cq_2 * Eq_2;
+    }
+    if (variables[2]->IsActive()) {
+        variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
+        g_i += Cq_3 * Eq_3;
+    }
+}
+
+double ChConstraintTuple_333::ComputeJacobianTimesState() {
+    double result = 0;
+    if (variables[0]->IsActive())
+        result += Cq_1 * variables[0]->State();
+    if (variables[1]->IsActive())
+        result += Cq_2 * variables[1]->State();
+    if (variables[2]->IsActive())
+        result += Cq_3 * variables[2]->State();
+    return result;
+}
+
+void ChConstraintTuple_333::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+    if (variables[1]->IsActive())
+        variables[1]->State() += Eq_2 * deltal;
+    if (variables[2]->IsActive())
+        variables[2]->State() += Eq_3 * deltal;
+}
+
 // Constraint tuple representing a collision object with 3 variable, each of size 6.
 ChConstraintTuple_666::ChConstraintTuple_666(ChVariables* variables1,
                                              ChVariables* variables2,
@@ -415,6 +612,41 @@ void ChConstraintTuple_666::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
     variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
     variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
+}
+
+void ChConstraintTuple_666::Update_auxiliary(double& g_i) {
+    if (variables[0]->IsActive()) {
+        variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+        g_i += Cq_1 * Eq_1;
+    }
+    if (variables[1]->IsActive()) {
+        variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+        g_i += Cq_2 * Eq_2;
+    }
+    if (variables[2]->IsActive()) {
+        variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
+        g_i += Cq_3 * Eq_3;
+    }
+}
+
+double ChConstraintTuple_666::ComputeJacobianTimesState() {
+    double result = 0;
+    if (variables[0]->IsActive())
+        result += Cq_1 * variables[0]->State();
+    if (variables[1]->IsActive())
+        result += Cq_2 * variables[1]->State();
+    if (variables[2]->IsActive())
+        result += Cq_3 * variables[2]->State();
+    return result;
+}
+
+void ChConstraintTuple_666::IncrementState(double deltal) {
+    if (variables[0]->IsActive())
+        variables[0]->State() += Eq_1 * deltal;
+    if (variables[1]->IsActive())
+        variables[1]->State() += Eq_2 * deltal;
+    if (variables[2]->IsActive())
+        variables[2]->State() += Eq_3 * deltal;
 }
 
 }  // end namespace chrono

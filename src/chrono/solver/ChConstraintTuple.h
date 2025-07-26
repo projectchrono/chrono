@@ -29,20 +29,20 @@ class ChApi ChConstraintTuple {
     virtual ChRowVectorRef Cq(int i) = 0;
     virtual ChVectorRef Eq(int i) = 0;
 
-    virtual void CalculateEq() = 0;
-
   protected:
     /// Construct the tuple, setting variables and Jacobian blocks to null.
     /// Derived classes must set 1, 2, or 3 variable objects and the Jacobian blocks of appropriate size.
     ChConstraintTuple();
 
-    void Update_auxiliary(double& g_i);
-    double ComputeJacobianTimesState();
-    void IncrementState(double deltal);
+    virtual void Update_auxiliary(double& g_i);
+    virtual double ComputeJacobianTimesState();
+    virtual void IncrementState(double deltal);
     void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect);
     void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l);
     void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col);
     void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col);
+
+    virtual void CalculateEq() = 0;
 
     int num_variables;          ///< number of referenced variables
     ChVariables* variables[3];  ///< referenced variable objects
@@ -66,7 +66,12 @@ class ChConstraintTuple_1 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 1 variable of size 2.
@@ -82,7 +87,12 @@ class ChConstraintTuple_2 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 1 variable of size 3.
@@ -98,7 +108,12 @@ class ChConstraintTuple_3 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 1 variable of size 4.
@@ -114,7 +129,12 @@ class ChConstraintTuple_4 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 1 variable of size 5.
@@ -130,7 +150,12 @@ class ChConstraintTuple_5 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 1 variable of size 6.
@@ -146,7 +171,12 @@ class ChConstraintTuple_6 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+    
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -169,7 +199,12 @@ class ChConstraintTuple_33 : public ChConstraintTuple {
     ChVectorRef Eq2() { return Eq_2; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 2 variables, each of size 6.
@@ -189,7 +224,12 @@ class ChConstraintTuple_66 : public ChConstraintTuple {
     ChVectorRef Eq2() { return Eq_2; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -216,7 +256,12 @@ class ChConstraintTuple_333 : public ChConstraintTuple {
     ChVectorRef Eq3() { return Eq_3; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 /// Constraint tuple representing an object with 3 variables, each of size 6.
@@ -240,7 +285,12 @@ class ChConstraintTuple_666 : public ChConstraintTuple {
     ChVectorRef Eq3() { return Eq_3; }
     virtual ChRowVectorRef Cq(int i) override;
     virtual ChVectorRef Eq(int i) override;
+
     virtual void CalculateEq() override;
+
+    virtual void Update_auxiliary(double& g_i) override;
+    virtual double ComputeJacobianTimesState() override;
+    virtual void IncrementState(double deltal) override;
 };
 
 }  // end namespace chrono
