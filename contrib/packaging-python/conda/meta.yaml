@@ -16,7 +16,7 @@ build:
 requirements:
   build:
     - {{ compiler('cxx') }}
-    - cmake   # [not win]
+    - cmake >=4   # [not win]
     - ninja   # [linux or osx]
     - jinja2  # [linux]
     - swig ==4.0.2

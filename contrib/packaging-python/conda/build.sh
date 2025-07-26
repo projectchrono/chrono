@@ -5,8 +5,6 @@ if [ -d "./build" ]; then
 fi
 mkdir ./build
 cd ./build
-export NP_INCL=$(python3 -c "import numpy; print(numpy.get_include())")
-echo $NP_INCL
 
 # Python libraries are different file types for MacOS and linux
 # TODO: Check if this is needed since MacOS has its own deployment script
@@ -35,9 +33,7 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_INSTALL_PYTHON_PACKAGE=$SP_DIR \
  -DCH_PYCHRONO_DATA_PATH=../../../../share/chrono/data \
  -DCH_PYCHRONO_SHADER_PATH=../../../../lib/sensor_ptx \
- -DPYTHON_EXECUTABLE:FILEPATH=$PYTHON \
- -DPYTHON_INCLUDE_DIR:PATH=$PREFIX/include/python${PY_VER} \
- -DPYTHON_LIBRARY:FILEPATH=$PREFIX/lib/${PY_LIB} \
+ -DPython3_ROOT_DIR=$PREFIX \
  -DCMAKE_BUILD_TYPE=$CONFIGURATION \
  -DCH_ENABLE_MODULE_IRRLICHT=ON \
  -DCH_ENABLE_MODULE_POSTPROCESS=ON \
@@ -56,7 +52,6 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCH_ENABLE_MODULE_CASCADE=ON \
  -DCH_ENABLE_MODULE_PARDISO_MKL=ON \
  -DOptiX_INSTALL_DIR=$HOME/Packages/optix-7.7.0 \
- -DNUMPY_INCLUDE_DIR=$NP_INCL \
  ./..
 
 #  -DCASCADE_INCLUDE_DIR=$HOME/miniconda3/include/opencascade \

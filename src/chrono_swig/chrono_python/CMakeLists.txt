@@ -48,7 +48,6 @@ set(DBG_SCRIPT FALSE)
 #-----------------------------------------------------------------------------
 
 message(STATUS "Find Python")
-set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(Python3 REQUIRED 
              COMPONENTS Interpreter Development
              OPTIONAL_COMPONENTS NumPy)
