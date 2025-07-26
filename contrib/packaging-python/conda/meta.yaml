@@ -16,14 +16,16 @@ build:
 requirements:
   build:
     - {{ compiler('cxx') }}
-    - python
     - cmake   # [not win]
     - ninja   # [linux or osx]
     - jinja2  # [linux]
+    - swig ==4.0.2
+    - git
+  host:
+    - python
     - libglvnd-glx-cos7-x86_64 # [linux]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
-    - swig ==4.0.2
     - mkl-devel ==2023.2.0 # [not arm64]
     - irrlicht
     - opencascade ==7.4.0 # [not arm64]
@@ -36,7 +38,6 @@ requirements:
     - urdfdom_headers
     - libgl-devel # [linux]
     - yaml
-
   run:
     - python
     - mkl ==2023.2.0 # [not arm64]
