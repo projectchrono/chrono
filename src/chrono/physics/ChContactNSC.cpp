@@ -65,10 +65,10 @@ void ChContactNSC::Reset(ChContactable* obj_A,                      // contactab
     // COMPUTE JACOBIANS
 
     // delegate objA to compute its half of jacobian
-    objA->ComputeJacobianForContactPart(p1, contact_plane, Nx.Get_tuple_a(), Tu.Get_tuple_a(), Tv.Get_tuple_a(), false);
+    objA->ComputeJacobianForContactPart(p1, contact_plane, Nx.TupleA(), Tu.TupleA(), Tv.TupleA(), false);
 
     // delegate objB to compute its half of jacobian
-    objB->ComputeJacobianForContactPart(p2, contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(), Tv.Get_tuple_b(), true);
+    objB->ComputeJacobianForContactPart(p2, contact_plane, Nx.TupleB(), Tu.TupleB(), Tv.TupleB(), true);
 
     if (reactions_cache) {
         react_force.x() = reactions_cache[0];

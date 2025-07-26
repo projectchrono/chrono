@@ -323,17 +323,17 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
         Jxb3.fillDiagonal(-s3);
     }
 
-    auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.Get_tuple_a());
-    auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.Get_tuple_a());
-    auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.Get_tuple_a());
+    auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.TupleA());
+    auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.TupleA());
+    auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.TupleA());
 
     tuple1_a->Cq1().segment(0, 3) = Jxa.row(0);
     tuple2_a->Cq1().segment(0, 3) = Jxa.row(1);
     tuple3_a->Cq1().segment(0, 3) = Jxa.row(2);
 
-    auto tuple1_b = static_cast<ChConstraintTuple_333*>(constraint1.Get_tuple_b());
-    auto tuple2_b = static_cast<ChConstraintTuple_333*>(constraint2.Get_tuple_b());
-    auto tuple3_b = static_cast<ChConstraintTuple_333*>(constraint3.Get_tuple_b());
+    auto tuple1_b = static_cast<ChConstraintTuple_333*>(constraint1.TupleB());
+    auto tuple2_b = static_cast<ChConstraintTuple_333*>(constraint2.TupleB());
+    auto tuple3_b = static_cast<ChConstraintTuple_333*>(constraint3.TupleB());
 
     tuple1_b->Cq1().segment(0, 3) = Jxb1.row(0);
     tuple2_b->Cq1().segment(0, 3) = Jxb1.row(1);
@@ -671,17 +671,17 @@ void ChLinkNodeFaceRot::LoadConstraintJacobians() {
     }
 
 
-    auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.Get_tuple_a());
-    auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.Get_tuple_a());
-    auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.Get_tuple_a());
+    auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.TupleA());
+    auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.TupleA());
+    auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.TupleA());
 
     tuple1_a->Cq1().segment(0, 3) = Jxa.row(0);
     tuple2_a->Cq1().segment(0, 3) = Jxa.row(1);
     tuple3_a->Cq1().segment(0, 3) = Jxa.row(2);
 
-    auto tuple1_b = static_cast<ChConstraintTuple_666*>(constraint1.Get_tuple_b());
-    auto tuple2_b = static_cast<ChConstraintTuple_666*>(constraint2.Get_tuple_b());
-    auto tuple3_b = static_cast<ChConstraintTuple_666*>(constraint3.Get_tuple_b());
+    auto tuple1_b = static_cast<ChConstraintTuple_666*>(constraint1.TupleB());
+    auto tuple2_b = static_cast<ChConstraintTuple_666*>(constraint2.TupleB());
+    auto tuple3_b = static_cast<ChConstraintTuple_666*>(constraint3.TupleB());
 
     tuple1_b->Cq1().segment(0, 3) = Jxb1.row(0);
     tuple2_b->Cq1().segment(0, 3) = Jxb1.row(1);

@@ -36,10 +36,10 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     ChConstraintTwoTuples& operator=(const ChConstraintTwoTuples& other);
 
     /// Access tuple a.
-    ChConstraintTuple* Get_tuple_a() { return tuple_a; }
+    ChConstraintTuple* TupleA() { return tuple_a; }
 
     /// Access tuple b.
-    ChConstraintTuple* Get_tuple_b() { return tuple_b; }
+    ChConstraintTuple* TupleB() { return tuple_b; }
 
     /// Set the two tuples.
     void SetTuples(ChConstraintTuple* tupleA, ChConstraintTuple* tupleB);
@@ -47,7 +47,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// Set the two tuples from two contactable objects.
     void SetTuplesFromContactables(ChContactable* objA, ChContactable* objB);
 
-    virtual void Update_auxiliary() override;
+    virtual void UpdateAuxiliary() override;
 
     /// Compute the product between the Jacobian of this constraint, [Cq_i], and the vector of variables.
     /// In other words, perform the operation:

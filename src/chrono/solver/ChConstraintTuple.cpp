@@ -20,7 +20,7 @@ ChConstraintTuple::ChConstraintTuple() {
     }
 }
 
-void ChConstraintTuple::Update_auxiliary(double& g_i) {
+void ChConstraintTuple::UpdateAuxiliary(double& g_i) {
     CalculateEq();
     for (int i = 0; i < num_variables; i++) {
         if (variables[i]->IsActive()) {
@@ -107,7 +107,7 @@ void ChConstraintTuple_1::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
-void ChConstraintTuple_1::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_1::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -149,7 +149,7 @@ void ChConstraintTuple_2::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
-void ChConstraintTuple_2::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_2::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -191,7 +191,7 @@ void ChConstraintTuple_3::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
-void ChConstraintTuple_3::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_3::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -233,7 +233,7 @@ void ChConstraintTuple_4::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
-void ChConstraintTuple_4::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_4::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -275,7 +275,7 @@ void ChConstraintTuple_5::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
-void ChConstraintTuple_5::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_5::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -317,7 +317,7 @@ void ChConstraintTuple_6::CalculateEq() {
     variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
 }
 
-void ChConstraintTuple_6::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_6::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -382,7 +382,7 @@ void ChConstraintTuple_33::CalculateEq() {
     variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
 }
 
-void ChConstraintTuple_33::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_33::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -454,7 +454,7 @@ void ChConstraintTuple_66::CalculateEq() {
     variables[1]->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
 }
 
-void ChConstraintTuple_66::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_66::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -531,7 +531,7 @@ void ChConstraintTuple_333::CalculateEq() {
     variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
 }
 
-void ChConstraintTuple_333::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_333::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;
@@ -614,7 +614,7 @@ void ChConstraintTuple_666::CalculateEq() {
     variables[2]->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
 }
 
-void ChConstraintTuple_666::Update_auxiliary(double& g_i) {
+void ChConstraintTuple_666::UpdateAuxiliary(double& g_i) {
     if (variables[0]->IsActive()) {
         variables[0]->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         g_i += Cq_1 * Eq_1;

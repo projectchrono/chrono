@@ -60,7 +60,7 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
     }
 }
 
-void ChConstraintNgeneric::Update_auxiliary() {
+void ChConstraintNgeneric::UpdateAuxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
 

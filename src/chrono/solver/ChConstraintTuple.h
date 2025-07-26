@@ -34,7 +34,7 @@ class ChApi ChConstraintTuple {
     /// Derived classes must set 1, 2, or 3 variable objects and the Jacobian blocks of appropriate size.
     ChConstraintTuple();
 
-    virtual void Update_auxiliary(double& g_i);
+    virtual void UpdateAuxiliary(double& g_i);
     virtual double ComputeJacobianTimesState();
     virtual void IncrementState(double deltal);
     void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect);
@@ -69,7 +69,7 @@ class ChConstraintTuple_1 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -90,7 +90,7 @@ class ChConstraintTuple_2 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -111,7 +111,7 @@ class ChConstraintTuple_3 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -132,7 +132,7 @@ class ChConstraintTuple_4 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -153,7 +153,7 @@ class ChConstraintTuple_5 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -174,7 +174,7 @@ class ChConstraintTuple_6 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
     
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -202,7 +202,7 @@ class ChConstraintTuple_33 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -227,7 +227,7 @@ class ChConstraintTuple_66 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -259,7 +259,7 @@ class ChConstraintTuple_333 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };
@@ -288,7 +288,7 @@ class ChConstraintTuple_666 : public ChConstraintTuple {
 
     virtual void CalculateEq() override;
 
-    virtual void Update_auxiliary(double& g_i) override;
+    virtual void UpdateAuxiliary(double& g_i) override;
     virtual double ComputeJacobianTimesState() override;
     virtual void IncrementState(double deltal) override;
 };

@@ -79,7 +79,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // Update auxiliary data in all constraints before starting,
     // that is: g_i=[Cq_i]*[invM_i]*[Cq_i]' and  [Eq_i]=[invM_i]*[Cq_i]'
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-        mconstraints[ic]->Update_auxiliary();
+        mconstraints[ic]->UpdateAuxiliary();
 
     double L, t;
     double theta;

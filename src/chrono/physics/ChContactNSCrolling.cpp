@@ -61,12 +61,10 @@ void ChContactNSCrolling::Reset(ChContactable* obj_A,                      // co
     // COMPUTE JACOBIANS
 
     // delegate objA to compute its half of jacobian
-    objA->ComputeJacobianForRollingContactPart(this->p1, this->contact_plane, Rx.Get_tuple_a(), Ru.Get_tuple_a(),
-                                               Rv.Get_tuple_a(), false);
+    objA->ComputeJacobianForRollingContactPart(p1, contact_plane, Rx.TupleA(), Ru.TupleA(), Rv.TupleA(), false);
 
     // delegate objB to compute its half of jacobian
-    objB->ComputeJacobianForRollingContactPart(this->p2, this->contact_plane, Rx.Get_tuple_b(), Ru.Get_tuple_b(),
-                                               Rv.Get_tuple_b(), true);
+    objB->ComputeJacobianForRollingContactPart(p2, contact_plane, Rx.TupleB(), Ru.TupleB(), Rv.TupleB(), true);
 
     react_torque = VNULL;
 }

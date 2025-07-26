@@ -39,10 +39,10 @@ void ChConstraintTwoTuples::SetTuplesFromContactables(ChContactable* objA, ChCon
     tuple_b = objB->CreateConstraintTuple();
 }
 
-void ChConstraintTwoTuples::Update_auxiliary() {
+void ChConstraintTwoTuples::UpdateAuxiliary() {
     g_i = 0;
-    tuple_a->Update_auxiliary(g_i);
-    tuple_b->Update_auxiliary(g_i);
+    tuple_a->UpdateAuxiliary(g_i);
+    tuple_b->UpdateAuxiliary(g_i);
     //  adds the constraint force mixing term (usually zero):
     if (cfm_i != 0)
         g_i += cfm_i;
