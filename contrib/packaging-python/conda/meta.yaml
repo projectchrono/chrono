@@ -21,6 +21,9 @@ requirements:
     - jinja2  # [linux]
     - swig ==4.0.2
     - git
+    - cuda-toolkit ==12.8.0 # [not osx]
+    - openmpi
+    - intel-openmp ==2023.2.0 # [not arm64]
   host:
     - python
     - libglvnd-glx-cos7-x86_64 # [linux]
@@ -38,6 +41,8 @@ requirements:
     - urdfdom_headers
     - libgl-devel # [linux]
     - yaml
+    - openmpi
+    - intel-openmp ==2023.2.0 # [not arm64]
   run:
     - python
     - mkl ==2023.2.0 # [not arm64]
@@ -50,6 +55,7 @@ requirements:
     - cuda-toolkit ==12.8.0 # [not osx]
     - urdfdom
     - libgl # [linux]
+    - openmpi
     - yaml
 
 about:
