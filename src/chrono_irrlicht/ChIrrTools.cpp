@@ -167,8 +167,8 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_Radius,
+                                 double distance,
+                                 double eff_Radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
@@ -250,8 +250,8 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
@@ -1114,10 +1114,10 @@ void drawArrow(ChVisualSystemIrrlicht* vis,
 // Draw a label in 3D scene at given position.
 // -----------------------------------------------------------------------------
 void drawLabel3D(ChVisualSystemIrrlicht* vis,
-               const std::string& text,
-               const ChVector3d& position,
-               const ChColor& color,
-               bool use_Zbuffer) {
+                 const std::string& text,
+                 const ChVector3d& position,
+                 const ChColor& color,
+                 bool use_Zbuffer) {
     irr::core::position2di spos =
         vis->GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(
             irr::core::vector3dfCH(position));

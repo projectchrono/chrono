@@ -56,7 +56,7 @@ my_system.Add(bodyB)
 class MyReportContactCallback(chrono.ReportContactCallback):
     def __init__(self):
          chrono.ReportContactCallback.__init__(self)
-    def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB):
+    def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB,cnstr_offset):
          bodyUpA = chrono.CastContactableToChBody(modA)
          nameA = bodyUpA.GetName()
          bodyUpB = chrono.CastContactableToChBody(modB)

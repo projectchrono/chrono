@@ -40,7 +40,7 @@ void ChContactContainerSMC::RemoveAllContacts() {
     auto iter = contacts.begin();
     while (iter != contacts.end()) {
         delete *iter;
-        *iter = 0;
+        *iter = nullptr;
         ++iter;
     }
     contacts.clear();
@@ -56,7 +56,7 @@ void ChContactContainerSMC::BeginAddContact() {
 void ChContactContainerSMC::EndAddContact() {
     // Remove contacts that are beyond last contact
     while (last_contact != contacts.end()) {
-        delete (*last_contact);
+        delete *last_contact;
         last_contact = contacts.erase(last_contact);
     }
 }

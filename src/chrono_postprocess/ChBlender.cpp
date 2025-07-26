@@ -1237,10 +1237,10 @@ void ChBlender::ExportData(const std::string& filename) {
                     const ChVector3d& pA,             // contact pA
                     const ChVector3d& pB,             // contact pB
                     const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
-                    const double& distance,           // contact distance
-                    const double& eff_radius,         // effective radius of curvature at contact
+                    double distance,                  // contact distance
+                    double eff_radius,                // effective radius of curvature at contact
                     const ChVector3d& react_forces,   // react. forces, expressed in 'plane_coord'
-                    const ChVector3d& react_torques,  // react. torques, if rolling friction 
+                    const ChVector3d& react_torques,  // react. torques, if rolling friction
                     ChContactable* contactobjA,       // first contactable object (may be nullptr)
                     ChContactable* contactobjB,       // second contactable object (may be nullptr)
                     int constraint_offset             // NSC only, ignored here

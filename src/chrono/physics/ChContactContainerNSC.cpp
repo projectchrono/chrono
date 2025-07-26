@@ -50,7 +50,7 @@ void ChContactContainerNSC::RemoveAllContacts() {
         auto iter = contacts_rolling.begin();
         while (iter != contacts_rolling.end()) {
             delete *iter;
-            *iter = 0;
+            *iter = nullptr;
             ++iter;
         }
         contacts_rolling.clear();
@@ -70,7 +70,7 @@ void ChContactContainerNSC::BeginAddContact() {
 void ChContactContainerNSC::EndAddContact() {
     // Remove contacts that are beyond last contact
     while (last_contact != contacts.end()) {
-        delete (*last_contact);
+        delete *last_contact;
         last_contact = contacts.erase(last_contact);
     }
 
