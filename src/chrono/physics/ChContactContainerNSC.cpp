@@ -143,9 +143,8 @@ void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const Ch
     auto typeA = contactableA->GetContactableType();
     auto typeB = contactableB->GetContactableType();
 
-    //// TODO: implement a more robust check than this!!!!
-    bool rolling = (typeA == ChContactable::Type::CONTACTABLE_6 && typeB == ChContactable::Type::CONTACTABLE_6) &&
-                   (cmat.rolling_friction || cmat.spinning_friction);
+    bool rolling = (typeA == ChContactable::Type::ONE_6 && typeB == ChContactable::Type::ONE_6) &&
+                   (cmat.rolling_friction > 0 || cmat.spinning_friction > 0);
 
     if (rolling) {
         if (last_contact_rolling != contacts_rolling.end()) {

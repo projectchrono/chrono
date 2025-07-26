@@ -32,13 +32,17 @@ class ChApi ChContactable {
   public:
     /// Contactable type (based on number of variables objects and their DOFs).
     enum class Type {
-        CONTACTABLE_UNKNOWN,  ///< unknown contactable type
-        CONTACTABLE_6,        ///< 1 variable with 6 DOFs (e.g., ChBody, ChNodeFEAxyzrot)
-        CONTACTABLE_3,        ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChParticle)
-        CONTACTABLE_33,       ///< 2 variables, each with 3DOF (e.g., segments between 2 ChNodeFEAxyz nodes)
-        CONTACTABLE_66,       ///< 2 variables, each with 6 DOFs (e.g., triangle between 2 ChNodeFEAxyzrot nodes)
-        CONTACTABLE_333,      ///< 3 variables, each with 3 DOFs (e.g., triangle between 3 ChNodeFEAxyz nodes)
-        CONTACTABLE_666       ///< 3 variables, each with 6 DOFs (e.g., triangle between 3 ChNodeFEAxyzrot nodes)
+        UNKNOWN,    ///< unknown contactable type
+        ONE_1,      ///< 1 variable with 1 DOF
+        ONE_2,      ///< 1 variable with 2 DOFs
+        ONE_3,      ///< 1 variable with 3 DOFs (e.g., ChNodeFEAxyz)
+        ONE_4,      ///< 1 variable with 4 DOFs
+        ONE_5,      ///< 1 variable with 5 DOFs
+        ONE_6,      ///< 1 variable with 6 DOFs (e.g., ChBody, ChParticle, ChNodeFEAxyzrot)
+        TWO_33,     ///< 2 variables, each with 3 DOFs (e.g., segments between 2 ChNodeFEAxyz nodes)
+        TWO_66,     ///< 2 variables, each with 6 DOFs (e.g., triangle between 2 ChNodeFEAxyzrot nodes)
+        THREE_333,  ///< 3 variables, each with 3 DOFs (e.g., triangle between 3 ChNodeFEAxyz nodes)
+        THREE_666   ///< 3 variables, each with 6 DOFs (e.g., triangle between 3 ChNodeFEAxyzrot nodes)
     };
 
     virtual ~ChContactable() {}
@@ -66,7 +70,6 @@ class ChApi ChContactable {
     virtual ChVariables* GetContactableVariables(int set) = 0;
 
     /// Create a constraint tuple with the appropriate number of variables for this contactable object.
-    /// Derived classes must also call ChConstraintTuple::SetVariables.
     virtual ChConstraintTuple* CreateConstraintTuple() = 0;
 
     /// Get the number of DOFs affected by this object (position part).

@@ -48,7 +48,7 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars {
 
     // INTERFACE TO ChContactable
 
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_6; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_6(&Variables()); }
 

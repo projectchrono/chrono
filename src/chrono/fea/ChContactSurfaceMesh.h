@@ -74,7 +74,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadable
 
     // Interface to ChContactable
 
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_333; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::THREE_333; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_333(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables());
@@ -273,7 +273,7 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars, public ChLoada
 
     // Interface to ChContactable
 
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_666; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::THREE_666; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_666(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables());

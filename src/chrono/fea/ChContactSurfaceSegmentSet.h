@@ -67,7 +67,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
     // Interface to ChContactable
 
     /// Return the type of contactable (here, a contactable with 2 variables, each with 3 DOFs).
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_33; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::TWO_33; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_33(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
@@ -196,7 +196,7 @@ class ChApi ChContactSegmentXYZRot : public ChContactable_2vars /*, public ChLoa
     // Interface to ChContactable
 
     /// Return the type of contactable (here, a contactable with 2 variables, each with 6 DOFs).
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_66; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::TWO_66; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_66(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());

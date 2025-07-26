@@ -49,7 +49,7 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars {
 
     // INTERFACE TO ChContactable
 
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_3; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_3; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_3(&m_node->Variables());
@@ -175,7 +175,7 @@ class ChApi ChContactNodeXYZRot : public ChContactable_1vars {
 
     // INTERFACE TO ChContactable
 
-    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::CONTACTABLE_6; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
         return new ChConstraintTuple_6(&m_node->Variables());
