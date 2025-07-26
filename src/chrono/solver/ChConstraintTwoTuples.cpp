@@ -19,6 +19,11 @@ ChConstraintTwoTuples::ChConstraintTwoTuples() : tuple_a(nullptr), tuple_b(nullp
 ChConstraintTwoTuples::ChConstraintTwoTuples(const ChConstraintTwoTuples& other)
     : ChConstraint(other), tuple_a(other.tuple_a), tuple_b(other.tuple_b) {}
 
+ChConstraintTwoTuples::~ChConstraintTwoTuples() {
+    delete tuple_a;
+    delete tuple_b;
+}
+
 ChConstraintTwoTuples& ChConstraintTwoTuples::operator=(const ChConstraintTwoTuples& other) {
     tuple_a = other.tuple_a;
     tuple_b = other.tuple_b;

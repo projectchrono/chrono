@@ -34,7 +34,7 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-ChContactMethod contact_method = ChContactMethod::NSC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type coll_type = ChCollisionSystem::Type::BULLET;
 

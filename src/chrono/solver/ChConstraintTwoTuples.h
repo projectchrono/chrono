@@ -27,7 +27,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
   public:
     ChConstraintTwoTuples();
     ChConstraintTwoTuples(const ChConstraintTwoTuples& other);
-    virtual ~ChConstraintTwoTuples() {}
+    virtual ~ChConstraintTwoTuples();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConstraintTwoTuples* Clone() const override { return new ChConstraintTwoTuples(*this); }
@@ -86,6 +86,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
                                              unsigned int start_col) const override;
 
   protected:
+    // Note: the two constraint tuples are managed by this container
     ChConstraintTuple* tuple_a;
     ChConstraintTuple* tuple_b;
 };
