@@ -222,7 +222,6 @@ linux:ubuntu22.04-clang:test:
     - conda install conda-build anaconda-client --yes
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
   environment:
     name: pychrono-ubuntu22.04
     url: https://anaconda.org/projectchrono/pychrono

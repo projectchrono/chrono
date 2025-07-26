@@ -23,7 +23,7 @@ requirements:
     - git
     - cuda-toolkit ==12.8.0 # [not osx]
     - openmpi
-    - intel-openmp ==2023.2.0 # [not arm64]
+    - intel-openmp ==2023.2.0 # [win]
   host:
     - python
     - libglvnd-glx-cos7-x86_64 # [linux]
@@ -42,7 +42,7 @@ requirements:
     - libgl-devel # [linux]
     - yaml
     - openmpi
-    - intel-openmp ==2023.2.0 # [not arm64]
+    - intel-openmp ==2023.2.0 # [win]
   run:
     - python
     - mkl ==2023.2.0 # [not arm64]
