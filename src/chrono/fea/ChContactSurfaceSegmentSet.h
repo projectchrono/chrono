@@ -70,7 +70,7 @@ class ChApi ChContactSegmentXYZ : public ChContactable_2vars {
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::TWO_33; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
-        return new ChConstraintTuple_33(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
+        return new ChConstraintTuple_2vars<3, 3>(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
     }
 
     /// Indicate if the object must be considered in collision detection.
@@ -199,7 +199,7 @@ class ChApi ChContactSegmentXYZRot : public ChContactable_2vars /*, public ChLoa
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::TWO_66; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
-        return new ChConstraintTuple_66(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
+        return new ChConstraintTuple_2vars<6, 6>(&m_nodes[0]->Variables(), &m_nodes[1]->Variables());
     }
 
     /// Indicate if the object must be considered in collision detection.

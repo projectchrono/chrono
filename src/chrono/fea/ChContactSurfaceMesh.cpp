@@ -219,9 +219,9 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_p
     if (!second)
         Jx1 *= -1;
 
-    auto tuple_N = static_cast<ChConstraintTuple_333*>(jacobian_tuple_N);
-    auto tuple_U = static_cast<ChConstraintTuple_333*>(jacobian_tuple_U);
-    auto tuple_V = static_cast<ChConstraintTuple_333*>(jacobian_tuple_V);
+    auto tuple_N = static_cast<ChConstraintTuple_3vars<3, 3, 3>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_3vars<3, 3, 3>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_3vars<3, 3, 3>*>(jacobian_tuple_V);
 
     tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
     tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
@@ -527,9 +527,9 @@ void ChContactTriangleXYZRot::ComputeJacobianForContactPart(const ChVector3d& ab
     if (!second)
         Jx1 *= -1;
 
-    auto tuple_N = static_cast<ChConstraintTuple_333*>(jacobian_tuple_N);
-    auto tuple_U = static_cast<ChConstraintTuple_333*>(jacobian_tuple_U);
-    auto tuple_V = static_cast<ChConstraintTuple_333*>(jacobian_tuple_V);
+    auto tuple_N = static_cast<ChConstraintTuple_3vars<6, 6, 6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_3vars<6, 6, 6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_3vars<6, 6, 6>*>(jacobian_tuple_V);
 
     tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
     tuple_U->Cq1().segment(0, 3) = Jx1.row(1);

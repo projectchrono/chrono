@@ -538,7 +538,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
 
-    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_6(&variables); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<6>(&variables); }
 
     /// Indicate whether or not the object must be considered in collision detection.
     virtual bool IsContactActive() override { return this->IsActive(); }

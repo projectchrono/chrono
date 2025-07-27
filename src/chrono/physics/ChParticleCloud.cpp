@@ -152,9 +152,9 @@ void ChParticle::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     if (second)
         Jr1 *= -1;
 
-    auto tuple_N = static_cast<ChConstraintTuple_6*>(jacobian_tuple_N);
-    auto tuple_U = static_cast<ChConstraintTuple_6*>(jacobian_tuple_U);
-    auto tuple_V = static_cast<ChConstraintTuple_6*>(jacobian_tuple_V);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
 
     tuple_N->Cq1().segment(0, 3) = Jx1.row(0);
     tuple_U->Cq1().segment(0, 3) = Jx1.row(1);
@@ -175,9 +175,9 @@ void ChParticle::ComputeJacobianForRollingContactPart(const ChVector3d& abs_poin
     if (!second)
         Jr1 *= -1;
 
-    auto tuple_N = static_cast<ChConstraintTuple_6*>(jacobian_tuple_N);
-    auto tuple_U = static_cast<ChConstraintTuple_6*>(jacobian_tuple_U);
-    auto tuple_V = static_cast<ChConstraintTuple_6*>(jacobian_tuple_V);
+    auto tuple_N = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_N);
+    auto tuple_U = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_U);
+    auto tuple_V = static_cast<ChConstraintTuple_1vars<6>*>(jacobian_tuple_V);
 
     tuple_N->Cq1().segment(0, 3).setZero();
     tuple_U->Cq1().segment(0, 3).setZero();

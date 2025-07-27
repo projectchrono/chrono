@@ -50,7 +50,7 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars {
 
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::ONE_6; }
 
-    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_6(&Variables()); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<6>(&Variables()); }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }

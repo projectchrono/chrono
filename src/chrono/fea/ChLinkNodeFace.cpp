@@ -34,7 +34,9 @@ struct PointNodeXYZ : public ChLinkNodeFace::PointNode {
     virtual ChLinkNodeFace::FeaNodeType GetType() const { return ChLinkNodeFace::FeaNodeType::XYZ; }
     virtual unsigned int GetNumCoords() const override { return 3; }
     virtual const ChVector3d& GetPos() const override { return node->GetPos(); }
-    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_3(&node->Variables()); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_1vars<3>(&node->Variables());
+    }
 };
 
 // Class for a point given by an xyzrot FEA node.
@@ -44,7 +46,9 @@ struct PointNodeXYZrot : public ChLinkNodeFace::PointNode {
     virtual ChLinkNodeFace::FeaNodeType GetType() const { return ChLinkNodeFace::FeaNodeType::XYZrot; }
     virtual unsigned int GetNumCoords() const override { return 6; }
     virtual const ChVector3d& GetPos() const override { return node->GetPos(); }
-    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_6(&node->Variables()); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_1vars<6>(&node->Variables());
+    }
 };
 
 // Class encapsulating a triangle given by three xyz FEA nodes.
@@ -59,7 +63,7 @@ struct TriangleNodesXYZ : public ChLinkNodeFace::TriangleNodes {
     virtual const ChVector3d& GetPos3() const override { return node3->GetPos(); }
     virtual unsigned int GetNumCoords() const override { return 3 * 3; }
     virtual ChConstraintTuple* CreateConstraintTuple() override {
-        return new ChConstraintTuple_333(&node1->Variables(), &node2->Variables(), &node3->Variables());
+        return new ChConstraintTuple_3vars<3, 3, 3>(&node1->Variables(), &node2->Variables(), &node3->Variables());
     }
 };
 
@@ -75,7 +79,7 @@ struct TriangleNodesXYZrot : public ChLinkNodeFace::TriangleNodes {
     virtual const ChVector3d& GetPos3() const override { return node3->GetPos(); }
     virtual unsigned int GetNumCoords() const override { return 3 * 6; }
     virtual ChConstraintTuple* CreateConstraintTuple() override {
-        return new ChConstraintTuple_666(&node1->Variables(), &node2->Variables(), &node3->Variables());
+        return new ChConstraintTuple_3vars<6, 6, 6>(&node1->Variables(), &node2->Variables(), &node3->Variables());
     }
 };
 
@@ -449,9 +453,9 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
 
     switch (m_point->GetType()) {
         case FeaNodeType::XYZ: {
-            auto tuple1_a = static_cast<ChConstraintTuple_3*>(constraint1.TupleA());
-            auto tuple2_a = static_cast<ChConstraintTuple_3*>(constraint2.TupleA());
-            auto tuple3_a = static_cast<ChConstraintTuple_3*>(constraint3.TupleA());
+            auto tuple1_a = static_cast<ChConstraintTuple_1vars<3>*>(constraint1.TupleA());
+            auto tuple2_a = static_cast<ChConstraintTuple_1vars<3>*>(constraint2.TupleA());
+            auto tuple3_a = static_cast<ChConstraintTuple_1vars<3>*>(constraint3.TupleA());
 
             tuple1_a->Cq1().segment(0, 3) = Jxa.row(0);
             tuple2_a->Cq1().segment(0, 3) = Jxa.row(1);
@@ -460,9 +464,9 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
             break;
         }
         case FeaNodeType::XYZrot: {
-            auto tuple1_a = static_cast<ChConstraintTuple_6*>(constraint1.TupleA());
-            auto tuple2_a = static_cast<ChConstraintTuple_6*>(constraint2.TupleA());
-            auto tuple3_a = static_cast<ChConstraintTuple_6*>(constraint3.TupleA());
+            auto tuple1_a = static_cast<ChConstraintTuple_1vars<6>*>(constraint1.TupleA());
+            auto tuple2_a = static_cast<ChConstraintTuple_1vars<6>*>(constraint2.TupleA());
+            auto tuple3_a = static_cast<ChConstraintTuple_1vars<6>*>(constraint3.TupleA());
 
             tuple1_a->Cq1().segment(0, 3) = Jxa.row(0);
             tuple2_a->Cq1().segment(0, 3) = Jxa.row(1);
@@ -474,9 +478,9 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
 
     switch (m_triangle->GetType()) {
         case FeaNodeType::XYZ: {
-            auto tuple1_b = static_cast<ChConstraintTuple_333*>(constraint1.TupleB());
-            auto tuple2_b = static_cast<ChConstraintTuple_333*>(constraint2.TupleB());
-            auto tuple3_b = static_cast<ChConstraintTuple_333*>(constraint3.TupleB());
+            auto tuple1_b = static_cast<ChConstraintTuple_3vars<3, 3, 3>*>(constraint1.TupleB());
+            auto tuple2_b = static_cast<ChConstraintTuple_3vars<3, 3, 3>*>(constraint2.TupleB());
+            auto tuple3_b = static_cast<ChConstraintTuple_3vars<3, 3, 3>*>(constraint3.TupleB());
 
             tuple1_b->Cq1().segment(0, 3) = Jxb1.row(0);
             tuple2_b->Cq1().segment(0, 3) = Jxb1.row(1);
@@ -493,9 +497,9 @@ void ChLinkNodeFace::LoadConstraintJacobians() {
             break;
         }
         case FeaNodeType::XYZrot: {
-            auto tuple1_b = static_cast<ChConstraintTuple_666*>(constraint1.TupleB());
-            auto tuple2_b = static_cast<ChConstraintTuple_666*>(constraint2.TupleB());
-            auto tuple3_b = static_cast<ChConstraintTuple_666*>(constraint3.TupleB());
+            auto tuple1_b = static_cast<ChConstraintTuple_3vars<6, 6, 6>*>(constraint1.TupleB());
+            auto tuple2_b = static_cast<ChConstraintTuple_3vars<6, 6, 6>*>(constraint2.TupleB());
+            auto tuple3_b = static_cast<ChConstraintTuple_3vars<6, 6, 6>*>(constraint3.TupleB());
 
             tuple1_b->Cq1().segment(0, 3) = Jxb1.row(0);
             tuple2_b->Cq1().segment(0, 3) = Jxb1.row(1);

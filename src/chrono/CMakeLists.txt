@@ -1053,7 +1053,6 @@ set(Chrono_solver_constraints_SOURCES
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
     solver/ChConstraintNgeneric.cpp
-    solver/ChConstraintTuple.cpp
     solver/ChConstraintTwoTuples.cpp
     solver/ChConstraintContactNormal.cpp
     solver/ChConstraintContactTangential.cpp

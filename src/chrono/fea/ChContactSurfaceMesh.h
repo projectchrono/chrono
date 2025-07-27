@@ -77,7 +77,8 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadable
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::THREE_333; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
-        return new ChConstraintTuple_333(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables());
+        return new ChConstraintTuple_3vars<3, 3, 3>(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(),
+                                                    &m_nodes[2]->Variables());
     }
 
     /// Tell if the object must be considered in collision detection.
@@ -276,7 +277,8 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars, public ChLoada
     virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::THREE_666; }
 
     virtual ChConstraintTuple* CreateConstraintTuple() override {
-        return new ChConstraintTuple_666(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(), &m_nodes[2]->Variables());
+        return new ChConstraintTuple_3vars<6, 6, 6>(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(),
+                                                    &m_nodes[2]->Variables());
     }
 
     /// Tell if the object must be considered in collision detection.

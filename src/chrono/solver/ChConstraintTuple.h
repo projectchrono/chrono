@@ -20,233 +20,189 @@ namespace chrono {
 
 /// Container representing "half" of a constraint between objects with different numbers of variable sets.
 /// Two such tuples, aggregated in a ChConstraintTwoTuples, form a full constraint.
-/// This object manages the Jacobian chunk for one object which uses 1, 2, or 3 variable objects.
+/// This object manages the Jacobian chunks for one object which uses 1, 2, or 3 variable objects.
 /// Derived classes specialize this for objects represented by 1, 2, or 3 variable objects of different sizes.
-class ChApi ChConstraintTuple {
+class ChConstraintTuple {
   public:
     virtual ~ChConstraintTuple() {}
 
-    virtual ChRowVectorRef Cq(int i) = 0;
-    virtual ChVectorRef Eq(int i) = 0;
-
   protected:
-    /// Construct the tuple, setting variables and Jacobian blocks to null.
-    /// Derived classes must set 1, 2, or 3 variable objects and the Jacobian blocks of appropriate size.
-    ChConstraintTuple();
+    ChConstraintTuple() {}
 
-    virtual void UpdateAuxiliary(double& g_i);
-    virtual double ComputeJacobianTimesState();
-    virtual void IncrementState(double deltal);
-    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect);
-    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l);
-    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col);
-    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col);
-
-    virtual void CalculateEq() = 0;
-
-    int num_variables;          ///< number of referenced variables
-    ChVariables* variables[3];  ///< referenced variable objects
+    virtual void UpdateAuxiliary(double& g_i) = 0;
+    virtual double ComputeJacobianTimesState() = 0;
+    virtual void IncrementState(double deltal) = 0;
+    virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) = 0;
+    virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) = 0;
+    virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) = 0;
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) = 0;
 
     friend class ChConstraintTwoTuples;
 };
 
 // -----------------------------------------------------------------------------
-// Constraint tuples for objects with 1 variable object
 
-/// Constraint tuple representing an object with 1 variable of size 1.
-class ChConstraintTuple_1 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 1> Cq_1;
-    ChVectorN<double, 1> Eq_1;
-
+/// Constraint tuple for objects with 1 variable set.
+template <int N>
+class ChConstraintTuple_1vars : public ChConstraintTuple {
   public:
-    ChConstraintTuple_1(ChVariables* variables1);
+    ChConstraintTuple_1vars(ChVariables* variables1) {
+        assert(variables1->GetDOF() == N);
+        variables_1 = variables1;
+
+        Cq_1.setZero();
+        Eq_1.setZero();
+    }
 
     ChRowVectorRef Cq1() { return Cq_1; }
     ChVectorRef Eq1() { return Eq_1; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
 
-    virtual void CalculateEq() override;
+    virtual void UpdateAuxiliary(double& g_i) override {
+        if (variables_1->IsActive()) {
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+            g_i += Cq_1 * Eq_1;
+        }
+    }
+    virtual double ComputeJacobianTimesState() override {
+        if (variables_1->IsActive())
+            return Cq_1 * variables_1->State();
+        return 0;
+    }
+    virtual void IncrementState(double deltal) override {
+        if (variables_1->IsActive())
+            variables_1->State() += Eq_1 * deltal;
+    }
+    virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) override {
+        if (variables_1->IsActive())
+            result += Cq_1 * vect.segment(variables_1->GetOffset(), N);
+    }
+    virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) override {
+        if (variables_1->IsActive())
+            result.segment(variables_1->GetOffset(), N) += Cq_1.transpose() * l;
+    }
+    virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) override {
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
+    }
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) override {
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
+    }
 
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 1 variable of size 2.
-class ChConstraintTuple_2 : public ChConstraintTuple {
   private:
-    ChRowVectorN<double, 2> Cq_1;
-    ChVectorN<double, 2> Eq_1;
+    ChVariables* variables_1;
 
-  public:
-    ChConstraintTuple_2(ChVariables* variables1);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChVectorRef Eq1() { return Eq_1; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 1 variable of size 3.
-class ChConstraintTuple_3 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 3> Cq_1;
-    ChVectorN<double, 3> Eq_1;
-
-  public:
-    ChConstraintTuple_3(ChVariables* variables1);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChVectorRef Eq1() { return Eq_1; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 1 variable of size 4.
-class ChConstraintTuple_4 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 4> Cq_1;
-    ChVectorN<double, 4> Eq_1;
-
-  public:
-    ChConstraintTuple_4(ChVariables* variables1);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChVectorRef Eq1() { return Eq_1; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 1 variable of size 5.
-class ChConstraintTuple_5 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 5> Cq_1;
-    ChVectorN<double, 5> Eq_1;
-
-  public:
-    ChConstraintTuple_5(ChVariables* variables1);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChVectorRef Eq1() { return Eq_1; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 1 variable of size 6.
-class ChConstraintTuple_6 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 6> Cq_1;
-    ChVectorN<double, 6> Eq_1;
-
-  public:
-    ChConstraintTuple_6(ChVariables* variables1);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChVectorRef Eq1() { return Eq_1; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-    
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
+    ChRowVectorN<double, N> Cq_1;
+    ChVectorN<double, N> Eq_1;
 };
 
 // -----------------------------------------------------------------------------
-// Constraint tuples for objects with 2 variable objects
 
-/// Constraint tuple representing an object with 2 variables, each of size 3.
-class ChConstraintTuple_33 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 3> Cq_1;
-    ChRowVectorN<double, 3> Cq_2;
-    ChVectorN<double, 3> Eq_1;
-    ChVectorN<double, 3> Eq_2;
-
+/// Constraint tuple for objects with 2 variable sets.
+template <int N1, int N2>
+class ChConstraintTuple_2vars : public ChConstraintTuple {
   public:
-    ChConstraintTuple_33(ChVariables* variables1, ChVariables* variables2);
+    ChConstraintTuple_2vars(ChVariables* variables1, ChVariables* variables2) {
+        assert(variables1->GetDOF() == N1);
+        assert(variables2->GetDOF() == N2);
+        variables_1 = variables1;
+        variables_2 = variables2;
+
+        Cq_1.setZero();
+        Cq_2.setZero();
+        Eq_1.setZero();
+        Eq_2.setZero();
+    }
 
     ChRowVectorRef Cq1() { return Cq_1; }
     ChRowVectorRef Cq2() { return Cq_2; }
     ChVectorRef Eq1() { return Eq_1; }
     ChVectorRef Eq2() { return Eq_2; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
 
-    virtual void CalculateEq() override;
+    virtual void UpdateAuxiliary(double& g_i) override {
+        if (variables_1->IsActive()) {
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+            g_i += Cq_1 * Eq_1;
+        }
+        if (variables_2->IsActive()) {
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+            g_i += Cq_2 * Eq_2;
+        }
+    }
+    virtual double ComputeJacobianTimesState() override {
+        double result = 0;
+        if (variables_1->IsActive())
+            result += Cq_1 * variables_1->State();
+        if (variables_2->IsActive())
+            result += Cq_2 * variables_2->State();
+        return result;
+    }
+    virtual void IncrementState(double deltal) override {
+        if (variables_1->IsActive())
+            variables_1->State() += Eq_1 * deltal;
+        if (variables_2->IsActive())
+            variables_2->State() += Eq_2 * deltal;
+    }
+    virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) override {
+        if (variables_1->IsActive())
+            result += Cq_1 * vect.segment(variables_1->GetOffset(), N1);
+        if (variables_2->IsActive())
+            result += Cq_2 * vect.segment(variables_2->GetOffset(), N2);
+    }
+    virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) override {
+        if (variables_1->IsActive())
+            result.segment(variables_1->GetOffset(), N1) += Cq_1.transpose() * l;
+        if (variables_2->IsActive())
+            result.segment(variables_2->GetOffset(), N2) += Cq_2.transpose() * l;
+    }
+    virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) override {
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
+        if (variables_2->IsActive())
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
+    }
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) override {
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
+        if (variables_2->IsActive())
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
+    }
 
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 2 variables, each of size 6.
-class ChConstraintTuple_66 : public ChConstraintTuple {
   private:
-    ChRowVectorN<double, 6> Cq_1;
-    ChRowVectorN<double, 6> Cq_2;
-    ChVectorN<double, 6> Eq_1;
-    ChVectorN<double, 6> Eq_2;
+    ChVariables* variables_1;
+    ChVariables* variables_2;
 
-  public:
-    ChConstraintTuple_66(ChVariables* variables1, ChVariables* variables2);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChRowVectorRef Cq2() { return Cq_2; }
-    ChVectorRef Eq1() { return Eq_1; }
-    ChVectorRef Eq2() { return Eq_2; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
+    ChRowVectorN<double, N1> Cq_1;
+    ChRowVectorN<double, N2> Cq_2;
+    ChVectorN<double, N1> Eq_1;
+    ChVectorN<double, N2> Eq_2;
 };
 
 // -----------------------------------------------------------------------------
-// Constraint tuples for objects with 3 variable objects
 
-/// Constraint tuple representing an object with 3 variables, each of size 3.
-class ChConstraintTuple_333 : public ChConstraintTuple {
-  private:
-    ChRowVectorN<double, 3> Cq_1;
-    ChRowVectorN<double, 3> Cq_2;
-    ChRowVectorN<double, 3> Cq_3;
-    ChVectorN<double, 3> Eq_1;
-    ChVectorN<double, 3> Eq_2;
-    ChVectorN<double, 3> Eq_3;
-
+/// Constraint tuple for objects with 3 variable sets.
+template <int N1, int N2, int N3>
+class ChConstraintTuple_3vars : public ChConstraintTuple {
   public:
-    ChConstraintTuple_333(ChVariables* variables1, ChVariables* variables2, ChVariables* variables3);
+    ChConstraintTuple_3vars(ChVariables* variables1, ChVariables* variables2, ChVariables* variables3) {
+        assert(variables1->GetDOF() == N1);
+        assert(variables2->GetDOF() == N2);
+        assert(variables3->GetDOF() == N3);
+        variables_1 = variables1;
+        variables_2 = variables2;
+        variables_3 = variables3;
+
+        Cq_1.setZero();
+        Cq_2.setZero();
+        Cq_3.setZero();
+        Eq_1.setZero();
+        Eq_2.setZero();
+        Eq_3.setZero();
+    }
 
     ChRowVectorRef Cq1() { return Cq_1; }
     ChRowVectorRef Cq2() { return Cq_2; }
@@ -254,43 +210,85 @@ class ChConstraintTuple_333 : public ChConstraintTuple {
     ChVectorRef Eq1() { return Eq_1; }
     ChVectorRef Eq2() { return Eq_2; }
     ChVectorRef Eq3() { return Eq_3; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
 
-    virtual void CalculateEq() override;
+    virtual void UpdateAuxiliary(double& g_i) override {
+        if (variables_1->IsActive()) {
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
+            g_i += Cq_1 * Eq_1;
+        }
+        if (variables_2->IsActive()) {
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
+            g_i += Cq_2 * Eq_2;
+        }
+        if (variables_3->IsActive()) {
+            variables_3->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
+            g_i += Cq_3 * Eq_3;
+        }
+    }
+    virtual double ComputeJacobianTimesState() override {
+        double result = 0;
+        if (variables_1->IsActive())
+            result += Cq_1 * variables_1->State();
+        if (variables_2->IsActive())
+            result += Cq_2 * variables_2->State();
+        if (variables_3->IsActive())
+            result += Cq_3 * variables_3->State();
+        return result;
+    }
+    virtual void IncrementState(double deltal) override {
+        if (variables_1->IsActive())
+            variables_1->State() += Eq_1 * deltal;
+        if (variables_2->IsActive())
+            variables_2->State() += Eq_2 * deltal;
+        if (variables_3->IsActive())
+            variables_3->State() += Eq_3 * deltal;
+    }
+    virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) override {
+        if (variables_1->IsActive())
+            result += Cq_1 * vect.segment(variables_1->GetOffset(), N1);
+        if (variables_2->IsActive())
+            result += Cq_2 * vect.segment(variables_2->GetOffset(), N2);
+        if (variables_3->IsActive())
+            result += Cq_3 * vect.segment(variables_2->GetOffset(), N3);
+    }
+    virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) override {
+        if (variables_1->IsActive())
+            result.segment(variables_1->GetOffset(), N1) += Cq_1.transpose() * l;
+        if (variables_2->IsActive())
+            result.segment(variables_2->GetOffset(), N2) += Cq_2.transpose() * l;
+        if (variables_3->IsActive())
+            result.segment(variables_3->GetOffset(), N3) += Cq_3.transpose() * l;
+    }
+    virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) override {
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
+        if (variables_2->IsActive())
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
+        if (variables_3->IsActive())
+            PasteMatrix(mat, Cq_3, start_row, variables_3->GetOffset() + start_col);
+    }
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) override {
+        if (variables_1->IsActive())
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
+        if (variables_2->IsActive())
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
+        if (variables_3->IsActive())
+            PasteMatrix(mat, Cq_3.transpose(), variables_3->GetOffset() + start_row, start_col);
+    }
 
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
-};
-
-/// Constraint tuple representing an object with 3 variables, each of size 6.
-class ChConstraintTuple_666 : public ChConstraintTuple {
   private:
-    ChRowVectorN<double, 6> Cq_1;
-    ChRowVectorN<double, 6> Cq_2;
-    ChRowVectorN<double, 6> Cq_3;
-    ChVectorN<double, 6> Eq_1;
-    ChVectorN<double, 6> Eq_2;
-    ChVectorN<double, 6> Eq_3;
+    ChVariables* variables_1;
+    ChVariables* variables_2;
+    ChVariables* variables_3;
 
-  public:
-    ChConstraintTuple_666(ChVariables* variables1, ChVariables* variables2, ChVariables* variables3);
-
-    ChRowVectorRef Cq1() { return Cq_1; }
-    ChRowVectorRef Cq2() { return Cq_2; }
-    ChRowVectorRef Cq3() { return Cq_3; }
-    ChVectorRef Eq1() { return Eq_1; }
-    ChVectorRef Eq2() { return Eq_2; }
-    ChVectorRef Eq3() { return Eq_3; }
-    virtual ChRowVectorRef Cq(int i) override;
-    virtual ChVectorRef Eq(int i) override;
-
-    virtual void CalculateEq() override;
-
-    virtual void UpdateAuxiliary(double& g_i) override;
-    virtual double ComputeJacobianTimesState() override;
-    virtual void IncrementState(double deltal) override;
+    ChRowVectorN<double, N1> Cq_1;
+    ChRowVectorN<double, N2> Cq_2;
+    ChRowVectorN<double, N3> Cq_3;
+    ChVectorN<double, N1> Eq_1;
+    ChVectorN<double, N2> Eq_2;
+    ChVectorN<double, N3> Eq_3;
 };
 
 }  // end namespace chrono
