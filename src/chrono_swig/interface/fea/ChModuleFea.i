@@ -270,8 +270,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContactable_3vars)
 %shared_ptr(chrono::fea::ChContactNodeXYZ)
 %shared_ptr(chrono::fea::ChContactNodeXYZRot)
-%shared_ptr(chrono::fea::ChContactNodeXYZsphere)
-%shared_ptr(chrono::fea::ChContactNodeXYZRotSphere)
 %shared_ptr(chrono::fea::ChContactTriangleXYZ)
 %shared_ptr(chrono::fea::ChContactTriangleXYZRot)
 %shared_ptr(chrono::fea::ChContactSurface)

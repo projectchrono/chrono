@@ -141,13 +141,6 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars {
     ChContactSurface* m_container;
 };
 
-/// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud type of collisions.
-class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
-  public:
-    ChContactNodeXYZsphere(ChNodeFEAxyz* node = nullptr, ChContactSurface* contact_surface = nullptr);
-    ~ChContactNodeXYZsphere() {}
-};
-
 // -----------------------------------------------------------------------------
 
 // Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAxyz were inherited from ChNodeFEAxyzrot, but this is
@@ -267,13 +260,6 @@ class ChApi ChContactNodeXYZRot : public ChContactable_1vars {
     ChContactSurface* m_container;
 };
 
-/// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud type of collisions.
-class ChApi ChContactNodeXYZRotSphere : public ChContactNodeXYZRot {
-  public:
-    ChContactNodeXYZRotSphere(ChNodeFEAxyzrot* node = nullptr, ChContactSurface* contact_surface = nullptr);
-    ~ChContactNodeXYZRotSphere() {}
-};
-
 // -----------------------------------------------------------------------------
 
 /// Class which defines a contact surface for FEA elements.
@@ -302,10 +288,10 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     virtual ChAABB GetAABB() const override;
 
     /// Get the list of nodes.
-    std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodes() { return m_nodes; }
+    std::vector<std::shared_ptr<ChContactNodeXYZ>>& GetNodes() { return m_nodes; }
 
     /// Get the list of nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactNodeXYZRotSphere>>& GetNodesRot() { return m_nodes_rot; }
+    std::vector<std::shared_ptr<ChContactNodeXYZRot>>& GetNodesRot() { return m_nodes_rot; }
 
     /// Get the number of nodes.
     unsigned int GetNumNodes() const { return (unsigned int)m_nodes.size(); }
@@ -314,10 +300,10 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     unsigned int GetNumNodesRot() const { return (unsigned int)m_nodes_rot.size(); }
 
     /// Access the n-th node.
-    std::shared_ptr<ChContactNodeXYZsphere> GetNode(unsigned int n) { return m_nodes[n]; };
+    std::shared_ptr<ChContactNodeXYZ> GetNode(unsigned int n) { return m_nodes[n]; };
 
     /// Access the n-th node with rotational dofs.
-    std::shared_ptr<ChContactNodeXYZRotSphere> GetNodeRot(unsigned int n) { return m_nodes_rot[n]; };
+    std::shared_ptr<ChContactNodeXYZRot> GetNodeRot(unsigned int n) { return m_nodes_rot[n]; };
 
     // Functions to interface this with ChPhysicsItem container.
     virtual void SyncCollisionModels() const override;
@@ -325,8 +311,8 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
   private:
-    std::vector<std::shared_ptr<ChContactNodeXYZsphere>> m_nodes;         //  nodes
-    std::vector<std::shared_ptr<ChContactNodeXYZRotSphere>> m_nodes_rot;  //  nodes with rotations
+    std::vector<std::shared_ptr<ChContactNodeXYZ>> m_nodes;         //  nodes
+    std::vector<std::shared_ptr<ChContactNodeXYZRot>> m_nodes_rot;  //  nodes with rotations
 };
 
 /// @} fea_contact

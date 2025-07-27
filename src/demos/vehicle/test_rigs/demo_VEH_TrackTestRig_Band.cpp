@@ -103,8 +103,8 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
 
         auto bodyA = dynamic_cast<ChBody*>(modA);
         auto bodyB = dynamic_cast<ChBody*>(modB);
-        auto vertexA = dynamic_cast<fea::ChContactNodeXYZsphere*>(modA);
-        auto vertexB = dynamic_cast<fea::ChContactNodeXYZsphere*>(modB);
+        auto vertexA = dynamic_cast<fea::ChContactNodeXYZ*>(modA);
+        auto vertexB = dynamic_cast<fea::ChContactNodeXYZ*>(modB);
         auto faceA = dynamic_cast<fea::ChContactTriangleXYZ*>(modA);
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
 

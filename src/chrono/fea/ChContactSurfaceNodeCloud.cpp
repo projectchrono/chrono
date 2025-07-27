@@ -62,12 +62,6 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
 }
 
 // -----------------------------------------------------------------------------
-//  ChContactNodeXYZsphere
-
-ChContactNodeXYZsphere::ChContactNodeXYZsphere(ChNodeFEAxyz* node, ChContactSurface* contact_surface)
-    : ChContactNodeXYZ(node, contact_surface) {}
-
-// -----------------------------------------------------------------------------
 //  ChContactNodeXYZRot
 
 ChContactNodeXYZRot::ChContactNodeXYZRot(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
@@ -110,12 +104,6 @@ ChPhysicsItem* ChContactNodeXYZRot::GetPhysicsItem() {
 }
 
 // -----------------------------------------------------------------------------
-//  ChContactNodeXYZRotSphere
-
-ChContactNodeXYZRotSphere::ChContactNodeXYZRotSphere(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
-    : ChContactNodeXYZRot(node, contact_surface) {}
-
-// -----------------------------------------------------------------------------
 //  ChContactSurfaceNodeCloud
 
 ChContactSurfaceNodeCloud::ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh)
@@ -125,7 +113,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyz> node, cons
     if (!node)
         return;
 
-    auto contact_node = chrono_types::make_shared<ChContactNodeXYZsphere>(node.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZ>(node.get(), this);
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
 
@@ -141,7 +129,7 @@ void ChContactSurfaceNodeCloud::AddNode(std::shared_ptr<ChNodeFEAxyzrot> node, c
     if (!node)
         return;
 
-    auto contact_node = chrono_types::make_shared<ChContactNodeXYZRotSphere>(node.get(), this);
+    auto contact_node = chrono_types::make_shared<ChContactNodeXYZRot>(node.get(), this);
     auto point_shape = chrono_types::make_shared<ChCollisionShapePoint>(m_material, VNULL, point_radius);
     contact_node->AddCollisionShape(point_shape);
 
