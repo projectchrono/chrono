@@ -33,7 +33,7 @@ namespace chrono {
 /// Class representing a container of many contacts.
 class ChApi ChContactContainer : public ChPhysicsItem {
   public:
-    ChContactContainer() : add_contact_callback(nullptr), report_contact_callback(nullptr) {}
+    ChContactContainer() : add_contact_callback(nullptr) {}
     ChContactContainer(const ChContactContainer& other);
     virtual ~ChContactContainer() {}
 
@@ -139,7 +139,6 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     };
 
     std::shared_ptr<AddContactCallback> add_contact_callback;
-    ReportContactCallback* report_contact_callback;
 
     /// Accumulate contact forces from a specified list of contacts.
     /// This function is templated by the contact type (assumed to be derived from ChContact).
