@@ -256,7 +256,7 @@ else()
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION "share/chrono/template_project")
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/importer_blender DESTINATION "./")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/importer_blender/ DESTINATION "importer_blender")
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs
