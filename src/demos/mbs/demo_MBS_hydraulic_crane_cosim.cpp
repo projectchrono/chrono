@@ -55,20 +55,22 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-bool render = true;
-bool output = true;
 
-double t_start = 0;
-double t_end = 25;
+double t_end = 20;
 
 double t_step = 5e-4;
 double t_step_cosim = 1 * t_step;
+
+bool output = true;
+double output_fps = 1000;
+
+bool render = true;
 
 // -----------------------------------------------------------------------------
 
 class Crane {
   public:
-    Crane(ChSystem& sys) : m_sys(sys), m_output(true) {
+    Crane(ChSystem& sys) : m_sys(sys), m_output(false), m_output_frame(0) {
         m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
         m_point_crane = ChVector3d(0, 0, 0);
 
@@ -182,7 +184,11 @@ class Crane {
     }
 
     void SetStep(double step) { m_step = step; }
-    void SetOutput(bool out) { m_output = out; }
+    void SetOutput(bool out, double out_fps) {
+        m_output = out;
+        m_output_fps = out_fps;
+        m_output_frame = 1;
+    }
 
     void Advance(double step) {
         double t = 0;
@@ -197,8 +203,10 @@ class Crane {
         double s, sd;
         GetActuatorLength(s, sd);
 
-        if (m_output)
+        if (m_output && time >= m_output_frame / m_output_fps) {
             m_csv << time << s << sd << std::endl;
+            m_output_frame++;
+        }
     }
 
     void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
@@ -212,12 +220,14 @@ class Crane {
     double m_F0;
     double m_step;
     bool m_output;
+    double m_output_fps;
+    int m_output_frame;
     utils::ChWriterCSV m_csv;
 };
 
 class Actuator {
   public:
-    Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys), m_output(true) {
+    Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys), m_output(false), m_output_frame(0) {
         m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
         // Construct the hydraulic actuator
@@ -248,6 +258,7 @@ class Actuator {
 
         // Initialize output
         m_csv.SetDelimiter(" ");
+        m_csv << 0 << 0 << 0 << 0 << 0 << 0 << std::endl;
     }
 
     void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
@@ -256,7 +267,11 @@ class Actuator {
     double GetActuatorForce() const { return m_actuator->GetActuatorForce(); }
 
     void SetStep(double step) { m_step = step; }
-    void SetOutput(bool out) { m_output = out; }
+    void SetOutput(bool out, double out_fps) {
+        m_output = out;
+        m_output_fps = out_fps;
+        m_output_frame = 1;
+    }
 
     void Advance(double step) {
         double t = 0;
@@ -268,14 +283,15 @@ class Actuator {
 
         double time = m_sys.GetChTime();
 
-        Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
         auto Uref = m_actuation->GetVal(time);
         auto U = m_actuator->GetValvePosition();
         auto p = m_actuator->GetCylinderPressures();
         auto F = m_actuator->GetActuatorForce();
 
-        if (m_output)
+        if (m_output && time >= m_output_frame / m_output_fps) {
             m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
+            m_output_frame++;
+        }
     }
 
     void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
@@ -286,6 +302,8 @@ class Actuator {
     std::shared_ptr<ChFunctionSetpoint> m_actuation;
     double m_step;
     bool m_output;
+    double m_output_fps;
+    int m_output_frame;
     utils::ChWriterCSV m_csv;
 };
 
@@ -315,7 +333,7 @@ int main(int argc, char* argv[]) {
     // Construct the crane multibody system
     Crane crane(sysMBS);
     crane.SetStep(t_step);
-    crane.SetOutput(output);
+    crane.SetOutput(output, output_fps);
     double s0, sd0;
     crane.GetActuatorLength(s0, sd0);
     double F0 = crane.GetInitialLoad();
@@ -323,7 +341,7 @@ int main(int argc, char* argv[]) {
     // Construct the hydraulic actuator system
     Actuator actuator(sysHYD, s0, F0);
     actuator.SetStep(t_step);
-    actuator.SetOutput(output);
+    actuator.SetOutput(output, output_fps);
 
     // Hydraulic actuation
     auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
@@ -390,11 +408,11 @@ int main(int argc, char* argv[]) {
     }
 
     // Simulation loop
-    double t = t_start;
+    double t = 0;
 
     ChTimer timer;
     timer.start();
-    while (t < t_end) {
+    while (t <= t_end) {
         if (render) {
             if (!vis->Run())
                 break;
@@ -448,7 +466,7 @@ int main(int argc, char* argv[]) {
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("U");
-            gplot.SetTitle("Hydro Input");
+            gplot.SetTitle("Hydraulic Input");
             gplot.Plot(out_file_actuator, 1, 2, "ref", " with lines lt -1 lw 2");
             gplot.Plot(out_file_actuator, 1, 3, "U", " with lines lt 1 lw 2");
         }
@@ -457,7 +475,7 @@ int main(int argc, char* argv[]) {
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("p");
-            gplot.SetTitle("Hydro Pressures");
+            gplot.SetTitle("Hydraulic Pressures");
             gplot.Plot(out_file_actuator, 1, 4, "p0", " with lines lt 1 lw 2");
             gplot.Plot(out_file_actuator, 1, 5, "p1", " with lines lt 2 lw 2");
         }
@@ -466,7 +484,7 @@ int main(int argc, char* argv[]) {
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("F");
-            gplot.SetTitle("Hydro Force");
+            gplot.SetTitle("Hydraulic Force");
             gplot.SetRangeY(1000, 9000);
             gplot.Plot(out_file_actuator, 1, 6, "F", " with lines lt -1 lw 2");
         }

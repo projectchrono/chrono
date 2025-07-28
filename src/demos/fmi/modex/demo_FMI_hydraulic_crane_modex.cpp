@@ -51,13 +51,15 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
-bool render = true;
-bool output = true;
 
-double t_start = 0;
-double t_end = 25;
+double t_end = 20;
 
 double t_step = 5e-4;
+
+bool output = true;
+double output_fps = 1000;
+
+bool render = true;
 
 // -----------------------------------------------------------------------------
 // External actuator FMU wrapper.
@@ -239,6 +241,25 @@ class ChExternalActuatorFmu : public ChExternalFmu {
     std::shared_ptr<ChFunction> m_actuation;  ///< actuation function
     ChVectorDynamic<> m_Qforce;               ///< generalized forcing terms
 };
+
+// -----------------------------------------------------------------------------
+
+void GetActuatorLength(std::shared_ptr<ChBody> crane,
+                       const ChVector3d& point_ground,
+                       const ChVector3d& point_crane,
+                       double& s,
+                       double& sd) {
+    const auto& P1 = point_ground;
+    const auto& V1 = VNULL;
+
+    auto P2 = crane->TransformPointLocalToParent(point_crane);
+    auto V2 = crane->PointSpeedLocalToParent(point_crane);
+
+    ChVector3d dir = (P2 - P1).GetNormalized();
+
+    s = (P2 - P1).Length();
+    sd = Vdot(dir, V2 - V1);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -431,11 +452,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    std::string img_dir = out_dir + "/img";
-    if (!filesystem::create_directory(filesystem::path(img_dir))) {
-        std::cout << "Error creating directory " << img_dir << std::endl;
-        return 1;
-    }
 
     // ---------------
     // Simulation loop
@@ -457,18 +473,22 @@ int main(int argc, char* argv[]) {
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", " ", " ", " ", " ", " ");
     utils::ChWriterCSV csv(" ");
 
-    double t = t_start;
+    double t = 0;
     double Uref = actuation->GetVal(t);
     double F = 0;
     ChVectorDynamic<> y(fmu_wrapper->GetNumStates());
     y = fmu_wrapper->GetInitialStates();
+    double s, sd;
+    GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);
 
-    csv << t << Uref << y.format(rowFmt) << F << std::endl;
+    csv << t << s << sd << Uref << y.format(rowFmt) << F << std::endl;
 
     // Simulation loop
+    int output_frame = 1;
+
     ChTimer timer;
     timer.start();
-    while (t < t_end) {
+    while (t <= t_end) {
         if (render) {
             if (!vis->Run())
                 break;
@@ -478,15 +498,16 @@ int main(int argc, char* argv[]) {
         }
 
         sys.DoStepDynamics(t_step);
+        t += t_step;
 
-        if (output) {
+        if (output && t >= output_frame / output_fps) {
+            GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);
             Uref = actuation->GetVal(t);
             y = fmu_wrapper->GetStates();
             F = fmu_wrapper->GetForce();
-            csv << t << Uref << y.format(rowFmt) << F << std::endl;
+            csv << t << s << sd << Uref << y.format(rowFmt) << F << std::endl;
+            output_frame++;
         }
-
-        t += t_step;
     }
     timer.stop();
     auto RTF = timer() / t_end;
@@ -497,36 +518,49 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     if (output) {
-        std::string out_file = out_dir + "/hydro.out";
+        std::string out_file = out_dir + "/hydraulic_crane.out";
         csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+            gplot.SetGrid();
+            gplot.SetLabelX("time");
+            gplot.SetLabelY("s");
+            gplot.SetTitle("Actuator length");
+            gplot << "set ylabel 's'";
+            gplot << "set y2label 'sd'";
+            gplot << "set ytics nomirror tc lt 1";
+            gplot << "set y2tics nomirror tc lt 2";
+            gplot.Plot(out_file, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
+        }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("U");
-            gplot.SetTitle("Hydro Input");
-            gplot.Plot(out_file, 1, 2, "ref", " with lines lt -1 lw 2");
-            gplot.Plot(out_file, 1, 3, "U", " with lines lt 1 lw 2");
+            gplot.SetTitle("Hydraulic Input");
+            gplot.Plot(out_file, 1, 4, "ref", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 5, "U", " with lines lt 1 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("p");
-            gplot.SetTitle("Hydro Pressures");
-            gplot.Plot(out_file, 1, 4, "p0", " with lines lt 1 lw 2");
-            gplot.Plot(out_file, 1, 5, "p1", " with lines lt 2 lw 2");
+            gplot.SetTitle("Hydraulic Pressures");
+            gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("F");
-            gplot.SetTitle("Hydro Force");
+            gplot.SetTitle("Hydraulic Force");
             gplot.SetRangeY(1000, 9000);
-            gplot.Plot(out_file, 1, 6, "F", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 8, "F", " with lines lt -1 lw 2");
         }
 #endif
     }
