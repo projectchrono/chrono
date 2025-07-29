@@ -49,7 +49,7 @@ ChWoodMaterialVECT::~ChWoodMaterialVECT() {}
 // statec(10): internal work
 // statec(11): crack opening
 
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature,double &len, double &epsV, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature,double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
     	ChVector3d mstrain;
     	ChVector3d mcurvature;	
 	//
@@ -324,7 +324,7 @@ void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& 
 }
 */
 
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, double &epsV, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
     	ChVector3d mstrain;
     	ChVector3d mcurvature;	
 	//

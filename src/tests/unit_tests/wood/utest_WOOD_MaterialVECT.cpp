@@ -65,7 +65,6 @@ TEST(WoodMaterialVECTTest, stress_no_eigenstrain){
     double facet_width = 3.165;
     double facet_height = 12.4864;
     double facet_area = facet_height * facet_width;
-    double epsv = 0;
     ChVectorN<double, 18> statev;
     statev.setZero();
     ChVector3d strain(4.186, 1.16, -86.48);
@@ -75,7 +74,7 @@ TEST(WoodMaterialVECTTest, stress_no_eigenstrain){
     ChVector3d stress;
     ChVector3d couple;
     double random_field = 1.0; // NO RANDOM FIELD
-    my_mat->ComputeStress(strain,curvature, length, epsv, statev, facet_area, facet_width, facet_height, random_field, stress, couple);
+    my_mat->ComputeStress(strain,curvature, length, statev, facet_area, facet_width, facet_height, random_field, stress, couple);
 
 }
 
