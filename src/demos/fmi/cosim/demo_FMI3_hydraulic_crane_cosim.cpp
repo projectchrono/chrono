@@ -263,43 +263,48 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_POSTPROCESS
         {
             postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+            gplot.SetOutputWindowTitle("Actuator length");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
+            gplot.SetLegend("left bottom");
             gplot.SetLabelX("time");
-            gplot.SetLabelY("s");
-            gplot.SetTitle("Actuator length");
-            gplot << "set ylabel 's'";
-            gplot << "set y2label 'sd'";
-            gplot << "set ytics nomirror tc lt 1";
-            gplot << "set y2tics nomirror tc lt 2";
-            gplot.Plot(out_file, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
-            gplot.Plot(out_file, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
+            gplot.SetLabelY("s [m] , sd [m/s]");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 2, "s", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 3, "sd", " with lines lt 2 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Input");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
             gplot.SetLabelX("time");
             gplot.SetLabelY("U");
-            gplot.SetTitle("Hydraulic Input");
-            gplot.Plot(out_file, 1, 4, "ref", " with lines lt -1 lw 2");
-            gplot.Plot(out_file, 1, 5, "U", " with lines lt 1 lw 2");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Pressures");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
+            gplot.SetLegend("left bottom");
             gplot.SetLabelX("time");
-            gplot.SetLabelY("p");
-            gplot.SetTitle("Hydraulic Pressures");
+            gplot.SetLabelY("p [N/m2]");
+            gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
             gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Force");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
             gplot.SetLabelX("time");
-            gplot.SetLabelY("F");
-            gplot.SetTitle("Hydraulic Force");
+            gplot.SetLabelY("F [N]");
+            gplot.SetRangeX(0, t_end);
             gplot.SetRangeY(1000, 9000);
-            gplot.Plot(out_file, 1, 8, "F", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 8, "", " with lines lt -1 lw 2");
         }
 #endif
     }

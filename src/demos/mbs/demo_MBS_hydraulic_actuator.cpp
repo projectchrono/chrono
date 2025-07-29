@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         gplot.SetGrid();
         gplot.SetLabelX("time");
         gplot.SetLabelY("Y");
-        gplot.SetTitle("Hydro Input");
+        gplot.SetOutputWindowTitle("Hydraulic Input");
         gplot.Plot(out_file, 1, 3, "U", " with lines lt -1 lw 2");
     }
     {
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         gplot.SetGrid();
         gplot.SetLabelX("time");
         gplot.SetLabelY("Y");
-        gplot.SetTitle("Hydro Force");
+        gplot.SetOutputWindowTitle("Hydraulic Force");
         gplot.Plot(out_file, 1, 2, "F", " with lines lt -1 lw 2");
     }
 #endif
