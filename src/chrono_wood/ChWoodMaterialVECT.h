@@ -128,7 +128,7 @@ class ChWoodApi ChWoodMaterialVECT {
     double m_rs;                ///< shear softening modulus ratio
     double RayleighDampingK=0;
     double RayleighDampingM=0;
-    double mcouple_mult=0;
+    double mcouple_mult=0; ///<  influence factor for rotational DOF: beta_N = beta_M = beta_B
 	bool m_ElasticAnalysis=false;
 	bool m_CoupleContrib2EquStrain=false;
   //public:
