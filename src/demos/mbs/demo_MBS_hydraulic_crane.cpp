@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     auto actuator = chrono_types::make_shared<ChHydraulicActuator2>();
     actuator->SetInputFunction(actuation);
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
-    actuator->Cylinder().SetInitialChamberPressures(4.4e6, 3.3e6);
+    actuator->Cylinder().SetInitialChamberPressures(4.163e6, 3.461e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
     actuator->SetInitialLoad(F0);
     actuator->Initialize(ground, crane, true, attachment_ground, attachment_crane);
@@ -255,8 +255,10 @@ int main(int argc, char* argv[]) {
     // Initialize output file
     utils::ChWriterCSV csv(" ");
     double s, sd;
+    double F;
     GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);
-    csv << 0 << s << sd << 0 << 0 << 0 << 0 << 0 << std::endl;
+    F = actuator->GetActuatorForce();
+    csv << 0 << s << sd << 0 << 0 << 4.163e6 << 3.461e6 << F << std::endl;
 
     // Simulation loop
     double t = 0;
@@ -289,7 +291,7 @@ int main(int argc, char* argv[]) {
         auto Uref = actuation->GetVal(t);
         auto U = actuator->GetValvePosition();
         auto p = actuator->GetCylinderPressures();
-        auto F = actuator->GetActuatorForce();
+        F = actuator->GetActuatorForce();
 
         if (output && t >= output_frame / output_fps) {
             csv << t << s << sd << Uref << U << p[0] << p[1] << F << std::endl;
@@ -311,7 +313,7 @@ int main(int argc, char* argv[]) {
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
             gplot.SetLegend("left bottom");
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("s [m] , sd [m/s]");
             gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 2, "s", " with lines lt 1 lw 2");
@@ -322,7 +324,7 @@ int main(int argc, char* argv[]) {
             gplot.SetOutputWindowTitle("Hydraulic Input");
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("U");
             gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2");
@@ -333,7 +335,7 @@ int main(int argc, char* argv[]) {
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
             gplot.SetLegend("left bottom");
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("p [N/m2]");
             gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
@@ -344,7 +346,7 @@ int main(int argc, char* argv[]) {
             gplot.SetOutputWindowTitle("Hydraulic Force");
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("F [N]");
             gplot.SetRangeX(0, t_end);
             gplot.SetRangeY(1000, 9000);

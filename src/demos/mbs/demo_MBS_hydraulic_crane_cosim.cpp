@@ -414,7 +414,7 @@ int main(int argc, char* argv[]) {
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
             gplot.SetLegend("left bottom");
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("s [m] , sd [m/s]");
             gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 2, "s", " with lines lt 1 lw 2");
@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
             gplot.SetOutputWindowTitle("Hydraulic Input");
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("U");
             gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2");
@@ -436,7 +436,7 @@ int main(int argc, char* argv[]) {
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
             gplot.SetLegend("left bottom");
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("p [N/m2]");
             gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
@@ -447,7 +447,7 @@ int main(int argc, char* argv[]) {
             gplot.SetOutputWindowTitle("Hydraulic Force");
             gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("F [N]");
             gplot.SetRangeX(0, t_end);
             gplot.SetRangeY(1000, 9000);

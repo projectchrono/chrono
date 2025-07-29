@@ -135,7 +135,7 @@ fmi2Status FmuComponent::exitInitializationModeIMPL() {
     m_actuator = chrono_types::make_shared<ChHydraulicActuator2>();
     m_actuator->SetInputFunction(m_actuation);
     m_actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
-    m_actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
+    m_actuator->Cylinder().SetInitialChamberPressures(4.163e6, 3.461e6);
     m_actuator->DirectionalValve().SetInitialSpoolPosition(0);
     sys.Add(m_actuator);
 
