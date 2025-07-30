@@ -79,6 +79,5 @@ if(MSVC)
 endif()
 
 if (${FMU_EXPORT_SUPPORT})
-  add_dependencies(${PROGRAMa} ${VDP_FMU2_MODEL_IDENTIFIER})
-  add_dependencies(${PROGRAMa} ${VDP_FMU3_MODEL_IDENTIFIER})
+  add_dependencies(${PROGRAMa} ${ACTUATOR_FMU2_MODEL_IDENTIFIER})
 endif()
