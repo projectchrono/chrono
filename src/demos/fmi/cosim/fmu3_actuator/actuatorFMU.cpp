@@ -172,8 +172,6 @@ fmi3Status FmuComponent::exitInitializationModeIMPL() {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
-    sys.DoAssembly(AssemblyAnalysis::Level::FULL);
-
     return fmi3Status::fmi3OK;
 }
 
