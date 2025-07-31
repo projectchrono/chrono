@@ -226,7 +226,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Find the terrain height, normal, and coefficient of friction at the point below the specified location.
     /// The point on the terrain surface is obtained through ray casting into the terrain contact model. The return
     /// value is 'true' if the ray intersection succeeded and 'false' otherwise (in which case the output is set to
-    /// heigh=0, normal=world vertical, and friction=0.8).
+    /// height=0, normal=world vertical, and friction=0.8).
     bool FindPoint(const ChVector3d loc, double& height, ChVector3d& normal, float& friction) const;
 
     /// Set common collision family for patches. Default: 14.

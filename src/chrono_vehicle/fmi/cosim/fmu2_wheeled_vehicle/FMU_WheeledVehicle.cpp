@@ -131,7 +131,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&fps, "fps", FmuVariable::Type::Real, "1", "rendering frequency",             //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
-    // Set CONTINOUS INPUTS for this FMU (driver inputs)
+    // Set CONTINUOUS INPUTS for this FMU (driver inputs)
     AddFmuVariable(&driver_inputs.m_steering, "steering", FmuVariable::Type::Real, "1", "steering input",  //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);           //
     AddFmuVariable(&driver_inputs.m_throttle, "throttle", FmuVariable::Type::Real, "1", "throttle input",  //
@@ -149,7 +149,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuFrameMovingVariable(ref_frame, "ref_frame", "m", "m/s", "reference frame",                          //
                               FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU (driveshaft speed and torque for co-simulation)
+    // Set CONTINUOUS INPUTS and OUTPUTS for this FMU (driveshaft speed and torque for co-simulation)
     AddFmuVariable(&driveshaft_torque, "driveshaft_torque", FmuVariable::Type::Real,              //
                    "Nm", "driveshaft motor torque",                                               //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
@@ -165,7 +165,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    "Nm", "transmission reaction torque",                                          //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
 
-    // Set CONTINOUS INPUTS and OUTPUTS for this FMU (wheel state and forces for co-simulation)
+    // Set CONTINUOUS INPUTS and OUTPUTS for this FMU (wheel state and forces for co-simulation)
     for (int iw = 0; iw < 4; iw++) {
         wheel_data[iw].state.lin_vel = VNULL;
         wheel_data[iw].state.ang_vel = VNULL;

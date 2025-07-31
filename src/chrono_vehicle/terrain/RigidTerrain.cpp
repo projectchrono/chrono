@@ -863,7 +863,7 @@ void RigidTerrain::Patch::SetTexture(const std::string& filename, float scale_x,
 class RTContactCallback : public ChContactContainer::AddContactCallback {
   public:
     virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
-        //// TODO: also accomodate terrain contact with FEA meshes.
+        //// TODO: also accommodate terrain contact with FEA meshes.
 
         // Loop over all patch bodies and check if this contact involves one of them.
         ChBody* body_patch = nullptr;
@@ -886,7 +886,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         }
 
         // Do nothing if this contact does not involve a terrain body or if the other contactable
-        // is not a body or if the collsion does not involve a shape (e.g., a contact added by the user)
+        // is not a body or if the collision does not involve a shape (e.g., a contact added by the user)
         if (!body_patch || !body_other || !shape_other)
             return;
 

@@ -82,9 +82,9 @@ class FmuComponent : public chrono::fmi2::FmuChronoComponentBase {
     chrono::ChFrameMoving<> ref_frame;  ///< vehicle reference frame
 
     // FMU outputs
-    double steering;  ///< (FMU countinuous output) steering command, in [-1,1]
-    double throttle;  ///< (FMU countinuous output) throttle command, in [0,1]
-    double braking;   ///< (FMU countinuous output) braking command, in [0,1]
+    double steering;  ///< (FMU continuous output) steering command, in [-1,1]
+    double throttle;  ///< (FMU continuous output) throttle command, in [0,1]
+    double braking;   ///< (FMU continuous output) braking command, in [0,1]
 
     chrono::ChVector3d sentinel_loc;  ///< (FMU continuous output) current sentinel point location
     chrono::ChVector3d target_loc;    ///< (FMU continuous output) current target point location

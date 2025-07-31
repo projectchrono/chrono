@@ -824,7 +824,7 @@ ChJoystickAxisIRR::ChJoystickAxisIRR()
 
 double ChJoystickAxisIRR::GetValue(const irr::SEvent::SJoystickEvent& joystickEvent) {
     if (joystickEvent.Joystick == id) {
-        // Scale raw_value fromm [scaled_min, scaled_max] to [min, max] range
+        // Scale raw_value from [scaled_min, scaled_max] to [min, max] range
         value = (joystickEvent.Axis[axis] - max) * (scaled_max - scaled_min) / (max - min) + scaled_max;
     }
     return value;
