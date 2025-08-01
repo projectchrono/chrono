@@ -3,7 +3,11 @@ chrono-version: 9.0
 model:
   name: motors
   angle_degrees: false
-  
+   
+  data_path:
+    type: RELATIVE
+    root: "../.."
+ 
   bodies:
     - name: ground
       location: [0.0, 0.0, -2.0]

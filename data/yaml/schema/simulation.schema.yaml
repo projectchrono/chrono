@@ -150,10 +150,16 @@ simulation:
     visualization:
       type: object
       properties:
+          type:
+              type: string
+              description: Visualization type.
+              enum: [MODEL_FILE, PRIMITIVES, COLLISION, NONE]
+              default: MODEL_FILE
           render_fps:
               type: number
               description: Target frames per second for visualization.
               minimum: 0
+              default: 120
           enable_shadows:
               type: boolean
               description: Whether to enable shadows in run-time visualization system.

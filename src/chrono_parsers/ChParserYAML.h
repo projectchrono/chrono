@@ -137,6 +137,7 @@ class ChApiParsers ChParserYAML {
         VisParams();
         void PrintInfo();
 
+        VisualizationType type;
         bool render;
         double render_fps;
         CameraVerticalDir camera_vertical;
@@ -168,6 +169,8 @@ class ChApiParsers ChParserYAML {
     };
 
   private:
+    enum class DataPathType { ABS, REL };
+
     /// Internal specification of a body.
     struct Body {
         Body();
@@ -277,6 +280,9 @@ class ChApiParsers ChParserYAML {
     };
 
   private:
+    /// Return the path to the specified data file.
+    std::string GetDatafilePath(const std::string& filename);
+
     /// Load and return a ChVector3d from the specified node.
     ChVector3d ReadVector(const YAML::Node& a);
 
@@ -297,8 +303,10 @@ class ChApiParsers ChParserYAML {
     ///  Load and return a ChColor from the specified node.
     ChColor ReadColor(const YAML::Node& a);
 
+    DataPathType ReadDataPathType(const YAML::Node& a);
     ChSolver::Type ReadSolverType(const YAML::Node& a);
     ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
+    VisualizationType ReadVisualizationType(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -370,6 +378,11 @@ class ChApiParsers ChParserYAML {
     std::string m_name;    ///< name of the YAML model
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
     int m_instance_index;  ///< index of the last model instance created
+
+    
+    DataPathType m_data_path;
+    std::string m_rel_path;
+    std::string m_script_directory;
 };
 
 /// @} parsers_module
