@@ -187,6 +187,21 @@ model:
       description: Whether angles are specified in degrees (true) or radians (false)
       default: true
     
+    data_path:
+      type: object
+      description: Location of data files in the model specification.
+      required: [type]
+      properties:
+        type: 
+            type: string
+            description: Mode for data file location
+            enum: [ABSOLUTE, RELATIVE]
+            default: ABSOLUTE
+        root:
+            type: string
+            description: Root of data files, relatiuve to location of this script
+            default: "."
+
     bodies:
       type: array
       description: List of bodies in the system

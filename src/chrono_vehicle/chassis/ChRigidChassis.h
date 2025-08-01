@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
 
     /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
-    const std::string& GetMeshFilename() const { return m_geometry.vis_mesh_file; }
+    const std::string& GetMeshFilename() const { return m_geometry.vis_model_file; }
 
     /// Construct the rigid chassis at the specified global position and orientation.
     virtual void Construct(ChVehicle* vehicle,              ///< [in] containing vehicle
@@ -108,7 +108,7 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
 
     /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
-    const std::string& GetMeshFilename() const { return m_geometry.vis_mesh_file; }
+    const std::string& GetMeshFilename() const { return m_geometry.vis_model_file; }
 
     /// Enable/disable contact for the chassis.
     /// This function controls contact of the chassis with all other collision shapes in the simulation.

@@ -1347,8 +1347,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
         }
         for (const auto& mesh : geometry->coll_meshes) {
             auto points = CreatePointsMesh(*mesh.trimesh);
-            for (auto& p : points)
-                p += mesh.pos;
             bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
 

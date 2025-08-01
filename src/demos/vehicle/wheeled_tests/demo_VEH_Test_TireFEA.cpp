@@ -385,14 +385,13 @@ int main(int argc, char* argv[]) {
         if (terrain_type != TerrainType::CRM)
             sys.DoStepDynamics(step_size);
 
-        std::cout << time << " ----------------------" << std::endl;
-        for (const auto& node : mesh->GetNodes()) {
-            auto n = std::static_pointer_cast<fea::ChNodeFEAxyz>(node);
-            auto f = n->GetForce();
-            if (f.Length() > 1e-6)
-                std::cout << "..." << f << std::endl;
-        }
-        std::cout << "===" << std::endl;
+        ////std::cout << time << " ----------------------" << std::endl;
+        ////for (const auto& node : mesh->GetNodes()) {
+        ////    auto n = std::static_pointer_cast<fea::ChNodeFEAxyz>(node);
+        ////    auto f = n->GetForce();
+        ////    if (f.Length() > 1e-6)
+        ////        std::cout << "..." << f << std::endl;
+        ////}
 
         time += step_size;
 

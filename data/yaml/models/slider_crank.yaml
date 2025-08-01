@@ -4,6 +4,10 @@ model:
   name: Slider-crank
   angle_degrees: true
   
+  data_path:
+    type: RELATIVE
+    root: "../data/"
+
   bodies:
     - name: ground
       location: [0, 0, 0]
@@ -108,21 +112,35 @@ model:
             radius: 0.2
             location: [0, 0, 0]
         collision_family: 0
+      # Visualize as a sphere or radius 0.2
       visualization:
         shapes:
           - type: SPHERE
             radius: 0.2
             location: [0, 0, 0]
             color: [0.6, 0.6, 1.0]
-  
+      ## Visualize as a mesh (scaled, rotated, and translated)
+      #visualization:
+      #  shapes:
+      #    - type: MESH
+      #      filename: models/support.obj
+      #      location: [-0.2, 0, 0]
+      #      orientation: [-90, 0, 0]
+      #      scale: 2.0
+      #      color: [0.6, 0.6, 1.0]
+      ## Visualize as a model from file
+      #visualization:
+      #  # Model file
+      #  model_file:  models/semicapsule.obj
+             
   joints:
-  # Crank connected to ground with (passive) revolute joint
-  ##  - name: ground_crank
-  ##    type: REVOLUTE
-  ##    body1: ground
-  ##    body2: crank
-  ##    location: [0, 0, 0]
-  ##    axis: [0, 1, 0]
+    ## Crank connected to ground with (passive) revolute joint
+    #- name: ground_crank
+    #  type: REVOLUTE
+    #  body1: ground
+    #  body2: crank
+    #  location: [0, 0, 0]
+    #  axis: [0, 1, 0]
     
     - name: ground_slider
       type: PRISMATIC
@@ -162,9 +180,6 @@ model:
       location: [0, 0, 0]
       axis: [0, 1, 0]
       actuation_type: SPEED
-      #actuation_function:
-      #  type: CONSTANT
-      #  value: 3.14
       actuation_function:
         type: DATA
         data: [
@@ -181,6 +196,11 @@ model:
             start: 0
             width: 16
             shift: 16
+      ## Actuate with a constant angular speed
+      #actuation_function:
+      #  type: CONSTANT
+      #  value: 3.14
+      # Actuate with a periodic function
   
   tsdas:
     - name: spring

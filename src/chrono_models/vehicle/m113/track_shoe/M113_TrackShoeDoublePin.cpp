@@ -114,7 +114,7 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, Double
     m_geometry.vis_cylinders.push_back(
         utils::ChBodyGeometry::CylinderShape(ChVector3d(-0.0492, 0, 0), ChVector3d(0, 1, 0), 0.01, 0.3, -1));
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("M113/meshes/TrackShoeDoublePin.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("M113/meshes/TrackShoeDoublePin.obj");
 }
 
 }  // end namespace m113

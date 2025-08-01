@@ -229,6 +229,7 @@ int main(int argc, char* argv[]) {
 
     switch (tire_type) {
         case TireType::CYLINDRICAL:
+        case TireType::FEA:
             hmmwv.SetTireVisualizationType(VisualizationType::MESH);
             break;
         case TireType::LUGGED:

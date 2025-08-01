@@ -344,7 +344,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_carrier_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.8f, 0.2f, 0.2f});
+        mat->SetDiffuseColor({0.6f, 0.2f, 0.2f});
 
         utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier_body,              //
                                                         ChVector3d(+2 * dim, 0, 0),  //
@@ -365,7 +365,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_chassis_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
+        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
 
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(dim);
         sphere->AddMaterial(mat);
@@ -386,7 +386,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
+        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(4 * dim, dim, 4 * dim);
         box->AddMaterial(mat);
@@ -636,7 +636,7 @@ void ChTireTestRig::CreateTerrainCRM() {
         assert(rgd_tire->UseContactMesh());
         auto trimesh = rgd_tire->GetContactMesh();
         auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
         terrain->AddRigidBody(m_spindle, geometry, false);
     }
 
