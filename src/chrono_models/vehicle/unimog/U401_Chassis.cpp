@@ -63,7 +63,7 @@ U401_Chassis::U401_Chassis(const std::string& name, bool fixed, CollisionType ch
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("unimog/U401_Frame.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("unimog/U401_Frame.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -76,8 +76,8 @@ U401_Chassis::U401_Chassis(const std::string& name, bool fixed, CollisionType ch
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(ChVector3d(), vehicle::GetDataFile("unimog/U401_Frame_col.obj"),
-                                                        0.005, 0);
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("unimog/U401_Frame_col.obj"),
+                                                        1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }
