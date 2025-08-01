@@ -12,10 +12,6 @@ set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
 
-REM Renaming numpy conda package
-del *.tar.bz2
-powershell -ExecutionPolicy Bypass -File "%CI_PROJECT_DIR%\contrib\packaging-python\conda\script.ps1"
-
 REM Configure step
 
 REM THIS STATIC LIBRARY DOESN'T APPEAR ANYMORE, USE THE VERSION FROM THE INTEL oneAPI COMPILER SUITE -DIOMP5_LIBRARY="%PREFIX%"\Library\lib\libiomp5md.lib ^
