@@ -46,6 +46,7 @@ requirements:
     - intel-openmp ==2025.2.0 # [win]
     - cuda-runtime  # [not osx]
     - libnpp-dev # [not osx]
+    - cuda-nvrtc-dev # [not osx]
   run:
     - python
     - mkl ==2025.2.0 # [not arm64]
