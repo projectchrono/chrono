@@ -44,19 +44,7 @@ requirements:
     - yaml
     - openmpi
     - intel-openmp ==2025.2.0 # [win]
-    - nvtx-c  # [not osx]
-    - cuda-driver-dev # [not osx]
-    - cuda-cudart-dev # [not osx]
-    - cuda-nvrtc-dev # [not osx]
-    - cuda-nvtx-dev # [not osx]
-    - cuda-nvml-dev # [not osx]
-    - cuda-profiler-api # [not osx]
-    - libcublas-dev # [not osx]
-    - libcufft-dev # [not osx]
-    - libcurand-dev # [not osx]
-    - libcusolver-dev # [not osx]
-    - libcusparse-dev # [not osx]
-    - cuda-cupti # [not osx]
+    - cuda-runtime  # [not osx]
   run:
     - python
     - mkl ==2025.2.0 # [not arm64]
@@ -66,7 +54,8 @@ requirements:
     - glew
     - glfw
     - eigen ==3.4.0
-    - cuda-toolkit =={{ cuda_compiler_version }} # [not osx]
+    - cuda-version=={{ cuda_compiler_version }} # [not osx]
+    - cuda-runtime  # [not osx]
     - urdfdom
     - libgl # [linux]
     - openmpi
