@@ -90,7 +90,7 @@ function: &FUNCTION
     properties:
       type:
         type: string
-        enum: [CONSTANT, POLYNOMIAL, SINE, DATA]
+        enum: [CONSTANT, POLYNOMIAL, SINE, RAMP, DATA]
         description: Function type
       repeat:
         type: object
@@ -125,7 +125,7 @@ function: &FUNCTION
         default: 0.0
       slope:
         type: number
-        description: Slopr for RAMP type
+        description: Slope for RAMP type
       intercept:
         type: number
         description: Intercept value for RAMP type
