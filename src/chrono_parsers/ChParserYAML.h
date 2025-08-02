@@ -179,6 +179,8 @@ class ChApiParsers ChParserYAML {
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
         ChVector3d pos;                                   ///< body position (relative to instance frame)
         ChQuaterniond rot;                                ///< body orientation (relative to instance frame)
+        ChVector3d lin_vel;                               ///< initial linear velocity
+        ChVector3d ang_vel;                               ///< initial angular velocity (in body frame)
         bool is_fixed;                                    ///< indicate if body fixed relative to global frame
         double mass;                                      ///< body mass
         ChFramed com;                                     ///< centroidal frame (relative to body frame)
@@ -198,6 +200,7 @@ class ChApiParsers ChParserYAML {
         std::string body2;                            ///< identifier of 2nd body
         ChFramed frame;                               ///< joint frame (relative to instance frame)
         std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
+        bool is_kinematic;                            ///< indicate if kinematic joint or bushing
     };
 
     /// Internal specification of a distance constraint.
@@ -379,7 +382,6 @@ class ChApiParsers ChParserYAML {
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
     int m_instance_index;  ///< index of the last model instance created
 
-    
     DataPathType m_data_path;
     std::string m_rel_path;
     std::string m_script_directory;

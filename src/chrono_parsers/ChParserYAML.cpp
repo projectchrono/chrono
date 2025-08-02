@@ -320,6 +320,11 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         body.pos = ReadVector(bodies[i]["location"]);
         if (bodies[i]["orientation"])
             body.rot = ReadRotation(bodies[i]["orientation"]);
+        if (bodies[i]["initial_linear_velocity"])
+            body.lin_vel = ReadVector(bodies[i]["initial_linear_velocity"]);
+        if (bodies[i]["initial_angular_velocity"])
+            body.ang_vel = ReadVector(bodies[i]["initial_angular_velocity"]);
+
         if (!body.is_fixed)
             body.mass = bodies[i]["mass"].as<double>();
         if (bodies[i]["com"]) {
@@ -365,8 +370,10 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
             joint.body2 = joints[i]["body2"].as<std::string>();
 
             std::shared_ptr<ChJoint::BushingData> bushing_data = nullptr;
-            if (joints[i]["bushing_data"])
+            if (joints[i]["bushing_data"]) {
                 joint.bdata = ReadBushingData(joints[i]["bushing_data"]);
+                joint.is_kinematic = false;
+            }
 
             joint.frame = ReadJointFrame(joints[i]);
 
@@ -696,6 +703,8 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         body->SetInertiaXX(item.second.inertia_moments);
         body->SetInertiaXY(item.second.inertia_products);
         body->SetFrameRefToAbs(model_frame * ChFramed(item.second.pos, item.second.rot));
+        body->SetLinVel(item.second.lin_vel);
+        body->SetAngVelLocal(item.second.ang_vel);
         sys.AddBody(body);
         item.second.body.push_back(body);
     }
@@ -999,6 +1008,8 @@ void ChParserYAML::VisParams::PrintInfo() {
 ChParserYAML::Body::Body()
     : pos(VNULL),
       rot(QUNIT),
+      lin_vel(VNULL),
+      ang_vel(VNULL),
       is_fixed(false),
       mass(1),
       com(ChFramed(VNULL, QUNIT)),
@@ -1006,7 +1017,12 @@ ChParserYAML::Body::Body()
       inertia_products(ChVector3d(0)) {}
 
 ChParserYAML::Joint::Joint()
-    : type(ChJoint::Type::LOCK), body1(""), body2(""), frame(ChFramed(VNULL, QUNIT)), bdata(nullptr) {}
+    : type(ChJoint::Type::LOCK),
+      body1(""),
+      body2(""),
+      frame(ChFramed(VNULL, QUNIT)),
+      bdata(nullptr),
+      is_kinematic(true) {}
 
 ChParserYAML::TSDA::TSDA() : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
@@ -1075,7 +1091,8 @@ void ChParserYAML::Body::PrintInfo(const std::string& name) {
 
 void ChParserYAML::Joint::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
-    cout << "     type:        " << ChJoint::GetTypeString(type) << endl;
+    cout << "     type:        " << ChJoint::GetTypeString(type);
+    cout << " (" << (is_kinematic ? "kinematic joint" : "bushing") << ")" << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     joint frame: " << frame.GetPos() << " | " << frame.GetRot() << endl;
