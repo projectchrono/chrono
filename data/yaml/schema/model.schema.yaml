@@ -242,6 +242,145 @@ model:
           inertia:
             <<: *INERTIA33
             description: Body inertia properties
+          visualization:
+            type: object
+            description: Collision and visualization properties
+            properties:
+              contact:
+                type: object
+                description: List of contact materials and shapes
+                required: [materials, shapes]
+                properties:
+                  materials:
+                    type: array
+                    description: List of contact material properties
+                    items: 
+                      type: object
+                      required: [name]
+                      properties:
+                        name:
+                          type: string
+                          description: Unique identifier for the material
+                        coefficient_of_friction:
+                          type: number
+                          description: Friction coefficient
+                        coefficient_of_restitution:
+                          type: number
+                          description: Coefficient of restitution
+                        properties: 
+                          type: object
+                          description: material based properties for SMC contact
+                          required: [Youngs_modulus, Poisson_ratio]
+                          properties:
+                            Youngs_modulus:
+                              type: number
+                              description: Young's modulus of the material
+                            Poisson_ratio:
+                              type: number
+                              description: Poisson's ratio of the material
+                        Coefficients:
+                          type: object
+                          description: normal and tangential stiffness and damping coefficients for SMC contact
+                          required: [normal_stiffness, normal_damping, tangential_stiffness, tangential_damping]
+                          properties:
+                            normal_stiffness:
+                              type: number
+                              description: Normal stiffness coefficient
+                            normal_damping:
+                              type: number
+                              description: Normal damping coefficient
+                            tangential_stiffness:
+                              type: number
+                              description: Tangential stiffness coefficient
+                            tangential_damping:
+                              type: number
+                              description: Tangential damping coefficient
+                  shapes:
+                    type: array
+                    description: List of collision shapes
+                    items:
+                      type: object
+                      required: [type, material]
+                      properties:
+                        type:
+                          type: string
+                          description: Collision shape type
+                          enum: [SPHERE, BOX, CYLINDER, HULL, MESH]
+                        location:
+                          <<: *VECTOR3D
+                          description: Shape location relative to body reference frame
+                        orientation:
+                          <<: *ORIENTATION3D
+                          description: Shape orientation relative to body reference frame
+                        radius:
+                          type: number
+                          description: Radius for SPHERE and CYLINDER shapes
+                        dimensions:
+                          <<: *VECTOR3D
+                          description: Dimensions for BOX shape (x, y, z)
+                        axis:
+                          <<: *VECTOR3D
+                          description: Axis for CYLINDER shape
+                        length:
+                          type: number
+                          description: Length for CYLINDER shape
+                        filename:
+                          type: string
+                          description: Filename for HULL and MESH shapes
+                        contact_radius:
+                          type: number
+                          description: Contact radius for MESH shape
+                        scale:
+                          type: number
+                          description: Scale factor for MESH shape
+                        material:
+                          type: string
+                          description: Name of the material used for the shape
+
+              visualization:
+                type: object
+                description: Visualization shapes
+                properties:
+                  model_file:
+                    type: string
+                    description: Path to the model file for visualization
+                  shapes:
+                    type: array
+                    description: List of primitive shapes for visualization
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: Primitive visualization shape type
+                          enum: [SPHERE, BOX, CYLINDER, MESH]
+                        location:
+                          <<: *VECTOR3D
+                          description: Shape location relative to body reference frame
+                        orientation:
+                          <<: *ORIENTATION3D
+                          description: Shape orientation relative to body reference frame
+                        radius:
+                          type: number
+                          description: Radius for SPHERE and CYLINDER shapes
+                        dimensions:
+                          <<: *VECTOR3D
+                          description: Dimensions for BOX shape (x, y, z)
+                        axis:
+                          <<: *VECTOR3D
+                          description: Axis for CYLINDER shape
+                        length:
+                          type: number
+                          description: Length for CYLINDER shape
+                        filename:
+                          type: string
+                          description: Filename for MESH shapes
+                        scale:
+                          type: number
+                          description: Scale factor for MESH shape
+                        color:
+                          <<: *COLOR
+                          description: Color of the shape in RGB format [r, g, b]
   
     joints:
       type: array
