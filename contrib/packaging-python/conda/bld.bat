@@ -12,10 +12,6 @@ set MKL_INTERFACE_LAYER = LP64
 set MKL_THREADING_LAYER = INTEL
 set CONFIGURATION=Release
 
-REM Renaming numpy conda package
-del *.tar.bz2
-powershell -ExecutionPolicy Bypass -File "%CI_PROJECT_DIR%\contrib\packaging-python\conda\script.ps1"
-
 REM Configure step
 
 REM THIS STATIC LIBRARY DOESN'T APPEAR ANYMORE, USE THE VERSION FROM THE INTEL oneAPI COMPILER SUITE -DIOMP5_LIBRARY="%PREFIX%"\Library\lib\libiomp5md.lib ^
@@ -24,7 +20,7 @@ REM For chrono::sensor, we are using the machine's CUDA and optix installation s
 REM Keep an eye on this in the future. Ideally, all packages we use to build pyChrono should come from anaconda
 
 mkdir cmake_began
-cmake -G "Visual Studio 17 2022" -T "v142" ^
+cmake -G "Visual Studio 17 2022" -T "v142,cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" ^
  -DCMAKE_INSTALL_PREFIX="%LIBRARY_PREFIX%" ^
  -DCMAKE_PREFIX_PATH="%LIBRARY_PREFIX%" ^
  -DCMAKE_SYSTEM_PREFIX_PATH="%LIBRARY_PREFIX%" ^
@@ -42,10 +38,9 @@ cmake -G "Visual Studio 17 2022" -T "v142" ^
  -DOptiX_INSTALL_DIR="C:/ProgramData/NVIDIA Corporation/OptiX SDK 7.7.0" ^
  -DCH_USE_CUDA_NVRTC=OFF ^
  -DCUDA_ARCH_NAME=Manual ^
- -DCUDA_ARCH_PTX=52 ^
- -DCUDA_ARCH_BIN=5.2 ^
+ -DCHRONO_CUDA_ARCHITECTURES=60 ^
  -DBUILD_DEMOS=OFF ^
- -DIRRLICHT_INSTALL_DIR="%PREFIX%"/Library/include/irrlicht ^
+ -DIrrlicht_ROOT="%PREFIX%"/Library/include/irrlicht ^
  -DIRRLICHT_LIBRARY="%PREFIX%"/Library/lib/Irrlicht.lib ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_BENCHMARKING=OFF ^

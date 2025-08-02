@@ -51,6 +51,7 @@ cmake -G "Ninja" -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_GMOCK=OFF \
  -DCH_ENABLE_MODULE_CASCADE=ON \
  -DCH_ENABLE_MODULE_PARDISO_MKL=ON \
+ -DIrrlicht_ROOT=$PREFIX/include/irrlicht \
  -DOptiX_INSTALL_DIR=$HOME/Packages/optix-7.7.0 \
  ./..
 

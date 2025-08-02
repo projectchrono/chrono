@@ -15,44 +15,50 @@ build:
   
 requirements:
   build:
+    - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - cmake >=4   # [not win]
+    - {{ compiler('cuda') }} # [not osx]
+    - cmake >=4
     - ninja   # [linux or osx]
     - jinja2  # [linux]
     - swig ==4.0.2
     - git
-    - cuda-toolkit ==12.8.0 # [not osx]
     - openmpi
-    - intel-openmp ==2023.2.0 # [not arm64]
+    - intel-openmp ==2025.2.0 # [win]
   host:
     - python
     - libglvnd-glx-cos7-x86_64 # [linux]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
-    - mkl-devel ==2023.2.0 # [not arm64]
+    - mkl-devel ==2025.2.0 # [not arm64]
     - irrlicht
     - opencascade ==7.4.0 # [not arm64]
     - numpy >=1.24.0
     - glew
     - glfw
     - eigen ==3.4.0
-    - cuda-toolkit ==12.8.0 # [not osx]
+    - cuda-version=={{ cuda_compiler_version }} # [not osx]
     - urdfdom
     - urdfdom_headers
     - libgl-devel # [linux]
     - yaml
     - openmpi
-    - intel-openmp ==2023.2.0 # [not arm64]
+    - intel-openmp ==2025.2.0 # [win]
+    - cuda-runtime  # [not osx]
+    - libnpp-dev # [not osx]
+    - cuda-nvrtc-dev # [not osx]
+    - libcurand-dev # [not osx]
   run:
     - python
-    - mkl ==2023.2.0 # [not arm64]
+    - mkl ==2025.2.0 # [not arm64]
     - numpy >=1.24.0
     - irrlicht
     - opencascade ==7.4.0 # [not arm64]
     - glew
     - glfw
     - eigen ==3.4.0
-    - cuda-toolkit ==12.8.0 # [not osx]
+    - cuda-version=={{ cuda_compiler_version }} # [not osx]
+    - cuda-runtime  # [not osx]
     - urdfdom
     - libgl # [linux]
     - openmpi

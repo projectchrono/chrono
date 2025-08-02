@@ -222,7 +222,6 @@ linux:ubuntu22.04-clang:test:
     - conda install conda-build anaconda-client --yes
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
   environment:
     name: pychrono-ubuntu22.04
     url: https://anaconda.org/projectchrono/pychrono
@@ -233,7 +232,7 @@ linux:ubuntu22.04:deploy-python3.12:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.12
+    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge -c dlr-sc --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
@@ -243,7 +242,7 @@ linux:ubuntu22.04:deploy-python3.13:
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.13
+    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge -c dlr-sc --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
@@ -304,7 +303,6 @@ windows:vs2022:test:
   tags:
     - windows11
   before_script:
-    - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
     - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
     - echo $CI_PROJECT_DIR
     - git submodule init
@@ -345,7 +343,7 @@ windows:deploy-python3.12:
   extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.12
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.12 --no-remove-work-dir
+    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge -c dlr-sc --python=3.12
     - conda install --yes conda-build anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
@@ -368,7 +366,7 @@ windows:deploy-python3.13:
   extends: .windows-deploy-base
   script:
     # Building pyChrono for python v3.13
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc --python=3.13 --no-remove-work-dir
+    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge -c dlr-sc --python=3.13
     - conda install --yes conda-build anaconda-client
     - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
@@ -530,7 +528,7 @@ macos-apple:macos-deploy-python3.12:
   script:
     - echo "Build PyChrono 3.12 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.12
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --python=3.12
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
@@ -545,7 +543,7 @@ macos-apple:macos-deploy-python3.13:
   script:
     - echo "Build PyChrono 3.13 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.13
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --python=3.13
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
