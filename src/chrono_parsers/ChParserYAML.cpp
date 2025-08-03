@@ -487,6 +487,37 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         }
     }
 
+    // Read applied body loads
+    if (model["body_loads"]) {
+        auto loads = model["body_loads"];
+        ChAssertAlways(loads.IsSequence());
+        if (m_verbose) {
+            cout << "\nbody loads: " << loads.size() << endl;
+        }
+        for (size_t i = 0; i < loads.size(); i++) {
+            ChAssertAlways(loads[i]["name"]);
+            ChAssertAlways(loads[i]["type"]);
+            ChAssertAlways(loads[i]["body"]);
+
+            auto name = loads[i]["name"].as<std::string>();
+
+            BodyLoad load;
+            load.type = ReadBodyLoadType(loads[i]["type"]);
+            load.body = loads[i]["body"].as<std::string>();
+            load.local_load = loads[i]["local_load"].as<bool>();
+            load.value = ReadVector(loads[i]["load"]);
+            if (load.type == BodyLoadType::FORCE) {
+                load.local_point = loads[i]["local_point"].as<bool>();
+                load.point = ReadVector(loads[i]["point"]);
+            }
+
+            if (m_verbose)
+                load.PrintInfo(name);
+
+            m_body_loads.insert({name, load});
+        }
+    }
+
     // Read motors
     if (model["motors"]) {
         auto motors = model["motors"];
@@ -689,9 +720,9 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
 
     m_instance_index++;
 
-    // Create a load container for bushings
-    auto container_bushings = chrono_types::make_shared<ChLoadContainer>();
-    sys.Add(container_bushings);
+    // Create a load container for bushings and body forces
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    sys.Add(load_container);
 
     // Create bodies
     for (auto& item : m_bodies) {
@@ -722,7 +753,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         if (joint->IsKinematic())
             sys.AddLink(joint->GetAsLink());
         else
-            container_bushings->Add(joint->GetAsBushing());
+            load_container->Add(joint->GetAsBushing());
         item.second.joint.push_back(joint);
     }
 
@@ -767,6 +798,24 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         rsda->RegisterTorqueFunctor(item.second.torque);
         sys.AddLink(rsda);
         item.second.rsda.push_back(rsda);
+    }
+
+    // Create body loads
+    for (auto& item : m_body_loads) {
+        auto body = FindBody(item.second.body);
+        std::shared_ptr<ChLoadCustom> load;
+        switch (item.second.type) {
+            case BodyLoadType::FORCE:
+                load = chrono_types::make_shared<ChLoadBodyForce>(body, item.second.value, item.second.local_load,
+                                                                  item.second.point, item.second.local_point);
+                break;
+            case BodyLoadType::TORQUE:
+                load = chrono_types::make_shared<ChLoadBodyTorque>(body, item.second.value, item.second.local_load);
+                break;
+        }
+        load->SetName(model_prefix + item.first);
+        load_container->Add(load);
+        item.second.load.push_back(load);
     }
 
     // Create linear motors
@@ -1024,12 +1073,15 @@ ChParserYAML::Joint::Joint()
       bdata(nullptr),
       is_kinematic(true) {}
 
+ChParserYAML::DistanceConstraint::DistanceConstraint() : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
+
 ChParserYAML::TSDA::TSDA() : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
 ChParserYAML::RSDA::RSDA()
     : body1(""), body2(""), pos(VNULL), axis(ChVector3d(0, 0, 1)), free_angle(0), torque(nullptr) {}
 
-ChParserYAML::DistanceConstraint::DistanceConstraint() : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
+ChParserYAML::BodyLoad::BodyLoad()
+    : type(BodyLoadType::FORCE), body(""), local_load(true), local_point(true), value(VNULL), point(VNULL) {}
 
 ChParserYAML::MotorLinear::MotorLinear()
     : actuation_type(MotorActuation::NONE),
@@ -1098,6 +1150,14 @@ void ChParserYAML::Joint::PrintInfo(const std::string& name) {
     cout << "     joint frame: " << frame.GetPos() << " | " << frame.GetRot() << endl;
 }
 
+void ChParserYAML::DistanceConstraint::PrintInfo(const std::string& name) {
+    cout << "  name:           " << name << endl;
+    cout << "     body1:       " << body1 << endl;
+    cout << "     body2:       " << body2 << endl;
+    cout << "     point1:      " << point1 << endl;
+    cout << "     point2:      " << point2 << endl;
+}
+
 void ChParserYAML::TSDA::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
     cout << "     body1:       " << body1 << endl;
@@ -1116,12 +1176,22 @@ void ChParserYAML::RSDA::PrintInfo(const std::string& name) {
     cout << "     free_angle:  " << free_angle << endl;
 }
 
-void ChParserYAML::DistanceConstraint::PrintInfo(const std::string& name) {
-    cout << "  name:           " << name << endl;
-    cout << "     body1:       " << body1 << endl;
-    cout << "     body2:       " << body2 << endl;
-    cout << "     point1:      " << point1 << endl;
-    cout << "     point2:      " << point2 << endl;
+void ChParserYAML::BodyLoad::PrintInfo(const std::string& name) {
+    std::string type_str = "force";
+    if (type == BodyLoadType::TORQUE)
+        type_str = "torque";
+
+    cout << "  name:          " << name << endl;
+    cout << "     type:       " << type_str << endl;
+    cout << "     body:       " << body << endl;
+    switch (type) {
+        case BodyLoadType::FORCE:
+            cout << "     force:      " << value << "  " << (local_load ? " (local)" : " (absolute)") << endl;
+            cout << "     point:      " << point << "  " << (local_point ? " (local)" : " (absolute)") << endl;
+            break;
+        case BodyLoadType::TORQUE:
+            cout << "     torque:     " << value << "  " << (local_load ? " (local)" : " (absolute)") << endl;
+    }
 }
 
 void ChParserYAML::MotorLinear::PrintInfo(const std::string& name) {
@@ -1919,6 +1989,13 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChParserYAML::ReadRSDAFunctor(const Y
             return torqueCB;
         }
     }
+}
+
+ChParserYAML::BodyLoadType ChParserYAML::ReadBodyLoadType(const YAML::Node& a) {
+    std::string type = ToUpper(a.as<std::string>());
+    if (type == "TORQUE")
+        return BodyLoadType::TORQUE;
+    return BodyLoadType::FORCE;
 }
 
 ChParserYAML::MotorActuation ChParserYAML::ReadMotorActuationType(const YAML::Node& a) {

@@ -170,6 +170,7 @@ class ChApiParsers ChParserYAML {
 
   private:
     enum class DataPathType { ABS, REL };
+    enum class BodyLoadType {FORCE, TORQUE};
 
     /// Internal specification of a body.
     struct Body {
@@ -242,6 +243,20 @@ class ChApiParsers ChParserYAML {
         ChVector3d axis;                                    ///< RSDA action axis (relative to instance frame)
         double free_angle;                                  ///< RSDA free (rest) angle
         std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
+    };
+
+    /// Internal specification of a body load (applied force or torque).
+    struct BodyLoad {
+        BodyLoad();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
+        BodyLoadType type;                                ///< load type: force or torque
+        std::string body;                                 ///< body to which the load is applied
+        bool local_load;                                  ///< load provided in local frame?
+        bool local_point;                                 ///< point provided in local frame?
+        ChVector3d value;                                 ///< load value (force or torque)
+        ChVector3d point;                                 ///< force application point
     };
 
     /// Motor actuation type.
@@ -339,6 +354,9 @@ class ChApiParsers ChParserYAML {
     /// The TSDA free angle is also set if the particular functor type defines it.
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctor(const YAML::Node& td, double& free_angle);
 
+    /// Load and return the body load type from the specified node.
+    BodyLoadType ReadBodyLoadType(const YAML::Node& a);
+
     /// Load and return a motor actuation type from the specified node.
     MotorActuation ReadMotorActuationType(const YAML::Node& a);
 
@@ -368,9 +386,10 @@ class ChApiParsers ChParserYAML {
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
+    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
     std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
     std::unordered_map<std::string, RSDA> m_rsdas;                ///< RSDA force elements
-    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
+    std::unordered_map<std::string, BodyLoad> m_body_loads;       ///< body load elements
     std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
 
