@@ -92,7 +92,7 @@ class M113_SinglePin : public Vehicle_Model {
         ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
     virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
-    virtual double CameraDistance() const override { return 6.0; }
+    virtual double CameraDistance() const override { return 10.0; }
 };
 
 class M113_DoublePin : public Vehicle_Model {
@@ -112,7 +112,7 @@ class M113_DoublePin : public Vehicle_Model {
         ////return "M113/powertrain/M113_AutomaticTransmissionShafts.json";
     }
     virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
-    virtual double CameraDistance() const override { return 6.0; }
+    virtual double CameraDistance() const override { return 10.0; }
 };
 
 class M113_RS_SinglePin : public Vehicle_Model {
@@ -132,7 +132,7 @@ class M113_RS_SinglePin : public Vehicle_Model {
         ////return "M113_RS/powertrain/M113_AutomaticTransmissionShafts.json";
     }
     virtual ChVector3d CameraPoint() const override { return ChVector3d(4, 0, 0); }
-    virtual double CameraDistance() const override { return 6.0; }
+    virtual double CameraDistance() const override { return 10.0; }
 };
 
 class Marder_SinglePin : public Vehicle_Model {
@@ -148,7 +148,7 @@ class Marder_SinglePin : public Vehicle_Model {
         return "Marder/powertrain/Marder_AutomaticTransmissionSimpleMap.json";
     }
     virtual ChVector3d CameraPoint() const override { return ChVector3d(0, 0, 0); }
-    virtual double CameraDistance() const override { return 8.0; }
+    virtual double CameraDistance() const override { return 10.0; }
 };
 
 // =============================================================================
@@ -156,7 +156,7 @@ class Marder_SinglePin : public Vehicle_Model {
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Current vehicle model selection
 ////auto vehicle_model = M113_SinglePin();
@@ -384,13 +384,23 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization
     // -----------------------------------------
 
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::string title = "JSON tracked vehicle demo - " + vehicle_model.ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
     switch (vis_type) {
         case ChVisualSystem::Type::IRRLICHT: {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("JSON Tracked Vehicle Demo");
+            vis_irr->SetWindowTitle(title);
             vis_irr->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
             vis_irr->SetChaseCameraMultipliers(1e-4, 10);
             vis_irr->Initialize();
@@ -409,7 +419,10 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChTrackedVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("JSON Tracked Vehicle Demo");
+            vis_vsg->SetWindowTitle(title);
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowPosition(100, 100);
+            vis_vsg->EnableSkyBox();
             vis_vsg->SetChaseCamera(vehicle_model.CameraPoint(), vehicle_model.CameraDistance(), 0.5);
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->AttachDriver(driver.get());
