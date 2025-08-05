@@ -380,6 +380,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -396,6 +397,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         ChVector3d pos = node->GetPos();
         double displacement = (pos - init_pos).Length();
