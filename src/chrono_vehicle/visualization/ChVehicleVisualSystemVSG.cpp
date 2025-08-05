@@ -463,8 +463,6 @@ void ChVehicleGuiComponentVSG::render(vsg::CommandBuffer& cb) {
 // -----------------------------------------------------------------------------
 
 ChVehicleVisualSystemVSG::ChVehicleVisualSystemVSG() : ChVisualSystemVSG() {
-    ////m_logo_filename = vehicle::GetDataFile("logo_chronovehicle_alpha.png");
-
     // Disable global visibility controls
     m_show_visibility_controls = false;
 }

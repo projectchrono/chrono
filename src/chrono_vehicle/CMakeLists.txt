@@ -915,6 +915,8 @@ add_library(Chrono_vehicle
 
 add_library(Chrono::vehicle ALIAS Chrono_vehicle)
 
+set_target_properties(Chrono_vehicle PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_vehicle PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_vehicle PROPERTIES LINK_FLAGS "/LTCG")
@@ -971,6 +973,8 @@ if(CH_ENABLE_MODULE_IRRLICHT)
     )
     add_library(Chrono::vehicle_irrlicht ALIAS Chrono_vehicle_irrlicht)
 
+    set_target_properties(Chrono_vehicle_irrlicht PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
     if(CH_WHOLE_PROG_OPT)
       set_target_properties(Chrono_vehicle_irrlicht PROPERTIES COMPILE_FLAGS "/GL")
       set_target_properties(Chrono_vehicle_irrlicht PROPERTIES LINK_FLAGS "/LTCG")
@@ -1015,6 +1019,8 @@ if(CH_ENABLE_MODULE_VSG)
         ${CVVSG_TV_FILES}
     )
     add_library(Chrono::vehicle_vsg ALIAS Chrono_vehicle_vsg)
+
+    set_target_properties(Chrono_vehicle_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
     if(CH_WHOLE_PROG_OPT)
       set_target_properties(Chrono_vehicle_vsg PROPERTIES COMPILE_FLAGS "/GL")

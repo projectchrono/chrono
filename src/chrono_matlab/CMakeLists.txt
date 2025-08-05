@@ -41,6 +41,8 @@ endif()
 
 add_library(Chrono_matlab ${Chrono_MATLAB_SOURCES} ${Chrono_MATLAB_HEADERS})
 add_library(Chrono::matlab ALIAS Chrono_matlab)
+
+set_target_properties(Chrono_matlab PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
  
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_matlab PROPERTIES COMPILE_FLAGS "/GL")

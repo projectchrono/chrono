@@ -19,7 +19,7 @@ An extended description of the module can be found in the [Chrono::Modal](@ref m
 ## Building instructions
 
 1. Download the [Spectra](https://spectralib.org/) library from its GitHub page. You can either download the source code as a zip file, or else clone the git repository.
-   **NOTE** we need the development version of the Spectra libray, as the only one that includes the Krylov-Schur solver Therefore, use this link: [https://github.com/yixuan/spectra/tree/develop](https://github.com/yixuan/spectra/tree/develop)
+   **NOTE** we need the development version of the Spectra library, as the only one that includes the Krylov-Schur solver Therefore, use this link: [https://github.com/yixuan/spectra/tree/develop](https://github.com/yixuan/spectra/tree/develop)
    
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
   

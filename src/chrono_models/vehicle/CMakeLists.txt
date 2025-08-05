@@ -1025,6 +1025,8 @@ add_library(ChronoModels_vehicle
 
 add_library(Chrono::models_vehicle ALIAS ChronoModels_vehicle)
 
+set_target_properties(ChronoModels_vehicle PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(ChronoModels_vehicle PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(ChronoModels_vehicle PROPERTIES LINK_FLAGS "/LTCG")

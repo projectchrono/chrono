@@ -70,10 +70,10 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     //// TODO - should be set elsewhere (enterInitializationModeIMPL or exitInitializationModeIMPL)
     // Set initial conditions for underlying ODE
-    q = {0.0, 4.4e6, 3.3e6};
+    q = {0.0, 4.163e6, 3.461e6};
     dvalve.SetInitialSpoolPosition(0);
     cyl.SetInitialChamberLengths(0.221, 0.221);
-    cyl.SetInitialChamberPressures(4.4e6, 3.3e6);
+    cyl.SetInitialChamberPressures(4.163e6, 3.461e6);
 
     // Set FIXED PARAMETERS for this FMU
     AddFmuVariable(&init_s, "init_s", FmuVariable::Type::Real, "m", "initial length",            //

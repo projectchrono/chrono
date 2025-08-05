@@ -83,6 +83,8 @@ set(DEPENDENCIES_PARSERS ${DEPENDENCIES_PARSERS} PARENT_SCOPE)
 add_library(Chrono_parsers ${Chrono_PARSERS_FILES})
 add_library(Chrono::parsers ALIAS Chrono_parsers)
 
+set_target_properties(Chrono_parsers PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_parsers PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_parsers PROPERTIES LINK_FLAGS "/LTCG")

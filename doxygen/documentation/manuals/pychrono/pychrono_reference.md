@@ -57,7 +57,7 @@ handles pointing to it.
 
 ### Templated classes
 
-Currently there is no support for templated clases in Python. So, all the C++ classes relying on templates need to be wrapped in Python in order to provide the most relevant specializations. Since the most fundamental templated classes offer aliases for the most common specialization those names are reflected also in the Python wrapper.
+Currently there is no support for templated classes in Python. So, all the C++ classes relying on templates need to be wrapped in Python in order to provide the most relevant specializations. Since the most fundamental templated classes offer aliases for the most common specialization those names are reflected also in the Python wrapper.
 
 ~~~~~~~~~~~~~~~{.py}
 chrono.ChVector3d         # as ChVector3d  in C++
@@ -169,8 +169,8 @@ mybody = chrono.CastToChBody(ptr_to_contactable)
 
 ### Nested classes
 
-SWIG does not currently support nested clases in Python (see http://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_nested_classes). Nested classes can be either ignored or, such as in PyChrono, flattened. This is automatically done for every nested class in Chrono.
-This means that PyChrono equivalents of nested C++ classes will be in the upper namespace level, as you may see in the followig example:
+SWIG does not currently support nested classes in Python (see http://www.swig.org/Doc4.0/SWIGPlus.html#SWIGPlus_nested_classes). Nested classes can be either ignored or, such as in PyChrono, flattened. This is automatically done for every nested class in Chrono.
+This means that PyChrono equivalents of nested C++ classes will be in the upper namespace level, as you may see in the following example:
 
 ~~~~~~~~~~~~~~~cpp
 // class inheriting ReportContactCallback in C++
@@ -184,7 +184,7 @@ In Python we have:
 ~~~~~~~~~~~~~~~py
 # class inheriting ReportContactCallback in Python
 class ContactReporter(chrono.ReportContactCallback): ...etc...
-#the same princliple applies to enum classes:
+#the same principle applies to enum classes:
 vehicle.SetChassisVisualizationType(pychrono.vehicle.VisualizationType_MESH)
 ~~~~~~~~~~~~~~~
 

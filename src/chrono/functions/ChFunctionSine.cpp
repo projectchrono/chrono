@@ -28,15 +28,19 @@ ChFunctionSine::ChFunctionSine(const ChFunctionSine& other) {
 }
 
 double ChFunctionSine::GetVal(double x) const {
-    return m_ampl * (std::sin(m_phase + m_angular_rate * x));
+    return m_ampl * std::sin(m_angular_rate * x + m_phase);
 }
 
 double ChFunctionSine::GetDer(double x) const {
-    return m_ampl * m_angular_rate * (std::cos(m_phase + m_angular_rate * x));
+    return m_angular_rate * m_ampl * std::cos(m_angular_rate * x + m_phase);
 }
 
 double ChFunctionSine::GetDer2(double x) const {
-    return m_ampl * -m_angular_rate * m_angular_rate * (std::sin(m_phase + m_angular_rate * x));
+    return -m_angular_rate * m_angular_rate * m_ampl * std::sin(m_angular_rate * x + m_phase);
+}
+
+double ChFunctionSine::GetDer3(double x) const {
+    return -m_angular_rate * m_angular_rate * m_angular_rate * m_ampl * std::cos(m_angular_rate * x + m_phase);
 }
 
 void ChFunctionSine::ArchiveOut(ChArchiveOut& archive_out) {

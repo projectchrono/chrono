@@ -164,6 +164,8 @@ add_library(Chrono_multicore
 )
 add_library(Chrono::multicore ALIAS Chrono_multicore)
 
+set_target_properties(Chrono_multicore PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_multicore PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_multicore PROPERTIES LINK_FLAGS "/LTCG")

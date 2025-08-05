@@ -117,6 +117,8 @@ add_library(Chrono_pardisomkl
             ${Chrono_PardisoMKL_HEADERS})
 add_library(Chrono::pardisomkl ALIAS Chrono_pardisomkl)
 
+set_target_properties(Chrono_pardisomkl PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_pardisomkl PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_pardisomkl PROPERTIES LINK_FLAGS "/LTCG")

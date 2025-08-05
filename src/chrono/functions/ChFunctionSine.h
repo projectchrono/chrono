@@ -24,18 +24,17 @@ namespace chrono {
 /// @{
 
 /// Sine function
-/// y = A*sin(2*PI*f + phase)`
+/// `y = A * sin(2*PI*f * x + phi)`
 class ChApi ChFunctionSine : public ChFunction {
-  private:
-    double m_ampl;
-    double m_phase;
-    double m_angular_rate;  ///< internal value, w=2*PI*freq
-
   public:
-    ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_angular_rate(0.0) {}
+    ChFunctionSine() : m_ampl(1.0), m_angular_rate(0.0), m_phase(0.0) {}
+
+    /// Create sine function given amplitude, frequency [Hz] and phase.
     ChFunctionSine(double ampl, double freq, double phase = 0)
-        : m_ampl(ampl), m_phase(phase), m_angular_rate(CH_2PI * freq) {}
+        : m_ampl(ampl), m_angular_rate(CH_2PI * freq), m_phase(phase) {}
+
     ChFunctionSine(const ChFunctionSine& other);
+
     ~ChFunctionSine() {}
 
     /// "Virtual" copy constructor (covariant return type).
@@ -46,6 +45,7 @@ class ChApi ChFunctionSine : public ChFunction {
     virtual double GetVal(double x) const override;
     virtual double GetDer(double x) const override;
     virtual double GetDer2(double x) const override;
+    virtual double GetDer3(double x) const override;
 
     void SetPhase(double phase) { m_phase = phase; };
 
@@ -68,6 +68,11 @@ class ChApi ChFunctionSine : public ChFunction {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double m_ampl;
+    double m_phase;
+    double m_angular_rate;  ///< internal value, w=2*PI*freq
 };
 
 /// @} chrono_functions

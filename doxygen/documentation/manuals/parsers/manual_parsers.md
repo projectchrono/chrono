@@ -2,7 +2,7 @@ Chrono::Parsers {#manual_parsers}
 =================================
 
 This module enables:
-- spcifying Chrono models and simulations in YAML
+- specifying Chrono models and simulations in YAML
 - importing models from 3rd-party specification files
   + URDF (requires external library)
   + OpenSim

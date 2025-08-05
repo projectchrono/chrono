@@ -9,7 +9,7 @@ In addition to the main library, the VEHICLE module also creates a library of pr
 
 - Wheeled vehicle models
   - [HMMWV](@ref vehicle_models_hmmwv): off-road 4-wheel vehicle
-  - [Sedan](@ref vehicle_models_sedan): genric passenger car
+  - [Sedan](@ref vehicle_models_sedan): generic passenger car
   - [Citybus](@ref vehicle_models_citybus): passenger bus
   - [UAZ](@ref vehicle_models_uaz): minibus model of the UAZ-452 vehicle
   - [M-role](@ref vehicle_models_mrole): multi-purpose wheeled vehicle model
