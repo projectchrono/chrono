@@ -19,6 +19,8 @@
 //
 // =============================================================================
 
+//// TODO: currently not working properly with Chrono::VSG.
+
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -27,23 +29,12 @@
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
-#include "chrono/assets/ChVisualSystem.h"
-#ifdef CHRONO_IRRLICHT
-    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-using namespace chrono::irrlicht;
-#endif
-#ifdef CHRONO_VSG
-    #include "chrono_vsg/ChVisualSystemVSG.h"
-using namespace chrono::vsg3d;
-#endif
+#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
-
-// Run-time visualization system (IRRLICHT or VSG)
-//// NOTE: currently not working properly with Chrono::VSG.
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // =============================================================================
 
@@ -121,56 +112,21 @@ int main(int argc, char* argv[]) {
     // Create the vehicle run-time visualization interface
     std::shared_ptr<ChVisualSystem> vis_sys;
     ChVector3d cam_pos;
+    {
+        cam_pos = ChVector3d(0, -10, 1.5);
 
-#ifndef CHRONO_IRRLICHT
-    if (vis_type == ChVisualSystem::Type::IRRLICHT)
-        vis_type = ChVisualSystem::Type::VSG;
-#endif
-#ifndef CHRONO_VSG
-    if (vis_type == ChVisualSystem::Type::VSG)
-        vis_type = ChVisualSystem::Type::IRRLICHT;
-#endif
+        // Create the vehicle Irrlicht interface
+        auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+        vis_irr->AttachSystem(hmmwv.GetSystem());
+        vis_irr->SetWindowTitle("Rigid Terrain Demo");
+        vis_irr->SetWindowSize(1200, 800);
+        vis_irr->Initialize();
+        vis_irr->AddLightDirectional();
+        vis_irr->AddSkyBox();
+        vis_irr->AddLogo();
+        vis_irr->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());
 
-    switch (vis_type) {
-        case ChVisualSystem::Type::IRRLICHT: {
-#ifdef CHRONO_IRRLICHT
-            cam_pos = ChVector3d(0, -10, 1.5);
-
-            // Create the vehicle Irrlicht interface
-            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-            vis_irr->AttachSystem(hmmwv.GetSystem());
-            vis_irr->SetWindowTitle("Rigid Terrain Demo");
-            vis_irr->SetWindowSize(1200, 800);
-            vis_irr->Initialize();
-            vis_irr->AddLightDirectional();
-            vis_irr->AddSkyBox();
-            vis_irr->AddLogo();
-            vis_irr->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());
-
-            vis_sys = vis_irr;
-#endif
-            break;
-        }
-
-        default:
-        case ChVisualSystem::Type::VSG: {
-#ifdef CHRONO_VSG
-            cam_pos = ChVector3d(0, -20, 1.5);
-
-            // Create the vehicle VSG interface
-            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
-            vis_vsg->AttachSystem(hmmwv.GetSystem());
-            vis_vsg->SetWindowTitle("RigidTerrain Moving Patch Demo");
-            vis_vsg->SetWindowSize(1280, 800);
-            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
-            vis_vsg->EnableShadows();
-            vis_vsg->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());
-            vis_vsg->Initialize();
-
-            vis_sys = vis_vsg;
-#endif
-            break;
-        }
+        vis_sys = vis_irr;
     }
 
     // Simulation loop
