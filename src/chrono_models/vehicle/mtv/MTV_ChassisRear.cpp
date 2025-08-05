@@ -76,7 +76,7 @@ MTV_ChassisRear::MTV_ChassisRear(const std::string& name, CollisionType chassis_
     m_geometry.color_boxes = ChColor(0.4f, 0.2f, 0.2f);
     m_geometry.color_cylinders = ChColor(0.4f, 0.2f, 0.2f);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("mtv/meshes/m1083_rear.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("mtv/meshes/m1083_rear.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -89,8 +89,8 @@ MTV_ChassisRear::MTV_ChassisRear(const std::string& name, CollisionType chassis_
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(ChVector3d(), vehicle::GetDataFile("mtv/meshes/m1083_rear.obj"),
-                                                        0.005, 0);
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("mtv/meshes/m1083_rear.obj"),
+                                                        1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

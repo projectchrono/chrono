@@ -137,6 +137,7 @@ class ChApiParsers ChParserYAML {
         VisParams();
         void PrintInfo();
 
+        VisualizationType type;
         bool render;
         double render_fps;
         CameraVerticalDir camera_vertical;
@@ -168,6 +169,9 @@ class ChApiParsers ChParserYAML {
     };
 
   private:
+    enum class DataPathType { ABS, REL };
+    enum class BodyLoadType {FORCE, TORQUE};
+
     /// Internal specification of a body.
     struct Body {
         Body();
@@ -176,6 +180,8 @@ class ChApiParsers ChParserYAML {
         std::vector<std::shared_ptr<ChBodyAuxRef>> body;  ///< underlying Chrono bodies (one per instance)
         ChVector3d pos;                                   ///< body position (relative to instance frame)
         ChQuaterniond rot;                                ///< body orientation (relative to instance frame)
+        ChVector3d lin_vel;                               ///< initial linear velocity
+        ChVector3d ang_vel;                               ///< initial angular velocity (in body frame)
         bool is_fixed;                                    ///< indicate if body fixed relative to global frame
         double mass;                                      ///< body mass
         ChFramed com;                                     ///< centroidal frame (relative to body frame)
@@ -195,6 +201,7 @@ class ChApiParsers ChParserYAML {
         std::string body2;                            ///< identifier of 2nd body
         ChFramed frame;                               ///< joint frame (relative to instance frame)
         std::shared_ptr<ChJoint::BushingData> bdata;  ///< bushing data
+        bool is_kinematic;                            ///< indicate if kinematic joint or bushing
     };
 
     /// Internal specification of a distance constraint.
@@ -238,6 +245,20 @@ class ChApiParsers ChParserYAML {
         std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
     };
 
+    /// Internal specification of a body load (applied force or torque).
+    struct BodyLoad {
+        BodyLoad();
+        void PrintInfo(const std::string& name);
+
+        std::vector<std::shared_ptr<ChLoadCustom>> load;  ///< underlying Chrono body load (one per instance)
+        BodyLoadType type;                                ///< load type: force or torque
+        std::string body;                                 ///< body to which the load is applied
+        bool local_load;                                  ///< load provided in local frame?
+        bool local_point;                                 ///< point provided in local frame?
+        ChVector3d value;                                 ///< load value (force or torque)
+        ChVector3d point;                                 ///< force application point
+    };
+
     /// Motor actuation type.
     enum class MotorActuation {
         POSITION,  ///< position-level (displacement or angle)
@@ -277,6 +298,9 @@ class ChApiParsers ChParserYAML {
     };
 
   private:
+    /// Return the path to the specified data file.
+    std::string GetDatafilePath(const std::string& filename);
+
     /// Load and return a ChVector3d from the specified node.
     ChVector3d ReadVector(const YAML::Node& a);
 
@@ -297,8 +321,10 @@ class ChApiParsers ChParserYAML {
     ///  Load and return a ChColor from the specified node.
     ChColor ReadColor(const YAML::Node& a);
 
+    DataPathType ReadDataPathType(const YAML::Node& a);
     ChSolver::Type ReadSolverType(const YAML::Node& a);
     ChTimestepper::Type ReadIntegratorType(const YAML::Node& a);
+    VisualizationType ReadVisualizationType(const YAML::Node& a);
 
     /// Load and return a contact material specification from the specified node.
     ChContactMaterialData ReadMaterialData(const YAML::Node& mat);
@@ -327,6 +353,9 @@ class ChApiParsers ChParserYAML {
     /// Load and return an RSDA functor object.
     /// The TSDA free angle is also set if the particular functor type defines it.
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctor(const YAML::Node& td, double& free_angle);
+
+    /// Load and return the body load type from the specified node.
+    BodyLoadType ReadBodyLoadType(const YAML::Node& a);
 
     /// Load and return a motor actuation type from the specified node.
     MotorActuation ReadMotorActuationType(const YAML::Node& a);
@@ -357,9 +386,10 @@ class ChApiParsers ChParserYAML {
 
     std::unordered_map<std::string, Body> m_bodies;               ///< bodies
     std::unordered_map<std::string, Joint> m_joints;              ///< joints
+    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
     std::unordered_map<std::string, TSDA> m_tsdas;                ///< TSDA force elements
     std::unordered_map<std::string, RSDA> m_rsdas;                ///< RSDA force elements
-    std::unordered_map<std::string, DistanceConstraint> m_dists;  ///< distance constraints
+    std::unordered_map<std::string, BodyLoad> m_body_loads;       ///< body load elements
     std::unordered_map<std::string, MotorLinear> m_linmotors;     ///< linear motors
     std::unordered_map<std::string, MotorRotation> m_rotmotors;   ///< rotational motors
 
@@ -370,6 +400,10 @@ class ChApiParsers ChParserYAML {
     std::string m_name;    ///< name of the YAML model
     bool m_use_degrees;    ///< all angles given in degrees (default: true)
     int m_instance_index;  ///< index of the last model instance created
+
+    DataPathType m_data_path;
+    std::string m_rel_path;
+    std::string m_script_directory;
 };
 
 /// @} parsers_module

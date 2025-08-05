@@ -67,7 +67,7 @@ Cherokee_Chassis::Cherokee_Chassis(const std::string& name, bool fixed, Collisio
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("jeep/JeepCherokee.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("jeep/JeepCherokee.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -80,8 +80,8 @@ Cherokee_Chassis::Cherokee_Chassis(const std::string& name, bool fixed, Collisio
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(ChVector3d(), vehicle::GetDataFile("jeep/JeepCherokee_col.obj"),
-                                                        0.005, 0);
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("jeep/JeepCherokee_col.obj"),
+                                                        1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

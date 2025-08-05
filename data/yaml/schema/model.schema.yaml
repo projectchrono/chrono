@@ -90,7 +90,7 @@ function: &FUNCTION
     properties:
       type:
         type: string
-        enum: [CONSTANT, POLYNOMIAL, SINE, DATA]
+        enum: [CONSTANT, POLYNOMIAL, SINE, RAMP, DATA]
         description: Function type
       repeat:
         type: object
@@ -125,7 +125,7 @@ function: &FUNCTION
         default: 0.0
       slope:
         type: number
-        description: Slopr for RAMP type
+        description: Slope for RAMP type
       intercept:
         type: number
         description: Intercept value for RAMP type
@@ -187,6 +187,21 @@ model:
       description: Whether angles are specified in degrees (true) or radians (false)
       default: true
     
+    data_path:
+      type: object
+      description: Location of data files in the model specification.
+      required: [type]
+      properties:
+        type: 
+            type: string
+            description: Mode for data file location
+            enum: [ABSOLUTE, RELATIVE]
+            default: ABSOLUTE
+        root:
+            type: string
+            description: Root of data files, relatiuve to location of this script
+            default: "."
+
     bodies:
       type: array
       description: List of bodies in the system

@@ -39,7 +39,8 @@ ChBodyGeometry::ChBodyGeometry()
     : color_boxes(ChColor(0.75f, 0.75f, 0.75f)),
       color_spheres(ChColor(0.75f, 0.75f, 0.75f)),
       color_cylinders(ChColor(0.75f, 0.75f, 0.75f)),
-      color_cones(ChColor(0.75f, 0.75f, 0.75f)) {}
+      color_cones(ChColor(0.75f, 0.75f, 0.75f)),
+      color_meshes(ChColor(0.75f, 0.75f, 0.75f)) {}
 
 ChBodyGeometry::BoxShape::BoxShape(const ChVector3d& pos, const ChQuaternion<>& rot, const ChVector3d& dims, int matID)
     : pos(pos), rot(rot), dims(dims), matID(matID), color({-1, -1, -1}) {}
@@ -112,38 +113,62 @@ ChBodyGeometry::ConvexHullsShape::ConvexHullsShape(const std::string& filename, 
 }
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
+                                           const ChQuaternion<>& rot,
+                                           const std::string& filename,
+                                           double scale,
+                                           double radius,
+                                           int matID)
+    : TrimeshShape(pos,
+                   rot,
+                   ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true),
+                   VNULL,
+                   scale,
+                   radius,
+                   matID) {}
+
+ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
+                                           const ChQuaternion<>& rot,
+                                           std::shared_ptr<ChTriangleMeshConnected> trimesh,
+                                           double scale,
+                                           double radius,
+                                           int matID)
+    : TrimeshShape(pos, rot, trimesh, VNULL, scale, radius, matID) {}
+
+ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
+                                           const ChQuaternion<>& rot,
                                            const std::string& filename,
                                            const ChVector3d& interior_point,
                                            double scale,
                                            double radius,
                                            int matID)
-    : radius(radius), pos(pos), matID(matID) {
-    trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, false);
-    for (auto& v : trimesh->GetCoordsVertices()) {
-        v *= scale;
-    }
-    int_point = pos + scale * interior_point;
-}
+    : TrimeshShape(pos,
+                   rot,
+                   ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, true),
+                   interior_point,
+                   scale,
+                   radius,
+                   matID) {}
 
 ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
+                                           const ChQuaternion<>& rot,
                                            std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                            const ChVector3d& interior_point,
+                                           double scale,
                                            double radius,
                                            int matID)
-    : trimesh(trimesh), radius(radius), pos(pos), matID(matID) {
-    int_point = pos + interior_point;
-}
+    : trimesh(trimesh), radius(radius), matID(matID), int_point(interior_point), color({-1, -1, -1}) {
+    ChMatrix33d R(rot);
 
-ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos, const std::string& filename, double radius, int matID)
-    : radius(radius), pos(pos), matID(matID), int_point(VNULL) {
-    trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(filename, true, false);
-}
+    // Transform mesh vertices
+    for (auto& v : trimesh->GetCoordsVertices()) {
+        v *= scale;       // scale
+        v = pos + R * v;  // rotate and translate
+    }
 
-ChBodyGeometry::TrimeshShape::TrimeshShape(const ChVector3d& pos,
-                                           std::shared_ptr<ChTriangleMeshConnected> trimesh,
-                                           double radius,
-                                           int matID)
-    : trimesh(trimesh), radius(radius), pos(pos), matID(matID), int_point(VNULL) {}
+    // Transform interior point
+    int_point *= scale;
+    int_point = pos + R * int_point;
+}
 
 std::shared_ptr<ChVisualShape> ChBodyGeometry::AddVisualizationCylinder(std::shared_ptr<ChBody> body,
                                                                         const ChVector3d& p1,
@@ -162,21 +187,24 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     if (vis == VisualizationType::NONE)
         return;
 
+    // Create a visual model if one doesn't exist
     if (!body->GetVisualModel()) {
         auto model = chrono_types::make_shared<ChVisualModel>();
         body->AddVisualModel(model);
     }
 
-    // Default diffuse color for primitive shapes
+    // Create default diffuse color materials for primitive shapes
     auto box_mat = chrono_types::make_shared<ChVisualMaterial>();
     auto sph_mat = chrono_types::make_shared<ChVisualMaterial>();
     auto cyl_mat = chrono_types::make_shared<ChVisualMaterial>();
     auto cone_mat = chrono_types::make_shared<ChVisualMaterial>();
+    auto mesh_mat = chrono_types::make_shared<ChVisualMaterial>();
 
     box_mat->SetDiffuseColor({color_boxes.R, color_boxes.G, color_boxes.B});
     sph_mat->SetDiffuseColor({color_spheres.R, color_spheres.G, color_spheres.B});
     cyl_mat->SetDiffuseColor({color_cylinders.R, color_cylinders.G, color_cylinders.B});
     cone_mat->SetDiffuseColor({color_cones.R, color_cones.G, color_cones.B});
+    mesh_mat->SetDiffuseColor({color_meshes.R, color_meshes.G, color_meshes.B});
 
     // Use the collision shapes
     if (vis == VisualizationType::COLLISION) {
@@ -220,7 +248,10 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
             auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
             trimesh_shape->SetMesh(mesh.trimesh);
             trimesh_shape->SetMutable(false);
-            trimesh_shape->SetColor(ChColor(0.75f, 0.75f, 0.75f));
+            if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
+                trimesh_shape->AddMaterial(mesh_mat);
+            else
+                trimesh_shape->SetColor(mesh.color);
             body->AddVisualShape(trimesh_shape, ChFrame<>());
         }
 
@@ -228,25 +259,14 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
     }
 
     // Use a model file if provided
-    if (vis == VisualizationType::MODEL_FILE && !vis_mesh_file.empty()) {
+    if (vis == VisualizationType::MESH && !vis_model_file.empty()) {
         auto obj_shape = chrono_types::make_shared<ChVisualShapeModelFile>();
-        obj_shape->SetFilename(vis_mesh_file);
+        obj_shape->SetFilename(vis_model_file);
         body->AddVisualShape(obj_shape, ChFrame<>());
         return;
     }
 
-    // Use trimesh from specified file is provided
-    if (vis == VisualizationType::MESH && !vis_mesh_file.empty()) {
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
-        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(filesystem::path(vis_mesh_file).stem());
-        trimesh_shape->SetMutable(false);
-        body->AddVisualShape(trimesh_shape, ChFrame<>());
-        return;
-    }
-
-    // If no mesh specified, default to primitives
+    // If no model file specified, default to primitives
     for (auto& sphere : vis_spheres) {
         auto sphere_shape = chrono_types::make_shared<ChVisualShapeSphere>(sphere.radius);
         if (sphere.color.R < 0 || sphere.color.G < 0 || sphere.color.B < 0)
@@ -287,6 +307,17 @@ void ChBodyGeometry::CreateVisualizationAssets(std::shared_ptr<ChBody> body, Vis
         auto line_shape = chrono_types::make_shared<ChVisualShapeLine>();
         line_shape->SetLineGeometry(line.line);
         body->AddVisualShape(line_shape, ChFrame<>(line.pos, line.rot));
+    }
+
+    for (auto& mesh : vis_meshes) {
+        auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
+        trimesh_shape->SetMesh(mesh.trimesh);
+        trimesh_shape->SetMutable(false);
+        if (mesh.color.R < 0 || mesh.color.G < 0 || mesh.color.B < 0)
+            trimesh_shape->AddMaterial(mesh_mat);
+        else
+            trimesh_shape->SetColor(mesh.color);
+        body->AddVisualShape(trimesh_shape, ChFrame<>());
     }
 
     return;
@@ -332,9 +363,6 @@ void ChBodyGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
     }
     for (auto& mesh : coll_meshes) {
         assert(cmaterials[mesh.matID]);
-        // Hack: explicitly offset vertices
-        for (auto& v : mesh.trimesh->m_vertices)
-            v += mesh.pos;
         auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterials[mesh.matID], mesh.trimesh,
                                                                              false, false, mesh.radius);
         body->AddCollisionShape(shape);
@@ -415,7 +443,22 @@ bool ChBodyGeometry::HasVisualizationPrimitives() const {
 }
 
 bool ChBodyGeometry::HasVisualizationMesh() const {
-    return !vis_mesh_file.empty();
+    return !vis_model_file.empty();
+}
+
+std::string ChBodyGeometry::GetVisualizationTypeAsString(VisualizationType type) {
+    switch (type) {
+        case VisualizationType::NONE:
+            return "NONE";
+        case VisualizationType::PRIMITIVES:
+            return "PRIMITIVES";
+        case VisualizationType::MESH:
+            return "MESH";
+        case VisualizationType::COLLISION:
+            return "COLLISION";
+    }
+
+    return "NONE";
 }
 
 // -----------------------------------------------------------------------------

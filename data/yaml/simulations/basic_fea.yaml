@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Basic rigid MBS simulation
+# Basic bushing or FEA MBS simulation
 # ------------------------------------------------------------------------------
 
 chrono-version: 9.0
@@ -15,10 +15,10 @@ simulation:
       type: Euler_implicit_linearized
   
   solver:
-      type: Barzilai_Borwein
-      max_iterations: 100
-      overrelaxation_factor: 1.0
-      sharpness_factor: 1.0
+      type: Minres
+      max_iterations: 200
+      tolerance: 1e-10
+      enable_diagonal_preconditioner: true
   
   visualization:
       type: Model_file

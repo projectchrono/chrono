@@ -86,7 +86,7 @@ Marder_Chassis::Marder_Chassis(const std::string& name, bool fixed, CollisionTyp
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("Marder/Hull.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("Marder/Hull.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:

@@ -63,7 +63,7 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, CollisionType 
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("sedan/sedan_chassis_vis.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("sedan/sedan_chassis_vis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -76,8 +76,8 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, CollisionType 
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(ChVector3d(),
-                                                        vehicle::GetDataFile("sedan/sedan_chassis_col.obj"), 0.005, 0);
+            utils::ChBodyGeometry::TrimeshShape trimesh(
+                VNULL, QUNIT, vehicle::GetDataFile("sedan/sedan_chassis_col.obj"), 1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }
