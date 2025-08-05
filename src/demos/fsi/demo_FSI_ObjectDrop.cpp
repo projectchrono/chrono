@@ -283,8 +283,9 @@ int main(int argc, char* argv[]) {
     // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true, true);
 
-    std::cout << "Body mass = " << mass << std::endl;
-    std::cout << "Body inertia\n" << inertia << std::endl;
+    cout << "FSI body: " << endl;
+    cout << "   mass = " << mass << endl;
+    cout << "   inertia\n" << inertia << endl;
 
     // Enable depth-based initial pressure for SPH particles
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(fsize.z()));
@@ -300,6 +301,11 @@ int main(int argc, char* argv[]) {
 
     // Initialize FSI problem
     fsi.Initialize();
+
+    auto domain_aabb = fsi.GetComputationalDomain();
+    cout << "Computational domain: " << endl;
+    cout << "   min: " << domain_aabb.min << endl;
+    cout << "   max: " << domain_aabb.max << endl;
 
     // Output directories
     std::string out_dir = GetChronoOutputPath() + "FSI_Object_Drop/";
