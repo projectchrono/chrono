@@ -151,11 +151,9 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-#endif
 
         ////auto time = rover.GetSystem()->GetChTime();
         ////if (time < 1)

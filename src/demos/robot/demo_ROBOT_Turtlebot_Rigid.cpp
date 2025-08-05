@@ -169,11 +169,9 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     float time = 0.0f;
     while (vis->Run()) {
-#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-#endif
 
         // at time = 1 s, start left turn
         if (abs(time - 1.0f) < 1e-4) {
