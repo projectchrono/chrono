@@ -86,7 +86,7 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed, CollisionType ch
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("M113/meshes/Chassis.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("M113/meshes/Chassis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:

@@ -62,7 +62,7 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, CollisionT
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("citybus/CityBus_Vis.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("citybus/CityBus_Vis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -75,8 +75,8 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, CollisionT
             break;
         }
         case CollisionType::MESH: {
-            utils::ChBodyGeometry::TrimeshShape trimesh(ChVector3d(), vehicle::GetDataFile("citybus/CityBus_Col.obj"),
-                                                        0.005, 0);
+            utils::ChBodyGeometry::TrimeshShape trimesh(VNULL, QUNIT, vehicle::GetDataFile("citybus/CityBus_Col.obj"),
+                                                        1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

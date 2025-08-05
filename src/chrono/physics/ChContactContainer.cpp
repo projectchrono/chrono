@@ -21,7 +21,6 @@ namespace chrono {
 
 ChContactContainer::ChContactContainer(const ChContactContainer& other) : ChPhysicsItem(other) {
     add_contact_callback = other.add_contact_callback;
-    report_contact_callback = other.report_contact_callback;
 }
 
 void ChContactContainer::ArchiveOut(ChArchiveOut& archive_out) {

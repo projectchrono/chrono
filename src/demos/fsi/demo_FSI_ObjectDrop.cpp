@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
             inertia *= density;
             bottom_offset = mesh_bottom_offset;
             geometry->coll_meshes.push_back(
-                utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_obj_filename, VNULL, mesh_scale, 0.01, 0));
+                utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_obj_filename, VNULL, mesh_scale, 0.01, 0));
             break;
         }
     }

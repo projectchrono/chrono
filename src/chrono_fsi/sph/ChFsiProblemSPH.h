@@ -90,7 +90,7 @@ class CH_FSI_API ChFsiProblemSPH {
                                double length,
                                bool use_grid_bce = false);
     void AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                          const ChVector3d& pos,
+                          const ChFramed& pos,
                           const std::string& obj_file,
                           const ChVector3d& interior_point,
                           double scale);

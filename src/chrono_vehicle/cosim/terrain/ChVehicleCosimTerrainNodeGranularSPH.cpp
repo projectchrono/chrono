@@ -267,10 +267,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
         // Set obstacle geometry
         double thickness = 0.01;
-        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry >();
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
         geometry->materials.push_back(b.m_contact_mat);
-        geometry->coll_meshes.push_back(
-            utils::ChBodyGeometry::TrimeshShape(VNULL, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(
+            VNULL, QUNIT, GetChronoDataFile(b.m_mesh_filename), VNULL, 1.0, thickness, 0));
 
         // Create visualization and collision shapes
         geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);

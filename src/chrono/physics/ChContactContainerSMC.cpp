@@ -21,51 +21,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChContactContainerSMC)
 
 ChContactContainerSMC::ChContactContainerSMC()
-    : n_added_3_3(0),
-      n_added_6_3(0),
-      n_added_6_6(0),
-      n_added_333_3(0),
-      n_added_333_6(0),
-      n_added_333_333(0),
-      n_added_666_3(0),
-      n_added_666_6(0),
-      n_added_666_333(0),
-      n_added_666_666(0),
-      n_added_33_3(0),
-      n_added_33_6(0),
-      n_added_33_333(0),
-      n_added_33_666(0),
-      n_added_33_33(0),
-      n_added_66_3(0),
-      n_added_66_6(0),
-      n_added_66_333(0),
-      n_added_66_666(0),
-      n_added_66_33(0),
-      n_added_66_66(0) {}
+    : n_added(0) {}
 
 ChContactContainerSMC::ChContactContainerSMC(const ChContactContainerSMC& other)
     : ChContactContainer(other),
-      n_added_3_3(0),
-      n_added_6_3(0),
-      n_added_6_6(0),
-      n_added_333_3(0),
-      n_added_333_6(0),
-      n_added_333_333(0),
-      n_added_666_3(0),
-      n_added_666_6(0),
-      n_added_666_333(0),
-      n_added_666_666(0),
-      n_added_33_3(0),
-      n_added_33_6(0),
-      n_added_33_333(0),
-      n_added_33_666(0),
-      n_added_33_33(0),
-      n_added_66_3(0),
-      n_added_66_6(0),
-      n_added_66_333(0),
-      n_added_66_666(0),
-      n_added_66_33(0),
-      n_added_66_66(0) {}
+      n_added(0) {}
 
 ChContactContainerSMC::~ChContactContainerSMC() {
     RemoveAllContacts();
@@ -76,212 +36,29 @@ void ChContactContainerSMC::Update(double time, bool update_assets) {
     ChContactContainer::Update(time, update_assets);
 }
 
-template <class Tcont, class Titer>
-void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int& n_added) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        delete (*itercontact);
-        (*itercontact) = 0;
-        ++itercontact;
+void ChContactContainerSMC::RemoveAllContacts() {
+    auto iter = contacts.begin();
+    while (iter != contacts.end()) {
+        delete *iter;
+        *iter = nullptr;
+        ++iter;
     }
-    contactlist.clear();
-    lastcontact = contactlist.begin();
+    contacts.clear();
+    last_contact = contacts.begin();
     n_added = 0;
 }
 
-void ChContactContainerSMC::RemoveAllContacts() {
-    _RemoveAllContacts(contactlist_3_3, lastcontact_3_3, n_added_3_3);
-
-    _RemoveAllContacts(contactlist_6_3, lastcontact_6_3, n_added_6_3);
-    _RemoveAllContacts(contactlist_6_6, lastcontact_6_6, n_added_6_6);
-
-    _RemoveAllContacts(contactlist_333_3, lastcontact_333_3, n_added_333_3);
-    _RemoveAllContacts(contactlist_333_6, lastcontact_333_6, n_added_333_6);
-    _RemoveAllContacts(contactlist_333_333, lastcontact_333_333, n_added_333_333);
-
-    _RemoveAllContacts(contactlist_666_3, lastcontact_666_3, n_added_666_3);
-    _RemoveAllContacts(contactlist_666_6, lastcontact_666_6, n_added_666_6);
-    _RemoveAllContacts(contactlist_666_333, lastcontact_666_333, n_added_666_333);
-    _RemoveAllContacts(contactlist_666_666, lastcontact_666_666, n_added_666_666);
-
-    _RemoveAllContacts(contactlist_33_3, lastcontact_33_3, n_added_33_3);
-    _RemoveAllContacts(contactlist_33_6, lastcontact_33_6, n_added_33_6);
-    _RemoveAllContacts(contactlist_33_333, lastcontact_33_333, n_added_33_333);
-    _RemoveAllContacts(contactlist_33_666, lastcontact_33_666, n_added_33_666);
-    _RemoveAllContacts(contactlist_33_33, lastcontact_33_33, n_added_33_33);
-
-    _RemoveAllContacts(contactlist_66_3, lastcontact_66_3, n_added_66_3);
-    _RemoveAllContacts(contactlist_66_6, lastcontact_66_6, n_added_66_6);
-    _RemoveAllContacts(contactlist_66_333, lastcontact_66_333, n_added_66_333);
-    _RemoveAllContacts(contactlist_66_666, lastcontact_66_666, n_added_66_666);
-    _RemoveAllContacts(contactlist_66_33, lastcontact_66_33, n_added_66_33);
-    _RemoveAllContacts(contactlist_66_66, lastcontact_66_66, n_added_66_66);
-}
-
 void ChContactContainerSMC::BeginAddContact() {
-    lastcontact_3_3 = contactlist_3_3.begin();
-    n_added_3_3 = 0;
-
-    lastcontact_6_3 = contactlist_6_3.begin();
-    n_added_6_3 = 0;
-    lastcontact_6_6 = contactlist_6_6.begin();
-    n_added_6_6 = 0;
-
-    lastcontact_333_3 = contactlist_333_3.begin();
-    n_added_333_3 = 0;
-    lastcontact_333_6 = contactlist_333_6.begin();
-    n_added_333_6 = 0;
-    lastcontact_333_333 = contactlist_333_333.begin();
-    n_added_333_333 = 0;
-
-    lastcontact_666_3 = contactlist_666_3.begin();
-    n_added_666_3 = 0;
-    lastcontact_666_6 = contactlist_666_6.begin();
-    n_added_666_6 = 0;
-    lastcontact_666_333 = contactlist_666_333.begin();
-    n_added_666_333 = 0;
-    lastcontact_666_666 = contactlist_666_666.begin();
-    n_added_666_666 = 0;
-
-    lastcontact_33_3 = contactlist_33_3.begin();
-    n_added_33_3 = 0;
-    lastcontact_33_6 = contactlist_33_6.begin();
-    n_added_33_6 = 0;
-    lastcontact_33_333 = contactlist_33_333.begin();
-    n_added_33_333 = 0;
-    lastcontact_33_666 = contactlist_33_666.begin();
-    n_added_33_666 = 0;
-    lastcontact_33_33 = contactlist_33_33.begin();
-    n_added_33_33 = 0;
-
-    lastcontact_66_3 = contactlist_66_3.begin();
-    n_added_66_3 = 0;
-    lastcontact_66_6 = contactlist_66_6.begin();
-    n_added_66_6 = 0;
-    lastcontact_66_333 = contactlist_66_333.begin();
-    n_added_66_333 = 0;
-    lastcontact_66_666 = contactlist_66_666.begin();
-    n_added_66_666 = 0;
-    lastcontact_66_33 = contactlist_66_33.begin();
-    n_added_66_33 = 0;
-    lastcontact_66_66 = contactlist_66_66.begin();
-    n_added_66_66 = 0;
+    last_contact = contacts.begin();
+    n_added = 0;
 }
 
 void ChContactContainerSMC::EndAddContact() {
-    // remove contacts that are beyond last contact
-    while (lastcontact_3_3 != contactlist_3_3.end()) {
-        delete (*lastcontact_3_3);
-        lastcontact_3_3 = contactlist_3_3.erase(lastcontact_3_3);
+    // Remove contacts that are beyond last contact
+    while (last_contact != contacts.end()) {
+        delete *last_contact;
+        last_contact = contacts.erase(last_contact);
     }
-
-    while (lastcontact_6_3 != contactlist_6_3.end()) {
-        delete (*lastcontact_6_3);
-        lastcontact_6_3 = contactlist_6_3.erase(lastcontact_6_3);
-    }
-    while (lastcontact_6_6 != contactlist_6_6.end()) {
-        delete (*lastcontact_6_6);
-        lastcontact_6_6 = contactlist_6_6.erase(lastcontact_6_6);
-    }
-
-    while (lastcontact_333_3 != contactlist_333_3.end()) {
-        delete (*lastcontact_333_3);
-        lastcontact_333_3 = contactlist_333_3.erase(lastcontact_333_3);
-    }
-    while (lastcontact_333_6 != contactlist_333_6.end()) {
-        delete (*lastcontact_333_6);
-        lastcontact_333_6 = contactlist_333_6.erase(lastcontact_333_6);
-    }
-    while (lastcontact_333_333 != contactlist_333_333.end()) {
-        delete (*lastcontact_333_333);
-        lastcontact_333_333 = contactlist_333_333.erase(lastcontact_333_333);
-    }
-
-    while (lastcontact_666_3 != contactlist_666_3.end()) {
-        delete (*lastcontact_666_3);
-        lastcontact_666_3 = contactlist_666_3.erase(lastcontact_666_3);
-    }
-    while (lastcontact_666_6 != contactlist_666_6.end()) {
-        delete (*lastcontact_666_6);
-        lastcontact_666_6 = contactlist_666_6.erase(lastcontact_666_6);
-    }
-    while (lastcontact_666_333 != contactlist_666_333.end()) {
-        delete (*lastcontact_666_333);
-        lastcontact_666_333 = contactlist_666_333.erase(lastcontact_666_333);
-    }
-    while (lastcontact_666_666 != contactlist_666_666.end()) {
-        delete (*lastcontact_666_666);
-        lastcontact_666_666 = contactlist_666_666.erase(lastcontact_666_666);
-    }
-
-    while (lastcontact_33_3 != contactlist_33_3.end()) {
-        delete (*lastcontact_33_3);
-        lastcontact_33_3 = contactlist_33_3.erase(lastcontact_33_3);
-    }
-    while (lastcontact_33_6 != contactlist_33_6.end()) {
-        delete (*lastcontact_33_6);
-        lastcontact_33_6 = contactlist_33_6.erase(lastcontact_33_6);
-    }
-    while (lastcontact_33_333 != contactlist_33_333.end()) {
-        delete (*lastcontact_33_333);
-        lastcontact_33_333 = contactlist_33_333.erase(lastcontact_33_333);
-    }
-    while (lastcontact_33_666 != contactlist_33_666.end()) {
-        delete (*lastcontact_33_666);
-        lastcontact_33_666 = contactlist_33_666.erase(lastcontact_33_666);
-    }
-    while (lastcontact_33_33 != contactlist_33_33.end()) {
-        delete (*lastcontact_33_33);
-        lastcontact_33_33 = contactlist_33_33.erase(lastcontact_33_33);
-    }
-
-    while (lastcontact_66_3 != contactlist_66_3.end()) {
-        delete (*lastcontact_66_3);
-        lastcontact_66_3 = contactlist_66_3.erase(lastcontact_66_3);
-    }
-    while (lastcontact_66_6 != contactlist_66_6.end()) {
-        delete (*lastcontact_66_6);
-        lastcontact_66_6 = contactlist_66_6.erase(lastcontact_66_6);
-    }
-    while (lastcontact_66_333 != contactlist_66_333.end()) {
-        delete (*lastcontact_66_333);
-        lastcontact_66_333 = contactlist_66_333.erase(lastcontact_66_333);
-    }
-    while (lastcontact_66_666 != contactlist_66_666.end()) {
-        delete (*lastcontact_66_666);
-        lastcontact_66_666 = contactlist_66_666.erase(lastcontact_66_666);
-    }
-    while (lastcontact_66_33 != contactlist_66_33.end()) {
-        delete (*lastcontact_66_33);
-        lastcontact_66_33 = contactlist_66_33.erase(lastcontact_66_33);
-    }
-    while (lastcontact_66_66 != contactlist_66_66.end()) {
-        delete (*lastcontact_66_66);
-        lastcontact_66_66 = contactlist_66_66.erase(lastcontact_66_66);
-    }
-}
-
-template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,            // contact list
-                           Titer& lastcontact,                        // last contact acquired
-                           int& n_added,                              // number of contacts inserted
-                           ChContactContainerSMC* container,          // contact container
-                           Ta* objA,                                  // collidable object A
-                           Tb* objB,                                  // collidable object B
-                           const ChCollisionInfo& cinfo,              // collision information
-                           const ChContactMaterialCompositeSMC& cmat  // composite material
-) {
-    if (lastcontact != contactlist.end()) {
-        // reuse old contacts
-        (*lastcontact)->Reset(objA, objB, cinfo, cmat);
-        lastcontact++;
-    } else {
-        // add new contact
-        Tcont* mc = new Tcont(container, objA, objB, cinfo, cmat);
-        contactlist.push_back(mc);
-        lastcontact = contactlist.end();
-    }
-    n_added++;
 }
 
 void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
@@ -352,277 +129,22 @@ void ChContactContainerSMC::InsertContact(const ChCollisionInfo& cinfo, const Ch
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
-    // CREATE THE CONTACTS
-    //
-    // Switch among the various cases of contacts: i.e. between a 6-dof variable and another 6-dof variable,
-    // or 6 vs 3, etc.
-    // These cases are made distinct to exploit the optimization coming from templates and static data sizes
-    // in contact types.
-    //
-    // Notes:
-    // 1. this was previously implemented using dynamic casting and introduced a performance bottleneck.
-    // 2. use a switch only for the outer level (nested switch negatively affects performance)
-
-    switch (contactableA->GetContactableType()) {
-        case ChContactable::CONTACTABLE_3: {
-            auto objA = static_cast<ChContactable_1vars<3>*>(contactableA);
-
-            if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
-                // 3_3
-                _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
-                // 3_6 -> 6_3
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objB, objA, swapped_cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
-                // 3_333 -> 333_3
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
-                // 3_666 -> 666_3
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_33) {
-                auto objB = static_cast<ChContactable_2vars<3, 3>*>(contactableB);
-                // 3_33 -> 33_3
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_33_3, lastcontact_33_3, n_added_33_3, this, objB, objA, swapped_cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_66) {
-                auto objB = static_cast<ChContactable_2vars<6, 6>*>(contactableB);
-                // 3_66 -> 66_3
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_66_3, lastcontact_66_3, n_added_66_3, this, objB, objA, swapped_cinfo,
-                                      cmat);
-            }
-        } break;
-
-        case ChContactable::CONTACTABLE_6: {
-            auto objA = static_cast<ChContactable_1vars<6>*>(contactableA);
-
-            if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
-                // 6_3
-                _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
-                // 6_6
-                _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
-                // 6_333 -> 333_6
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
-                // 6_666 -> 666_6
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_33) {
-                auto objB = static_cast<ChContactable_2vars<3, 3>*>(contactableB);
-                // 6_33 -> 33_6
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_33_6, lastcontact_33_6, n_added_33_6, this, objB, objA, swapped_cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_66) {
-                auto objB = static_cast<ChContactable_2vars<6, 6>*>(contactableB);
-                // 6_66 -> 66_6
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_66_6, lastcontact_66_6, n_added_66_6, this, objB, objA, swapped_cinfo,
-                                      cmat);
-            }
-        } break;
-
-        case ChContactable::CONTACTABLE_333: {
-            auto objA = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableA);
-
-            if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
-                // 333_3
-                _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
-                // 333_6
-                _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
-                // 333_333
-                _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, objA, objB,
-                                      cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
-                // 333_666 -> 666_333
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_33) {
-                auto objB = static_cast<ChContactable_2vars<3, 3>*>(contactableB);
-                // 333_33 -> 33_333
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_33_333, lastcontact_33_333, n_added_33_333, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_66) {
-                auto objB = static_cast<ChContactable_2vars<6, 6>*>(contactableB);
-                // 333_66 -> 66_333
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_66_333, lastcontact_66_333, n_added_66_333, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            }
-        } break;
-
-        case ChContactable::CONTACTABLE_666: {
-            auto objA = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableA);
-            if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
-                // 666_3
-                _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
-                // 666_6
-                _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
-                // 666_333
-                _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, objA, objB,
-                                      cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
-                // 666_666
-                _OptimalContactInsert(contactlist_666_666, lastcontact_666_666, n_added_666_666, this, objA, objB,
-                                      cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_33) {
-                auto objB = static_cast<ChContactable_2vars<3, 3>*>(contactableB);
-                // 666_33 -> 33_666
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_33_666, lastcontact_33_666, n_added_33_666, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_66) {
-                auto objB = static_cast<ChContactable_2vars<6, 6>*>(contactableB);
-                // 666_66 -> 66_666
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_66_666, lastcontact_66_666, n_added_66_666, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            }
-        } break;
-
-        case ChContactable::CONTACTABLE_33: {
-            auto objA = static_cast<ChContactable_2vars<3, 3>*>(contactableA);
-
-            if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
-                // 33_3
-                _OptimalContactInsert(contactlist_33_3, lastcontact_33_3, n_added_33_3, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
-                // 33_6
-                _OptimalContactInsert(contactlist_33_6, lastcontact_33_6, n_added_33_6, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
-                // 33_333
-                _OptimalContactInsert(contactlist_33_333, lastcontact_33_333, n_added_33_333, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
-                // 33_666
-                _OptimalContactInsert(contactlist_33_666, lastcontact_33_666, n_added_33_666, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_33) {
-                auto objB = static_cast<ChContactable_2vars<3, 3>*>(contactableB);
-                // 33_33
-                _OptimalContactInsert(contactlist_33_33, lastcontact_33_33, n_added_33_33, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_66) {
-                auto objB = static_cast<ChContactable_2vars<6, 6>*>(contactableB);
-                // 33_66 -> 66_33
-                ChCollisionInfo swapped_cinfo(cinfo, true);
-                _OptimalContactInsert(contactlist_66_33, lastcontact_66_33, n_added_66_33, this, objB, objA,
-                                      swapped_cinfo, cmat);
-            }
-        } break;
-
-        case ChContactable::CONTACTABLE_66: {
-            auto objA = static_cast<ChContactable_2vars<6, 6>*>(contactableA);
-
-            if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_3) {
-                auto objB = static_cast<ChContactable_1vars<3>*>(contactableB);
-                // 66_3
-                _OptimalContactInsert(contactlist_66_3, lastcontact_66_3, n_added_66_3, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_6) {
-                auto objB = static_cast<ChContactable_1vars<6>*>(contactableB);
-                // 66_6
-                _OptimalContactInsert(contactlist_66_6, lastcontact_66_6, n_added_66_6, this, objA, objB, cinfo, cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_333) {
-                auto objB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
-                // 66_333
-                _OptimalContactInsert(contactlist_66_333, lastcontact_66_333, n_added_66_333, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_666) {
-                auto objB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
-                // 66_666
-                _OptimalContactInsert(contactlist_66_666, lastcontact_66_666, n_added_66_666, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_33) {
-                auto objB = static_cast<ChContactable_2vars<3, 3>*>(contactableB);
-                // 66_33
-                _OptimalContactInsert(contactlist_66_33, lastcontact_66_33, n_added_66_33, this, objA, objB, cinfo,
-                                      cmat);
-            } else if (contactableB->GetContactableType() == ChContactable::CONTACTABLE_66) {
-                auto objB = static_cast<ChContactable_2vars<6, 6>*>(contactableB);
-                // 66_66
-                _OptimalContactInsert(contactlist_66_66, lastcontact_66_66, n_added_66_66, this, objA, objB, cinfo,
-                                      cmat);
-            }
-        } break;
-
-        default: {
-            //// TODO Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
-        } break;
-
-    }  // switch(contactableA->GetContactableType())
+    if (last_contact != contacts.end()) {
+        // reuse old contacts
+        (*last_contact)->Reset(contactableA, contactableB, cinfo, cmat);
+        last_contact++;
+    } else {
+        // add new contact
+        auto c = new ChContactSMC(this, contactableA, contactableB, cinfo, cmat);
+        contacts.push_back(c);
+        last_contact = contacts.end();
+    }
+    n_added++;
 }
 
 void ChContactContainerSMC::ComputeContactForces() {
     contact_forces.clear();
-
-    SumAllContactForces(contactlist_3_3, contact_forces);
-
-    SumAllContactForces(contactlist_6_3, contact_forces);
-    SumAllContactForces(contactlist_6_6, contact_forces);
-
-    SumAllContactForces(contactlist_333_3, contact_forces);
-    SumAllContactForces(contactlist_333_6, contact_forces);
-    SumAllContactForces(contactlist_333_333, contact_forces);
-
-    SumAllContactForces(contactlist_666_3, contact_forces);
-    SumAllContactForces(contactlist_666_6, contact_forces);
-    SumAllContactForces(contactlist_666_333, contact_forces);
-    SumAllContactForces(contactlist_666_666, contact_forces);
-
-    SumAllContactForces(contactlist_33_3, contact_forces);
-    SumAllContactForces(contactlist_33_6, contact_forces);
-    SumAllContactForces(contactlist_33_333, contact_forces);
-    SumAllContactForces(contactlist_33_666, contact_forces);
-    SumAllContactForces(contactlist_33_33, contact_forces);
-
-    SumAllContactForces(contactlist_66_3, contact_forces);
-    SumAllContactForces(contactlist_66_6, contact_forces);
-    SumAllContactForces(contactlist_66_333, contact_forces);
-    SumAllContactForces(contactlist_66_666, contact_forces);
-    SumAllContactForces(contactlist_66_33, contact_forces);
-    SumAllContactForces(contactlist_66_66, contact_forces);
+    SumAllContactForces(contacts, contact_forces);
 }
 
 ChVector3d ChContactContainerSMC::GetContactableForce(ChContactable* contactable) {
@@ -641,163 +163,46 @@ ChVector3d ChContactContainerSMC::GetContactableTorque(ChContactable* contactabl
     return ChVector3d(0);
 }
 
-template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainer::ReportContactCallback* mcallback) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        bool proceed = mcallback->OnReportContact(
-            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
-            (*itercontact)->GetContactDistance(), (*itercontact)->GetEffectiveCurvatureRadius(),
-            (*itercontact)->GetContactForce(), VNULL, (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+void ChContactContainerSMC::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
+    auto iter = contacts.begin();
+    while (iter != contacts.end()) {
+        bool proceed =
+            callback->OnReportContact((*iter)->GetContactP1(), (*iter)->GetContactP2(),                       //
+                                      (*iter)->GetContactPlane(),                                             //
+                                      (*iter)->GetContactDistance(), (*iter)->GetEffectiveCurvatureRadius(),  //
+                                      (*iter)->GetContactForce(), VNULL,                                      //
+                                      (*iter)->GetObjA(), (*iter)->GetObjB(),                                 //
+                                      -1);
         if (!proceed)
             break;
-        ++itercontact;
+        ++iter;
     }
-}
-
-void ChContactContainerSMC::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
-    _ReportAllContacts(contactlist_3_3, callback.get());
-
-    _ReportAllContacts(contactlist_6_3, callback.get());
-    _ReportAllContacts(contactlist_6_6, callback.get());
-
-    _ReportAllContacts(contactlist_333_3, callback.get());
-    _ReportAllContacts(contactlist_333_6, callback.get());
-    _ReportAllContacts(contactlist_333_333, callback.get());
-
-    _ReportAllContacts(contactlist_666_3, callback.get());
-    _ReportAllContacts(contactlist_666_6, callback.get());
-    _ReportAllContacts(contactlist_666_333, callback.get());
-    _ReportAllContacts(contactlist_666_666, callback.get());
-
-    _ReportAllContacts(contactlist_33_3, callback.get());
-    _ReportAllContacts(contactlist_33_6, callback.get());
-    _ReportAllContacts(contactlist_33_333, callback.get());
-    _ReportAllContacts(contactlist_33_666, callback.get());
-    _ReportAllContacts(contactlist_33_33, callback.get());
-
-    _ReportAllContacts(contactlist_66_3, callback.get());
-    _ReportAllContacts(contactlist_66_6, callback.get());
-    _ReportAllContacts(contactlist_66_333, callback.get());
-    _ReportAllContacts(contactlist_66_666, callback.get());
-    _ReportAllContacts(contactlist_66_33, callback.get());
-    _ReportAllContacts(contactlist_66_66, callback.get());
 }
 
 // STATE INTERFACE
 
-template <class Tcont>
-void _IntLoadResidual_F(std::list<Tcont*>& contactlist, ChVectorDynamic<>& R, const double c) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ContIntLoadResidual_F(R, c);
-        ++itercontact;
-    }
-}
-
 void ChContactContainerSMC::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
-    _IntLoadResidual_F(contactlist_3_3, R, c);
-
-    _IntLoadResidual_F(contactlist_6_3, R, c);
-    _IntLoadResidual_F(contactlist_6_6, R, c);
-
-    _IntLoadResidual_F(contactlist_333_3, R, c);
-    _IntLoadResidual_F(contactlist_333_6, R, c);
-    _IntLoadResidual_F(contactlist_333_333, R, c);
-
-    _IntLoadResidual_F(contactlist_666_3, R, c);
-    _IntLoadResidual_F(contactlist_666_6, R, c);
-    _IntLoadResidual_F(contactlist_666_333, R, c);
-    _IntLoadResidual_F(contactlist_666_666, R, c);
-
-    _IntLoadResidual_F(contactlist_33_3, R, c);
-    _IntLoadResidual_F(contactlist_33_6, R, c);
-    _IntLoadResidual_F(contactlist_33_333, R, c);
-    _IntLoadResidual_F(contactlist_33_666, R, c);
-    _IntLoadResidual_F(contactlist_33_33, R, c);
-
-    _IntLoadResidual_F(contactlist_66_3, R, c);
-    _IntLoadResidual_F(contactlist_66_6, R, c);
-    _IntLoadResidual_F(contactlist_66_333, R, c);
-    _IntLoadResidual_F(contactlist_66_666, R, c);
-    _IntLoadResidual_F(contactlist_66_33, R, c);
-    _IntLoadResidual_F(contactlist_66_66, R, c);
-}
-
-template <class Tcont>
-void _KRMmatricesLoad(std::list<Tcont*> contactlist, double Kfactor, double Rfactor) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ContKRMmatricesLoad(Kfactor, Rfactor);
-        ++itercontact;
+    auto iter = contacts.begin();
+    while (iter != contacts.end()) {
+        (*iter)->ContIntLoadResidual_F(R, c);
+        ++iter;
     }
 }
 
 void ChContactContainerSMC::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    _KRMmatricesLoad(contactlist_3_3, Kfactor, Rfactor);
-
-    _KRMmatricesLoad(contactlist_6_3, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_6_6, Kfactor, Rfactor);
-
-    _KRMmatricesLoad(contactlist_333_3, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_333_6, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_333_333, Kfactor, Rfactor);
-
-    _KRMmatricesLoad(contactlist_666_3, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_666_6, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_666_333, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_666_666, Kfactor, Rfactor);
-
-    _KRMmatricesLoad(contactlist_33_3, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_33_6, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_33_333, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_33_666, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_33_33, Kfactor, Rfactor);
-
-    _KRMmatricesLoad(contactlist_66_3, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_66_6, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_66_333, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_66_666, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_66_33, Kfactor, Rfactor);
-    _KRMmatricesLoad(contactlist_66_66, Kfactor, Rfactor);
-}
-
-template <class Tcont>
-void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChSystemDescriptor& descriptor) {
-    typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
-    while (itercontact != contactlist.end()) {
-        (*itercontact)->ContInjectKRMmatrices(descriptor);
-        ++itercontact;
+    auto iter = contacts.begin();
+    while (iter != contacts.end()) {
+        (*iter)->ContKRMmatricesLoad(Kfactor, Rfactor);
+        ++iter;
     }
 }
 
 void ChContactContainerSMC::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
-    _InjectKRMmatrices(contactlist_3_3, descriptor);
-
-    _InjectKRMmatrices(contactlist_6_3, descriptor);
-    _InjectKRMmatrices(contactlist_6_6, descriptor);
-
-    _InjectKRMmatrices(contactlist_333_3, descriptor);
-    _InjectKRMmatrices(contactlist_333_6, descriptor);
-    _InjectKRMmatrices(contactlist_333_333, descriptor);
-
-    _InjectKRMmatrices(contactlist_666_3, descriptor);
-    _InjectKRMmatrices(contactlist_666_6, descriptor);
-    _InjectKRMmatrices(contactlist_666_333, descriptor);
-    _InjectKRMmatrices(contactlist_666_666, descriptor);
-
-    _InjectKRMmatrices(contactlist_33_3, descriptor);
-    _InjectKRMmatrices(contactlist_33_6, descriptor);
-    _InjectKRMmatrices(contactlist_33_333, descriptor);
-    _InjectKRMmatrices(contactlist_33_666, descriptor);
-    _InjectKRMmatrices(contactlist_33_33, descriptor);
-
-    _InjectKRMmatrices(contactlist_66_3, descriptor);
-    _InjectKRMmatrices(contactlist_66_6, descriptor);
-    _InjectKRMmatrices(contactlist_66_333, descriptor);
-    _InjectKRMmatrices(contactlist_66_666, descriptor);
-    _InjectKRMmatrices(contactlist_66_33, descriptor);
-    _InjectKRMmatrices(contactlist_66_66, descriptor);
+    auto iter = contacts.begin();
+    while (iter != contacts.end()) {
+        (*iter)->ContInjectKRMmatrices(descriptor);
+        ++iter;
+    }
 }
 
 // OBSOLETE

@@ -2776,12 +2776,13 @@ void ChVisualSystemVSG::CreateContactsVSG::Reset() {
 bool ChVisualSystemVSG::CreateContactsVSG::OnReportContact(const ChVector3d& pA,
                                                            const ChVector3d& pB,
                                                            const ChMatrix33<>& plane_coord,
-                                                           const double& distance,
-                                                           const double& eff_Radius,
+                                                           double distance,
+                                                           double eff_Radius,
                                                            const ChVector3d& react_forces,
                                                            const ChVector3d& react_torques,
                                                            ChContactable* modA,
-                                                           ChContactable* modB) {
+                                                           ChContactable* modB,
+                                                           int constraint_offset) {
     // If we reached the alloted number of contact nodes, return now and stop scanning contacts
     if (m_crt_contact >= m_app->m_max_num_contacts)
         return false;
@@ -2840,8 +2841,8 @@ void ChVisualSystemVSG::CreateContactsVSG::Reset() {
 bool ChVisualSystemVSG::CreateContactsVSG::OnReportContact(const ChVector3d& pA,
                                                            const ChVector3d& pB,
                                                            const ChMatrix33<>& plane_coord,
-                                                           const double& distance,
-                                                           const double& eff_Radius,
+                                                           double distance,
+                                                           double eff_Radius,
                                                            const ChVector3d& react_forces,
                                                            const ChVector3d& react_torques,
                                                            ChContactable* modA,

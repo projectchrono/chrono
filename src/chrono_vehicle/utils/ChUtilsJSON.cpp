@@ -265,7 +265,7 @@ utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Contact Radius"].GetDouble();
                 geometry.coll_meshes.push_back(
-                    utils::ChBodyGeometry::TrimeshShape(pos, vehicle::GetDataFile(filename), radius, matID));
+                    utils::ChBodyGeometry::TrimeshShape(pos, QUNIT, vehicle::GetDataFile(filename), 1.0, radius, matID));
             }
         }
     }
@@ -274,7 +274,7 @@ utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
             std::string filename = d["Visualization"]["Mesh"].GetString();
-            geometry.vis_mesh_file = vehicle::GetDataFile(filename);
+            geometry.vis_model_file = vehicle::GetDataFile(filename);
         }
         if (d["Visualization"].HasMember("Primitives")) {
             assert(d["Visualization"]["Primitives"].IsArray());

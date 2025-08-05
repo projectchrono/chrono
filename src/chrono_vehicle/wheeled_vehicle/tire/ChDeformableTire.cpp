@@ -108,6 +108,10 @@ void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
 
     // If no FEA visualization shape was provided, create a single one with speed coloring
     if (m_visFEA.empty()) {
+
+
+      std::cout << "CREATE DEF TIRE VISUALIZATION" << std::endl;
+
         auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
         visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
         visFEA->SetShellResolution(3);

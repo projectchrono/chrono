@@ -265,8 +265,11 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChNodeFEAxyzDDD)
 %shared_ptr(chrono::fea::ChNodeFEAxyzrot)
 %shared_ptr(chrono::fea::ChMesh)
-%shared_ptr(chrono::ChContactable_3vars<3,3,3>)
-%shared_ptr(chrono::ChContactable_3vars<6,6,6>)
+%shared_ptr(chrono::ChContactable_1vars)
+%shared_ptr(chrono::ChContactable_2vars)
+%shared_ptr(chrono::ChContactable_3vars)
+%shared_ptr(chrono::fea::ChContactNodeXYZ)
+%shared_ptr(chrono::fea::ChContactNodeXYZRot)
 %shared_ptr(chrono::fea::ChContactTriangleXYZ)
 %shared_ptr(chrono::fea::ChContactTriangleXYZRot)
 %shared_ptr(chrono::fea::ChContactSurface)
@@ -378,8 +381,6 @@ using namespace chrono::fea;
 %include "../../../chrono/collision/ChCollisionSystem.h"
 
 %include "../../../chrono/physics/ChContactable.h"  
-%template(ChContactable3vars333) chrono::ChContactable_3vars<3,3,3>;
-%template(ChContactable3vars666) chrono::ChContactable_3vars<6,6,6>;
 
 %include "../../../chrono/fea/ChContinuumMaterial.h"
 // TODO: if eigen::ref can be wrapped, unignore these,

@@ -133,12 +133,13 @@ void ChFsiProblemSPH::AddRigidBodyCylinderX(std::shared_ptr<ChBody> body,
 }
 
 void ChFsiProblemSPH::AddRigidBodyMesh(std::shared_ptr<ChBody> body,
-                                       const ChVector3d& pos,
+                                       const ChFramed& pos,
                                        const std::string& obj_filename,
                                        const ChVector3d& interior_point,
                                        double scale) {
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
-    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, obj_filename, interior_point, scale));
+    geometry->coll_meshes.push_back(
+        utils::ChBodyGeometry::TrimeshShape(pos.GetPos(), pos.GetRot(), obj_filename, interior_point, scale));
     AddRigidBody(body, geometry, true, true);
 }
 

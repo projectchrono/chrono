@@ -4,6 +4,10 @@ model:
   name: Slider-crank (reduced)
   angle_degrees: true
   
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
   bodies:
     - name: ground
       location: [0, 0, 0]

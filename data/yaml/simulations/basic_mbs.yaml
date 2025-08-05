@@ -21,6 +21,7 @@ simulation:
       sharpness_factor: 1.0
   
   visualization:
+      type: Model_file
       render_fps: 120
       enable_shadows: true
       camera:

@@ -387,9 +387,6 @@ void ChVehicleCosimBaseNode::SendGeometry(const utils::ChBodyGeometry& geom, int
     */
 
     for (const auto& mesh : geom.coll_meshes) {
-        double data[] = {mesh.pos.x(), mesh.pos.y(), mesh.pos.z()};
-        MPI_Send(data, 3, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
-
         const auto& trimesh = mesh.trimesh;
         const auto& vertices = trimesh->GetCoordsVertices();
         const auto& normals = trimesh->GetCoordsNormals();
@@ -489,10 +486,6 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
     }
 
     for (int i = 0; i < num_meshes; i++) {
-        double data[3];
-        MPI_Recv(data, 3, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
-        ChVector3d pos(data[0], data[1], data[2]);
-
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         auto& vertices = trimesh->GetCoordsVertices();
         auto& normals = trimesh->GetCoordsNormals();
@@ -539,7 +532,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(utils::ChBodyGeometry& geom, int sourc
         delete[] vert_data;
         delete[] tri_data;
 
-        geom.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(pos, trimesh, 0.0, matID));
+        geom.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, matID));
     }
 }
 
