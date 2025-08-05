@@ -143,6 +143,10 @@ set(Chrono_physics_contact_SOURCES
     physics/ChContactContainerNSC.cpp
     physics/ChContactContainerSMC.cpp
     physics/ChContactable.cpp
+    physics/ChContact.cpp
+    physics/ChContactSMC.cpp
+    physics/ChContactNSC.cpp
+    physics/ChContactNSCrolling.cpp
     physics/ChContactMaterial.cpp
     physics/ChContactMaterialSMC.cpp
     physics/ChContactMaterialNSC.cpp
@@ -152,7 +156,7 @@ set(Chrono_physics_contact_HEADERS
     physics/ChContactContainerNSC.h
     physics/ChContactContainerSMC.h
     physics/ChContactable.h
-    physics/ChContactTuple.h
+    physics/ChContact.h
     physics/ChContactSMC.h
     physics/ChContactNSC.h
     physics/ChContactNSCrolling.h
@@ -1049,6 +1053,11 @@ set(Chrono_solver_constraints_SOURCES
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
     solver/ChConstraintNgeneric.cpp
+    solver/ChConstraintTwoTuples.cpp
+    solver/ChConstraintContactNormal.cpp
+    solver/ChConstraintContactTangential.cpp
+    solver/ChConstraintRollingNormal.cpp
+    solver/ChConstraintRollingTangential.cpp
 )
 set(Chrono_solver_constraints_HEADERS
     solver/ChConstraint.h
@@ -1059,13 +1068,13 @@ set(Chrono_solver_constraints_HEADERS
     solver/ChConstraintTwoBodies.h
     solver/ChConstraintTwoGeneric.h
     solver/ChConstraintTwoGenericBoxed.h
+    solver/ChConstraintNgeneric.h
     solver/ChConstraintTuple.h
     solver/ChConstraintTwoTuples.h
-    solver/ChConstraintTwoTuplesContactN.h
-    solver/ChConstraintTwoTuplesFrictionT.h
-    solver/ChConstraintTwoTuplesRollingN.h
-    solver/ChConstraintTwoTuplesRollingT.h
-    solver/ChConstraintNgeneric.h
+    solver/ChConstraintContactNormal.h
+    solver/ChConstraintContactTangential.h
+    solver/ChConstraintRollingNormal.h
+    solver/ChConstraintRollingTangential.h
 )
 source_group(solver\\constraints FILES ${Chrono_solver_constraints_SOURCES} ${Chrono_solver_constraints_HEADERS})
 

@@ -73,7 +73,7 @@ void ChConstraintTwoBodies::SetVariables(ChVariables* mvariables_a, ChVariables*
     variables_b = mvariables_b;
 }
 
-void ChConstraintTwoBodies::Update_auxiliary() {
+void ChConstraintTwoBodies::UpdateAuxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive()) {

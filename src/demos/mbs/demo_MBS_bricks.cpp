@@ -35,7 +35,7 @@ using namespace chrono::vsg3d;
 
 using namespace chrono;
 
-ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::IRRLICHT;
 
 // Create a bunch of rigid bodies that represent bricks in a large wall.
 void create_wall_bodies(ChSystemNSC& sys) {

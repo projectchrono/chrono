@@ -431,12 +431,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         virtual bool OnReportContact(const ChVector3d& pA,
                                      const ChVector3d& pB,
                                      const ChMatrix33<>& plane_coord,
-                                     const double& distance,
-                                     const double& eff_Radius,
+                                     double distance,
+                                     double eff_Radius,
                                      const ChVector3d& react_forces,
                                      const ChVector3d& react_torques,
                                      ChContactable* modA,
-                                     ChContactable* modB) override;
+                                     ChContactable* modB,
+                                     int constraint_offset) override;
 
       private:
         ChVisualSystemVSG* m_app;
@@ -460,12 +461,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
         virtual bool OnReportContact(const ChVector3d& pA,
                                      const ChVector3d& pB,
                                      const ChMatrix33<>& plane_coord,
-                                     const double& distance,
-                                     const double& eff_Radius,
+                                     double distance,
+                                     double eff_Radius,
                                      const ChVector3d& react_forces,
                                      const ChVector3d& react_torques,
                                      ChContactable* modA,
-                                     ChContactable* modB) override;
+                                     ChContactable* modB,
+                                     int constraint_offset) override;
 
       private:
         ChVisualSystemVSG* m_app;

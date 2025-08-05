@@ -33,7 +33,7 @@ namespace chrono {
 /// Class representing a container of many contacts.
 class ChApi ChContactContainer : public ChPhysicsItem {
   public:
-    ChContactContainer() : add_contact_callback(nullptr), report_contact_callback(nullptr) {}
+    ChContactContainer() : add_contact_callback(nullptr) {}
     ChContactContainer(const ChContactContainer& other);
     virtual ~ChContactContainer() {}
 
@@ -98,17 +98,18 @@ class ChApi ChContactContainer : public ChPhysicsItem {
         virtual ~ReportContactCallback() {}
 
         /// Callback used to report contact points already added to the container.
-        /// If it returns false, the contact scanning will be stopped.
+        /// Returns false to stop contact scanning.
         virtual bool OnReportContact(
             const ChVector3d& pA,             ///< contact pA
             const ChVector3d& pB,             ///< contact pB
-            const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           ///< contact distance
-            const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
-            ChContactable* contactobjB   ///< model B (note: some containers may not support it and could be nullptr)
+            const ChMatrix33<>& plane_coord,  ///< contact frame (X direction is contact normal)
+            double distance,                  ///< contact distance
+            double eff_radius,                ///< effective radius of curvature at contact
+            const ChVector3d& react_forces,   ///< react. forces (if already computed), expressed in 'plane_coord'
+            const ChVector3d& react_torques,  ///< react. torques, if rolling friction (if already computed)
+            ChContactable* contactobjA,       ///< first contactable object (may be nullptr)
+            ChContactable* contactobjB,       ///< second contactable object (may be nullptr)
+            int constraint_offset             ///< NSC only: offset of first constraint (normal component)
             ) = 0;
     };
 
@@ -138,14 +139,12 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     };
 
     std::shared_ptr<AddContactCallback> add_contact_callback;
-    ReportContactCallback* report_contact_callback;
 
-    /// Utility function to accumulate contact forces from a specified list of contacts.
-    /// This function is templated by the contact type (assumed to be derived from ChContactTuple).
+    /// Accumulate contact forces from a specified list of contacts.
+    /// This function is templated by the contact type (assumed to be derived from ChContact).
     /// Contact forces are accumulated in a map keyed by the contactable objects.
-    /// Derived ChContactContainer classes can use this utility (processing their various lists
-    /// of contacts) to cache information used for reporting through GetContactableForce and
-    /// GetContactableTorque.
+    /// Derived ChContactContainer classes can use this utility (processing their various lists of contacts) to cache
+    /// information used for reporting through GetContactableForce and GetContactableTorque.
     template <class Tcont>
     void SumAllContactForces(std::list<Tcont*>& contactlist,
                              std::unordered_map<ChContactable*, ForceTorque>& contactforces) {

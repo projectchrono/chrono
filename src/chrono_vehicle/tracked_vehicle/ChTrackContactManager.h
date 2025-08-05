@@ -85,12 +85,13 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override;
+                                 ChContactable* modB,
+                                 int constraint_offset) override;
 
     bool m_initialized;  ///< true if the contact manager was initialized
     int m_flags;         ///< contact bit flags
