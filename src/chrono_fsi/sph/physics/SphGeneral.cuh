@@ -303,8 +303,6 @@ __device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& 
 //--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline int3 calcGridPos(Real3 p) {
     int3 gridPos;
-    if (paramsD.cellSize.x * paramsD.cellSize.y * paramsD.cellSize.z == 0)
-        printf("calcGridPos=%f,%f,%f\n", paramsD.cellSize.x, paramsD.cellSize.y, paramsD.cellSize.z);
 
     gridPos.x = (int)floor((p.x - paramsD.worldOrigin.x) / (paramsD.cellSize.x));
     gridPos.y = (int)floor((p.y - paramsD.worldOrigin.y) / (paramsD.cellSize.y));
