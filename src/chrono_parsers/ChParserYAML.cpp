@@ -16,12 +16,8 @@
 //// - perform checks during loading of YAML file or use a 3rd party YAML schema validator?
 //// - add definition functions for link-type components using 2 local frames (alternative ChLink initialization)
 //// - add support for other constraints (composite joints: rev-sph and rev-prismatic)
-//// - add support for more ChFunction types:
-////   - implement and expose a "data" ChFunction (derived from ChFunctionSetpointCallback)
-////   - add YAML support for repeating functions
 //// - add support for point-point actuators (hydraulic, FMU, external)
 //// - what is the best way to deal with collision families?
-//// - exdpand set of simulation parameters (e.g. integrator/solver pasrameters)
 
 #include <algorithm>
 
@@ -165,21 +161,32 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     // Integrator parameters (optional)
     if (sim["integrator"]) {
         auto intgr = sim["integrator"];
+        ChAssertAlways(intgr["type"]);
         m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
         switch (m_sim.integrator.type) {
             case ChTimestepper::Type::HHT:
-                m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
-                m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
-                m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
-                m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
-                m_sim.integrator.use_stepsize_control = intgr["use_stepsize_control"].as<bool>();
-                m_sim.integrator.use_modified_newton = intgr["use_modified_newton"].as<bool>();
+                if (intgr["rel_tolerance"])
+                    m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
+                if (intgr["abs_tolerance_states"])
+                    m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
+                if (intgr["abs_tolerance_multipliers"])
+                    m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
+                if (intgr["max_iterations"])
+                    m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
+                if (intgr["use_stepsize_control"])
+                    m_sim.integrator.use_stepsize_control = intgr["use_stepsize_control"].as<bool>();
+                if (intgr["use_modified_newton"])
+                    m_sim.integrator.use_modified_newton = intgr["use_modified_newton"].as<bool>();
                 break;
             case ChTimestepper::Type::EULER_IMPLICIT:
-                m_sim.integrator.rtol = intgr["rel tolerance"].as<double>();
-                m_sim.integrator.atol_states = intgr["abs tolerance states"].as<double>();
-                m_sim.integrator.atol_multipliers = intgr["abs tolerance multipliers"].as<double>();
-                m_sim.integrator.max_iterations = intgr["max iterations"].as<double>();
+                if (intgr["rel_tolerance"])
+                    m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
+                if (intgr["abs_tolerance_states"])
+                    m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
+                if (intgr["abs_tolerance_multipliers"])
+                    m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
+                if (intgr["max_iterations"])
+                    m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
                 break;
         }
     }
@@ -187,26 +194,35 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     // Solver parameters (optional)
     if (sim["solver"]) {
         auto slvr = sim["solver"];
+        ChAssertAlways(slvr["type"]);
         m_sim.solver.type = ReadSolverType(slvr["type"]);
         switch (m_sim.solver.type) {
             case ChSolver::Type::SPARSE_LU:
             case ChSolver::Type::SPARSE_QR:
-                m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
-                m_sim.solver.use_sparsity_pattern_learner = slvr["use_sparsity_pattern_learner"].as<bool>();
+                if (slvr["lock_sparsity_pattern"])
+                    m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
+                if (slvr["use_sparsity_pattern_learner"])
+                    m_sim.solver.use_sparsity_pattern_learner = slvr["use_sparsity_pattern_learner"].as<bool>();
                 break;
             case ChSolver::Type::BARZILAIBORWEIN:
             case ChSolver::Type::APGD:
             case ChSolver::Type::PSOR:
-                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
-                m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
-                m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
+                if (slvr["max_iterations"])
+                    m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                if (slvr["overrelaxation_factor"])
+                    m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
+                if (slvr["sharpness_factor"])
+                    m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
                 break;
             case ChSolver::Type::BICGSTAB:
             case ChSolver::Type::MINRES:
             case ChSolver::Type::GMRES:
-                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
-                m_sim.solver.tolerance = slvr["tolerance"].as<double>();
-                m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
+                if (slvr["max_iterations"])
+                    m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                if (slvr["tolerance"])
+                    m_sim.solver.tolerance = slvr["tolerance"].as<double>();
+                if (slvr["enable_diagonal_preconditioner"])
+                    m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
                 break;
         }
     }
