@@ -753,16 +753,15 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     StateVarVector statev;
     this->ComputeStrainIncrement(dofs_increment, dmstrain, dcurvature);
     statev=mysection->Get_StateVar();
-    double epsV=0; // TODO JBC: Volumetric strain seems to be a remnant of LDPM. remove it when refactoring ComputeStress
     double width=mysection->GetWidth()/2;
     double height=mysection->GetHeight()/2;
     double random_field =mysection->GetRandomField();
 
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
     if (nonMechanicalStrain.size()){
-        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, epsV, statev, area, width, height, random_field, mstress, mcouple);
+        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
     }else{
-        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, epsV, statev, area, width, height, random_field, mstress, mcouple);
+        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, statev, area, width, height, random_field, mstress, mcouple);
     }
 
     mysection->Set_StateVar(statev);

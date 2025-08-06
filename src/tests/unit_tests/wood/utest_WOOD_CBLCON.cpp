@@ -50,26 +50,17 @@ TEST(CBLConnectorTest, compute_strain){
     my_mesh->SetAutomaticGravity(false);
     sys.Add(my_mesh);
 
-    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(5e-8,
-                                                                0.0, // Zero stiffness to get zero force ?
-                                                                0.2372,
-                                                                30,
-                                                                78.,
-                                                                0.2,
-                                                                5.0,
-                                                                3000,
-                                                                120,
-                                                                0,
-                                                                9900,
-                                                                3000,
-                                                                3,
-                                                                0.5,
-                                                                5,
-                                                                0.1,
-                                                                0.2,
-                                                                0.2,
-                                                                600,
-                                                                1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
+    double rho = 5e-8;
+    double E0 = 0.0; // Zero stiffness to get zero force ?
+    double alpha = 0.2372;
+    double sigmat = 30.0;
+    double sigmac = 120.0;
+    double sigmas = 78.0;
+    double nt = 0.2;
+    double lt = 5.0;
+    double rs = 0.0;
+    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(rho, E0, alpha, sigmat, sigmac, sigmas, nt, lt, rs);
+
     my_mat->SetCoupleMultiplier(1.0);
     my_mat->SetElasticAnalysisFlag(true);
 
@@ -178,35 +169,23 @@ TEST(CBLConnectorTest, elastic_stiffness_matrix){
     my_mesh->SetAutomaticGravity(false);
     sys.Add(my_mesh);
 
+    double rho = 5e-8;
     double E0 = 8000;
     double alpha = 0.2373;
-    double couple_multiplier = 0.761;
-    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(5e-8,
-                                                                E0,
-                                                                alpha,
-                                                                30,
-                                                                78.,
-                                                                0.2,
-                                                                5.0,
-                                                                3000,
-                                                                120,
-                                                                0,
-                                                                9900,
-                                                                3000,
-                                                                3,
-                                                                0.5,
-                                                                5,
-                                                                0.1,
-                                                                0.2,
-                                                                0.2,
-                                                                600,
-                                                                1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
+    double sigmat = 30.0;
+    double sigmac = 120.0;
+    double sigmas = 78.0;
+    double nt = 0.2;
+    double lt = 5.0;
+    double rs = 0.0;
+    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(rho, E0, alpha, sigmat, sigmac, sigmas, nt, lt, rs);
 
     // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
     // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011
     my_mat->SetElasticAnalysisFlag(true);
     ChElementCBLCON::LargeDeflection=false;
     // Bending stiffness computed according to assumptions detailed below
+    double couple_multiplier = 0.761;
     my_mat->SetCoupleMultiplier(couple_multiplier);
     ChElementCBLCON::EnableCoupleForces=true;
 
@@ -319,35 +298,23 @@ TEST(CBLConnectorTest, internal_forces){
     my_mesh->SetAutomaticGravity(false);
     sys.Add(my_mesh);
 
+    double rho = 5e-8;
     double E0 = 8000;
     double alpha = 0.2373;
-    double couple_multiplier = 0.761;
-    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(5e-8,
-                                                                E0,
-                                                                alpha,
-                                                                30,
-                                                                78.,
-                                                                0.2,
-                                                                5.0,
-                                                                3000,
-                                                                120,
-                                                                0,
-                                                                9900,
-                                                                3000,
-                                                                3,
-                                                                0.5,
-                                                                5,
-                                                                0.1,
-                                                                0.2,
-                                                                0.2,
-                                                                600,
-                                                                1.0); // Not sure what this value of kt should be, not set in Wisdom's demo
+    double sigmat = 30.0;
+    double sigmac = 120.0;
+    double sigmas = 78.0;
+    double nt = 0.2;
+    double lt = 5.0;
+    double rs = 0.0;
+    auto my_mat = chrono_types::make_shared<ChWoodMaterialVECT>(rho, E0, alpha, sigmat, sigmac, sigmas, nt, lt, rs);
 
     // Small deflection can be used since the void ChElementCBLCON::ComputeStrain function only really performs the
     // computation of the strain according to https://doi.org/10.1016/j.cemconcomp.2011.02.011
     my_mat->SetElasticAnalysisFlag(true);
     ChElementCBLCON::LargeDeflection=false;
     // Bending stiffness computed according to assumptions detailed below
+    double couple_multiplier = 0.761;
     my_mat->SetCoupleMultiplier(couple_multiplier);
     ChElementCBLCON::EnableCoupleForces=true;
 
