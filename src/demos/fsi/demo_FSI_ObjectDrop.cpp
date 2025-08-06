@@ -48,7 +48,7 @@ using std::endl;
 ChVector3d fsize(0.8, 0.8, 1.2);
 
 // Object type
-enum class ObjectShape { SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
+enum class ObjectShape { BOX_PRIMITIVE, SPHERE_PRIMITIVE, CYLINDER_PRIMITIVE, MESH };
 ObjectShape object_shape = ObjectShape::CYLINDER_PRIMITIVE;
 
 // Mesh specification (for object_shape = ObjectShape::MESH)
@@ -234,6 +234,15 @@ int main(int argc, char* argv[]) {
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     geometry->materials.push_back(ChContactMaterialData());
     switch (object_shape) {
+        case ObjectShape::BOX_PRIMITIVE: {
+            ChVector3d size(0.20, 0.20, 0.10);
+            bottom_offset = size.z() / 2;
+            ChBox box(size);
+            mass = density * box.GetVolume();
+            inertia = mass * box.GetGyration();
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(VNULL, QUNIT, box));
+            break;
+        }
         case ObjectShape::SPHERE_PRIMITIVE: {
             double radius = 0.12;
             bottom_offset = radius;
