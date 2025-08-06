@@ -151,9 +151,9 @@ vsg::ref_ptr<vsg::ShaderSet> createPbrShaderSet(vsg::ref_ptr<const vsg::Options>
     shaderSet->addPushConstantRange("pc", "", VK_SHADER_STAGE_VERTEX_BIT, 0, 128);
 
     shaderSet->definesArrayStates.push_back(vsg::DefinesArrayState{
-        {"VSG_INSTANCE_POSITIONS", "VSG_DISPLACEMENT_MAP"}, vsg::PositionAndDisplacementMapArrayState::create()});
+        {"VSG_INSTANCE_POSITIONS", "VSG_DISPLACEMENT_MAP"}, vsg::TranslationAndDisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
-        vsg::DefinesArrayState{{"VSG_INSTANCE_POSITIONS"}, vsg::PositionArrayState::create()});
+                                            vsg::DefinesArrayState{{"VSG_INSTANCE_POSITIONS"}, vsg::TranslationArrayState::create()});
     shaderSet->definesArrayStates.push_back(
         vsg::DefinesArrayState{{"VSG_DISPLACEMENT_MAP"}, vsg::DisplacementMapArrayState::create()});
     shaderSet->definesArrayStates.push_back(
