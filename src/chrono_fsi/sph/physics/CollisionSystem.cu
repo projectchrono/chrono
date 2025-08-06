@@ -56,6 +56,7 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
                           uint* gridMarkerIndexD,   // gridMarkerIndex Store particle index here
                           const uint* activeListD,  // active list
                           const Real4* posRad,      // positions of all particles (SPH and BCE)
+                          const Real4* rhoPresMu,   // densities of all particles (SPH and BCE)
                           uint numActive,           // number of active particles
                           volatile bool* error_flag) {
     // Calculate the index of where the particle is stored in posRad.
@@ -74,14 +75,14 @@ __global__ void calcHashD(uint* gridMarkerHashD,    // gridMarkerHash Store part
 
     // Check particle is inside the domain.
     Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.h);
-    if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
+    if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z && IsFluidParticle(rhoPresMu[index].w)) {
         printf("[calcHashD] index %u (%f %f %f) out of min boundary (%f %f %f)\n",  //
                index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
         return;
     }
     boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.h);
-    if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {
+    if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z && IsFluidParticle(rhoPresMu[index].w)) {
         printf("[calcHashD] index %u (%f %f %f) out of max boundary (%f %f %f)\n",  //
                index, p.x, p.y, p.z, boxCorner.x, boxCorner.y, boxCorner.z);
         *error_flag = true;
@@ -113,6 +114,8 @@ __global__ void findCellStartEndD(uint* cellStartD,        // output: cell start
         return;
 
     hash = gridMarkerHashD[index];
+    if(hash == UINT_MAX)
+        return;
     // Load hash data into shared memory so that we can look at neighboring
     // particle's hash value without loading two hash values per thread
     sharedHash[threadIdx.x + 1] = hash;
@@ -122,6 +125,8 @@ __global__ void findCellStartEndD(uint* cellStartD,        // output: cell start
         sharedHash[0] = gridMarkerHashD[index - 1];
 
     __syncthreads();
+    if(sharedHash[threadIdx.x] == UINT_MAX)
+        return;
 
     // If this particle has a different cell index to the previous
     // particle then it must be the first particle in the cell,
@@ -333,6 +338,7 @@ void CollisionSystem::ArrangeData(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.markersProximity_D->gridMarkerHashD),
                                          U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
                                          U1CAST(m_data_mgr.activeListD), mR4CAST(m_sphMarkersD->posRadD),
+                                         mR4CAST(m_sphMarkersD->rhoPresMuD),
                                          (uint)m_data_mgr.countersH->numExtendedParticles, error_flagD);
     cudaCheckErrorFlag(error_flagD, "calcHashD");
 

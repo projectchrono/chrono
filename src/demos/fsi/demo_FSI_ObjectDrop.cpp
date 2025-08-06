@@ -295,9 +295,6 @@ int main(int argc, char* argv[]) {
                   ChVector3d(0, 0, 0),            // position of bottom origin
                   BoxSide::ALL & ~BoxSide::Z_POS  // all boundaries except top
     );
-    fsi.SetComputationalDomain(ChAABB(ChVector3d(-fsize.x() / 2 - 4 * initial_spacing, -fsize.y() / 2 - 4 * initial_spacing, -4 * initial_spacing),
-                                      ChVector3d(fsize.x() / 2 + 4 * initial_spacing, fsize.y() / 2 + 4 * initial_spacing, fsize.z() + 2.0)),
-                              {BCType::NONE, BCType::NONE, BCType::NONE});
 
     // Initialize FSI problem
     fsi.Initialize();

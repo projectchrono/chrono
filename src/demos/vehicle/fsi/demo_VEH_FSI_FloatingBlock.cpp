@@ -418,8 +418,8 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(ChSystemSMC& sys,
             wheel->GetSpindle()->AddCollisionShape(wheel_shape);
             wheel->GetSpindle()->EnableCollision(true);
 
-            ////auto points = sysSPH.CreatePointsMesh(*trimesh);
-            ////sysFSI.AddFsiBody(wheel->GetSpindle(), points, ChFrame<>(), false);
+            auto points = sysSPH.CreatePointsMesh(*trimesh);
+            sysFSI.AddFsiBody(wheel->GetSpindle(), points, ChFrame<>(), false);
         }
     }
 
