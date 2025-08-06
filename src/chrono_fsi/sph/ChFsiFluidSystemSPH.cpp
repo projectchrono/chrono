@@ -1350,10 +1350,16 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
             bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
 
-        // Set initial global BCE positions
-        const auto& X = fsi_body->body->GetFrameRefToAbs();
+        // Get global BCE positions
+        const auto& X_G_R = fsi_body->body->GetFrameRefToAbs();
         std::transform(bce_coords.begin(), bce_coords.end(), std::back_inserter(bce),
-                       [&X](ChVector3d& v) { return X.TransformPointLocalToParent(v); });
+                       [&X_G_R](ChVector3d& v) { return X_G_R.TransformPointLocalToParent(v); });
+
+        // Get local BCE coordinates relative to centroidal frame
+        bce_coords.clear();
+        const auto& X_G_COM = fsi_body->body->GetFrameCOMToAbs();
+        std::transform(bce.begin(), bce.end(), std::back_inserter(bce_coords),
+                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v);});
 
         // Set BCE body association
         bce_ids.resize(bce_coords.size(), fsi_body->index);
