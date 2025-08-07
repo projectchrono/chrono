@@ -100,7 +100,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 	//
 	if (epsQ != 0) {
 		if (mstrain[0] > 10e-16 || sigmat<sigmac) {     // fracture behaivor
-			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev);
+			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev);
 			mstress[0] = strsQ * mstrain[0] / epsQ;
 			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
 			mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
@@ -386,7 +386,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		}
 		else {
 			
-			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev);;
+			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev);;
 			 
 			 mstress[0] = strsQ * mstrain[0] / epsQ;
 			 mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
