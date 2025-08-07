@@ -19,7 +19,7 @@
 #      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.7
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 #      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
-#      assimp (github.com/assimp/assimp):                          Tag v6.0.2
+#      assimp (github.com/assimp/assimp):                          Tag v5.4.3
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
@@ -28,12 +28,16 @@ DOWNLOAD=ON
 
 VSG_INSTALL_DIR="$HOME/Packages/vsg"
 
+GLSLANG_VERSION="14.3.0"
+
 BUILDSHARED=ON
-BUILDDEBUG=OFF
+BUILDDEBUG=ON
 BUILDSYSTEM="Ninja Multi-Config"
 
 if [ ${DOWNLOAD} = OFF ]
 then    
+    DRACO_SOURCE_DIR="$HOME/Sources/draco"
+    GLSLANG_SOURCE_DIR="$HOME/Sources/glslang"
     VSG_SOURCE_DIR="$HOME/Sources/VulkanSceneGraph"
     VSGXCHANGE_SOURCE_DIR="$HOME/Sources/vsgXchange"
     VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
@@ -55,6 +59,23 @@ if [ ${DOWNLOAD} = ON ]
 then
     echo "Download sources from GitHub"
 
+    rm -rf download_draco
+    mkdir download_draco
+
+    echo "  ... draco"
+    git clone -c advice.detachedHead=false --depth 1 "https://github.com/google/draco.git" "download_draco/draco"
+    DRACO_SOURCE_DIR="download_draco/draco"
+
+    rm -rf download_glslang
+    mkdir download_glslang
+    
+    curl -L -o download_glslang/${GLSLANG_VERSION}.tar.gz https://github.com/KhronosGroup/glslang/archive/refs/tags/${GLSLANG_VERSION}.tar.gz
+    tar -xvf download_glslang/${GLSLANG_VERSION}.tar.gz -C download_glslang
+    GLSLANG_SOURCE_DIR="download_glslang/glslang-${GLSLANG_VERSION}"
+    cd ${GLSLANG_SOURCE_DIR}
+    ./update_glslang_sources.py
+    cd ../../
+
     rm -rf download_vsg
     mkdir download_vsg
 
@@ -69,19 +90,21 @@ then
     echo "  ... vsgImGui"
     git clone -c advice.detachedHead=false --depth 1 --branch v0.7.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
-    
+
     echo "  ... vsgExamples"
     git clone -c advice.detachedHead=false --depth 1 --branch v1.1.9 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.2 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
 else
     echo "Using provided source directories"
 fi
 
 echo -e "\nSources in:"
+echo "  "  ${DRACO_SOURCE_DIR}
+echo "  "  ${GLSLANG_SOURCE_DIR}
 echo "  "  ${VSG_SOURCE_DIR}
 echo "  "  ${VSGXCHANGE_SOURCE_DIR}
 echo "  "  ${VSGIMGUI_SOURCE_DIR}
@@ -93,6 +116,44 @@ echo "  "  ${ASSIMP_SOURCE_DIR}
 rm -rf ${VSG_INSTALL_DIR}
 mkdir ${VSG_INSTALL_DIR}
 
+# --- draco --------------------------------------------------------------
+
+echo -e "\n------------------------ Configure draco\n"
+rm -rf build_draco
+cmake -G "${BUILDSYSTEM}" -B build_draco -S ${DRACO_SOURCE_DIR} -DBUILD_SHARED_LIBS:BOOL=${SHARED} \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=$PREFIX \
+        -DCMAKE_DEBUG_POSTFIX="_d"
+echo -e "\n------------------------ Build and install draco\n"
+cmake --build build_draco --config Release
+cmake --install build_draco --config Release --prefix ${VSG_INSTALL_DIR}
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_draco --config Debug
+    cmake --install build_draco --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of glslang"
+fi
+
+# --- glslang ------------------------------------------------------------
+
+echo -e "\n------------------------ Configure glslang\n"
+rm -rf build_glslang
+cmake -G "${BUILDSYSTEM}" -B build_glslang -S ${GLSLANG_SOURCE_DIR} -DBUILD_SHARED_LIBS:BOOL=${SHARED} \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=$PREFIX \
+        -DCMAKE_DEBUG_POSTFIX="_d"
+echo -e "\n------------------------ Build and install glslang\n"
+cmake --build build_glslang --config Release
+cmake --install build_glslang --config Release --prefix ${VSG_INSTALL_DIR}
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_glslang --config Debug
+    cmake --install build_glslang --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of glslang"
+fi
+
 # --- assimp -------------------------------------------------------------
 
 echo -e "\n------------------------ Configure assimp\n"
@@ -102,10 +163,8 @@ cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
       -DCMAKE_DEBUG_POSTFIX=_d \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DASSIMP_BUILD_TESTS:BOOL=OFF  \
-      -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF \
-      -DASSIMP_BUILD_ZLIB:BOOL=ON \
-      -DASSIMP_BUILD_DRACO:BOOL=ON
-
+      -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF 
+ 
 echo -e "\n------------------------ Build and install assimp\n"
 cmake --build build_assimp --config Release
 cmake --install build_assimp --config Release --prefix ${VSG_INSTALL_DIR}
@@ -124,7 +183,7 @@ rm -rf build_vsg
 cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
       -DCMAKE_DEBUG_POSTFIX=_d \
-      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
+      -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd 
 
 echo -e "\n------------------------ Build and install vsg\n"
 cmake --build build_vsg --config Release

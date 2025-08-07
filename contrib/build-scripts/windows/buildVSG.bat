@@ -16,7 +16,7 @@
 @rem      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.7
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 @rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
-@rem      assimp (github.com/assimp/assimp):                          Tag v6.0.2
+@rem      assimp (github.com/assimp/assimp):                          Tag v5.4.3
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -24,7 +24,7 @@ set DOWNLOAD=ON
 set VSG_INSTALL_DIR="C:/Packages/vsg"
 
 set BUILDSHARED=ON
-set BUILDDEBUG=OFF
+set BUILDDEBUG=ON
 
 @if %DOWNLOAD% EQU OFF (
     set VSG_SOURCE_DIR="C:/Sources/VulkanSceneGraph"
@@ -67,7 +67,7 @@ if "%~1" NEQ "" (
     set VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
 
     echo "  ... assimp"
-    git clone -c advice.detachedHead=false --depth 1 --branch v6.0.2 "https://github.com/assimp/assimp" "download_vsg/assimp"
+    git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
 ) else (
     echo "Using provided source directories"

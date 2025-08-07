@@ -34,7 +34,7 @@ There are two prerequisites for building the Chrono VSG module:
   - vsgXchange 1.1.7
   - vsgExamples 1.1.9
   - vsgImGui 0.7.0
-  - assimp 6.0.2
+  - assimp 5.4.3
 
 The two approaches for building and installing the VSG dependencies are described in the next two sections.
 For the reasons detailed above, We **strongly recommend** using the provided VSG [build scripts](#vsg_scripts).
