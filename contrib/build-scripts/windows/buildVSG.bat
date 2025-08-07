@@ -17,6 +17,7 @@
 @rem      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 @rem      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
 @rem      assimp (github.com/assimp/assimp):                          Tag v5.4.3
+@rem      draco (github.com/google/draco)                             Tag 1.5.7
 @rem ---------------------------------------------------------------------------------------------------------
 
 set DOWNLOAD=ON
@@ -32,6 +33,7 @@ set BUILDDEBUG=ON
     set VSGIMGUI_SOURCE_DIR="C:/Sources/vsgImGui"
     set VSGEXAMPLES_SOURCE_DIR="C:/Sources/vsgExamples"
     set ASSIMP_SOURCE_DIR="C:/Sources/assimp"  
+    set DRACO_SOURCE_DIR="C:/Sources/draco"
 )
 
 @rem ------------------------------------------------------------------------
@@ -69,13 +71,34 @@ if "%~1" NEQ "" (
     echo "  ... assimp"
     git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
     set ASSIMP_SOURCE_DIR="download_vsg/assimp"
+
+    echo "  ... draco"
+    git clone -c advice.detachedHead=false --depth 1 --branch 1.5.7 "https://github.com/google/draco.git" "download_vsg/draco"
+    set DRACO_SOURCE_DIR="download_vsg/draco"
+
 ) else (
     echo "Using provided source directories"
 )
 
-@rem ------------------------------------------------------------------------
+@rem -----------------------------------------------------------------------
 
 rmdir /S/Q %VSG_INSTALL_DIR% 2>nul
+
+rem --- draco --------------------------------------------------------------
+
+rmdir /S/Q build_draco 2>nul
+cmake -B build_draco -S %DRACO_SOURCE_DIR% ^
+      -DBUILD_SHARED_LIBS:BOOL=%BUILDSHARED% ^
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+cmake --build build_draco --config Release
+cmake --install build_draco --config Release --prefix %VSG_INSTALL_DIR%
+if %BUILDDEBUG% EQU ON (
+    cmake --build build_draco --config Debug
+    cmake --install build_draco --config Debug --prefix %VSG_INSTALL_DIR%
+) else (
+    echo "No Debug build of draco"
+)
 
 rem --- assimp -------------------------------------------------------------
 
@@ -86,8 +109,7 @@ cmake -B build_assimp -S %ASSIMP_SOURCE_DIR%  ^
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd ^
       -DASSIMP_BUILD_TESTS:BOOL=OFF  ^
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF ^
-      -DASSIMP_BUILD_ZLIB:BOOL=ON ^
-      -DASSIMP_BUILD_DRACO:BOOL=ON
+      -DASSIMP_BUILD_ZLIB:BOOL=ON
 
 cmake --build build_assimp --config Release
 cmake --install build_assimp --config Release --prefix %VSG_INSTALL_DIR%

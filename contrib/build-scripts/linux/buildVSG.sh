@@ -20,6 +20,7 @@
 #      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.7.0
 #      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.9
 #      assimp (github.com/assimp/assimp):                          Tag v5.4.3
+#      draco (github.com/google/draco)                             Tag 1.5.7
 # - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
 #   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
 # -------------------------------------------------------------------------------------------------------
@@ -39,6 +40,7 @@ then
     VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
     VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
     ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
+    DRACO_SOURCE_DIR="$HOME/Sources/draco"
 fi
 
 # ------------------------------------------------------------------------
@@ -77,6 +79,10 @@ then
     echo "  ... assimp"
     git clone -c advice.detachedHead=false --depth 1 --branch v5.4.3 "https://github.com/assimp/assimp" "download_vsg/assimp"
     ASSIMP_SOURCE_DIR="download_vsg/assimp"
+
+    echo "  ... draco"
+    git clone -c advice.detachedHead=false --depth 1 --branch 1.5.7 "https://github.com/google/draco.git" "download_vsg/draco"
+    DRACO_SOURCE_DIR="download_vsg/draco"
 else
     echo "Using provided source directories"
 fi
@@ -87,11 +93,31 @@ echo "  "  ${VSGXCHANGE_SOURCE_DIR}
 echo "  "  ${VSGIMGUI_SOURCE_DIR}
 echo "  "  ${VSGEXAMPLES_SOURCE_DIR}
 echo "  "  ${ASSIMP_SOURCE_DIR}
+echo "  "  ${DRACO_SOURCE_DIR}
 
 # ------------------------------------------------------------------------
 
 rm -rf ${VSG_INSTALL_DIR}
 mkdir ${VSG_INSTALL_DIR}
+
+# --- draco -------------------------------------------------------------
+
+echo -e "\n------------------------ Configure draco\n"
+rm -rf build_draco
+cmake -G "${BUILDSYSTEM}" -B build_draco -S ${DRACO_SOURCE_DIR} \
+      -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+      -DCMAKE_DEBUG_POSTFIX="_d"
+
+echo -e "\n------------------------ Build and install draco\n"
+cmake --build build_draco --config Release
+cmake --install build_draco --config Release --prefix ${VSG_INSTALL_DIR}
+if [ ${BUILDDEBUG} = ON ]
+then
+    cmake --build build_draco --config Debug
+    cmake --install build_draco --config Debug --prefix ${VSG_INSTALL_DIR}
+else
+    echo "No Debug build of draco"
+fi
 
 # --- assimp -------------------------------------------------------------
 
@@ -103,8 +129,7 @@ cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
       -DASSIMP_BUILD_TESTS:BOOL=OFF  \
       -DASSIMP_BUILD_ASSIMP_TOOLS:BOOL=OFF \
-      -DASSIMP_BUILD_ZLIB:BOOL=ON \
-      -DASSIMP_BUILD_DRACO:BOOL=ON
+      -DASSIMP_BUILD_ZLIB:BOOL=ON
 
 echo -e "\n------------------------ Build and install assimp\n"
 cmake --build build_assimp --config Release
