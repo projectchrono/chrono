@@ -178,7 +178,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double DREFF = 0;               // Peak value of e.r.r.
         double FREFF = 0;               // High load stiffness e.r.r.
         double FNOMIN = 0;              // Nominal wheel load
-        double TIRE_MASS = 0;           // Tire mass (if belt dynmics is used)
+        double TIRE_MASS = 0;           // Tire mass (if belt dynamics is used)
         double QFZ1 = 0.0;              // Variation of vertical stiffness with deflection (linear)
         double QFZ2 = 0.0;              // Variation of vertical stiffness with deflection (quadratic)
         double QFZ3 = 0.0;              // Variation of vertical stiffness with inclination angle

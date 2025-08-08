@@ -76,7 +76,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     }
     m_ground_geometry.materials = m_geometry.materials;
 
-    // Read geometric collison data
+    // Read geometric collision data
     m_cyl_radius = d["Contact"]["Cylinder Shape"]["Radius"].GetDouble();
     m_front_cyl_loc = d["Contact"]["Cylinder Shape"]["Front Offset"].GetDouble();
     m_rear_cyl_loc = d["Contact"]["Cylinder Shape"]["Rear Offset"].GetDouble();

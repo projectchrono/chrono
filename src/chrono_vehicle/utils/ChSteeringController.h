@@ -187,7 +187,7 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
 /// The path to be followed is specified as a ChBezierCurve object and the target point is defined to be the point on
 /// that path that is closest to the current location of the sentinel point. The sentinel point should never leave the
 /// end or beginning of the path.
-/// The controller is sensitive to tire relaxiation, when steering oscillations occure and do not calm down after a
+/// The controller is sensitive to tire relaxation, when steering oscillations occur and do not calm down after a
 /// short driving distance, Kp should be reduced carefully.
 class CH_VEHICLE_API ChPathSteeringControllerXT : public ChSteeringController {
   public:
@@ -302,9 +302,9 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
     double m_Klat;       ///< lateral controller gain factor
     double m_Kug;        ///< understeering gradient in °/g, can be set to 0 if unknown
     double m_Tp;         ///< prediction time
-    double m_L;          ///< effective axlespace (bycicle model)
-    double m_delta;      ///< average turn angle of the steered wheels (bycicle model of the vehicle)
-    double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bycicle model of the vehicle)
+    double m_L;          ///< effective axlespace (bicycle model)
+    double m_delta;      ///< average turn angle of the steered wheels (bicycle model of the vehicle)
+    double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bicycle model of the vehicle)
     double m_umin;       ///< threshold where the controller gets active
 
     size_t m_idx_curr;             ///< current interval index
@@ -315,7 +315,7 @@ class CH_VEHICLE_API ChPathSteeringControllerSR : public ChSteeringController {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-/// "Stanley" path-following ontroller named after an autonomous vehicle called Stanley.
+/// "Stanley" path-following controller named after an autonomous vehicle called Stanley.
 /// It minimizes lateral error and heading error. Time delay of the driver's reaction is considered.
 /// This driver can be parametrized by a PID json file. It can consider a dead zone left and right to the
 /// path, where no path information is recognized. This can be useful when the path information contains
@@ -374,8 +374,8 @@ class CH_VEHICLE_API ChPathSteeringControllerStanley : public ChSteeringControll
     double m_Ki;  ///< Integral gain
     double m_Kd;  ///< Differential gain
 
-    double m_delta;      ///< average turn angle of the steered wheels (bycicle model of the vehicle)
-    double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bycicle model of the vehicle)
+    double m_delta;      ///< average turn angle of the steered wheels (bicycle model of the vehicle)
+    double m_delta_max;  ///< max. allowed average turn angle of the steered wheels (bicycle model of the vehicle)
     double m_umin;       ///< threshold where the controller gets active
     double m_Treset;     ///< the integral error gets reset after this time automatically, no wind-up should happen
     double m_deadZone;  ///< lateral zone where no lateral error is recognized, reduces sensitivity to path disturbances

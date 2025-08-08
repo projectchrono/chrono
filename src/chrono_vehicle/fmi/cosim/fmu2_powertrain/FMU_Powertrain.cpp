@@ -85,7 +85,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     AddFmuVariable(&out_path, "out_path", FmuVariable::Type::String, "1", "output directory",    //
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);  //
 
-    // Set CONTINOUS INPUTS for this FMU (driver inputs)
+    // Set CONTINUOUS INPUTS for this FMU (driver inputs)
     AddFmuVariable(&throttle, "throttle", FmuVariable::Type::Real, "1", "throttle input",         //
                    FmuVariable::CausalityType::input, FmuVariable::VariabilityType::continuous);  //
     AddFmuVariable(&clutch, "clutch", FmuVariable::Type::Real, "1", "clutch input",               //

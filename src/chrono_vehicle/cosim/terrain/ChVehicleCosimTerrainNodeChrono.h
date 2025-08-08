@@ -108,7 +108,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Construct a base class terrain node.
     ChVehicleCosimTerrainNodeChrono(Type type,              ///< terrain type
                                     double length,          ///< terrain patch length
-                                    double width,           ///< terain patch width
+                                    double width,           ///< terrain patch width
                                     ChContactMethod method  ///< contact method (SMC or NSC)
     );
 
