@@ -253,11 +253,9 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-#endif
 
         if (output) {
             // write drive torques of all six wheels into file

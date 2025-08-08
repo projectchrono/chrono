@@ -16,12 +16,8 @@
 //// - perform checks during loading of YAML file or use a 3rd party YAML schema validator?
 //// - add definition functions for link-type components using 2 local frames (alternative ChLink initialization)
 //// - add support for other constraints (composite joints: rev-sph and rev-prismatic)
-//// - add support for more ChFunction types:
-////   - implement and expose a "data" ChFunction (derived from ChFunctionSetpointCallback)
-////   - add YAML support for repeating functions
 //// - add support for point-point actuators (hydraulic, FMU, external)
 //// - what is the best way to deal with collision families?
-//// - exdpand set of simulation parameters (e.g. integrator/solver pasrameters)
 
 #include <algorithm>
 
@@ -165,21 +161,32 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     // Integrator parameters (optional)
     if (sim["integrator"]) {
         auto intgr = sim["integrator"];
+        ChAssertAlways(intgr["type"]);
         m_sim.integrator.type = ReadIntegratorType(intgr["type"]);
         switch (m_sim.integrator.type) {
             case ChTimestepper::Type::HHT:
-                m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
-                m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
-                m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
-                m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
-                m_sim.integrator.use_stepsize_control = intgr["use_stepsize_control"].as<bool>();
-                m_sim.integrator.use_modified_newton = intgr["use_modified_newton"].as<bool>();
+                if (intgr["rel_tolerance"])
+                    m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
+                if (intgr["abs_tolerance_states"])
+                    m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
+                if (intgr["abs_tolerance_multipliers"])
+                    m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
+                if (intgr["max_iterations"])
+                    m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
+                if (intgr["use_stepsize_control"])
+                    m_sim.integrator.use_stepsize_control = intgr["use_stepsize_control"].as<bool>();
+                if (intgr["use_modified_newton"])
+                    m_sim.integrator.use_modified_newton = intgr["use_modified_newton"].as<bool>();
                 break;
             case ChTimestepper::Type::EULER_IMPLICIT:
-                m_sim.integrator.rtol = intgr["rel tolerance"].as<double>();
-                m_sim.integrator.atol_states = intgr["abs tolerance states"].as<double>();
-                m_sim.integrator.atol_multipliers = intgr["abs tolerance multipliers"].as<double>();
-                m_sim.integrator.max_iterations = intgr["max iterations"].as<double>();
+                if (intgr["rel_tolerance"])
+                    m_sim.integrator.rtol = intgr["rel_tolerance"].as<double>();
+                if (intgr["abs_tolerance_states"])
+                    m_sim.integrator.atol_states = intgr["abs_tolerance_states"].as<double>();
+                if (intgr["abs_tolerance_multipliers"])
+                    m_sim.integrator.atol_multipliers = intgr["abs_tolerance_multipliers"].as<double>();
+                if (intgr["max_iterations"])
+                    m_sim.integrator.max_iterations = intgr["max_iterations"].as<double>();
                 break;
         }
     }
@@ -187,26 +194,35 @@ void ChParserYAML::LoadSimulationFile(const std::string& yaml_filename) {
     // Solver parameters (optional)
     if (sim["solver"]) {
         auto slvr = sim["solver"];
+        ChAssertAlways(slvr["type"]);
         m_sim.solver.type = ReadSolverType(slvr["type"]);
         switch (m_sim.solver.type) {
             case ChSolver::Type::SPARSE_LU:
             case ChSolver::Type::SPARSE_QR:
-                m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
-                m_sim.solver.use_sparsity_pattern_learner = slvr["use_sparsity_pattern_learner"].as<bool>();
+                if (slvr["lock_sparsity_pattern"])
+                    m_sim.solver.lock_sparsity_pattern = slvr["lock_sparsity_pattern"].as<bool>();
+                if (slvr["use_sparsity_pattern_learner"])
+                    m_sim.solver.use_sparsity_pattern_learner = slvr["use_sparsity_pattern_learner"].as<bool>();
                 break;
             case ChSolver::Type::BARZILAIBORWEIN:
             case ChSolver::Type::APGD:
             case ChSolver::Type::PSOR:
-                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
-                m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
-                m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
+                if (slvr["max_iterations"])
+                    m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                if (slvr["overrelaxation_factor"])
+                    m_sim.solver.overrelaxation_factor = slvr["overrelaxation_factor"].as<double>();
+                if (slvr["sharpness_factor"])
+                    m_sim.solver.sharpness_factor = slvr["sharpness_factor"].as<double>();
                 break;
             case ChSolver::Type::BICGSTAB:
             case ChSolver::Type::MINRES:
             case ChSolver::Type::GMRES:
-                m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
-                m_sim.solver.tolerance = slvr["tolerance"].as<double>();
-                m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
+                if (slvr["max_iterations"])
+                    m_sim.solver.max_iterations = slvr["max_iterations"].as<int>();
+                if (slvr["tolerance"])
+                    m_sim.solver.tolerance = slvr["tolerance"].as<double>();
+                if (slvr["enable_diagonal_preconditioner"])
+                    m_sim.solver.enable_diagonal_preconditioner = slvr["enable_diagonal_preconditioner"].as<bool>();
                 break;
         }
     }
@@ -320,6 +336,11 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
         body.pos = ReadVector(bodies[i]["location"]);
         if (bodies[i]["orientation"])
             body.rot = ReadRotation(bodies[i]["orientation"]);
+        if (bodies[i]["initial_linear_velocity"])
+            body.lin_vel = ReadVector(bodies[i]["initial_linear_velocity"]);
+        if (bodies[i]["initial_angular_velocity"])
+            body.ang_vel = ReadVector(bodies[i]["initial_angular_velocity"]);
+
         if (!body.is_fixed)
             body.mass = bodies[i]["mass"].as<double>();
         if (bodies[i]["com"]) {
@@ -365,8 +386,10 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
             joint.body2 = joints[i]["body2"].as<std::string>();
 
             std::shared_ptr<ChJoint::BushingData> bushing_data = nullptr;
-            if (joints[i]["bushing_data"])
+            if (joints[i]["bushing_data"]) {
                 joint.bdata = ReadBushingData(joints[i]["bushing_data"]);
+                joint.is_kinematic = false;
+            }
 
             joint.frame = ReadJointFrame(joints[i]);
 
@@ -477,6 +500,37 @@ void ChParserYAML::LoadModelFile(const std::string& yaml_filename) {
                 rsda.PrintInfo(name);
 
             m_rsdas.insert({name, rsda});
+        }
+    }
+
+    // Read applied body loads
+    if (model["body_loads"]) {
+        auto loads = model["body_loads"];
+        ChAssertAlways(loads.IsSequence());
+        if (m_verbose) {
+            cout << "\nbody loads: " << loads.size() << endl;
+        }
+        for (size_t i = 0; i < loads.size(); i++) {
+            ChAssertAlways(loads[i]["name"]);
+            ChAssertAlways(loads[i]["type"]);
+            ChAssertAlways(loads[i]["body"]);
+
+            auto name = loads[i]["name"].as<std::string>();
+
+            BodyLoad load;
+            load.type = ReadBodyLoadType(loads[i]["type"]);
+            load.body = loads[i]["body"].as<std::string>();
+            load.local_load = loads[i]["local_load"].as<bool>();
+            load.value = ReadVector(loads[i]["load"]);
+            if (load.type == BodyLoadType::FORCE) {
+                load.local_point = loads[i]["local_point"].as<bool>();
+                load.point = ReadVector(loads[i]["point"]);
+            }
+
+            if (m_verbose)
+                load.PrintInfo(name);
+
+            m_body_loads.insert({name, load});
         }
     }
 
@@ -682,9 +736,9 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
 
     m_instance_index++;
 
-    // Create a load container for bushings
-    auto container_bushings = chrono_types::make_shared<ChLoadContainer>();
-    sys.Add(container_bushings);
+    // Create a load container for bushings and body forces
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    sys.Add(load_container);
 
     // Create bodies
     for (auto& item : m_bodies) {
@@ -696,6 +750,8 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         body->SetInertiaXX(item.second.inertia_moments);
         body->SetInertiaXY(item.second.inertia_products);
         body->SetFrameRefToAbs(model_frame * ChFramed(item.second.pos, item.second.rot));
+        body->SetLinVel(item.second.lin_vel);
+        body->SetAngVelLocal(item.second.ang_vel);
         sys.AddBody(body);
         item.second.body.push_back(body);
     }
@@ -713,7 +769,7 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         if (joint->IsKinematic())
             sys.AddLink(joint->GetAsLink());
         else
-            container_bushings->Add(joint->GetAsBushing());
+            load_container->Add(joint->GetAsBushing());
         item.second.joint.push_back(joint);
     }
 
@@ -758,6 +814,24 @@ int ChParserYAML::Populate(ChSystem& sys, const ChFramed& model_frame, const std
         rsda->RegisterTorqueFunctor(item.second.torque);
         sys.AddLink(rsda);
         item.second.rsda.push_back(rsda);
+    }
+
+    // Create body loads
+    for (auto& item : m_body_loads) {
+        auto body = FindBody(item.second.body);
+        std::shared_ptr<ChLoadCustom> load;
+        switch (item.second.type) {
+            case BodyLoadType::FORCE:
+                load = chrono_types::make_shared<ChLoadBodyForce>(body, item.second.value, item.second.local_load,
+                                                                  item.second.point, item.second.local_point);
+                break;
+            case BodyLoadType::TORQUE:
+                load = chrono_types::make_shared<ChLoadBodyTorque>(body, item.second.value, item.second.local_load);
+                break;
+        }
+        load->SetName(model_prefix + item.first);
+        load_container->Add(load);
+        item.second.load.push_back(load);
     }
 
     // Create linear motors
@@ -999,6 +1073,8 @@ void ChParserYAML::VisParams::PrintInfo() {
 ChParserYAML::Body::Body()
     : pos(VNULL),
       rot(QUNIT),
+      lin_vel(VNULL),
+      ang_vel(VNULL),
       is_fixed(false),
       mass(1),
       com(ChFramed(VNULL, QUNIT)),
@@ -1006,14 +1082,22 @@ ChParserYAML::Body::Body()
       inertia_products(ChVector3d(0)) {}
 
 ChParserYAML::Joint::Joint()
-    : type(ChJoint::Type::LOCK), body1(""), body2(""), frame(ChFramed(VNULL, QUNIT)), bdata(nullptr) {}
+    : type(ChJoint::Type::LOCK),
+      body1(""),
+      body2(""),
+      frame(ChFramed(VNULL, QUNIT)),
+      bdata(nullptr),
+      is_kinematic(true) {}
+
+ChParserYAML::DistanceConstraint::DistanceConstraint() : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
 
 ChParserYAML::TSDA::TSDA() : body1(""), body2(""), point1(VNULL), point2(VNULL), free_length(0), force(nullptr) {}
 
 ChParserYAML::RSDA::RSDA()
     : body1(""), body2(""), pos(VNULL), axis(ChVector3d(0, 0, 1)), free_angle(0), torque(nullptr) {}
 
-ChParserYAML::DistanceConstraint::DistanceConstraint() : body1(""), body2(""), point1(VNULL), point2(VNULL) {}
+ChParserYAML::BodyLoad::BodyLoad()
+    : type(BodyLoadType::FORCE), body(""), local_load(true), local_point(true), value(VNULL), point(VNULL) {}
 
 ChParserYAML::MotorLinear::MotorLinear()
     : actuation_type(MotorActuation::NONE),
@@ -1075,10 +1159,19 @@ void ChParserYAML::Body::PrintInfo(const std::string& name) {
 
 void ChParserYAML::Joint::PrintInfo(const std::string& name) {
     cout << "  name:           " << name << endl;
-    cout << "     type:        " << ChJoint::GetTypeString(type) << endl;
+    cout << "     type:        " << ChJoint::GetTypeString(type);
+    cout << " (" << (is_kinematic ? "kinematic joint" : "bushing") << ")" << endl;
     cout << "     body1:       " << body1 << endl;
     cout << "     body2:       " << body2 << endl;
     cout << "     joint frame: " << frame.GetPos() << " | " << frame.GetRot() << endl;
+}
+
+void ChParserYAML::DistanceConstraint::PrintInfo(const std::string& name) {
+    cout << "  name:           " << name << endl;
+    cout << "     body1:       " << body1 << endl;
+    cout << "     body2:       " << body2 << endl;
+    cout << "     point1:      " << point1 << endl;
+    cout << "     point2:      " << point2 << endl;
 }
 
 void ChParserYAML::TSDA::PrintInfo(const std::string& name) {
@@ -1099,12 +1192,22 @@ void ChParserYAML::RSDA::PrintInfo(const std::string& name) {
     cout << "     free_angle:  " << free_angle << endl;
 }
 
-void ChParserYAML::DistanceConstraint::PrintInfo(const std::string& name) {
-    cout << "  name:           " << name << endl;
-    cout << "     body1:       " << body1 << endl;
-    cout << "     body2:       " << body2 << endl;
-    cout << "     point1:      " << point1 << endl;
-    cout << "     point2:      " << point2 << endl;
+void ChParserYAML::BodyLoad::PrintInfo(const std::string& name) {
+    std::string type_str = "force";
+    if (type == BodyLoadType::TORQUE)
+        type_str = "torque";
+
+    cout << "  name:          " << name << endl;
+    cout << "     type:       " << type_str << endl;
+    cout << "     body:       " << body << endl;
+    switch (type) {
+        case BodyLoadType::FORCE:
+            cout << "     force:      " << value << "  " << (local_load ? " (local)" : " (absolute)") << endl;
+            cout << "     point:      " << point << "  " << (local_point ? " (local)" : " (absolute)") << endl;
+            break;
+        case BodyLoadType::TORQUE:
+            cout << "     torque:     " << value << "  " << (local_load ? " (local)" : " (absolute)") << endl;
+    }
 }
 
 void ChParserYAML::MotorLinear::PrintInfo(const std::string& name) {
@@ -1902,6 +2005,13 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ChParserYAML::ReadRSDAFunctor(const Y
             return torqueCB;
         }
     }
+}
+
+ChParserYAML::BodyLoadType ChParserYAML::ReadBodyLoadType(const YAML::Node& a) {
+    std::string type = ToUpper(a.as<std::string>());
+    if (type == "TORQUE")
+        return BodyLoadType::TORQUE;
+    return BodyLoadType::FORCE;
 }
 
 ChParserYAML::MotorActuation ChParserYAML::ReadMotorActuationType(const YAML::Node& a) {

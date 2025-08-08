@@ -14,7 +14,7 @@
 
 namespace chrono {
 
-CH_UPCASTING_SANITIZED(ChContactable_1vars<6>, ChContactable, ChContactable_1vars_6_ChContactable)
+////CH_UPCASTING_SANITIZED(ChContactable_1vars, ChContactable, ChContactable_1vars_6_ChContactable)
 
 ChContactable::ChContactable() : collision_model(nullptr) {}
 

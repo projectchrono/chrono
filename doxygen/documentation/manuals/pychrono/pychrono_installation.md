@@ -128,7 +128,7 @@ export PYTHONPATH=$HOME/chrono_build/bin
 
 <div class="ce-info">
 We suggest you to use a specialized IDE editor that nicely handles the Python language (syntax highlighting, intellisense, etc.). 
-The default IDE installed with most Python distribution is IDLE which is suficient only for simpler tasks. 
+The default IDE installed with most Python distribution is IDLE which is sufficient only for simpler tasks. 
 Our best pick is **Spyder**, the IDE that comes together with the [Anaconda](https://www.anaconda.com/download/) Python distribution. 
 Other free options are [Visual Studio Code](https://code.visualstudio.com/) or the [Python add-on for Visual Studio](https://marketplace.visualstudio.com/items?itemName=ms-python.python).
 </div>

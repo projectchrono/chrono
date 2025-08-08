@@ -1,0 +1,71 @@
+chrono-version: 9.0
+
+model:
+  name: Bushing example
+  angle_degrees: true
+  
+  data_path:
+    type: RELATIVE
+    root: "../.."
+  
+  bodies:
+    - name: ground
+      location: [0, 0, 0]
+      fixed: true
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.6, 0.6, 0.15]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+
+    - name: body
+      location: [1, 0, 0]
+      orientation: [0, 0, 0]
+      lin_vel: [1.0, -0.4, 0.2]
+      ang_vel: [1.5, 1.5, -1.5]
+      mass: 122.0
+      com:
+        location: [0, 0, 0]
+        orientation: [0, 0, 0]
+      inertia:
+        moments: [8.42, 8.42, 16.40]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.9, 0.9, 0.15]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.2, 0.2]
+          - type: SPHERE
+            radius: 0.1
+            location: [-1, 0, 0]
+            color: [0.6, 0.2, 0.2]
+
+  joints:
+    - name: bushing
+      type: REVOLUTE
+      body1: ground
+      body2: body
+      location: [0, 0, 0]
+      axis: [0, 1, 0]
+      bushing_data:
+        stiffness_linear: 1e5
+        damping_linear: 1e3 
+        stiffness_rotational: 1e5
+        damping_rotational: 1e3
+        DOF:
+            stiffness_linear: 0
+            damping_linear: 0
+            stiffness_rotational: 0
+            damping_rotational: 0
+  
+  body_loads:
+    - name: body_force
+      type: FORCE
+      body: body
+      load: [0, 0, -8e3]
+      local_load: false
+      point: [1, 0, 0]
+      local_point: true

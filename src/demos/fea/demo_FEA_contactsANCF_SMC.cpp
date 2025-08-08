@@ -147,10 +147,17 @@ int main(int argc, char* argv[]) {
 
     // FEA visualization
     {
-        auto fea_vis = chrono_types::make_shared<ChVisualShapeFEA>();
-        fea_vis->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
-        fea_vis->SetWireframe(true);
-        mesh_shells->AddVisualShapeFEA(fea_vis);
+        auto fea_vis1 = chrono_types::make_shared<ChVisualShapeFEA>();
+        fea_vis1->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
+        fea_vis1->SetColormap(ChColormap::Type::JET);
+        fea_vis1->SetColormapRange(ChVector2d(0.0, 2.50));
+        fea_vis1->SetSmoothFaces(true);
+        mesh_shells->AddVisualShapeFEA(fea_vis1);
+
+        auto fea_vis2 = chrono_types::make_shared<ChVisualShapeFEA>();
+        fea_vis2->SetFEMdataType(ChVisualShapeFEA::DataType::SURFACE);
+        fea_vis2->SetWireframe(true);
+        mesh_shells->AddVisualShapeFEA(fea_vis2);
     }
 
     // ------------------------------------------

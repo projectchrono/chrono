@@ -2,7 +2,7 @@ Deep Reinforcement Learning with PyChrono and Tensorflow {#tutorial_pychrono_dem
 ==========================
 
 # Introduction
-Deep Reinforcement Learning (DRL) consits in using Reinforcement Learning to train Deep Neural Network. In the last few years it has been applied with success to various robotic control tasks. 
+Deep Reinforcement Learning (DRL) consists in using Reinforcement Learning to train Deep Neural Network. In the last few years it has been applied with success to various robotic control tasks. 
 The main advantage of this approach is its ability to deal with unstructured and mutable environments, while classical robotic control often fails when facing these challenges.
 To train a NN with DRL several interactions with the environment are needed. For this reason physical engines offer a valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
 With PyChrono you can easily build physical models and exchange data between the simulation and you favorite ML framework. 
@@ -100,7 +100,7 @@ Alternatively, launch the demo from your favorite IDE, but remember to add the r
 
 ### List of command line arguments
 Besides the environment name and the number of episodes, there are some other arguments, mainly to hand-tune learning parameters.
-** --renderON/--renderOFF ** toggles on and off the simulation render. Consider that visualizing the render will slow down the simulation and consequentially the learning process.
+** --renderON/--renderOFF ** toggles on and off the simulation render. Consider that visualizing the render will slow down the simulation and consequently the learning process.
 
  - **Environment name** : `env_name`
  - **Number of episodes**: `-n`, `--num_episodes`, default=1000

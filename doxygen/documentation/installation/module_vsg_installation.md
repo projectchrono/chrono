@@ -47,7 +47,7 @@ The VSG libraries are themselves under active development, and so is vsgFramewor
 
   1. Clone the vsgFramework [GitHub repository](https://github.com/vsg-dev/vsgFramework).
      Assume the sources are in a local directory **[vsgFramework_source]**.
-  2. Create a **buid** directory and an **install** directory for vsgFramework. 
+  2. Create a **build** directory and an **install** directory for vsgFramework. 
      Assume these are **[vsgFramework_build]** and **[vsgFramework_install]**, respectively.
   3. Use CMake to configure vsgFramework.  Note that the only components that are necessary for Chrono::VSG are *assimp*, *vsgImGui*, and *vsgXchange*. Enable the corresponding `BUILD_***` CMake options and unselect all other.
   4. Set the installation directory (`CMAKE_INSTALL_PREFIX`) to be the **[vsgFramework_install]** directory created above.

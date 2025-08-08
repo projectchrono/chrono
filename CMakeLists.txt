@@ -230,6 +230,7 @@ endif()
 # Copy data directory to BUILD tree 
 # Install data directory 
 # Install sample template_project
+# Install blender import script
 #------------------------------------------------------------
 
 get_property(MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -254,6 +255,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION "share/chrono/template_project")
 endif()
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/importer_blender/ DESTINATION "importer_blender")
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

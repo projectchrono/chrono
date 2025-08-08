@@ -42,9 +42,6 @@ namespace sph {
 /// Base class to set up a Chrono::FSI problem.
 class CH_FSI_API ChFsiProblemSPH {
   public:
-    /// Wave generator types.
-    enum class WavemakerType { PISTON, FLAP };
-
     /// Enable verbose output during construction of ChFsiProblemSPH (default: false).
     void SetVerbose(bool verbose);
 
@@ -373,32 +370,52 @@ class CH_FSI_API ChFsiProblemCartesian : public ChFsiProblemSPH {
                            int side_flags               ///< sides for which BCE markers are created
     );
 
+  private:
+    virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
+    virtual ChVector3d Grid2Point(const ChVector3i& p) override;
+};
+
+/// Class to construct a wavetank with a rigid piston or flap wavemaker mechanism.
+/// The wavetank can include a beach for wave dissipation, by specifying a profile for the bottom.
+class CH_FSI_API ChFsiProblemWavetank : public ChFsiProblemCartesian {
+  public:
+    /// Wavemaker mechanism types.
+    enum class WavemakerType { PISTON, FLAP };
+
+    /// Create a ChFsiProblemSPH object.
+    /// No SPH parameters are set.
+    ChFsiProblemWavetank(ChSystem& sys, double spacing);
+
     /// Interface for callback to specify wave tank profile.
-    class CH_FSI_API WaveTankProfile {
+    class CH_FSI_API Profile {
       public:
-        virtual ~WaveTankProfile() {}
+        virtual ~Profile() {}
 
         /// Set bottom height at specified downstream location (must be non-negative).
         /// Default implementation corresponds to a tank with horizontal bottom.
         virtual double operator()(double x) = 0;
     };
 
+    /// Set the callback for the bottom tank profile and indicate if an end-wall is constructed.
+    /// By default, a tank with flat bottom and with end-wall is constructed
+    void SetProfile(std::shared_ptr<Profile> profile, bool end_wall);
+
+    /// Use periodic boundary conditions in lateral direction (default: false).
+    /// If not set, side boundary conditions are enforced by constructing lateral walls.
+    void SetLateralPeriodicBC(bool periodic_BC) { m_periodic_BC = periodic_BC; }
+
     /// Add a wave tank with a rigid-body wavemaker (piston-type or flap-type).
-    /// The wave tank can include a beach for wave dissipation, by specifying a profile for the bottom.
-    /// By default (no profile functor provided), the tank is created with a flat horizontal bottom.
-    std::shared_ptr<ChBody> ConstructWaveTank(
-        WavemakerType type,                                  ///< wave generator type
-        const ChVector3d& pos,                               ///< reference position
-        const ChVector3d& box_size,                          ///< box dimensions
-        double depth,                                        ///< fluid depth
-        std::shared_ptr<ChFunction> piston_fun,              ///< piston actuation function
-        std::shared_ptr<WaveTankProfile> profile = nullptr,  ///< profile for tank bottom
-        bool end_wall = true                                 ///< include end_wall
+    std::shared_ptr<ChBody> ConstructWaveTank(WavemakerType type,                    ///< wave generator type
+                                              const ChVector3d& pos,                 ///< reference position
+                                              const ChVector3d& box_size,            ///< box dimensions
+                                              double depth,                          ///< fluid depth
+                                              std::shared_ptr<ChFunction> actuation  ///< actuation function
     );
 
   private:
-    virtual ChVector3i Snap2Grid(const ChVector3d& point) override;
-    virtual ChVector3d Grid2Point(const ChVector3i& p) override;
+    bool m_periodic_BC;
+    bool m_end_wall;
+    std::shared_ptr<Profile> m_profile;
 };
 
 // ----------------------------------------------------------------------------
@@ -468,7 +485,7 @@ class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiProblemSPH::Parti
 /// h = 0,                   if x < x_start
 /// h = alpha * (x-x_start), if x > x_start
 /// </pre>
-class CH_FSI_API WaveTankRampBeach : public ChFsiProblemCartesian::WaveTankProfile {
+class CH_FSI_API WaveTankRampBeach : public ChFsiProblemWavetank::Profile {
   public:
     WaveTankRampBeach(double x_start, double alpha) : x_start(x_start), alpha(alpha) {}
 
@@ -489,7 +506,7 @@ class CH_FSI_API WaveTankRampBeach : public ChFsiProblemCartesian::WaveTankProfi
 /// h = 0,                       if x < x_start
 /// h = alpha * sqrt(x-x_start), if x > x_start
 /// </pre>
-class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemCartesian::WaveTankProfile {
+class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemWavetank::Profile {
   public:
     WaveTankParabolicBeach(double x_start, double alpha) : x_start(x_start), alpha(alpha) {}
 

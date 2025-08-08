@@ -17,7 +17,7 @@ using namespace chrono;
 %}
 
 %shared_ptr(chrono::ChContactable) 
-%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_1vars)
 %shared_ptr(chrono::ChBodyAuxRef)
 
 /* Parse the header file to generate wrappers */

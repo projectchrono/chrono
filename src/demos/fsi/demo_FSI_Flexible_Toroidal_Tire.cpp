@@ -259,8 +259,8 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
-#ifdef CHRONO_VSG
         // Render SPH particles
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;

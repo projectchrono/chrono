@@ -10,11 +10,11 @@
 //
 // =============================================================================
 
-#ifndef CHCONTACTTUPLE_H
-#define CHCONTACTTUPLE_H
+#ifndef CH_CONTACT_H
+#define CH_CONTACT_H
 
 #include "chrono/core/ChFrame.h"
-#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionInfo.h"
@@ -24,78 +24,29 @@ namespace chrono {
 class ChContactContainer;
 
 /// Base class for contact between two generic ChContactable objects.
-/// T1 and T2 are of ChContactable sub classes.
-template <class Ta, class Tb>
-class ChContactTuple {
+class ChApi ChContact {
   public:
-    typedef typename Ta::type_variable_tuple_carrier typecarr_a;
-    typedef typename Tb::type_variable_tuple_carrier typecarr_b;
+    ChContact() {}
 
-  protected:
-    ChContactContainer* container;  ///< associated contact container
-
-    Ta* objA;  ///< first ChContactable object in the pair
-    Tb* objB;  ///< second ChContactable object in the pair
-
-    ChVector3d p1;      ///< max penetration point on geo1, after refining, in abs space
-    ChVector3d p2;      ///< max penetration point on geo2, after refining, in abs space
-    ChVector3d normal;  ///< normal, on surface of master reference (geo1)
-
-    ChMatrix33<> contact_plane;  ///< the plane of contact (X is normal direction)
-
-    double norm_dist;   ///< penetration distance (negative if going inside) after refining
-    double eff_radius;  ///< effective radius of curvature at contact
-
-  public:
-    ChContactTuple() {}
-
-    ChContactTuple(ChContactContainer* contact_container, Ta* obj_A, Tb* obj_B)
-        : container(contact_container), objA(obj_A), objB(obj_B) {
-        assert(contact_container);
-        assert(obj_A);
-        assert(obj_B);
-    }
-
-    virtual ~ChContactTuple() {}
+    virtual ~ChContact() {}
 
     /// Reinitialize geometric information for this contact for reuse.
-    void Reset_cinfo(Ta* obj_A,                    ///< contactable object A
-                     Tb* obj_B,                    ///< contactable object B
+    void Reset_cinfo(ChContactable* obj_A,         ///< contactable object A
+                     ChContactable* obj_B,         ///< contactable object B
                      const ChCollisionInfo& cinfo  ///< data for the contact pair
-    ) {
-        assert(obj_A);
-        assert(obj_B);
-
-        this->objA = obj_A;
-        this->objB = obj_B;
-
-        this->p1 = cinfo.vpA;
-        this->p2 = cinfo.vpB;
-        this->normal = cinfo.vN;
-        this->norm_dist = cinfo.distance;
-        this->eff_radius = cinfo.eff_radius;
-
-        // Contact plane
-        contact_plane.SetFromAxisX(normal, VECT_Y);
-    }
+    );
 
     /// Get the colliding object A, with point P1
-    Ta* GetObjA() { return this->objA; }
+    ChContactable* GetObjA() { return this->objA; }
 
     /// Get the colliding object B, with point P2
-    Tb* GetObjB() { return this->objB; }
+    ChContactable* GetObjB() { return this->objB; }
 
     /// Get the contact coordinate system, expressed in absolute frame.
     /// This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system. Its origin is point P2.
     /// (It is the coordinate system of the contact plane and normal)
-    ChCoordsys<> GetContactCoords() const {
-        ChCoordsys<> mcsys;
-        ChQuaternion<> mrot = this->contact_plane.GetQuaternion();
-        mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
-        mcsys.pos = this->p2;
-        return mcsys;
-    }
+    ChCoordsys<> GetContactCoords() const;
 
     /// Returns the pointer to a contained 3x3 matrix representing the UV and normal
     /// directions of the contact. In detail, the X versor (the 1s column of the
@@ -164,6 +115,23 @@ class ChContactTuple {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) {}
 
     virtual void ConstraintsFetch_react(double factor) {}
+
+  protected:
+    ChContact(ChContactContainer* contact_container, ChContactable* obj_A, ChContactable* obj_B);
+
+    ChContactContainer* container;  ///< associated contact container
+
+    ChContactable* objA;  ///< first ChContactable object in the pair
+    ChContactable* objB;  ///< second ChContactable object in the pair
+
+    ChVector3d p1;      ///< max penetration point on geo1, after refining, in abs space
+    ChVector3d p2;      ///< max penetration point on geo2, after refining, in abs space
+    ChVector3d normal;  ///< normal, on surface of master reference (geo1)
+
+    ChMatrix33<> contact_plane;  ///< the plane of contact (X is normal direction)
+
+    double norm_dist;   ///< penetration distance (negative if going inside) after refining
+    double eff_radius;  ///< effective radius of curvature at contact
 };
 
 }  // end namespace chrono

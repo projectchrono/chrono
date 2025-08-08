@@ -80,7 +80,7 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
     if (auto mcontainer = std::dynamic_pointer_cast<ChContactContainerNSC>(this->system->GetContactContainer())) {
         // A class for iterating all over the NSC contacts. We assume that these have been already initialized and that
         // their offset is already set via some bookkeeping.
-        class MyContactCallback : public ChContactContainerNSC::ReportContactCallbackNSC {
+        class MyContactCallback : public ChContactContainer::ReportContactCallback {
           public:
             ChFeeder* myfeeder;
             ChVectorDynamic<>* Qc;
@@ -91,20 +91,17 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
             // Callback used to report contact points already added to the container.
             // If it returns false, the contact scanning will be stopped.
             virtual bool OnReportContact(
-                const ChVector3d& pA,             ///< contact pA
-                const ChVector3d& pB,             ///< contact pB
-                const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
-                const double& distance,           ///< contact distance
-                const double& eff_radius,         ///< effective radius of curvature at contact
-                const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-                const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
-                ChContactable*
-                    contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
-                ChContactable*
-                    contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
-                const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian
-                                  ///< multipliers, if already book-keeped
-            ) {
+                const ChVector3d& pA,             // contact pA
+                const ChVector3d& pB,             // contact pB
+                const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+                double distance,                  // contact distance
+                double eff_radius,                // effective radius of curvature at contact
+                const ChVector3d& react_forces,   // react. forces (if already computed), expressed in 'plane_coord'
+                const ChVector3d& react_torques,  // react.torques, if rolling friction (if already computed)
+                ChContactable* contactobjA,       // first contactable object (may be nullptr)
+                ChContactable* contactobjB,       // second contactable object (may be nullptr)
+                int offset                        // offset of first constraint (normal component)
+                ) override {
                 // Modify the Ct term in Qc only if the contact is touching a feeder object:
                 if ((myfeeder->GetFeederObject().get() == contactobjA) ||
                     (myfeeder->GetFeederObject().get() == contactobjB)) {
@@ -148,12 +145,12 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
             }
         };
 
-        auto mcallback = chrono_types::make_shared<MyContactCallback>();
-        mcallback->myfeeder = this;
-        mcallback->Qc = &Qc;
-        mcallback->c = c;
+        auto callback = chrono_types::make_shared<MyContactCallback>();
+        callback->myfeeder = this;
+        callback->Qc = &Qc;
+        callback->c = c;
 
-        mcontainer->ReportAllContactsNSC(mcallback);
+        mcontainer->ReportAllContacts(callback);
     }
 }
 

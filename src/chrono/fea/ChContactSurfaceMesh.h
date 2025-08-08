@@ -15,11 +15,12 @@
 #ifndef CHCONTACTSURFACEMESH_H
 #define CHCONTACTSURFACEMESH_H
 
+#include "chrono/physics/ChLoaderUV.h"
+#include "chrono/physics/ChContactable.h"
 #include "chrono/fea/ChContactSurface.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/physics/ChLoaderUV.h"
 
 namespace chrono {
 namespace fea {
@@ -29,9 +30,12 @@ namespace fea {
 
 /// Contact element of triangular type.
 /// Used to 'tessellate' the surface of FEA meshes for collision purposes.
-class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
+class ChApi ChContactTriangleXYZ : public ChContactable_3vars, public ChLoadableUV {
   public:
-    ChContactTriangleXYZ();
+    ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> node1,
+                         std::shared_ptr<ChNodeFEAxyz> node2,
+                         std::shared_ptr<ChNodeFEAxyz> node3,
+                         ChContactSurface* container = nullptr);
     ChContactTriangleXYZ(const std::array<std::shared_ptr<ChNodeFEAxyz>, 3>& nodes,
                          ChContactSurface* container = nullptr);
 
@@ -70,16 +74,12 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     // Interface to ChContactable
 
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_333; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::THREE_333; }
 
-    /// Access variables for node 1.
-    virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
-
-    /// Access variables for node 2.
-    virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
-
-    /// Access variables for node 3.
-    virtual ChVariables* GetVariables3() override { return &m_nodes[2]->Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_3vars<3, 3, 3>(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(),
+                                                    &m_nodes[2]->Variables());
+    }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -139,9 +139,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               type_constraint_tuple& jacobian_tuple_N,
-                                               type_constraint_tuple& jacobian_tuple_U,
-                                               type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     /// Return mass of contactable object.
@@ -230,9 +230,12 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
 /// Contact element of triangular type - version for triangles where the nodes are of ChNodeFEAxyzrot type.
 /// Used to 'tessellate' a generic surface like the outer of tetrahedral meshes.
-class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
+class ChApi ChContactTriangleXYZRot : public ChContactable_3vars, public ChLoadableUV {
   public:
-    ChContactTriangleXYZRot();
+    ChContactTriangleXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node1,
+                            std::shared_ptr<ChNodeFEAxyzrot> node2,
+                            std::shared_ptr<ChNodeFEAxyzrot> node3,
+                            ChContactSurface* container = nullptr);
     ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                             ChContactSurface* container = nullptr);
 
@@ -271,16 +274,12 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, publi
 
     // Interface to ChContactable
 
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_666; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::THREE_666; }
 
-    /// Access variables for node 1.
-    virtual ChVariables* GetVariables1() override { return &m_nodes[0]->Variables(); }
-
-    /// Access variables for node 2.
-    virtual ChVariables* GetVariables2() override { return &m_nodes[1]->Variables(); }
-
-    /// Access variables for node 3.
-    virtual ChVariables* GetVariables3() override { return &m_nodes[2]->Variables(); }
+    virtual ChConstraintTuple* CreateConstraintTuple() override {
+        return new ChConstraintTuple_3vars<6, 6, 6>(&m_nodes[0]->Variables(), &m_nodes[1]->Variables(),
+                                                    &m_nodes[2]->Variables());
+    }
 
     /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
@@ -341,9 +340,9 @@ class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, publi
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
-                                               type_constraint_tuple& jacobian_tuple_N,
-                                               type_constraint_tuple& jacobian_tuple_U,
-                                               type_constraint_tuple& jacobian_tuple_V,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
                                                bool second) override;
 
     /// Return mass of contactable object.

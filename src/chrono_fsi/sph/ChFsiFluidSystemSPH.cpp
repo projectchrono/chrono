@@ -960,7 +960,7 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
             m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
             m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
             m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].lin_acc);
+            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
             m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
         }
 
@@ -1350,14 +1350,30 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
             bce_coords.insert(bce_coords.end(), points.begin(), points.end());
         }
 
-        // Set initial global BCE positions
-        const auto& X = fsi_body->body->GetFrameRefToAbs();
+        // Get global BCE positions
+        const auto& X_G_R = fsi_body->body->GetFrameRefToAbs();
         std::transform(bce_coords.begin(), bce_coords.end(), std::back_inserter(bce),
-                       [&X](ChVector3d& v) { return X.TransformPointLocalToParent(v); });
+                       [&X_G_R](ChVector3d& v) { return X_G_R.TransformPointLocalToParent(v); });
+
+        // Get local BCE coordinates relative to centroidal frame
+        bce_coords.clear();
+        const auto& X_G_COM = fsi_body->body->GetFrameCOMToAbs();
+        std::transform(bce.begin(), bce.end(), std::back_inserter(bce_coords),
+                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v);});
 
         // Set BCE body association
         bce_ids.resize(bce_coords.size(), fsi_body->index);
     }
+}
+
+void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
+    ChVector3d y_tmp(0, 1, 0);
+    if (x.y() > 0.9 || x.y() < -0.9) {
+        y_tmp.x() = 1;
+        y_tmp.y() = 0;
+    }
+    z = Vcross(x, y_tmp).GetNormalized();
+    y = Vcross(z, x);
 }
 
 void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh,
@@ -1443,9 +1459,9 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
 
             // Create local frame
             ChVector3d x_dir = D.GetNormalized();
-            ChVector3<> y_dir(-x_dir.y() - x_dir.z(), x_dir.x() - x_dir.z(), x_dir.x() + x_dir.y());
-            y_dir.Normalize();
-            ChVector3<> z_dir = Vcross(x_dir, y_dir);
+            ChVector3d y_dir;
+            ChVector3d z_dir;
+            GetOrthogonalAxes(x_dir, y_dir, z_dir);
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {

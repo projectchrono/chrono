@@ -152,7 +152,7 @@ class WaveFunctionDecay : public ChFunction {
 // -----------------------------------------------------------------------------
 
 // Wave tank profile for a beach represented as a 4th order Bezier curve.
-class WaveTankBezierBeach : public ChFsiProblemCartesian::WaveTankProfile {
+class WaveTankBezierBeach : public ChFsiProblemWavetank::Profile {
   public:
     WaveTankBezierBeach(double x_start) : x_start(x_start), last_t(1e-2) {
         const double in2m = 0.0254;
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemWavetank fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
@@ -422,20 +422,18 @@ int main(int argc, char* argv[]) {
     fsi.RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(depth));
 
     // Create a wave tank
-    // double stroke = 0.1;  //
-    // double stroke = 0.1;
+    ////double stroke = 0.1;
+    ////double stroke = 0.1;
     double stroke = 0.06;
     double frequency = 1 / period;
     auto fun = chrono_types::make_shared<WaveFunctionDecay>(stroke, frequency);
 
-    // auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                           //
-    //                                   ChVector3d(0, 0, 0), csize, depth,                                //
-    //                                   fun,                                                              //
-    //                                   chrono_types::make_shared<WaveTankBezierBeach>(x_start), false);  //
+    ////fsi.SetProfile(chrono_types::make_shared<WaveTankBezierBeach>(x_start), false);
+    fsi.SetProfile(chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), true);
 
-    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                  //
-                                      ChVector3d(0, 0, 0), csize, depth,                                       //
-                                      fun, chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), true);  //
+    auto body = fsi.ConstructWaveTank(ChFsiProblemWavetank::WavemakerType::PISTON,  //
+                                      ChVector3d(0, 0, 0), csize, depth,            //
+                                      fun);                                         //
 
     // Initialize the FSI system
     fsi.Initialize();
@@ -560,6 +558,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -576,6 +575,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Call the FSI solver
         sysFSI.DoStepDynamics(step_size);

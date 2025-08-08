@@ -20,7 +20,7 @@ Here are the main features:
     * centered difference
     * [Chung](https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620372303)
 * single-GPU scaling up to 700 million frictionless elements or 200 million full-history frictional elements
-* trianglular meshes (`obj` format) in order to facilitate co-simulation with a more full-featured solver (such as the ChSystem)
+* triangular meshes (`obj` format) in order to facilitate co-simulation with a more full-featured solver (such as the ChSystem)
 
 ## Requirements
 

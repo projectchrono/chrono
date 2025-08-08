@@ -11,7 +11,7 @@ The **Matlab module** is used to provide an easy way to call Matlab
 functions from your Chrono -based application. Basically, you can 
 
 - call Matlab commands from your C++ program,
-- send/retrieve data to/from Matlab (the Chrono C++ matrices are converted to Matlab, and viceversa)
+- send/retrieve data to/from Matlab (the Chrono C++ matrices are converted to Matlab, and vice-versa)
 - use the Matlab powerful visualization tools, to show simulation data in 2D/3D plots, etc.
 
 

@@ -899,13 +899,14 @@ void ChPovRay::ExportData(const std::string& filename) {
                 virtual bool OnReportContact(
                     const ChVector3d& pA,             // contact pA
                     const ChVector3d& pB,             // contact pB
-                    const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
-                    const double& distance,           // contact distance
-                    const double& eff_radius,         // effective radius of curvature at contact
-                    const ChVector3d& react_forces,   // react.forces (in coordsystem 'plane_coord')
-                    const ChVector3d& react_torques,  // react.torques (if rolling friction)
-                    ChContactable* contactobjA,       // model A (note: could be nullptr)
-                    ChContactable* contactobjB        // model B (note: could be nullptr)
+                    const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+                    double distance,                  // contact distance
+                    double eff_radius,                // effective radius of curvature at contact
+                    const ChVector3d& react_forces,   // react. forces, expressed in 'plane_coord'
+                    const ChVector3d& react_torques,  // react. torques, if rolling friction
+                    ChContactable* contactobjA,       // first contactable object (may be nullptr)
+                    ChContactable* contactobjB,       // second contactable object (may be nullptr)
+                    int constraint_offset             // NSC only: ignored here
                     ) override {
                     if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
                         fabs(react_forces.z()) > 1e-8) {

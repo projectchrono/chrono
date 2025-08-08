@@ -164,7 +164,7 @@ def main():
     vis.SetWindowSize(1024, 768)
     vis.SetWindowTitle("ROS RoboSimian URDF Demo")
     vis.Initialize()
-    vis.AddLogo(ch.GetChronoDataFile("logo_pychrono_alpha.png"))
+    vis.AddLogo(ch.GetChronoDataFile("logo_chrono_alpha.png"))
     vis.AddSkyBox()
     vis.AddTypicalLights()
 

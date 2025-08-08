@@ -164,9 +164,9 @@ class MyContactContainer : public ChContactContainerSMC {
     MyContactContainer() {}
     // Traverse the list contactlist_6_6
     bool isThereContacts(std::shared_ptr<ChElementBase> myShellANCF, bool print) {
-        auto iter = contactlist_333_333.begin();
+        auto iter = contacts.begin();
         int num_contact = 0;
-        while (iter != contactlist_333_333.end()) {
+        while (iter != contacts.end()) {
             ChVector3d p1 = (*iter)->GetContactP1();
             ChVector3d p2 = (*iter)->GetContactP2();
             double CD = (*iter)->GetContactDistance();

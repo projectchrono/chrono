@@ -34,13 +34,14 @@ using namespace chrono::fmi2;
 
 // -----------------------------------------------------------------------------
 
-bool render = true;
-bool output = true;
-
-double t_start = 0;
-double t_end = 25;
+double t_end = 20;
 
 double t_step = 5e-4;
+
+bool output = true;
+double output_fps = 1000;
+
+bool render = true;
 
 // -----------------------------------------------------------------------------
 
@@ -176,13 +177,13 @@ int main(int argc, char* argv[]) {
     FmuChronoUnit crane_fmu;
     FmuChronoUnit actuator_fmu;
     try {
-        CreateCraneFMU(crane_fmu, crane_fmu_filename, crane_unpack_dir, t_start, t_end, render, logCategories);
+        CreateCraneFMU(crane_fmu, crane_fmu_filename, crane_unpack_dir, 0.0, t_end, render, logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading crane FMU: " << e.what() << "\n";
         return 1;
     }
     try {
-        CreateActuatorFMU(actuator_fmu, actuator_fmu_filename, actuator_unpack_dir, t_start, t_end, render,
+        CreateActuatorFMU(actuator_fmu, actuator_fmu_filename, actuator_unpack_dir, 0.0, t_end, render,
                           logCategories);
     } catch (std::exception& e) {
         std::cout << "ERROR loading actuator FMU: " << e.what() << "\n";
@@ -205,11 +206,17 @@ int main(int argc, char* argv[]) {
     auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Initialize combined output
-    utils::ChWriterCSV csv;
-    csv.SetDelimiter(" ");
+    utils::ChWriterCSV csv(" ");
+    fmi2Real F;   // actuator force
+    fmi2Real s;  // actuator length
+    fmi2Real sd;  // actuator length rate
+    crane_fmu.GetVariable("s", s, FmuVariable::Type::Real);
+    crane_fmu.GetVariable("sd", sd, FmuVariable::Type::Real);
+    csv << 0 << s << sd << 0 << 0 << 4.163e6 << 3.461e6 << 0 << std::endl;
 
     // Simulation loop
-    double time = t_start;
+    double time = 0;
+    int output_frame = 1;
 
     ChTimer timer;
     timer.start();
@@ -220,9 +227,9 @@ int main(int argc, char* argv[]) {
         fmi2Real Uref = actuation->GetVal(time);
 
         // --------- Exchange data
-        fmi2Real F;   // Actuator force  [actuator] -> [crane]
-        fmi2Real s;   // Actuator length [crane] -> [actuator]
-        fmi2Real sd;  // Actuator length rate [crane] -> [actuator]
+        // F:  actuator force       [actuator] -> [crane]
+        // s:  actuator length      [crane] -> [actuator]
+        // sd: actuator length rate [crane] -> [actuator]
 
         actuator_fmu.GetVariable("F", F, FmuVariable::Type::Real);
         crane_fmu.GetVariable("s", s, FmuVariable::Type::Real);
@@ -245,14 +252,16 @@ int main(int argc, char* argv[]) {
         auto status_crane = crane_fmu.DoStep(time, t_step, fmi2True);
         auto status_actuator = actuator_fmu.DoStep(time, t_step, fmi2True);
 
-        if (status_crane == fmi2Discard || status_actuator == fmi2Discard)
+        time += t_step;
+
+        if (status_crane == fmi2Status::fmi2Discard || status_actuator == fmi2Status::fmi2Discard)
             break;
 
         // Save output
-        if (output)
+        if (output && time >= output_frame / output_fps) {
             csv << time << s << sd << Uref << U << p1 << p2 << F << std::endl;
-
-        time += t_step;
+            output_frame++;
+        }
     }
     timer.stop();
     auto RTF = timer() / t_end;
@@ -265,43 +274,48 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_POSTPROCESS
         {
             postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+            gplot.SetOutputWindowTitle("Actuator length");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
-            gplot.SetLabelY("s");
-            gplot.SetTitle("Actuator length");
-            gplot << "set ylabel 's'";
-            gplot << "set y2label 'sd'";
-            gplot << "set ytics nomirror tc lt 1";
-            gplot << "set y2tics nomirror tc lt 2";
-            gplot.Plot(out_file, 1, 2, "s", " axis x1y1 with lines lt 1 lw 2");
-            gplot.Plot(out_file, 1, 3, "sd", " axis x1y2 with lines lt 2 lw 2");
+            gplot.SetLegend("left bottom");
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("s [m] , sd [m/s]");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 2, "s", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 3, "sd", " with lines lt 2 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Input");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("U");
-            gplot.SetTitle("Hydro Input");
-            gplot.Plot(out_file, 1, 4, "ref", " with lines lt -1 lw 2");
-            gplot.Plot(out_file, 1, 5, "U", " with lines lt 1 lw 2");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Pressures");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
-            gplot.SetLabelY("p");
-            gplot.SetTitle("Hydro Pressures");
+            gplot.SetLegend("left bottom");
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("p [N/m2]");
+            gplot.SetRangeX(0, t_end);
             gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
             gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Force");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
-            gplot.SetLabelY("F");
-            gplot.SetTitle("Hydro Force");
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("F [N]");
+            gplot.SetRangeX(0, t_end);
             gplot.SetRangeY(1000, 9000);
-            gplot.Plot(out_file, 1, 8, "F", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 8, "", " with lines lt -1 lw 2");
         }
 #endif
     }

@@ -502,6 +502,11 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                bool create_collision,
                                std::shared_ptr<ChContactMaterial> material,
                                double sphere_swept) {
+    if (!trimesh) {
+        std::cerr << "Unable to create trimesh\n";
+        return;
+    }
+
     if (create_visualization) {
         auto vshape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vshape->SetMutable(false);

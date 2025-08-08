@@ -177,7 +177,7 @@ pov_exporter.SetCamera(chrono.ChVector3d(0.4,0.6,0.9), chrono.ChVector3d(0.2,0,0
 
 ##Change material of shape visualization {#manual_sw_material}
 
-Maybe that your 3D rendering looks too dull because all surfaces, by default, look like white chalk. However you can pich one object and change its appearance by tweaking the POVray materials. The idea is that you can add additional objects of ```ChAsset``` type into each moving part; one of these ChAsset objects could belong to the ```ChPovRayAssetCustom``` class, that allows you to add optional POVray statement to the rendering scripts that are generated for a specific shape. Look how this is achieved by using this bit of code:
+Maybe that your 3D rendering looks too dull because all surfaces, by default, look like white chalk. However you can pick one object and change its appearance by tweaking the POVray materials. The idea is that you can add additional objects of ```ChAsset``` type into each moving part; one of these ChAsset objects could belong to the ```ChPovRayAssetCustom``` class, that allows you to add optional POVray statement to the rendering scripts that are generated for a specific shape. Look how this is achieved by using this bit of code:
 
 ~~~{.py}
 shaft_povmat = postprocess.ChPovRayAssetCustomShared()
@@ -252,7 +252,7 @@ The center of mass is computed automatically by SolidWorks when you export the m
 
 ##Show coordinate frames     {#manual_sw_showframes}
 
-Suppose you want to visualize the reference coordinate sytems of each ChBodyAuxRef body: this is the code that you need:
+Suppose you want to visualize the reference coordinate systems of each ChBodyAuxRef body: this is the code that you need:
 
 ~~~{.py}
 pov_exporter.SetShowFrames(1, 0.05)

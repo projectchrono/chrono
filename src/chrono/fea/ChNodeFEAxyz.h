@@ -30,7 +30,7 @@ class ChMesh;
 
 /// Class for a generic 3D finite element node, with x,y,z displacement.
 /// This is the typical node that can be used for tetrahedrons, etc.
-class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
+class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
   public:
     ChNodeFEAxyz(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyz(const ChNodeFEAxyz& other);
@@ -81,9 +81,6 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   public:
-    // INTERFACE to ChVariableTupleCarrier_1vars
-    virtual ChVariables* GetVariables1() override { return &Variables(); }
-
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,

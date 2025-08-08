@@ -288,6 +288,7 @@ std::shared_ptr<ChMesh> CreateFlexiblePlate(ChSystem& sysMBS, const ChVector3d& 
 
     // Create an FEA mesh representing a cantilever plate modeled with ANCF shell elements
     auto mesh = chrono_types::make_shared<fea::ChMesh>();
+    mesh->SetName("Plate");
 
     std::vector<std::shared_ptr<ChNodeFEAbase>> collision_nodes;
 
@@ -402,7 +403,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the FSI problem
-    ChFsiProblemCartesian fsi(sysMBS, initial_spacing);
+    ChFsiProblemWavetank fsi(sysMBS, initial_spacing);
     fsi.SetVerbose(verbose);
     ChFsiSystemSPH& sysFSI = fsi.GetSystemFSI();
 
@@ -466,18 +467,17 @@ int main(int argc, char* argv[]) {
     ////auto fun = chrono_types::make_shared<WaveFunctionDecay>(0.2, 1.4);
     auto fun = chrono_types::make_shared<WaveFunction>(0.25, 0.2, 1);
 
+    // Create tank bottom profile (flat bottom if none specified)
+    fsi.SetProfile(chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), true);
+    ////fsi.SetProfile(chrono_types::make_shared<WaveTankParabolicBeach>(x_start, 0.32), false);
+
+    // Optionally, replace lateral walls with period BC
+    ////fsi.SetLateralPeriodicBC(true);
+
     // Create wave tank with wavemaker mechanism
-    ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
-    ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
-    ////                                  fun);                                                                      //
-    auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                             //
-                                      ChVector3d(0, 0, 0), csize, depth,                                  //
-                                      fun,                                                                //
-                                      chrono_types::make_shared<WaveTankRampBeach>(x_start, 0.2), true);  //
-    ////auto body = fsi.ConstructWaveTank(ChFsiProblemSPH::WavemakerType::PISTON,                                    //
-    ////                                  ChVector3d(0, 0, 0), csize, depth,                                         //
-    ////                                  fun,                                                                       //
-    ////                                  chrono_types::make_shared<WaveTankParabolicBeach>(x_start, 0.32), false);  //
+    auto body = fsi.ConstructWaveTank(ChFsiProblemWavetank::WavemakerType::PISTON,  //
+                                      ChVector3d(0, 0, 0), csize, depth,            //
+                                      fun);                                         //
 
     // Create solid objects
     if (create_rigid_post) {
@@ -495,11 +495,11 @@ int main(int argc, char* argv[]) {
         fsi.SetBcePattern1D(BcePatternMesh1D::FULL, false);
         fsi.AddFeaMesh(mesh, true);
     } else if (create_flex_plate) {
-        ////double length = 0.8;
-        ////double width = csize.y() / 2;
-        ////auto mesh = CreateFlexiblePlate(fsi.GetMultibodySystem(), ChVector3d(-csize.x() / 4, 0, 0), length, width);
-        ////fsi.SetBcePattern2D(BcePatternMesh2D::CENTERED, false);
-        ////fsi.AddFeaMesh(mesh, true);
+        double length = 0.8;
+        double width = csize.y() / 2;
+        auto mesh = CreateFlexiblePlate(fsi.GetMultibodySystem(), ChVector3d(-csize.x() / 4, 0, 0), length, width);
+        fsi.SetBcePattern2D(BcePatternMesh2D::CENTERED, false);
+        fsi.AddFeaMesh(mesh, true);
     }
 
     // Complete construction of the FSI problem
@@ -588,10 +588,23 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
+    // SetMBS threads
+    int num_threads_chrono = std::min(4, ChOMP::GetNumProcs() / 2);
+    int num_threads_pardiso = std::min(4, ChOMP::GetNumProcs() / 2);
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    sysMBS.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+
+    cout << "Set num. threads" << endl;
+    cout << "   num_threads_chrono:    " << num_threads_chrono << endl;
+    cout << "   num_threads_pardiso:   " << num_threads_pardiso << endl;
+    cout << "   num_threads_collision: " << num_threads_collision << endl;
+    cout << "   num_threads_eigen:     " << num_threads_eigen << endl;
+
     // Set MBS solver
     if (create_flex_cable || create_flex_plate) {
 #ifdef CHRONO_PARDISO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>(num_threads_pardiso);
         mkl_solver->LockSparsityPattern(true);
         sysMBS.SetSolver(mkl_solver);
 #else
@@ -629,6 +642,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -645,6 +659,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Call the FSI solver
         fsi.DoStepDynamics(step_size);

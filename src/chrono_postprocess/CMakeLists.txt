@@ -76,7 +76,7 @@ install(TARGETS Chrono_postprocess
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include/chrono_vehicle)
+        INCLUDES DESTINATION include/chrono_postprocess) 
 
 #-------------------------------------------------------------------------------
 # Install files

@@ -23,12 +23,8 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
-
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/track_assembly/M113_TrackAssemblyBandBushing.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_MUMPS
     #include "chrono_mumps/ChSolverMumps.h"
@@ -37,6 +33,18 @@
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
+
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemIRR.h"
+using namespace chrono::irrlicht;
+#endif
+
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -48,6 +56,9 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+// Run-time visualization system
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Simulation step size
 double step_size = 1e-4;
@@ -92,18 +103,19 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& react_forces,
                                  const ChVector3d& react_torques,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int constraint_offset) override {
         m_num_contacts++;
 
         auto bodyA = dynamic_cast<ChBody*>(modA);
         auto bodyB = dynamic_cast<ChBody*>(modB);
-        auto vertexA = dynamic_cast<fea::ChContactNodeXYZsphere*>(modA);
-        auto vertexB = dynamic_cast<fea::ChContactNodeXYZsphere*>(modB);
+        auto vertexA = dynamic_cast<fea::ChContactNodeXYZ*>(modA);
+        auto vertexB = dynamic_cast<fea::ChContactNodeXYZ*>(modB);
         auto faceA = dynamic_cast<fea::ChContactTriangleXYZ*>(modA);
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
 
@@ -226,18 +238,41 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ////ChVector3d target_point = rig->GetPostPosition();
-    ////ChVector3d target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ChVector3d target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
-    auto vis = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
-    vis->SetWindowTitle("Continuous Band Track Test Rig");
-    vis->SetWindowSize(1280, 1024);
-    vis->AttachTTR(rig);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChTrackTestRigVisualSystemIRR>();
+            vis_irr->SetWindowSize(1280, 1024);
+            vis_irr->SetWindowTitle("Continuous Band Track Test Rig");
+            vis_irr->AttachTTR(rig);
+            vis_irr->Initialize();
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChTrackTestRigVisualSystemVSG>();
+            vis_vsg->SetWindowSize(1280, 800);
+            vis_vsg->SetWindowTitle("Continuous Band Track Test Rig");
+            vis_vsg->AttachTTR(rig);
+            vis_vsg->Initialize();
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
 
     // ---------------------------------------
     // Contact reporter object (for debugging)
