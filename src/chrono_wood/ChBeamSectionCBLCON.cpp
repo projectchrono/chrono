@@ -70,7 +70,7 @@ void ChBeamSectionCBLCON::ComputeProjectionMatrix() {
 };
 
 void ChBeamSectionCBLCON::ComputeEigenStrain(std::shared_ptr<ChMatrixNM<double,1,9>> macro_strain){
-	ChVectorDynamic<> eigen_strain;					
+	ChVector3d eigen_strain;
 	auto pp=this->GetProjectionMatrix();
 	eigen_strain = -pp * macro_strain->transpose();	
 	this->Set_nonMechanicStrain(eigen_strain);				

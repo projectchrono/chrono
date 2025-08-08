@@ -114,8 +114,8 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
 	
 	void ComputeEigenStrain(std::shared_ptr<ChMatrixNM<double,1,9>> macro_strain);
 	
-	ChVectorDynamic<>  Get_nonMechanicStrain() const { return m_nonMechanicStrain; };
-    void Set_nonMechanicStrain(ChVectorDynamic<>  nonMechanicStrain) { m_nonMechanicStrain=nonMechanicStrain; } 
+	ChVector3d Get_nonMechanicStrain() const { return m_nonMechanicStrain; };
+    void Set_nonMechanicStrain(ChVector3d nonMechanicStrain) { m_nonMechanicStrain=nonMechanicStrain; }
     
     
   protected:
@@ -123,7 +123,7 @@ class ChWoodApi ChBeamSectionCBLCON  : public ChBeamSection {
     ChVector3d m_center;
     ChMatrix33<double> m_facetFrame;
     StateVarVector m_state;
-	ChVectorDynamic<>  m_nonMechanicStrain;
+	ChVector3d  m_nonMechanicStrain;
     //std::shared_ptr<ChInternalDataCSL> m_state;  
     double mcon_width=1.0;  
     double mcon_height=1.0; 
