@@ -311,12 +311,11 @@ void ChContactSMC::CalculateQ(const ChState& stateA_x,                   // stat
 }
 
 void ChContactSMC::CreateJacobians() {
+    /*
     delete m_Jac;
     m_Jac = new ChContactJacobian;
 
     // Set variables and resize Jacobian matrices.
-    // NOTE: currently, only contactable objects derived from ChContactable_1vars<6>,
-    //       ChContactable_1vars<3>, and ChContactable_3vars<3,3,3> are supported.
     int ndof_w = objA->GetContactableNumCoordsVelLevel() + objB->GetContactableNumCoordsVelLevel();
     std::vector<ChVariables*> vars;
     vars.insert(vars.end(), objA->m_contactable_variables.begin(), objA->m_contactable_variables.end());
@@ -326,6 +325,7 @@ void ChContactSMC::CreateJacobians() {
     m_Jac->m_K.setZero(ndof_w, ndof_w);
     m_Jac->m_R.setZero(ndof_w, ndof_w);
     assert(m_Jac->m_KRM.GetMatrix().cols() == ndof_w);
+    */
 }
 
 void ChContactSMC::CalculateJacobians(const ChContactMaterialCompositeSMC& mat) {

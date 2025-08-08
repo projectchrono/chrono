@@ -22,8 +22,7 @@ namespace fea {
 // -----------------------------------------------------------------------------
 //  ChContactNodeXYZ
 
-ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact_surface)
-    : ChContactable_1vars(&node->Variables()) {
+ChContactNodeXYZ::ChContactNodeXYZ(ChNodeFEAxyz* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
 
@@ -64,8 +63,7 @@ ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
 // -----------------------------------------------------------------------------
 //  ChContactNodeXYZRot
 
-ChContactNodeXYZRot::ChContactNodeXYZRot(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface)
-    : ChContactable_1vars(&node->Variables()) {
+ChContactNodeXYZRot::ChContactNodeXYZRot(ChNodeFEAxyzrot* node, ChContactSurface* contact_surface) {
     m_node = node;
     m_container = contact_surface;
 

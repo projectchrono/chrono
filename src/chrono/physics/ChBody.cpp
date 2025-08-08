@@ -27,12 +27,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChBody)
 CH_UPCASTING(ChBody, ChPhysicsItem)
 CH_UPCASTING(ChBody, ChBodyFrame)
-CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars, ChBody_ChContactable_1vars_6)
+CH_UPCASTING(ChBody, ChContactable)
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 ChBody::ChBody()
-    : ChContactable_1vars(&variables),
-      index(0),
+    : index(0),
       fixed(false),
       collide(false),
       limit_speed(false),
@@ -59,7 +58,7 @@ ChBody::ChBody()
     m_contactable_variables.push_back(&variables);
 }
 
-ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other), ChContactable_1vars(other) {
+ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     fixed = other.fixed;
     collide = other.collide;
     limit_speed = other.limit_speed;
