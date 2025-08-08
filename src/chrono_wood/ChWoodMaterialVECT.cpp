@@ -371,7 +371,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 	// INELASTIC ANALYSIS
 	//
 	if (epsQ != 0) {
-		if (mstrain[0] > 10e-16) {     // fracture behaivor
+		if (mstrain[0] > 10e-16 || sigmat<sigmac) {     // fracture behaivor
 			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev);
 			mstress[0] = strsQ * mstrain[0] / epsQ;
 			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
