@@ -96,6 +96,11 @@ inline int3 ToInt3(const ChVector3i& v3) {
     return mI3(v3.x(), v3.y(), v3.z());
 }
 
+/// Convert a ChVector3i to an uint3 data structure.
+inline uint3 ToUint3(const ChVector3i& v3) {
+    return mU3(v3.x(), v3.y(), v3.z());
+}
+
 /// Convert a ChAABB to a RealAABB.
 inline RealAABB ToRealAABB(const ChAABB& aabb) {
     return RealAABB(ToReal3(aabb.min), ToReal3(aabb.max));

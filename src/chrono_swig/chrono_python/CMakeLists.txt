@@ -24,7 +24,7 @@ if(DEFINED CH_CONDA_INSTALL)
     message(FATAL_ERROR "Installation directory not specified. Set CH_INSTALL_PYTHON_PACKAGE")
   else()
     message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
-    set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
+    file(TO_CMAKE_PATH "${CH_INSTALL_PYTHON_PACKAGE}" CH_INSTALL_PYTHON)
   endif()
 
   if (NOT DEFINED CH_PYCHRONO_DATA_PATH)
@@ -48,7 +48,6 @@ set(DBG_SCRIPT FALSE)
 #-----------------------------------------------------------------------------
 
 message(STATUS "Find Python")
-set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(Python3 REQUIRED 
              COMPONENTS Interpreter Development
              OPTIONAL_COMPONENTS NumPy)
@@ -206,9 +205,9 @@ add_custom_command(TARGET core
 # Install .pyd binary module (.so on linux)
 install(TARGETS core
         EXPORT ChronoTargets
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
 # Install .py module wrapper
 install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
@@ -282,9 +281,9 @@ add_custom_command(TARGET fea
 # Install .pyd binary module (.so on linux)
 install(TARGETS fea
         EXPORT ChronoTargets
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 # Install .py module wrapper
 install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -375,9 +374,9 @@ if(CH_ENABLE_MODULE_POSTPROCESS)
   # Install .pyd binary module (.so on linux)
   install(TARGETS postprocess
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -453,9 +452,9 @@ if(CH_ENABLE_MODULE_IRRLICHT)
   # Install .pyd binary module (.so on linux)
   install(TARGETS irrlicht
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -530,9 +529,9 @@ if(CH_ENABLE_MODULE_PARDISO_MKL)
   # Install .pyd binary module (.so on linux)
   install(TARGETS pardisomkl
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_MKL_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -615,9 +614,9 @@ if(CH_ENABLE_MODULE_CASCADE)
   # Install .pyd binary module (.so on linux)
   install(TARGETS cascade
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_CASCADE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -714,9 +713,9 @@ if(CH_ENABLE_MODULE_VEHICLE AND CH_ENABLE_MODULE_VEHICLE_MODELS)
   # Install .pyd binary module (.so on linux)
   install(TARGETS vehicle
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -788,9 +787,9 @@ if(CH_ENABLE_MODULE_SENSOR)
     # Install .pyd binary module (.so on linux)
     install(TARGETS sensor
             EXPORT ChronoTargets
-            RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-            LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-            ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+            RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+            LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+            ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
     # Install .py module wrapper
     install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -874,9 +873,9 @@ endif()
   # Install .pyd binary module (.so on linux)
   install(TARGETS robot
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -944,9 +943,9 @@ if(CH_ENABLE_MODULE_PARSERS AND HAVE_URDF)
   # Install .pyd binary module (.so on linux)
   install(TARGETS parsers
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_PARSERS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 
@@ -1041,9 +1040,9 @@ if(CH_ENABLE_MODULE_ROS)
   # Install .pyd binary module (.so on linux)
   install(TARGETS ros
           EXPORT ChronoTargets
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/pychrono"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
   # Install .py module wrapper
   install(FILES "${CHPY_ROS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/pychrono")
 

@@ -37,9 +37,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#ifdef CHRONO_VSG
-    #include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
-#endif
+#include "chrono_fsi/sph/visualization/ChFsiVisualizationVSG.h"
 
 using namespace chrono;
 using namespace chrono::fsi;
@@ -99,7 +97,7 @@ int main(int argc, char* argv[]) {
                                     2e5f,   // kt
                                     20.0f   // gt
     );
-    ChVector3d init_loc(1.25, 0.0, 0.5);
+    ChVector3d init_loc(1.25, 0.0, 0.55);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto rover = chrono_types::make_shared<Viper>(&sys, wheel_type);
@@ -143,10 +141,10 @@ int main(int argc, char* argv[]) {
 
     // Add rover wheels as FSI bodies
     cout << "Create wheel BCE markers..." << endl;
-    std::string mesh_filename = GetChronoDataFile("robot/viper/obj/viper_wheel.obj");
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
+    std::string mesh_filename = GetChronoDataFile("robot/viper/obj/viper_cylwheel.obj");
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
+    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL));
 
     //// TODO: FIX ChFsiProblemSPH to allow rotating geometry on body!!
     for (int i = 0; i < 4; i++) {
@@ -171,7 +169,7 @@ int main(int argc, char* argv[]) {
             // Create a patch from a heigh field map image
             terrain.Construct(vehicle::GetDataFile("terrain/height_maps/bump64.bmp"),  // height map image file
                               terrain_length, terrain_width,                           // length (X) and width (Y)
-                              {0, 0.3},                                                // height range
+                              {0.25, 0.55},                                            // height range
                               0.25,                                                    // depth
                               true,                                                    // uniform depth
                               ChVector3d(terrain_length / 2, 0, 0),                    // patch center
@@ -190,7 +188,6 @@ int main(int argc, char* argv[]) {
 
     // Create run-time visualization
     std::shared_ptr<ChVisualSystem> vis;
-#ifdef CHRONO_VSG
     if (render) {
         // FSI plugin
         auto col_callback = chrono_types::make_shared<ParticleHeightColorCallback>(aabb.min.z(), aabb.max.z());
@@ -214,9 +211,6 @@ int main(int argc, char* argv[]) {
         visVSG->Initialize();
         vis = visVSG;
     }
-#else
-    render = false;
-#endif
 
     // Start the simulation
     double time = 0;

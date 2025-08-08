@@ -94,12 +94,12 @@ void ChTranslationalDamperSuspension::Construct(std::shared_ptr<ChChassis> chass
     if (m_lock_arm) {
         // Create a weld kinematic joint.
         m_joint =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
+            chrono_types::make_shared<ChJoint>(ChJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
                                                       m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     } else {
         // Create a revolute joint or bushing.
         // The axis of rotation is the y axis of the suspension reference frame.
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_joint",
+        m_joint = chrono_types::make_shared<ChJoint>(ChJoint::Type::REVOLUTE, m_name + "_joint",
                                                             chassis->GetBody(), m_arm,
                                                             ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     }

@@ -131,6 +131,8 @@ add_library(Chrono_vehicle_cosim
 )
 add_library(Chrono::vehicle_cosim ALIAS Chrono_vehicle_cosim)
 
+set_target_properties(Chrono_vehicle_cosim PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_vehicle_cosim PROPERTIES COMPILE_FLAGS "/GL")
   set_target_properties(Chrono_vehicle_cosim PROPERTIES LINK_FLAGS "/LTCG")

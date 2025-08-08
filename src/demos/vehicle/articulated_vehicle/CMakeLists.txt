@@ -67,4 +67,4 @@ TARGET_LINK_LIBRARIES(${PROGRAM}
                       Chrono_vehicle_irrlicht
                       ChronoModels_vehicle)
 
-INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+INSTALL(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})

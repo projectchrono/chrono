@@ -183,11 +183,9 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-#endif
 
         // Set current steering angle
         double time = viper.GetSystem()->GetChTime();

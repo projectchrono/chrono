@@ -23,6 +23,8 @@
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverPJacobi.h"
@@ -118,6 +120,17 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
 
 ChSystem::~ChSystem() {
     Clear();
+}
+
+std::shared_ptr<ChSystem> ChSystem::Create(ChContactMethod contact_method) {
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            return chrono_types::make_shared<ChSystemNSC>();
+        case ChContactMethod::SMC:
+            return chrono_types::make_shared<ChSystemSMC>();
+            break;
+    }
+    return nullptr;
 }
 
 void ChSystem::Clear() {
@@ -488,15 +501,16 @@ bool ChSystem::ManageSleepingBodies() {
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector3d& pA,             // get contact pA
-            const ChVector3d& pB,             // get contact pB
-            const ChMatrix33<>& plane_coord,  // get contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           // get contact distance
-            const double& eff_radius,         // effective radius of curvature at contact
-            const ChVector3d& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector3d& react_torques,  // get react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  // get model A (note: some containers may not support it and could be zero!)
-            ChContactable* contactobjB   // get model B (note: some containers may not support it and could be zero!)
+            const ChVector3d& pA,             // contact pA
+            const ChVector3d& pB,             // contact pB
+            const ChMatrix33<>& plane_coord,  // contact frame (X direction is contact normal)
+            double distance,                  // contact distance
+            double eff_radius,                // effective radius of curvature at contact
+            const ChVector3d& react_forces,   // react. forces (if already computed), expressed in 'plane_coord'
+            const ChVector3d& react_torques,  // react.torques, if rolling friction (if already computed)
+            ChContactable* contactobjA,       // first contactable object (may be nullptr)
+            ChContactable* contactobjB,       // second contactable object (may be nullptr)
+            int constraint_offset             // NSC only; ignored here
             ) override {
             if (!(contactobjA && contactobjB))
                 return true;

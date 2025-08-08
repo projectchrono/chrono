@@ -12,41 +12,24 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHLINKPOINTTRIFACE_H
-#define CHLINKPOINTTRIFACE_H
-
-#include <array>
+#ifndef CHLINK_NODE_FACE_H
+#define CHLINK_NODE_FACE_H
 
 #include "chrono/physics/ChLinkBase.h"
-#include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+#include "chrono/solver/ChConstraintTwoTuples.h"
 
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
-
-class ChIndexedNodes;  // forward ref
-
 namespace fea {
 
 /// @addtogroup fea_constraints
 /// @{
 
-/// Utility class for using the ChLinkNodeFace constraint.
-class ChApi ChTriangleNodesXYZ : public ChVariableTupleCarrier_3vars<3, 3, 3> {
-  public:
-    std::shared_ptr<fea::ChNodeFEAxyz> node1;
-    std::shared_ptr<fea::ChNodeFEAxyz> node2;
-    std::shared_ptr<fea::ChNodeFEAxyz> node3;
-
-    virtual ChVariables* GetVariables1() override { return &node1->Variables(); }
-    virtual ChVariables* GetVariables2() override { return &node2->Variables(); }
-    virtual ChVariables* GetVariables3() override { return &node3->Variables(); }
-};
-
-/// Constraint between an xyz FEA node (point) and a triangular face given by three xyz FEA nodes
-/// The triangular face element is assumed to have linear shape function (e.g., the face of a tetrahedron or a
-/// triangular shell). The node can be offset respect to the face.
+/// Constraint between an FEA node (point) and a triangular face given by three FEA nodes.
+/// The triangular face element is assumed to have linear shape function.
+/// The node can be offset with respect to the face.
 class ChApi ChLinkNodeFace : public ChLinkBase {
   public:
     ChLinkNodeFace();
@@ -57,61 +40,79 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
     virtual ChLinkNodeFace* Clone() const override { return new ChLinkNodeFace(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link.
-    virtual unsigned int GetNumAffectedCoords() override { return 3 + 3 + 3 + 3; }
+    virtual unsigned int GetNumAffectedCoords() override {
+        return m_point->GetNumCoords() + m_triangle->GetNumCoords();
+    }
 
     /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_point->GetPos(), QUNIT); }
 
-    /// Initialize this constraint, given the node and the triangle to join.
+    /// Initialize this constraint, given an XYZ node and an XYZ triangle.
     /// The attachment position is the actual position of the node.
     /// All nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,   ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyz> anodeB1,  ///< triangle: corner n.1
-                           std::shared_ptr<ChNodeFEAxyz> anodeB2,  ///< triangle: corner n.2
-                           std::shared_ptr<ChNodeFEAxyz> anodeB3   ///< triangle: corner n.3
+    virtual void Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,   ///< node (point) to join
+                            std::shared_ptr<ChNodeFEAxyz> nodeB1,  ///< triangle corner 1
+                            std::shared_ptr<ChNodeFEAxyz> nodeB2,  ///< triangle corner 2
+                            std::shared_ptr<ChNodeFEAxyz> nodeB3   ///< triangle corner 3
+    );
+
+    /// Initialize this constraint, given an XYZ node and an XYZrot triangle.
+    /// The attachment position is the actual position of the node.
+    /// All nodes must belong to the same ChSystem.
+    virtual void Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,      ///< node (point) to join
+                            std::shared_ptr<ChNodeFEAxyzrot> nodeB1,  ///< triangle corner 1
+                            std::shared_ptr<ChNodeFEAxyzrot> nodeB2,  ///< triangle corner 2
+                            std::shared_ptr<ChNodeFEAxyzrot> nodeB3   ///< triangle corner 3
+    );
+
+    /// Initialize this constraint, given an XYZrot node and an XYZ triangle.
+    /// The attachment position is the actual position of the node.
+    /// All nodes must belong to the same ChSystem.
+    virtual void Initialize(std::shared_ptr<ChNodeFEAxyzrot> nodeA,  ///< node (point) to join
+                            std::shared_ptr<ChNodeFEAxyz> nodeB1,    ///< triangle corner 1
+                            std::shared_ptr<ChNodeFEAxyz> nodeB2,    ///< triangle corner 2
+                            std::shared_ptr<ChNodeFEAxyz> nodeB3     ///< triangle corner 3
+    );
+
+    /// Initialize this constraint, given an XYZrot node and an XYZrot triangle.
+    /// The attachment position is the actual position of the node.
+    /// All nodes must belong to the same ChSystem.
+    virtual void Initialize(std::shared_ptr<ChNodeFEAxyzrot> nodeA,   ///< node (point) to join
+                            std::shared_ptr<ChNodeFEAxyzrot> nodeB1,  ///< triangle corner 1
+                            std::shared_ptr<ChNodeFEAxyzrot> nodeB2,  ///< triangle corner 2
+                            std::shared_ptr<ChNodeFEAxyzrot> nodeB3   ///< triangle corner 3
     );
 
     /// Set the area coordinates to specify where the point A is connected on triangle.
-    /// These are 0..1 values, one respect to point B2, the other respect to B3
+    /// These are 0..1 values, one with respect to point B2, the other with respect to B3
     /// (the third area coord follows automatically as 1-s2-s3).
-    /// The Initialize() function initialize this automatically.
-    virtual void SetAreaCoords(const double ms2, const double ms3) {
-        s2 = ms2;
-        s3 = ms3;
+    virtual void SetAreaCoords(double s2, double s3) {
+        m_s2 = s2;
+        m_s3 = s3;
     }
 
     /// Get the area coordinates, as set with respect to B2 and B3.
     /// (the third area coord follows automatically as 1-s2-s3).
-    virtual void GetAreaCoords(double& ms2, double& ms3) const {
-        ms2 = s2;
-        ms3 = s3;
+    virtual void GetAreaCoords(double& s2, double& s3) const {
+        s2 = m_s2;
+        s3 = m_s3;
     }
 
     /// Set an optional offset of the point with respect to triangle, along triangle normal.
     /// Note that it is better to avoid large offsets. Better if offset is zero.
-    /// The Initialize() function initialize this automatically.
-    virtual void SetOffset(const double md) { d = md; }
+    virtual void SetOffset(const double d) { m_d = d; }
 
-    /// Get the imposed offset of the point with respect to triangle.
-    virtual double GetOffset(double md) const { return d; }
-
-    /// Get the connected xyz node (point).
-    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return this->m_node; }
-
-    /// Get the connected triangle.
-    std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3> GetTriangle() const {
-        return std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3>{
-            {this->m_triangle.node1, this->m_triangle.node2, this->m_triangle.node3}};
-    }
+    /// Get the imposed offset of the point with respect to the triangle.
+    virtual double GetOffset() const { return m_d; }
 
     /// Get the reaction force considered as applied to the node, in abs coords.
-    ChVector3d GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -m_react; }
 
     /// Get the reaction force considered as applied to the triangle, in abs coords.
-    ChVector3d GetReactionOnTriangle() const { return -react; }
+    ChVector3d GetReactionOnTriangle() const { return -m_react; }
 
     /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double time, bool update_assets) override;
@@ -158,18 +159,8 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
   private:
-    ChVector3d react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint3;
-
-    std::shared_ptr<ChNodeFEAxyz> m_node;
-    ChTriangleNodesXYZ m_triangle;
-
-    double s2, s3;
-    double d;
+    /// Complete initialization.
+    void CompleteInitialization();
 
     /// Get the link frame 1, on the connected node, expressed in the absolute frame.
     virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
@@ -187,167 +178,51 @@ class ChApi ChLinkNodeFace : public ChLinkBase {
         return {GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle()), VNULL};
         //// TODO: check torque
     }
-};
-
-// ---------------------------------------------------------------------------------
-
-// The following classes might be removed if ChNodeFEAxyzrot were inherited from ChNodeFEAxys.
-// Planned for future
-
-/// Utility class for using the ChLinkNodeFaceRot constraint.
-class ChApi ChTriangleNodesXYZrot : public ChVariableTupleCarrier_3vars<6, 6, 6> {
-  public:
-    std::shared_ptr<fea::ChNodeFEAxyzrot> node1;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> node2;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> node3;
-
-    virtual ChVariables* GetVariables1() { return &node1->Variables(); };
-    virtual ChVariables* GetVariables2() { return &node2->Variables(); };
-    virtual ChVariables* GetVariables3() { return &node3->Variables(); };
-};
-
-/// Constraint between an xyz FEA node (point) and a triangular face given by three xyzrot FEA nodes.
-/// The triangular face element is assumed to have linear shape function.
-/// The node can be offset respect to the face.
-class ChApi ChLinkNodeFaceRot : public ChLinkBase {
-  public:
-    ChLinkNodeFaceRot();
-    ChLinkNodeFaceRot(const ChLinkNodeFaceRot& other);
-    ~ChLinkNodeFaceRot() {}
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkNodeFaceRot* Clone() const override { return new ChLinkNodeFaceRot(*this); }
-
-    /// Get the number of scalar variables affected by constraints in this link.
-    virtual unsigned int GetNumAffectedCoords() override { return 3 + 6 + 6 + 6; }
-
-    /// Number of scalar constraints.
-    virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
-
-    /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
-
-    /// Initialize this constraint, given the node and the triangle to join.
-    /// The attachment position is the actual position of the node.
-    /// All nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,      ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyzrot> nodeB1,  ///< triangle: corner n.1
-                           std::shared_ptr<ChNodeFEAxyzrot> nodeB2,  ///< triangle: corner n.2
-                           std::shared_ptr<ChNodeFEAxyzrot> nodeB3   ///< triangle: corner n.3
-    );
-
-    /// Set the area coordinates to specify where the point A is connected on triangle.
-    /// These are 0..1 values, one respect to point B2, the other respect to B3
-    /// (the third area coord follows automatically as 1-s2-s3).
-    /// The Initialize() function initialize this automatically.
-    virtual void SetAreaCoords(const double ms2, const double ms3) {
-        s2 = ms2;
-        s3 = ms3;
-    }
-
-    /// Get the area coordinates, as set with respect to B2 and B3.
-    /// (the third area coord follows automatically as 1-s2-s3).
-    virtual void GetAreaCoords(double& ms2, double& ms3) const {
-        ms2 = s2;
-        ms3 = s3;
-    }
-
-    /// Set an optional offset of point A respect to triangle, along triangle normal.
-    /// Note that it is better to avoid large offsets. Better if offset is zero.
-    /// The Initialize() function initialize this automatically.
-    virtual void SetOffset(const double md) { d = md; }
-
-    /// Get the imposed offset of point A respect to triangle.
-    virtual double GetOffset(double md) const { return d; }
-
-    /// Get the connected xyz node (point).
-    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return this->m_node; }
-
-    /// Get the connected triangle.
-    std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3> GetTriangle() const {
-        return std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3>{
-            {this->m_triangle.node1, this->m_triangle.node2, this->m_triangle.node3}};
-    }
-
-    /// Get the reaction force considered as applied to node A, in abs coords.
-    ChVector3d GetReactionOnNode() const { return -react; }
-
-    /// Get the reaction force considered as applied to the triangle, in abs coords.
-    ChVector3d GetReactionOnTriangle() const { return -react; }
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double time, bool update_assets) override;
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
-
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
-    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void LoadConstraintJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
 
   private:
-    ChVector3d react;
+    enum class FeaNodeType { XYZ, XYZrot };
 
-    // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint3;
+    /// Base class for a point given by an FEA node.
+    struct PointNode {
+        virtual ~PointNode() {}
+        virtual FeaNodeType GetType() const = 0;
+        virtual unsigned int GetNumCoords() const = 0;
+        virtual const ChVector3d& GetPos() const = 0;
+        virtual ChConstraintTuple* CreateConstraintTuple() = 0;
+    };
 
-    std::shared_ptr<ChNodeFEAxyz> m_node;
-    ChTriangleNodesXYZrot m_triangle;
+    /// Base class for a triangle given by three FEA nodes.
+    struct TriangleNodes {
+        virtual ~TriangleNodes() {}
+        virtual FeaNodeType GetType() const = 0;
+        virtual unsigned int GetNumCoords() const = 0;
+        virtual const ChVector3d& GetPos1() const = 0;
+        virtual const ChVector3d& GetPos2() const = 0;
+        virtual const ChVector3d& GetPos3() const = 0;
+        virtual ChConstraintTuple* CreateConstraintTuple() = 0;
+    };
 
-    double s2, s3;
-    double d;
+    bool m_initialized;
 
-    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
-    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
+    ChVector3d m_react;
 
-    /// Get the link frame 2, on the face, expressed in the absolute frame.
-    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
+    // used as an interface to the solver
+    ChConstraintTwoTuples constraint1;
+    ChConstraintTwoTuples constraint2;
+    ChConstraintTwoTuples constraint3;
 
-    /// Get reaction force and torque on node, expressed on link frame 1.
-    virtual ChWrenchd GetReaction1() const override {
-        return {GetFrame1Abs().TransformDirectionParentToLocal(GetReactionOnNode()), VNULL};
-    }
+    std::unique_ptr<PointNode> m_point;
+    std::unique_ptr<TriangleNodes> m_triangle;
 
-    /// Get reaction force and torque on triangle, expressed on link frame 2.
-    virtual ChWrenchd GetReaction2() const override {
-        return {GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle()), VNULL};
-        //// TODO: check torque
-    }
+    double m_s1;
+    double m_s2;
+    double m_s3;
+    double m_d;
+
+    friend struct PointNodeXYZ;
+    friend struct PointNodeXYZrot;
+    friend struct TriangleNodesXYZ;
+    friend struct TriangleNodesXYZrot;
 };
 
 /// @} fea_constraints

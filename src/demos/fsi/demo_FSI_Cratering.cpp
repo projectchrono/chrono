@@ -196,38 +196,34 @@ int main(int argc, char* argv[]) {
         sysSPH.AddSPHParticle(p, rho_ini, pre_ini, sysSPH.GetViscosity(), ChVector3d(0));
     }
 
-    // Create MBD and BCE particles for the solid domain
+    // Create the solid domain
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.3f);
     cmaterial->SetRestitution(0.05f);
     cmaterial->SetAdhesion(0);
 
-    // Create a container
+    // Create a box body fixed to ground (used to carry collision geometry)
     auto box = chrono_types::make_shared<ChBody>();
     box->SetPos(ChVector3d(0.0, 0.0, 0.0));
     box->SetRot(ChQuaternion<>(1, 0, 0, 0));
     box->SetFixed(true);
-    sysMBS.AddBody(box);
-
-    // Add collision geometry for the container walls
     chrono::utils::AddBoxContainer(box, cmaterial,                                 //
                                    ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(2, 2, -1),                           //
                                    false);
-    box->EnableCollision(false);
+    box->EnableCollision(true);
+    sysMBS.AddBody(box);
 
-    // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(box,                                            //
-                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),                //
-                              ChVector3i(2, 2, -1));
+    // Add boundary BCE particles to the FSI system
+    auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {2, 2, -1});
+    sysFSI.AddFsiBoundary(box_bce, ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT));
 
     // Create a falling sphere
     double volume = ChSphere::GetVolume(sphere_radius);
     double mass = sphere_density * volume;
-    auto inertia = mass * ChSphere::GetGyration(sphere_radius);
+    ChMatrix33d inertia = mass * ChSphere::GetGyration(sphere_radius);
     double impact_vel = std::sqrt(2 * Hdrop * g);
 
     ////double sphere_z_pos = Hdrop + fzDim + sphere_radius + 0.5 * init_spacing;
@@ -237,17 +233,18 @@ int main(int argc, char* argv[]) {
     double sphere_z_vel = impact_vel;
 
     auto sphere = chrono_types::make_shared<ChBody>();
-    sysMBS.AddBody(sphere);
     sphere->SetPos(ChVector3d(0, 0, sphere_z_pos));
     sphere->SetPosDt(ChVector3d(0, 0, -sphere_z_vel));
     sphere->SetMass(mass);
     sphere->SetInertia(inertia);
-
     chrono::utils::AddSphereGeometry(sphere.get(), cmaterial, sphere_radius);
+    sphere->EnableCollision(true);
     sphere->GetCollisionModel()->SetSafeMargin(init_spacing);
+    sysMBS.AddBody(sphere);
 
-    sysFSI.AddFsiBody(sphere);
-    sysSPH.AddSphereBCE(sphere, ChFrame<>(VNULL, QUNIT), sphere_radius, true, true);
+    // Create body BCE particles and add the sphere as an FSI body
+    auto sphere_bce = sysSPH.CreatePointsSphereInterior(sphere_radius, true);
+    sysFSI.AddFsiBody(sphere, sphere_bce, ChFrame<>(), false);
 
     // Complete construction of the FSI system
     sysFSI.Initialize();
@@ -349,6 +346,7 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
 
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -363,6 +361,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Write penetration depth to file
         double d_pen = fzDim + sphere_radius + 0.5 * init_spacing - sphere->GetPos().z();

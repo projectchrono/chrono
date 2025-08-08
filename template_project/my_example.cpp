@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -13,70 +13,60 @@
 // simulation with 3D run-time visualization.
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/core/ChRealtimeStep.h"
+#include <chrono/physics/ChSystemNSC.h>
+#include <chrono/physics/ChBodyEasy.h>
+#include <chrono/physics/ChLinkMate.h>
+#include <chrono/assets/ChTexture.h>
+#include <chrono/core/ChRealtimeStep.h>
+#include <chrono_irrlicht/ChVisualSystemIrrlicht.h>
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespace of Chrono
+// Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
     // Set path to Chrono data directory
     SetChronoDataPath(CHRONO_DATA_DIR);
-    
-    // Create a Chrono physical system
+
+    // 0 - Create a Chrono physical system
     ChSystemNSC sys;
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    // Pendulum example ------------------------------------
+    // 1 - Create a fixed floor body (also used to represent the absolute reference)
+    auto floor_body = std::make_shared<ChBodyEasyBox>(10, 2, 10,  // x, y, z dimensions
+                                                      3000,       // density
+                                                      true,       // create visualization asset
+                                                      false       // no collision geometry
+    );
+    floor_body->SetFixed(true);
+    floor_body->SetPos(ChVector3d(0, -2, 0));
+    floor_body->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/checker1.png"), 2,
+                                              2);  // optionally set color and/or texture for visual assets
+    sys.Add(floor_body);
 
-    // 1 - Create a floor that is fixed (that is used also to represent the absolute reference)
+    // 2 - Create a pendulum body
+    auto pendulum_body = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions
+                                                         3000,         // density
+                                                         true,         // create visualization asset
+                                                         false         // no collision geometry
+    );
+    pendulum_body->SetPos(ChVector3d(0, 3, 0));
+    pendulum_body->SetLinVel(ChVector3d(1, 0, 0));
+    pendulum_body->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.5f, 0.25f));
+    sys.Add(pendulum_body);
 
-    auto floorBody = std::make_shared<ChBodyEasyBox>(10, 2, 10,  // x, y, z dimensions
-                                                     3000,       // density
-                                                     true,       // create visualization asset
-                                                     false       // no collision geometry
-                                                     );
-    floorBody->SetPos(ChVector3d(0, -2, 0));
-    floorBody->SetFixed(true);
-
-    sys.Add(floorBody);
-
-    // 2 - Create a pendulum
-
-    auto pendulumBody = std::make_shared<ChBodyEasyBox>(0.5, 2, 0.5,  // x, y, z dimensions
-                                                        3000,         // density
-                                                        true,         // create visualization asset
-                                                        false         // no collision geometry
-                                                        );
-    pendulumBody->SetPos(ChVector3d(0, 3, 0));
-    pendulumBody->SetLinVel(ChVector3d(1, 0, 0));
-
-    sys.Add(pendulumBody);
-
-    // 3 - Create a spherical constraint.
-    //   Here we'll use a ChLinkMateGeneric, but we could also use ChLinkLockSpherical
-
-    auto sphericalLink =
-        std::make_shared<ChLinkMateGeneric>(true, true, true, false, false, false);  // x,y,z,Rx,Ry,Rz constrains
+    // 3 - Create a spherical constraint
+    //     Here we use a ChLinkMateGeneric, but we could also create a ready-to-use ChLinkMateSpherical
+    auto sperical_link =
+        std::make_shared<ChLinkMateGeneric>(true, true, true, false, false, false);  // x, y, z, Rx, Ry, Rz constrains
     ChFrame<> link_position_abs(ChVector3d(0, 4, 0));
-
-    sphericalLink->Initialize(pendulumBody,        // the 1st body to connect
-                              floorBody,           // the 2nd body to connect
-                              false,               // the two following frames are in absolute, not relative, coords.
-                              link_position_abs,   // the link reference attached to 1st body
+    sperical_link->Initialize(pendulum_body,      // the 1st body to connect
+                              floor_body,         // the 2nd body to connect
+                              false,              // the two following frames are in absolute, not relative, coordinates
+                              link_position_abs,  // the link reference attached to 1st body
                               link_position_abs);  // the link reference attached to 2nd body
-
-    sys.Add(sphericalLink);
-
-    // Optionally, set color and/or texture for visual assets
-    pendulumBody->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.5f, 0.25f));
-    floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/checker1.png"), 2, 2);
+    sys.Add(sperical_link);
 
     // 4 - Create the Irrlicht visualization system
     ChVisualSystemIrrlicht vis;
@@ -91,7 +81,12 @@ int main(int argc, char* argv[]) {
 
     // 5 - Simulation loop
     ChRealtimeStepTimer realtime_timer;
-    double step_size = 5e-3;
+    double timestep = 5e-3;
+
+    // Optionally customize solver settings
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(1e-6);
 
     while (vis.Run()) {
         // Render scene
@@ -99,11 +94,11 @@ int main(int argc, char* argv[]) {
         vis.Render();
         vis.EndScene();
 
-        // Perform the integration step
-        sys.DoStepDynamics(step_size);
+        // Perform the time integration step
+        sys.DoStepDynamics(timestep);
 
         // Spin in place to maintain soft real-time
-        realtime_timer.Spin(step_size);
+        realtime_timer.Spin(timestep);
     }
 
     return 0;

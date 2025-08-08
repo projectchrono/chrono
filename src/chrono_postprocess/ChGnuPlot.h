@@ -376,6 +376,22 @@ class ChGnuPlot {
         commandfile += "\n";
     }
 
+    /// Set output window title.
+    void SetOutputWindowTitle(const std::string& label) {
+        commandfile += "set term wxt title \"";
+        commandfile += label;
+        commandfile += "\" \n";
+    }
+
+    /// Set canvas size.
+    void SetCanvasSize(int width, int height) {
+        commandfile += "set term wxt size ";
+        commandfile += std::to_string(width);
+        commandfile += ",";
+        commandfile += std::to_string(height);
+        commandfile += "\n";
+    }
+
     /// Save plot in a PNG file.
     /// Call this before Plot() statements. Otherwise call Replot() just after.
     void OutputPNG(const std::string& filename, int sizex = 400, int sizey = 300) {

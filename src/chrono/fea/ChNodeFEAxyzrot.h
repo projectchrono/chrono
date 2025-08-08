@@ -31,7 +31,6 @@ namespace fea {
 /// This is the typical node that can be used for beams, etc.
 class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
                               public ChBodyFrame,
-                              public ChVariableTupleCarrier_1vars<6>,
                               public ChLoadableUVW {
   public:
     ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>());
@@ -106,8 +105,6 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
 
   public:
     // INTERFACE to ChVariableTupleCarrier_1vars
-
-    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     // Functions for interfacing to the state bookkeeping
 

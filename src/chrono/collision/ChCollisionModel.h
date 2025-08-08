@@ -40,7 +40,7 @@ class ChCollisionModelImpl;
 
 /// Definition of an instance of a collision shape in a collision model.
 struct ChApi ChCollisionShapeInstance {
-    std::shared_ptr<ChCollisionShape> shape;  /// collision shape (possibly shared)
+    std::shared_ptr<ChCollisionShape> shape;  ///< collision shape (possibly shared)
     ChFramed frame;                           ///< shape position relative to containing model
 
     void ArchiveOut(ChArchiveOut& archive_out);

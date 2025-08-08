@@ -59,7 +59,7 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
     m_spring->Initialize(front->GetBody(), rear->GetBody(), rev_frame);
     double K = GetTorsionStiffness();
     double C = K / 100;  // damping should not be zero
-    auto cb = chrono_types::make_shared<LinearSpringDamperTorque>(K, C, 0);
+    auto cb = chrono_types::make_shared<utils::LinearSpringDamperTorque>(K, C, 0);
     m_spring->RegisterTorqueFunctor(cb);
     rear->GetBody()->GetSystem()->AddLink(m_spring);
 }

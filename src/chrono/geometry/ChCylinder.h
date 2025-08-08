@@ -23,6 +23,7 @@ namespace chrono {
 /// @{
 
 /// A cylindrical geometric object for collisions and visualization.
+/// The cylinder is assumed to be aligned with the z axis of a frame with origin at the cylinder axis center.
 class ChApi ChCylinder : public ChVolume {
   public:
     ChCylinder() : r(0), h(0) {}

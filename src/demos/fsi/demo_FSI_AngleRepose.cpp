@@ -184,10 +184,8 @@ int main(int argc, char* argv[]) {
     box->EnableCollision(false);
 
     // Add BCE particles attached on the walls into FSI system
-    sysSPH.AddBoxContainerBCE(box,                                    //
-                              ChFrame<>(ChVector3d(0, 0, 0), QUNIT),  //
-                              ChVector3d(bxDim, byDim, bzDim),        //
-                              ChVector3i(0, 0, -1));
+    auto box_bce = sysSPH.CreatePointsBoxContainer(ChVector3d(bxDim, byDim, bzDim), {0, 0, -1});
+    sysFSI.AddFsiBody(box, box_bce, ChFrame<>(ChVector3d(0, 0, 0), QUNIT), false);
 
     sysFSI.Initialize();
 
@@ -263,7 +261,6 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-
     // Start the simulation
     double time = 0.0;
     int sim_frame = 0;
@@ -280,6 +277,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render SPH particles
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -295,6 +293,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         if (sim_frame % 1000 == 0) {
             std::cout << "step: " << sim_frame << "\ttime: " << time << "\tRTF: " << sysFSI.GetRtf() << std::endl;

@@ -53,16 +53,37 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
-bool render = true;
-bool output = true;
 
-double t_start = 0;
-double t_end = 25;
+double t_end = 20;
 
 double t_step = 5e-4;
 
+bool output = true;
+double output_fps = 1000;
+
+bool render = true;
+
 bool save_img = false;
-double fps = 60;
+double save_img_fps = 60;
+
+// -----------------------------------------------------------------------------
+
+void GetActuatorLength(std::shared_ptr<ChBody> crane,
+                       const ChVector3d& point_ground,
+                       const ChVector3d& point_crane,
+                       double& s,
+                       double& sd) {
+    const auto& P1 = point_ground;
+    const auto& V1 = VNULL;
+
+    auto P2 = crane->TransformPointLocalToParent(point_crane);
+    auto V2 = crane->PointSpeedLocalToParent(point_crane);
+
+    ChVector3d dir = (P2 - P1).GetNormalized();
+
+    s = (P2 - P1).Length();
+    sd = Vdot(dir, V2 - V1);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -156,7 +177,7 @@ int main(int argc, char* argv[]) {
     auto actuator = chrono_types::make_shared<ChHydraulicActuator2>();
     actuator->SetInputFunction(actuation);
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
-    actuator->Cylinder().SetInitialChamberPressures(4.4e6, 3.3e6);
+    actuator->Cylinder().SetInitialChamberPressures(4.163e6, 3.461e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);
     actuator->SetInitialLoad(F0);
     actuator->Initialize(ground, crane, true, attachment_ground, attachment_crane);
@@ -231,17 +252,23 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
-    // Simulation loop
-    double t = t_start;
-
-    int render_frame = 0;
-
-    Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
+    // Initialize output file
     utils::ChWriterCSV csv(" ");
+    double s, sd;
+    double F;
+    GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);
+    F = actuator->GetActuatorForce();
+    csv << 0 << s << sd << 0 << 0 << 4.163e6 << 3.461e6 << F << std::endl;
+
+    // Simulation loop
+    double t = 0;
+
+    int save_img_frame = 0;
+    int output_frame = 1;
 
     ChTimer timer;
     timer.start();
-    while (t < t_end) {
+    while (t <= t_end) {
         if (render) {
             if (!vis->Run())
                 break;
@@ -249,60 +276,81 @@ int main(int argc, char* argv[]) {
             vis->Render();
             vis->EndScene();
 
-            if (save_img && t >= render_frame / fps) {
+            if (save_img && t >= save_img_frame / save_img_fps) {
                 std::ostringstream filename;
-                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".bmp";
+                filename << img_dir << "/img_" << std::setw(4) << std::setfill('0') << save_img_frame + 1 << ".bmp";
                 vis->WriteImageToFile(filename.str());
-                render_frame++;
+                save_img_frame++;
             }
         }
 
         sys.DoStepDynamics(t_step);
+        t += t_step;
+
+        GetActuatorLength(crane, attachment_ground, attachment_crane, s, sd);
         auto Uref = actuation->GetVal(t);
         auto U = actuator->GetValvePosition();
         auto p = actuator->GetCylinderPressures();
-        auto F = actuator->GetActuatorForce();
+        F = actuator->GetActuatorForce();
 
-        if (output)
-            csv << t << Uref << U << p[0] << p[1] << F << std::endl;
-
-        t += t_step;
+        if (output && t >= output_frame / output_fps) {
+            csv << t << s << sd << Uref << U << p[0] << p[1] << F << std::endl;
+            output_frame++;
+        }
     }
     timer.stop();
     auto RTF = timer() / t_end;
     std::cout << "sim time: " << t_end << "  RTF: " << RTF;
 
     if (output) {
-        std::string out_file = out_dir + "/hydro.out";
+        std::string out_file = out_dir + "/hydraulic_crane.out";
         csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
         {
-            postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            postprocess::ChGnuPlot gplot(out_dir + "/displ.gpl");
+            gplot.SetOutputWindowTitle("Actuator length");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
+            gplot.SetLegend("left bottom");
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("s [m] , sd [m/s]");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 2, "s", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 3, "sd", " with lines lt 2 lw 2");
+        }
+        {
+            postprocess::ChGnuPlot gplot(out_dir + "/hydro_input.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Input");
+            gplot.SetCanvasSize(800, 640);
+            gplot.SetGrid();
+            gplot.SetLabelX("time [s]");
             gplot.SetLabelY("U");
-            gplot.SetTitle("Hydro Input");
-            gplot.Plot(out_file, 1, 2, "ref", " with lines lt -1 lw 2");
-            gplot.Plot(out_file, 1, 3, "U", " with lines lt 1 lw 2");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 4, "", " with lines lt -1 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_pressure.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Pressures");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
-            gplot.SetLabelY("p");
-            gplot.SetTitle("Hydro Pressures");
-            gplot.Plot(out_file, 1, 4, "p0", " with lines lt 1 lw 2");
-            gplot.Plot(out_file, 1, 5, "p1", " with lines lt 2 lw 2");
+            gplot.SetLegend("left bottom");
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("p [N/m2]");
+            gplot.SetRangeX(0, t_end);
+            gplot.Plot(out_file, 1, 6, "p0", " with lines lt 1 lw 2");
+            gplot.Plot(out_file, 1, 7, "p1", " with lines lt 2 lw 2");
         }
         {
             postprocess::ChGnuPlot gplot(out_dir + "/hydro_force.gpl");
+            gplot.SetOutputWindowTitle("Hydraulic Force");
+            gplot.SetCanvasSize(800, 640);
             gplot.SetGrid();
-            gplot.SetLabelX("time");
-            gplot.SetLabelY("F");
-            gplot.SetTitle("Hydro Force");
+            gplot.SetLabelX("time [s]");
+            gplot.SetLabelY("F [N]");
+            gplot.SetRangeX(0, t_end);
             gplot.SetRangeY(1000, 9000);
-            gplot.Plot(out_file, 1, 6, "F", " with lines lt -1 lw 2");
+            gplot.Plot(out_file, 1, 8, "", " with lines lt -1 lw 2");
         }
 #endif
     }

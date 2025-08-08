@@ -65,7 +65,6 @@
 #include "chrono/collision/ChCollisionSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChVehicleJoint.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleOutput.h"
@@ -190,7 +189,9 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)
 %shared_ptr(chrono::ChContactable)
-%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_1vars)
+%shared_ptr(chrono::ChContactable_2vars)
+%shared_ptr(chrono::ChContactable_3vars)
 %shared_ptr(chrono::fea::ChMesh)
 
 
@@ -255,7 +256,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::ChBrakeShafts)
 %shared_ptr(chrono::vehicle::BrakeSimple)
 %shared_ptr(chrono::vehicle::BrakeShafts)
-%shared_ptr(chrono::vehicle::ChVehicleJoint)
 %shared_ptr(chrono::vehicle::ChVehicle)
 %shared_ptr(chrono::vehicle::ChAxle)
 %shared_ptr(chrono::vehicle::ChSpindle)
@@ -373,9 +373,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChSuspension.i"
 %include "ChDriveline.i"
 
-
-
-%include "../../../chrono_vehicle/ChVehicleJoint.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"

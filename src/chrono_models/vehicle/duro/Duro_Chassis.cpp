@@ -68,7 +68,7 @@ Duro_Chassis::Duro_Chassis(const std::string& name, bool fixed, CollisionType ch
     m_geometry.vis_boxes.push_back(box1);
     m_geometry.vis_boxes.push_back(box2);
 
-    ////m_geometry.vis_mesh_file = vehicle::GetDataFile("Duro/Duro_chassis.obj");
+    ////m_geometry.vis_model_file = vehicle::GetDataFile("Duro/Duro_chassis.obj");
 
     switch (chassis_collision_type) {
         default:

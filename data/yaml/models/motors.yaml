@@ -1,0 +1,447 @@
+chrono-version: 9.0
+
+model:
+  name: motors
+  angle_degrees: false
+   
+  data_path:
+    type: RELATIVE
+    root: "../.."
+ 
+  bodies:
+    - name: ground
+      location: [0.0, 0.0, -2.0]
+      fixed: true
+      contact:
+        materials:
+          - name: ground_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: ground_material
+            dimensions: [20, 20, 2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [20.0, 20.0, 2.0]
+            color: [0.1, 0.3, 0.0]
+            location: [0, 0, 0]
+            orientation: [1, 0, 0, 0]
+  
+    - name: stator1
+      location: [-3, 3, 2]
+      orientation: [1, 0, 0, 0]
+  
+      mass: 1.0
+      inertia:
+        moments: [4.97419, 4.97419, 9.81748]
+        products: [0, 0, 0]
+      fixed: true
+      visualization:
+        shapes:
+          - type: CYLINDER
+            radius: 0.5
+            length: 0.1
+            location: [0, 0, 0]
+            orientation: [1, 0, 0, 0]
+            axis: [0, 1, 0]
+  
+    - name: rotor1
+      location: [-2.5, 3.15, 2]
+      orientation: [1, 0, 0, 0]
+      mass: 1.0
+      inertia:
+        moments: [0.0166667, 0.841667,  0.841667]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [1.0, 0.1, 0.1]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.0]
+  
+    - name: stator2
+      location: [-3, 2, 2]
+      orientation: [1, 0, 0, 0]
+      mass: 1.0
+      inertia:
+        moments: [4.97419, 4.97419, 9.81748]
+        products: [0, 0, 0]
+      fixed: true
+      visualization:
+        shapes:
+          - type: CYLINDER
+            radius: 0.5
+            length: 0.1
+            location: [0, 0, 0]
+            orientation: [1, 0, 0, 0]
+            axis: [0, 1, 0]
+  
+    - name: rotor2
+      location: [-2.5, 2.15, 2]
+      orientation: [1, 0, 0, 0]
+      mass: 1.0
+      inertia:
+        moments: [0.0166667, 0.841667,  0.841667]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [1.0, 0.1, 0.1]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.0]
+  
+    - name: stator3
+      location: [-3, 1, 2]
+      orientation: [1, 0, 0, 0]
+      mass: 1.0
+      inertia:
+        moments: [4.97419, 4.97419, 9.81748]
+        products: [0, 0, 0]
+      fixed: true
+      visualization:
+        shapes:
+          - type: CYLINDER
+            radius: 0.5
+            length: 0.1
+            location: [0, 0, 0]
+            orientation: [1, 0, 0, 0]
+            axis: [0, 1, 0]
+  
+    - name: rotor3
+      location: [-2.5, 1.15, 2]
+      orientation: [1, 0, 0, 0]
+      mass: 10.0
+      inertia:
+        moments: [0.0166667, 0.841667,  0.841667]
+        products: [0, 0, 0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [1.0, 0.1, 0.1]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.0]
+  
+    - name: guide1
+      location: [0, 3, 0]
+      orientation: [1, 0, 0, 0]
+      mass: 720
+      inertia:
+        moments: [27, 965.4, 981.6]
+        products: [0, 0, 0]
+      fixed: true
+      contact:
+        materials:
+          - name: guide_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: guide_material
+            dimensions: [4, 0.6, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [4.0, 0.6, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [1.0, 0.7, 0.0]
+  
+    - name: slider1
+      location: [0, 3, 0.3]
+      orientation: [1, 0, 0, 0]
+      mass: 40.0
+      inertia:
+        moments: [0.966667, 0.666667, 1.36667]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: slider_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: slider_material
+            dimensions: [0.4, 0.5, 0.2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.4, 0.5, 0.2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.0]
+  
+    - name: obs1
+      location: [1.5, 3, 0.4]
+      orientation: [1, 0, 0, 0]
+      mass: 512.0
+      inertia:
+        moments: [13.6533, 13.6533, 13.6533]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: obs_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: obs_material
+            dimensions: [0.4, 0.4, 0.4]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.4, 0.4, 0.4]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.6]
+  
+    - name: guide2
+      location: [0, 2, 0]
+      orientation: [1, 0, 0, 0]
+      mass: 720
+      inertia:
+        moments: [27, 965.4, 981.6]
+        products: [0, 0, 0]
+      fixed: true
+      contact:
+        materials:
+          - name: guide_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: guide_material
+            dimensions: [4, 0.6, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [4.0, 0.6, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [1.0, 0.7, 0.0]
+  
+    - name: slider2
+      location: [0, 2, 0.3]
+      orientation: [1, 0, 0, 0]
+      mass: 40.0
+      inertia:
+        moments: [0.966667, 0.666667, 1.36667]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: slider_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: slider_material
+            dimensions: [0.4, 0.5, 0.2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.4, 0.5, 0.2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.0]
+  
+    - name: obs2
+      location: [1.5, 2, 0.4]
+      orientation: [1, 0, 0, 0]
+      mass: 512.0
+      inertia:
+        moments: [13.6533, 13.6533, 13.6533]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: obs_material
+            # coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: obs_material
+            dimensions: [0.4, 0.4, 0.4]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.4, 0.4, 0.4]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.6]
+  
+    - name: guide3
+      location: [0, 1, 0]
+      orientation: [1, 0, 0, 0]
+      mass: 720
+      inertia:
+        moments: [27, 965.4, 981.6]
+        products: [0, 0, 0]
+      fixed: true
+      contact:
+        materials:
+          - name: guide_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: guide_material
+            dimensions: [4, 0.6, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [4.0, 0.6, 0.3]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [1.0, 0.7, 0.0]
+  
+    - name: slider3
+      location: [0, 1, 0.3]
+      orientation: [1, 0, 0, 0]
+      mass: 40.0
+      inertia:
+        moments: [0.966667, 0.666667, 1.36667]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: slide_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: slide_material
+            dimensions: [0.4, 0.5, 0.2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.4, 0.5, 0.2]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.0]
+  
+    - name: obs3
+      location: [1.5, 1, 0.4]
+      orientation: [1, 0, 0, 0]
+      mass: 512.0
+      inertia:
+        moments: [13.6533, 13.6533, 13.6533]
+        products: [0, 0, 0]
+      contact:
+        materials:
+          - name: obs_material
+            coefficient_of_friction: 0.8
+        shapes:
+          - type: BOX
+            material: obs_material
+            dimensions: [0.4, 0.4, 0.4]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+        collision_family: 0
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.4, 0.4, 0.4]
+            location: [0, 0, 0]
+            orientation: [0, 0, 0]
+            color: [0.6, 0.6, 0.6]
+  
+  motors:
+    - name: motor_A1
+      type: ROTATION
+      spindle: REVOLUTE
+      body1: rotor1
+      body2: stator1
+      location: [-3, 3, 2]
+      axis: [0, 1, 0]
+      actuation_type: SPEED
+      actuation_function:
+        type: CONSTANT
+        value: 1.57
+    
+    - name: motor_A2
+      type: ROTATION
+      spindle: REVOLUTE
+      body1: rotor2
+      body2: stator2
+      location: [-3, 2, 2]
+      axis: [0, 1, 0]
+      actuation_type: position
+      actuation_function:
+        type: SINE
+        amplitude: 3.14
+        frequency: 0.05
+        phase: 0.0
+  
+    - name: motor_A3
+      type: ROTATION
+      spindle: REVOLUTE
+      body1: rotor3
+      body2: stator3
+      location: [-3, 1, 2]
+      axis: [0, 1, 0]
+      actuation_type: force
+      actuation_function:
+        type: SINE
+        amplitude: 160.0
+        frequency: 2.0
+        phase: 0.0
+  
+    - name: motor_B1
+      type: LINEAR
+      spindle: PRISMATIC
+      body1: slider1
+      body2: guide1
+      location: [0, 3, 0]
+      axis: [1, 0, 0]
+      actuation_type: position
+      actuation_function:
+        type: SINE
+        amplitude: 1.6
+        frequency: 0.5
+        phase: 0.0
+  
+    - name: motor_B2
+      type: LINEAR
+      spindle: PRISMATIC
+      body1: slider2
+      body2: guide2
+      location: [0, 2, 0]
+      axis: [1, 0, 0]
+      actuation_type: speed
+      actuation_function:
+        type: SINE
+        amplitude: 5.0265
+        frequency: 0.5
+        phase: 1.57080
+  
+    - name: motor_B3
+      type: LINEAR
+      spindle: PRISMATIC
+      body1: slider3
+      body2: guide3
+      location: [0, 1, 0]
+      axis: [1, 0, 0]
+      actuation_type: force
+      actuation_function:
+        type: CONSTANT
+        value: 200

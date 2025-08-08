@@ -20,7 +20,7 @@ Used in many different scientific and engineering problems by researchers from a
 Implemented almost entirely in C++, Chrono also provides Python and C# APIs. The build system is based on CMake. Chrono is platform-independent and is actively tested on Linux, Windows, and MacOS using a variety of compilers.
 
 - [Project website](http://projectchrono.org/)
-- [Build and install instructions](https://api.projectchrono.org/development/tutorial_table_of_content_install.html)
+- [Build and install instructions](https://api.projectchrono.org/install_guides.html)
 
 
 ### Documentation

@@ -141,15 +141,15 @@ int main(int argc, char* argv[]) {
     double density = 5000;
     double mass = 0;
     ChMatrix33d inertia;
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
     switch (object_shape) {
         case ObjectShape::SPHERE_PRIMITIVE: {
             double radius = 0.2;
             ChSphere sphere(radius);
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
-            geometry.coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
+            geometry->coll_spheres.push_back(utils::ChBodyGeometry::SphereShape(VNULL, sphere, 0));
             break;
         }
         case ObjectShape::SPHERE_MESH: {
@@ -158,7 +158,8 @@ int main(int argc, char* argv[]) {
             mass = density * sphere.GetVolume();
             inertia = mass * sphere.GetGyration();
             std::string mesh_filename = GetChronoDataFile("models/sphere.obj");
-            geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL, radius, 0.01, 0));
+            geometry->coll_meshes.push_back(
+                utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL, radius, 0.01, 0));
             break;
         }
         case ObjectShape::BOX_PRIMITIVE: {
@@ -166,7 +167,7 @@ int main(int argc, char* argv[]) {
             ChBox box(size);
             mass = density * box.GetVolume();
             inertia = density * box.GetGyration();
-            geometry.coll_boxes.push_back(
+            geometry->coll_boxes.push_back(
                 utils::ChBodyGeometry::BoxShape(ChVector3d(0.1, 0.1, 0), Q_ROTATE_Y_TO_Z, box, 0));
             break;
         }
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
             ChCylinder cylinder(radius, length);
             mass = density * cylinder.GetVolume();
             inertia = density * cylinder.GetGyration();
-            geometry.coll_cylinders.push_back(
+            geometry->coll_cylinders.push_back(
                 utils::ChBodyGeometry::CylinderShape(VNULL, QuatFromAngleX(CH_PI / 4), cylinder, 0));
             break;
         }
@@ -185,10 +186,10 @@ int main(int argc, char* argv[]) {
             ChBox box2(ChVector3d(0.1, 0.1, 0.4));
             mass = density * box1.GetVolume();       // not exact
             inertia = density * box1.GetGyration();  // not exact
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, -0.15), QUNIT, box1, 0));
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, +0.15), QUNIT, box1, 0));
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(-0.2, 0, 0), QUNIT, box2, 0));
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(+0.2, 0, 0), QUNIT, box2, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, -0.15), QUNIT, box1, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, +0.15), QUNIT, box1, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(-0.2, 0, 0), QUNIT, box2, 0));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(ChVector3d(+0.2, 0, 0), QUNIT, box2, 0));
             break;
         }
     }
@@ -205,7 +206,7 @@ int main(int argc, char* argv[]) {
     sysMBS.AddBody(body);
 
     if (show_rigid)
-        geometry.CreateVisualizationAssets(body, VisualizationType::COLLISION);
+        geometry->CreateVisualizationAssets(body, VisualizationType::COLLISION);
 
     // Add as an FSI body
     fsi.AddRigidBody(body, geometry, true);
@@ -307,6 +308,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -323,6 +325,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         // Call the FSI solver
         fsi.DoStepDynamics(step_size);

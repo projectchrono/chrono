@@ -42,8 +42,8 @@ BceManager::BceManager(FsiDataManager& data_mgr, bool use_node_directions, bool 
       m_check_errors(check_errors) {
     m_totalForceRigid.resize(0);
     m_totalTorqueRigid.resize(0);
-    m_rigidBodyBlockSize = 512;
-    m_rigidBodyGridSize = 0;
+    m_rigid_block_size = 512;
+    m_rigid_grid_size = 0;
 }
 
 BceManager::~BceManager() {}
@@ -66,8 +66,11 @@ void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
 
     // Populate local position of BCE markers - on rigid bodies
     if (haveRigid) {
-        Populate_RigidSPH_MeshPos_LRF(fsiBodyBceNum);
-        // TODO (Huzaifa): Try to see if this additional function is needed
+        SetForceAccumulationBlocks(fsiBodyBceNum);
+
+        m_data_mgr.rigid_BCEcoords_D = m_data_mgr.rigid_BCEcoords_H;
+        m_data_mgr.rigid_BCEsolids_D = m_data_mgr.rigid_BCEsolids_H;
+        //// TODO (Huzaifa): Try to see if this additional function is needed
         UpdateBodyMarkerStateInitial();
     }
 
@@ -76,7 +79,7 @@ void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
         m_data_mgr.flex1D_Nodes_D = m_data_mgr.flex1D_Nodes_H;
         m_data_mgr.flex1D_BCEsolids_D = m_data_mgr.flex1D_BCEsolids_H;
         m_data_mgr.flex1D_BCEcoords_D = m_data_mgr.flex1D_BCEcoords_H;
-        // TODO (Huzaifa): Try to see if this additional function is needed
+        //// TODO (Huzaifa): Try to see if this additional function is needed
         UpdateMeshMarker1DStateInitial();
     }
 
@@ -84,81 +87,43 @@ void BceManager::Initialize(std::vector<int> fsiBodyBceNum) {
         m_data_mgr.flex2D_Nodes_D = m_data_mgr.flex2D_Nodes_H;
         m_data_mgr.flex2D_BCEsolids_D = m_data_mgr.flex2D_BCEsolids_H;
         m_data_mgr.flex2D_BCEcoords_D = m_data_mgr.flex2D_BCEcoords_H;
-        // TODO (Huzaifa): Try to see if this additional function is needed
+        //// TODO (Huzaifa): Try to see if this additional function is needed
         UpdateMeshMarker2DStateInitial();
     }
 }
 
 // -----------------------------------------------------------------------------
-// Populate_RigidSPH_MeshPos_LRF
-// -----------------------------------------------------------------------------
 
-__global__ void Populate_RigidSPH_MeshPos_LRF_D(Real3* rigid_BCEcoords_D,
-                                                Real4* posRadD,
-                                                uint* rigid_BCEsolids_D,
-                                                Real3* posRigidD,
-                                                Real4* qD) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index >= countersD.numRigidMarkers)
-        return;
-
-    int rigidIndex = rigid_BCEsolids_D[index];
-    uint rigidMarkerIndex = index + countersD.startRigidMarkers;
-    Real4 q4 = qD[rigidIndex];
-    Real3 a1, a2, a3;
-    RotationMatrixFromQuaternion(a1, a2, a3, q4);
-    Real3 dist3 = mR3(posRadD[rigidMarkerIndex]) - posRigidD[rigidIndex];
-    Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
-
-    // Save the coordinates in the local reference of a rigid body
-    rigid_BCEcoords_D[index] = dist3LF;
-}
-
-void BceManager::Populate_RigidSPH_MeshPos_LRF(std::vector<int> fsiBodyBceNum) {
-    // Create map between a BCE on a rigid body and the associated body ID
-    uint start_bce = 0;
-    thrust::host_vector<uint> h_rigidBodyBlockValidThreads(0);
+void BceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
     // 1 zero is pre added so that in a block with invalid threads, there is no need to map back the invalid threads in
     // the global array. This is only required in the very next block
-    thrust::host_vector<uint> h_rigidBodyAccumulatedPaddedThreads(1, 0);
+    thrust::host_vector<uint> rigid_valid_threads(0);
+    thrust::host_vector<uint> rigid_accumulated_threads(1, 0);
+
     uint accumulatedPaddedThreads = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
-        uint end_bce = start_bce + fsiBodyBceNum[irigid];
-        thrust::fill(m_data_mgr.rigid_BCEsolids_D.begin() + start_bce, m_data_mgr.rigid_BCEsolids_D.begin() + end_bce,
-                     irigid);
-
-        // Calculate block requirements with thread padding to ensure that during rigid body force accumulation
-        // each block only handles one rigid body
-        // For bodies with > m_rigidBodyBlockSize BCE markers, we need to split the work into multiple blocks and pad
-        // the last block with invalid threads
-        // For bodies with <= m_rigidBodyBlockSize BCE markers, we only need one block and pad that block with invalid
-        // threads
-        // Additionally, we accumulate the number of padded thread in each block to ensure we go to the right global
-        // index which does not account for thread padding
-        uint numBlocks = (fsiBodyBceNum[irigid] + m_rigidBodyBlockSize - 1) / m_rigidBodyBlockSize;
+        // Calculate block requirements with thread padding to ensure that during rigid body force accumulation each
+        // block only handles one rigid body.
+        //  - for bodies with > m_rigid_block_size BCE markers, split the work into multiple blocks and pad the last
+        //    block with invalid threads.
+        //  - for bodies with <= m_rigid_block_size BCE markers, need only one block and pad that block with invalid
+        //    threads.
+        // Additionally, accumulate the number of padded thread in each block to ensure we go to the right global index
+        // which does not account for thread padding.
+        uint numBlocks = (fsiBodyBceNum[irigid] + m_rigid_block_size - 1) / m_rigid_block_size;
         for (uint blockNum = 0; blockNum < numBlocks; blockNum++) {
-            uint numValidThreads = min(m_rigidBodyBlockSize, fsiBodyBceNum[irigid] - blockNum * m_rigidBodyBlockSize);
-            h_rigidBodyBlockValidThreads.push_back(numValidThreads);
-            uint numPaddedThreadsInThisBlock = m_rigidBodyBlockSize - numValidThreads;
+            uint numValidThreads = min(m_rigid_block_size, fsiBodyBceNum[irigid] - blockNum * m_rigid_block_size);
+            rigid_valid_threads.push_back(numValidThreads);
+            uint numPaddedThreadsInThisBlock = m_rigid_block_size - numValidThreads;
             accumulatedPaddedThreads += numPaddedThreadsInThisBlock;
-            h_rigidBodyAccumulatedPaddedThreads.push_back(accumulatedPaddedThreads);
+            rigid_accumulated_threads.push_back(accumulatedPaddedThreads);
         }
-        m_rigidBodyGridSize += numBlocks;
-        start_bce = end_bce;
+        m_rigid_grid_size += numBlocks;
     }
-    m_rigidBodyBlockValidThreads = h_rigidBodyBlockValidThreads;
-    m_rigidBodyAccumulatedPaddedThreads = h_rigidBodyAccumulatedPaddedThreads;
 
-    uint nBlocks, nThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, nBlocks, nThreads);
-
-    Populate_RigidSPH_MeshPos_LRF_D<<<nBlocks, nThreads>>>(
-        mR3CAST(m_data_mgr.rigid_BCEcoords_D), mR4CAST(m_data_mgr.sphMarkers_D->posRadD),
-        U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        mR4CAST(m_data_mgr.fsiBodyState_D->rot));
-
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    // Copy vectors to device
+    m_rigid_valid_threads = rigid_valid_threads;
+    m_rigid_accumulated_threads = rigid_accumulated_threads;
 }
 
 // -----------------------------------------------------------------------------
@@ -564,11 +529,11 @@ void BceManager::Rigid_Forces_Torques() {
     thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
 
     // Calculate shared memory size
-    size_t sharedMemSize = 2 * m_rigidBodyBlockSize * sizeof(Real3);
+    size_t sharedMemSize = 2 * m_rigid_block_size * sizeof(Real3);
 
-    CalcRigidForces_D<<<m_rigidBodyGridSize, m_rigidBodyBlockSize, sharedMemSize>>>(
+    CalcRigidForces_D<<<m_rigid_grid_size, m_rigid_block_size, sharedMemSize>>>(
         mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD),
-        U1CAST(m_rigidBodyBlockValidThreads), U1CAST(m_rigidBodyAccumulatedPaddedThreads),
+        U1CAST(m_rigid_valid_threads), U1CAST(m_rigid_accumulated_threads),
         mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD),
         U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->numRigidMarkers,
@@ -890,9 +855,9 @@ __global__ void UpdateMeshMarker1DState_D(
 
     // Create local frame
     Real3 x_dir = get_normalized(D);
-    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
-    y_dir = y_dir / length(y_dir);
-    Real3 z_dir = cross(x_dir, y_dir);
+    Real3 y_dir;
+    Real3 z_dir;
+    get_orthogonal_axes(x_dir, y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity
@@ -958,9 +923,9 @@ __global__ void UpdateMeshMarker1DStateUnsorted_D(
 
     // Create local frame
     Real3 x_dir = get_normalized(D);
-    Real3 y_dir = mR3(-x_dir.y - x_dir.z, x_dir.x - x_dir.z, x_dir.x + x_dir.y);
-    y_dir = y_dir / length(y_dir);
-    Real3 z_dir = cross(x_dir, y_dir);
+    Real3 y_dir;
+    Real3 z_dir;
+    get_orthogonal_axes(x_dir, y_dir, z_dir);
 
     P += y_val * y_dir + z_val * z_dir;  // BCE marker position
     Real3 V = V0 * (1 - t) + V1 * t;     // BCE marker velocity

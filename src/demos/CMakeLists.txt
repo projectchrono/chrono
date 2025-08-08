@@ -26,7 +26,7 @@ endif("${isSystemDir}" STREQUAL "-1")
 # For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
 
 if(APPLE)
-    set(CMAKE_MACOSX_BUNDLE ON)
+    set(CMAKE_MACOSX_BUNDLE OFF)
     set(MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
 endif()
 
@@ -76,6 +76,7 @@ if(CH_ENABLE_MODULE_PARSERS)
     option(BUILD_DEMOS_PARSERS "Build demo programs for Parsers module" TRUE)
     mark_as_advanced(FORCE BUILD_DEMOS_PARSERS)
     if(BUILD_DEMOS_PARSERS)
+      add_subdirectory(yaml)
       add_subdirectory(parsers)
     endif()    
 endif()

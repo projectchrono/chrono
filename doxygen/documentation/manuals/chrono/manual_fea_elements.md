@@ -109,7 +109,7 @@ The chrono::fea::ChElementHexaCorot_8 is a linear isoparametric element of brick
 The chrono::fea::ChElementHexaCorot_20 is a quadratic isoparametric element of brick type.
 
 - 20 nodes of ChNodeFEAxyz type 
-- 8 at vertexes, 12 at edges midpoints
+- 8 at vertices, 12 at edges midpoints
 - Quadratic interpolation
 - 27 integration points
 - Corotational formulation for large displacements

@@ -15,31 +15,54 @@ build:
   
 requirements:
   build:
-    - python
-    - cmake   # [not win]
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('cuda') }} # [not osx]
+    - cmake >=4
     - ninja   # [linux or osx]
     - jinja2  # [linux]
+    - swig ==4.0.2
+    - git
+    - openmpi
+    - intel-openmp ==2025.2.0 # [win]
+  host:
+    - python
     - libglvnd-glx-cos7-x86_64 # [linux]
     - freeglut # [linux]
     - libxxf86vm-devel-cos7-x86_64 # [linux]
-    - swig
-    - mkl-devel ==2020.0.0 # [not arm64]
+    - mkl-devel ==2025.2.0 # [not arm64]
     - irrlicht
-    - occt ==7.4.0 # [not arm64]
+    - opencascade ==7.4.0 # [not arm64]
     - numpy >=1.24.0
     - glew
     - glfw
     - eigen ==3.4.0
-
+    - cuda-version=={{ cuda_compiler_version }} # [not osx]
+    - urdfdom
+    - urdfdom_headers
+    - libgl-devel # [linux]
+    - yaml
+    - openmpi
+    - intel-openmp ==2025.2.0 # [win]
+    - cuda-runtime  # [not osx]
+    - libnpp-dev # [not osx]
+    - cuda-nvrtc-dev # [not osx]
+    - libcurand-dev # [not osx]
   run:
     - python
-    - pythonocc-core ==7.4.0 # [py<=39 and not arm64]
-    - mkl ==2020.0.0 # [not arm64]
+    - mkl ==2025.2.0 # [not arm64]
     - numpy >=1.24.0
     - irrlicht
+    - opencascade ==7.4.0 # [not arm64]
     - glew
     - glfw
     - eigen ==3.4.0
+    - cuda-version=={{ cuda_compiler_version }} # [not osx]
+    - cuda-runtime  # [not osx]
+    - urdfdom
+    - libgl # [linux]
+    - openmpi
+    - yaml
 
 about:
   home: https://github.com/projectchrono/chrono

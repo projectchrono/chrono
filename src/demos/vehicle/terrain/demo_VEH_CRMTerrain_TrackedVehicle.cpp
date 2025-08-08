@@ -340,15 +340,15 @@ void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrai
     auto track_geometry = vehicle->GetTrackShoe(VehicleSide::LEFT, 0)->GetGroundContactGeometry();
 
     // Consider only collision boxes that are large enough
-    utils::ChBodyGeometry geometry;
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     auto min_length = 2 * (sysSPH.GetNumBCELayers() - 1) * sysSPH.GetInitialSpacing();
     for (const auto& box : track_geometry.coll_boxes) {
         if (box.dims.x() > min_length && box.dims.y() > min_length && box.dims.z() < min_length) {
-            geometry.coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));
+            geometry->coll_boxes.push_back(utils::ChBodyGeometry::BoxShape(box.pos, box.rot, box.dims));
         }
     }
 
-    cout << "Consider " << geometry.coll_boxes.size() << " collision boxes out of " << track_geometry.coll_boxes.size()
+    cout << "Consider " << geometry->coll_boxes.size() << " collision boxes out of " << track_geometry.coll_boxes.size()
          << endl;
 
     // Add an FSI body and associated BCE markers for each track shoe
@@ -357,13 +357,15 @@ void CreateFSITracks(std::shared_ptr<TrackedVehicle> vehicle, CRMTerrain& terrai
     auto nshoes_left = vehicle->GetNumTrackShoes(VehicleSide::LEFT);
     for (size_t i = 0; i < nshoes_left; i++) {
         auto shoe_body = vehicle->GetTrackShoe(VehicleSide::LEFT, i)->GetShoeBody();
-        num_track_BCE += terrain.AddRigidBody(shoe_body, geometry, false);
+        terrain.AddRigidBody(shoe_body, geometry, false);
+        num_track_BCE += terrain.GetNumBCE(shoe_body);
     }
 
     auto nshoes_right = vehicle->GetNumTrackShoes(VehicleSide::RIGHT);
     for (size_t i = 0; i < nshoes_right; i++) {
         auto shoe_body = vehicle->GetTrackShoe(VehicleSide::RIGHT, i)->GetShoeBody();
-        num_track_BCE += terrain.AddRigidBody(shoe_body, geometry, false);
+        terrain.AddRigidBody(shoe_body, geometry, false);
+        num_track_BCE += terrain.GetNumBCE(shoe_body);
     }
 
     cout << "Added " << num_track_BCE << " BCE markers on track shoes" << endl;

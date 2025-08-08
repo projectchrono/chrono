@@ -20,6 +20,8 @@
 #include <vector>
 #include <utility>
 
+#include "chrono/utils/ChForceFunctors.h"
+
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
@@ -169,8 +171,8 @@ ChContactMaterialData ReadMaterialInfoJSON(const rapidjson::Value& mat) {
     return minfo;
 }
 
-std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
-    auto bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+std::shared_ptr<ChJoint::BushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
+    auto bushing_data = chrono_types::make_shared<ChJoint::BushingData>();
 
     bushing_data->K_lin = bd["Stiffness Linear"].GetDouble();
     bushing_data->D_lin = bd["Damping Linear"].GetDouble();
@@ -187,24 +189,24 @@ std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value
     return bushing_data;
 }
 
-ChVehicleJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
+ChJoint::Type ReadVehicleJointTypeJSON(const Value& a) {
     assert(a.IsString());
     std::string type = a.GetString();
     if (type.compare("Lock") == 0) {
-        return ChVehicleJoint::Type::LOCK;
+        return ChJoint::Type::LOCK;
     } else if (type.compare("Point Line") == 0) {
-        return ChVehicleJoint::Type::POINTLINE;
+        return ChJoint::Type::POINTLINE;
     } else if (type.compare("Point Plane") == 0) {
-        return ChVehicleJoint::Type::POINTPLANE;
+        return ChJoint::Type::POINTPLANE;
     } else if (type.compare("Revolute") == 0) {
-        return ChVehicleJoint::Type::REVOLUTE;
+        return ChJoint::Type::REVOLUTE;
     } else if (type.compare("Spherical") == 0) {
-        return ChVehicleJoint::Type::SPHERICAL;
+        return ChJoint::Type::SPHERICAL;
     } else if (type.compare("Universal") == 0) {
-        return ChVehicleJoint::Type::UNIVERSAL;
+        return ChJoint::Type::UNIVERSAL;
     } else {
         // TODO Unknown type, what do we do here?
-        return ChVehicleJoint::Type::LOCK;
+        return ChJoint::Type::LOCK;
     }
 }
 
@@ -263,7 +265,7 @@ utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
                 ChVector3d pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Contact Radius"].GetDouble();
                 geometry.coll_meshes.push_back(
-                    utils::ChBodyGeometry::TrimeshShape(pos, vehicle::GetDataFile(filename), radius, matID));
+                    utils::ChBodyGeometry::TrimeshShape(pos, QUNIT, vehicle::GetDataFile(filename), 1.0, radius, matID));
             }
         }
     }
@@ -272,7 +274,7 @@ utils::ChBodyGeometry ReadVehicleGeometryJSON(const rapidjson::Value& d) {
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
             std::string filename = d["Visualization"]["Mesh"].GetString();
-            geometry.vis_mesh_file = vehicle::GetDataFile(filename);
+            geometry.vis_model_file = vehicle::GetDataFile(filename);
         }
         if (d["Visualization"].HasMember("Primitives")) {
             assert(d["Visualization"]["Primitives"].IsArray());
@@ -398,7 +400,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
 
             double k = tsda["Spring Coefficient"].GetDouble();
 
-            auto forceCB = chrono_types::make_shared<LinearSpringForce>(k, preload);
+            auto forceCB = chrono_types::make_shared<utils::LinearSpringForce>(k, preload);
             if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
                 forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
             }
@@ -410,7 +412,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             assert(tsda.HasMember("Free Length"));
             free_length = tsda["Free Length"].GetDouble();
 
-            auto forceCB = chrono_types::make_shared<NonlinearSpringForce>(preload);
+            auto forceCB = chrono_types::make_shared<utils::NonlinearSpringForce>(preload);
 
             assert(tsda["Spring Curve Data"].IsArray() && tsda["Spring Curve Data"][0u].Size() == 2);
             int num_defs = tsda["Spring Curve Data"].Size();
@@ -429,7 +431,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         case FunctorType::LinearDamper: {
             double c = tsda["Damping Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearDamperForce>(c);
+            return chrono_types::make_shared<utils::LinearDamperForce>(c);
         }
 
         case FunctorType::DegressiveDamper: {
@@ -437,11 +439,11 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             double dc = tsda["Degressivity Compression"].GetDouble();
             double de = tsda["Degressivity Expansion"].GetDouble();
 
-            return chrono_types::make_shared<DegressiveDamperForce>(c, dc, de);
+            return chrono_types::make_shared<utils::DegressiveDamperForce>(c, dc, de);
         }
 
         case FunctorType::NonlinearDamper: {
-            auto forceCB = chrono_types::make_shared<NonlinearDamperForce>();
+            auto forceCB = chrono_types::make_shared<utils::NonlinearDamperForce>();
 
             assert(tsda["Damping Curve Data"].IsArray() && tsda["Damping Curve Data"][0u].Size() == 2);
             int num_speeds = tsda["Damping Curve Data"].Size();
@@ -461,7 +463,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             double k = tsda["Spring Coefficient"].GetDouble();
             double c = tsda["Damping Coefficient"].GetDouble();
 
-            auto forceCB = chrono_types::make_shared<LinearSpringDamperForce>(k, c, preload);
+            auto forceCB = chrono_types::make_shared<utils::LinearSpringDamperForce>(k, c, preload);
             if (tsda.HasMember("Minimum Length") && tsda.HasMember("Maximum Length")) {
                 forceCB->enable_stops(tsda["Minimum Length"].GetDouble(), tsda["Maximum Length"].GetDouble());
             }
@@ -473,7 +475,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
             assert(tsda.HasMember("Free Length"));
             free_length = tsda["Free Length"].GetDouble();
 
-            auto forceCB = chrono_types::make_shared<NonlinearSpringDamperForce>(preload);
+            auto forceCB = chrono_types::make_shared<utils::NonlinearSpringDamperForce>(preload);
 
             assert(tsda["Spring Curve Data"].IsArray() && tsda["Spring Curve Data"][0u].Size() == 2);
             int num_defs = tsda["Spring Curve Data"].Size();
@@ -496,7 +498,7 @@ std::shared_ptr<ChLinkTSDA::ForceFunctor> ReadTSDAFunctorJSON(const rapidjson::V
         }
 
         case FunctorType::MapSpringDamper: {
-            auto forceCB = chrono_types::make_shared<MapSpringDamperForce>(preload);
+            auto forceCB = chrono_types::make_shared<utils::MapSpringDamperForce>(preload);
 
             assert(tsda.HasMember("Deformation"));
             assert(tsda["Deformation"].IsArray());
@@ -570,14 +572,14 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
 
             double k = rsda["Spring Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearSpringTorque>(k, preload);
+            return chrono_types::make_shared<utils::LinearSpringTorque>(k, preload);
         }
 
         case FunctorType::NonlinearSpring: {
             assert(rsda.HasMember("Free Angle"));
             free_angle = rsda["Free Angle"].GetDouble();
 
-            auto torqueCB = chrono_types::make_shared<NonlinearSpringTorque>(preload);
+            auto torqueCB = chrono_types::make_shared<utils::NonlinearSpringTorque>(preload);
 
             assert(rsda["Spring Curve Data"].IsArray() && rsda["Spring Curve Data"][0u].Size() == 2);
             int num_defs = rsda["Spring Curve Data"].Size();
@@ -593,11 +595,11 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
         case FunctorType::LinearDamper: {
             double c = rsda["Damping Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearDamperTorque>(c);
+            return chrono_types::make_shared<utils::LinearDamperTorque>(c);
         }
 
         case FunctorType::NonlinearDamper: {
-            auto torqueCB = chrono_types::make_shared<NonlinearDamperTorque>();
+            auto torqueCB = chrono_types::make_shared<utils::NonlinearDamperTorque>();
 
             assert(rsda["Damping Curve Data"].IsArray() && rsda["Damping Curve Data"][0u].Size() == 2);
             int num_speeds = rsda["Damping Curve Data"].Size();
@@ -617,14 +619,14 @@ std::shared_ptr<ChLinkRSDA::TorqueFunctor> ReadRSDAFunctorJSON(const rapidjson::
             double k = rsda["Spring Coefficient"].GetDouble();
             double c = rsda["Damping Coefficient"].GetDouble();
 
-            return chrono_types::make_shared<LinearSpringDamperTorque>(k, c, preload);
+            return chrono_types::make_shared<utils::LinearSpringDamperTorque>(k, c, preload);
         }
 
         case FunctorType::NonlinearSpringDamper: {
             assert(rsda.HasMember("Free Angle"));
             free_angle = rsda["Free Angle"].GetDouble();
 
-            auto torqueCB = chrono_types::make_shared<NonlinearSpringDamperTorque>(preload);
+            auto torqueCB = chrono_types::make_shared<utils::NonlinearSpringDamperTorque>(preload);
 
             assert(rsda["Spring Curve Data"].IsArray() && rsda["Spring Curve Data"][0u].Size() == 2);
             int num_defs = rsda["Spring Curve Data"].Size();

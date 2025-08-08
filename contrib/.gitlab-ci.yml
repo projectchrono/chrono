@@ -12,6 +12,16 @@
 #    - if: '$CI_COMMIT_REF_NAME == "feature/fsi"'
 #      when: never
 
+spec:
+  inputs:
+    scheduled-install:
+      description: "Trigger the installation process via scheduled job"
+      type: boolean
+      default: false
+
+---
+
+
 # Build Stages (shared by each platform)
 stages:
   - build
@@ -109,7 +119,7 @@ linux:ubuntu22.04-gcc:build:
     - export C_COMPILER="/usr/bin/gcc"
     - export CXX_COMPILER="/usr/bin/g++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -127,8 +137,9 @@ linux:ubuntu22.04-gcc:test:
     # Source ROS distro
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
-    #- export CTEST_OUTPUT_ON_FAILURE=1
-    - ctest --output-on-failure
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - cmake --install .
+    - ninja test
   dependencies: ["linux:ubuntu22.04-gcc:build"]
 
 linux:ubuntu22.04-clang:build:
@@ -141,7 +152,7 @@ linux:ubuntu22.04-clang:build:
     - export C_COMPILER="/usr/bin/clang"
     - export CXX_COMPILER="/usr/bin/clang++"
     # Building chrono
-    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=linuxci
+    - cmake -G "Ninja" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_linux64" --preset=linuxci
     # Making chrono
     - cd $CI_PROJECT_DIR/build
     - ninja
@@ -159,8 +170,9 @@ linux:ubuntu22.04-clang:test:
     # Source ROS distro
     - source $CI_PROJECT_DIR/contrib/ros_ws/install/setup.sh
     - export OMP_NUM_THREADS=8
-    #- export CTEST_OUTPUT_ON_FAILURE=1
-    - ctest --output-on-failure
+    - export CTEST_OUTPUT_ON_FAILURE=1
+    - cmake --install .
+    - ninja test
   dependencies: ["linux:ubuntu22.04-clang:build"]
 
 .ubuntu-deploy-base:
@@ -207,42 +219,31 @@ linux:ubuntu22.04-clang:test:
     - bash Miniconda3-latest-Linux-x86_64.sh -b
     - export PATH=$HOME/miniconda3/bin:$PATH
     - conda config --set show_channel_urls true
-    - conda install conda-build anaconda-client conda-verify --yes
+    - conda install conda-build anaconda-client --yes
     - conda update conda --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
-    - conda config --add channels https://conda.anaconda.org/intel
   environment:
     name: pychrono-ubuntu22.04
     url: https://anaconda.org/projectchrono/pychrono
 
-linux:ubuntu22.04:deploy-python3.8:
+linux:ubuntu22.04:deploy-python3.12:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.8
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
+    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge -c dlr-sc --python=3.12
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
-linux:ubuntu22.04:deploy-python3.9:
+linux:ubuntu22.04:deploy-python3.13:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
   script:
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.9
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
-  when: manual
-
-linux:ubuntu22.04:deploy-python3.10:
-  stage: deploy
-  needs: []
-  extends: .ubuntu-deploy-base
-  script:
-    - conda build purge-all
-    - conda build ./contrib/packaging-python/conda -c intel -c conda-forge -c dlr-sc --no-remove-work-dir --dirty --python=3.10
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l main --force
+    - conda build ./contrib/packaging-python/conda -c nvidia -c conda-forge -c dlr-sc --python=3.13
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.conda -l main --force
   when: manual
 
 #------------------#
@@ -261,7 +262,7 @@ linux:ubuntu22.04:deploy-python3.10:
   - git submodule init
   - git submodule update
   - mkdir -Force -p build
-  - mkdir -Force -p install
+  - mkdir -Force -p install # TODO: is this ever used?
   #- mkdir -Force build
 
 windows:vs2022:build:
@@ -275,14 +276,15 @@ windows:vs2022:build:
   # Build urdf with buildURDF script (it looks like we have already using thre pre-built urdf as of April 27th, 2025, disabling the building for now)
   # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildURDF.bat $CI_PROJECT_DIR\contrib\build-scripts\urdf_build'
   # Configuring chrono
-  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
+  - cmake -B "$CI_PROJECT_DIR\build" -S "$CI_PROJECT_DIR" -T "cuda=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8" -DCMAKE_CXX_FLAGS="/MP4" -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_win64" -DPython3_FIND_STRATEGY:STRING=LOCATION -DPython3_ROOT_DIR:PATH="C:/Users/builder/miniconda3" --preset=windowsci-vs2022
   - cd build
   # Building chrono
   - cmake --build . -j 8 --config Release
   artifacts:
-    expire_in: 60m
+    expire_in: 3 hours
     paths:
       - build/
+      - contrib/build-scripts/gl_build
 
 windows:vs2022:test:
   stage: test
@@ -293,6 +295,7 @@ windows:vs2022:test:
   # - '& $CI_PROJECT_DIR\contrib\build-scripts\windows\buildVSG.bat $CI_PROJECT_DIR\contrib\build-scripts\vsg_build'
   - $env:PATH += ";C:\Packages\vsg\bin"
   - cd build
+  - cmake --install . --config Release
   - ctest --output-on-failure -E "utest_PARSERS|utest_FSI"
   dependencies: ["windows:vs2022:build"]
 
@@ -300,7 +303,6 @@ windows:vs2022:test:
   tags:
     - windows11
   before_script:
-    - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
     - $env:CONDA_INSTALL_LOCN="C:\Users\builder\miniconda3"
     - echo $CI_PROJECT_DIR
     - git submodule init
@@ -322,7 +324,7 @@ windows:vs2022:test:
     #Activate conda environment
     - conda activate build-env
     #Conda install dependencies
-    - conda install conda-build
+    - conda install conda-build anaconda-client --yes
     - conda update conda --yes
     #- cd C:\Users\builder\miniconda3\pkgs\anaconda-client-1.10.0-py37*\Lib\site-packages\binstar_client\commands\
     #- $location=pwd
@@ -335,20 +337,20 @@ windows:vs2022:test:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
 
-windows:deploy-python3.8:
+windows:deploy-python3.12:
   stage: deploy
   needs: []
   extends: .windows-deploy-base
   script:
-    # Building pyChrono for python v3.8
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.8 --no-remove-work-dir
-    - conda install --yes anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    # Building pyChrono for python v3.12
+    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge -c dlr-sc --python=3.12
+    - conda install --yes conda-build anaconda-client
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
     # Get rid of the build environment
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
     # Get rid of the downloaded numpy package to prevent conflicts
-    - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
+    - Remove-Item $Env:CONDA_INSTALL_LOCN\pkgs\numpy* -Recurse -Force
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
@@ -358,20 +360,20 @@ windows:deploy-python3.8:
     paths:
       - ./logs/
 
-windows:deploy-python3.9:
+windows:deploy-python3.13:
   stage: deploy
   needs: []
   extends: .windows-deploy-base
   script:
-    # Building pyChrono for python v3.9
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.9 --no-remove-work-dir
-    - conda install --yes anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
+    # Building pyChrono for python v3.13
+    - conda build .\contrib\packaging-python\conda -c nvidia -c conda-forge -c dlr-sc --python=3.13
+    - conda install --yes conda-build anaconda-client
+    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.conda" --force --label main
   after_script:
     # Get rid of the build environment
     - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
     # Get rid of the downloaded numpy package to prevent conflicts
-    - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
+    - Remove-Item $Env:CONDA_INSTALL_LOCN\pkgs\numpy* -Recurse -Force
   environment:
     name: pychrono-win64
     url: https://anaconda.org/projectchrono/pychrono
@@ -381,28 +383,36 @@ windows:deploy-python3.9:
     paths:
       - ./logs/
 
-windows:deploy-python3.10:
+windows:vs2022:deploy-installer:
   stage: deploy
-  needs: []
-  extends: .windows-deploy-base
+  needs: 
+    - job: windows:vs2022:build
+      artifacts: true
+    - job: windows:vs2022:test
+      artifacts: false
+  extends: .windows
   script:
-    # Building pyChrono for python v3.10
-    - conda build .\contrib\packaging-python\conda -c conda-forge -c dlr-sc -c intel --python=3.10 --no-remove-work-dir
-    - conda install --yes anaconda-client
-    - anaconda --token "$Env:ANACONDA_TOKEN" upload "$Env:CONDA_INSTALL_LOCN\envs\build-env\conda-bld\win-64\pychrono*.bz2" --force --label main
-  after_script:
-    # Get rid of the build environment
-    - Remove-Item $Env:CONDA_INSTALL_LOCN\envs\build-env -Recurse -Force
-    # Get rid of the downloaded numpy package to prevent conflicts
-    - Remove-Item $Env:CONDA_ISNTALL_LOCN\pkgs\numpy* -Recurse -Force
-  environment:
-    name: pychrono-win64
-    url: https://anaconda.org/projectchrono/pychrono
-  when: manual
+    - echo "Generating installer..."
+    - cmake --install build --config Release
+    - echo "Generating installer..."
+    - $installDir = "chrono_install_win64"
+    - echo "TODO patching missing install of GL library"
+    - Copy-Item -Path "contrib/build-scripts/gl_build" -Destination "$installDir/contrib/build-scripts/gl_build" -Recurse -Force
+    - $metadataFile = "$installDir/metadata.txt"
+    - Add-Content -Path $metadataFile -Value "Chrono Win64 Installer"
+    - Add-Content -Path $metadataFile -Value "CI_COMMIT_TIMESTAMP=$env:CI_COMMIT_TIMESTAMP"
+    - Add-Content -Path $metadataFile -Value "CI_COMMIT_SHORT_SHA=$env:CI_COMMIT_SHORT_SHA"
+    - Add-Content -Path $metadataFile -Value "CI_JOB_ID=$env:CI_JOB_ID"
   artifacts:
-    expire_in: 60m
+    name: "chrono_install_${CI_COMMIT_SHORT_SHA}" # just to have a different name for each commit
+    expire_in: 10 days
     paths:
-      - ./logs/
+      - chrono_install_win64
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\][\n\r\s]*/'
+      when: on_success
+    - if: '"$[[ inputs.scheduled-install ]]" == "true"'
+      when: on_success
 
 #----------------#
 # macOS Builders #
@@ -432,7 +442,7 @@ windows:deploy-python3.10:
   extends: .macos-monterey
   script:
   # Configuring chrono
-  - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR --preset=macosci
+  - cmake -G "Ninja Multi-Config" -B $CI_PROJECT_DIR/build/ -S $CI_PROJECT_DIR -DCMAKE_INSTALL_PREFIX="$CI_PROJECT_DIR/chrono_install_macos" --preset=macosci
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
   - cd build
   # Building chrono
@@ -450,8 +460,9 @@ windows:deploy-python3.10:
   # Copying files to correct directory for CI because of Ninja Multi-Config
   - cp -r bin/Release/* bin/
   - cp -r bin/data .
-  #- export CTEST_OUTPUT_ON_FAILURE=1
-  - ctest --output-on-failure
+  - export CTEST_OUTPUT_ON_FAILURE=1
+  - cmake --install . --config Release
+  - ninja test
 
 
 macos-apple:monterey:build:
@@ -485,7 +496,7 @@ macos-apple:monterey:test:
     - source activate $HOME/miniconda/
     - conda install --yes jinja2
     - conda config --set show_channel_urls true
-    - conda install --yes conda-build anaconda-client conda-verify
+    - conda install --yes conda-build anaconda-client
     - conda config --add channels conda-forge
     - conda config --add channels dlr-sc
     #- conda install -c dlr-sc opencascade --yes
@@ -510,47 +521,50 @@ macos-apple:monterey:test:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
 
-macos-apple:macos-deploy-python3.8:
+macos-apple:macos-deploy-python3.12:
   stage: deploy
   needs: []
   extends: .macos-apple-deploy-base
   script:
-    - echo "Build PyChrono 3.8 and deploy via Anaconda..."
+    - echo "Build PyChrono 3.12 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --python=3.12
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
     - macos
     - monterey
     - apple
 
-macos-apple:macos-deploy-python3.9:
+macos-apple:macos-deploy-python3.13:
   stage: deploy
   needs: []
   extends: .macos-apple-deploy-base
   script:
-    - echo "Build PyChrono 3.9 and deploy via Anaconda..."
+    - echo "Build PyChrono 3.13 and deploy via Anaconda..."
     - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.9
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
+    - conda build ./contrib/packaging-python/conda -c conda-forge -c dlr-sc --python=3.13
+    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.conda -l main --force
   when: manual
   tags:
     - macos
     - monterey
     - apple
 
-macos-apple:macos-deploy-python3.10:
-  stage: deploy
-  needs: []
-  extends: .macos-apple-deploy-base
-  script:
-    - echo "Build PyChrono 3.10 and deploy via Anaconda..."
-    - conda build purge-all
-    - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.10
-    - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-arm64/pychrono*.bz2 -l main --force
-  when: manual
+
+installer_publisher:
   tags:
-    - macos
-    - monterey
-    - apple
+    - windows11
+  stage: deploy
+  needs:
+    - job: windows:vs2022:deploy-installer
+      artifacts: true
+  script:
+    - New-Item -Path "public" -ItemType Directory -Force
+    - Compress-Archive -Path "chrono_install_win64/*" -DestinationPath "public/chrono_install_win64.zip" -Force
+  pages: true # it automatically consider artifacts:path: -public
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main" && $CI_COMMIT_MESSAGE =~ /\[install\][\n\r\s]*/'
+      when: on_success
+    - if: '"$[[ inputs.scheduled-install ]]" == "true"'
+      when: on_success

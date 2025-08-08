@@ -63,7 +63,7 @@ MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, CollisionT
 
     m_geometry.vis_boxes.push_back(box1);
 
-    m_geometry.vis_mesh_file = vehicle::GetDataFile("MAN_Kat1/meshes/MAN_10t_chassis.obj");
+    m_geometry.vis_model_file = vehicle::GetDataFile("MAN_Kat1/meshes/MAN_10t_chassis.obj");
 
     switch (chassis_collision_type) {
         case CollisionType::PRIMITIVES:
@@ -78,7 +78,7 @@ MAN_10t_Chassis::MAN_10t_Chassis(const std::string& name, bool fixed, CollisionT
         }
         case CollisionType::MESH: {
             utils::ChBodyGeometry::TrimeshShape trimesh(
-                ChVector3d(), vehicle::GetDataFile("MAN_Kat1/meshes/MAN_10t_chassis_col.obj"), 0.005, 0);
+                VNULL, QUNIT, vehicle::GetDataFile("MAN_Kat1/meshes/MAN_10t_chassis_col.obj"), 1.0, 0.005, 0);
             m_geometry.coll_meshes.push_back(trimesh);
             break;
         }

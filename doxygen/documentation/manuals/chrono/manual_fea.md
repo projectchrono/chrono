@@ -15,7 +15,7 @@ Different types of finite elements are supported:
 - **beam** elements: can be used to model cables, wires, thin shafts, blades of wind turbines, etc.
 
 Large displacements are supported for the majority of the finite elements. This allows, for instance, the simulation of problems like rubber structures undergoing 
-large deflections, airplane taking complex manouvers in space, blades of wind turbines with large rotations and other geometric non-linearities. 
+large deflections, airplane taking complex maneuvers in space, blades of wind turbines with large rotations and other geometric non-linearities. 
 Of course linearized small-displacement analysis is supported too, as a subcase.
 
 

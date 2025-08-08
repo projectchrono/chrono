@@ -84,7 +84,7 @@ Anyway, you can still assign SolidWorks materials with the desired density to th
 </div>
 
 <div class = "ce-info">
-The tool also changed the visualization of the collision shape, that turns into semi-transparent pink. This is more confortable, since collision shapes usually are overlapping with the complete shapes. 
+The tool also changed the visualization of the collision shape, that turns into semi-transparent pink. This is more comfortable, since collision shapes usually are overlapping with the complete shapes. 
 Once you are sure that the collision shape is in the proper place, you an also hide it.  
 </div>
 
@@ -182,7 +182,7 @@ Note that in this case you defined the collision shape with a group of different
 
 + If you press the **Run test** button, the test Python script will compute the simulation. Just a static scene. 
 
-However, there are three points to improve here: columns will stay fixed because there is not yet any earthquake, the camera view frustrum might not be properly aligned to show all columns, and surface materials might look too dull and boring.
+However, there are three points to improve here: columns will stay fixed because there is not yet any earthquake, the camera view frustum might not be properly aligned to show all columns, and surface materials might look too dull and boring.
 In the next steps we will modify the simulation by writing a customized Python script.
 
 
@@ -279,7 +279,7 @@ link_shaker.Initialize(my_floor, my_ground, chrono.ChFramed)
 my_system.Add(link_shaker)
 ~~~
 
-+ Up to here, the link_shaker object has no custom motion law assigned, so it will simply keep the floor statically connected to the ground. So now we create a motion law of the type x=(Ca*sin(t*A+phaseA))*(Cb*sin(t*B+phaseB)) as a product of two armonic laws:
++ Up to here, the link_shaker object has no custom motion law assigned, so it will simply keep the floor statically connected to the ground. So now we create a motion law of the type x=(Ca*sin(t*A+phaseA))*(Cb*sin(t*B+phaseB)) as a product of two harmonic laws:
 ~~~{.py}
 my_functA = chrono.ChFunctionSine(0.06,1.4)
 my_functA.thisown = 0

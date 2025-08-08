@@ -65,8 +65,8 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
     virtual double getShockRestLength() const override { return m_shockRestLength; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const override { return m_CABushingData; }
-    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getCABushingData() const override { return m_CABushingData; }
+    virtual std::shared_ptr<ChJoint::BushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
     virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
@@ -102,8 +102,8 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
 
     double m_axleInertia;
 
-    std::shared_ptr<ChVehicleBushingData> m_CABushingData;
-    std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
+    std::shared_ptr<ChJoint::BushingData> m_CABushingData;
+    std::shared_ptr<ChJoint::BushingData> m_tierodBushingData;
 
     double m_shockRestLength;
 };

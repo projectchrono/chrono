@@ -184,11 +184,7 @@ void ChTireTestRig::SetTerrainCRM(double radius,
                                   double terrain_length,
                                   double terrain_width,
                                   double terrain_depth) {
-#ifndef CHRONO_FSI
-    std::cerr << "ERROR: CRM terrain requires Chrono::FSI module." << std::endl;
-    throw std::runtime_error("ERROR: CRM terrain requires Chrono::FSI module.");
-#endif
-
+#ifdef CHRONO_FSI
     if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
         std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
         throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
@@ -202,20 +198,24 @@ void ChTireTestRig::SetTerrainCRM(double radius,
     m_params_crm.length = terrain_length;
     m_params_crm.width = terrain_width;
     m_params_crm.depth = terrain_depth;
+#else
+    std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
+#endif
 }
 
 void ChTireTestRig::SetTerrainCRM(const TerrainParamsCRM& params) {
-#ifndef CHRONO_FSI
-    std::cerr << "ERROR: CRM terrain requires Chrono::FSI module." << std::endl;
-    throw std::runtime_error("ERROR: CRM terrain requires Chrono::FSI module.");
-#endif
-
+#ifdef CHRONO_FSI
     if (std::dynamic_pointer_cast<ChForceElementTire>(m_tire)) {
         std::cerr << "ERROR: Handling tire models cannot be used with CRM terrain." << std::endl;
         throw std::runtime_error("ERROR: Handling tire models cannot be used with CRM terrain.");
     }
     m_terrain_type = TerrainType::CRM;
     m_params_crm = params;
+#else
+    std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -344,7 +344,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_carrier_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.8f, 0.2f, 0.2f});
+        mat->SetDiffuseColor({0.6f, 0.2f, 0.2f});
 
         utils::ChBodyGeometry::AddVisualizationCylinder(m_carrier_body,              //
                                                         ChVector3d(+2 * dim, 0, 0),  //
@@ -365,7 +365,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_chassis_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
+        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
 
         auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(dim);
         sphere->AddMaterial(mat);
@@ -386,7 +386,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_body->SetInertiaXX(inertia);
     {
         auto mat = chrono_types::make_shared<ChVisualMaterial>();
-        mat->SetDiffuseColor({0.2f, 0.8f, 0.2f});
+        mat->SetDiffuseColor({0.2f, 0.6f, 0.2f});
 
         auto box = chrono_types::make_shared<ChVisualShapeBox>(4 * dim, dim, 4 * dim);
         box->AddMaterial(mat);
@@ -635,8 +635,8 @@ void ChTireTestRig::CreateTerrainCRM() {
         auto rgd_tire = std::static_pointer_cast<ChRigidTire>(m_tire);
         assert(rgd_tire->UseContactMesh());
         auto trimesh = rgd_tire->GetContactMesh();
-        utils::ChBodyGeometry geometry;
-        geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, trimesh, 0.0, 0));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, trimesh, 1.0, 0.0, 0));
         terrain->AddRigidBody(m_spindle, geometry, false);
     }
 
@@ -647,6 +647,9 @@ void ChTireTestRig::CreateTerrainCRM() {
     std::cout << "  SPH AABB:          " << aabb.min << "   " << aabb.max << std::endl;
 
     m_terrain = terrain;
+#else
+    std::cerr << "ERROR: CRM terrain requires the Chrono::FSI module." << std::endl;
+    throw std::runtime_error("ERROR: CRM terrain requires the Chrono::FSI module.");
 #endif
 }
 

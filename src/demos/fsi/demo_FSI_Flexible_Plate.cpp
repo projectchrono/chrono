@@ -361,6 +361,7 @@ int main(int argc, char* argv[]) {
             out_frame++;
         }
         // Render FSI system
+#ifdef CHRONO_VSG
         if (render && time >= render_frame / render_fps) {
             if (!vis->Run())
                 break;
@@ -377,6 +378,7 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+#endif
 
         ChVector3d pos = node->GetPos();
         double displacement = (pos - init_pos).Length();
@@ -562,9 +564,9 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
         double height = 0.75;
         double radius = 0.02;
 
-        utils::ChBodyGeometry geometry;
-        geometry.materials.push_back(contact_material_info);
-        geometry.coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, height));
+        auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+        geometry->materials.push_back(contact_material_info);
+        geometry->coll_cylinders.push_back(utils::ChBodyGeometry::CylinderShape(VNULL, QUNIT, radius, height));
 
         auto cylinder = chrono_types::make_shared<ChBody>();
         cylinder->SetPos(ChVector3d(post_x, 0, height / 2));
@@ -573,18 +575,18 @@ std::shared_ptr<fea::ChMesh> CreateSolidPhase(ChFsiProblemSPH& fsi, bool verbose
         sysMBS.AddBody(cylinder);
 
         if (show_rigid)
-            geometry.CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
+            geometry->CreateVisualizationAssets(cylinder, VisualizationType::COLLISION);
 
         fsi.AddRigidBody(cylinder, geometry, false);
     }
 
     fsi.SetBcePattern2D(BcePatternMesh2D::INWARD);
 
-    // Create the first flexible cable and add to FSI system
+    // Create the first flexible plate and add to FSI system
     auto mesh1 = CreateFlexiblePlate(sysMBS, plate1_x, 5e6, ground, verbose);
     fsi.AddFeaMesh(mesh1, false);
 
-    // Create second flexible cable
+    // Create second flexible plate
     if (create_flex_plate2) {
         auto mesh2 = CreateFlexiblePlate(sysMBS, plate2_x, 2e7, ground, verbose);
         fsi.AddFeaMesh(mesh2, false);

@@ -42,12 +42,13 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     virtual bool OnReportContact(const ChVector3d& pA,
                                  const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
-                                 const double& distance,
-                                 const double& eff_radius,
+                                 double distance,
+                                 double eff_radius,
                                  const ChVector3d& cforce,
                                  const ChVector3d& ctorque,
                                  ChContactable* modA,
-                                 ChContactable* modB) override {
+                                 ChContactable* modB,
+                                 int cnstr_offset) override {
         // Check if contact involves obj1
         if (modA == m_obj1.get()) {
             printf("  A contact on Obj 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());

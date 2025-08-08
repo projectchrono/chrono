@@ -357,6 +357,35 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     ChVectorN<double, dof> m_mobilityForceID;
 
   private:
+    // Interface to ChContactable
+
+    virtual int GetContactableNumCoordsPosLevel() override { return dof; }
+
+    virtual int GetContactableNumCoordsVelLevel() override { return dof; }
+
+    virtual ChContactable::Type GetContactableType() const override;
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<dof>(&variables); }
+
+    /// Compute the jacobian(s) part(s) for this contactable item.
+    /// For a ChMobilizedBodyT, this updates the corresponding 1xdof Jacobian.
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
+                                               bool second) override;
+
+    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
+    /// Used only for rolling friction NSC contacts.
+    virtual void ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                      ChMatrix33<>& contact_plane,
+                                                      ChConstraintTuple* jacobian_tuple_N,
+                                                      ChConstraintTuple* jacobian_tuple_U,
+                                                      ChConstraintTuple* jacobian_tuple_V,
+                                                      bool second) override;
+
+    // SOA utilities
+
     /// Calculate the velocity transform H = H_PB_G.
     /// H_PB_G represents the transition matrix giving the velocity change from parent to child, expressed in the ground
     /// frame. This function is called in a based-to-tip[ traversal and therefore the parent transform X_GP as well as
@@ -620,6 +649,57 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y,
 }
 
 // -----------------------------------------------------------------------------
+
+template <int dof>
+ChContactable::Type ChMobilizedBodyT<dof>::GetContactableType() const {
+    switch (dof) {
+        case 1:
+            return ChContactable::Type::ONE_1;
+        case 2:
+            return ChContactable::Type::ONE_2;
+        case 3:
+            return ChContactable::Type::ONE_3;
+        case 4:
+            return ChContactable::Type::ONE_4;
+        case 5:
+            return ChContactable::Type::ONE_5;
+        case 6:
+            return ChContactable::Type::ONE_6;
+    }
+}
+
+template <int dof>
+void ChMobilizedBodyT<dof>::ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                           ChMatrix33<>& contact_plane,
+                                           ChConstraintTuple* jacobian_tuple_N,
+                                           ChConstraintTuple* jacobian_tuple_U,
+                                           ChConstraintTuple* jacobian_tuple_V,
+                                           bool second)  {
+    //// TODO
+    std::cerr << "ComputeJacobianForContactPart not yet implemented" << std::endl;
+    throw std::runtime_error("Not yet implemented");
+}
+
+/// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
+/// Used only for rolling friction NSC contacts.
+template <int dof>
+void ChMobilizedBodyT<dof>::ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+                                                  ChMatrix33<>& contact_plane,
+                                                  ChConstraintTuple* jacobian_tuple_N,
+                                                  ChConstraintTuple* jacobian_tuple_U,
+                                                  ChConstraintTuple* jacobian_tuple_V,
+                                                  bool second)  {
+    //// TODO
+    std::cerr << "ComputeJacobianForRollingContactPart not yet implemented" << std::endl;
+    throw std::runtime_error("Not yet implemented");
+}
+
+
+
+// -----------------------------------------------------------------------------
+
+
+
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::calcParentToChildVelMat() {

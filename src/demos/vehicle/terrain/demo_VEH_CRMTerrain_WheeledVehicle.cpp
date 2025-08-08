@@ -430,9 +430,9 @@ std::shared_ptr<WheeledVehicle> CreateVehicle(const ChCoordsys<>& init_pos, bool
 
 void CreateFSIWheels(std::shared_ptr<WheeledVehicle> vehicle, CRMTerrain& terrain) {
     std::string mesh_filename = vehicle::GetDataFile("Polaris/meshes/Polaris_tire_collision.obj");
-    utils::ChBodyGeometry geometry;
-    geometry.materials.push_back(ChContactMaterialData());
-    geometry.coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, mesh_filename, VNULL));
+    auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
+    geometry->materials.push_back(ChContactMaterialData());
+    geometry->coll_meshes.push_back(utils::ChBodyGeometry::TrimeshShape(VNULL, QUNIT, mesh_filename, VNULL));
 
     for (auto& axle : vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {

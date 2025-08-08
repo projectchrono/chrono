@@ -56,12 +56,14 @@ source_group("" FILES ${Chrono_MUMPS_HEADERS} ${Chrono_MUMPS_SOURCES})
 # ------------------------------------------------------------------------------
 # Add the Chrono_mumps library
 
-add_definitions("-D_OPENMP_NOFORCE_MANIFEST")
 
 add_library(Chrono_mumps 
             ${Chrono_MUMPS_SOURCES}
             ${Chrono_MUMPS_HEADERS})
 add_library(Chrono::mumps ALIAS Chrono_mumps)
+
+
+set_target_properties(Chrono_mumps PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
 
 if(CH_WHOLE_PROG_OPT)
   set_target_properties(Chrono_mumps PROPERTIES COMPILE_FLAGS "/GL")
@@ -78,6 +80,8 @@ endif()
 
 target_compile_definitions(Chrono_mumps PRIVATE "CH_API_COMPILE_MUMPS")
 target_compile_definitions(Chrono_mumps PRIVATE "CH_IGNORE_DEPRECATED")
+target_compile_definitions(Chrono_mumps PRIVATE "_OPENMP_NOFORCE_MANIFEST")
+
 
 target_link_libraries(Chrono_mumps
                       Chrono_core

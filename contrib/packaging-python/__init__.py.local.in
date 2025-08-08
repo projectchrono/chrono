@@ -7,6 +7,9 @@ import os
 import sys
 import pathlib
 
+# Cache directory of this script.
+idir = pathlib.Path(__file__).parent.resolve()
+
 # Hack for Python > 3.8 on Windows
 if sys.platform == 'win32' and sys.version_info >= (3,8):
     path_env = os.environ['PATH']
@@ -19,47 +22,47 @@ if sys.platform == 'win32' and sys.version_info >= (3,8):
             pass
 
 try:
-    import _core
-    import _fea
+    from . import core
+    from . import fea
 except:
     pass
 try:
     @ADD_OCC_DLL@
-    import _cascade
+    from . import cascade
 except:
     pass
 try:
-    import _irrlicht
+    from . import irrlicht
 except:
     pass
 try:
-    import _vehicle
+    from . import vehicle
 except:
     pass
 try:
-    import _postprocess
+    from . import postprocess
 except:
     pass
 try:
-    import _pardisomkl
+    from . import pardisomkl
 except:
     pass
 try:
     @ADD_CUDA_DLL@
-    import _sensor
-    _sensor.SetSensorShaderDir('@PYC_SHADER_PATH@')
+    from . import sensor
+    sensor.SetSensorShaderDir('@PYC_SHADER_PATH@')
 except:
     pass
 try:
-    import _robot
+    from . import robot
 except:
     pass
 try:
-    import _parsers
+    from . import parsers
 except:
     pass
 try:
-    import _ros
+    from . import ros
 except:
     pass
 

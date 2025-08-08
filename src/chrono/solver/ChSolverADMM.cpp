@@ -168,7 +168,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         // Compute diagonal values of N , only mass effect, neglecting stiffness for the moment, TODO
         //  g_i=[Cq_i]*[invM_i]*[Cq_i]'
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-            mconstraints[ic]->Update_auxiliary();
+            mconstraints[ic]->UpdateAuxiliary();
 
         // Average all g_i for the triplet of contact constraints n,u,v.
         int j_friction_comp = 0;
@@ -581,7 +581,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         // Compute diagonal values of N , only mass effect, neglecting stiffness for the moment, TODO
         //  g_i=[Cq_i]*[invM_i]*[Cq_i]'
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-            mconstraints[ic]->Update_auxiliary();
+            mconstraints[ic]->UpdateAuxiliary();
 
         // Average all g_i for the triplet of contact constraints n,u,v.
         int j_friction_comp = 0;

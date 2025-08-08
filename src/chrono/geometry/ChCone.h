@@ -23,6 +23,7 @@ namespace chrono {
 /// @{
 
 /// A conical geometric object for collisions and visualization.
+/// The cone is assumed to be aligned with the z axis of a frame with origin at the cone axis center.
 class ChApi ChCone : public ChVolume {
   public:
     ChCone() : r(0), h(0) {}

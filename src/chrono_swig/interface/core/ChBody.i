@@ -95,7 +95,7 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 %template(ChMarkerList) std::vector< std::shared_ptr<chrono::ChMarker> >;
  
 %shared_ptr(chrono::ChContactable) 
-%shared_ptr(chrono::ChContactable_1vars<6>)
+%shared_ptr(chrono::ChContactable_1vars)
 %shared_ptr(chrono::ChBody)
 
 // Forward ref
@@ -106,7 +106,6 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 
 // Parse the header file to generate wrappers
 %include "../../../chrono/physics/ChContactable.h"  
-%template(ChContactable1vars6) chrono::ChContactable_1vars<6>;
 %include "../../../chrono/physics/ChBody.h"  
 
 

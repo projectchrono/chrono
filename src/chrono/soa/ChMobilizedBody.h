@@ -56,7 +56,7 @@ class ChSoaAssembly;
 /// This abstract class implements an articulated rigid body which is part of a multibody mechanical SOA assembly. This
 /// object encapsulates all quantities required for recursive operations on a multibody tree that are not dependent on
 /// the actual number of degrees of freedom.
-class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
+class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars {
   public:
     virtual ~ChMobilizedBody();
 
@@ -414,15 +414,7 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
 
     ChVariablesBodyOwnMass m_variables;
 
-    virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
-
-    virtual ChVariables* GetVariables1() override { return &m_variables; }
-
     virtual bool IsContactActive() override { return true; }
-
-    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
-
-    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
 
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override {
         return getAbsLinVel() + Vcross(getAbsAngVel(), abs_point - m_absPos.GetPos());
@@ -493,31 +485,6 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars<6> {
         throw std::runtime_error("Not yet implemented");
     }
 
-    /// Compute the jacobian(s) part(s) for this contactable item.
-    /// For a ChBody, this updates the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
-                                               ChMatrix33<>& contact_plane,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-                                               bool second) override {
-        std::cerr << "ComputeJacobianForContactPart not yet implemented" << std::endl;
-        throw std::runtime_error("Not yet implemented");
-    }
-
-    /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
-    /// Used only for rolling friction NSC contacts.
-    virtual void ComputeJacobianForRollingContactPart(
-        const ChVector3d& abs_point,
-        ChMatrix33<>& contact_plane,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-        ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-        bool second) override {
-        std::cerr << "ComputeJacobianForRollingContactPart not yet implemented" << std::endl;
-        throw std::runtime_error("Not yet implemented");
-    }
-
     friend class ChSoaAssembly;
     friend class ChMobilityForce;
     template <int>
@@ -559,6 +526,17 @@ class ChApi ChGroundBody : public ChMobilizedBody {
 
     virtual double getQ0(int dof) const override { return 0.0; }
     virtual double getU0(int dof) const override { return 0.0; }
+
+    virtual int GetContactableNumCoordsPosLevel() override { return 0; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 0; }
+    virtual ChContactable::Type GetContactableType() const override { return ChContactable::Type::UNKNOWN; }
+    virtual ChConstraintTuple* CreateConstraintTuple() override { return nullptr; }
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChConstraintTuple* jacobian_tuple_N,
+                                               ChConstraintTuple* jacobian_tuple_U,
+                                               ChConstraintTuple* jacobian_tuple_V,
+                                               bool second) override {}
 
     friend class ChSoaAssembly;
 };
