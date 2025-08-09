@@ -1973,6 +1973,18 @@ void ChVisualSystemVSG::BindAll() {
             }
             m_body_labels.push_back(vsg::stringValue::create(body_name));
         }
+        for (const auto& item : sys->GetOtherPhysicsItems()) {
+            if (const auto& assmbly = std::dynamic_pointer_cast<soa::ChSoaAssembly>(item)) {
+                for (const auto& mbody : assmbly->getBodies()) {
+                    std::string body_name = mbody->GetName();
+                    if (body_name.empty()) {
+                        body_num++;
+                        body_name = "_body_" + std::to_string(body_num);
+                    }
+                    m_body_labels.push_back(vsg::stringValue::create(body_name));
+                }
+            }
+        }
         for (auto link : sys->GetLinks()) {
             std::string link_name = link->GetName();
             if (link_name.empty()) {
