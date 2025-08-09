@@ -26,6 +26,7 @@
 
 #include "chrono/utils/ChUtils.h"
 #include "chrono/soa/ChMobilizedBody.h"
+#include "chrono/soa/ChSoaVariables.h"
 
 namespace chrono {
 namespace soa {
@@ -342,6 +343,7 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     /// should set H_FM_dot = 0 at construction and thus need not implement this function.
     virtual void setJointVelMatDot(const ChVectorDynamic<>& y) {}
 
+  protected:
     ChVelMat<dof> m_H_FM;
     ChVelMat<dof> m_H;
 
@@ -384,13 +386,14 @@ class ChMobilizedBodyT : public ChMobilizedBody {
                                                       ChConstraintTuple* jacobian_tuple_V,
                                                       bool second) override;
 
+  private:
     // SOA utilities
 
     /// Calculate the velocity transform H = H_PB_G.
     /// H_PB_G represents the transition matrix giving the velocity change from parent to child, expressed in the ground
     /// frame. This function is called in a based-to-tip[ traversal and therefore the parent transform X_GP as well as
     /// the transition matrix H_FM are available.
-    /// 
+    ///
     /// This function calculates the following quantities:
     /// <pre>
     ///	r_MB_F		vector from OM, the origin of the M frame to OB, the origin of
@@ -479,6 +482,9 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     /// Set (copy) the states of this mobilizer into the provided assembly-wide state vector.
     void setMyU(ChVectorDynamic<>& yd, const ChVectorN<double, dof>& u);
     void setMyU(double* yd, const ChVectorN<double, dof>& u);
+
+  private:
+    ChSoaVariables variables;
 };
 
 // -----------------------------------------------------------------------------
@@ -489,7 +495,9 @@ inline ChMobilizedBodyT<dof>::ChMobilizedBodyT(std::shared_ptr<ChMobilizedBody> 
                                                const ChFramed& X_PF,
                                                const ChFramed& X_BM,
                                                const std::string& name)
-    : ChMobilizedBody(parent, mpropsB, X_PF, X_BM, name) {}
+    : ChMobilizedBody(parent, mpropsB, X_PF, X_BM, name) {
+    m_contactable_variables.push_back(&variables);
+}
 
 template <int dof>
 inline void ChMobilizedBodyT<dof>::setMyU(ChVectorDynamic<>& y, const ChVectorN<double, dof>& u) {
@@ -666,6 +674,8 @@ ChContactable::Type ChMobilizedBodyT<dof>::GetContactableType() const {
         case 6:
             return ChContactable::Type::ONE_6;
     }
+
+    return ChContactable::Type::UNKNOWN;
 }
 
 template <int dof>

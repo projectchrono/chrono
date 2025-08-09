@@ -56,7 +56,7 @@ class ChSoaAssembly;
 /// This abstract class implements an articulated rigid body which is part of a multibody mechanical SOA assembly. This
 /// object encapsulates all quantities required for recursive operations on a multibody tree that are not dependent on
 /// the actual number of degrees of freedom.
-class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars {
+class ChApi ChMobilizedBody : public ChObj, public ChContactable {
   public:
     virtual ~ChMobilizedBody();
 
@@ -345,7 +345,6 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable_1vars {
     virtual void setQDotDot(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, ChVectorDynamic<>& ydd) const;
 
     // Functions to get initial conditions
-    // -----------------------------------
 
     virtual double getQ0(int dof) const = 0;
     virtual double getU0(int dof) const = 0;

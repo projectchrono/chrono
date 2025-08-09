@@ -333,6 +333,7 @@ set(Chrono_soa_HEADERS
     soa/ChMassProps.h
     soa/ChMobilizedBody.h
     soa/ChMobilizedBodyT.h
+    soa/ChSoaVariables.h
     soa/ChMobilityForce.h
     soa/ChSoaForce.h
     soa/ChRevoluteBody.h
