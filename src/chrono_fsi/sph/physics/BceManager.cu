@@ -239,9 +239,9 @@ void BceManager::CalcRigidBceAcceleration() {
         mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),  //
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                 //
     );
-
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::CalcFlex1DBceAcceleration() {
@@ -256,9 +256,9 @@ void BceManager::CalcFlex1DBceAcceleration() {
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                     //
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
     );
-
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::CalcFlex2DBceAcceleration() {
@@ -273,9 +273,9 @@ void BceManager::CalcFlex2DBceAcceleration() {
         mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                     //
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
     );
-
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -539,8 +539,9 @@ void BceManager::Rigid_Forces_Torques() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->numRigidMarkers,
         m_data_mgr.paramsH->markerMass, (uint)m_data_mgr.countersH->startRigidMarkers);
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::Flex1D_Forces() {
@@ -566,8 +567,9 @@ void BceManager::Flex1D_Forces() {
         (uint)m_data_mgr.countersH->startFlexMarkers1D,              //
         m_data_mgr.paramsH->markerMass);
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::Flex2D_Forces() {
@@ -593,8 +595,9 @@ void BceManager::Flex2D_Forces() {
         (uint)m_data_mgr.countersH->startFlexMarkers2D,              //
         m_data_mgr.paramsH->markerMass);
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -681,8 +684,9 @@ void BceManager::UpdateBodyMarkerState() {
         mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted));
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::UpdateBodyMarkerStateInitial() {
@@ -698,8 +702,9 @@ void BceManager::UpdateBodyMarkerStateInitial() {
         mR3CAST(m_data_mgr.fsiBodyState_D->pos), mR4CAST(m_data_mgr.fsiBodyState_D->rot),
         mR3CAST(m_data_mgr.fsiBodyState_D->lin_vel), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel));
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -956,8 +961,9 @@ void BceManager::UpdateMeshMarker1DState() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                           //
     );
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::UpdateMeshMarker1DStateInitial() {
@@ -980,8 +986,9 @@ void BceManager::UpdateMeshMarker1DStateInitial() {
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D)                                                 //
     );
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1181,8 +1188,9 @@ void BceManager::UpdateMeshMarker2DState() {
         U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                           //
     );
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 void BceManager::UpdateMeshMarker2DStateInitial() {
@@ -1205,8 +1213,9 @@ void BceManager::UpdateMeshMarker2DStateInitial() {
         mR3CAST(m_data_mgr.flex2D_BCEcoords_D)                                                 //
     );
 
-    cudaDeviceSynchronize();
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 }  // namespace sph

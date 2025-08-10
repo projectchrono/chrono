@@ -544,8 +544,8 @@ __device__ inline Real4 LaplacianOperator(float G_i[9],
 
 // =============================================================================
 
-FsiForceWCSPH::FsiForceWCSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
-    : FsiForce(data_mgr, bce_mgr, verbose) {
+FsiForceWCSPH::FsiForceWCSPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose, bool check_errors)
+    : FsiForce(data_mgr, bce_mgr, verbose), m_check_errors(check_errors) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
     density_initialization = 0;
 }
@@ -599,8 +599,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                                const uint* numNeighborsPerPart,
                                const uint* neighborList,
                                const uint numActive,
-                               int density_reinit,
-                               volatile bool* error_flag) {
+                               int density_reinit) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -652,7 +651,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 }
 
 void FsiForceWCSPH::DensityReinitialization(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
 
     // Re-Initialize the density after several time steps if needed
     thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
@@ -660,8 +658,7 @@ void FsiForceWCSPH::DensityReinitialization(std::shared_ptr<SphMarkerDataD> sort
     calcRho_kernel<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                               mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
                                               U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
-                                              numActive, density_initialization, m_errflagD);
-    cudaCheckErrorFlag(m_errflagD, "calcRho_kernel");
+                                              numActive, density_initialization);
 }
 
 // -----------------------------------------------------------------------------
@@ -682,8 +679,7 @@ __global__ void CrmAdamiBC(const uint* numNeighborsPerPart,
                            Real4* sortedRhoPresMuD,
                            Real3* sortedVelMasD,
                            Real3* sortedTauXxYyZz,
-                           Real3* sortedTauXyXzYz,
-                           volatile bool* error_flag) {
+                           Real3* sortedTauXyXzYz) {
     //// TODO: The sortedRhoPresMuD array is only used for obtaining marker type - seems wasteful
 
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -744,8 +740,7 @@ __global__ void CfdAdamiBC(const uint* numNeighborsPerPart,
                            const uint numActive,
                            Real3* bceAcc,
                            Real4* sortedRhoPresMuD,
-                           Real3* sortedVelMasD,
-                           volatile bool* error_flag) {
+                           Real3* sortedVelMasD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -798,8 +793,7 @@ __global__ void calcKernelSupport(const Real4* sortedPosRad,
                                   Real2* sortedKernelSupport,
                                   const uint* numNeighborsPerPart,
                                   const uint* neighborList,
-                                  const uint numActive,
-                                  volatile bool* error_flag) {
+                                  const uint numActive) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -845,8 +839,7 @@ __global__ void CrmHolmesBC(const uint* numNeighborsPerPart,
                             Real4* sortedRhoPresMuD,
                             Real3* sortedVelMasD,
                             Real3* sortedTauXxYyZz,
-                            Real3* sortedTauXyXzYz,
-                            volatile bool* error_flag) {
+                            Real3* sortedTauXyXzYz) {
     //// TODO: The sortedRhoPresMuD array is only used for obtaining marker type - seems wasteful
 
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -931,8 +924,7 @@ __global__ void CfdHolmesBC(const uint* numNeighborsPerPart,
                             const uint numActive,
                             Real3* bceAcc,
                             Real4* sortedRhoPresMuD,
-                            Real3* sortedVelMasD,
-                            volatile bool* error_flag) {
+                            Real3* sortedVelMasD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numActive)
         return;
@@ -1002,29 +994,28 @@ __global__ void CfdHolmesBC(const uint* numNeighborsPerPart,
 }
 
 void FsiForceWCSPH::CrmApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
 
     if (m_data_mgr.paramsH->boundary_method == BoundaryMethod::ADAMI) {
         CrmAdamiBC<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
             mR4CAST(sortedSphMarkersD->posRadD), numActive, mR3CAST(m_data_mgr.bceAcc),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "CrmAdamiBC");
+            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
     } else {
         thrust::device_vector<Real2> sortedKernelSupport(numActive);
         // Calculate the kernel support of each particle
         calcKernelSupport<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR2CAST(sortedKernelSupport),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "calcKernelSupport");
+            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive);
         // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
         CrmHolmesBC<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
             mR4CAST(sortedSphMarkersD->posRadD), mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD),
-            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "CrmHolmesBC");
+            mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD));
+    }
+    if (m_check_errors) {
+        cudaCheckError();
     }
 }
 
@@ -1035,21 +1026,21 @@ void FsiForceWCSPH::CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
         CfdAdamiBC<<<numBlocks, numThreads>>>(U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
                                               mR4CAST(sortedSphMarkersD->posRadD), numActive,
                                               mR3CAST(m_data_mgr.bceAcc), mR4CAST(sortedSphMarkersD->rhoPresMuD),
-                                              mR3CAST(sortedSphMarkersD->velMasD), m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "CfdAdamiBC");
+                                              mR3CAST(sortedSphMarkersD->velMasD));
     } else {
         thrust::device_vector<Real2> sortedKernelSupport(m_data_mgr.countersH->numAllMarkers);
         // Calculate the kernel support of each particle
         calcKernelSupport<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR2CAST(sortedKernelSupport),
-            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "calcKernelSupport");
+            U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive);
         // https://onlinelibrary-wiley-com.ezproxy.library.wisc.edu/doi/pdfdirect/10.1002/nag.898
         CfdHolmesBC<<<numBlocks, numThreads>>>(
             U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList),
             mR4CAST(sortedSphMarkersD->posRadD), mR2CAST(sortedKernelSupport), numActive, mR3CAST(m_data_mgr.bceAcc),
-            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD), m_errflagD);
-        cudaCheckErrorFlag(m_errflagD, "CfdHolmesBC");
+            mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->velMasD));
+    }
+    if (m_check_errors) {
+        cudaCheckError();
     }
 }
 
@@ -1188,8 +1179,7 @@ __global__ void CrmRHS(const Real4* sortedPosRad,
                        Real4* sortedDerivVelRho,
                        Real3* sortedDerivTauXxYyZz,
                        Real3* sortedDerivTauXyXzYz,
-                       uint* sortedFreeSurfaceIdD,
-                       volatile bool* error_flag) {
+                       uint* sortedFreeSurfaceIdD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -1385,7 +1375,6 @@ __global__ void CrmRHS(const Real4* sortedPosRad,
 }
 
 void FsiForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD) {
-    cudaResetErrorFlag(m_errflagD);
 
     computeGridSize(numActive, 256, numBlocks, numThreads);
 
@@ -1394,8 +1383,10 @@ void FsiForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
                                       mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart),
                                       U1CAST(m_data_mgr.neighborList), numActive, mR4CAST(m_data_mgr.derivVelRhoD),
                                       mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
-                                      U1CAST(m_data_mgr.freeSurfaceIdD), m_errflagD);
-    cudaCheckErrorFlag(m_errflagD, "RhsCRM");
+                                      U1CAST(m_data_mgr.freeSurfaceIdD));
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 // -----------------------------------------------------------------------------

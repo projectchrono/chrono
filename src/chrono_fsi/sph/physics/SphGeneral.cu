@@ -29,7 +29,6 @@ void CopyParametersToDevice(std::shared_ptr<ChFsiParamsSPH> paramsH, std::shared
     cudaCheckError();
     cudaMemcpyToSymbolAsync(countersD, countersH.get(), sizeof(Counters));
     cudaCheckError();
-    cudaDeviceSynchronize();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

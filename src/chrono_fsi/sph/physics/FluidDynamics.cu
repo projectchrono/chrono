@@ -37,9 +37,9 @@ FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool
     collisionSystem = chrono_types::make_shared<CollisionSystem>(data_mgr);
 
     if (m_data_mgr.paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-        forceSystem = chrono_types::make_shared<FsiForceISPH>(data_mgr, bce_mgr, verbose);
+        forceSystem = chrono_types::make_shared<FsiForceISPH>(data_mgr, bce_mgr, verbose, m_check_errors);
     else
-        forceSystem = chrono_types::make_shared<FsiForceWCSPH>(data_mgr, bce_mgr, verbose);
+        forceSystem = chrono_types::make_shared<FsiForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
 }
 
 FluidDynamics::~FluidDynamics() {}
@@ -495,9 +495,9 @@ void FluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Rea
         mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
         mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
         U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT);
-    cudaCheckError();
 
     if (m_check_errors) {
+        cudaCheckError();
         if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
             cudaThrowError("A particle position is NaN");
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
@@ -515,9 +515,10 @@ void FluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, 
         mR3CAST(sortedMarkers->tauXxYyZzD), mR3CAST(sortedMarkers->tauXyXzYzD), mR3CAST(m_data_mgr.vel_XSPH_D),
         mR4CAST(m_data_mgr.derivVelRhoD), mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
         U1CAST(m_data_mgr.freeSurfaceIdD), INT_32CAST(m_data_mgr.activityIdentifierSortedD), numActive, dT);
-    cudaCheckError();
+
 
     if (m_check_errors) {
+        cudaCheckError();
         if (thrust::any_of(sortedMarkers->posRadD.begin(), sortedMarkers->posRadD.end(), check_infinite<Real4>()))
             cudaThrowError("A particle position is NaN");
         if (thrust::any_of(sortedMarkers->rhoPresMuD.begin(), sortedMarkers->rhoPresMuD.end(), check_infinite<Real4>()))
@@ -621,7 +622,9 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
             mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
             mR4CAST(m_data_mgr.derivVelRhoOriginalD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     }
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -759,7 +762,9 @@ void FluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sort
         case BCType::PERIODIC:
             ApplyPeriodicBoundaryX_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-            cudaCheckError();
+            if (m_check_errors) {
+                cudaCheckError();
+            }
             break;
         case BCType::INLET_OUTLET:
             //// TODO - check this and modify as appropriate
@@ -774,7 +779,9 @@ void FluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sort
         case BCType::PERIODIC:
             ApplyPeriodicBoundaryY_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-            cudaCheckError();
+            if (m_check_errors) {
+                cudaCheckError();
+            }
             break;
     }
 
@@ -782,7 +789,9 @@ void FluidDynamics::ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sort
         case BCType::PERIODIC:
             ApplyPeriodicBoundaryZ_D<<<numBlocks, numThreads>>>(mR4CAST(sortedSphMarkersD->posRadD),
                                                                 mR4CAST(sortedSphMarkersD->rhoPresMuD), numActive);
-            cudaCheckError();
+            if (m_check_errors) {
+                cudaCheckError();
+            }
             break;
     }
 }
@@ -871,8 +880,9 @@ void FluidDynamics::DensityReinitialization() {
         mR3CAST(m_data_mgr.sortedSphMarkers1_D->velMasD), mR4CAST(m_data_mgr.sortedSphMarkers1_D->rhoPresMuD),
         U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD), U1CAST(m_data_mgr.markersProximity_D->cellStartD),
         U1CAST(m_data_mgr.markersProximity_D->cellEndD));
-
-    cudaCheckError();
+    if (m_check_errors) {
+        cudaCheckError();
+    }
     FsiForce::CopySortedToOriginal_NonInvasive_R4(m_data_mgr.sphMarkers_D->rhoPresMuD, dummySortedRhoPreMu,
                                                   m_data_mgr.markersProximity_D->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();

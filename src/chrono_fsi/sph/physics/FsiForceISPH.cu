@@ -885,8 +885,8 @@ __global__ void Shifting(Real4* sortedPosRad,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-FsiForceISPH::FsiForceISPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose)
-    : FsiForce(data_mgr, bce_mgr, verbose) {
+FsiForceISPH::FsiForceISPH(FsiDataManager& data_mgr, BceManager& bce_mgr, bool verbose, bool check_errors)
+    : FsiForce(data_mgr, bce_mgr, verbose), m_check_errors(check_errors) {
     CopyParametersToDevice(m_data_mgr.paramsH, m_data_mgr.countersH);
 }
 

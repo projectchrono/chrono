@@ -31,7 +31,8 @@ class FsiForceISPH : public FsiForce {
     /// Force class implemented using incompressible SPH method with implicit integrator.
     FsiForceISPH(FsiDataManager& data_mgr,  ///< FSI data manager
                  BceManager& bce_mgr,       ///< BCE manager
-                 bool verbose               ///< verbose output
+                 bool verbose,              ///< verbose output
+                 bool check_errors          ///< check errors
     );
 
     ~FsiForceISPH();
@@ -60,6 +61,8 @@ class FsiForceISPH : public FsiForce {
 
     size_t numAllMarkers;
     size_t NNZ;
+
+    bool m_check_errors;
 
     void ForceSPH(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, Real time, Real step) override;
 

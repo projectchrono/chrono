@@ -32,7 +32,8 @@ class FsiForceWCSPH : public FsiForce {
     /// Supports for both fluid and granular material dynamics.
     FsiForceWCSPH(FsiDataManager& data_mgr,  ///< FSI data manager
                   BceManager& bce_mgr,       ///< BCE manager
-                  bool verbose               ///< verbose output
+                  bool verbose,              ///< verbose output
+                  bool check_errors          ///< check errors
     );
 
     ~FsiForceWCSPH();
@@ -64,6 +65,8 @@ class FsiForceWCSPH : public FsiForce {
     uint numActive;   ///< total number of threads
     uint numBlocks;   ///< number of blocks
     uint numThreads;  ///< number of threads per block
+
+    bool m_check_errors;
 };
 
 /// @} fsisph_physics
