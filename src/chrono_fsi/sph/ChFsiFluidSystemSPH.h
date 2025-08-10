@@ -603,6 +603,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------
 
+    /// Synchronize the async copy stream (used for the copySortedToOriginal function)
+    void SynchronizeCopyStream() const;
+
     std::shared_ptr<ChFsiParamsSPH> m_paramsH;  ///< simulation parameters
     bool m_force_proximity_search;
 

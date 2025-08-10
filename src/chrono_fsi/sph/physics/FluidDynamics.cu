@@ -40,9 +40,13 @@ FluidDynamics::FluidDynamics(FsiDataManager& data_mgr, BceManager& bce_mgr, bool
         forceSystem = chrono_types::make_shared<FsiForceISPH>(data_mgr, bce_mgr, verbose, m_check_errors);
     else
         forceSystem = chrono_types::make_shared<FsiForceWCSPH>(data_mgr, bce_mgr, verbose, m_check_errors);
+
+    cudaStreamCreate(&m_copy_stream);
 }
 
-FluidDynamics::~FluidDynamics() {}
+FluidDynamics::~FluidDynamics() {
+    cudaStreamDestroy(m_copy_stream);
+}
 
 // -----------------------------------------------------------------------------
 
@@ -614,7 +618,7 @@ void FluidDynamics::CopySortedToOriginal(MarkerGroup group,
             mR4CAST(m_data_mgr.derivVelRhoOriginalD), mR4CAST(m_data_mgr.sr_tau_I_mu_i_Original),
             U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD));
     } else {
-        CopySortedToOriginalWCSPH_D<<<numBlocks, numThreads>>>(
+        CopySortedToOriginalWCSPH_D<<<numBlocks, numThreads, 0, m_copy_stream>>>(
             group, mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
             mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD),
             mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(m_data_mgr.derivVelRhoD), numActive,

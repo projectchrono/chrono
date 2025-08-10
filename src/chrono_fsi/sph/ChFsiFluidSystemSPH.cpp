@@ -1884,6 +1884,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
+    SynchronizeCopyStream();
     // Update particle activity
     m_fluid_dynamics->UpdateActivity(m_data_mgr->sphMarkers_D, time);
 
@@ -1932,6 +1933,10 @@ void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
                                            m_data_mgr->sphMarkers_D);
 }
 
+void ChFsiFluidSystemSPH::SynchronizeCopyStream() const {
+    m_fluid_dynamics->SynchronizeCopyStream();
+}
+
 //------------------------------------------------------------------------------
 
 void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
@@ -1939,6 +1944,7 @@ void ChFsiFluidSystemSPH::WriteParticleFile(const std::string& filename) const {
 }
 
 void ChFsiFluidSystemSPH::SaveParticleData(const std::string& dir) const {
+    SynchronizeCopyStream();
     if (m_paramsH->elastic_SPH)
         saveParticleDataCRM(dir, m_output_level, *m_data_mgr);
     else
@@ -1946,6 +1952,7 @@ void ChFsiFluidSystemSPH::SaveParticleData(const std::string& dir) const {
 }
 
 void ChFsiFluidSystemSPH::SaveSolidData(const std::string& dir, double time) const {
+    SynchronizeCopyStream();
     saveSolidData(dir, time, *m_data_mgr);
 }
 

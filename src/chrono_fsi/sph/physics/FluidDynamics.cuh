@@ -74,6 +74,11 @@ class FluidDynamics {
                               std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2,
                               std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
+    /// Synchronize the async copy stream (used for the copySortedToOriginal function)
+    void SynchronizeCopyStream() {
+        cudaStreamSynchronize(m_copy_stream);
+    }
+
     /// Function to perform Shepard filtering.
     /// It calculates the densities directly, not based on the derivative of the density. This function is used in
     /// addition to the density update in UpdateFluid.
@@ -110,6 +115,8 @@ class FluidDynamics {
 
     /// Apply boundary conditions on the sides of the computational domain.
     void ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
+
+    cudaStream_t m_copy_stream;  ///< stream for async copy operations
 };
 
 /// @} fsisph_physics
