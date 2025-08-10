@@ -2009,7 +2009,7 @@ void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
     BindObjectCollisionModel(body, body->GetTag());
 }
 
-void ChVisualSystemVSG::BindMobilizedBody(const std::shared_ptr<soa::ChMobilizedBody>& mbody) {
+void ChVisualSystemVSG::BindMobilizedBody(const std::shared_ptr<soa::ChSoaMobilizedBody>& mbody) {
     BindReferenceFrame(mbody);
     BindCOMFrame(mbody);
     BindLinkFrame(mbody);
@@ -2420,7 +2420,7 @@ void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<ChBody>& body) {
     m_comFrameScene->addChild(mask, com_node);
 }
 
-void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>& mbody) {
+void ChVisualSystemVSG::BindCOMFrame(const std::shared_ptr<soa::ChSoaMobilizedBody>& mbody) {
     auto cog_transform = vsg::MatrixTransform::create();
     cog_transform->matrix = vsg::dmat4CH(mbody->getAbsCOMPos(), m_com_frame_scale);
     vsg::Mask mask = m_show_com_frames;
@@ -2453,7 +2453,7 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
     }
 }
 
-void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<soa::ChMobilizedBody> mbody) {
+void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<soa::ChSoaMobilizedBody> mbody) {
     vsg::Mask mask = m_show_link_frames;
     JointType type = JointType::MOBILIZER;
     {
@@ -2695,7 +2695,7 @@ void ChVisualSystemVSG::Update() {
     if (m_show_com_frames) {
         for (auto& child : m_comFrameScene->children) {
             std::shared_ptr<ChBody> body;
-            std::shared_ptr<soa::ChMobilizedBody> mbody;
+            std::shared_ptr<soa::ChSoaMobilizedBody> mbody;
             vsg::ref_ptr<vsg::MatrixTransform> transform;
 
             if (!child.node->getValue("Transform", transform))

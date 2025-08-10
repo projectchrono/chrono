@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// This file contains the definition of the ChMobilityForce base class and
-// derived classes. An ChMobilityForce is a force element which applies a hinge
+// This file contains the definition of the ChSoaMobilityForce base class and
+// derived classes. An ChSoaMobilityForce is a force element which applies a hinge
 // force on a single degree of freedom (DOF) of a mobilized body.
 //
 // =============================================================================
 
-#ifndef CH_MOBILITY_FORCE_H
-#define CH_MOBILITY_FORCE_H
+#ifndef CH_SOA_MOBILITY_FORCE_H
+#define CH_SOA_MOBILITY_FORCE_H
 
 #include <string>
 
@@ -28,16 +28,16 @@
 namespace chrono {
 namespace soa {
 
-class ChMobilizedBody;
+class ChSoaMobilizedBody;
 
 /// @addtogroup chrono_soa
 /// @{
 
 /// Base class for mobility forces.
 /// These are scalar forces acting on a degree of freedom of a mobilized body.
-class ChApi ChMobilityForce {
+class ChApi ChSoaMobilityForce {
   public:
-    virtual ~ChMobilityForce() {}
+    virtual ~ChSoaMobilityForce() {}
 
     bool isEnabled() const { return m_enabled; }
 
@@ -46,7 +46,7 @@ class ChApi ChMobilityForce {
     virtual double evaluate(double q, double u) = 0;
 
   protected:
-    ChMobilityForce() : m_enabled(true) {}
+    ChSoaMobilityForce() : m_enabled(true) {}
 
     bool m_enabled;
 };
@@ -55,7 +55,7 @@ class ChApi ChMobilityForce {
 
 /// Linear spring mobility force acting on a degree of freedom.
 /// The spring constant and free state must be conmensurate with the type of DOF (translational or rotational).
-class ChApi ChMobilitySpringForce : public ChMobilityForce {
+class ChApi ChMobilitySpringForce : public ChSoaMobilityForce {
   public:
     ChMobilitySpringForce(double k, double x0) : m_k(k), m_x0(x0) {}
 
@@ -75,7 +75,7 @@ class ChApi ChMobilitySpringForce : public ChMobilityForce {
 
 /// Linear damper mobility force acting on a degree of freedom.
 /// The spring constant and free state must be conmensurate with the type of DOF (translational or rotational).
-class ChApi ChMobilityDamperForce : public ChMobilityForce {
+class ChApi ChMobilityDamperForce : public ChSoaMobilityForce {
   public:
     ChMobilityDamperForce(double c) : m_c(c) {}
 
@@ -92,7 +92,7 @@ class ChApi ChMobilityDamperForce : public ChMobilityForce {
 
 /// Linear spring-damper mobility force acting on a degree of freedom.
 /// The spring constant and free state must be conmensurate with the type of DOF (translational or rotational).
-class ChApi ChMobilitySpringDamperForce : public ChMobilityForce {
+class ChApi ChMobilitySpringDamperForce : public ChSoaMobilityForce {
   public:
     ChMobilitySpringDamperForce(double k, double x0, double c) : m_k(k), m_x0(x0), m_c(c) {}
 

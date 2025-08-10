@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_SPATIAL_H
-#define CH_SPATIAL_H
+#ifndef CH_SOA_SPATIAL_H
+#define CH_SOA_SPATIAL_H
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChVector3.h"

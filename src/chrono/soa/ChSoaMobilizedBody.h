@@ -12,14 +12,14 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// This file contains the definition of the ChMobilizedBody class and a derived
-// class, ChGroundBody. The still abstract ChMobilizedBody, derived from ChBody,
+// This file contains the definition of the ChSoaMobilizedBody class and a derived
+// class, ChGroundBody. The still abstract ChSoaMobilizedBody, derived from ChBody,
 // implements an articulated rigid body which is part of a multibody mechanical
 // system. This object encapsulates all quantities required for recursive
 // operations on a multibody tree that are not dependent on the actual number of
 // degrees of freedom.
-// Classes derived from ChMobilizedBody include:
-//	- ChMobilizedBodyT, a class templatized by the number of DOFs (i.e. the
+// Classes derived from ChSoaMobilizedBody include:
+//	- ChSoaMobilizedBodyT, a class templatized by the number of DOFs (i.e. the
 //    number of generalized velocities), used as base class for the various
 //    concrete mobilized body classes with number of DOFs from 1 to 6.
 //	- ChWeldBody, the special case of an articulated body with zero DFOs.
@@ -30,8 +30,8 @@
 //
 // =============================================================================
 
-#ifndef CH_MOBILIZED_BODY_H
-#define CH_MOBILIZED_BODY_H
+#ifndef CH_SOA_MOBILIZED_BODY_H
+#define CH_SOA_MOBILIZED_BODY_H
 
 #include <stdexcept>
 
@@ -40,9 +40,9 @@
 #include "chrono/physics/ChContactable.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 
-#include "chrono/soa/ChSpatial.h"
-#include "chrono/soa/ChMassProps.h"
-#include "chrono/soa/ChMobilityForce.h"
+#include "chrono/soa/ChSoaSpatial.h"
+#include "chrono/soa/ChSoaMassProperties.h"
+#include "chrono/soa/ChSoaMobilityForce.h"
 
 namespace chrono {
 namespace soa {
@@ -56,17 +56,17 @@ class ChSoaAssembly;
 /// This abstract class implements an articulated rigid body which is part of a multibody mechanical SOA assembly. This
 /// object encapsulates all quantities required for recursive operations on a multibody tree that are not dependent on
 /// the actual number of degrees of freedom.
-class ChApi ChMobilizedBody : public ChObj, public ChContactable {
+class ChApi ChSoaMobilizedBody : public ChObj, public ChContactable {
   public:
-    virtual ~ChMobilizedBody();
+    virtual ~ChSoaMobilizedBody();
 
     virtual int getNumQ() const = 0;
     virtual int getNumU() const = 0;
 
-    std::shared_ptr<ChMobilizedBody> getParent() const { return m_parent; }
+    std::shared_ptr<ChSoaMobilizedBody> getParent() const { return m_parent; }
 
     int getNumChildren() const { return (int)m_children.size(); }
-    ChMobilizedBody* getChild(int i) const { return m_children[i]; }
+    ChSoaMobilizedBody* getChild(int i) const { return m_children[i]; }
 
     virtual bool isGround() const { return false; }
     bool isTerminal() const { return m_children.empty(); }
@@ -157,7 +157,7 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable {
     virtual void setRelAngAcc(const ChVector3d& relAngAcc) = 0;
     virtual void setRelLinAcc(const ChVector3d& relLinAcc) = 0;
 
-    void AddMobilityForce(int dof, std::shared_ptr<ChMobilityForce> force);
+    void AddMobilityForce(int dof, std::shared_ptr<ChSoaMobilityForce> force);
 
     void ApplyGravitationalForce(const ChVector3d& g);
     void ApplyBodyForce(const ChSpatialVec& force);
@@ -172,16 +172,16 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable {
   protected:
     struct MobilityForce {
         int dof;
-        std::shared_ptr<ChMobilityForce> force;
+        std::shared_ptr<ChSoaMobilityForce> force;
     };
 
-    ChMobilizedBody(std::shared_ptr<ChMobilizedBody> parent,
-                    const ChMassProps& mpropsB,
+    ChSoaMobilizedBody(std::shared_ptr<ChSoaMobilizedBody> parent,
+                    const ChSoaMassProperties& mpropsB,
                     const ChFramed& X_PF,
                     const ChFramed& X_BM,
                     const std::string& name = "");
 
-    ChMobilizedBody(const ChMobilizedBody& other);
+    ChSoaMobilizedBody(const ChSoaMobilizedBody& other);
 
     // Direct access to state vectors
 
@@ -353,7 +353,7 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable {
 
     std::string m_name;
 
-    ChMassProps m_mpropsB;
+    ChSoaMassProperties m_mpropsB;
     ChMatrix33d m_inertiaOB_G;
 
     ChFramed m_X_GC;    ///< centroidal frame (relative to global)
@@ -400,8 +400,8 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable {
 
     ChSpatialVec m_bodyForceCS;
 
-    std::shared_ptr<ChMobilizedBody> m_parent;
-    std::vector<ChMobilizedBody*> m_children;
+    std::shared_ptr<ChSoaMobilizedBody> m_parent;
+    std::vector<ChSoaMobilizedBody*> m_children;
 
     std::vector<MobilityForce> m_mobility_forces;
 
@@ -485,9 +485,9 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable {
     }
 
     friend class ChSoaAssembly;
-    friend class ChMobilityForce;
+    friend class ChSoaMobilityForce;
     template <int>
-    friend class ChMobilizedBodyT;
+    friend class ChSoaMobilizedBodyT;
     friend class mbWeldBody;
     friend class mbConstraint;
 };
@@ -497,7 +497,7 @@ class ChApi ChMobilizedBody : public ChObj, public ChContactable {
 /// Special body used as root of a multibody system.
 /// A ChGroundBody exists simply as an initiation point for the recursive traversals of the multibody tree and as a
 /// holder of the base bodies (those bodies that have ground as their parent).
-class ChApi ChGroundBody : public ChMobilizedBody {
+class ChApi ChGroundBody : public ChSoaMobilizedBody {
   public:
     ChGroundBody();
     ChGroundBody(const ChGroundBody& other);

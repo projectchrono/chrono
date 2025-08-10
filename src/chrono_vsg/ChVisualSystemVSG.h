@@ -485,8 +485,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind assets associated with a ChBody.
     void BindBody(const std::shared_ptr<ChBody>& body);
 
-    /// Bind assets associated with a ChMobilizedBody.
-    void BindMobilizedBody(const std::shared_ptr<soa::ChMobilizedBody>& mbody);
+    /// Bind assets associated with a ChSoaMobilizedBody.
+    void BindMobilizedBody(const std::shared_ptr<soa::ChSoaMobilizedBody>& mbody);
 
     /// Bind assets associated with a ChLink.
     void BindLink(const std::shared_ptr<ChLinkBase>& link);
@@ -520,7 +520,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Bind the body COM frame.
     void BindCOMFrame(const std::shared_ptr<ChBody>& body);
-    void BindCOMFrame(const std::shared_ptr<soa::ChMobilizedBody>& mbody);
+    void BindCOMFrame(const std::shared_ptr<soa::ChSoaMobilizedBody>& mbody);
 
     /// Bind the body COM symbols.
     void BindCOMSymbols();
@@ -528,8 +528,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Bind the link frames.
     void BindLinkFrame(const std::shared_ptr<ChLinkBase>& link);
 
-    /// Bind the ChMobilizedBody joint frames.
-    void BindLinkFrame(const std::shared_ptr<soa::ChMobilizedBody> mbody);
+    /// Bind the ChSoaMobilizedBody joint frames.
+    void BindLinkFrame(const std::shared_ptr<soa::ChSoaMobilizedBody> mbody);
 
     /// Bind the body and link labels.
     void BindLabels();

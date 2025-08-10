@@ -20,7 +20,7 @@
 #include <iomanip>
 
 #include "chrono/core/ChRotation.h"
-#include "chrono/soa/ChSpatial.h"
+#include "chrono/soa/ChSoaSpatial.h"
 
 #include "gtest/gtest.h"
 

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/soa/ChSoaAssembly.h"
-#include "chrono/soa/ChRevoluteBody.h"
+#include "chrono/soa/ChSoaRevoluteBody.h"
 
 #include "../ut_utils.h"
 
@@ -41,9 +41,9 @@ TEST(SOA_pendulum, kinematics) {
 
     // Double pendulum with reference frames at COMs
     {
-        ChMassProps pendulum1_mprops(mass1, VNULL, inertia1);
+        ChSoaMassProperties pendulum1_mprops(mass1, VNULL, inertia1);
         auto pendulum1 =
-            chrono_types::make_shared<ChRevoluteBody>(soa.getGroundBody(), pendulum1_mprops,                 //
+            chrono_types::make_shared<ChSoaRevoluteBody>(soa.getGroundBody(), pendulum1_mprops,                 //
                                                       ChFramed(VNULL, Q_ROTATE_Z_TO_Y),                      //
                                                       ChFramed(ChVector3d(-L1 / 2, 0, 0), Q_ROTATE_Z_TO_Y),  //
                                                       "chain1_pendulum1");
@@ -51,8 +51,8 @@ TEST(SOA_pendulum, kinematics) {
         pendulum1->setRelVel(0.5);
         soa.AddBody(pendulum1);
 
-        ChMassProps pendulum2_mprops(mass2, VNULL, inertia2);
-        auto pendulum2 = chrono_types::make_shared<ChRevoluteBody>(pendulum1, pendulum2_mprops,                 //
+        ChSoaMassProperties pendulum2_mprops(mass2, VNULL, inertia2);
+        auto pendulum2 = chrono_types::make_shared<ChSoaRevoluteBody>(pendulum1, pendulum2_mprops,                 //
                                                                    ChFramed(ChVector3d(+L1 / 2, 0, 0), QUNIT),  //
                                                                    ChFramed(ChVector3d(-L2 / 2, 0, 0), QUNIT),  //
                                                                    "chain1_pendulum2");
@@ -63,8 +63,8 @@ TEST(SOA_pendulum, kinematics) {
 
     // Double pendulum with reference frames at inboard joints
     {
-        ChMassProps pendulum1_mprops(mass1, ChVector3d(L1 / 2, 0, 0), inertia1);
-        auto pendulum1 = chrono_types::make_shared<ChRevoluteBody>(soa.getGroundBody(), pendulum1_mprops,  //
+        ChSoaMassProperties pendulum1_mprops(mass1, ChVector3d(L1 / 2, 0, 0), inertia1);
+        auto pendulum1 = chrono_types::make_shared<ChSoaRevoluteBody>(soa.getGroundBody(), pendulum1_mprops,  //
                                                                    ChFramed(VNULL, Q_ROTATE_Z_TO_Y),       //
                                                                    ChFramed(VNULL, Q_ROTATE_Z_TO_Y),       //
                                                                    "chain2_pendulum1");
@@ -72,8 +72,8 @@ TEST(SOA_pendulum, kinematics) {
         pendulum1->setRelVel(0.5);
         soa.AddBody(pendulum1);
 
-        ChMassProps pendulum2_mprops(mass2, ChVector3d(L2 / 2, 0, 0), inertia2);
-        auto pendulum2 = chrono_types::make_shared<ChRevoluteBody>(pendulum1, pendulum2_mprops,             //
+        ChSoaMassProperties pendulum2_mprops(mass2, ChVector3d(L2 / 2, 0, 0), inertia2);
+        auto pendulum2 = chrono_types::make_shared<ChSoaRevoluteBody>(pendulum1, pendulum2_mprops,             //
                                                                    ChFramed(ChVector3d(+L1, 0, 0), QUNIT),  //
                                                                    ChFramed(VNULL, QUNIT),                  //
                                                                    "chain2_pendulum2");

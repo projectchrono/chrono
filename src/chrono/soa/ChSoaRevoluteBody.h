@@ -12,16 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the ChRevoluteBody class.
+// Definition of the ChSoaRevoluteBody class.
 //
 // =============================================================================
 
-#ifndef CH_REVOLUTE_BODY_H
-#define CH_REVOLUTE_BODY_H
+#ifndef CH_SOA_REVOLUTE_BODY_H
+#define CH_SOA_REVOLUTE_BODY_H
 
 #include "chrono/core/ChApiCE.h"
 
-#include "chrono/soa/ChMobilizedBodyT.h"
+#include "chrono/soa/ChSoaMobilizedBodyT.h"
 
 namespace chrono {
 namespace soa {
@@ -30,30 +30,30 @@ namespace soa {
 /// @{
 
 /// Concrete mobilized body with revolute joint.
-class ChApi ChRevoluteBody : public ChMobilizedBodyT<1> {
+class ChApi ChSoaRevoluteBody : public ChSoaMobilizedBodyT<1> {
   public:
     /// Construct a body mobilized with a revolute joint.
-    /// A ChRevoluteBody is a mobilizer with one rotational degree of freedom. A pin joint cannot translate and only
-    /// rotates about the z-axis. The moving frame M (on the ChRevoluteBody) and the fixed frame F (on the parent body)
-    /// are such that their origins are always coincident and their z-axes always aligned. Therefore, a ChRevoluteBody
+    /// A ChSoaRevoluteBody is a mobilizer with one rotational degree of freedom. A pin joint cannot translate and only
+    /// rotates about the z-axis. The moving frame M (on the ChSoaRevoluteBody) and the fixed frame F (on the parent body)
+    /// are such that their origins are always coincident and their z-axes always aligned. Therefore, a ChSoaRevoluteBody
     /// can only represent a rotation along the common z-axis and it can represent only the zero translation.
     /// The generalized speed is the angular velocity of M in the F frame, about F's z-axis, expressed in F. (This axis
     /// is also constant in M.) For this mobilizer the velocity Jacobian H_FM is constant (and set at construction) and
     /// thus its derivative is zero (also set at construction).
-    ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
-                   const ChMassProps& mprops,
+    ChSoaRevoluteBody(std::shared_ptr<ChSoaMobilizedBody> parent,
+                   const ChSoaMassProperties& mprops,
                    const ChFramed& inbFrame,
                    const ChFramed& outbFrame,
                    const std::string& name = "");
 
-    ChRevoluteBody(const ChRevoluteBody& other);
+    ChSoaRevoluteBody(const ChSoaRevoluteBody& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChRevoluteBody* Clone() const override { return new ChRevoluteBody(*this); }
+    virtual ChSoaRevoluteBody* Clone() const override { return new ChSoaRevoluteBody(*this); }
 
     virtual int getNumQ() const override { return 1; }
 
-    // Set the internal coordinates for the ChRevoluteBody so they best approximate the specified
+    // Set the internal coordinates for the ChSoaRevoluteBody so they best approximate the specified
     // (relative) orientation, angular velocity, and angular acceleration, respectively.
     // A pin joint can only represent a rotation about the z-axis, but no translation.
     // As such, setRelRot() calculates the angle of rotation about the z-axis that best approximates

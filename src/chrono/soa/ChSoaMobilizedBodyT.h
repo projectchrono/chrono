@@ -12,20 +12,20 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// This file contains the implementation of the ChMobilizedBodyT class. This
-// class, derived from ChMobilizedBody, is templatized by the number of degrees
+// This file contains the implementation of the ChSoaMobilizedBodyT class. This
+// class, derived from ChSoaMobilizedBody, is templatized by the number of degrees
 // of freedom (equal to the number of generalized velocities). Concrete classes
-// for each type of mobilizer are derived from ChMobilizedBodyT.
+// for each type of mobilizer are derived from ChSoaMobilizedBodyT.
 //
 // =============================================================================
 
-#ifndef CH_MOBILIZED_BODY_T_H
-#define CH_MOBILIZED_BODY_T_H
+#ifndef CH_SOA_MOBILIZED_BODY_T_H
+#define CH_SOA_MOBILIZED_BODY_T_H
 
 #include <cstring>
 
 #include "chrono/utils/ChUtils.h"
-#include "chrono/soa/ChMobilizedBody.h"
+#include "chrono/soa/ChSoaMobilizedBody.h"
 #include "chrono/soa/ChSoaVariables.h"
 
 namespace chrono {
@@ -36,7 +36,7 @@ namespace soa {
 
 /// Base class for mobilizers templated by the number of degrees of freedom.
 /// The number of DOF is equal to the number of generalized velocities.
-/// Concrete classes for each type of mobilizer are derived from ChMobilizedBodyT.
+/// Concrete classes for each type of mobilizer are derived from ChSoaMobilizedBodyT.
 /// Virtual methods that a derived concrete mobilized body must provide are as follows:
 /// - setJointPrecalculated: as needed, precalculates any required quantities that do not change at current state
 ///     (e.g. sines, cosines, quaternion norms, etc.)
@@ -48,7 +48,7 @@ namespace soa {
 ///		in the mobilizer's inboard "fixed" frame F (attached to the parent).
 /// - setJointVelMatDot: calculates the time derivative of H_FM above.
 template <int dof>
-class ChMobilizedBodyT : public ChMobilizedBody {
+class ChSoaMobilizedBodyT : public ChSoaMobilizedBody {
   public:
     virtual int getNumU() const override { return dof; }
 
@@ -62,8 +62,8 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     double getAuxIDMobilityForce(int which) const;
 
   protected:
-    ChMobilizedBodyT(std::shared_ptr<ChMobilizedBody> parent,
-                     const ChMassProps& mpropsB,
+    ChSoaMobilizedBodyT(std::shared_ptr<ChSoaMobilizedBody> parent,
+                     const ChSoaMassProperties& mpropsB,
                      const ChFramed& X_PF,
                      const ChFramed& X_BM,
                      const std::string& name = "");
@@ -369,7 +369,7 @@ class ChMobilizedBodyT : public ChMobilizedBody {
     virtual ChConstraintTuple* CreateConstraintTuple() override { return new ChConstraintTuple_1vars<dof>(&variables); }
 
     /// Compute the jacobian(s) part(s) for this contactable item.
-    /// For a ChMobilizedBodyT, this updates the corresponding 1xdof Jacobian.
+    /// For a ChSoaMobilizedBodyT, this updates the corresponding 1xdof Jacobian.
     virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                ChConstraintTuple* jacobian_tuple_N,
@@ -490,29 +490,29 @@ class ChMobilizedBodyT : public ChMobilizedBody {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline ChMobilizedBodyT<dof>::ChMobilizedBodyT(std::shared_ptr<ChMobilizedBody> parent,
-                                               const ChMassProps& mpropsB,
+inline ChSoaMobilizedBodyT<dof>::ChSoaMobilizedBodyT(std::shared_ptr<ChSoaMobilizedBody> parent,
+                                               const ChSoaMassProperties& mpropsB,
                                                const ChFramed& X_PF,
                                                const ChFramed& X_BM,
                                                const std::string& name)
-    : ChMobilizedBody(parent, mpropsB, X_PF, X_BM, name) {
+    : ChSoaMobilizedBody(parent, mpropsB, X_PF, X_BM, name) {
     m_contactable_variables.push_back(&variables);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::setMyU(ChVectorDynamic<>& y, const ChVectorN<double, dof>& u) {
+inline void ChSoaMobilizedBodyT<dof>::setMyU(ChVectorDynamic<>& y, const ChVectorN<double, dof>& u) {
     y.segment(m_uIdx, dof) = u;
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::setMyU(double* y, const ChVectorN<double, dof>& u) {
+inline void ChSoaMobilizedBodyT<dof>::setMyU(double* y, const ChVectorN<double, dof>& u) {
     std::memcpy(&y[m_uIdx], u.data(), dof);
 }
 
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcPosFD(const ChVectorDynamic<>& y) {
+inline void ChSoaMobilizedBodyT<dof>::orProcPosFD(const ChVectorDynamic<>& y) {
     setJointPrecalculated(y);
 
     // Calculate the body position
@@ -539,11 +539,11 @@ inline void ChMobilizedBodyT<dof>::orProcPosFD(const ChVectorDynamic<>& y) {
     m_mobilityForceCS.setZero();
 
     // Request the children to perform same operation
-    ChMobilizedBody::orProcPosFD(y);
+    ChSoaMobilizedBody::orProcPosFD(y);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcVelFD(const ChVectorDynamic<>& yd) {
+inline void ChSoaMobilizedBodyT<dof>::orProcVelFD(const ChVectorDynamic<>& yd) {
     m_V_FM = m_H_FM * myU(yd);
 
     if (getParent()->isGround())
@@ -552,11 +552,11 @@ inline void ChMobilizedBodyT<dof>::orProcVelFD(const ChVectorDynamic<>& yd) {
         m_absVel = m_Phi * getParent()->getAbsVel() + m_H * myU(yd);
 
     // Request the children to perform same operation
-    ChMobilizedBody::orProcVelFD(yd);
+    ChSoaMobilizedBody::orProcVelFD(yd);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+inline void ChSoaMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
     setJointPrecalculated(y);
 
     // Calculate the body position
@@ -653,13 +653,13 @@ inline void ChMobilizedBodyT<dof>::orProcPosAndVelFD(const ChVectorDynamic<>& y,
     m_mobilityForceCS.setZero();
 
     // Request the children to perform same operation
-    ChMobilizedBody::orProcPosAndVelFD(y, yd);
+    ChSoaMobilizedBody::orProcPosAndVelFD(y, yd);
 }
 
 // -----------------------------------------------------------------------------
 
 template <int dof>
-ChContactable::Type ChMobilizedBodyT<dof>::GetContactableType() const {
+ChContactable::Type ChSoaMobilizedBodyT<dof>::GetContactableType() const {
     switch (dof) {
         case 1:
             return ChContactable::Type::ONE_1;
@@ -679,7 +679,7 @@ ChContactable::Type ChMobilizedBodyT<dof>::GetContactableType() const {
 }
 
 template <int dof>
-void ChMobilizedBodyT<dof>::ComputeJacobianForContactPart(const ChVector3d& abs_point,
+void ChSoaMobilizedBodyT<dof>::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                            ChMatrix33<>& contact_plane,
                                            ChConstraintTuple* jacobian_tuple_N,
                                            ChConstraintTuple* jacobian_tuple_U,
@@ -693,7 +693,7 @@ void ChMobilizedBodyT<dof>::ComputeJacobianForContactPart(const ChVector3d& abs_
 /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
 /// Used only for rolling friction NSC contacts.
 template <int dof>
-void ChMobilizedBodyT<dof>::ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
+void ChSoaMobilizedBodyT<dof>::ComputeJacobianForRollingContactPart(const ChVector3d& abs_point,
                                                   ChMatrix33<>& contact_plane,
                                                   ChConstraintTuple* jacobian_tuple_N,
                                                   ChConstraintTuple* jacobian_tuple_U,
@@ -712,7 +712,7 @@ void ChMobilizedBodyT<dof>::ComputeJacobianForRollingContactPart(const ChVector3
 
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::calcParentToChildVelMat() {
+inline void ChSoaMobilizedBodyT<dof>::calcParentToChildVelMat() {
     const auto r_MB = (m_X_BM.GetInverse()).GetPos();
     const auto& R_FM = m_X_FM.GetRotMat();
 
@@ -732,7 +732,7 @@ inline void ChMobilizedBodyT<dof>::calcParentToChildVelMat() {
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::calcParentToChildVelMatDot() {
+inline void ChSoaMobilizedBodyT<dof>::calcParentToChildVelMatDot() {
     const auto r_MB = (m_X_BM.GetInverse()).GetPos();
     const auto& R_FM = m_X_FM.GetRotMat();
 
@@ -764,23 +764,23 @@ inline void ChMobilizedBodyT<dof>::calcParentToChildVelMatDot() {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcInertiasAndForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
-    ChMobilizedBody::irProcInertiasAndForcesFD(y, yd);
+inline void ChSoaMobilizedBodyT<dof>::irProcInertiasAndForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    ChSoaMobilizedBody::irProcInertiasAndForcesFD(y, yd);
 
     calcArticulatedInertia();
     calcGeneralizedForce();
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcInertiasFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
-    ChMobilizedBody::irProcInertiasFD(y, yd);
+inline void ChSoaMobilizedBodyT<dof>::irProcInertiasFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    ChSoaMobilizedBody::irProcInertiasFD(y, yd);
 
     calcArticulatedInertia();
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
-    ChMobilizedBody::irProcForcesFD(y, yd);
+inline void ChSoaMobilizedBodyT<dof>::irProcForcesFD(const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd) {
+    ChSoaMobilizedBody::irProcForcesFD(y, yd);
 
     calcGeneralizedForce();
 }
@@ -788,7 +788,7 @@ inline void ChMobilizedBodyT<dof>::irProcForcesFD(const ChVectorDynamic<>& y, co
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::calcArticulatedInertia() {
+inline void ChSoaMobilizedBodyT<dof>::calcArticulatedInertia() {
     ChSpatialMat P = m_Mk;
 
     for (int i = 0; i < getNumChildren(); i++)
@@ -807,7 +807,7 @@ inline void ChMobilizedBodyT<dof>::calcArticulatedInertia() {
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::calcGeneralizedForce() {
+inline void ChSoaMobilizedBodyT<dof>::calcGeneralizedForce() {
     ChSpatialVec Z = m_cntrfForce - m_bodyForce + m_bodyForceCS;
 
     for (int i = 0; i < getNumChildren(); i++)
@@ -824,7 +824,7 @@ inline void ChMobilizedBodyT<dof>::calcGeneralizedForce() {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcAccFD(const ChVectorDynamic<>& y,
+inline void ChSoaMobilizedBodyT<dof>::orProcAccFD(const ChVectorDynamic<>& y,
                                                const ChVectorDynamic<>& yd,
                                                ChVectorDynamic<>& ydd) {
     if (m_locked) {
@@ -856,13 +856,13 @@ inline void ChMobilizedBodyT<dof>::orProcAccFD(const ChVectorDynamic<>& y,
     }
 
     // Request the children to perform same operation.
-    ChMobilizedBody::orProcAccFD(y, yd, ydd);
+    ChSoaMobilizedBody::orProcAccFD(y, yd, ydd);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcConstraintJac(double* vec) {
+inline void ChSoaMobilizedBodyT<dof>::irProcConstraintJac(double* vec) {
     // Request the children to perform same operation
-    ChMobilizedBody::irProcConstraintJac(vec);
+    ChSoaMobilizedBody::irProcConstraintJac(vec);
 
     // Calculate the generalized joint force 'eps' due to constraint forces but do not include any inertial components.
     // Note that constraint forces must be included with a sign opposite to what would be used for external forces. This
@@ -881,9 +881,9 @@ inline void ChMobilizedBodyT<dof>::irProcConstraintJac(double* vec) {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcMiF_passOne() {
+inline void ChSoaMobilizedBodyT<dof>::irProcMiF_passOne() {
     // Request the children to perform same operation
-    ChMobilizedBody::irProcMiF_passOne();
+    ChSoaMobilizedBody::irProcMiF_passOne();
 
     // Calculate the generalized joint force 'eps' and joint acceleration 'm_nu' due to all applied forces (excluding
     // centrifugal forces). Note that constraint forces have opposite sign to the external forces
@@ -901,7 +901,7 @@ inline void ChMobilizedBodyT<dof>::irProcMiF_passOne() {
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcMiF_passTwo(double* ud) {
+inline void ChSoaMobilizedBodyT<dof>::orProcMiF_passTwo(double* ud) {
     // Set the derivatives of the generalized velocities due to the applied forces (excluding Coriolis acceleration)
     if (getParent()->isGround()) {
         setMyU(ud, m_nu);
@@ -913,13 +913,13 @@ inline void ChMobilizedBodyT<dof>::orProcMiF_passTwo(double* ud) {
     }
 
     // Request the children to perform same operation
-    ChMobilizedBody::orProcMiF_passTwo(ud);
+    ChSoaMobilizedBody::orProcMiF_passTwo(ud);
 }
 
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
+inline void ChSoaMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
                                                      const ChVectorDynamic<>& yd,
                                                      const ChVectorDynamic<>& ydd) {
     setJointPrecalculated(y);
@@ -1000,15 +1000,15 @@ inline void ChMobilizedBodyT<dof>::orProcPosVelAccID(const ChVectorDynamic<>& y,
     m_mobilityForceID.setZero();
 
     // Request the children to perform same operation
-    ChMobilizedBody::orProcPosVelAccID(y, yd, ydd);
+    ChSoaMobilizedBody::orProcPosVelAccID(y, yd, ydd);
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::irProcForcesID(const ChVectorDynamic<>& y,
+inline void ChSoaMobilizedBodyT<dof>::irProcForcesID(const ChVectorDynamic<>& y,
                                                   const ChVectorDynamic<>& yd,
                                                   const ChVectorDynamic<>& ydd) {
     // Request the children to perform same operation
-    ChMobilizedBody::irProcForcesID(y, yd, ydd);
+    ChSoaMobilizedBody::irProcForcesID(y, yd, ydd);
 
     // Overwrite the body spatial force with the sum of the inertial force (due to the desired body acceleration) and
     // the gyroscopic force (due to angular velocity) minus the external body forces
@@ -1026,28 +1026,28 @@ inline void ChMobilizedBodyT<dof>::irProcForcesID(const ChVectorDynamic<>& y,
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::ApplyMobilityForce(int which, double force) {
+inline void ChSoaMobilizedBodyT<dof>::ApplyMobilityForce(int which, double force) {
     ChAssertAlways(which >= 0 && which < dof);
 
     m_mobilityForce[which] += force;
 }
 
 template <int dof>
-inline double ChMobilizedBodyT<dof>::getMobilityForce(int which) const {
+inline double ChSoaMobilizedBodyT<dof>::getMobilityForce(int which) const {
     assert(which >= 0 && which < dof);
 
     return m_mobilityForce[which];
 }
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::ApplyCSMobilityForce(int which, double force) {
+inline void ChSoaMobilizedBodyT<dof>::ApplyCSMobilityForce(int which, double force) {
     assert(which >= 0 && which < dof);
 
     m_mobilityForceCS[which] += force;
 }
 
 template <int dof>
-inline double ChMobilizedBodyT<dof>::getCSMobilityForce(int which) const {
+inline double ChSoaMobilizedBodyT<dof>::getCSMobilityForce(int which) const {
     assert(which >= 0 && which < dof);
 
     return m_mobilityForceCS[which];
@@ -1056,7 +1056,7 @@ inline double ChMobilizedBodyT<dof>::getCSMobilityForce(int which) const {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline void ChMobilizedBodyT<dof>::resetForcesCS() {
+inline void ChSoaMobilizedBodyT<dof>::resetForcesCS() {
     m_bodyForceCS.setZero();
     m_mobilityForceCS.setZero();
 }
@@ -1064,7 +1064,7 @@ inline void ChMobilizedBodyT<dof>::resetForcesCS() {
 // -----------------------------------------------------------------------------
 
 template <int dof>
-inline double ChMobilizedBodyT<dof>::getAuxIDMobilityForce(int which) const {
+inline double ChSoaMobilizedBodyT<dof>::getAuxIDMobilityForce(int which) const {
     assert(which >= 0 && which < dof);
 
     return m_mobilityForceID[which];

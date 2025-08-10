@@ -19,7 +19,7 @@
 namespace chrono {
 namespace soa {
 
-ChSoaConstantForce::ChSoaConstantForce(std::shared_ptr<ChMobilizedBody> body,
+ChSoaConstantForce::ChSoaConstantForce(std::shared_ptr<ChSoaMobilizedBody> body,
                                        const ChVector3d& location,
                                        const ChVector3d& force)
     : ChSoaBodyForce(body), m_location(location), m_force(force) {}
@@ -31,15 +31,15 @@ void ChSoaConstantForce::apply() {
     m_body->ApplyBodyForce(ChSpatialVec(loc_G % m_force, m_force));
 }
 
-ChSoaConstantTorque::ChSoaConstantTorque(std::shared_ptr<ChMobilizedBody> body, const ChVector3d& torque)
+ChSoaConstantTorque::ChSoaConstantTorque(std::shared_ptr<ChSoaMobilizedBody> body, const ChVector3d& torque)
     : ChSoaBodyForce(body), m_torque(torque) {}
 
 void ChSoaConstantTorque::apply() {
     m_body->ApplyBodyForce(ChSpatialVec(m_torque, VNULL));
 }
 
-ChSoaSpringDamperForce::ChSoaSpringDamperForce(std::shared_ptr<ChMobilizedBody> body1,
-                                               std::shared_ptr<ChMobilizedBody> body2,
+ChSoaSpringDamperForce::ChSoaSpringDamperForce(std::shared_ptr<ChSoaMobilizedBody> body1,
+                                               std::shared_ptr<ChSoaMobilizedBody> body2,
                                                const ChVector3d& loc1,
                                                const ChVector3d& loc2,
                                                double l0,

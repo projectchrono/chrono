@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono/soa/ChSoaAssembly.h"
-#include "chrono/soa/ChRevoluteBody.h"
+#include "chrono/soa/ChSoaRevoluteBody.h"
 
 #include "chrono/assets/ChVisualSystem.h"
 #ifdef CHRONO_IRRLICHT
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------
 
     auto soa = chrono_types::make_shared<ChSoaAssembly>();
-    std::shared_ptr<ChRevoluteBody> pendulum1;
-    std::shared_ptr<ChRevoluteBody> pendulum2;
+    std::shared_ptr<ChSoaRevoluteBody> pendulum1;
+    std::shared_ptr<ChSoaRevoluteBody> pendulum2;
     double L1 = 2;
     double L2 = 1;
     double init1 = CH_PI_4;
@@ -74,8 +74,8 @@ int main(int argc, char* argv[]) {
     {
         double mass1 = 2;
         ChMatrix33d inertia1(ChVector3d(0.01, mass1 * L1 * L1 / 12, mass1 * L1 * L1 / 12));
-        ChMassProps pendulum1_mprops(mass1, ChVector3d(L1 / 2, 0, 0), inertia1);
-        pendulum1 = chrono_types::make_shared<ChRevoluteBody>(soa->getGroundBody(), pendulum1_mprops,  //
+        ChSoaMassProperties pendulum1_mprops(mass1, ChVector3d(L1 / 2, 0, 0), inertia1);
+        pendulum1 = chrono_types::make_shared<ChSoaRevoluteBody>(soa->getGroundBody(), pendulum1_mprops,  //
                                                               ChFramed(VNULL, Q_ROTATE_Z_TO_Y),        //
                                                               ChFramed(VNULL, Q_ROTATE_Z_TO_Y),        //
                                                               "pendulum1");
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
     {
         double mass2 = 1;
         ChMatrix33d inertia2(ChVector3d(0.01, mass2 * L2 * L2 / 12, mass2 * L2 * L2 / 12));
-        ChMassProps pendulum2_mprops(mass2, ChVector3d(L2 / 2, 0, 0), inertia2);
-        pendulum2 = chrono_types::make_shared<ChRevoluteBody>(pendulum1, pendulum2_mprops,             //
+        ChSoaMassProperties pendulum2_mprops(mass2, ChVector3d(L2 / 2, 0, 0), inertia2);
+        pendulum2 = chrono_types::make_shared<ChSoaRevoluteBody>(pendulum1, pendulum2_mprops,             //
                                                               ChFramed(ChVector3d(+L1, 0, 0), QUNIT),  //
                                                               ChFramed(VNULL, QUNIT),                  //
                                                               "pendulum2");

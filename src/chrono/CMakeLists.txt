@@ -329,20 +329,20 @@ source_group(physics\\shafts FILES ${Chrono_physics_shafts_SOURCES} ${Chrono_phy
 
 set(Chrono_soa_HEADERS
     soa/ChSoaAssembly.h
-    soa/ChSpatial.h
-    soa/ChMassProps.h
-    soa/ChMobilizedBody.h
-    soa/ChMobilizedBodyT.h
+    soa/ChSoaSpatial.h
+    soa/ChSoaMassProperties.h
+    soa/ChSoaMobilizedBody.h
+    soa/ChSoaMobilizedBodyT.h
     soa/ChSoaVariables.h
-    soa/ChMobilityForce.h
+    soa/ChSoaMobilityForce.h
     soa/ChSoaForce.h
-    soa/ChRevoluteBody.h
+    soa/ChSoaRevoluteBody.h
     )
 set(Chrono_soa_SOURCES    
     soa/ChSoaAssembly.cpp
-    soa/ChMassProps.cpp
-    soa/ChMobilizedBody.cpp
-    soa/ChRevoluteBody.cpp
+    soa/ChSoaMassProperties.cpp
+    soa/ChSoaMobilizedBody.cpp
+    soa/ChSoaRevoluteBody.cpp
     soa/ChSoaForce.cpp
     )
 source_group(soa FILES ${Chrono_soa_SOURCES} ${Chrono_soa_HEADERS})

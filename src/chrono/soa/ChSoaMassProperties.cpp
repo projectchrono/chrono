@@ -12,23 +12,23 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/soa/ChMassProps.h"
+#include "chrono/soa/ChSoaMassProperties.h"
 
 namespace chrono {
 namespace soa {
 
-ChMassProps::ChMassProps() : m_mass(1), m_inertia_B(0.0) {}
+ChSoaMassProperties::ChSoaMassProperties() : m_mass(1), m_inertia_B(0.0) {}
 
-ChMassProps::ChMassProps(double mass, const ChFramed& X_BC, const ChMatrix33<>& inertia) : m_mass(mass), m_X_BC(X_BC) {
+ChSoaMassProperties::ChSoaMassProperties(double mass, const ChFramed& X_BC, const ChMatrix33<>& inertia) : m_mass(mass), m_X_BC(X_BC) {
     const auto& R_BC = X_BC.GetRotMat();
     m_inertia_B = R_BC.transpose() * inertia * R_BC;
     calcInverse();
 }
 
-ChMassProps::ChMassProps(double mass, const ChVector3d& com, const ChMatrix33<>& inertia)
-    : ChMassProps(mass, ChFramed(com, QUNIT), inertia) {}
+ChSoaMassProperties::ChSoaMassProperties(double mass, const ChVector3d& com, const ChMatrix33<>& inertia)
+    : ChSoaMassProperties(mass, ChFramed(com, QUNIT), inertia) {}
 
-ChSpatialMat ChMassProps::asSpatialMat() const {
+ChSpatialMat ChSoaMassProperties::asSpatialMat() const {
     ChSpatialMat result;
 
     auto p_x = ChStarMatrix33<>(m_X_BC.GetPos());
@@ -41,7 +41,7 @@ ChSpatialMat ChMassProps::asSpatialMat() const {
     return result;
 }
 
-void ChMassProps::calcInverse() {
+void ChSoaMassProperties::calcInverse() {
     m_ooMass = 1 / m_mass;
 
     auto p_x = ChStarMatrix33<>(m_X_BC.GetPos());
@@ -55,7 +55,7 @@ void ChMassProps::calcInverse() {
     m_invM_B.A11() = ChMatrix33<>(m_ooMass) - m_invM_B.A10() * p_x;
 }
 
-ChMatrix33<> ChMassProps::calcPointInertia(const ChVector3d& pos, double mass) {
+ChMatrix33<> ChSoaMassProperties::calcPointInertia(const ChVector3d& pos, double mass) {
     ChMatrix33<> inertia;
 
     double mx = mass * pos.x();

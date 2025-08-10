@@ -22,7 +22,7 @@
 #define CH_SOA_FORCE_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/soa/ChMobilizedBody.h"
+#include "chrono/soa/ChSoaMobilizedBody.h"
 
 namespace chrono {
 namespace soa {
@@ -61,13 +61,13 @@ class ChApi ChSoaBodyForce : public ChSoaForce {
     virtual ~ChSoaBodyForce() {}
 
   protected:
-    ChSoaBodyForce(std::shared_ptr<ChMobilizedBody> body) : m_body(body) {}
-    std::shared_ptr<ChMobilizedBody> m_body;
+    ChSoaBodyForce(std::shared_ptr<ChSoaMobilizedBody> body) : m_body(body) {}
+    std::shared_ptr<ChSoaMobilizedBody> m_body;
 };
 
 class ChSoaConstantForce : public ChSoaBodyForce {
   public:
-    ChSoaConstantForce(std::shared_ptr<ChMobilizedBody> body, const ChVector3d& location, const ChVector3d& force);
+    ChSoaConstantForce(std::shared_ptr<ChSoaMobilizedBody> body, const ChVector3d& location, const ChVector3d& force);
     virtual void apply() override;
 
   private:
@@ -77,7 +77,7 @@ class ChSoaConstantForce : public ChSoaBodyForce {
 
 class ChSoaConstantTorque : public ChSoaBodyForce {
   public:
-    ChSoaConstantTorque(std::shared_ptr<ChMobilizedBody> body, const ChVector3d& torque);
+    ChSoaConstantTorque(std::shared_ptr<ChSoaMobilizedBody> body, const ChVector3d& torque);
     virtual void apply() override;
 
   private:
@@ -89,8 +89,8 @@ class ChSoaConstantTorque : public ChSoaBodyForce {
 /// Linear spring-damper force between two mobilized bodies.
 class ChSoaSpringDamperForce : public ChSoaForce {
   public:
-    ChSoaSpringDamperForce(std::shared_ptr<ChMobilizedBody> body1,
-                           std::shared_ptr<ChMobilizedBody> body2,
+    ChSoaSpringDamperForce(std::shared_ptr<ChSoaMobilizedBody> body1,
+                           std::shared_ptr<ChSoaMobilizedBody> body2,
                            const ChVector3d& loc1,
                            const ChVector3d& loc2,
                            double l0,
@@ -99,8 +99,8 @@ class ChSoaSpringDamperForce : public ChSoaForce {
     virtual void apply() override;
 
   private:
-    std::shared_ptr<ChMobilizedBody> m_body1;
-    std::shared_ptr<ChMobilizedBody> m_body2;
+    std::shared_ptr<ChSoaMobilizedBody> m_body1;
+    std::shared_ptr<ChSoaMobilizedBody> m_body2;
     ChVector3d m_loc1;
     ChVector3d m_loc2;
     double m_l0;

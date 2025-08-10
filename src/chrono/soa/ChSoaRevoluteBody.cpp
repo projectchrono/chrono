@@ -13,17 +13,17 @@
 // =============================================================================
 
 #include "chrono/soa/ChSoaAssembly.h"
-#include "chrono/soa/ChRevoluteBody.h"
+#include "chrono/soa/ChSoaRevoluteBody.h"
 
 namespace chrono {
 namespace soa {
 
-ChRevoluteBody::ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
-                               const ChMassProps& mprops,
+ChSoaRevoluteBody::ChSoaRevoluteBody(std::shared_ptr<ChSoaMobilizedBody> parent,
+                               const ChSoaMassProperties& mprops,
                                const ChFramed& inbFrame,
                                const ChFramed& outbFrame,
                                const std::string& name)
-    : ChMobilizedBodyT<1>(parent, mprops, inbFrame, outbFrame, name), m_q0(0), m_u0(0) {
+    : ChSoaMobilizedBodyT<1>(parent, mprops, inbFrame, outbFrame, name), m_q0(0), m_u0(0) {
     m_H_FM.ang().col(0) = ChVector3d(0, 0, 1).eigen();
     m_H_FM.lin().col(0) = ChVector3d(0, 0, 0).eigen();
 
@@ -31,30 +31,30 @@ ChRevoluteBody::ChRevoluteBody(std::shared_ptr<ChMobilizedBody> parent,
     m_H_FM_dot.lin().setZero();
 }
 
-ChRevoluteBody::ChRevoluteBody(const ChRevoluteBody& other) : ChMobilizedBodyT<1>(other) {
+ChSoaRevoluteBody::ChSoaRevoluteBody(const ChSoaRevoluteBody& other) : ChSoaMobilizedBodyT<1>(other) {
   //// TODO
 }
 
-void ChRevoluteBody::setRelPos(double rotAngle) {
+void ChSoaRevoluteBody::setRelPos(double rotAngle) {
     if (m_assembly && m_assembly->IsInitialized())
         setQ(0, std::fmod(rotAngle, CH_2PI));
     else
         m_q0 = std::fmod(rotAngle, CH_2PI);
 }
 
-void ChRevoluteBody::setRelVel(double rotRate) {
+void ChSoaRevoluteBody::setRelVel(double rotRate) {
     if (m_assembly && m_assembly->IsInitialized())
         setU(0, rotRate);
     else
         m_u0 = rotRate;
 }
 
-void ChRevoluteBody::setRelAcc(double rotAcc) {
+void ChSoaRevoluteBody::setRelAcc(double rotAcc) {
     if (m_assembly && m_assembly->IsInitialized())
         setUdot(0, rotAcc);
 }
 
-void ChRevoluteBody::setRelRot(const ChMatrix33d& relRot) {
+void ChSoaRevoluteBody::setRelRot(const ChMatrix33d& relRot) {
     float a = relRot(0, 0) + relRot(1, 1);
     float b = relRot(0, 1) - relRot(1, 0);
     if (m_assembly && m_assembly->IsInitialized())
@@ -63,37 +63,37 @@ void ChRevoluteBody::setRelRot(const ChMatrix33d& relRot) {
         m_q0 = atan2f(b, a);
 }
 
-void ChRevoluteBody::setRelAngVel(const ChVector3d& relAngVel) {
+void ChSoaRevoluteBody::setRelAngVel(const ChVector3d& relAngVel) {
     if (m_assembly && m_assembly->IsInitialized())
         setU(0, relAngVel.z());
     else
         m_u0 = relAngVel.z();
 }
 
-void ChRevoluteBody::setRelAngAcc(const ChVector3d& relAngAcc) {
+void ChSoaRevoluteBody::setRelAngAcc(const ChVector3d& relAngAcc) {
     if (m_assembly && m_assembly->IsInitialized())
         setUdot(0, relAngAcc.z());
 }
 
-double ChRevoluteBody::getQ0(int dof) const {
+double ChSoaRevoluteBody::getQ0(int dof) const {
     assert(dof == 0);
     return m_q0;
 }
 
-double ChRevoluteBody::getU0(int dof) const {
+double ChSoaRevoluteBody::getU0(int dof) const {
     assert(dof == 0);
     return m_u0;
 }
 
-ChMatrix33d ChRevoluteBody::calcRelRot(double q) {
+ChMatrix33d ChSoaRevoluteBody::calcRelRot(double q) {
     return ChMatrix33d(q, VECT_Z);
 }
 
-void ChRevoluteBody::setJointTransform(const ChVectorDynamic<>& y) {
+void ChSoaRevoluteBody::setJointTransform(const ChVectorDynamic<>& y) {
     m_X_FM.SetRot(ChMatrix33d(y(m_qIdx), VECT_Z));
 }
 
-void ChRevoluteBody::prepSim() {
+void ChSoaRevoluteBody::prepSim() {
 //// NEEDED?!?
 }
 

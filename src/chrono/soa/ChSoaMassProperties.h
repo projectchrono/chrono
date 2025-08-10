@@ -12,17 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// This file contains the definition of the ChMassProps class.
+// This file contains the definition of the ChSoaMassProperties class.
 //
 // =============================================================================
 
-#ifndef CH_MASS_PROPS_H
-#define CH_MASS_PROPS_H
+#ifndef CH_SOA_MASS_PROPERTIES_H
+#define CH_SOA_MASS_PROPERTIES_H
 
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChMatrixMBD.h"
 
-#include "chrono/soa/ChSpatial.h"
+#include "chrono/soa/ChSoaSpatial.h"
 
 namespace chrono {
 namespace soa {
@@ -31,20 +31,20 @@ namespace soa {
 /// @{
 
 /// Inertial properties of a mobilized body.
-/// ChMassProps encapsulates the mass, centroidal frame, and inertia of a mobilized body B.
-class ChApi ChMassProps {
+/// ChSoaMassProperties encapsulates the mass, centroidal frame, and inertia of a mobilized body B.
+class ChApi ChSoaMassProperties {
   public:
-    ChMassProps();
+    ChSoaMassProperties();
 
     /// Construct inertia properties for a rigid body.
     /// Inertia properties are set from the specified mass, centroidal frame (assumed to be specified relative to the
     /// body reference frame), and inertia matrix (assumed to be specified in the centroidal frame).
-    ChMassProps(double mass, const ChFramed& X_BC, const ChMatrix33<>& inertia);
+    ChSoaMassProperties(double mass, const ChFramed& X_BC, const ChMatrix33<>& inertia);
 
     /// Construct inertia properties for a rigid body.
     /// Inertia properties are set from the specified mass, COM location (the centroidal frame is assumed parallel to
     /// the body reference frame), and inertia matrix (assumed to be specified in the centroidal frame).
-    ChMassProps(double mass, const ChVector3d& com, const ChMatrix33<>& inertia);
+    ChSoaMassProperties(double mass, const ChVector3d& com, const ChMatrix33<>& inertia);
 
     const double& mass() const { return m_mass; }
     const ChVector3d& com() const { return m_X_BC.GetPos(); }

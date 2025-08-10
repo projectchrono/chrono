@@ -19,7 +19,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChExternalDynamicsDAE.h"
-#include "chrono/soa/ChMobilizedBody.h"
+#include "chrono/soa/ChSoaMobilizedBody.h"
 #include "chrono/soa/ChSoaForce.h"
 
 namespace chrono {
@@ -35,16 +35,16 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
     ChSoaAssembly();
     ~ChSoaAssembly();
 
-    void AddBody(std::shared_ptr<ChMobilizedBody> body);
+    void AddBody(std::shared_ptr<ChSoaMobilizedBody> body);
 
-    void RemoveBody(std::shared_ptr<ChMobilizedBody> body);
+    void RemoveBody(std::shared_ptr<ChSoaMobilizedBody> body);
 
     void AddForce(std::shared_ptr<ChSoaForce> force);
 
     std::shared_ptr<ChGroundBody> getGroundBody() const { return m_ground_body; }
-    std::vector<std::shared_ptr<ChMobilizedBody>> getBodies() const { return m_bodies; }
+    std::vector<std::shared_ptr<ChSoaMobilizedBody>> getBodies() const { return m_bodies; }
 
-    std::shared_ptr<ChMobilizedBody> findBody(const std::string& name) const;
+    std::shared_ptr<ChSoaMobilizedBody> findBody(const std::string& name) const;
 
     virtual void Initialize() override;
     bool IsInitialized() const { return m_initialized; }
@@ -165,7 +165,7 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
 
   private:
     std::shared_ptr<ChGroundBody> m_ground_body;
-    std::vector<std::shared_ptr<ChMobilizedBody>> m_bodies;
+    std::vector<std::shared_ptr<ChSoaMobilizedBody>> m_bodies;
 
     std::vector<std::shared_ptr<ChSoaForce>> m_forces;
 
@@ -178,7 +178,7 @@ class ChApi ChSoaAssembly : public ChExternalDynamicsDAE {
     ChVectorDynamic<> m_y0;   ///< vector of initial states
     ChVectorDynamic<> m_yd0;  ///< vector of initial state derivatives
 
-    friend class ChMobilizedBody;
+    friend class ChSoaMobilizedBody;
 };
 
 /// @} chrono_soa

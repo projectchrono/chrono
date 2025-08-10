@@ -29,14 +29,14 @@ ChSoaAssembly::~ChSoaAssembly() {}
 
 // -----------------------------------------------------------------------------
 
-void ChSoaAssembly::AddBody(std::shared_ptr<ChMobilizedBody> body) {
+void ChSoaAssembly::AddBody(std::shared_ptr<ChSoaMobilizedBody> body) {
     ChAssertAlways(!m_initialized);
 
     body->m_assembly = this;
     m_bodies.push_back(body);
 }
 
-void ChSoaAssembly::RemoveBody(std::shared_ptr<ChMobilizedBody> body) {
+void ChSoaAssembly::RemoveBody(std::shared_ptr<ChSoaMobilizedBody> body) {
     ChAssertAlways(!m_initialized);
 
     auto itr = std::find(std::begin(m_bodies), std::end(m_bodies), body);
@@ -44,9 +44,9 @@ void ChSoaAssembly::RemoveBody(std::shared_ptr<ChMobilizedBody> body) {
     m_bodies.erase(itr);
 }
 
-std::shared_ptr<ChMobilizedBody> ChSoaAssembly::findBody(const std::string& name) const {
+std::shared_ptr<ChSoaMobilizedBody> ChSoaAssembly::findBody(const std::string& name) const {
     auto body = std::find_if(std::begin(m_bodies), std::end(m_bodies),
-                             [name](std::shared_ptr<ChMobilizedBody> body) { return body->getName() == name; });
+                             [name](std::shared_ptr<ChSoaMobilizedBody> body) { return body->getName() == name; });
     return (body != std::end(m_bodies)) ? *body : nullptr;
 }
 
