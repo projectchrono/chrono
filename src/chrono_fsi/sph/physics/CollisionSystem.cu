@@ -223,9 +223,9 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
     Real SqRadii = SuppRadii * SuppRadii;
     uint j_num = 0;
 
-    for (int x = -1; x <= 1; x++) {
+    for (int z = -1; z <= 1; z++) {
         for (int y = -1; y <= 1; y++) {
-            for (int z = -1; z <= 1; z++) {
+            for (int x = -1; x <= 1; x++) {
                 int3 neighborPos = gridPos + mI3(x, y, z);
                 // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
                 if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
@@ -269,9 +269,9 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
     uint j_num = 1;
     neighborList[numNeighborsPerPart[index]] = index;
 
-    for (int x = -1; x <= 1; x++) {
+    for (int z = -1; z <= 1; z++) {
         for (int y = -1; y <= 1; y++) {
-            for (int z = -1; z <= 1; z++) {
+            for (int x = -1; x <= 1; x++) {
                 int3 neighborPos = gridPos + mI3(x, y, z);
                 // Check if we need to skip this neighbor position (out of bounds for non-periodic dimensions)
                 if (neighborPos.x < paramsD.minBounds.x || neighborPos.x > paramsD.maxBounds.x ||
