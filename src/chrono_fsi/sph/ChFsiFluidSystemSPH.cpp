@@ -826,7 +826,6 @@ void ChFsiFluidSystemSPH::SetElasticSPH(const ElasticMaterialProperties& mat_pro
     m_paramsH->G_shear = m_paramsH->E_young / (2.0 * (1.0 + m_paramsH->Nu_poisson));
     m_paramsH->INV_G_shear = 1.0 / m_paramsH->G_shear;
     m_paramsH->K_bulk = m_paramsH->E_young / (3.0 * (1.0 - 2.0 * m_paramsH->Nu_poisson));
-    m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
 }
 
 ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
@@ -875,7 +874,6 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->ooh = 1 / m_paramsH->h;
 
     m_paramsH->v_Max = sph_params.max_velocity;
-    m_paramsH->Cs = 10 * m_paramsH->v_Max;
     m_paramsH->shifting_xsph_eps = sph_params.shifting_xsph_eps;
     m_paramsH->shifting_ppst_push = sph_params.shifting_ppst_push;
     m_paramsH->shifting_ppst_pull = sph_params.shifting_ppst_pull;
@@ -1359,7 +1357,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiBody(std::shared_ptr<FsiBody> fsi_body,
         bce_coords.clear();
         const auto& X_G_COM = fsi_body->body->GetFrameCOMToAbs();
         std::transform(bce.begin(), bce.end(), std::back_inserter(bce_coords),
-                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v);});
+                       [&X_G_COM](ChVector3d& v) { return X_G_COM.TransformPointParentToLocal(v); });
 
         // Set BCE body association
         bce_ids.resize(bce_coords.size(), fsi_body->index);
@@ -1866,6 +1864,13 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_data_mgr->cudaDeviceInfo->deviceID = device;
     cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
     cudaCheckError();
+
+    // Update the speed of sound
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+    } else {
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    }
 
     if (m_verbose) {
         PrintDeviceProperties(m_data_mgr->cudaDeviceInfo->deviceProp);
