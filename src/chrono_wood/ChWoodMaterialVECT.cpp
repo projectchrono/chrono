@@ -136,12 +136,12 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 
 		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
 
-		statev(0) = mstrain[0]; // TODO JBC: it is a bug to only update those inside this code branch.
-		statev(1) = mstrain[1]; //           If you unload to exactly zero (like in the unit tests)
-		statev(2) = mstrain[2]; //           you go to the `else` branch and the state variables do not get updated
-		statev(3) = mstress[0]; //           while a loading step did happen!
-		statev(4) = mstress[1]; //           I am leaving this as is for now because we will refactor this in depth soon!
-		statev(5) = mstress[2]; //           The current fix aims to retrieve the "old" behavior
+		statev(0) = mstrain[0] + eigenstrain[0]; // TODO JBC: it is a bug to only update those inside this code branch.
+		statev(1) = mstrain[1] + eigenstrain[1]; //           If you unload to exactly zero (like in the unit tests)
+		statev(2) = mstrain[2] + eigenstrain[2]; //           you go to the `else` branch and the state variables do not get updated
+		statev(3) = mstress[0];                  //           while a loading step did happen!
+		statev(4) = mstress[1];                  //           I am leaving this as is for now because we will refactor this in depth soon!
+		statev(5) = mstress[2];                  //           The current fix aims to retrieve the "old" behavior
 		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2))); // TODO JBC: Why doesn't statev(8) take bending into account? This differs from the Overleaf formulation!
 		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha); // TODO JBC: Why doesn't statev(9) take bending into account? This differs from the Overleaf formulation!
 		statev(10) = Wint + statev(10);
@@ -183,9 +183,9 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 
 		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
 		
-		statev(0) = mstrain[0]+ eigenstrain[0]; // TODO JBC: why is the eigenstrain only removed from the state variable in the elastic case ? I think it should be removed in the inelastic case too !
-		statev(1) = mstrain[1]+ eigenstrain[1]; // TODO JBC: why is the eigenstrain only removed from the state variable in the elastic case ? I think it should be removed in the inelastic case too !
-		statev(2) = mstrain[2]+ eigenstrain[2]; // TODO JBC: why is the eigenstrain only removed from the state variable in the elastic case ? I think it should be removed in the inelastic case too !
+		statev(0) = mstrain[0] + eigenstrain[0];
+		statev(1) = mstrain[1] + eigenstrain[1];
+		statev(2) = mstrain[2] + eigenstrain[2];
 		statev(3) = mstress[0];
 		statev(4) = mstress[1];
 		statev(5) = mstress[2];
