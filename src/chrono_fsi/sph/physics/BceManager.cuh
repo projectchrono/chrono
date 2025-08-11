@@ -36,10 +36,10 @@ namespace sph {
 /// - displacements from the MBD system to the fluid dynamics system
 class BceManager {
   public:
-    BceManager(FsiDataManager& data_mgr,                 ///< FSI data
-               NodeDirectionsMode node_directions_mode,  ///< enable/disable use of FEA node direction info
-               bool verbose,                             ///< verbose terminal output
-               bool check_errors                         ///< check CUDA errors
+    BceManager(FsiDataManager& data_mgr,             ///< FSI data
+               NodeDirections node_directions_mode,  ///< enable/disable use of FEA node direction info
+               bool verbose,                         ///< verbose terminal output
+               bool check_errors                     ///< check CUDA errors
     );
 
     ~BceManager();
@@ -92,7 +92,7 @@ class BceManager {
     thrust::device_vector<uint> m_rigid_valid_threads;        ///< numbers of valid (non-padding) threads in the block
     thrust::device_vector<uint> m_rigid_accumulated_threads;  ///< accumulated numbers of padded threads before a block
 
-    NodeDirectionsMode m_node_directions_mode;
+    NodeDirections m_node_directions_mode;
     bool m_verbose;
     bool m_check_errors;
 };

@@ -29,7 +29,6 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
 
-#include "chrono_fsi/ChFsiDefinitions.h"
 #include "chrono_fsi/sph/ChFsiParamsSPH.h"
 
 #include "chrono_fsi/sph/physics/MarkerType.cuh"
@@ -254,7 +253,7 @@ struct FsiDataManager {
                     unsigned int num_fsi_elements1D,
                     unsigned int num_fsi_nodes2D,
                     unsigned int num_fsi_elements2D,
-                    NodeDirectionsMode node_directions_mode);
+                    NodeDirections node_directions_mode);
 
     /// Find indices of all SPH particles inside the specified OBB.
     std::vector<int> FindParticlesInBox(const Real3& hsize,

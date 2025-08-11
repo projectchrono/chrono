@@ -1852,20 +1852,33 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     }
     // ----------------
 
+    // Hack to prevent bringing in Chrono core headers in CUDA code
+    // Copy from one enum class (NodeDirectionsMode) to another (NodeDirections)
+    NodeDirections node_directions_mode;
+    switch (m_node_directions_mode) {
+        case NodeDirectionsMode::NONE:
+            node_directions_mode = NodeDirections::NONE;
+            break;
+        case NodeDirectionsMode::AVERAGE:
+            node_directions_mode = NodeDirections::AVERAGE;
+            break;
+        case NodeDirectionsMode::EXACT:
+            node_directions_mode = NodeDirections::EXACT;
+            break;
+    }
+
     // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
     // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
     m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
                            m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
-                           m_node_directions_mode);
-
-    // ----------------
+                           node_directions_mode);
 
     // Load the initial body and mesh node states
     ChDebugLog("load initial states");
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_node_directions_mode, m_verbose, m_check_errors);
+    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, node_directions_mode, m_verbose, m_check_errors);
     m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
 
     // Initialize worker objects

@@ -35,7 +35,7 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-BceManager::BceManager(FsiDataManager& data_mgr, NodeDirectionsMode node_directions_mode, bool verbose, bool check_errors)
+BceManager::BceManager(FsiDataManager& data_mgr, NodeDirections node_directions_mode, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr),
       m_node_directions_mode(node_directions_mode),
       m_verbose(verbose),
@@ -945,11 +945,11 @@ void BceManager::UpdateMeshMarker1DState() {
         return;
 
     // If needed, calculate current node directions as averages
-    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
+    if (m_node_directions_mode == NodeDirections::AVERAGE) {
         CalcNodeDirections1D(m_data_mgr.fsiMesh1DState_D->dir);
     }
 
-    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
+    bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
@@ -974,11 +974,11 @@ void BceManager::UpdateMeshMarker1DStateInitial() {
         return;
 
     // If needed, calculate current node directions as averages
-    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
+    if (m_node_directions_mode == NodeDirections::AVERAGE) {
         CalcNodeDirections1D(m_data_mgr.fsiMesh1DState_D->dir);
     }
 
-    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
+    bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
@@ -1178,11 +1178,11 @@ void BceManager::UpdateMeshMarker2DState() {
         return;
 
     // If needed, calculate current node directions as averages
-    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
+    if (m_node_directions_mode == NodeDirections::AVERAGE) {
         CalcNodeDirections2D(m_data_mgr.fsiMesh2DState_D->dir);
     }
 
-    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
+    bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
@@ -1207,11 +1207,11 @@ void BceManager::UpdateMeshMarker2DStateInitial() {
         return;
 
     // If needed, calculate current node directions as averages
-    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
+    if (m_node_directions_mode == NodeDirections::AVERAGE) {
         CalcNodeDirections2D(m_data_mgr.fsiMesh2DState_D->dir);
     }
 
-    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
+    bool use_node_directions = (m_node_directions_mode != NodeDirections::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
