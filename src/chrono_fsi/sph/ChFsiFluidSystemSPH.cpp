@@ -2972,38 +2972,47 @@ std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame,
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetPositions();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetVelocities();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetAccelerations();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetForces() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetForces();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetProperties() const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetProperties();
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetPositions(indices);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetVelocities(indices);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetAccelerations(indices);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetForces(const std::vector<int>& indices) const {
+    SynchronizeCopyStream();
     return m_data_mgr->GetForces(indices);
 }
 
