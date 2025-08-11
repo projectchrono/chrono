@@ -1394,7 +1394,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
         //// TODO - exact node directions
         //// use from FSI mesh or fall back on average
     }
-    
+
     if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         dir.resize(fsi_mesh->GetNumNodes());
         std::fill(dir.begin(), dir.end(), VNULL);
@@ -1494,7 +1494,6 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
                                              std::vector<ChVector3d>& bce) {
     auto meshID = fsi_mesh->index;
     const auto& surface = fsi_mesh->contact_surface;
-
 
     // Load nodal directions if requested (from FSI mesh or calculate)
     bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
@@ -1845,7 +1844,12 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_paramsH->maxBounds = make_int3(m_paramsH->x_periodic ? INT_MAX : m_paramsH->gridSize.x - 1,
                                      m_paramsH->y_periodic ? INT_MAX : m_paramsH->gridSize.y - 1,
                                      m_paramsH->z_periodic ? INT_MAX : m_paramsH->gridSize.z - 1);
-
+    // Update the speed of sound
+    if (m_paramsH->elastic_SPH) {
+        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
+    } else {
+        m_paramsH->Cs = 10 * m_paramsH->v_Max;
+    }
     // ----------------
 
     // Initialize the data manager: set reference arrays, set counters, and resize simulation arrays
@@ -1882,13 +1886,6 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     m_data_mgr->cudaDeviceInfo->deviceID = device;
     cudaGetDeviceProperties(&m_data_mgr->cudaDeviceInfo->deviceProp, m_data_mgr->cudaDeviceInfo->deviceID);
     cudaCheckError();
-
-    // Update the speed of sound
-    if (m_paramsH->elastic_SPH) {
-        m_paramsH->Cs = sqrt(m_paramsH->K_bulk / m_paramsH->rho0);
-    } else {
-        m_paramsH->Cs = 10 * m_paramsH->v_Max;
-    }
 
     if (m_verbose) {
         PrintDeviceProperties(m_data_mgr->cudaDeviceInfo->deviceProp);
