@@ -41,7 +41,11 @@ namespace fsi {
 // =============================================================================
 
 ChFsiInterface::ChFsiInterface(ChSystem& sysMBS, ChFsiFluidSystem& sysCFD)
-    : m_sysMBS(sysMBS), m_sysCFD(sysCFD), m_verbose(true), m_initialized(false), m_use_node_directions(false) {}
+    : m_sysMBS(sysMBS),
+      m_sysCFD(sysCFD),
+      m_verbose(true),
+      m_initialized(false),
+      m_node_directions_mode(NodeDirectionsMode::NONE) {}
 
 ChFsiInterface::~ChFsiInterface() {}
 
@@ -211,11 +215,6 @@ void ChFsiInterface::Initialize() {
 
 // ------------
 
-void ChFsiInterface::UseNodeDirections(bool val) {
-    ChAssertAlways(!m_initialized);
-    m_use_node_directions = val;
-}
-
 void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states,
                                           std::vector<FsiMeshState>& mesh1D_states,
                                           std::vector<FsiMeshState>& mesh2D_states) const {
@@ -231,7 +230,7 @@ void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states
         mesh1D_states[imesh].pos.resize(num_nodes);
         mesh1D_states[imesh].vel.resize(num_nodes);
         mesh1D_states[imesh].acc.resize(num_nodes);
-        if (m_use_node_directions)
+        if (m_node_directions_mode != NodeDirectionsMode::NONE)
             mesh1D_states[imesh].dir.resize(num_nodes);
     }
 
@@ -241,7 +240,7 @@ void ChFsiInterface::AllocateStateVectors(std::vector<FsiBodyState>& body_states
         mesh2D_states[imesh].pos.resize(num_nodes);
         mesh2D_states[imesh].vel.resize(num_nodes);
         mesh2D_states[imesh].acc.resize(num_nodes);
-        if (m_use_node_directions)
+        if (m_node_directions_mode != NodeDirectionsMode::NONE)
             mesh2D_states[imesh].dir.resize(num_nodes);
     }
 }
@@ -397,7 +396,10 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                 mesh1D_states[imesh].vel[inode] = node->GetPosDt();
                 mesh1D_states[imesh].acc[inode] = node->GetPosDt2();
             }
-            if (m_use_node_directions) {
+            bool calculate_node_directions = (m_node_directions_mode == NodeDirectionsMode::AVERAGE);
+            //// TODO - exact node directions
+            //// use exact from FEA mesh or fall back on average
+            if (calculate_node_directions) {
                 ChDebugLog("mesh1D " << imesh << " dir size: " << mesh1D_states[imesh].dir.size());
                 CalculateDirectionsMesh1D(*fsi_mesh, mesh1D_states[imesh]);
                 mesh1D_states[imesh].has_node_directions = true;
@@ -416,7 +418,10 @@ void ChFsiInterface::StoreSolidStates(std::vector<FsiBodyState>& body_states,
                 mesh2D_states[imesh].vel[inode] = node->GetPosDt();
                 mesh2D_states[imesh].acc[inode] = node->GetPosDt2();
             }
-            if (m_use_node_directions) {
+            bool calculate_node_directions = (m_node_directions_mode == NodeDirectionsMode::AVERAGE);
+            //// TODO - exact node directions
+            //// use exact from FEA mesh or fall back on average
+            if (calculate_node_directions) {
                 ChDebugLog("mesh2D " << imesh << " dir size: " << mesh2D_states[imesh].dir.size());
                 CalculateDirectionsMesh2D(*fsi_mesh, mesh2D_states[imesh]);
                 mesh2D_states[imesh].has_node_directions = true;

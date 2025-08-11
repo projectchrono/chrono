@@ -35,9 +35,9 @@ namespace chrono {
 namespace fsi {
 namespace sph {
 
-BceManager::BceManager(FsiDataManager& data_mgr, bool use_node_directions, bool verbose, bool check_errors)
+BceManager::BceManager(FsiDataManager& data_mgr, NodeDirectionsMode node_directions_mode, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr),
-      m_use_node_directions(use_node_directions),
+      m_node_directions_mode(node_directions_mode),
       m_verbose(verbose),
       m_check_errors(check_errors) {
     m_totalForceRigid.resize(0);
@@ -944,9 +944,12 @@ void BceManager::UpdateMeshMarker1DState() {
     if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
-    if (m_use_node_directions) {
+    // If needed, calculate current node directions as averages
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         CalcNodeDirections1D(m_data_mgr.fsiMesh1DState_D->dir);
     }
+
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
@@ -954,7 +957,7 @@ void BceManager::UpdateMeshMarker1DState() {
     UpdateMeshMarker1DState_D<<<nBlocks, nThreads>>>(                                                        //
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),  //
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel),                //
-        m_use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                                    //
+        use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                                      //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                                                                   //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                               //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                                                              //
@@ -970,9 +973,12 @@ void BceManager::UpdateMeshMarker1DStateInitial() {
     if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
 
-    if (m_use_node_directions) {
+    // If needed, calculate current node directions as averages
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         CalcNodeDirections1D(m_data_mgr.fsiMesh1DState_D->dir);
     }
+
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers1D, 256, nBlocks, nThreads);
@@ -980,7 +986,7 @@ void BceManager::UpdateMeshMarker1DStateInitial() {
     UpdateMeshMarker1DStateUnsorted_D<<<nBlocks, nThreads>>>(                                  //
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),  //
         mR3CAST(m_data_mgr.fsiMesh1DState_D->pos), mR3CAST(m_data_mgr.fsiMesh1DState_D->vel),  //
-        m_use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                      //
+        use_node_directions, mR3CAST(m_data_mgr.fsiMesh1DState_D->dir),                        //
         U2CAST(m_data_mgr.flex1D_Nodes_D),                                                     //
         U3CAST(m_data_mgr.flex1D_BCEsolids_D),                                                 //
         mR3CAST(m_data_mgr.flex1D_BCEcoords_D)                                                 //
@@ -1171,9 +1177,12 @@ void BceManager::UpdateMeshMarker2DState() {
     if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
 
-    if (m_use_node_directions) {
+    // If needed, calculate current node directions as averages
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         CalcNodeDirections2D(m_data_mgr.fsiMesh2DState_D->dir);
     }
+
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
@@ -1181,7 +1190,7 @@ void BceManager::UpdateMeshMarker2DState() {
     UpdateMeshMarker2DState_D<<<nBlocks, nThreads>>>(                                                        //
         mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), mR3CAST(m_data_mgr.sortedSphMarkers2_D->velMasD),  //
         mR3CAST(m_data_mgr.fsiMesh2DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->vel),                //
-        m_use_node_directions, mR3CAST(m_data_mgr.fsiMesh2DState_D->dir),                                    //
+        use_node_directions, mR3CAST(m_data_mgr.fsiMesh2DState_D->dir),                                      //
         U3CAST(m_data_mgr.flex2D_Nodes_D),                                                                   //
         U3CAST(m_data_mgr.flex2D_BCEsolids_D),                                                               //
         mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                                                              //
@@ -1197,9 +1206,12 @@ void BceManager::UpdateMeshMarker2DStateInitial() {
     if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
 
-    if (m_use_node_directions) {
+    // If needed, calculate current node directions as averages
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         CalcNodeDirections2D(m_data_mgr.fsiMesh2DState_D->dir);
     }
+
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
 
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numFlexMarkers2D, 256, nBlocks, nThreads);
@@ -1207,7 +1219,7 @@ void BceManager::UpdateMeshMarker2DStateInitial() {
     UpdateMeshMarker2DStateUnsorted_D<<<nBlocks, nThreads>>>(                                  //
         mR4CAST(m_data_mgr.sphMarkers_D->posRadD), mR3CAST(m_data_mgr.sphMarkers_D->velMasD),  //
         mR3CAST(m_data_mgr.fsiMesh2DState_D->pos), mR3CAST(m_data_mgr.fsiMesh2DState_D->vel),  //
-        m_use_node_directions, mR3CAST(m_data_mgr.fsiMesh2DState_D->dir),                      //
+        use_node_directions, mR3CAST(m_data_mgr.fsiMesh2DState_D->dir),                        //
         U3CAST(m_data_mgr.flex2D_Nodes_D),                                                     //
         U3CAST(m_data_mgr.flex2D_BCEsolids_D),                                                 //
         mR3CAST(m_data_mgr.flex2D_BCEcoords_D)                                                 //

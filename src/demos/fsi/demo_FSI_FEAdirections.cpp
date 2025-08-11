@@ -59,7 +59,7 @@ enum class ElementType { ANCF_CABLE, ANCF_3243, ANCF_3333, EULER };
 
 ElementType element_type = ElementType::ANCF_CABLE;
 int num_elements = 4;
-bool use_FEA_node_directions = false;
+NodeDirectionsMode FEA_node_directions_mode = NodeDirectionsMode::AVERAGE;
 
 // -----------------------------------------------------------------------------
 
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     fsi.SetSPHParameters(sph_params);
 
     // Enable/disable use of node directions for FSI flexible meshes
-    fsi.UseNodeDirections(use_FEA_node_directions);
+    fsi.UseNodeDirections(FEA_node_directions_mode);
 
     // Dimension of computational domain and intial fluid domain
     ChVector3d csize(2.0, 0.15, 1.0);

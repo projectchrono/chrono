@@ -150,8 +150,8 @@ size_t ChFsiProblemSPH::GetNumBCE(std::shared_ptr<ChBody> body) const {
 
 // ----------------------------------------------------------------------------
 
-void ChFsiProblemSPH::UseNodeDirections(bool val) {
-    m_sysFSI.UseNodeDirections(val);
+void ChFsiProblemSPH::UseNodeDirections(NodeDirectionsMode mode) {
+    m_sysFSI.UseNodeDirections(mode);
 }
 
 void ChFsiProblemSPH::SetBcePattern1D(BcePatternMesh1D pattern, bool remove_center) {

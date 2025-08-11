@@ -98,11 +98,11 @@ class CH_FSI_API ChFsiProblemSPH {
     /// Return the number of BCE markers associated with the specified rigid body.
     size_t GetNumBCE(std::shared_ptr<ChBody> body) const;
 
-    /// Enable/disable use of node directions when assigning BCE locations on FEA elements.
+    /// Enable use and set method of obtaining FEA node directions for generating FEA BCE marker location.
     /// By default, node directions are not used, resulting in linear interpolation between nodes.
-    /// If enabled, node direction vectors (average of adjacent segment directions or average of face normals) are used,
-    /// resulting in a piecewise cubic Bezier interpolation.
-    void UseNodeDirections(bool val);
+    /// If enabled, exact node direction vectors are received from the FEA solver (NodeDirectionsMode::EXACT), or else
+    /// approximated as averages of directions from elements incident to the node.
+    void UseNodeDirections(NodeDirectionsMode mode);
 
     /// Set the BCE marker pattern for 1D flexible solids for subsequent calls to AddFeaMesh.
     /// By default, a full set of BCE markers is used across each section, including a central marker.

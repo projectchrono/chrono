@@ -72,7 +72,7 @@ bool create_cylinder_post = true;
 bool create_cylinder_free = true;
 
 // Use nodal directions
-bool use_FEA_node_directions = false;
+NodeDirectionsMode FEA_node_directions_mode = NodeDirectionsMode::NONE;
 
 // Visibility flags
 bool show_rigid_bce = false;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     ChFsiFluidSystemSPH::SPHParameters sph_params;
 
     // Enable/disable use of node directions for FSI flexible meshes
-    fsi.UseNodeDirections(use_FEA_node_directions);
+    fsi.UseNodeDirections(FEA_node_directions_mode);
 
     switch (problem_type) {
         case PhysicsProblem::CFD:

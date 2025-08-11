@@ -1386,9 +1386,16 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
     Real spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    // Calculate nodal directions if requested
+    // Load nodal directions if requested (from FSI mesh or calculate)
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
     std::vector<ChVector3d> dir;
-    if (m_use_node_directions) {
+
+    if (m_node_directions_mode == NodeDirectionsMode::EXACT) {
+        //// TODO - exact node directions
+        //// use from FSI mesh or fall back on average
+    }
+    
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         dir.resize(fsi_mesh->GetNumNodes());
         std::fill(dir.begin(), dir.end(), VNULL);
         for (const auto& seg : surface->GetSegmentsXYZ()) {
@@ -1435,7 +1442,7 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh1D(std::shared_ptr<FsiMesh1D> fsi_mesh
 
             ChVector3d P;
             ChVector3d D;
-            if (m_use_node_directions) {
+            if (use_node_directions) {
                 auto t2 = t * t;
                 auto t3 = t2 * t;
 
@@ -1488,9 +1495,17 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
     auto meshID = fsi_mesh->index;
     const auto& surface = fsi_mesh->contact_surface;
 
-    // Calculate nodal directions if requested
+
+    // Load nodal directions if requested (from FSI mesh or calculate)
+    bool use_node_directions = (m_node_directions_mode != NodeDirectionsMode::NONE);
     std::vector<ChVector3d> dir;
-    if (m_use_node_directions) {
+
+    if (m_node_directions_mode == NodeDirectionsMode::EXACT) {
+        //// TODO - exact node directions
+        //// use from FSI mesh or fall back on average
+    }
+
+    if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
         dir.resize(fsi_mesh->GetNumNodes());
         std::fill(dir.begin(), dir.end(), VNULL);
         for (const auto& tri : surface->GetTrianglesXYZ()) {
@@ -1596,6 +1611,9 @@ void ChFsiFluidSystemSPH::CreateBCEFsiMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh
                     continue;
 
                 //// TODO RADU - add cubic interpolation (position and normal) if using nodal directions
+                if (use_node_directions) {
+                    //// TODO
+                }
 
                 auto P = lambda[0] * P0 + lambda[1] * P1 + lambda[2] * P2;  // absolute coordinates of BCE marker
 
@@ -1834,7 +1852,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     // Indicate if the data manager should allocate space for holding FEA mesh direction vectors
     m_data_mgr->Initialize(m_num_rigid_bodies,                                                                    //
                            m_num_flex1D_nodes, m_num_flex1D_elements, m_num_flex2D_nodes, m_num_flex2D_elements,  //
-                           m_use_node_directions);
+                           m_node_directions_mode);
 
     // ----------------
 
@@ -1843,7 +1861,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
     LoadSolidStates(body_states, mesh1D_states, mesh2D_states);
 
     // Create BCE and SPH worker objects
-    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_use_node_directions, m_verbose, m_check_errors);
+    m_bce_mgr = chrono_types::make_unique<BceManager>(*m_data_mgr, m_node_directions_mode, m_verbose, m_check_errors);
     m_fluid_dynamics = chrono_types::make_unique<FluidDynamics>(*m_data_mgr, *m_bce_mgr, m_verbose, m_check_errors);
 
     // Initialize worker objects

@@ -200,8 +200,8 @@ FsiRigidBceScalingTest<num_boxes>::FsiRigidBceScalingTest() {
         box->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(box_size), ChFrame<>());
         m_sysMBS->AddBody(box);
 
-        auto points = m_sysSPH->CreatePointsBoxInterior(box_size);
-        m_sysFSI->AddFsiBody(box, points, ChFrame<>(), false);
+        auto box_points = m_sysSPH->CreatePointsBoxInterior(box_size);
+        m_sysFSI->AddFsiBody(box, box_points, ChFrame<>(), false);
     }
 
     m_sysFSI->Initialize();

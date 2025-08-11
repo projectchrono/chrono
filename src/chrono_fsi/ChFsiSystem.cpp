@@ -88,11 +88,11 @@ void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_sysMBS.SetGravitationalAcceleration(gravity);
 }
 
-void ChFsiSystem::UseNodeDirections(bool val) {
+void ChFsiSystem::UseNodeDirections(NodeDirectionsMode mode) {
     ChAssertAlways(m_fsi_interface);
-    ChDebugLog("uses direction data? " << val);
-    m_fsi_interface->UseNodeDirections(val);
-    m_sysCFD.UseNodeDirections(val);
+    ChDebugLog("uses direction data? " << (mode != NodeDirectionsMode::NONE));
+    m_fsi_interface->UseNodeDirections(mode);
+    m_sysCFD.UseNodeDirections(mode);
 }
 
 std::shared_ptr<FsiBody> ChFsiSystem::AddFsiBody(std::shared_ptr<ChBody> body,

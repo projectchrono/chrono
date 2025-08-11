@@ -111,8 +111,8 @@ class CH_FSI_API ChFsiInterface {
 
     // ------------
 
-    /// Enable calculation and communication of node directions for FSI meshes. Default: false.
-    void UseNodeDirections(bool val);
+    /// Enable use and set method of obtaining FEA node directions. Default: NodeDirectionsMode::NONE.
+    void UseNodeDirections(NodeDirectionsMode mode) { m_node_directions_mode = mode; }
 
     /// Utility function to allocate state vectors.
     /// If use of node directions is enabled, also resize the vectors of node directions for FSI meshes.
@@ -167,7 +167,7 @@ class CH_FSI_API ChFsiInterface {
 
     bool m_verbose;
     bool m_initialized;
-    bool m_use_node_directions;
+    NodeDirectionsMode m_node_directions_mode;
     ChSystem& m_sysMBS;
     ChFsiFluidSystem& m_sysCFD;
 

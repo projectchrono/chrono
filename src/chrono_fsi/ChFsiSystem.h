@@ -86,11 +86,13 @@ class CH_FSI_API ChFsiSystem {
     /// solid and fluid phases. If none are defined, one contact surface is created, but it is not attached to the FEA mesh.
     std::shared_ptr<FsiMesh2D> AddFsiMesh2D(std::shared_ptr<fea::ChMesh> mesh, bool check_embedded);
 
-    /// Enable/disable use of node direction vectors for FSI flexible meshes.
-    /// When enabled, node direction vectors (average of adjacent segment directions or average of face normals) are
-    /// calculated from the FSI mesh position states and communicated to the fluid solver. The default is set by a
-    /// concrete ChFsiSystem and the associated FSI interface.
-    void UseNodeDirections(bool val);
+    /// Enable use and set method of obtaining FEA node directions.
+    /// If provided, node direction vectors can be used to provide a more accurate interpolation of positions between
+    /// nodes (piece-wise cubic as opposed to only piece-wise linear). Node directions can be provided by the FEA
+    /// elements and communicated to the fluid solver (NodeDirectionsMode::EXACT), or else approximated by averaging
+    /// direction over all elements incident to the node. The default is set by a concrete ChFsiSystem and the
+    /// associated FSI interface.
+    void UseNodeDirections(NodeDirectionsMode mode);
 
     /// Initialize the FSI system.
     /// A call to this function marks the completion of system construction.

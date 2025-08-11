@@ -54,7 +54,7 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
     }
 
     {
-        // Load from FEA nodes on host
+        // Load from 1-D FEA nodes on host
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes1D) {
             ////int num_nodes = (int)fsi_mesh->ind2ptr_map.size();
@@ -68,9 +68,12 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
 
         // Transfer to device
         m_data_mgr->fsiMesh1DState_D->CopyFromH(*m_data_mgr->fsiMesh1DState_H);
-        if (m_use_node_directions) {
+
+        // If exact node directions are used, these are available in the FSI mesh states
+        // If average node directions are used, calculate them directly on the device
+        if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
             calculateDirectionsMesh1D(*m_data_mgr);
-            ChDebugLog("Calculate directions");
+            ChDebugLog("Calculate directions for 1-D FEA meshes");
 #ifdef DEBUG_LOG
             printDirectionsMesh1D(*m_data_mgr);
 #endif
@@ -78,7 +81,7 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
     }
 
     {
-        // Load from FEA nodes on host
+        // Load from 2-D FEA nodes on host
         int index = 0;
         for (const auto& fsi_mesh : m_fsi_meshes2D) {
             ////int num_nodes = (int)fsi_mesh->ind2ptr_map.size();
@@ -92,8 +95,13 @@ void ChFsiInterfaceSPH::ExchangeSolidStates() {
 
         // Transfer to device
         m_data_mgr->fsiMesh2DState_D->CopyFromH(*m_data_mgr->fsiMesh2DState_H);
-        if (m_use_node_directions)
+
+        // If exact node directions are used, these are available in the FSI mesh states
+        // If average node directions are used, calculate them directly on the device
+        if (m_node_directions_mode == NodeDirectionsMode::AVERAGE) {
             calculateDirectionsMesh2D(*m_data_mgr);
+            ChDebugLog("Calculate directions for 2-D FEA meshes");
+        }
     }
 }
 

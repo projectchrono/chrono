@@ -151,6 +151,9 @@ void FsiMeshStateD::CopyFromH(const FsiMeshStateH& meshStateH) {
     thrust::copy(meshStateH.pos.begin(), meshStateH.pos.end(), pos.begin());
     thrust::copy(meshStateH.vel.begin(), meshStateH.vel.end(), vel.begin());
     thrust::copy(meshStateH.acc.begin(), meshStateH.acc.end(), acc.begin());
+
+    //// TODO - exact node directions
+    //// If exact node directions are available, copy them from host to device
 }
 
 void FsiMeshStateD::CopyDirectionsFromH(const FsiMeshStateH& meshStateH) {
@@ -473,7 +476,7 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
                                 unsigned int num_fsi_elements1D,
                                 unsigned int num_fsi_nodes2D,
                                 unsigned int num_fsi_elements2D,
-                                bool use_node_directions) {
+                                NodeDirectionsMode node_directions_mode) {
     ConstructReferenceArray();
     SetCounters(num_fsi_bodies, num_fsi_nodes1D, num_fsi_elements1D, num_fsi_nodes2D, num_fsi_elements2D);
 
@@ -518,6 +521,7 @@ void FsiDataManager::Initialize(unsigned int num_fsi_bodies,
     rigid_FSI_ForcesD.resize(countersH->numFsiBodies);
     rigid_FSI_TorquesD.resize(countersH->numFsiBodies);
 
+    bool use_node_directions = (node_directions_mode != NodeDirectionsMode::NONE);
     fsiMesh1DState_D->Resize(countersH->numFsiNodes1D, use_node_directions);
     fsiMesh1DState_H->Resize(countersH->numFsiNodes1D, use_node_directions);
     fsiMesh2DState_D->Resize(countersH->numFsiNodes2D, use_node_directions);
