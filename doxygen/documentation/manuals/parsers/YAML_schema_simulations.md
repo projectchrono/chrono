@@ -31,7 +31,7 @@ A simulation file contains these main sections:
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `integrator` | Integrator type and parameters | object | `EULER_IMPLICIT_LINEARIZED`,<br>`EULER_IMPLICIT_PROJECTED`,<br>`EULER_IMPLICIT`,<br>`HHT` | No | `EULER_IMPLICIT_LINEARIZED`  | No | `EULER_IMPLICIT_LINEARIZED` |
+| `integrator` | Integrator type and parameters | object | `EULER_IMPLICIT_LINEARIZED`,<br>`EULER_IMPLICIT_PROJECTED`,<br>`EULER_IMPLICIT`,<br>`HHT` | No | `EULER_IMPLICIT_LINEARIZED`  |
 | `solver` | (DVI or linear) solver type and parameters | object |  `BARZILAI_BORWEIN`,<br>`PSOR`,<br>`APGD`,<br>`MINRES`,<br>`GMRES`,<br>`BICGSTAB`,<br>`PARDISO`,<br>`MUMPS`,<br>`SPARSE_LU`,<br>`SPARSE_QR` | No | `BARZILAI_BORWEIN` |
 | `visualization` | Run-time visualization settings | object | [-] | No | `false` |
 

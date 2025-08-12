@@ -5,38 +5,36 @@ YAML schema for Chrono model specification {#YAML_schema_models}
 
 A YAML model file `model.yaml` defines the mechanical system for the simulation. It defines:
 
-1. **Bodies**: rigid bodies that carry mass and inertia and, optionally, collision and visualization geometry
+1. **Bodies**: (Required)rigid bodies that carry mass and inertia and, optionally, collision and visualization geometry
 2. **Joints**: connection between a pair of bodies, specified either as a kinematic (ideal) joint or as a bushing
 3. **Passive force elements**: translational and rotational linear or non-linear spring-damper force elements acting between two rigid bodies
 4. **Motors and actuators**: 
    - translational and rotational motors acting between two rigid bodies at the position (displacement or angle), velocity (linear or angular speed), or force (force or torque) levels. Motors are specified through a time function for the control input (position, velocity, or force)
    - external actuators
 5. **Constraints**: additional constraint equations between bodies
+6. **External loads**: external loads applied to bodies
 
-### File Structure
-
-The YAML model file contains these main sections:
+The table below lists the main fields of the model file.
 
 | Property | Description | Type | Available Values | Required | Default |
 |-------|-------------|------|----------|---------|---------|
-| `chrono-version` | Chrono version compatibility (M.m or M.m.p format) | string | [-] | Yes | [-] |
-| `name` | Optional model name for identification | string | [-] | No | 'YAML model' |
-| `angle_degrees` | Whether angles are in degrees (true) or radians (false) | boolean | [-] | No | true |
-| `data_path` | Configuration for data file locations | object, see below | [-] | No | using absolute paths |
-| `bodies` | Array of body objects | array[`body`] | [-] | Yes | [-] |
-| `joints` | Array of joint objects | array[`joint`] | [-] | No | [-] |
-| `constraints` | Array of constraint objects | array[`constraint`] | [-] | No | [-] |
-| `tsdas` | Array of TSDA (translational spring-damper) objects | array[`tsda`] | [-] | No | [-] |
-| `rsdas` | Array of RSDA (rotational spring-damper) objects | array[`rsda`] | [-] | No | [-] |
-| `motors` | Array of motor objects | array[`motor`] | [-] | No | [-] |
-| `body_loads` | Array of external loads applied to bodies | array[`body_load`] | [-] | No | [-] | 
+| `name` | Optional model name for identification | string | -- | No | 'YAML model' |
+| `angle_degrees` | Whether angles are in degrees (true) or radians (false) | boolean | -- | No | true |
+| `data_path` | Configuration for data file locations | object, see below | -- | No | using absolute paths |
+| `bodies` | Array of body objects | array[`body`] | -- | Yes | -- |
+| `joints` | Array of joint objects | array[`joint`] | -- | No | -- |
+| `constraints` | Array of constraint objects | array[`constraint`] | -- | No | -- |
+| `tsdas` | Array of TSDA (translational spring-damper) objects | array[`tsda`] | -- | No | -- |
+| `rsdas` | Array of RSDA (rotational spring-damper) objects | array[`rsda`] | -- | No | -- |
+| `motors` | Array of motor objects | array[`motor`] | -- | No | -- |
+| `body_loads` | Array of external loads applied to bodies | array[`body_load`] | -- | No | -- | 
 
 The `data_path` object can have the following fields if specified:
 
 | Field | Description | Type | Available Values | Required | Default |
 |-------|-------------|------|----------|---------|---------|
-| `type` | Type of data path | string | `RELATIVE` or `ABSOLUTE` | Yes | [-] |
-| `root` | Root directory for data file locations | string | [-] | No | `.` (current directory) |
+| `type` | Type of data path | string | `RELATIVE` or `ABSOLUTE` | Yes | -- |
+| `root` | Root directory for data file locations | string | -- | No | `.` (current directory) |
 
 ### Bodies
 
@@ -44,67 +42,67 @@ Each body represents a physical object in the simulation with the following prop
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `name` | Unique identifier for the body | string | [-] | Yes | [-] |
-| `fixed` | Indicates if body fixed relative to global frame | boolean | [-] | No | false |
-| `mass` | Mass in kg | double | [-] | Yes, if body not fixed | [-] |
-| `com`->`location` | Origin of the COM frame relative to body reference frame | array[3] | [-] | No | [0, 0, 0] |
-| `com`->`orientation` | Orientation of the COM frame relative to body reference frame | array[3] or array[4] | [-] | No | identity rotation |
-| `inertia`->`moments` | Moments of inertia [Ixx, Iyy, Izz] relative to centroidal frame | array[3] | [-] | Yes, if body not fixed | [-] |
-| `inertia`->`products` | Products of inertia [Ixy, Iyz, Izx] relative to centroidal frame | array[3] | [-] | No | [0, 0, 0] |
-| `location` | Origin of the body reference frame, relative to model frame | array[3] | [-] | Yes | [-] |
-| `orientation` | Orientation of the body reference frame relative to model frame | array[3] or array[4] | [-] | No | identity rotation |
-| `initial_linear_velocity` | Initial linear velocity of the body reference frame | array[3] | [-] | No | [0, 0, 0] |
-| `initial_angular_velocity` | Initial angular velocity of the body reference frame, expressed in local body frame | array[3] | [-] | No | [0, 0, 0] |
-| `contact` | List of contact materials, `materials` and collision shapes, `shapes` | object, see below | [-] | No | no contact |
-| `visualization` | List of visualization shapes, `shapes` | object, see below | [-] | No | no visualization |
+| `name` | Unique identifier for the body | string | -- | Yes | -- |
+| `fixed` | Indicates if body fixed relative to global frame | boolean | -- | No | false |
+| `mass` | Mass in kg | double | -- | Yes, if body not fixed | -- |
+| `com`->`location` | Origin of the COM frame relative to body reference frame | array[3] | -- | No | [0, 0, 0] |
+| `com`->`orientation` | Orientation of the COM frame relative to body reference frame | array[3] or array[4] | -- | No | identity rotation |
+| `inertia`->`moments` | Moments of inertia [Ixx, Iyy, Izz] relative to centroidal frame | array[3] | -- | Yes, if body not fixed | -- |
+| `inertia`->`products` | Products of inertia [Ixy, Iyz, Izx] relative to centroidal frame | array[3] | -- | No | [0, 0, 0] |
+| `location` | Origin of the body reference frame, relative to model frame | array[3] | -- | Yes | -- |
+| `orientation` | Orientation of the body reference frame relative to model frame | array[3] or array[4] | -- | No | identity rotation |
+| `initial_linear_velocity` | Initial linear velocity of the body reference frame | array[3] | -- | No | [0, 0, 0] |
+| `initial_angular_velocity` | Initial angular velocity of the body reference frame, expressed in local body frame | array[3] | -- | No | [0, 0, 0] |
+| `contact` | List of contact materials, `materials` and collision shapes, `shapes` | object, see below | -- | No | no contact |
+| `visualization` | List of visualization shapes, `shapes` | object, see below | -- | No | no visualization |
 
 **Note:** `orientation` can be specified as Euler Cardan angles [roll, pitch, yaw] or quaternion [e0, e1, e2, e3]
 
 #### Body Contact Properties
-The collision of a body is specified through a list of contact material, `materials` and collision shapes, `shapes`. The model can have more `shapes` than `materials`, and the user need to specify which `shape` is associated with which `material`. Depending on the contact method, `SMC` or `NSC`, the same contact paramters, such as `coefficient_of_friction` and `coefficient_of_restitution`, can result in different physics. 
+The collision of a body is specified through a list of contact material, `materials` and a list of collision shapes, `shapes`. The model can have more `shapes` than `materials`, and the user need to specify which `shape` is associated with which `material`. Depending on the contact method, `SMC` or `NSC`, the same contact paramters, such as `coefficient_of_friction` and `coefficient_of_restitution`, can result in different physics. When using `SMC`, the user can specify material-based properties, such as `Youngs_modulus` and `Poisson_ratio`, or spring-damper coefficients for modeling contact, such as `normal_stiffness` and `normal_damping`.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `materials` | Contact material properties | object | [-] | Yes | [-] |
-| `shapes` | Collision shapes for contact detection | array[`shape`] | [-] | Yes | [-] |
+| `materials` | Contact material properties | array[`material`], see Contact Material below | -- | Yes | -- |
+| `shapes` | Collision shapes for contact detection | array[`shape`], see Collision Shape below | -- | Yes | -- |
 
-**Contact Materials**
+##### Contact Material
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `name` | Unique identifier for the material | string | [-] | Yes | [-] |
-| `coefficient_of_friction` | Friction coefficient | double | [-] | No | 0.8 |
-| `coefficient_of_restitution` | Coefficient of restitution | double | [-] | No | 0.01|
-| `properties` | (`SMC` only) contact material-based properties, such as Young's modulus and Poisson's ratio | object | [-] | No | see below |
-| `Coefficients` | (`SMC` only) contact spring-damper coefficients, such as normal stiffness and damping | object | [-] | No | see below |
+| `name` | Unique identifier for the material | string | -- | Yes | -- |
+| `coefficient_of_friction` | Friction coefficient | double | -- | No | 0.8 |
+| `coefficient_of_restitution` | Coefficient of restitution | double | -- | No | 0.01|
+| `properties` | (`SMC` only) contact material-based properties, such as Young's modulus and Poisson's ratio | object | -- | No | see below |
+| `Coefficients` | (`SMC` only) contact spring-damper coefficients, such as normal stiffness and damping | object | -- | No | see below |
 
 Properties for `material`->`properties`:
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `Youngs_modulus` | Young's modulus of the material | double | [-] | Yes | 2e7 if `properties` not specified |
-| `Poisson_ratio` | Poisson's ratio of the material | double | [-] | Yes | 0.3 if `properties` not specified |
+| `Youngs_modulus` | Young's modulus of the material | double | -- | Yes | 2e7 if `properties` not specified |
+| `Poisson_ratio` | Poisson's ratio of the material | double | -- | Yes | 0.3 if `properties` not specified |
 
 Properties for `material`->`Coefficients`:
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `normal_stiffness` | Normal stiffness coefficient | double | [-] | Yes | 2e5 if `Coefficients` not specified |
-| `normal_damping` | Normal damping coefficient | double | [-] | Yes | 40 if `Coefficients` not specified |
-| `tangential_stiffness` | Tangential stiffness coefficient | double | [-] | Yes | 2e5 if `Coefficients` not specified |
-| `tangential_damping` | Tangential damping coefficient | double | [-] | Yes | 20 if `Coefficients` not specified |
+| `normal_stiffness` | Normal stiffness coefficient | double | -- | Yes | 2e5 if `Coefficients` not specified |
+| `normal_damping` | Normal damping coefficient | double | -- | Yes | 40 if `Coefficients` not specified |
+| `tangential_stiffness` | Tangential stiffness coefficient | double | -- | Yes | 2e5 if `Coefficients` not specified |
+| `tangential_damping` | Tangential damping coefficient | double | -- | Yes | 20 if `Coefficients` not specified |
 
-**Collision Shapes**
+##### Collision Shape
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Collision shape type | string | `SPHERE`, `BOX`, `CYLINDER`, `HULL`, `MESH` | Yes | [-] |
-| `material` | Name of the contact `material` used for the shape, see above | string | [-] | Yes | [-] |
-| `location` | Shape location relative to body reference frame | array[3] | [-] | Yes for `SPHERE`, `BOX`, `CYLINDER` <br> No for `MESH` | [0, 0, 0] for `MESH` |
-| `orientation` | Shape orientation relative to body reference frame | array[3] or array[4] | [-] | Yes for `BOX` <br> No for `MESH` | identity rotation for `MESH` |
-| `radius` | Radius for `SPHERE` and `CYLINDER` shapes | double | [-] | Yes for `SPHERE` and `CYLINDER` |[-] |
-| `dimensions` | Dimensions [length, width, height] for `BOX` shape | array[3] | [-] | Yes for `BOX` | [-] |
-| `axis` | Axis direction for `CYLINDER` shape | array[3] | [-] | Yes for `CYLINDER` | [-] |
-| `length` | Length for `CYLINDER` shape | double | [-] | Yes for `CYLINDER` | [-] |
-| `filename` | Filename for `HULL` and `MESH` shapes | string | [-] | Yes for `HULL` and `MESH` | [-] |
-| `contact_radius` | Contact radius for `MESH` shape | double | [-] | Yes for `MESH` | [-] |
-| `scale` | Scale factor for `MESH` shape | double | [-] | No for `MESH` | 1.0 |
+| `type` | Collision shape type | string | `SPHERE`, `BOX`, `CYLINDER` <br> `HULL`, `MESH` | Yes | -- |
+| `material` | Name of the contact `material` used for the shape, see above | string | -- | Yes | -- |
+| `location` | Shape location relative to body reference frame | array[3] | -- | Yes for `SPHERE`, `BOX`, `CYLINDER` <br> No for `MESH` | [0, 0, 0] for `MESH` |
+| `orientation` | Shape orientation relative to body reference frame | array[3] or array[4] | -- | Yes for `BOX` <br> No for `MESH` | identity rotation for `MESH` |
+| `radius` | Radius for `SPHERE` and `CYLINDER` shapes | double | -- | Yes for `SPHERE` and `CYLINDER` |-- |
+| `dimensions` | Dimensions [length, width, height] for `BOX` shape | array[3] | -- | Yes for `BOX` | -- |
+| `axis` | Axis direction for `CYLINDER` shape | array[3] | -- | Yes for `CYLINDER` | -- |
+| `length` | Length for `CYLINDER` shape | double | -- | Yes for `CYLINDER` | -- |
+| `filename` | Filename for `HULL` and `MESH` shapes | string | -- | Yes for `HULL` and `MESH` | -- |
+| `contact_radius` | Contact radius for `MESH` shape | double | -- | Yes for `MESH` | -- |
+| `scale` | Scale factor for `MESH` shape | double | -- | No for `MESH` | 1.0 |
 
 #### Body Visualization Properties
 
@@ -112,22 +110,23 @@ The visualization of the body can either be one single `model_file` or a list of
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `model_file` | Path to the model file for visualization | string | [-] | No | [-] |
-| `shapes` | List of shapes for visualization | array, see below | [-] | No | [-] |
+| `model_file` | Path to the model file for visualization | string | -- | No | -- |
+| `shapes` | List of shapes for visualization | array, see below | -- | No | -- |
 
-**Visualization Shapes**
+##### Visualization Shapes
+
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Visualization shape type | string | `SPHERE`, `BOX`, `CYLINDER`, `MESH` | Yes | [-] |
-| `location` | Shape location relative to body reference frame | array[3] | [-] | Yes for `SPHERE`, `BOX`, `CYLINDER` <br> No for `MESH` | [0, 0, 0] for `MESH` |
-| `orientation` | Shape orientation relative to body reference frame for `BOX` and `MESH` | array[3] or array[4] | [-] | Yes for `BOX`, no for `MESH` | identity rotation for `MESH` |
-| `radius` | Radius for `SPHERE` and `CYLINDER` shapes | double | [-] | Yes for `SPHERE` and `CYLINDER` | [-] |
-| `dimensions` | Dimensions [length, width, height] for `BOX` shape | array[3] | [-] | Yes for `BOX` | [-] |
-| `axis` | Axis direction for `CYLINDER` shape | array[3] | [-] | Yes for `CYLINDER` | [-] |
-| `length` | Length for `CYLINDER` shape | double | [-] | Yes for `CYLINDER` | [-] |
-| `filename` | Filename for `MESH` shapes | string | [-] | Yes for `MESH` | [-] |
-| `scale` | Scale factor for `MESH` shape | double | [-] | No for `MESH` | 1.0 |
-| `color` | Color of the shape in RGB format [r, g, b] | array[3] | [-] | No | [-1, -1, -1] |
+| `type` | Visualization shape type | string | `SPHERE`, `BOX` <br> `CYLINDER`, `MESH` | Yes | -- |
+| `location` | Shape location relative to body reference frame | array[3] | -- | Yes for `SPHERE`, `BOX`<br> `CYLINDER`, No for `MESH` | [0, 0, 0] for `MESH` |
+| `orientation` | Shape orientation relative to body reference frame for `BOX` and `MESH` | array[3] or array[4] | -- | Yes for `BOX`, no for `MESH` | identity rotation for `MESH` |
+| `radius` | Radius for `SPHERE` and `CYLINDER` shapes | double | -- | Yes for `SPHERE` and `CYLINDER` | -- |
+| `dimensions` | Dimensions [length, width, height] for `BOX` shape | array[3] | -- | Yes for `BOX` | -- |
+| `axis` | Axis direction for `CYLINDER` shape | array[3] | -- | Yes for `CYLINDER` | -- |
+| `length` | Length for `CYLINDER` shape | double | -- | Yes for `CYLINDER` | -- |
+| `filename` | Filename for `MESH` shapes | string | -- | Yes for `MESH` | -- |
+| `scale` | Scale factor for `MESH` shape | double | -- | No for `MESH` | 1.0 |
+| `color` | Color of the shape in RGB format [r, g, b] | array[3] | -- | No | [-1, -1, -1] |
 
 ### Joints
 
@@ -136,25 +135,25 @@ Joints connect two bodies and constrain their relative motion. They can be repre
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `type` | Joint type | string | `lock`,<br>`pointline`,<br>`pointplane`,<br>`revolute`,<br>`spherical`,<br>`prismatic`,<br>`universal` | Yes | `lock` |
-| `name` | Unique identifier for the joint | string | [-] | Yes | [-] |
-| `body1` | Name of the first body to connect | string | [-] | Yes | [-] |
-| `body2` | Name of the second body to connect | string | [-] | Yes | [-] |
-| `location` | Joint location | array[3] | [-] | Yes | [-] |
-| `axis` | Axis of motion for revolute/prismatic joints | array[3] | [-] | Yes for revolute/prismatic joints | [-] |
-| `axis1` | First axis for universal joints | array[3] | [-] | Yes for universal joints | [-] |
-| `axis2` | Second axis for universal joints | array[3] | [-] | Yes for universal joints | [-] |
-| `bushing_data` | Bushing compliance data; if not present, the joint is kinematic | object | [-] | No | no bushing |
+| `name` | Unique identifier for the joint | string | -- | Yes | -- |
+| `body1` | Name of the first body to connect | string | -- | Yes | -- |
+| `body2` | Name of the second body to connect | string | -- | Yes | -- |
+| `location` | Joint location | array[3] | -- | Yes | -- |
+| `axis` | Axis of motion for revolute/prismatic joints | array[3] | -- | Yes for revolute/prismatic joints | -- |
+| `axis1` | First axis for universal joints | array[3] | -- | Yes for universal joints | -- |
+| `axis2` | Second axis for universal joints | array[3] | -- | Yes for universal joints | -- |
+| `bushing_data` | Bushing compliance data; if not present, the joint is kinematic | object | -- | No | no bushing |
 
 The `bushing_data` models compliance behavior along the joint's degrees of freedom, instead of a rigid connection. 
 Note that a bushing of `joint` type `prismatic`, `pointline` or `pointplane` is prohibited. For the constrained DOF, one can specify stiffness and damping coefficients, 
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `stiffness_linear` | Linear stiffness coefficient for "constrained" translational DOFs | double | [-] | Yes | [-] |
-| `damping_linear` | Linear damping coefficient for "constrained" translational DOFs | double | [-] | Yes | [-] |
-| `stiffness_rotational` | Rotational stiffness coefficient for "constrained" rotational DOFs | double | [-] | Yes | [-] |
-| `damping_rotational` | Rotational damping coefficient for "constrained" rotational DOFs | double | [-] | Yes | [-] |
-| `DOF` | Degree of freedom specific properties | object | [-] | No | no DOF |
+| `stiffness_linear` | Linear stiffness coefficient for "constrained" translational DOFs | double | -- | Yes | -- |
+| `damping_linear` | Linear damping coefficient for "constrained" translational DOFs | double | -- | Yes | -- |
+| `stiffness_rotational` | Rotational stiffness coefficient for "constrained" rotational DOFs | double | -- | Yes | -- |
+| `damping_rotational` | Rotational damping coefficient for "constrained" rotational DOFs | double | -- | Yes | -- |
+| `DOF` | Degree of freedom specific properties | object | -- | No | no DOF |
 
 Optionally, one can apply compliance to the unconstrained DOF using a nested `DOF` object, for example,
 
@@ -178,12 +177,12 @@ Constraints connect two bodies and constrain their relative motion. Supported co
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Constraint type | string | `DISTANCE`,<br>`REVOLUTE-SPHERICAL`,<br>`REVOLUTE-TRANSLATIONAL` | Yes | [-] |
-| `name` | Unique identifier for the constraint | string | [-] | Yes | [-] |
-| `body1` | Name of the first body to connect | string | [-] | Yes | [-] |
-| `body2` | Name of the second body to connect | string | [-] | Yes | [-] |
-| `point1` | Point on body1 expressed in global frame | array[3] | [-] | Yes | [-] |
-| `point2` | Point on body2 expressed in global frame | array[3] | [-] | Yes | [-] |
+| `type` | Constraint type | string | `DISTANCE`,<br>`REVOLUTE-SPHERICAL`,<br>`REVOLUTE-TRANSLATIONAL` | Yes | -- |
+| `name` | Unique identifier for the constraint | string | -- | Yes | -- |
+| `body1` | Name of the first body to connect | string | -- | Yes | -- |
+| `body2` | Name of the second body to connect | string | -- | Yes | -- |
+| `point1` | Point on body1 expressed in global frame | array[3] | -- | Yes | -- |
+| `point2` | Point on body2 expressed in global frame | array[3] | -- | Yes | -- |
 
 ### Passive spring-damper force elements
 
@@ -191,17 +190,17 @@ There are two types of spring-damper elements, translational and rotational, spe
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `name` | Unique identifier for the force element | string | [-] | Yes | [-] |
-| `type` | Spring-damper type | string | `TSDA`,<br>`RSDA` | Yes | [-] |
-| `body1` | Name of the first body to connect | string | [-] | Yes | [-] |
-| `body2` | Name of the second body to connect | string | [-] | Yes | [-] |
-| `point1` | Point on body1 expressed in global frame [x,y,z] | array[3] | [-] | Yes | [-] |
-| `point2` | Point on body2 expressed in global frame [x,y,z] | array[3] | [-] | Yes | [-] |
-| `free_length` | TSDA free length | double | [-] | Yes | [-] |
-| `preload` | preload force | double | [-] | No | 0 |
-| `minimum_length` | Minimum TSDA length | double | [-] | No | [-] |
-| `maximum_length` | Maximum TSDA length | double | [-] | No | [-] |
-| `visualization` | Visualization properties of the TSDA element | object | [-] | No | no visualization |
+| `name` | Unique identifier for the force element | string | -- | Yes | -- |
+| `type` | Spring-damper type | string | `TSDA`,<br>`RSDA` | Yes | -- |
+| `body1` | Name of the first body to connect | string | -- | Yes | -- |
+| `body2` | Name of the second body to connect | string | -- | Yes | -- |
+| `point1` | Point on body1 expressed in global frame [x,y,z] | array[3] | -- | Yes | -- |
+| `point2` | Point on body2 expressed in global frame [x,y,z] | array[3] | -- | Yes | -- |
+| `free_length` | TSDA free length | double | -- | Yes | -- |
+| `preload` | preload force | double | -- | No | 0 |
+| `minimum_length` | Minimum TSDA length | double | -- | No | -- |
+| `maximum_length` | Maximum TSDA length | double | -- | No | -- |
+| `visualization` | Visualization properties of the TSDA element | object | -- | No | no visualization |
 
 
 For linear spring-dampers, use the `spring_coefficient` and `damping_coefficient` properties. For example:
@@ -248,27 +247,27 @@ Optionally, you can add a `visualization` field to render the TSDA element,
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `type` | Type of visualization geometry | string | `SEGMENT`,`SPRING` | YES | [-] |
-| `color` | RGB color of the element `[r, g, b]` | array[3] | [-] | No | [0, 0, 0] |
-| `radius` | Radius of the visualized TSDA geometry (if `SPRING`) | double | [-] | No | 0.05 |
-| `resolution` | Number of subdivisions along one coil turn (if `SPRING`) | integer | [-] | No | 65 |
-| `turns` | Number of coil turns (if `SPRING`) | integer | [-] | No | 5 |
+| `type` | Type of visualization geometry | string | `SEGMENT`,`SPRING` | YES | -- |
+| `color` | RGB color of the element `[r, g, b]` | array[3] | -- | No | [0, 0, 0] |
+| `radius` | Radius of the visualized TSDA geometry (if `SPRING`) | double | -- | No | 0.05 |
+| `resolution` | Number of subdivisions along one coil turn (if `SPRING`) | integer | -- | No | 65 |
+| `turns` | Number of coil turns (if `SPRING`) | integer | -- | No | 5 |
 
 Rotational spring-damper elements, `RSDA`, apply torques between bodies. One can specifiy the following fields, 
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `name` | Unique identifier for the element | string | [-] | Yes | [-] |
-| `body1` | Name of the first body to connect | string | [-] | Yes | [-] |
-| `body2` | Name of the second body to connect | string | [-] | Yes | [-] |
-| `location` | RSDA location expressed in global frame [x,y,z] | array[3] | [-] | No | [0, 0, 0] |
-| `axis` | RSDA axis expressed in global frame [x,y,z] | array[3] | [-] | Yes | [-] |
-| `free_angle` | RSDA free angle | double | [-] | Yes | [-] |
-| `preload` | preload torque | double | [-] | No | 0 |
-| `spring_coefficient`  | Linear spring coefficient | double | [-] | Yes for linear spring | [-] |
-| `damping_coefficient` | Linear damping coefficient | double | [-] | Yes for linear damper | [-] |
-| `spring_curve_data`   | Nonlinear spring curve data [[angle, torque], ...] | array, see above | [-] | Yes for nonlinear spring | [-] |
-| `damping_curve_data`  | Nonlinear damping curve data [[angular velocity, torque], ...] | array, see above | [-] | Yes for nonlinear damper | [-] |
+| `name` | Unique identifier for the element | string | -- | Yes | -- |
+| `body1` | Name of the first body to connect | string | -- | Yes | -- |
+| `body2` | Name of the second body to connect | string | -- | Yes | -- |
+| `location` | RSDA location expressed in global frame [x,y,z] | array[3] | -- | No | [0, 0, 0] |
+| `axis` | RSDA axis expressed in global frame [x,y,z] | array[3] | -- | Yes | -- |
+| `free_angle` | RSDA free angle | double | -- | Yes | -- |
+| `preload` | preload torque | double | -- | No | 0 |
+| `spring_coefficient`  | Linear spring coefficient | double | -- | Yes for linear spring | -- |
+| `damping_coefficient` | Linear damping coefficient | double | -- | Yes for linear damper | -- |
+| `spring_curve_data`   | Nonlinear spring curve data [[angle, torque], ...] | array, see above | -- | Yes for nonlinear spring | -- |
+| `damping_curve_data`  | Nonlinear damping curve data [[angular velocity, torque], ...] | array, see above | -- | Yes for nonlinear damper | -- |
 
 Note that by providing the corresponding fields, the parser will automatically determine the type of spring/damper element to use.
 
@@ -278,27 +277,27 @@ Body loads represent external forces or torques applied to specific bodies in th
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `name` | Unique identifier for the body load | string | [-] | Yes | [-] |
-| `type` | Type of body load | string | `FORCE`, `TORQUE` | Yes | [-] |
-| `body` | Name of the body to which the load is applied | string | [-] | Yes | [-] |
-| `load` | Load vector for force or torque | array[3] | [-] | Yes | [-] |
-| `local_load` | Whether `load` is applied in local body frame (true) or global frame (false) | boolean | [-] | Yes | [-] |
-| `point` | (`FORCE` only) Location of the applied `load` | array[3] | [-] | Yes for `FORCE` | [-] |
-| `local_point` | (`FORCE` only) Whether `point` is specified in local body frame (true) or global frame (false) | boolean | [-] | Yes for `FORCE` | [-] |
+| `name` | Unique identifier for the body load | string | -- | Yes | -- |
+| `type` | Type of body load | string | `FORCE`, `TORQUE` | Yes | -- |
+| `body` | Name of the body to which the load is applied | string | -- | Yes | -- |
+| `load` | Load vector for force or torque | array[3] | -- | Yes | -- |
+| `local_load` | Whether `load` is applied in local body frame (true) or global frame (false) | boolean | -- | Yes | -- |
+| `point` | (`FORCE` only) Location of the applied `load` | array[3] | -- | Yes for `FORCE` | -- |
+| `local_point` | (`FORCE` only) Whether `point` is specified in local body frame (true) or global frame (false) | boolean | -- | Yes for `FORCE` | -- |
 
 ### Motors
 Motors are used to apply forces or torques to bodies. Supported motor `type` are: `LINEAR`, `ROTATION`. `LINEAR` motors apply forces along a specified `axis`, while `ROTATION` motors apply torques.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `name` | Unique identifier for the motor | string | [-] | Yes | [-] |
-| `type` | Type of motor | string | `LINEAR`,<br>`ROTATION` | Yes | [-] |
-| `body1` | Name of the first body to connect | string | [-] | Yes | [-] |
-| `body2` | Name of the second body to connect | string | [-] | Yes | [-] |
-| `location` | Motor location expressed in the global frame at [x,y,z] | array[3] | [-] | Yes | [-] |
-| `axis` | Motor axis expressed in the global frame at [x,y,z] | array[3] | [-] | Yes | [-] |
-| `actuation_type` | Type of actuation | string | `POSITION`,<br>`SPEED`,<br>`FORCE` | Yes | [-] |
-| `actuation_function` | Function of time defining the actuation | object | [-] | Yes | [-] |
+| `name` | Unique identifier for the motor | string | -- | Yes | -- |
+| `type` | Type of motor | string | `LINEAR`,<br>`ROTATION` | Yes | -- |
+| `body1` | Name of the first body to connect | string | -- | Yes | -- |
+| `body2` | Name of the second body to connect | string | -- | Yes | -- |
+| `location` | Motor location expressed in the global frame at [x,y,z] | array[3] | -- | Yes | -- |
+| `axis` | Motor axis expressed in the global frame at [x,y,z] | array[3] | -- | Yes | -- |
+| `actuation_type` | Type of actuation | string | `POSITION`,<br>`SPEED`,<br>`FORCE` | Yes | -- |
+| `actuation_function` | Function of time defining the actuation | object | -- | Yes | -- |
 | `guide` | Guide constraint for linear motors | string | `FREE`,<br>`PRISMATIC`,<br>`SPHERICAL` | No | `PRISMATIC` |
 | `spindle` | Spindle constraint for rotational motors | string | `FREE`,<br>`REVOLUTE`,<br>`CYLINDRICAL` | No | `REVOLUTE` |
 
