@@ -119,7 +119,10 @@ void ChElementCBLCON::Update() {
     }
     //
     if(this->macro_strain){
+        // TODO JBC: I think this should also update the projection matrix for eigenstrains. TBD when large deflection is actually implemented
         this->section->ComputeEigenStrain(this->macro_strain);
+    } else { // JBC: This might not be necessary since the value of 0.0 in SetupInitial() should remain if macro_strain is nullptr
+        this->section->Set_nonMechanicStrain(ChVector3d(0.0, 0.0, 0.0));
     }
     // get displacement increment between current step and previous step
     // update total displacement increment
@@ -518,6 +521,8 @@ void ChElementCBLCON::SetupInitial(ChSystem* system) {
     if(this->macro_strain){
             this->section->ComputeProjectionMatrix();
             this->section->ComputeEigenStrain(this->macro_strain);
+    } else {
+        this->section->Set_nonMechanicStrain(ChVector3d(0.0, 0.0, 0.0));
     }
 
     //
@@ -758,11 +763,8 @@ void ChElementCBLCON::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     double random_field =mysection->GetRandomField();
 
     auto nonMechanicalStrain=mysection->Get_nonMechanicStrain();
-    if (nonMechanicalStrain.size()){
-        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
-    }else{
-        mysection->Get_material()->ComputeStress( dmstrain, dcurvature, length, statev, area, width, height, random_field, mstress, mcouple);
-    }
+    mysection->Get_material()->ComputeStress( dmstrain, dcurvature, nonMechanicalStrain, length, statev, area, width, height, random_field, mstress, mcouple);
+
 
     mysection->Set_StateVar(statev);
 

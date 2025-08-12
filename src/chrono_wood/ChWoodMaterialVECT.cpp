@@ -49,7 +49,7 @@ ChWoodMaterialVECT::~ChWoodMaterialVECT() {}
 // statec(10): internal work
 // statec(11): crack opening
 
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature,double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
+void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVector3d& eigenstrain, double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {
     	ChVector3d mstrain;
     	ChVector3d mcurvature;	
 	//
@@ -61,7 +61,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		E0=E0*random_field;
 	//std::cout<<"E0: "<<E0<<" alpha: "<<alpha<<std::endl;	
 	// 	
-	mstrain=statev.segment(0,3)+dmstrain.eigen();	
+	mstrain=statev.segment(0,3)+dmstrain.eigen()-eigenstrain.eigen();
 	//	
 	//
 	double epsQ, epsQN;
@@ -74,7 +74,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		epsT = std::sqrt(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]);
 		epsQN = mstrain[0];
 	}else{	
-		double multiplier=this->GetCoupleMultiplier()/3.;					
+		double multiplier=this->GetCoupleMultiplier()/3.;
 		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
 		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
 		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
@@ -100,6 +100,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 	//
 	if (epsQ != 0) {
 		if (mstrain[0] > 10e-16 || sigmat<sigmac) {     // fracture behaivor
+             // TODO JBC: test for sigmat<sigmac is currently debated
+             //           and was not present in the eigenstrain version of that function before this refactoring
 			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev);
 			mstress[0] = strsQ * mstrain[0] / epsQ;
 			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
@@ -134,25 +136,33 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 
 		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
 
-		statev(0) = mstrain[0];
-		statev(1) = mstrain[1];
-		statev(2) = mstrain[2];
-		statev(3) = mstress[0];
-		statev(4) = mstress[1];
-		statev(5) = mstress[2];
-		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2))); // TODO JBC: Why doesn't statev(8) take bending into account?
-		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha); // TODO JBC: Why doesn't statev(9) take bending into account?
-		statev(10) = Wint + statev(10);
+		statev(0) = mstrain[0] + eigenstrain[0]; // TODO JBC: it is a bug to only update those inside this code branch.
+		statev(1) = mstrain[1] + eigenstrain[1]; //           If you unload to exactly zero (like in the unit tests)
+		statev(2) = mstrain[2] + eigenstrain[2]; //           you go to the `else` branch and the state variables do not get updated
+		statev(3) = mstress[0];                  //           while a loading step did happen!
+		statev(4) = mstress[1];                  //           I am leaving this as is for now because we will refactor this in depth soon!
+		statev(5) = mstress[2];                  //           The current fix aims to retrieve the "old" behavior
+        statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)));
+        statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha);
+        statev(10) = Wint + statev(10);
 		statev(11) = w;
 		//
-		if(this->GetCoupleMultiplier()){				
-				statev(12) = mcurvature[0];
-				statev(13) = mcurvature[1];
-				statev(14) = mcurvature[2];	
-				//
-				statev(15) = mcouple[0];
-				statev(16) = mcouple[1];
-				statev(17) = mcouple[2];
+		if(this->GetCoupleMultiplier()){
+            statev(12) = mcurvature[0];
+            statev(13) = mcurvature[1];
+            statev(14) = mcurvature[2];
+            //
+            statev(15) = mcouple[0];
+            statev(16) = mcouple[1];
+            statev(17) = mcouple[2];
+            // TODO: below is temporary just to fix the bugs from improperly defined effective strain / stress. Will refactor later
+            double multiplier=this->GetCoupleMultiplier()/3.;
+            statev(8) = std::sqrt(statev(8) * statev(8) +
+                                  multiplier * (statev(13) * statev(13) * w2 + statev(14) * statev(14) * h2 +
+                                                alpha * statev(12) * statev(12) * (w2 + h2)));
+            statev(9) = std::sqrt(statev(9) * statev(9) +
+                                  (statev(16) * statev(16) / w2 + statev(17) * statev(17) / h2 +
+                                   statev(15) * statev(15) / (w2 + h2) / alpha) / multiplier);
 		}
 	}
 	else {
@@ -181,13 +191,13 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 
 		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
 		
-		statev(0) = mstrain[0];
-		statev(1) = mstrain[1];
-		statev(2) = mstrain[2];
+		statev(0) = mstrain[0] + eigenstrain[0];
+		statev(1) = mstrain[1] + eigenstrain[1];
+		statev(2) = mstrain[2] + eigenstrain[2];
 		statev(3) = mstress[0];
 		statev(4) = mstress[1];
 		statev(5) = mstress[2];
-		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2))); 
+		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)));
 		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha);
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
@@ -208,6 +218,13 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 			statev(15) = mcouple[0];
 			statev(16) = mcouple[1];
 			statev(17) = mcouple[2];
+            // TODO: below is temporary just to fix the bugs from improperly defined effective strain / stress. Will refactor later
+            statev(8) = std::sqrt(statev(8) * statev(8) +
+                                  multiplier * (statev(13) * statev(13) * w2 + statev(14) * statev(14) * h2 +
+                                                alpha * statev(12) * statev(12) * (w2 + h2)));
+            statev(9) = std::sqrt(statev(9) * statev(9) +
+                                  (statev(16) * statev(16) / w2 + statev(17) * statev(17) / h2 +
+                                   statev(15) * statev(15) / (w2 + h2) / alpha) / multiplier);
 		}
 		
 	}else{
@@ -323,182 +340,6 @@ void ChWoodMaterialVECT::ComputeStress_NEW(ChVector3d& strain_incr, ChVector3d& 
     }
 }
 */
-
-void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurvature, ChVectorDynamic<>& eigenstrain ,double &len, StateVarVector& statev,  double& area, double& width, double& height, double& random_field, ChVector3d& mstress, ChVector3d& mcouple) {  
-    	ChVector3d mstrain;
-    	ChVector3d mcurvature;	
-	//
-	double E0=this->Get_E0();
-	double alpha=this->Get_alpha();	
-	if (random_field)
-		E0=E0*random_field;
-	//std::cout<<"E0: "<<E0<<" alpha: "<<alpha<<std::endl;	
-	// 	
-	mstrain=statev.segment(0,3)+dmstrain.eigen()-eigenstrain;	
-	//	
-	//
-	double epsQ, epsQN;
-	double epsT;
-	double h2=height*height;		
-	double w2=width*width;
-	
-	if (!this->GetCoupleMultiplier()){		
-		epsQ = std::sqrt(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]));
-		epsT = std::sqrt(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]);
-	}else{	
-		double multiplier=this->GetCoupleMultiplier()/3.;					
-		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
-		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
-		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
-				
-		epsQ = std::sqrt(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2])+
-					multiplier*(alpha*mcurvature[0]*mcurvature[0]*(w2+h2)+ mcurvature[1]*mcurvature[1]*w2+
-					mcurvature[2]*mcurvature[2]*h2));
-		epsT = std::sqrt(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]+multiplier*mcurvature[0]*mcurvature[0]*(w2+h2));
-	
-	}
-	
-	if (statev(6) < mstrain[0]) {
-		statev(6) = mstrain[0];
-	}
-	if (statev(7) < epsT) {
-		statev(7) = epsT;
-	}
-	
-	
-	if (!GetElasticAnalysisFlag()) {
-	//
-	// INELASTIC ANALYSIS
-	//
-	if (epsQ != 0) {
-		if (mstrain[0] > 10e-16) {     // fracture behaivor
-			double strsQ = FractureBC(mstrain, random_field, len, epsQ, epsQN, epsT, statev);
-			mstress[0] = strsQ * mstrain[0] / epsQ;
-			mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
-			mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
-			//
-			if(this->GetCoupleMultiplier()){
-				double multiplier=this->GetCoupleMultiplier()/3.;
-				mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
-				mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
-				mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
-			}
-		}
-		else {
-			
-			 double strsQ = CompressBC(mstrain, random_field, len, epsQ, epsT, epsQN, statev);;
-			 
-			 mstress[0] = strsQ * mstrain[0] / epsQ;
-			 mstress[1] = alpha * strsQ * mstrain[1] / epsQ;
-			 mstress[2] = alpha * strsQ * mstrain[2] / epsQ;
-			 //
-			 if(this->GetCoupleMultiplier()){
-				 double multiplier=this->GetCoupleMultiplier()/3.;
-				 mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
-				 mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
-				 mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;						
-			 }
-		}
-		double Wint = len * area * (((mstress[0] + statev(3)) / 2.0) * dmstrain[0] + ((mstress[1] + statev(4)) / 2.0) * dmstrain[1] + ((mstress[2] + statev(5)) / 2.0) * dmstrain[2] + ((mcouple[0] + statev(15)) / 2.0) * dmcurvature[0] + ((mcouple[1] + statev(16)) / 2.0) * dmcurvature[1] + ((mcouple[2] + statev(17)) / 2.0) * dmcurvature[2]);
-		double w_N = len * (mstrain[0] - mstress[0] / E0);
-		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
-		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
-
-		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
-
-		
-		statev(8) = std::sqrt(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2])); 
-		statev(9) = std::sqrt(mstress[0] * mstress[0] + (mstress[1] * mstress[1] + mstress[2] * mstress[2]) / alpha);		
-		statev(10) = Wint + statev(10);
-		statev(11) = w;
-		
-		statev(0) = mstrain[0];
-		statev(1) = mstrain[1];
-		statev(2) = mstrain[2];
-		statev(3) = mstress[0];
-		statev(4) = mstress[1];
-		statev(5) = mstress[2];
-		//
-		if(this->GetCoupleMultiplier()){				
-				statev(12) = mcurvature[0];
-				statev(13) = mcurvature[1];
-				statev(14) = mcurvature[2];	
-				//
-				statev(15) = mcouple[0];
-				statev(16) = mcouple[1];
-				statev(17) = mcouple[2];
-		}
-	}
-	else {
-		mstress.Set(0.0);
-		mcouple.Set(0.0);
-	}
-	//std::cout << "stress: " << mstress << std::endl;
-	//std::cout << statev(3) << ' ' << statev(4) << ' ' << statev(5) << ' ' << statev(0) << ' ' << statev(1) << ' ' << statev(2) << std::endl;
-	
-	}else{
-	
-	//
-	// ELASTIC ANALYSIS
-	//
-	if (epsQ!=0) {
-	    double strsQ=E0*epsQ;
-		mstress[0]=strsQ*mstrain[0]/epsQ;
-		mstress[1]=alpha*strsQ*mstrain[1]/epsQ;
-		mstress[2]=alpha*strsQ*mstrain[2]/epsQ;		
-		
-		
-		double Wint = len * area * (((mstress[0] + statev(3)) / 2.0) * dmstrain[0] + ((mstress[1] + statev(4)) / 2.0) * dmstrain[1] + ((mstress[2] + statev(5)) / 2.0) * dmstrain[2] + ((mcouple[0] + statev(15)) / 2.0) * dmcurvature[0] + ((mcouple[1] + statev(16)) / 2.0) * dmcurvature[1] + ((mcouple[2] + statev(17)) / 2.0) * dmcurvature[2]);
-		double w_N = len * (mstrain[0] - mstress[0] / E0);
-		double w_M = len * (mstrain[1] - mstress[1] / (E0*alpha));
-		double w_L = len * (mstrain[2] - mstress[2] / (E0 * alpha));
-
-		double w = std::sqrt(w_N * w_N + w_M * w_M + w_L * w_L);
-		
-		
-		statev(8) = std::sqrt(mstrain[0] * mstrain[0] + alpha * (mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2])); 
-		statev(9) = std::sqrt(mstress[0] * mstress[0] + (mstress[1] * mstress[1] + mstress[2] * mstress[2]) / alpha);
-		statev(10) = Wint + statev(10);
-		statev(11) = w;
-		
-		statev(0) = mstrain[0]+eigenstrain(0);
-		statev(1) = mstrain[1]+eigenstrain(1);
-		statev(2) = mstrain[2]+eigenstrain(2);
-		statev(3) = mstress[0];
-		statev(4) = mstress[1];
-		statev(5) = mstress[2];
-		
-		
-		if(this->GetCoupleMultiplier()){
-			double multiplier=this->GetCoupleMultiplier()/3.;
-			mcouple[0]=multiplier*alpha*strsQ*mcurvature[0]*(w2+h2)/epsQ;
-			mcouple[1]=multiplier*strsQ*mcurvature[1]*w2/epsQ;
-			mcouple[2]=multiplier*strsQ*mcurvature[2]*h2/epsQ;
-			//
-			statev(12) = mcurvature[0];
-			statev(13) = mcurvature[1];
-			statev(14) = mcurvature[2];
-			//std::cout<<"mcurvature: "<<mcurvature.x()<<"\t"<<mcurvature.y()<<"\t"<<mcurvature.z()<<std::endl;
-			//std::cout<<"mcouple: "<<mcouple.x()<<"\t"<<mcouple.y()<<"\t"<<mcouple.z()<<std::endl;
-			//
-			statev(15) = mcouple[0];
-			statev(16) = mcouple[1];
-			statev(17) = mcouple[2];
-		}
-		
-	}else{
-		mstress.Set(0.0);
-		mcouple.Set(0.0);
-		//statev.setZero();		
-	}
-	
-	}
-	
-	//std::cout<<"mstress: "<<mstress<<"  mcouple: "<<mcouple<<" w2, h2 "<<w2<<" "<<h2<<std::endl;
-	//if (mstrain[0]<0) 
-	//	exit(1);
-	//printf("Statev: %f, %f, %f, %f, %f, %f\n",statev(0), statev(1), statev(2), statev(3), statev(4), statev(5));
-}
 
 
 
