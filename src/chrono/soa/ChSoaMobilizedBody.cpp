@@ -24,10 +24,10 @@ const double ChSoaMobilizedBody::m_angleClampLimit = 10 * CH_2PI;
 // =============================================================================
 
 ChSoaMobilizedBody::ChSoaMobilizedBody(std::shared_ptr<ChSoaMobilizedBody> parent,
-                                 const ChSoaMassProperties& mpropsB,
-                                 const ChFramed& X_PF,
-                                 const ChFramed& X_BM,
-                                 const std::string& name)
+                                       const ChSoaMassProperties& mpropsB,
+                                       const ChFramed& X_PF,
+                                       const ChFramed& X_BM,
+                                       const std::string& name)
     : m_mpropsB(mpropsB),
       m_parent(parent),
       m_X_PF(X_PF),
@@ -207,8 +207,8 @@ void ChSoaMobilizedBody::orProcMiF_passTwo(double* ud) {
 }
 
 void ChSoaMobilizedBody::orProcPosVelAccID(const ChVectorDynamic<>& y,
-                                        const ChVectorDynamic<>& yd,
-                                        const ChVectorDynamic<>& ydd) {
+                                           const ChVectorDynamic<>& yd,
+                                           const ChVectorDynamic<>& ydd) {
     for (int i = 0; i < getNumChildren(); i++)
         getChild(i)->orProcPosVelAccID(y, yd, ydd);
 }
@@ -241,8 +241,8 @@ void ChSoaMobilizedBody::irProcMiF_passOne() {
 }
 
 void ChSoaMobilizedBody::irProcForcesID(const ChVectorDynamic<>& y,
-                                     const ChVectorDynamic<>& yd,
-                                     const ChVectorDynamic<>& ydd) {
+                                        const ChVectorDynamic<>& yd,
+                                        const ChVectorDynamic<>& ydd) {
     for (int i = 0; i < getNumChildren(); i++)
         getChild(i)->irProcForcesID(y, yd, ydd);
 }
@@ -256,8 +256,8 @@ void ChSoaMobilizedBody::setQDot(const ChVectorDynamic<>& y, ChVectorDynamic<>& 
 }
 
 void ChSoaMobilizedBody::setQDotDot(const ChVectorDynamic<>& y,
-                                 const ChVectorDynamic<>& yd,
-                                 ChVectorDynamic<>& ydd) const {
+                                    const ChVectorDynamic<>& yd,
+                                    ChVectorDynamic<>& ydd) const {
     ydd.segment(m_qIdx, getNumU()) = yd.segment(m_uIdx, getNumU());
 }
 

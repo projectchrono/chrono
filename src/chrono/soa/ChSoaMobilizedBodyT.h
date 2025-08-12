@@ -484,7 +484,7 @@ class ChSoaMobilizedBodyT : public ChSoaMobilizedBody {
     void setMyU(double* yd, const ChVectorN<double, dof>& u);
 
   private:
-    ChSoaVariables variables;
+    ChSoaVariables<dof> variables;
 };
 
 // -----------------------------------------------------------------------------

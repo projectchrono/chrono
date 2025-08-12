@@ -38,7 +38,6 @@
 #include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 #include "chrono/soa/ChSoaSpatial.h"
 #include "chrono/soa/ChSoaMassProperties.h"
@@ -176,10 +175,10 @@ class ChApi ChSoaMobilizedBody : public ChObj, public ChContactable {
     };
 
     ChSoaMobilizedBody(std::shared_ptr<ChSoaMobilizedBody> parent,
-                    const ChSoaMassProperties& mpropsB,
-                    const ChFramed& X_PF,
-                    const ChFramed& X_BM,
-                    const std::string& name = "");
+                       const ChSoaMassProperties& mpropsB,
+                       const ChFramed& X_PF,
+                       const ChFramed& X_BM,
+                       const std::string& name = "");
 
     ChSoaMobilizedBody(const ChSoaMobilizedBody& other);
 
@@ -410,8 +409,6 @@ class ChApi ChSoaMobilizedBody : public ChObj, public ChContactable {
   private:
     // Interface to ChContactable
     //// TODO
-
-    ChVariablesBodyOwnMass m_variables;
 
     virtual bool IsContactActive() override { return true; }
 

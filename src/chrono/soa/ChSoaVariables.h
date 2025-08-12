@@ -16,35 +16,37 @@
 #define CH_SOA_VARIABLES_H
 
 #include "chrono/solver/ChVariables.h"
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 
 /// Class for representing an SOA mobilized body with mass matrix and associated variables.
-class ChApi ChSoaVariables : public ChVariables {
+template <int dof>
+class ChSoaVariables : public ChVariables {
   public:
-    ChSoaVariables() {}
+    ChSoaVariables() : ChVariables(dof) {}
     ~ChSoaVariables() {}
 
     /// Assignment operator: copy from other object
     ChSoaVariables& operator=(const ChSoaVariables& other) {
         if (&other == this)
             return *this;
-
-        //// TODO
-
+        ChVariables::operator=(other);
         return *this;
     }
 
     /// Compute the product of the inverse mass matrix by a given vector and store in result.
     /// This function must calculate `result = M^(-1) * vect` for a vector of same size as the variables state.
     virtual void ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const override {
-      //// TODO
+        //// TODO
+        ChAssertAlways(false);
     }
 
     /// Compute the product of the mass matrix by a given vector and increment result.
     /// This function must perform the operation `result += M * vect` for a vector of same size as the variables state.
     virtual void AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const override {
-      //// TODO
+        //// TODO
+        ChAssertAlways(false);
     }
 
     /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
@@ -52,6 +54,7 @@ class ChApi ChSoaVariables : public ChVariables {
     /// vectors using the offsets of each variable.
     virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const override {
         //// TODO
+        ChAssertAlways(false);
     }
 
     /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
@@ -59,6 +62,7 @@ class ChApi ChSoaVariables : public ChVariables {
     /// offsets of each variable.
     virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const override {
         //// TODO
+        ChAssertAlways(false);
     }
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
@@ -70,6 +74,7 @@ class ChApi ChSoaVariables : public ChVariables {
                                unsigned int start_col,
                                const double ca) const override {
         //// TODO
+        ChAssertAlways(false);
     }
 
   private:
