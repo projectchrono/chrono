@@ -56,7 +56,7 @@ Each body represents a physical object in the simulation with the following prop
 | `contact` | List of contact materials, `materials` and collision shapes, `shapes` | object, see below | -- | No | no contact |
 | `visualization` | List of visualization shapes, `shapes` | object, see below | -- | No | no visualization |
 
-**Note:** `orientation` can be specified as Euler Cardan angles [roll, pitch, yaw] or quaternion [e0, e1, e2, e3]
+**Note:** `orientation` can be specified as Euler Cardan angles [yaw, pitch, roll] or quaternion [e0, e1, e2, e3]
 
 #### Body Contact Properties
 The collision of a body is specified through a list of contact material, `materials` and a list of collision shapes, `shapes`. The model can have more `shapes` than `materials`, and the user need to specify which `shape` is associated with which `material`. Depending on the contact method, `SMC` or `NSC`, the same contact paramters, such as `coefficient_of_friction` and `coefficient_of_restitution`, can result in different physics. When using `SMC`, the user can specify material-based properties, such as `Youngs_modulus` and `Poisson_ratio`, or spring-damper coefficients for modeling contact, such as `normal_stiffness` and `normal_damping`.
