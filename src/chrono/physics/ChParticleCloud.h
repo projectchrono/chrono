@@ -30,7 +30,7 @@ class ChParticleCloud;
 
 /// Class for a single particle clone in the ChParticleCloud cluster.
 /// It does not define mass, inertia and shape because those are _shared_ among them.
-class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars {
+class ChApi ChParticle : public ChParticleBase, public ChContactable {
   public:
     ChParticle();
     ChParticle(const ChParticle& other);

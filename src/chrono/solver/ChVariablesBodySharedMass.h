@@ -57,10 +57,11 @@ class ChApi ChSharedMassBody {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-/// Specialized class for representing a 6-DOF 3D rigid body, with mass matrix and associated variables.
-/// Differently from the generic ChVariablesGeneric, here a full 6x6 mass matrix is not built, since only the 3x3
-/// inertia matrix and the mass value are enough.  This is very similar to ChVariablesBodyOwnMass, but the  mass and
-/// inertia values are shared to be be used in problems with many identical objects.
+/// Class for representing a 6-DOF 3D rigid body with mass matrix and associated variables.
+/// Unlike ChVariablesGeneric, this class does not construct a 6x6 generalized mass matrix, but rather uses the scalar
+/// mass and the 3x3 inertia matrix.
+/// Unlike ChVariablesOwnMass, the inertial properties (scalar mass and 3x3 inertia matrix) are shared among several
+/// objects with identical properties.
 class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
   public:
     ChVariablesBodySharedMass();

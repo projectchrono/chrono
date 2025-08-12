@@ -49,7 +49,7 @@ class ChSystem;
 ///
 /// Further info at the @ref rigid_bodies manual page.
 
-class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars, public ChLoadableUVW {
+class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable, public ChLoadableUVW {
   public:
     ChBody();
     ChBody(const ChBody& other);
