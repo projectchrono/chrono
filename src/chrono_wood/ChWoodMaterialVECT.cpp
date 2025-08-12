@@ -74,7 +74,7 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		epsT = std::sqrt(mstrain[1] * mstrain[1] + mstrain[2] * mstrain[2]);
 		epsQN = mstrain[0];
 	}else{	
-		double multiplier=this->GetCoupleMultiplier()/3.;					
+		double multiplier=this->GetCoupleMultiplier()/3.;
 		mcurvature=statev.segment(12,3)+dmcurvature.eigen();
 		//std::cout<<"mstrain: "<<mstrain<<" mcurvature: "<<mcurvature<<std::endl;
 		//std::cout<<"curvature: "<<mcurvature<<std::endl;		
@@ -142,19 +142,27 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		statev(3) = mstress[0];                  //           while a loading step did happen!
 		statev(4) = mstress[1];                  //           I am leaving this as is for now because we will refactor this in depth soon!
 		statev(5) = mstress[2];                  //           The current fix aims to retrieve the "old" behavior
-		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2))); // TODO JBC: Why doesn't statev(8) take bending into account? This differs from the Overleaf formulation!
-		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha); // TODO JBC: Why doesn't statev(9) take bending into account? This differs from the Overleaf formulation!
-		statev(10) = Wint + statev(10);
+        statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)));
+        statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha);
+        statev(10) = Wint + statev(10);
 		statev(11) = w;
 		//
-		if(this->GetCoupleMultiplier()){				
-				statev(12) = mcurvature[0];
-				statev(13) = mcurvature[1];
-				statev(14) = mcurvature[2];	
-				//
-				statev(15) = mcouple[0];
-				statev(16) = mcouple[1];
-				statev(17) = mcouple[2];
+		if(this->GetCoupleMultiplier()){
+            statev(12) = mcurvature[0];
+            statev(13) = mcurvature[1];
+            statev(14) = mcurvature[2];
+            //
+            statev(15) = mcouple[0];
+            statev(16) = mcouple[1];
+            statev(17) = mcouple[2];
+            // TODO: below is temporary just to fix the bugs from improperly defined effective strain / stress. Will refactor later
+            double multiplier=this->GetCoupleMultiplier()/3.;
+            statev(8) = std::sqrt(statev(8) * statev(8) +
+                                  multiplier * (statev(13) * statev(13) * w2 + statev(14) * statev(14) * h2 +
+                                                alpha * statev(12) * statev(12) * (w2 + h2)));
+            statev(9) = std::sqrt(statev(9) * statev(9) +
+                                  (statev(16) * statev(16) / w2 + statev(17) * statev(17) / h2 +
+                                   statev(15) * statev(15) / (w2 + h2) / alpha) / multiplier);
 		}
 	}
 	else {
@@ -189,8 +197,8 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 		statev(3) = mstress[0];
 		statev(4) = mstress[1];
 		statev(5) = mstress[2];
-		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2))); // TODO JBC: Why doesn't statev(8) take bending into account? This differs from the Overleaf formulation!
-		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha); // TODO JBC: Why doesn't statev(9) take bending into account? This differs from the Overleaf formulation!
+		statev(8) = std::sqrt(statev(0) * statev(0) + alpha * (statev(1) * statev(1) + statev(2) * statev(2)));
+		statev(9) = std::sqrt(statev(3) * statev(3) + (statev(4) * statev(4) + statev(5) * statev(5)) / alpha);
 		statev(10) = Wint + statev(10);
 		statev(11) = w;
 		
@@ -210,6 +218,13 @@ void ChWoodMaterialVECT::ComputeStress(ChVector3d& dmstrain, ChVector3d& dmcurva
 			statev(15) = mcouple[0];
 			statev(16) = mcouple[1];
 			statev(17) = mcouple[2];
+            // TODO: below is temporary just to fix the bugs from improperly defined effective strain / stress. Will refactor later
+            statev(8) = std::sqrt(statev(8) * statev(8) +
+                                  multiplier * (statev(13) * statev(13) * w2 + statev(14) * statev(14) * h2 +
+                                                alpha * statev(12) * statev(12) * (w2 + h2)));
+            statev(9) = std::sqrt(statev(9) * statev(9) +
+                                  (statev(16) * statev(16) / w2 + statev(17) * statev(17) / h2 +
+                                   statev(15) * statev(15) / (w2 + h2) / alpha) / multiplier);
 		}
 		
 	}else{
