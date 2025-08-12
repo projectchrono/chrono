@@ -16,16 +16,16 @@ A simulation file contains these main sections:
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `time_step` | Integration timestep in seconds | double | [-] | Yes | [-] |
-| `contact_method` | Contact method for collision detection and response | string | `SMC`,`NSC` | Yes | [-] |
+| `time_step` | Integration timestep in seconds | double | -- | Yes | -- |
+| `contact_method` | Contact method for collision detection and response | string | `SMC`,`NSC` | Yes | -- |
 
 ### Optional Parameters
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `enforce_realtime` | Whether to enforce real-time simulation | boolean | [-] | No | false |
-| `end_time` | Total simulation time in seconds | double | [-] | No | -1 for infinite simulation |
-| `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | [-] | No | [0, 0, -9.8] |
+| `enforce_realtime` | Whether to enforce real-time simulation | boolean | -- | No | false |
+| `end_time` | Total simulation time in seconds | double | -- | No | -1 for infinite simulation |
+| `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
 
 ### Integrator, solver, and visualization settings
 
@@ -33,7 +33,7 @@ A simulation file contains these main sections:
 |----------|-------------|------|------------------|----------|---------|
 | `integrator` | Integrator type and parameters | object | `EULER_IMPLICIT_LINEARIZED`,<br>`EULER_IMPLICIT_PROJECTED`,<br>`EULER_IMPLICIT`,<br>`HHT` | No | `EULER_IMPLICIT_LINEARIZED`  |
 | `solver` | (DVI or linear) solver type and parameters | object |  `BARZILAI_BORWEIN`,<br>`PSOR`,<br>`APGD`,<br>`MINRES`,<br>`GMRES`,<br>`BICGSTAB`,<br>`PARDISO`,<br>`MUMPS`,<br>`SPARSE_LU`,<br>`SPARSE_QR` | No | `BARZILAI_BORWEIN` |
-| `visualization` | Run-time visualization settings | object | [-] | No | `false` |
+| `visualization` | Run-time visualization settings | object | -- | No | `false` |
 
 ### Integrator types and parameters
 
@@ -41,12 +41,12 @@ Each integrator can support the following settings depending on the integrator t
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `rel_tolerance` | Relative tolerance (HHT and implicit Euler) | double | [-] | No | 1e-4 |
-| `abs_tolerance_states` | Absolute tolerance for state variables (HHT and implicit Euler) | double | [-] | No | 1e-4 |
-| `abs_tolerance_multipliers` | Absolute tolerance for Lagrange multipliers (HHT and implicit Euler) | double | [-] | No | 1e2 |
-| `max_iterations` | Maximum number of non-linear iteration for implicit integrators | integer | [-] | No | 50 |
-| `use_stepsize_control` | Whether to use internal step-size control (HHT) | boolean | [-] | No | false |
-| `use_modified_newton` | Whether to use a modified Newton iteration (HHT) | boolean | [-] | No | false |
+| `rel_tolerance` | Relative tolerance (HHT and implicit Euler) | double | -- | No | 1e-4 |
+| `abs_tolerance_states` | Absolute tolerance for state variables (HHT and implicit Euler) | double | -- | No | 1e-4 |
+| `abs_tolerance_multipliers` | Absolute tolerance for Lagrange multipliers (HHT and implicit Euler) | double | -- | No | 1e2 |
+| `max_iterations` | Maximum number of non-linear iteration for implicit integrators | integer | -- | No | 50 |
+| `use_stepsize_control` | Whether to use internal step-size control (HHT) | boolean | -- | No | false |
+| `use_modified_newton` | Whether to use a modified Newton iteration (HHT) | boolean | -- | No | false |
 
 
 ### Solver types and parameters
@@ -57,24 +57,24 @@ Each solver supports different configuration parameters depending on the solver 
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `max_iterations`| Maximum number of iterations | integer | [-] | No | 100 |
-| `overrelaxation_factor` | Overrelaxation factor for improved convergence | double | [-] | No | 1.0 |
-| `sharpness_factor` | Sharpness factor for solver response tuning | double | [-] | No | 1.0 |
+| `max_iterations`| Maximum number of iterations | integer | -- | No | 100 |
+| `overrelaxation_factor` | Overrelaxation factor for improved convergence | double | -- | No | 1.0 |
+| `sharpness_factor` | Sharpness factor for solver response tuning | double | -- | No | 1.0 |
 
 #### Iterative Krylov Linear Solvers (BICGSTAB, MINRES, GMRES)
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `max_iterations` | Maximum number of iterations | integer | [-] | No | 100 |
-| `tolerance` | Residual tolerance for convergence | double | [-] | No | 0.0 |
-| `enable_diagonal_preconditioner` | Enable diagonal preconditioner to accelerate convergence | boolean | [-] | No | false |
+| `max_iterations` | Maximum number of iterations | integer | -- | No | 100 |
+| `tolerance` | Residual tolerance for convergence | double | -- | No | 0.0 |
+| `enable_diagonal_preconditioner` | Enable diagonal preconditioner to accelerate convergence | boolean | -- | No | false |
 
 #### Direct Sparse Linear Solvers (SPARSE_LU, SPARSE_QR, PARDISO_MKL, MUMPS)
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `lock_sparsity_pattern`| Keep matrix sparsity pattern unchanged | boolean | [-] | No | false |
-| `use_sparsity_pattern_learner` | Evaluate matrix sparsity pattern in a pre-processing stage (for `SPARSE_LU` and `SPARSE_QR` only) | boolean | [-] | No | true |
+| `lock_sparsity_pattern`| Keep matrix sparsity pattern unchanged | boolean | -- | No | false |
+| `use_sparsity_pattern_learner` | Evaluate matrix sparsity pattern in a pre-processing stage (for `SPARSE_LU` and `SPARSE_QR` only) | boolean | -- | No | true |
 
 ### Run-time visualization parameters
 
@@ -84,9 +84,9 @@ The following optional parameters can be set:
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `type` | Type of visualization | string | `MODEL_FILE`,`PRIMITIVES`,<br>`COLLISION`,`NONE` | No | `MODEL_FILE` |
-| `render_fps` | Target frames per second for visualization | integer | [-] | No | 120 |
-| `enable_shadows` | Whether or not shadows are enabled in the visualization system | boolean | [-] | No | true |
-| `camera` | Camera vertical, location, and look-at point | object | [-] | No | see `camera` object below |
+| `render_fps` | Target frames per second for visualization | integer | -- | No | 120 |
+| `enable_shadows` | Whether or not shadows are enabled in the visualization system | boolean | -- | No | true |
+| `camera` | Camera vertical, location, and look-at point | object | -- | No | see `camera` object below |
 
 
 #### Camera Settings
@@ -96,8 +96,8 @@ The `camera` object specifies the initial view configuration for run-time visual
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `vertical` | Vertical axis for camera orientation | string | `Y`,`Z` | No | `Z` |
-| `location` | Initial camera location [x, y, z] | array[3] | [-] | No | [0, -1, 0] |
-| `target` | Initial camera look-at point [x, y, z] | array[3] | [-] | No | [0, 0, 0] |
+| `location` | Initial camera location [x, y, z] | array[3] | -- | No | [0, -1, 0] |
+| `target` | Initial camera look-at point [x, y, z] | array[3] | -- | No | [0, 0, 0] |
 
 ## Example
 
