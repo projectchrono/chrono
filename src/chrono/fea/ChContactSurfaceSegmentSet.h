@@ -296,22 +296,6 @@ class ChApi ChContactSurfaceSegmentSet : public ChContactSurface {
 
     virtual ~ChContactSurfaceSegmentSet() {}
 
-    /// Add the segment specified by the two given XYZ nodes to this contact surface.
-    void AddSegment(std::shared_ptr<ChNodeFEAxyz> node1,  ///< segment node1
-                    std::shared_ptr<ChNodeFEAxyz> node2,  ///< segment node2
-                    bool owns_node1,                      ///< collision segment owns node1
-                    bool owns_node2,                      ///< collision segment owns node2
-                    double sphere_swept = 0.0             ///< thickness (radius of sweeping sphere)
-    );
-
-    /// Add the segment specified by the two given XYZRot nodes to this contact surface.
-    void AddSegment(std::shared_ptr<ChNodeFEAxyzrot> node1,  ///< segment node1
-                    std::shared_ptr<ChNodeFEAxyzrot> node2,  ///< segment node2
-                    bool owns_node1,                         ///< collision segment owns node1
-                    bool owns_node2,                         ///< collision segment owns node2
-                    double sphere_swept = 0.0                ///< thickness (radius of sweeping sphere)
-    );
-
     /// Utility function to add segments for all 1D elements of the specified FEA mesh to this collision set.
     void AddAllSegments(const ChMesh& mesh, double sphere_swept = 0.0);
 
@@ -331,6 +315,23 @@ class ChApi ChContactSurfaceSegmentSet : public ChContactSurface {
     virtual void SyncCollisionModels() const override;
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+
+  private:
+    /// Add the segment specified by the two given XYZ nodes to this contact surface.
+    void AddSegment(std::shared_ptr<ChNodeFEAxyz> node1,  ///< segment node1
+                    std::shared_ptr<ChNodeFEAxyz> node2,  ///< segment node2
+                    bool owns_node1,                      ///< collision segment owns node1
+                    bool owns_node2,                      ///< collision segment owns node2
+                    double sphere_swept = 0.0             ///< thickness (radius of sweeping sphere)
+    );
+
+    /// Add the segment specified by the two given XYZRot nodes to this contact surface.
+    void AddSegment(std::shared_ptr<ChNodeFEAxyzrot> node1,  ///< segment node1
+                    std::shared_ptr<ChNodeFEAxyzrot> node2,  ///< segment node2
+                    bool owns_node1,                         ///< collision segment owns node1
+                    bool owns_node2,                         ///< collision segment owns node2
+                    double sphere_swept = 0.0                ///< thickness (radius of sweeping sphere)
+    );
 
   private:
     std::vector<std::shared_ptr<ChContactSegmentXYZ>> m_segments;         // segments with XYZ nodes
