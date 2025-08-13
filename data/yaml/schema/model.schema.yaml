@@ -166,51 +166,65 @@ data_array_N: &DATA_ARRAY_N
         type: number
       minItems: 1
 
-# Specification of sphere shape
-sphere_shape: &SPHERE_SHAPE
-  radius:
-    type: number
-    description: Radius of the sphere
-    minimum: 0
+# Specification of geometric shapes for visualization and collision
+shape : &SHAPE
+    type: object
+    properties:
+        type:
+            type: string
+            description: Geometric shape type
+            enum: [SPHERE, BOX, CYLINDER, HULL, MESH]
+        location:
+            <<: *VECTOR3D
+            description: Shape location relative to body reference frame
+        orientation:
+            <<: *ORIENTATION3D
+            description: Shape orientation relative to body reference frame
+        dimensions:
+            <<: *VECTOR3D
+            description: Length, width, and height (required for BOX type)
+        radius:
+            type: number
+            description: Radius of the sphere (required for SPHERE or CYLINDER type)
+            minimum: 0.0
+        length:
+            type: number
+            description: Length (required for CYLINDER type)
+            minimum: 0.0
+        axis:
+            <<: *VECTOR3D
+            description: Axis direction expressed in body reference frame (required for CYLINDER type)
+        filename:
+            type: string
+            description: 3D data file name (required for MESH or HULL type)
+        scale:
+            type: number
+            description: Scale factor (for MESH type)
+            default: 1.0
 
-# Specification of box shape
-box_shape: &BOX_SHAPE
-  dimensions:
-    <<: *VECTOR3D
-    description: Dimensions [length, width, height] for BOX shape
+visualization_shape: &VISUALIZATION_SHAPE
+    type: object
+    description: Visualization shape
+    required: [type]
+    <<: *SHAPE
+    color:
+        <<: *COLOR
+        description: Diffuse color for this shape
+        default: [0.75, 0.75, 0.75]
 
-# Specification of cylinder shape
-cylinder_shape: &CYLINDER_SHAPE
-  radius:
-    type: number
-    description: Radius of the cylinder
-    minimum: 0
-  axis:
-    <<: *VECTOR3D
-    description: Axis direction for CYLINDER shape
-  length:
-    type: number
-    description: Length of the cylinder
-    minimum: 0
-
-# Specification of hull shape (for collision only)
-hull_shape: &HULL_SHAPE
-  filename:
-    type: string
-    description: Filename for HULL shapes
-
-# Specification of mesh shape
-mesh_shape: &MESH_SHAPE
-  filename:
-    type: string
-    description: Filename for MESH shapes
-  scale:
-    type: number
-    description: Scale factor for MESH shape
-    default: 1.0
-  contact_radius:  # Only for collision shapes
-    type: number
-    description: Contact radius for MESH shape
+colision_shape: &COLLISION_SHAPE
+    type: object
+    description: Collision shape
+    required: [type, material]
+    <<: *SHAPE
+    material:
+        type: string
+        description: Name of the material used for this collision shape
+    contact_radius:
+        type: number
+        description: Contact radius for MESH shape
+        default: 0.0
+        minimum: 0.0
 
 # Specification of contact material properties
 contact_material: &CONTACT_MATERIAL
@@ -255,9 +269,6 @@ contact_material: &CONTACT_MATERIAL
         type: number
         description: Tangential damping coefficient
 
-
-
-
 # -----------------------------------------------------------------------------
 # Definition of a Chrono multibody model
 # -----------------------------------------------------------------------------
@@ -266,7 +277,7 @@ model:
   type: object
   description: Definition of a Chrono multibody model
   required: [bodies]
-  
+
   properties:
 
     name:
@@ -336,7 +347,7 @@ model:
             description: Body inertia properties
           contact:
             type: object
-            description: List of contact materials and shapes
+            description: Contact material and collision geometry
             required: [materials, shapes]
             properties:
               materials:
@@ -348,61 +359,20 @@ model:
                 type: array
                 description: List of collision shapes
                 items:
-                  type: object
-                  required: [type, material]
-                  properties:
-                    type:
-                      type: string
-                      description: Collision shape type
-                      enum: [SPHERE, BOX, CYLINDER, HULL, MESH]
-                    location:
-                      <<: *VECTOR3D
-                      description: Shape location relative to body reference frame
-                    orientation:
-                      <<: *ORIENTATION3D
-                      description: Shape orientation relative to body reference frame
-                    material:
-                      type: string
-                      description: Name of the material used for the shape
-                    # Shape-specific properties
-                    <<: *SPHERE_SHAPE
-                    <<: *BOX_SHAPE
-                    <<: *CYLINDER_SHAPE
-                    <<: *HULL_SHAPE
-                    <<: *MESH_SHAPE
-
+                  <<: *COLLISION_SHAPE
           visualization:
             type: object
-            description: Visualization shapes
+            description: Visualization geometry
             properties:
               model_file:
                 type: string
-                description: Path to the model file for visualization
+                description: Path to a model file for visualization
               shapes:
                 type: array
-                description: List of primitive shapes for visualization
+                description: List of visualization shapes
                 items:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                      description: Primitive visualization shape type
-                      enum: [SPHERE, BOX, CYLINDER, MESH]
-                    location:
-                      <<: *VECTOR3D
-                      description: Shape location relative to body reference frame
-                    orientation:
-                      <<: *ORIENTATION3D
-                      description: Shape orientation relative to body reference frame
-                    color:
-                      <<: *COLOR
-                      description: Color of the shape in RGB format
-                    # Shape-specific properties
-                    <<: *SPHERE_SHAPE
-                    <<: *BOX_SHAPE
-                    <<: *CYLINDER_SHAPE
-                    <<: *MESH_SHAPE
-  
+                   <<: *VISUALIZATION_SHAPE
+
     joints:
       type: array
       description: List of joints connecting bodies
@@ -416,7 +386,7 @@ model:
           type:
             type: string
             description: Type of joint
-            enum: [lock, pointline, pointplane, revolute, spherical, prismatic, universal]
+            enum: [LOCK, REVOLUTE, SPHERICAL, PRISMATIC, UNIVERSAL, POINT_LINE, POINT_PLANE ]
           body1:
             type: string
             description: Name of the first body to connect
@@ -471,7 +441,7 @@ model:
                   damping_rotational:
                     type: number
                     description: Rotational damping coefficient for "unconstrained" rotational DOF
-  
+
     constraints:
       type: array
       description: List of constraints in the system
@@ -567,7 +537,7 @@ model:
                 description: Radius of the visualization element
               color:
                 <<: *COLOR
-  
+
     rsdas:
       type: array
       description: List of rotational spring-damper (RSDA) elements

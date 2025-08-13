@@ -1,16 +1,23 @@
 YAML schema for Chrono simulation specification {#YAML_schema_simulations}
 =======================================
 
-A YAML file `simulation.yaml` defines the main parameters needed to run a Chrono simulation. It includes:
+A Chrono YAML simulation file defines the parameters needed to run a Chrono simulation. It consists of two main objects:
+- The Chrono version (`chrono-version`) that is compatible with the YAML model specification.
+  This is a string of the form `M.m` (major.minor) or `M.m.p` (major-minor-patch), although only the two fileds are verified for compatibility.
+- The `simulation` object that contains simulation methods, solver and integrator settings, and visualization options.
 
-1. **Time Settings**: How long to run the simulation and at what resolution
-2. **Contact Settings**: How to handle collisions and contacts
-3. **Solver Settings**: How to solve the equations of motion
-4. **Visualization Settings**: How to display the simulation
+## Simulation specification
 
-## File Structure
+The `simulation` object in a Chrono YAML simulation specification file defines:
+    1. **Time Settings**: How long to run the simulation and at what resolution
+    2. **Contact Settings**: How to handle collisions and contacts
+    3. **Solver Settings**: How to solve the equations of motion
+    4. **Visualization Settings**: How to display the simulation
 
-A simulation file contains these main sections:
+<div class="ce-info">
+Enum values for various object types in the simulation description YAML file can be provided using any desired case.
+For example, the "Euler implicit" integrator can be specified using any of `euler_implicit`, `EULER_IMPLICIT`, `Euler_implicit`, `EUler_imPLICIt`, etc.
+</div>
 
 ### Required Parameters
 
