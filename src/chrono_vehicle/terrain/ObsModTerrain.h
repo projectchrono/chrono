@@ -16,7 +16,7 @@
 //  The obstacle is defined by three parameters
 //  - aa:        approach angle 180 deg = flat, aa < 180 deg = mound, aa > 180 deg = trench
 //  - length:    obstacle length for mound, base length for trench
-//  - obsheight: allways >= 0, obstacle height for mound, obstacle depth for trench
+//  - obsheight: always >= 0, obstacle height for mound, obstacle depth for trench
 //
 // =============================================================================
 
@@ -50,7 +50,7 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
                   float friction = 0.8f,  ///< [] terrain coefficient of friction
                   double aa = 180.0,      ///< [deg] approach angle
                   double length = 10.0,   ///< [m] obstacle length for mound, base length for trench
-                  double obsheight = 0.0  ///< [m] allways >= 0, obstacle height for mound, obstacle depth for trench
+                  double obsheight = 0.0  ///< [m] always >= 0, obstacle height for mound, obstacle depth for trench
     );
 
     ~ObsModTerrain() {}
@@ -112,9 +112,9 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
     double m_width;                    ///< [m] obstacle width
     double m_aa;                       ///< approach angle 180° flat, >180° trench, <180° mound, internally in [rad]
     double m_obslength;                ///< [m] obstacle length for mound, base length for trench
-    double m_obsheight;                ///< [m] allways >= 0, obstacle height for mound, obstacle depth for trench
+    double m_obsheight;                ///< [m] always >= 0, obstacle height for mound, obstacle depth for trench
     size_t m_nx;                       ///< number of obstacle coordinates in x direction
-    size_t m_ny;                       ///< numer of obstacle coordinates in y direction
+    size_t m_ny;                       ///< number of obstacle coordinates in y direction
     double m_xmin;                     ///< x coordinate, where the obstacle begins
     double m_xmax;                     ///< x coordinate, where the obstacle ends
     double m_ymin;                     ///< y coordinate, where the obstacle begins

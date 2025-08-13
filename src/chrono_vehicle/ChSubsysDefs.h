@@ -84,7 +84,7 @@ struct TerrainForce {
     ChVector3d moment;  ///< moment vector, expressed in the global frame
 };
 
-/// Vector of terrain conatct force structures.
+/// Vector of terrain contact force structures.
 typedef std::vector<TerrainForce> TerrainForces;
 
 /// Driver (vehicle control) inputs.
