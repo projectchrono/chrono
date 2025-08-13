@@ -113,7 +113,7 @@ Properties for `material`->`Coefficients`:
 | `radius` | Radius for `SPHERE` and `CYLINDER` shapes | double | -- | Yes |-- |
 | `dimensions` | Dimensions [length, width, height] for `BOX` shape | array[3] | -- | Yes | -- |
 | `axis` | Axis direction for `CYLINDER` shape | array[3] | -- | Yes | -- |
-| `length` | Length for `CYLINDER` shape | double | -- | Yes` | -- |
+| `length` | Length for `CYLINDER` shape | double | -- | Yes | -- |
 | `filename` | Filename for `HULL` and `MESH` shapes | string | -- | Yes | -- |
 | `contact_radius` | Contact radius for `MESH` shape | double | -- | No | 0 |
 | `scale` | Scale factor for `MESH` shape | double | -- | No | 1.0 |
