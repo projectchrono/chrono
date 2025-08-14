@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2024 projectchrono.org
+// Copyright (c) 2025 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -35,6 +35,8 @@ ChSoaRevoluteBody::ChSoaRevoluteBody(const ChSoaRevoluteBody& other) : ChSoaMobi
   //// TODO
 }
 
+// Mobilizer-specific setters for generalized coordinates, velocities, and acceleration
+
 void ChSoaRevoluteBody::setRelPos(double rotAngle) {
     if (m_assembly && m_assembly->IsInitialized())
         setQ(0, std::fmod(rotAngle, CH_2PI));
@@ -53,6 +55,8 @@ void ChSoaRevoluteBody::setRelAcc(double rotAcc) {
     if (m_assembly && m_assembly->IsInitialized())
         setUdot(0, rotAcc);
 }
+
+// Virtual overrides for setters for generalized coordinates, velocities, and acceleration
 
 void ChSoaRevoluteBody::setRelRot(const ChMatrix33d& relRot) {
     float a = relRot(0, 0) + relRot(1, 1);
@@ -75,6 +79,8 @@ void ChSoaRevoluteBody::setRelAngAcc(const ChVector3d& relAngAcc) {
         setUdot(0, relAngAcc.z());
 }
 
+// Mobilizer-specific getters for state and derivatives
+
 double ChSoaRevoluteBody::getQ0(int dof) const {
     assert(dof == 0);
     return m_q0;
@@ -84,6 +90,8 @@ double ChSoaRevoluteBody::getU0(int dof) const {
     assert(dof == 0);
     return m_u0;
 }
+
+// ---
 
 ChMatrix33d ChSoaRevoluteBody::calcRelRot(double q) {
     return ChMatrix33d(q, VECT_Z);

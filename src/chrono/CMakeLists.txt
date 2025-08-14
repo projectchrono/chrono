@@ -336,13 +336,19 @@ set(Chrono_soa_HEADERS
     soa/ChSoaVariables.h
     soa/ChSoaMobilityForce.h
     soa/ChSoaForce.h
+    soa/ChSoaPrismaticBody.h
     soa/ChSoaRevoluteBody.h
+    soa/ChSoaSphericalBody.h
+    soa/ChSoaUniversalBody.h
     )
 set(Chrono_soa_SOURCES    
     soa/ChSoaAssembly.cpp
     soa/ChSoaMassProperties.cpp
     soa/ChSoaMobilizedBody.cpp
+    soa/ChSoaPrismaticBody.cpp
     soa/ChSoaRevoluteBody.cpp
+    soa/ChSoaSphericalBody.cpp
+    soa/ChSoaUniversalBody.cpp
     soa/ChSoaForce.cpp
     )
 source_group(soa FILES ${Chrono_soa_SOURCES} ${Chrono_soa_HEADERS})

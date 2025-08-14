@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the ChSoaRevoluteBody class.
+// Definition of the ChSoaSphericalBody class.
 //
 // =============================================================================
 
-#ifndef CH_SOA_REVOLUTE_BODY_H
-#define CH_SOA_REVOLUTE_BODY_H
+#ifndef CH_SOA_SPHERICAL_BODY_H
+#define CH_SOA_SPHERICAL_BODY_H
 
 #include "chrono/core/ChApiCE.h"
 
@@ -29,35 +29,32 @@ namespace soa {
 /// @addtogroup chrono_soa
 /// @{
 
-/// Concrete mobilized body with revolute joint.
-class ChApi ChSoaRevoluteBody : public ChSoaMobilizedBodyT<1> {
+/// Concrete mobilized body with spherical joint.
+class ChApi ChSoaSphericalBody : public ChSoaMobilizedBodyT<3> {
   public:
-    /// Construct a body mobilized with a revolute joint.
-    /// A ChSoaRevoluteBody is a mobilizer with one rotational degree of freedom. A pin joint cannot translate and only
-    /// rotates about the z-axis. The moving frame M (on the ChSoaRevoluteBody) and the fixed frame F (on the parent body)
-    /// are such that their origins are always coincident and their z-axes always aligned. Therefore, a ChSoaRevoluteBody
-    /// can only represent a rotation along the common z-axis and it can represent only the zero translation.
-    /// The generalized speed is the angular velocity of M in the F frame, about F's z-axis, expressed in F. (This axis
-    /// is also constant in M.) For this mobilizer the velocity Jacobian H_FM is constant (and set at construction) and
-    /// thus its derivative is zero (also set at construction).
-    ChSoaRevoluteBody(std::shared_ptr<ChSoaMobilizedBody> parent,
-                   const ChSoaMassProperties& mprops,
-                   const ChFramed& inbFrame,
-                   const ChFramed& outbFrame,
-                   const std::string& name = "");
+    /// Construct a body mobilized with a spherical joint.
+    /// A ChSoaSphericalBodyis a mobilizer with three rotational degrees of freedom, modeled with quaternions. A
+    /// spherical joint cannot translate but can represent arbitrary rotation. The moving frame M (on the
+    /// ChSoaSphericalBody) and the fixed frame F (on the parent body) are such that their origins are always
+    /// coincident. The generalized speeds for this mobilizer are the angular velocity expressed in F, so they cause
+    /// rotations around F's x,y,z axes, respectively. For this mobilizer the velocity Jacobian H_FM is constant (and
+    /// set at construction) and thus its derivative is zero (also set at construction).
+    ChSoaSphericalBody(std::shared_ptr<ChSoaMobilizedBody> parent,
+                      const ChSoaMassProperties& mprops,
+                      const ChFramed& inbFrame,
+                      const ChFramed& outbFrame,
+                      const std::string& name = "");
 
-    ChSoaRevoluteBody(const ChSoaRevoluteBody& other);
+    ChSoaSphericalBody(const ChSoaSphericalBody& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSoaRevoluteBody* Clone() const override { return new ChSoaRevoluteBody(*this); }
+    virtual ChSoaSphericalBody* Clone() const override { return new ChSoaSphericalBody(*this); }
 
-    virtual int getNumQ() const override { return 1; }
+    virtual int getNumQ() const override { return 4; }
 
-    // Set the internal coordinates for the ChSoaRevoluteBody so they best approximate the specified
+    // Set the internal coordinates for the ChSoaSphericalBodyis so they best approximate the specified
     // (relative) orientation, angular velocity, and angular acceleration, respectively.
-    // A pin joint can only represent a rotation about the z-axis, but no translation.
-    // As such, setRelRot() calculates the angle of rotation about the z-axis that best approximates
-    // (in the Frobenius norm sense) the given rotation matrix.
+    // A spherical joint can represent any rotation about the 3 axes, but no translation.
 
     virtual void setRelRot(const ChMatrix33d& relRot) override;
     virtual void setRelLoc(const ChVector3d& relLoc) override {}
@@ -68,15 +65,15 @@ class ChApi ChSoaRevoluteBody : public ChSoaMobilizedBodyT<1> {
 
     // Mobilizer-specific access to generalized coordinates, velocities, and accelerations.
 
-    void setRelPos(double rotAngle);
-    void setRelVel(double rotRate);
-    void setRelAcc(double rotAcc);
+    void setRelPos(const ChMatrix33d& rotMat);
+    void setRelVel(const ChVector3d& angVel);
+    void setRelAcc(const ChVector3d& angAcc);
 
     virtual double getQ0(int dof) const override;
     virtual double getU0(int dof) const override;
 
     /// Utility function to calculate the joint rotation matrix corresponding to the specified generalized coordinate.
-    static ChMatrix33d calcRelRot(double q);
+    static ChMatrix33d calcRelRot(const ChQuaterniond& q);
 
   private:
     /// Calculate the across-joint transform X_FM.
@@ -87,8 +84,8 @@ class ChApi ChSoaRevoluteBody : public ChSoaMobilizedBodyT<1> {
     /// Allow the body to perform any operations at the beginning of a simulation step.
     virtual void prepSim() override;
 
-    double m_q0;
-    double m_u0;
+    ChQuaterniond m_q0;
+    ChVector3d m_u0;
 };
 
 /// @} chrono_soa
