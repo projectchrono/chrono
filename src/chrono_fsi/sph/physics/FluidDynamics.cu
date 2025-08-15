@@ -24,6 +24,7 @@
 #include "chrono_fsi/sph/physics/FsiForceWCSPH.cuh"
 #include "chrono_fsi/sph/physics/FsiForceISPH.cuh"
 #include "chrono_fsi/sph/physics/SphGeneral.cuh"
+#include "chrono_fsi/sph/utils/UtilsLogging.cuh"
 
 using std::cout;
 using std::endl;
@@ -78,17 +79,24 @@ void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
     }
 }
 
-//// TODO - revisit application of particle shifting (explicit schemes)
-////        currently, a new v_XSPH is calculated at every force evaluation and used in the subsequent position update
-////        should this be done only once per step?
+
 Real FluidDynamics::computeTimeStep() const {
-    Real min_courant_viscous_time_step = thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.end(), FLT_MAX, thrust::minimum<Real>());
-    Real min_acceleration_time_step = thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.end(), FLT_MAX, thrust::minimum<Real>());
+    Real valid_entries = m_data_mgr.countersH->numExtendedParticles;
+    Real min_courant_viscous_time_step = thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.begin() + valid_entries, FLT_MAX, thrust::minimum<Real>());
+    Real min_acceleration_time_step = thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.begin() + valid_entries, FLT_MAX, thrust::minimum<Real>());
     Real adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
-    std::cout << "adjusted_time_step: " << adjusted_time_step << std::endl;
+    // Log the time step values for analysiss
+#ifdef FSI_COUNT_LOGGING_ENABLED
+    QuantityLogger::GetInstance().AddValue("time_step", adjusted_time_step);
+    QuantityLogger::GetInstance().AddValue("min_courant_viscous_time_step", min_courant_viscous_time_step);
+    QuantityLogger::GetInstance().AddValue("min_acceleration_time_step", min_acceleration_time_step);
+#endif
     return adjusted_time_step;
 }
 
+//// TODO - revisit application of particle shifting (explicit schemes)
+////        currently, a new v_XSPH is calculated at every force evaluation and used in the subsequent position update
+////        should this be done only once per step?
 void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
 
     switch (scheme) {

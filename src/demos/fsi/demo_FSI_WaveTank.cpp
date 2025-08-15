@@ -675,6 +675,8 @@ int main(int argc, char* argv[]) {
 
     ofile.close();
 
+    fsi.PrintFSIStats();
+
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
     gplot.SetGrid();

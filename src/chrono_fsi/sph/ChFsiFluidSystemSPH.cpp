@@ -38,6 +38,8 @@
 #include "chrono_fsi/sph/physics/FluidDynamics.cuh"
 #include "chrono_fsi/sph/physics/BceManager.cuh"
 
+#include "chrono_fsi/sph/utils/UtilsLogging.cuh"
+
 #include "chrono_fsi/sph/math/CustomMath.cuh"
 
 #include "chrono_fsi/sph/utils/UtilsTypeConvert.cuh"
@@ -1920,11 +1922,15 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
 //------------------------------------------------------------------------------
 double ChFsiFluidSystemSPH::GetVariableStepSize() {
-    if (m_paramsH->use_variable_time_step) {
+    if (m_paramsH->use_variable_time_step && m_frame != 0) {
         return m_fluid_dynamics->computeTimeStep();
     } else {
         return GetStepSize();
     }
+}
+
+void ChFsiFluidSystemSPH::PrintFluidSystemSPHStats() const {
+    QuantityLogger::GetInstance().PrintStats();
 }
 
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {

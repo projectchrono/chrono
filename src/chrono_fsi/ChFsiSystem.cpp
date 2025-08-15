@@ -229,6 +229,10 @@ void ChFsiSystem::AdvanceMBS(double step, double threshold) {
     m_timer_MBD = m_sysMBS.GetTimerStep();
 }
 
+void ChFsiSystem::PrintFSIStats() const {
+    m_sysCFD.PrintFluidSystemSPHStats();
+}
+
 void ChFsiSystem::DoStepDynamics(double step) {
     if (!m_is_initialized) {
         cout << "ERROR: FSI system not initialized!\n" << endl;

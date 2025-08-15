@@ -605,6 +605,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Get the variable step size.
     double GetVariableStepSize() override;
 
+    /// Print the FSI statistics
+    void PrintFluidSystemSPHStats() const;
+
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnExchangeSolidForces() override;
 

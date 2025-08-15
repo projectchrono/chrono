@@ -219,7 +219,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
-    double exchange_info = step_size;
+    double exchange_info = 5 * step_size;
     while (time < tend) {
         rover->Update();
 
@@ -240,6 +240,8 @@ int main(int argc, char* argv[]) {
         time += exchange_info;
         sim_frame++;
     }
+
+    terrain.PrintFSIStats();
 
     return 0;
 }
