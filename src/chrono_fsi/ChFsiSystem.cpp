@@ -196,8 +196,15 @@ const ChVector3d& ChFsiSystem::GetFsiBodyTorque(size_t i) const {
 
 void ChFsiSystem::AdvanceCFD(double step, double threshold) {
     double t = 0;
+    constexpr double min_step = 1e-6;
     while (t < step) {
-        double h = std::min<>(m_step_CFD, step - t);
+        // In case variable time step is not used - this will just return the step size
+
+        double h = m_sysCFD.GetVariableStepSize();
+        h = std::max<>(std::min<>(h, step - t), min_step);
+
+        // double h_new = m_sysCFD.GetVariableStepSize();
+        // double h = std::min<>(m_step_CFD, step - t);
         if (h <= threshold)
             break;
         m_sysCFD.DoStepDynamics(h);

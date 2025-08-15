@@ -602,6 +602,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Function to integrate the fluid system from `time` to `time + step`.
     virtual void OnDoStepDynamics(double time, double step) override;
 
+    /// Get the variable step size.
+    double GetVariableStepSize() override;
+
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnExchangeSolidForces() override;
 

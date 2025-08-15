@@ -135,6 +135,8 @@ int main(int argc, char* argv[]) {
     sph_params.consistent_laplacian_discretization = false;
     sph_params.viscosity_method = ViscosityMethod::ARTIFICIAL_BILATERAL;
     sph_params.boundary_method = BoundaryMethod::ADAMI;
+    sph_params.use_variable_time_step = true;  // This makes the step size irrelevant - now we just make sure we are
+                                               // within the max of exchange_info (meta step)
     terrain.SetSPHParameters(sph_params);
 
     // Set output level from SPH simulation
@@ -217,7 +219,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
     int sim_frame = 0;
     int render_frame = 0;
-
+    double exchange_info = step_size;
     while (time < tend) {
         rover->Update();
 
@@ -233,9 +235,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Advance dynamics of multibody and fluid systems concurrently
-        terrain.DoStepDynamics(step_size);
+        terrain.DoStepDynamics(exchange_info);
 
-        time += step_size;
+        time += exchange_info;
         sim_frame++;
     }
 

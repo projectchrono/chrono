@@ -1409,7 +1409,8 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
                                 Real3 velMasA,
                                 Real3 velMasB,
                                 Real4 rhoPresMuA,
-                                Real4 rhoPresMuB) {
+                                Real4 rhoPresMuB,
+                                Real* max_vel_diff) {
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0);
 
@@ -1428,6 +1429,11 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
     }
 
     Real3 derivV;
+    Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
+    Real intermediate = vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
+    if(IsFluidParticle(rhoPresMuB.w)) {
+        *max_vel_diff = fmax(*max_vel_diff, fabs(paramsD.h * intermediate));
+    }
     switch (paramsD.viscosity_method) {
         case ViscosityMethod::ARTIFICIAL_UNILATERAL: {
             //  pressure component
@@ -1436,7 +1442,6 @@ __device__ inline Real4 cfdDvDt(Real3 dist3,
                      gradW;
 
             // artificial viscosity part, see Monaghan 1997, mainly for water
-            Real vAB_dot_rAB = dot(velMasA - velMasB, dist3);
             if (vAB_dot_rAB < 0) {
                 Real mu_ab = paramsD.h * vAB_dot_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
                 Real Pi_ab = -paramsD.Ar_vis_alpha * paramsD.Cs * 2. / (rhoPresMuA.x + rhoPresMuB.x) *
@@ -1473,6 +1478,8 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
                        const uint* numNeighborsPerPart,
                        const uint* neighborList,
                        const uint numActive,
+                       Real* courantViscousTimeStep,
+                       Real* accelerationTimeStep,
                        volatile bool* error_flag) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
@@ -1541,6 +1548,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
     Real sum_w_i = W3h(paramsD.kernel_type, 0, paramsD.ooh) * paramsD.volume0;
+    Real max_vel_diff = 0;
 
     for (int n = NLStart; n < NLEnd; n++) {
         uint j = neighborList[n];
@@ -1567,7 +1575,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         Real3 velMasB = sortedVelMas[j];
 
         derivVelRho +=
-            cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB);
+            cfdDvDt(dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasB, rhoPresMuA, rhoPresMuB, &max_vel_diff);
 
         if (paramsD.USE_Consistent_G && paramsD.USE_Consistent_L) {
             preGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], -rhoPresMuA.y, rhoPresMuB.y,
@@ -1622,6 +1630,12 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
         derivVelRho += mR4(totalFluidBodyForce3);
     }
 
+    if(IsFluidParticle(rhoPresMuA.w)) {
+        courantViscousTimeStep[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
+        Real intermediate = derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z;
+        Real accT = sqrtf(paramsD.h / intermediate);
+        accelerationTimeStep[index] = accT;
+    }
     sortedDerivVelRho[index] = derivVelRho;
 }
 
@@ -1633,7 +1647,8 @@ void FsiForceWCSPH::CfdCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
     CfdRHS<<<numBlocks, numThreads>>>(
         mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
         mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(m_data_mgr.markersProximity_D->gridMarkerIndexD),
-        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, m_errflagD);
+        U1CAST(m_data_mgr.numNeighborsPerPart), U1CAST(m_data_mgr.neighborList), numActive, R1CAST(m_data_mgr.courantViscousTimeStepD),
+                                      R1CAST(m_data_mgr.accelerationTimeStepD), m_errflagD);
     cudaCheckErrorFlag(m_errflagD, "RhsCFD");
 }
 

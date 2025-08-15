@@ -92,6 +92,9 @@ class CH_FSI_API ChFsiFluidSystem {
                                   std::vector<FsiMeshForce> mesh1D_forces,
                                   std::vector<FsiMeshForce> mesh2D_forces) = 0;
 
+    /// Get the step size.
+    virtual double GetVariableStepSize() = 0;
+
   protected:
     ChFsiFluidSystem();
 

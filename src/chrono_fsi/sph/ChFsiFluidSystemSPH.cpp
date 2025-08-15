@@ -1919,6 +1919,13 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 }
 
 //------------------------------------------------------------------------------
+double ChFsiFluidSystemSPH::GetVariableStepSize() {
+    if (m_paramsH->use_variable_time_step) {
+        return m_fluid_dynamics->computeTimeStep();
+    } else {
+        return GetStepSize();
+    }
+}
 
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     SynchronizeCopyStream();
