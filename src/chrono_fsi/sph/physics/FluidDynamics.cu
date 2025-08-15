@@ -81,13 +81,24 @@ void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
 //// TODO - revisit application of particle shifting (explicit schemes)
 ////        currently, a new v_XSPH is calculated at every force evaluation and used in the subsequent position update
 ////        should this be done only once per step?
+Real FluidDynamics::computeTimeStep() {
+    Real min_courant_viscous_time_step = thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.end(), FLT_MAX, thrust::minimum<Real>());
+    Real min_acceleration_time_step = thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.end(), FLT_MAX, thrust::minimum<Real>());
+    Real adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
+    std::cout << "adjusted_time_step: " << adjusted_time_step << std::endl;
+    return adjusted_time_step;
+}
 
 void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Real h, IntegrationScheme scheme) {
+
     switch (scheme) {
         case IntegrationScheme::EULER: {
             Real dummy = 0;  // force calculation for WCSPH does not need the step size
 
             forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
+            if (m_data_mgr.paramsH->elastic_SPH) {
+                h = computeTimeStep();
+            }
             EulerStep(y, h);                     // y <==  y_{n+1} = y_n + h * f(t_n, y_n)
             ApplyBoundaryConditions(y);
 
@@ -101,6 +112,9 @@ void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Re
             CopySortedMarkers(y, y_tmp);  // y_tmp <- y_n
 
             forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
+            if (m_data_mgr.paramsH->elastic_SPH) {
+                h = computeTimeStep();
+            }
             EulerStep(y_tmp, h / 2);             // y_tmp <==  K1 = y_n + (h/2) * f(t_n, y_n)
             ApplyBoundaryConditions(y_tmp);
 
@@ -118,6 +132,9 @@ void FluidDynamics::DoStepDynamics(std::shared_ptr<SphMarkerDataD> y, Real t, Re
             CopySortedMarkers(y, y_tmp);  // y_tmp <- y_n
 
             forceSystem->ForceSPH(y, t, dummy);  // f(t_n, y_n)
+            if (m_data_mgr.paramsH->elastic_SPH) {
+                h = computeTimeStep();
+            }
             EulerStep(y_tmp, h / 2);             // y_tmp <== y_{n+1/2} = y_n + (h/2) * f(t_n, y_n)
             ApplyBoundaryConditions(y_tmp);
 

@@ -178,6 +178,7 @@ void ChFsiFluidSystemSPH::InitParams() {
     m_paramsH->use_init_pressure = false;
 
     m_paramsH->num_proximity_search_steps = 4;
+    m_paramsH->use_variable_time_step = false;
 }
 
 //------------------------------------------------------------------------------
@@ -694,6 +695,10 @@ void ChFsiFluidSystemSPH::SetNumProximitySearchSteps(int steps) {
     m_paramsH->num_proximity_search_steps = steps;
 }
 
+void ChFsiFluidSystemSPH::SetUseVariableTimeStep(bool use_variable_time_step) {
+    m_paramsH->use_variable_time_step = use_variable_time_step;
+}
+
 void ChFsiFluidSystemSPH::CheckSPHParameters() {
     // Check parameter compatibility with physics problem
     if (m_paramsH->elastic_SPH) {
@@ -854,7 +859,8 @@ ChFsiFluidSystemSPH::SPHParameters::SPHParameters()
       artificial_viscosity(0.02),
       kernel_threshold(0.8),
       num_proximity_search_steps(4),
-      eos_type(EosType::ISOTHERMAL) {}
+      eos_type(EosType::ISOTHERMAL),
+      use_variable_time_step(false) {}
 
 void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->integration_scheme = sph_params.integration_scheme;
@@ -897,6 +903,8 @@ void ChFsiFluidSystemSPH::SetSPHParameters(const SPHParameters& sph_params) {
     m_paramsH->C_Wi = Real(sph_params.kernel_threshold);
 
     m_paramsH->num_proximity_search_steps = sph_params.num_proximity_search_steps;
+
+    m_paramsH->use_variable_time_step = sph_params.use_variable_time_step;
 }
 
 ChFsiFluidSystemSPH::LinSolverParameters::LinSolverParameters()
@@ -1199,6 +1207,7 @@ void PrintParams(const ChFsiParamsSPH& params, const Counters& counters) {
     cout << "  densityReinit: " << params.densityReinit << endl;
 
     cout << "  Proximity search performed every " << params.num_proximity_search_steps << " steps" << endl;
+    cout << "  use_variable_time_step: " << params.use_variable_time_step << endl;
     cout << "  dT: " << params.dT << endl;
 
     cout << "  non_newtonian: " << params.non_newtonian << endl;
@@ -2897,6 +2906,10 @@ ChVector3d ChFsiFluidSystemSPH::GetBodyForce() const {
 
 int ChFsiFluidSystemSPH::GetNumProximitySearchSteps() const {
     return m_paramsH->num_proximity_search_steps;
+}
+
+bool ChFsiFluidSystemSPH::GetUseVariableTimeStep() const {
+    return m_paramsH->use_variable_time_step;
 }
 
 size_t ChFsiFluidSystemSPH::GetNumFluidMarkers() const {

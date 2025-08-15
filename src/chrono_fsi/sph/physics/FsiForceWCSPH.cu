@@ -1048,31 +1048,26 @@ void FsiForceWCSPH::CfdApplyBC(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
 // CrmCalcRHS
 // -----------------------------------------------------------------------------
 
-__device__ inline Real4 crmDvDt(Real W_ini_inv,
-                                Real W_AB,
-                                Real3 gradW,
-                                Real3 dist3,
-                                Real d,
-                                Real invd,
-                                Real4 posRadA,
-                                Real4 posRadB,
-                                Real3 velMasA_in,
-                                Real3 velMasB_in,
-                                Real4 rhoPresMuA,
-                                Real4 rhoPresMuB,
-                                Real3 tauXxYyZz_A_in,
-                                Real3 tauXyXzYz_A_in,
-                                Real3 tauXxYyZz_B_in,
-                                Real3 tauXyXzYz_B_in) {
+__device__ inline Real4 crmDvDt(const Real W_ini_inv,
+                                const Real W_AB,
+                                const Real3 gradW,
+                                const Real3 dist3,
+                                const Real d,
+                                const Real invd,
+                                const Real4 posRadA,
+                                const Real4 posRadB,
+                                const Real3 velMasA,
+                                const Real3 velMasB,
+                                const Real4 rhoPresMuA,
+                                const Real4 rhoPresMuB,
+                                const Real3 tauXxYyZz_A,
+                                const Real3 tauXyXzYz_A,
+                                const Real3 tauXxYyZz_B,
+                                const Real3 tauXyXzYz_B,
+                                Real* max_vel_diff) {
     if (IsBceMarker(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w))
         return mR4(0);
 
-    Real3 velMasA = velMasA_in;
-    Real3 velMasB = velMasB_in;
-    Real3 tauXxYyZz_A = tauXxYyZz_A_in;
-    Real3 tauXxYyZz_B = tauXxYyZz_B_in;
-    Real3 tauXyXzYz_A = tauXyXzYz_A_in;
-    Real3 tauXyXzYz_B = tauXyXzYz_B_in;
 
     /*if (IsFluidParticle(rhoPresMuA.w) && IsBceMarker(rhoPresMuB.w)) {
         tauXxYyZz_B = tauXxYyZz_A;
@@ -1111,13 +1106,17 @@ __device__ inline Real4 crmDvDt(Real W_ini_inv,
     // }
     Real derivM1 = 0;
     Real vAB_rAB = dot(velMasA - velMasB, dist3);
+    Real intermediate = vAB_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h);
+    if(IsFluidParticle(rhoPresMuB.w)) {
+        *max_vel_diff = fmax(*max_vel_diff, fabs(paramsD.h * intermediate));
+    }
     switch (paramsD.viscosity_method) {
         case ViscosityMethod::ARTIFICIAL_UNILATERAL: {
             // Artificial Viscosity from Monaghan 1997
             // This has no viscous forces in the seperation phase - used in SPH codes simulating fluids
             if (vAB_rAB < 0) {
                 Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
-                derivM1 = -Mass * (nu * vAB_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h));
+                derivM1 = -Mass * (nu * intermediate);
             }
 
             break;
@@ -1126,11 +1125,12 @@ __device__ inline Real4 crmDvDt(Real W_ini_inv,
             // Artificial viscosity treatment from J J Monaghan (2005) "Smoothed particle hydrodynamics"
             // Here there is viscous force added even during the seperation phase - makes the simulation more stable
             Real nu = -paramsD.Ar_vis_alpha * paramsD.h * paramsD.Cs * paramsD.invrho0;
-            derivM1 = -Mass * (nu * vAB_rAB / (d * d + paramsD.epsMinMarkersDis * paramsD.h * paramsD.h));
+            derivM1 = -Mass * (nu * intermediate);
             break;
         }
     }
 
+    
     derivVx += derivM1 * gradW.x;
     derivVy += derivM1 * gradW.y;
     derivVz += derivM1 * gradW.z;
@@ -1168,18 +1168,20 @@ __device__ inline Real4 crmDvDt(Real W_ini_inv,
     return mR4(derivVx, derivVy, derivVz, 0);
 }
 
-__global__ void CrmRHS(const Real4* sortedPosRad,
+__global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
                        const Real3* sortedVelMas,
-                       const Real4* sortedRhoPreMu,
-                       const Real3* sortedTauXxYyZz,
-                       const Real3* sortedTauXyXzYz,
-                       const uint* numNeighborsPerPart,
-                       const uint* neighborList,
+                       const Real4* __restrict__ sortedRhoPreMu,
+                       const Real3* __restrict__ sortedTauXxYyZz,
+                       const Real3* __restrict__ sortedTauXyXzYz,
+                       const uint* __restrict__ numNeighborsPerPart,
+                       const uint* __restrict__ neighborList,
                        const uint numActive,
-                       Real4* sortedDerivVelRho,
-                       Real3* sortedDerivTauXxYyZz,
-                       Real3* sortedDerivTauXyXzYz,
-                       uint* sortedFreeSurfaceIdD) {
+                       Real4* __restrict__ sortedDerivVelRho,
+                       Real3* __restrict__ sortedDerivTauXxYyZz,
+                       Real3* __restrict__ sortedDerivTauXyXzYz,
+                       uint* __restrict__ sortedFreeSurfaceIdD,
+                       Real* __restrict__ courantViscousTimeStepD,
+                       Real* __restrict__ accelerationTimeStepD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numActive)
         return;
@@ -1285,6 +1287,7 @@ __global__ void CrmRHS(const Real4* sortedPosRad,
 
     Real sum_w_i = W3h(kernelType, 0, ooh) * volume0;
     Real w_ini_inv = 1 / W3h(kernelType, d0, ooh);
+    Real max_vel_diff = 0;
 
     // Get the interaction from neighbor particles
     // NLStart + 1 because the first element in neighbor list is the particle itself
@@ -1309,8 +1312,7 @@ __global__ void CrmRHS(const Real4* sortedPosRad,
         // Calculate dv/dt
         // Note: The SPH discretization chosen for gradW does not support the use of consistent discretization
         derivVelRho += crmDvDt(w_ini_inv, w_AB, gradW, dist3, d, invd, sortedPosRad[index], sortedPosRad[j], velMasA,
-                               velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB);
-
+                               velMasB, rhoPresMuA, rhoPresMuB, TauXxYyZzA, TauXyXzYzA, TauXxYyZzB, TauXyXzYzB, &max_vel_diff);
         // Modify the gradW for stress equation if we decide to use consistent discretization
         if (paramsD.USE_Consistent_G) {
             Real3 gradW_new;
@@ -1367,8 +1369,14 @@ __global__ void CrmRHS(const Real4* sortedPosRad,
     if (IsSphParticle(rhoPresMuA.w)) {
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
         derivVelRho += mR4(totalFluidBodyForce3, 0);
-    }
+    }   
 
+    if(IsFluidParticle(rhoPresMuA.w)) {
+        courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
+        Real intermediate = derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z;
+        Real accT = sqrtf(paramsD.h / intermediate);
+        accelerationTimeStepD[index] = accT;
+    }
     sortedDerivVelRho[index] = derivVelRho;
     sortedDerivTauXxYyZz[index] = mR3(dTauxx, dTauyy, dTauzz);
     sortedDerivTauXyXzYz[index] = mR3(dTauxy, dTauxz, dTauyz);
@@ -1383,7 +1391,8 @@ void FsiForceWCSPH::CrmCalcRHS(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD
                                       mR3CAST(sortedSphMarkersD->tauXyXzYzD), U1CAST(m_data_mgr.numNeighborsPerPart),
                                       U1CAST(m_data_mgr.neighborList), numActive, mR4CAST(m_data_mgr.derivVelRhoD),
                                       mR3CAST(m_data_mgr.derivTauXxYyZzD), mR3CAST(m_data_mgr.derivTauXyXzYzD),
-                                      U1CAST(m_data_mgr.freeSurfaceIdD));
+                                      U1CAST(m_data_mgr.freeSurfaceIdD), R1CAST(m_data_mgr.courantViscousTimeStepD),
+                                      R1CAST(m_data_mgr.accelerationTimeStepD));
     if (m_check_errors) {
         cudaCheckError();
     }

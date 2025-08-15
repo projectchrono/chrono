@@ -383,6 +383,9 @@ void FsiDataManager::ResetData() {
     //// TODO: elasticSPH only
     thrust::fill(derivTauXxYyZzD.begin(), derivTauXxYyZzD.end(), zero3);
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
+        //// Time step vectors
+    thrust::fill(courantViscousTimeStepD.begin(), courantViscousTimeStepD.end(), FLT_MAX);
+    thrust::fill(accelerationTimeStepD.begin(), accelerationTimeStepD.end(), FLT_MAX);
 }
 
 // ------------------------------------------------------------------------------
@@ -411,6 +414,8 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         sortedSphMarkers1_D->tauXyXzYzD.reserve(new_capacity);
         freeSurfaceIdD.reserve(new_capacity);
         vel_XSPH_D.reserve(new_capacity);
+        courantViscousTimeStepD.reserve(new_capacity);
+        accelerationTimeStepD.reserve(new_capacity);
 
         m_max_extended_particles = new_capacity;
     }
@@ -440,7 +445,8 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
     derivTauXyXzYzD.resize(numExtended);
     freeSurfaceIdD.resize(numExtended);
     vel_XSPH_D.resize(numExtended);
-
+    courantViscousTimeStepD.resize(numExtended);
+    accelerationTimeStepD.resize(numExtended);
     // Only shrink periodically if needed
     if (should_shrink) {
         markersProximity_D->gridMarkerHashD.shrink_to_fit();
@@ -460,7 +466,8 @@ void FsiDataManager::ResizeArrays(uint numExtended) {
         derivTauXyXzYzD.shrink_to_fit();
         freeSurfaceIdD.shrink_to_fit();
         vel_XSPH_D.shrink_to_fit();
-
+        courantViscousTimeStepD.shrink_to_fit();
+        accelerationTimeStepD.shrink_to_fit();
         // Update max particles to match new capacity
         m_max_extended_particles = (uint)markersProximity_D->gridMarkerHashD.capacity();
     }

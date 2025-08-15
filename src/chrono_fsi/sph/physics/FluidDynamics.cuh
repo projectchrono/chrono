@@ -116,6 +116,8 @@ class FluidDynamics {
     /// Apply boundary conditions on the sides of the computational domain.
     void ApplyBoundaryConditions(std::shared_ptr<SphMarkerDataD> sortedSphMarkersD);
 
+    Real computeTimeStep();
+
     cudaStream_t m_copy_stream;  ///< stream for async copy operations
 };
 
