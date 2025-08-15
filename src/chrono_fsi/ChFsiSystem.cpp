@@ -200,8 +200,8 @@ void ChFsiSystem::AdvanceCFD(double step, double threshold) {
     while (t < step) {
         // In case variable time step is not used - this will just return the step size
 
-        double h = m_sysCFD.GetVariableStepSize();
-        h = std::max<>(std::min<>(h, step - t), min_step);
+        double h = std::max<>(m_sysCFD.GetVariableStepSize(), min_step);
+        h = std::min<>(h, step - t);
 
         // double h_new = m_sysCFD.GetVariableStepSize();
         // double h = std::min<>(m_step_CFD, step - t);

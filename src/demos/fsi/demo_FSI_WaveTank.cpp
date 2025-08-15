@@ -442,6 +442,7 @@ int main(int argc, char* argv[]) {
     sph_params.use_delta_sph = true;
     sph_params.delta_sph_coefficient = 0.1;
     sph_params.eos_type = EosType::TAIT;
+    sph_params.use_variable_time_step = true;
 
     // set boundary and viscosity types
     if (boundary_method == "holmes") {
@@ -629,6 +630,7 @@ int main(int argc, char* argv[]) {
 
     ChTimer timer;
     timer.start();
+    double exchange_info = 5 * step_size;
     while (time < t_end) {
         // Extract FSI force on piston body
         auto force_body = fsi.GetFsiBodyForce(body).x();
@@ -662,9 +664,9 @@ int main(int argc, char* argv[]) {
 #endif
 
         // Call the FSI solver
-        fsi.DoStepDynamics(step_size);
+        fsi.DoStepDynamics(exchange_info);
 
-        time += step_size;
+        time += exchange_info;
         sim_frame++;
     }
     timer.stop();
