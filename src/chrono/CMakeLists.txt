@@ -71,7 +71,7 @@ set(Chrono_serialization_SOURCES
     serialization/ChObjectExplorer.cpp
     serialization/ChArchiveJSON.cpp
     serialization/ChArchiveXML.cpp
-    serialization/ChOutputASCII.cpp
+    serialization/ChArchiveASCII.cpp
     )
 set(Chrono_serialization_HEADERS
     serialization/ChArchive.h
@@ -79,7 +79,7 @@ set(Chrono_serialization_HEADERS
     serialization/ChObjectExplorer.h
     serialization/ChArchiveJSON.h
     serialization/ChArchiveXML.h
-    serialization/ChOutputASCII.h
+    serialization/ChArchiveASCII.h
     )
 source_group(serialization FILES ${Chrono_serialization_SOURCES} ${Chrono_serialization_HEADERS})
 
