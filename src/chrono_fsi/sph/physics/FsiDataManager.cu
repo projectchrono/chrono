@@ -384,8 +384,8 @@ void FsiDataManager::ResetData() {
     thrust::fill(derivTauXxYyZzD.begin(), derivTauXxYyZzD.end(), zero3);
     thrust::fill(derivTauXyXzYzD.begin(), derivTauXyXzYzD.end(), zero3);
         //// Time step vectors
-    thrust::fill(courantViscousTimeStepD.begin(), courantViscousTimeStepD.end(), FLT_MAX);
-    thrust::fill(accelerationTimeStepD.begin(), accelerationTimeStepD.end(), FLT_MAX);
+    thrust::fill(courantViscousTimeStepD.begin(), courantViscousTimeStepD.end(), std::numeric_limits<Real>::max());
+    thrust::fill(accelerationTimeStepD.begin(), accelerationTimeStepD.end(), std::numeric_limits<Real>::max());
 }
 
 // ------------------------------------------------------------------------------

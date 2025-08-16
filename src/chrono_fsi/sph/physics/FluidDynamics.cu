@@ -80,10 +80,12 @@ void FluidDynamics::CopySortedMarkers(const std::shared_ptr<SphMarkerDataD>& in,
 }
 
 
-Real FluidDynamics::computeTimeStep() const {
-    Real valid_entries = m_data_mgr.countersH->numExtendedParticles;
-    Real min_courant_viscous_time_step = thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.begin() + valid_entries, FLT_MAX, thrust::minimum<Real>());
-    Real min_acceleration_time_step = thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.begin() + valid_entries, FLT_MAX, thrust::minimum<Real>());
+double FluidDynamics::computeTimeStep() const {
+    size_t valid_entries = m_data_mgr.countersH->numExtendedParticles;
+    Real min_courant_viscous_time_step = thrust::reduce(thrust::device, m_data_mgr.courantViscousTimeStepD.begin(), m_data_mgr.courantViscousTimeStepD.begin() + valid_entries, std::numeric_limits<Real>::max(), thrust::minimum<Real>());
+    Real min_acceleration_time_step = thrust::reduce(thrust::device, m_data_mgr.accelerationTimeStepD.begin(), m_data_mgr.accelerationTimeStepD.begin() + valid_entries, std::numeric_limits<Real>::max(), thrust::minimum<Real>());
+
+    
     Real adjusted_time_step = 0.3 * std::min(min_courant_viscous_time_step, min_acceleration_time_step);
     // Log the time step values for analysiss
 #ifdef FSI_COUNT_LOGGING_ENABLED
@@ -91,7 +93,7 @@ Real FluidDynamics::computeTimeStep() const {
     QuantityLogger::GetInstance().AddValue("min_courant_viscous_time_step", min_courant_viscous_time_step);
     QuantityLogger::GetInstance().AddValue("min_acceleration_time_step", min_acceleration_time_step);
 #endif
-    return adjusted_time_step;
+    return static_cast<double>(adjusted_time_step);
 }
 
 //// TODO - revisit application of particle shifting (explicit schemes)

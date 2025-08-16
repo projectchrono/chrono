@@ -100,7 +100,7 @@ class FluidDynamics {
     bool CheckActivityArrayResize();
 
     /// Compute the time step.
-    Real computeTimeStep() const;
+    double computeTimeStep() const;
 
   private:
     FsiDataManager& m_data_mgr;                        ///< FSI data manager
