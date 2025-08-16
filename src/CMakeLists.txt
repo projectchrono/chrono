@@ -411,6 +411,7 @@ if(CH_ENABLE_HDF5)
         message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
         message(STATUS "  HDF5 C libraries   (HDF5_C_LIBRARIES)   ${HDF5_C_LIBRARIES}")
         message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
+        message(STATUS "  HDF5 libraries     (HDF5_LIBRARIES)     ${HDF5_LIBRARIES}")
 
         # If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to have
         # the symbols imported from the DLL.  Note also that the path to the HDF5 DLLs must

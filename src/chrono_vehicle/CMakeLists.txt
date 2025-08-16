@@ -947,9 +947,17 @@ target_compile_definitions(Chrono_vehicle INTERFACE
 target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
 
 if(HDF5_FOUND)
-    target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${HDF5_COMPILE_DEFS}>)
-    target_include_directories(Chrono_vehicle PUBLIC ${HDF5_INCLUDE_DIRS})
-    target_link_libraries(Chrono_vehicle PUBLIC ${HDF5_CXX_LIBRARIES})
+    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5-shared)
+    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_cpp-shared)
+    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl-shared)
+    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl_cpp-shared)
+    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_tools-shared)
+
+    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5-static)
+    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_cpp-static)
+    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl-static)
+    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl_cpp-static)
+    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_tools-static)
 endif()
 
 install(TARGETS Chrono_vehicle
