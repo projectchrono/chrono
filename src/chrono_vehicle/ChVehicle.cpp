@@ -44,9 +44,8 @@ namespace vehicle {
 ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
-      m_output(false),
-      m_output_step(0),
       m_output_db(nullptr),
+      m_output_step(0),
       m_next_output_time(0),
       m_output_frame(0),
       m_mass(0),
@@ -73,9 +72,8 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
     : m_name(name),
       m_system(system),
       m_ownsSystem(false),
-      m_output(false),
-      m_output_step(0),
       m_output_db(nullptr),
+      m_output_step(0),
       m_next_output_time(0),
       m_output_frame(0),
       m_mass(0),
@@ -136,17 +134,16 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
                           const std::string& out_dir,
                           const std::string& out_name,
                           double output_step) {
-    m_output = true;
+    if (type == ChVehicleOutput::Type::NONE)
+        return;
+
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::ASCII:
+        case ChVehicleOutput::Type::ASCII:
             m_output_db = new ChVehicleOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
-        case ChVehicleOutput::JSON:
-            //// TODO
-            break;
-        case ChVehicleOutput::HDF5:
+        case ChVehicleOutput::Type::HDF5 :
 #ifdef CHRONO_HAS_HDF5
             m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
 #endif
@@ -155,17 +152,16 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
 }
 
 void ChVehicle::SetOutput(ChVehicleOutput::Type type, std::ostream& out_stream, double output_step) {
-    m_output = true;
+    if (type == ChVehicleOutput::Type::NONE)
+        return;
+
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::ASCII:
+        case ChVehicleOutput::Type::ASCII:
             m_output_db = new ChVehicleOutputASCII(out_stream);
             break;
-        case ChVehicleOutput::JSON:
-            //// TODO
-            break;
-        case ChVehicleOutput::HDF5:
+        case ChVehicleOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
             //// TODO
 #endif
@@ -198,7 +194,7 @@ void ChVehicle::Advance(double step) {
         m_initialized = true;
     }
 
-    if (m_output && m_system->GetChTime() >= m_next_output_time) {
+    if (m_output_db && m_system->GetChTime() >= m_next_output_time) {
         Output(m_output_frame, *m_output_db);
         m_next_output_time += m_output_step;
         m_output_frame++;

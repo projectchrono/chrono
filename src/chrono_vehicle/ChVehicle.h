@@ -317,8 +317,7 @@ class CH_VEHICLE_API ChVehicle {
     ChFrame<> m_com;         ///< current vehicle COM (relative to the vehicle reference frame)
     ChMatrix33<> m_inertia;  ///< current total vehicle inertia (Relative to the vehicle COM frame)
 
-    bool m_output;                 ///< generate ouput for this vehicle system
-    ChVehicleOutput* m_output_db;  ///< vehicle output database
+    ChVehicleOutput* m_output_db;  ///< vehicle output database (no output if nullptr)
     double m_output_step;          ///< output time step
     double m_next_output_time;     ///< time for next output
     int m_output_frame;            ///< current output frame

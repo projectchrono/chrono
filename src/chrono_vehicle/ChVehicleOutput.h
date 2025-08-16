@@ -43,10 +43,10 @@ namespace vehicle {
 /// Base class for a vehicle output database.
 class CH_VEHICLE_API ChVehicleOutput {
   public:
-    enum Type {
+    enum class Type {
         ASCII,  ///< ASCII text
-        JSON,   ///< JSON
-        HDF5    ///< HDF-5
+        HDF5,   ///< HDF-5
+        NONE    ///< no output
     };
 
     ChVehicleOutput() {}

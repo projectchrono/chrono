@@ -69,7 +69,7 @@ double render_fps = 50;
 double t_end = 20;
 
 // Record vehicle output
-bool vehicle_output = false;
+ChVehicleOutput::Type vehicle_output = ChVehicleOutput::Type::HDF5;
 
 // Record debug test data
 bool debug_output = false;
@@ -185,13 +185,11 @@ int main(int argc, char* argv[]) {
     // Initialize output file for debug output
     utils::ChWriterCSV vehicle_csv(" ");
 
-    // Enable vehicle output (ASCII file)
-    if (vehicle_output) {
-        vehicle.SetChassisOutput(true);
-        vehicle.SetSuspensionOutput(0, true);
-        vehicle.SetSteeringOutput(0, true);
-        vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "vehicle_output", 0.1);
-    }
+    // Enable vehicle output
+    vehicle.SetChassisOutput(true);
+    vehicle.SetSuspensionOutput(0, true);
+    vehicle.SetSteeringOutput(0, true);
+    vehicle.SetOutput(vehicle_output, out_dir, "vehicle_output", 0.1);
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");
