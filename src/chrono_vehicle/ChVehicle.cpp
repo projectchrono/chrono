@@ -29,9 +29,9 @@
 
 #include "chrono_vehicle/ChVehicleVisualSystem.h"
 
-#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+#include "chrono/output/ChOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-    #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+    #include "chrono/output/ChOutputHDF5.h"
 #endif
 
 namespace chrono {
@@ -130,38 +130,38 @@ void ChVehicle::EnableRealtime(bool val) {
 // Enable output for this vehicle system.
 // -----------------------------------------------------------------------------
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type,
+void ChVehicle::SetOutput(ChOutput::Type type,
                           const std::string& out_dir,
                           const std::string& out_name,
                           double output_step) {
-    if (type == ChVehicleOutput::Type::NONE)
+    if (type == ChOutput::Type::NONE)
         return;
 
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::Type::ASCII:
-            m_output_db = new ChVehicleOutputASCII(out_dir + "/" + out_name + ".txt");
+        case ChOutput::Type::ASCII:
+            m_output_db = new ChOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
-        case ChVehicleOutput::Type::HDF5 :
+        case ChOutput::Type::HDF5 :
 #ifdef CHRONO_HAS_HDF5
-            m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
+            m_output_db = new ChOutputHDF5(out_dir + "/" + out_name + ".h5");
 #endif
             break;
     }
 }
 
-void ChVehicle::SetOutput(ChVehicleOutput::Type type, std::ostream& out_stream, double output_step) {
-    if (type == ChVehicleOutput::Type::NONE)
+void ChVehicle::SetOutput(ChOutput::Type type, std::ostream& out_stream, double output_step) {
+    if (type == ChOutput::Type::NONE)
         return;
 
     m_output_step = output_step;
 
     switch (type) {
-        case ChVehicleOutput::Type::ASCII:
-            m_output_db = new ChVehicleOutputASCII(out_stream);
+        case ChOutput::Type::ASCII:
+            m_output_db = new ChOutputASCII(out_stream);
             break;
-        case ChVehicleOutput::Type::HDF5:
+        case ChOutput::Type::HDF5:
 #ifdef CHRONO_HAS_HDF5
             //// TODO
 #endif

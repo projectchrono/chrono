@@ -415,7 +415,7 @@ void ChSuspensionTestRig::LogConstraintViolations() {
 
 // -----------------------------------------------------------------------------
 
-void ChSuspensionTestRig::SetOutput(ChVehicleOutput::Type type,
+void ChSuspensionTestRig::SetOutput(ChOutput::Type type,
                                     const std::string& out_dir,
                                     const std::string& out_name,
                                     double output_step) {

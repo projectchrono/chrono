@@ -531,7 +531,7 @@ void ChThreeLinkIRS::ExportComponentList(rapidjson::Document& jsonDocument) cons
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChThreeLinkIRS::Output(ChVehicleOutput& database) const {
+void ChThreeLinkIRS::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

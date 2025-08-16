@@ -197,7 +197,7 @@ void ChBalancer::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportBodyLoadList(jsonDocument, bushings);
 }
 
-void ChBalancer::Output(ChVehicleOutput& database) const {
+void ChBalancer::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

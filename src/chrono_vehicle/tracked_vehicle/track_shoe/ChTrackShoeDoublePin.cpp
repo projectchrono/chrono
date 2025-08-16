@@ -596,7 +596,7 @@ void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument
     ExportBodyLoadList(jsonDocument, bushings);
 }
 
-void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
+void ChTrackShoeDoublePin::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

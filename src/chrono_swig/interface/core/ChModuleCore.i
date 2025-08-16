@@ -82,6 +82,8 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
+#include "chrono/output/ChOutput.h"
+
 using namespace chrono;
 using namespace chrono::fea;
 %}
@@ -446,6 +448,8 @@ inline const char* ChUtils_GetFilename() {
 %include "../../../chrono/utils/ChFilters.h"
 %include "../../../chrono/utils/ChUtilsCreators.h"
 %include "../../../chrono/utils/ChUtilsGeometry.h"
+
+%include "../../../chrono/output/ChOutput.h"
 
 %include "ChParticleFactory.i"
 //

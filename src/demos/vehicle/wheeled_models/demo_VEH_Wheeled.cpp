@@ -22,10 +22,10 @@
 #include "chrono/utils/ChUtils.h"
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/output/ChOutputASCII.h"
 
 #include "chrono_vehicle/driver/ChInteractiveDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
@@ -69,7 +69,7 @@ double render_fps = 50;
 double t_end = 20;
 
 // Record vehicle output
-ChVehicleOutput::Type vehicle_output = ChVehicleOutput::Type::HDF5;
+ChOutput::Type vehicle_output = ChOutput::Type::NONE;
 
 // Record debug test data
 bool debug_output = false;

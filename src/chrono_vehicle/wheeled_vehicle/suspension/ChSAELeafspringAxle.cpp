@@ -609,7 +609,7 @@ void ChSAELeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument)
     ExportRotSpringList(jsonDocument, rot_springs);
 }
 
-void ChSAELeafspringAxle::Output(ChVehicleOutput& database) const {
+void ChSAELeafspringAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

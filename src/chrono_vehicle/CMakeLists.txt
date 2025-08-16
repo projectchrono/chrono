@@ -173,7 +173,6 @@ set(CV_BASE_FILES
     ChVehicleModelData.cpp
     ChVehicleVisualSystem.h
     ChVehicleVisualSystem.cpp
-    ChVehicleOutput.h
     ChWorldFrame.cpp
     ChWorldFrame.h
 )
@@ -301,20 +300,6 @@ set(CV_UTILS_FILES
     utils/ChUtilsJSON.cpp
 )
 source_group("utils" FILES ${CV_UTILS_FILES})
-
-set(CV_OUTPUT_FILES
-    output/ChVehicleOutputASCII.h
-    output/ChVehicleOutputASCII.cpp
-)
-if (HDF5_FOUND)
-    set(CVHDF5_OUTPUT_FILES
-        output/ChVehicleOutputHDF5.h
-        output/ChVehicleOutputHDF5.cpp
-    )
-else()
-    set(CVHDF5_OUTPUT_FILES "")
-endif()
-source_group("output" FILES ${CV_OUTPUT_FILES} ${CVHDF5_OUTPUT_FILES})
 
 # --------------- WHEELED VEHICLE FILES
 
@@ -882,8 +867,6 @@ add_library(Chrono_vehicle
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_UTILS_FILES}
-    ${CV_OUTPUT_FILES}
-    ${CVHDF5_OUTPUT_FILES}
 #
     ${CV_WV_BASE_FILES}
     ${CV_WV_ANTIROLL_FILES}
@@ -945,20 +928,6 @@ target_compile_definitions(Chrono_vehicle INTERFACE
     $<INSTALL_INTERFACE:CHRONO_VEHICLE_DATA_DIR=\"$<INSTALL_PREFIX>/data/vehicle/\">)
 
 target_compile_definitions(Chrono_vehicle PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_VEHICLE>)
-
-if(HDF5_FOUND)
-    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5-shared)
-    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_cpp-shared)
-    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl-shared)
-    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl_cpp-shared)
-    #target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_tools-shared)
-
-    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5-static)
-    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_cpp-static)
-    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl-static)
-    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_hl_cpp-static)
-    target_link_libraries(Chrono_vehicle PUBLIC hdf5::hdf5_tools-static)
-endif()
 
 install(TARGETS Chrono_vehicle
         EXPORT ChronoTargets

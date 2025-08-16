@@ -578,7 +578,7 @@ void ChToeBarLeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocume
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChToeBarLeafspringAxle::Output(ChVehicleOutput& database) const {
+void ChToeBarLeafspringAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

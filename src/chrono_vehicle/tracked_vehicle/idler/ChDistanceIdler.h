@@ -116,7 +116,7 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(ChOutput& database) const override;
 
     std::shared_ptr<ChBody> m_carrier;                   ///< carrier body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;      ///< carrier-chassis revolute joint

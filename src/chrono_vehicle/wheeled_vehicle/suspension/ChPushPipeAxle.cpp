@@ -384,7 +384,7 @@ void ChPushPipeAxle::ExportComponentList(rapidjson::Document& jsonDocument) cons
     ChPart::ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChPushPipeAxle::Output(ChVehicleOutput& database) const {
+void ChPushPipeAxle::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

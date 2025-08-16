@@ -152,7 +152,7 @@ DriverMode driver_mode = DriverMode::INTERACTIVE;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Output collection
-ChVehicleOutput::Type output = ChVehicleOutput::Type::ASCII;
+ChOutput::Type output = ChOutput::Type::ASCII;
 bool plot = true;
 double out_step_size = 1e-2;
 

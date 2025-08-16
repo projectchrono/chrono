@@ -174,7 +174,7 @@ void ChRotaryArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportJointList(jsonDocument, joints);
 }
 
-void ChRotaryArm::Output(ChVehicleOutput& database) const {
+void ChRotaryArm::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

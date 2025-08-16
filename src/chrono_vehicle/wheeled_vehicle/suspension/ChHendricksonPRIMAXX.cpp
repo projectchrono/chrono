@@ -736,7 +736,7 @@ void ChHendricksonPRIMAXX::ExportComponentList(rapidjson::Document& jsonDocument
     ExportLinSpringList(jsonDocument, springs);
 }
 
-void ChHendricksonPRIMAXX::Output(ChVehicleOutput& database) const {
+void ChHendricksonPRIMAXX::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

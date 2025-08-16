@@ -331,7 +331,7 @@ void ChSprocket::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ExportJointList(jsonDocument, joints);
 }
 
-void ChSprocket::Output(ChVehicleOutput& database) const {
+void ChSprocket::Output(ChOutput& database) const {
     if (!m_output)
         return;
 

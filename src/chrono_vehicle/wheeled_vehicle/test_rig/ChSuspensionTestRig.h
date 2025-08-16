@@ -132,7 +132,7 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     void LogConstraintViolations();
 
     /// Enable output for this vehicle system (default: false).
-    void SetOutput(ChVehicleOutput::Type type,   ///< type of output DB
+    void SetOutput(ChOutput::Type type,   ///< type of output DB
                    const std::string& out_dir,   ///< output directory name
                    const std::string& out_name,  ///< rootname of output file
                    double output_step            ///< interval between output times
