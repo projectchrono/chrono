@@ -518,7 +518,7 @@ class ChGnuPlot {
         syscmd += "gnuplot \"";
         syscmd += m_gpl_filename;
         syscmd += "\"";
-        if (persist)
+        if (m_persist)
             syscmd += " -persist";
         syscmd += " &";  // to launch and forget
         system(syscmd.c_str());
