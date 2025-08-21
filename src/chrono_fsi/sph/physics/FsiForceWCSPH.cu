@@ -1373,7 +1373,7 @@ __global__ void CrmRHS(const Real4* __restrict__ sortedPosRad,
 
     if(IsFluidParticle(rhoPresMuA.w)) {
         courantViscousTimeStepD[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate = derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z;
+        Real intermediate = sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
         Real accT = sqrtf(paramsD.h / intermediate);
         accelerationTimeStepD[index] = accT;
     }
@@ -1632,7 +1632,7 @@ __global__ void CfdRHS(Real4* sortedDerivVelRho,
 
     if(IsFluidParticle(rhoPresMuA.w)) {
         courantViscousTimeStep[index] = paramsD.h / (paramsD.Cs + max_vel_diff);
-        Real intermediate = derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z;
+        Real intermediate = sqrtf(derivVelRho.x * derivVelRho.x + derivVelRho.y * derivVelRho.y + derivVelRho.z * derivVelRho.z);
         Real accT = sqrtf(paramsD.h / intermediate);
         accelerationTimeStep[index] = accT;
     }
