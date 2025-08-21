@@ -312,6 +312,10 @@ void ChFsiProblemSPH::PrintFSIStats() const {
     m_sysSPH.PrintFluidSystemSPHStats();
 }
 
+void ChFsiProblemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
+    m_sysSPH.PrintFluidSystemSPHTimeSteps(path);
+}
+
 // Check if specified point is inside a primitive shape of the given geometry.
 // Test a shape volume enlarged by the specified envelope.
 bool InsidePoint(const utils::ChBodyGeometry& geometry, const ChVector3d& p, double envelope) {

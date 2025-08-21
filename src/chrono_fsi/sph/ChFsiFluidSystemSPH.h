@@ -607,6 +607,9 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     /// Print the FSI statistics
     void PrintFluidSystemSPHStats() const;
+    /// Print the three time step quantities and the final time step to a file
+    /// Only valid in variable time step mode
+    void PrintFluidSystemSPHTimeSteps(const std::string& path) const;
 
     /// Additional actions taken before applying fluid forces to the solid phase.
     virtual void OnExchangeSolidForces() override;

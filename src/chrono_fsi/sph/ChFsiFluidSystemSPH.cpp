@@ -1933,6 +1933,11 @@ void ChFsiFluidSystemSPH::PrintFluidSystemSPHStats() const {
     QuantityLogger::GetInstance().PrintStats();
 }
 
+void ChFsiFluidSystemSPH::PrintFluidSystemSPHTimeSteps(const std::string& path) const {
+    std::vector<std::string> quantities = {"time_step", "min_courant_viscous_time_step", "min_acceleration_time_step"};
+    QuantityLogger::GetInstance().WriteQuantityValuesToFile(path, quantities);
+}
+
 void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     SynchronizeCopyStream();
     // Update particle activity

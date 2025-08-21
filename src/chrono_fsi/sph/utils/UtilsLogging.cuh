@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -211,7 +212,7 @@ class QuantityLogger {
         const auto& vals = it->second;
         if (vals.empty())
             return stats;
-        
+
         stats.call_count = vals.size();
         stats.min = *std::min_element(vals.begin(), vals.end());
         stats.max = *std::max_element(vals.begin(), vals.end());
@@ -289,6 +290,61 @@ class QuantityLogger {
     void SetEnabled(bool enabled) { enabled_ = enabled; }
     bool IsEnabled() const { return enabled_; }
 
+    // Write all values for supplied quantities to a text file
+    void WriteQuantityValuesToFile(const std::string& file_path, const std::vector<std::string>& quantity_names) const {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        // Try to create directory if it doesn't exist
+        size_t last_slash = file_path.find_last_of('/');
+        if (last_slash != std::string::npos) {
+            std::string dir_path = file_path.substr(0, last_slash);
+            std::filesystem::create_directories(dir_path);
+        }
+
+        // Try to create/open the file
+        std::ofstream file(file_path);
+        if (!file.is_open()) {
+            std::cerr << "Failed to create/open file: " << file_path << std::endl;
+            return;
+        }
+
+        // Check if quantity exists
+        // Get their sizes
+        size_t max_size = 0;
+        std::unordered_map<std::string, size_t> sizes;
+        for (const auto& qty : quantity_names) {
+            auto it = quantities_.find(qty);
+            if (it == quantities_.end()) {
+                std::cerr << "Quantity '" << qty << "' not found" << std::endl;
+                return;
+            }
+            sizes[qty] = it->second.size();
+            max_size = std::max(max_size, sizes[qty]);
+        }
+
+        // Write header
+        file << "index";
+        for (const auto& qty : quantity_names) {
+            file << "," << qty;
+        }
+        file << std::endl;
+
+        // Write values in index,value1,value2,value3,... format
+        for (size_t i = 0; i < max_size; ++i) {
+            file << i;
+            for (const auto& qty : quantity_names) {
+                file << ",";
+                auto it = quantities_.find(qty);
+                if (it != quantities_.end() && i < it->second.size()) {
+                    file << it->second[i];
+                }
+            }
+            file << std::endl;
+        }
+
+        file.close();
+    }
+
   private:
     QuantityLogger() = default;
     mutable std::mutex mutex_;
@@ -301,7 +357,6 @@ inline void PrintAllStats() {
     CountLogger::GetInstance().PrintStats();
     QuantityLogger::GetInstance().PrintStats();
 }
-
 
 #else  // FSI_COUNT_LOGGING_ENABLED
 
@@ -350,6 +405,7 @@ class QuantityLogger {
     void Clear() {}
     void SetEnabled(bool) {}
     bool IsEnabled() const { return false; }
+    void WriteQuantityValuesToFile(const std::string&, const std::vector<std::string>&) const {}
 };
 
 inline void PrintAllStats() {}

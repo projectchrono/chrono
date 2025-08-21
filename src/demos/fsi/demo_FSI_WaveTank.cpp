@@ -676,6 +676,7 @@ int main(int argc, char* argv[]) {
     ofile.close();
 
     fsi.PrintFSIStats();
+    fsi.PrintFluidSystemSPHTimeSteps(out_dir + "time_steps.txt");
 
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChGnuPlot gplot(out_dir + "/results.gpl");
